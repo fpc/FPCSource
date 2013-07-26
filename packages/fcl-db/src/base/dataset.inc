@@ -52,10 +52,10 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
-  With FDatasources do
+  With FDataSources do
     begin
     While Count>0 do
-      TDatasource(Items[Count - 1]).DataSet:=Nil;
+      TDataSource(Items[Count - 1]).DataSet:=Nil;
     Free;
     end;
   for i := 0 to FBufferCount do
@@ -174,7 +174,7 @@ Procedure TDataset.ClearBuffers;
 
 begin
   FRecordCount:=0;
-  FactiveRecord:=0;
+  FActiveRecord:=0;
   FCurrentRecord:=-1;
   FBOF:=True;
   FEOF:=True;
@@ -408,10 +408,10 @@ begin
 {$ifdef dsdebug}
   Writeln ('Calling RecalcBufListSize');
 {$endif}
-  FRecordcount := 0;
+  FRecordCount := 0;
   RecalcBufListSize;
-  FBOF:=True;
-  FEOF := (FRecordcount = 0);
+  FBOF := True;
+  FEOF := (FRecordCount = 0);
 end;
 
 Procedure TDataset.DoOnCalcFields;
@@ -759,18 +759,18 @@ begin
   Writeln ('Getting next record. Internal RecordCount : ',FRecordCount);
 {$endif}
   If FRecordCount>0 Then SetCurrentRecord(FRecordCount-1);
-  Result:=GetRecord(FBuffers[FBuffercount],gmNext,True)=grOK;
+  Result:=GetRecord(FBuffers[FBufferCount],gmNext,True)=grOK;
 
   if result then
     begin
       If FRecordCount=0 then ActivateBuffers;
-      if FRecordcount=FBuffercount then
-        shiftbuffersbackward
+      if FRecordCount=FBufferCount then
+        ShiftBuffersBackward
       else
         begin
           inc(FRecordCount);
           FCurrentRecord:=FRecordCount - 1;
-          ExchangeBuffers(Fbuffers[FCurrentRecord],FBuffers[FBuffercount]);
+          ExchangeBuffers(FBuffers[FCurrentRecord],FBuffers[FBufferCount]);
         end;
     end
   else
@@ -802,13 +802,13 @@ begin
 {$endif}
   CheckBiDirectional;
   If FRecordCount>0 Then SetCurrentRecord(0);
-  Result:=GetRecord(FBuffers[FBuffercount],gmPrior,True)=grOK;
+  Result:=GetRecord(FBuffers[FBufferCount],gmPrior,True)=grOK;
   if result then
     begin
       If FRecordCount=0 then ActivateBuffers;
-      shiftbuffersforward;
+      ShiftBuffersForward;
 
-      if FRecordcount<FBuffercount then
+      if FRecordCount<FBufferCount then
         inc(FRecordCount);
     end
   else
@@ -825,7 +825,7 @@ begin
 {$ifdef dsdebug}
   Writeln ('Getting previous record(s), need :',FBufferCount);
 {$endif}
-  While (FRecordCount<FbufferCount) and GetPriorRecord do
+  While (FRecordCount<FBufferCount) and GetPriorRecord do
     Inc(Result);
 end;
 
@@ -1217,8 +1217,8 @@ begin
     if (value > -1) and (FActiveRecord>Value-1) then
       begin
       for i := 0 to (FActiveRecord-Value) do
-        shiftbuffersbackward;
-      FActiverecord := Value -1;
+        ShiftBuffersBackward;
+      FActiveRecord := Value -1;
       end;
 
     If Assigned(FBuffers) then
@@ -1238,7 +1238,7 @@ begin
   FBufferCount:=Value;
   If Value=-1 then
     Value:=0;
-  if FRecordcount > Value then FRecordcount := Value;
+  if FRecordCount > Value then FRecordCount := Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
 {$endif}
@@ -1457,11 +1457,11 @@ begin
     UpdateCursorPos;
     InternalCancel;
     FreeFieldBuffers;
-    if (state = dsInsert) and (FRecordcount = 1) then
+    if (State = dsInsert) and (FRecordCount = 1) then
       begin
       FEOF := true;
       FBOF := true;
-      FRecordcount := 0;
+      FRecordCount := 0;
       InitRecord(ActiveBuffer);
       SetState(dsBrowse);
       DataEvent(deDatasetChange,0);
@@ -1469,7 +1469,7 @@ begin
     else
       begin
       SetState(dsBrowse);
-      SetCurrentRecord(FActiverecord);
+      SetCurrentRecord(FActiveRecord);
       resync([]);
       end;
     DoAfterCancel;
@@ -1482,7 +1482,7 @@ begin
   CheckActive;
   DataEvent(deCheckBrowseMode,0);
   Case State of
-    dsedit,dsinsert: begin
+    dsEdit,dsInsert: begin
       UpdateRecord;
       If Modified then Post else Cancel;
     end;
@@ -1553,7 +1553,7 @@ begin
 {$ifdef dsdebug}
     writeln ('Delete: Browse mode set');
 {$endif}
-    SetCurrentRecord(FActiverecord);
+    SetCurrentRecord(FActiveRecord);
     Resync([]);
     DoAfterDelete;
     DoAfterScroll;
@@ -1586,20 +1586,20 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   begin
   // need to scroll up al buffers after current one,
   // but copy current bookmark to insert buffer.
-  If FRecordcount > 0 then
+  If FRecordCount > 0 then
     BookBeforeInsert:=Bookmark;
 
   if not DoAppend then
     begin
     if FRecordCount > 0 then
       begin
-      TempBuf := FBuffers[FBuffercount];
-      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
+      TempBuf := FBuffers[FBufferCount];
+      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(FBufferCount-FActiveRecord)*sizeof(FBuffers[0]));
       FBuffers[FActiveRecord]:=TempBuf;
       end;
     end
-  else if FRecordcount=FBuffercount then
-    shiftbuffersbackward
+  else if FRecordCount=FBufferCount then
+    ShiftBuffersBackward
   else
     begin
     if FRecordCount>0 then
@@ -1621,7 +1621,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
     // 1-apr-06, JvdS: It just sets the bookmark of the newly inserted record to the place
     // where the record should be inserted. So it is ok.
-    if FRecordcount > 0 then
+    if FRecordCount > 0 then
       begin
       SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
       FreeBookmark(BookBeforeInsert);
@@ -1667,7 +1667,7 @@ begin
   try
     DoOnNewRecord;
   except
-    SetCurrentRecord(FActiverecord);
+    SetCurrentRecord(FActiveRecord);
     resync([]);
     raise;
   end;
@@ -1685,7 +1685,7 @@ end;
 Procedure TDataset.Edit;
 
 begin
-  If State in [dsedit,dsinsert] then exit;
+  If State in [dsEdit,dsInsert] then exit;
   CheckBrowseMode;
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
@@ -1697,7 +1697,7 @@ begin
   DoBeforeEdit;
   If Not TryDoing(@InternalEdit,OnEditError) then exit;
   GetCalcFields(ActiveBuffer);
-  SetState(dsedit);
+  SetState(dsEdit);
   DataEvent(deRecordChange,0);
   DoAfterEdit;
 end;
@@ -1873,7 +1873,7 @@ Function TDataset.IsEmpty: Boolean;
 
 begin
   Result:=(fBof and fEof) and
-          (not (state = dsinsert)); // After an insert on an empty dataset, both fBof and fEof are true
+          (not (State = dsInsert)); // After an insert on an empty dataset, both fBof and fEof are true
 end;
 
 Function TDataset.IsLinkedTo(ADataSource: TDataSource): Boolean;
@@ -1919,8 +1919,7 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
 Var
   TheResult: Integer;
 
-  Function Scrollforward : Integer;
-
+  Function ScrollForward : Integer;
   begin
     Result:=0;
 {$ifdef dsdebug}
@@ -1954,8 +1953,8 @@ Var
         end;
       end
   end;
-  Function ScrollBackward : Integer;
 
+  Function ScrollBackward : Integer;
   begin
     CheckBiDirectional;
     Result:=0;
@@ -2083,15 +2082,15 @@ begin
   InternalRefresh;
 { SetCurrentRecord is called by UpdateCursorPos already, so as long as
   InternalRefresh doesn't do strange things this should be ok. }
-//  SetCurrentRecord(FActiverecord);
+//  SetCurrentRecord(FActiveRecord);
   Resync([]);
   DoAfterRefresh;
 end;
 
-Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
+Procedure TDataset.RegisterDataSource(ADataSource : TDataSource);
 
 begin
-  FDatasources.Add(ADataSource);
+  FDataSources.Add(ADataSource);
   RecalcBufListSize;
 end;
 
@@ -2107,16 +2106,16 @@ begin
 {$endif}
   if FIsUnidirectional then Exit;
 // place the cursor of the underlying dataset to the active record
-//  SetCurrentRecord(FActiverecord);
+//  SetCurrentRecord(FActiveRecord);
 
 // Now look if the data on the current cursor of the underlying dataset is still available
-  If GetRecord(Fbuffers[0],gmcurrent,False)<>grOk Then
+  If GetRecord(FBuffers[0],gmCurrent,False)<>grOk Then
 // If that fails and rmExact is set, then raise an exception
     If rmExact in Mode then
       DatabaseError(SNoSuchRecord,Self)
 // else, if rmexact is not set, try to fetch the next  or prior record in the underlying dataset
-    else if (GetRecord(Fbuffers[0],gmnext,True)<>grOk) and
-            (GetRecord(Fbuffers[0],gmprior,True)<>grOk) then
+    else if (GetRecord(FBuffers[0],gmNext,True)<>grOk) and
+            (GetRecord(FBuffers[0],gmPrior,True)<>grOk) then
       begin
 {$ifdef dsdebug}
       Writeln ('Resync: fuzzy resync');
@@ -2138,7 +2137,7 @@ begin
   else
     count := FActiveRecord;
   i := 0;
-  FRecordcount := 1;
+  FRecordCount := 1;
   FActiveRecord := 0;
 
 // Fill the buffers before the active record
@@ -2148,7 +2147,7 @@ begin
 // Fill the rest of the buffer
   getnextrecords;
 // If the buffer is not full yet, try to fetch some more prior records
-  if FRecordcount < FBuffercount then inc(FActiverecord,getpriorrecords);
+  if FRecordCount < FBufferCount then inc(FActiveRecord,getpriorrecords);
 // That's all folks!
   DataEvent(deDatasetChange,0);
 end;
@@ -2213,7 +2212,7 @@ Procedure TDataset.UpdateCursorPos;
 
 begin
   If FRecordCount>0 then
-    SetCurrentRecord(FactiveRecord);
+    SetCurrentRecord(FActiveRecord);
 end;
 
 Procedure TDataset.UpdateRecord;
@@ -2253,8 +2252,8 @@ var TempBuf : pointer;
 
 begin
   TempBuf := FBuffers[0];
-  move(FBuffers[1],FBuffers[0],(fbuffercount)*sizeof(FBuffers[0]));
-  FBuffers[buffercount]:=TempBuf;
+  move(FBuffers[1],FBuffers[0],(FBufferCount)*sizeof(FBuffers[0]));
+  FBuffers[BufferCount]:=TempBuf;
 end;
 
 Procedure TDataset.ShiftBuffersForward;
@@ -2263,11 +2262,11 @@ var TempBuf : pointer;
 
 begin
   TempBuf := FBuffers[FBufferCount];
-  move(FBuffers[0],FBuffers[1],(fbuffercount)*sizeof(FBuffers[0]));
+  move(FBuffers[0],FBuffers[1],(FBufferCount)*sizeof(FBuffers[0]));
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataset.GetFieldValues(const Fieldname: string): Variant;
+function TDataset.GetFieldValues(const FieldName: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2320,7 +2319,7 @@ begin
 end;
 
 
-Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
+Procedure TDataset.UnRegisterDataSource(ADataSource : TDataSource);
 
 begin
   FDataSources.Remove(ADataSource);
