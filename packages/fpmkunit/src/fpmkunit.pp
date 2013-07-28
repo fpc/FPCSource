@@ -6115,7 +6115,7 @@ begin
   case Defaults.BuildMode of
     bmOneByOne:  begin
                    if (bmOneByOne in APackage.SupportBuildModes) then
-                     APackage.FBuildMode:=bmBuildUnit
+                     APackage.FBuildMode:=bmOneByOne
                    else if bmBuildUnit in APackage.SupportBuildModes then
                      begin
                        log(vlInfo,SInfoFallbackBuildmodeBU);
