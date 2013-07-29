@@ -219,10 +219,13 @@ procedure TFPHTTPServerHandler.HTTPHandleRequest(Sender: TObject;
   var AResponse: TFPHTTPConnectionResponse);
 begin
   // Exceptions are handled by (Do)HandleRequest. It also frees the response/request
-  DoHandleRequest(ARequest,AResponse);
-  ARequest:=Nil;
-  AResponse:=Nil;
-  If Terminated then
+  try
+    DoHandleRequest(ARequest,AResponse);
+  finally  
+    ARequest:=Nil;
+    AResponse:=Nil;
+  end;    
+  If Terminated And Assigned(FServer) then
     FServer.Active:=False;
   if Assigned(OnIdle) then
     OnIdle(Self);
