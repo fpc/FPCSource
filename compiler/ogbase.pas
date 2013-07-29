@@ -2517,7 +2517,9 @@ implementation
                     firstcommon:=false;
                   end;
                 internalObjData.setsection(commonObjSection);
-                internalObjData.allocalign(var_align(objsym.size));
+                { TODO: support alignment of common symbols (ELF targets at least),
+                  increase commonObjSection.SecAlign if necessary here. }
+                internalObjData.allocalign(used_align(size_2_align(objsym.size),0,commonObjSection.SecAlign));
                 commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_DATA);
                 commonsym.size:=objsym.size;
                 internalObjData.alloc(objsym.size);

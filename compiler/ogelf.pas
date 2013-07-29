@@ -971,7 +971,7 @@ implementation
             end;
           AB_COMMON :
             begin
-              elfsym.st_value:=var_align(objsym.size);
+              elfsym.st_value:=size_2_align(objsym.size);
               elfsym.st_info:=STB_GLOBAL shl 4;
               elfsym.st_shndx:=SHN_COMMON;
             end;
@@ -2449,7 +2449,7 @@ implementation
                 if exesym.ObjSymbol.size=0 then
                   Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
                 internalobjdata.setSection(dynbssobjsec);
-                internalobjdata.allocalign(var_align(exesym.ObjSymbol.size));
+                internalobjdata.allocalign(size_2_align(exesym.ObjSymbol.size));
                 objsym:=internalobjdata.SymbolDefine(exesym.name,AB_GLOBAL,AT_DATA);
                 objsym.size:=exesym.ObjSymbol.size;
                 objsym.indsymbol:=exesym.ObjSymbol.indsymbol;
