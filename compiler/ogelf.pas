@@ -76,6 +76,9 @@ interface
        public
          ident: TElfIdent;
          flags: longword;
+{$ifdef mips}
+         gp_value: longword;
+{$endif mips}
          constructor create(const n:string);override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
@@ -148,6 +151,7 @@ interface
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
          function CreateSection(const shdr:TElfsechdr;index:longint;objdata:TObjData;
            out secname:string):TElfObjSection;
+         function ReadBytes(offs:longint;out buf;len:longint):boolean;
        end;
 
        TElfVersionDef = class(TFPHashObject)
@@ -1471,6 +1475,13 @@ implementation
         result.MemPos:=shdr.sh_addr;
         result.Size:=shdr.sh_size;
         FSecTbl[index].sec:=result;
+      end;
+
+
+    function TElfObjInput.ReadBytes(offs:longint;out buf;len:longint):boolean;
+      begin
+        FReader.Seek(offs);
+        result:=FReader.Read(buf,len);
       end;
 
 
