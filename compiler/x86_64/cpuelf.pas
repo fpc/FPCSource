@@ -35,7 +35,8 @@ implementation
   type
     TElfExeOutputx86_64=class(TElfExeOutput)
     private
-      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
+      procedure MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
+      procedure MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
     protected
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
@@ -260,7 +261,7 @@ implementation
             ReportNonDSOReloc(reltyp,objsec,objreloc);
 
         { R_X86_64_32 is processed by rtld, but binutils accept it in data sections only.
-          Relocating the against local symbols is tricky: changing into RELATIVE is not possible,
+          Relocating against local symbols is tricky: changing into RELATIVE is not possible,
           so it is changed into relocation against section symbol. This requires adding
           the appropriate section symbol to dynamic symtable. BFD also has some obscure logic
           behind, e.g. it uses .text section for symbols from .data section.
@@ -320,7 +321,7 @@ implementation
     end;
 
 
-  procedure TElfExeOutputx86_64.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;objsym:TObjSymbol);
+  procedure TElfExeOutputx86_64.MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
     var
       gotoff,tmp:aword;
     begin
@@ -336,16 +337,41 @@ implementation
 
           tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
           if (objsym.exesymbol.dynindex>0) then
+            dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_GLOB_DAT))
+          else
+            if IsSharedLibrary then
+              WriteDynRelocEntry(tmp,R_X86_64_RELATIVE,0,relocval);
+        end;
+    end;
+
+
+  procedure TElfExeOutputx86_64.MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
+    var
+      gotoff,tmp: aword;
+      objrel: TObjRelocation;
+    begin
+      gotoff:=objsym.exesymbol.gotoffset;
+      if gotoff=0 then
+        InternalError(2012060903);
+
+      if gotoff=gotobjsec.Data.size+sizeof(pint) then
+        begin
+          tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
+          if (objsym.exesymbol.dynindex>0) then
             begin
-              if (reltyp=R_X86_64_GOTTPOFF) then
-                if IsSharedLibrary then
-                  dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_TPOFF64)) // probably incorrect
-                else
-              else
-                dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_GLOB_DAT));
+              gotobjsec.writezeros(sizeof(pint));
+              dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_TPOFF64));
             end
-          else if IsSharedLibrary then
-            WriteDynRelocEntry(tmp,R_X86_64_RELATIVE,0,relocval);
+          else
+            begin
+              gotobjsec.write(relocval,sizeof(pint));
+              if IsSharedLibrary then
+                begin
+                  objrel:=TObjRelocation.CreateRaw(tmp,nil,R_X86_64_TPOFF64);
+                  objrel.orgsize:=relocval;
+                  dynreloclist.Add(objrel);
+                end;
+            end;
         end;
     end;
 
@@ -434,8 +460,8 @@ implementation
               //R_X86_64_DTPOFF64 is possible in data??
               R_X86_64_DTPOFF32:
                 begin
-                  { In executable it behaves as TPOFF32, but data expressions
-                    like ".long foo@dtpoff" resolve to positive offset }
+                  { In executable it behaves as TPOFF32 (i.e. generates negative offset),
+                    but data expressions like ".long foo@dtpoff" resolve to positive offset }
                   if IsSharedLibrary or not (oso_executable in objsec.SecOptions) then
                     address:=address+relocval-tlsseg.MemPos
                   else
@@ -446,14 +472,24 @@ implementation
               R_X86_64_TPOFF64:
                 address:=address+relocval-(tlsseg.MemPos+tlsseg.MemSize);
 
-              R_X86_64_GOTTPOFF,
+              R_X86_64_GOTTPOFF:
+                begin
+                  if IsSharedLibrary then
+                    relocval:=relocval-tlsseg.MemPos
+                  else
+                    relocval:=relocval-(tlsseg.MemPos+tlsseg.MemSize);
+
+                  MaybeWriteTLSIEGotEntry(relocval,objreloc.symbol);
+
+                  { resolves to PC-relative offset to GOT slot }
+                  relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint);
+                  address:=address+relocval-PC;
+                end;
+
               R_X86_64_GOTPCREL,
               R_X86_64_GOTPCREL64:
                 begin
-                  if (reltyp=R_X86_64_GOTTPOFF) then
-                    relocval:=relocval-(tlsseg.MemPos+tlsseg.MemSize);
-
-                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
+                  MaybeWriteGOTEntry(relocval,objreloc.symbol);
 
                   { resolves to PC-relative offset to GOT slot }
                   relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint);
@@ -488,7 +524,7 @@ implementation
               R_X86_64_GOT32,
               R_X86_64_GOT64:
                 begin
-                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol);
+                  MaybeWriteGOTEntry(relocval,objreloc.symbol);
 
                   relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint)-gotsymbol.address;
                   address:=address+relocval;
