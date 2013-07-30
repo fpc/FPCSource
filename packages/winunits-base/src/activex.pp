@@ -1744,7 +1744,7 @@ TYPE
                                       0 : (idldesc    : IDLDESC);
                                       1 : (paramdesc  : PARAMDESC);
                                       END;
-
+   TElemDesc	                = tagELEMDESC;
    ELEMDESC                     = tagELEMDESC;
    LPELEMDESC                   = ^ELEMDESC;
    tagVARDESC                   = Record

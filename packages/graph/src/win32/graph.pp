@@ -1333,7 +1333,7 @@ begin
          Exit;
       end
     else
-      WindowProcGraph := DefWindowProc(Window, AMessage, WParam, LParam);
+      WindowProcGraph := DefWindowProcA(Window, AMessage, WParam, LParam);
   end;
 end;
 
@@ -1359,7 +1359,7 @@ begin
       if assigned(commandmessagehandler) then
         WindowProcParent:=commandmessagehandler(window,amessage,wparam,lparam);
     else
-      WindowProcParent := DefWindowProc(Window, AMessage, WParam, LParam);
+      WindowProcParent := DefWindowProcA(Window, AMessage, WParam, LParam);
   end;
 end;
 
@@ -1443,7 +1443,7 @@ begin
   WinCreate:=0;
   if UseChildWindow then
     begin
-       ParentWindow:=CreateWindow('FPCGraphWindowMain', windowtitle,
+       ParentWindow:=CreateWindowA('FPCGraphWindowMain', windowtitle,
                   WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or extrastyle, longint(CW_USEDEFAULT), 0,
                   maxx+ChildOffset.Left+ChildOffset.Right+1+
                     2*GetSystemMetrics(SM_CXFRAME),
@@ -1458,7 +1458,7 @@ begin
          end
        else
          exit;
-       hWindow:=CreateWindow('FPCGraphWindowChild',nil,
+       hWindow:=CreateWindowA('FPCGraphWindowChild',nil,
                   WS_CHILD, ChildOffset.Left,ChildOffset.Top,
                   maxx+1,maxy+1,
                   ParentWindow, 0, system.MainInstance, nil);
@@ -1473,7 +1473,7 @@ begin
     end
   else
     begin
-       hWindow:=CreateWindow('FPCGraphWindow', windowtitle,
+       hWindow:=CreateWindowA('FPCGraphWindow', windowtitle,
                   ws_OverlappedWindow or extrastyle, longint(CW_USEDEFAULT), 0,
                   maxx+1+2*GetSystemMetrics(SM_CXFRAME),
                   maxy+1+2*GetSystemMetrics(SM_CYFRAME)+
