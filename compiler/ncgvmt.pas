@@ -819,7 +819,7 @@ implementation
             (oo_has_vmt in _class.childof.objectoptions) then
            current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,0))
          else
-           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
