@@ -1138,7 +1138,7 @@ begin
     IsConsole := ApplicationType <> 3;
 
     {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
-    if DosQuerySysInfo (1, 1, @DW, SizeOf (DW)) = 0 then
+    if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
      RealMaxPathLen := DW;
 
     ExitProc := nil;
