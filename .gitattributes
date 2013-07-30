@@ -963,6 +963,7 @@ packages/bzip2/src/bzip2si386.inc svneol=native#text/plain
 packages/bzip2/src/bzip2stream.pp svneol=native#text/plain
 packages/cairo/Makefile svneol=native#text/plain
 packages/cairo/Makefile.fpc svneol=native#text/plain
+packages/cairo/examples/getversion.pp svneol=native#text/pascal
 packages/cairo/fpmake.pp svneol=native#text/plain
 packages/cairo/src/cairo.pp svneol=native#text/plain
 packages/cairo/src/cairoft.pp svneol=native#text/plain

@@ -56,7 +56,7 @@ Uses
   CTypes;
 
 const
-{$ifdef win32}
+{$ifdef MSWINDOWS}
   LIB_CAIRO = 'libcairo-2.dll';
   {$IFDEF FPC}
     {$ifndef NO_SMART_LINK}
