@@ -830,7 +830,7 @@ implementation
             if (oo_has_msgint in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(intmessagetable))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { pointer to method table or nil }
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(methodnametable));
             { pointer to field table }
@@ -841,21 +841,21 @@ implementation
             if _class.members_need_inittable then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { auto table }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(interfacetable))
             else if _class.implements_any_interfaces then
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr)
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF')));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
           end;
          { write virtual methods }
          writevirtualmethods(current_asmdata.asmlists[al_globals]);
