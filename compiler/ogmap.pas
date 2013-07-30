@@ -145,7 +145,7 @@ implementation
             writeln(t,p.name);
             s:='';
           end;
-         Add(PadSpace(s,20)+'0x'+PadSpace(sizestr(p.size),16)+p.objsection.objdata.name);
+         Add(PadSpace(s,20)+PadSpace(sizestr(p.size),16)+p.objdata.name);
        end;
 
 

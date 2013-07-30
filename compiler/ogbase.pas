@@ -169,6 +169,7 @@ interface
        constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
+       function  ObjData: TObjData;
      end;
 
      { Stabs is common for all targets }
@@ -256,13 +257,18 @@ interface
 
      TString80 = string[80];
 
+     TObjSymbolList = class(TFPHashObjectList)
+     public
+       Owner: TObjData;
+     end;
+
      TObjData = class(TLinkedListItem)
      private
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
        { Symbols that will be defined in this object file }
-       FObjSymbolList    : TFPHashObjectList;
+       FObjSymbolList    : TObjSymbolList;
        FCachedAsmSymbolList : TFPObjectList;
        { Special info sections that are written to during object generation }
        FStabsObjSec,
@@ -309,7 +315,7 @@ interface
        procedure layoutsections(var datapos:aword);
        property Name:TString80 read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
-       property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
+       property ObjSymbolList:TObjSymbolList read FObjSymbolList;
        property ObjSectionList:TFPHashObjectList read FObjSectionList;
        property GroupsList:TFPHashObjectList read FGroupsList;
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
@@ -522,6 +528,7 @@ interface
         procedure DoRelocationFixup(objsec:TObjSection);virtual;abstract;
         function MemAlign(exesec: TExeSection): longword;
         function DataAlign(exesec: TExeSection): longword;
+        procedure ReplaceExeSectionList(newlist: TFPList);
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -705,6 +712,12 @@ implementation
           internalerror(200603014);
         objsection:=aobjsec;
         offset:=aobjsec.size;
+      end;
+
+
+    function TObjSymbol.ObjData: TObjData;
+      begin
+        result:=(OwnerList as TObjSymbolList).Owner;
       end;
 
 {****************************************************************************
@@ -960,7 +973,8 @@ implementation
         FStabsObjSec:=nil;
         FStabStrObjSec:=nil;
         { symbols }
-        FObjSymbolList:=TFPHashObjectList.Create(true);
+        FObjSymbolList:=TObjSymbolList.Create(true);
+        FObjSymbolList.Owner:=Self;
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
@@ -2524,7 +2538,7 @@ implementation
                 commonsym.size:=objsym.size;
                 internalObjData.alloc(objsym.size);
                 if assigned(exemap) then
-                  exemap.AddCommonSymbol(commonsym);
+                  exemap.AddCommonSymbol(objsym);
                 { Assign to the exesymbol }
                 objsym.exesymbol.objsymbol:=commonsym;
                 objsym.exesymbol.state:=symstate_defined;
@@ -3287,6 +3301,22 @@ implementation
                   end;
               end;
           end;
+      end;
+
+
+    procedure TExeOutput.ReplaceExeSectionList(newlist: TFPList);
+      var
+        tmp: TFPHashObjectList;
+        i: longint;
+      begin
+        tmp:=TFPHashObjectList.Create(true);
+        for i:=0 to newlist.count-1 do
+          TFPHashObject(newlist[i]).ChangeOwner(tmp);
+        { prevent destruction of existing sections }
+        for i:=0 to ExeSectionList.count-1 do
+          ExeSectionList.List[i]:=nil;
+        FExeSectionList.Free;
+        FExeSectionList:=tmp;
       end;
 
 

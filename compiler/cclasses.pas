@@ -273,6 +273,7 @@ type
     procedure Rename(const ANewName:TSymStr);
     property Name:TSymStr read GetName;
     property Hash:Longword read GetHash;
+    property OwnerList: TFPHashObjectList read FOwner;
   end;
 
   TFPHashObjectList = class(TObject)

@@ -1380,20 +1380,6 @@ begin
       Concat('EXESECTION .text');
       Concat('  OBJSECTION .text*');
       Concat('ENDEXESECTION');
-
-      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
-      Concat('EXESECTION __libc_thread_freeres_fn');
-      Concat('  PROVIDE __start__libc_thread_freeres_fn');
-      Concat('  OBJSECTION __libc_thread_freeres_fn');
-      Concat('  PROVIDE __stop__libc_thread_freeres_fn');
-      Concat('ENDEXESECTION');
-
-      Concat('EXESECTION __libc_freeres_fn');
-      Concat('  PROVIDE __start__libc_freeres_fn');
-      Concat('  OBJSECTION __libc_freeres_fn');
-      Concat('  PROVIDE __stop__libc_freeres_fn');
-      Concat('ENDEXESECTION');
-
       Concat('EXESECTION .fini');
       Concat('  OBJSECTION .fini');
       Concat('  PROVIDE __etext');
@@ -1492,13 +1478,6 @@ begin
       Concat('  OBJSECTION fpc.reshandles');
       Concat('  PROVIDE end');
       Concat('  SYMBOL _end');
-      Concat('ENDEXESECTION');
-
-      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
-      Concat('EXESECTION __libc_freeres_ptrs');
-      Concat('  PROVIDE __start__libc_freeres_ptrs');
-      Concat('  OBJSECTION __libc_freeres_ptrs');
-      Concat('  PROVIDE __stop__libc_freeres_ptrs');
       Concat('ENDEXESECTION');
 
       ScriptAddGenericSections('.debug_aranges,.debug_pubnames,.debug_info,'+
