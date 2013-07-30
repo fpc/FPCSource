@@ -859,7 +859,7 @@ implementation
           end;
          { write virtual methods }
          writevirtualmethods(current_asmdata.asmlists[al_globals]);
-         current_asmdata.asmlists[al_globals].concat(Tai_const.create(aitconst_ptr,0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_codeptr);
          { write the size of the VMT }
          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
 {$ifdef vtentry}
