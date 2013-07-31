@@ -246,11 +246,7 @@ end;
 destructor TSocketStream.Destroy;
 begin
   if FSocketInitialized then
-  {$if  defined(netware) or defined(mswindows)}
   CloseSocket(Handle);
-  {$else}
-  FileClose(Handle);
-  {$ifend}
   inherited Destroy;
 end;
 
@@ -340,11 +336,7 @@ Procedure TSocketServer.Close;
 
 begin
   If FSocket<>-1 Then
-    {$ifdef netware}
     CloseSocket(FSocket);
-    {$else}
-    FileClose(FSocket);
-    {$endif}
   FSocket:=-1;
 end;
 
