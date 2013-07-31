@@ -600,7 +600,7 @@ implementation
           rawdata.concat(Tai_const.CreateName(
             make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),0))
         else
-          rawdata.concat(Tai_const.Create_sym(nil));
+          rawdata.concat(Tai_const.Create_nil_dataptr);
 
         { VTable }
         rawdata.concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
