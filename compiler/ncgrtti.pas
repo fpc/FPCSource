@@ -859,7 +859,7 @@ implementation
               if (oo_has_vmt in def.objectoptions) then
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(def.vmt_mangledname,0))
               else
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr);
 
             { write parent typeinfo }
             write_rtti_reference(def.childof,fullrtti);
