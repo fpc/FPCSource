@@ -446,7 +446,7 @@ implementation
 
                 lists[0].concat(Tai_const.Create_sym(l));
                 if po_abstractmethod in pd.procoptions then
-                  lists[0].concat(Tai_const.Create_sym(nil))
+                  lists[0].concat(Tai_const.Create_nil_codeptr)
                 else
                   lists[0].concat(Tai_const.Createname(pd.mangledname,0));
               end;
