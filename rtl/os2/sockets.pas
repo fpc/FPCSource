@@ -144,6 +144,10 @@ const
   SO_REUSEPORT    = $1000;
   // allow t/tcp on socket
   SO_TTCP         = $2000;
+  // aliases so we are cross-platform
+  SHUT_RD         = SO_RCV_SHUTDOWN;
+  SHUT_WR         = SO_SND_SHUTDOWN;
+  SHUT_RDWR       = SO_RCV_SHUTDOWN or SO_SND_SHUTDOWN;
 
 (***************************************************************************)
 (*                                                                         *)
