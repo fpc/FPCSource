@@ -312,7 +312,7 @@ interface
           constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
           constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
           constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
-          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
+          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);
           constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2149,13 +2149,16 @@ implementation
       end;
 
 
-    constructor tconstsym.create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
+    constructor tconstsym.create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def: tdef);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=str;
-         constdef:=getarraydef(cansichartype,l);
+         if assigned(def) then
+           constdef:=def
+         else
+           constdef:=getarraydef(cansichartype,l);
          value.len:=l;
       end;
 

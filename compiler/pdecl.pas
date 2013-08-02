@@ -109,7 +109,13 @@ implementation
                  begin
                    getmem(sp,tstringconstnode(p).len+1);
                    move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                   hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len);
+                   { if a non-default ansistring code page has been specified,
+                     keep it }
+                   if is_ansistring(p.resultdef) and
+                      (tstringdef(p.resultdef).encoding<>0) then
+                     hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef)
+                   else
+                     hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil);
                  end;
              end;
            realconstn :
@@ -942,7 +948,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value.svalue);
                                 sp[1]:=#0;
-                                sym:=tconstsym.create_string(orgname,constresourcestring,sp,1);
+                                sym:=tconstsym.create_string(orgname,constresourcestring,sp,1,nil);
                              end
                            else
                              Message(parser_e_illegal_expression);
@@ -952,7 +958,7 @@ implementation
                           begin
                              getmem(sp,len+1);
                              move(value_str^,sp^,len+1);
-                             sym:=tconstsym.create_string(orgname,constresourcestring,sp,len);
+                             sym:=tconstsym.create_string(orgname,constresourcestring,sp,len,nil);
                           end;
                       else
                         Message(parser_e_illegal_expression);
