@@ -26,6 +26,13 @@ unit helper;
 {$typedaddress on}
 {$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 
+{$macro on}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=packed}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
 interface
 
 uses
@@ -197,7 +204,7 @@ type
     StartPosition : Word;
     Length        : Byte;
   end;
-  TDecompositionBook = packed record
+  TDecompositionBook = X_PACKED record
     Index      : array of TDecompositionIndexRec;
     CodePoints : array of TUnicodeCodePoint;
   end;
@@ -230,7 +237,7 @@ type
   end;
   TUCA_WeightRecArray = array of TUCA_WeightRec;
 
-  TUCA_LineContextItemRec = packed record
+  TUCA_LineContextItemRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
     Weights    : TUCA_WeightRecArray;
@@ -241,7 +248,7 @@ type
   end;
   PUCA_LineContextItemRec = ^TUCA_LineContextItemRec;
 
-  TUCA_LineContextRec = packed record
+  TUCA_LineContextRec = X_PACKED record
   public
     Data : array of TUCA_LineContextItemRec;
   public
@@ -253,7 +260,7 @@ type
 
   { TUCA_LineRec }
 
-  TUCA_LineRec = packed record
+  TUCA_LineRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
     Weights    : TUCA_WeightRecArray;
@@ -272,7 +279,7 @@ type
     ucaShifted, ucaNonIgnorable, ucaBlanked, ucaShiftedTrimmed,
     ucaIgnoreSP
   );
-  TUCA_DataBook = packed record
+  TUCA_DataBook = X_PACKED record
     Version        : string;
     VariableWeight : TUCA_VariableKind;
     Backwards      : array[0..3] of Boolean;
@@ -352,7 +359,7 @@ type
     Position  : Integer;
   end;
   PUCA_PropIndexItem = ^TUCA_PropIndexItem;
-  TUCA_PropBook = packed record
+  TUCA_PropBook = X_PACKED record
     ItemSize      : Integer;
     Index         : array of TUCA_PropIndexItem;
     Items         : PUCA_PropItemRec; //Native Endian
@@ -2689,10 +2696,10 @@ begin
   end else begin
     Result := SizeOf(TUCA_PropItemRec) + (wl*SizeOf(TUCA_PropWeights));
     pb := PByte(PtrUInt(p) + SizeOf(TUCA_PropItemRec));
-    PWord(pb)^ := AWeights[0].Weights[0];
+    Unaligned(PWord(pb)^) := AWeights[0].Weights[0];
     pb := pb + 2;
     if (AWeights[0].Weights[1] > High(Byte)) then begin
-      PWord(pb)^ := AWeights[0].Weights[1];
+      Unaligned(PWord(pb)^) := AWeights[0].Weights[1];
       pb := pb + 2;
     end else begin
       SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_1,True);
@@ -2701,7 +2708,7 @@ begin
       Result := Result - 1;
     end;
     if (AWeights[0].Weights[2] > High(Byte)) then begin
-      PWord(pb)^ := AWeights[0].Weights[2];
+      Unaligned(PWord(pb)^) := AWeights[0].Weights[2];
       pb := pb + 2;
     end else begin
       SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_2,True);
@@ -2720,12 +2727,12 @@ begin
   end;
   hasContext := (AContext <> nil) and (Length(AContext^.Data) > 0);
   if AStoreCP or hasContext then begin
-    PUInt24(PtrUInt(AItem)+Result)^ := ACodePoint;
+    Unaligned(PUInt24(PtrUInt(AItem)+Result)^) := ACodePoint;
     Result := Result + SizeOf(UInt24);
     SetBit(AItem^.Flags,AItem^.FLAG_CODEPOINT,True);
   end;
   if hasContext then begin
-    contextTree := ConstructContextTree(AContext,Pointer(PtrUInt(AItem)+Result)^,MaxInt);
+    contextTree := ConstructContextTree(AContext,Unaligned(Pointer(PtrUInt(AItem)+Result)^),MaxInt);
     Result := Result + Cardinal(contextTree^.Size);
     SetBit(AItem^.Flags,AItem^.FLAG_CONTEXTUAL,True);
   end;
@@ -4219,7 +4226,7 @@ begin
         k := s^.GetSelfOnlySize() - SizeOf(UInt24);
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
-      PUInt24(p_d)^ := PUInt24(p_s)^;
+      Unaligned(PUInt24(p_d)^) := Unaligned(PUInt24(p_s)^);
         ReverseBytes(p_d^,SizeOf(UInt24));
     end;
     if (s^.WeightLength > 0) then begin
@@ -4227,8 +4234,8 @@ begin
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
       k := SizeOf(Word);
-      PWord(p_d)^ := PWord(p_s)^;
-        ReverseBytes(p_d^,k);
+      Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
+        ReverseBytes(Unaligned(p_d^),k);
       p_s := PByte(PtrUInt(p_s) + k);
       p_d := PByte(PtrUInt(p_d) + k);
       if s^.IsWeightCompress_1() then begin
@@ -4236,7 +4243,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
@@ -4246,7 +4253,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       if (s^.WeightLength > 1) then begin
@@ -4365,7 +4372,7 @@ begin
         k := d^.GetSelfOnlySize() - SizeOf(UInt24);
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
-      PUInt24(p_d)^ := PUInt24(p_s)^;
+      Unaligned(PUInt24(p_d)^) := Unaligned(PUInt24(p_s)^);
         ReverseBytes(p_d^,SizeOf(UInt24));
     end;
     if (d^.WeightLength > 0) then begin
@@ -4373,7 +4380,7 @@ begin
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
       k := SizeOf(Word);
-      PWord(p_d)^ := PWord(p_s)^;
+      Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
         ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
       p_d := PByte(PtrUInt(p_d) + k);
@@ -4382,7 +4389,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
@@ -4392,7 +4399,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       if (d^.WeightLength > 1) then begin
