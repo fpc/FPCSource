@@ -62,7 +62,7 @@ unit optloop;
 
     type
       treplaceinfo = record
-        loadnode : tloadnode;
+        node : tnode;
         value : Tconstexprint;
       end;
       preplaceinfo = ^treplaceinfo;
@@ -78,12 +78,15 @@ unit optloop;
 
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        if (n.nodetype=loadn) and (tloadnode(n).symtableentry=preplaceinfo(arg)^.loadnode.symtableentry) then
+        if ((n.nodetype=loadn) and (preplaceinfo(arg)^.node.nodetype=loadn) and
+          (tloadnode(n).symtableentry=tloadnode(preplaceinfo(arg)^.node).symtableentry)) or
+          ((n.nodetype=temprefn) and (preplaceinfo(arg)^.node.nodetype=temprefn) and
+          (ttemprefnode(n).tempinfo=ttemprefnode(preplaceinfo(arg)^.node).tempinfo)) then
           begin
             if n.flags*[nf_modify,nf_write]<>[] then
               internalerror(2012090402);
             n.free;
-            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.loadnode.resultdef,false);
+            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
           end;
         result:=fen_false;
       end;
@@ -130,9 +133,9 @@ unit optloop;
 
                 if getridoffor then
                   begin
-                    if tfornode(node).left.nodetype<>loadn then
+                    if not(tfornode(node).left.nodetype in [temprefn,loadn]) then
                       internalerror(2012090301);
-                    replaceinfo.loadnode:=tloadnode(tfornode(node).left);
+                    replaceinfo.node:=tfornode(node).left;
                     replaceinfo.value:=tordconstnode(tfornode(node).right).value;
                   end;
 
