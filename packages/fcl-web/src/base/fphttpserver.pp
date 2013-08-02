@@ -249,11 +249,6 @@ begin
   end;
 end;
 
-procedure HandleRequestError(Sender: TObject; E: Exception);
-begin
-
-end;
-
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
