@@ -50,7 +50,7 @@ unit optloop;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
-        if current_settings.cputype in [cpu_Pentium4] then
+        if current_settings.optimizecputype in [cpu_Pentium4] then
           number_unrolls:=60 div node_count(node)
         else
 {$endif i386}
