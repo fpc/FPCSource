@@ -1371,7 +1371,9 @@ implementation
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=current_asmdata.RefAsmSymbol(_name);
+         sym:=current_asmdata.GetAsmSymbol(_name);
+         if not assigned(sym) then
+           internalerror(2013080301);
       end;
 
 
