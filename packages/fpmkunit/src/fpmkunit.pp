@@ -5165,11 +5165,8 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
         if (D.DependencyType=depInclude) then
           begin
             if D.TargetFileName<>'' then
-              begin
-              Exit;
-              Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name]);
-              end;
-            if (ACPU in D.CPUs) and (AOS in D.OSes) then
+              Log(vlDebug,SDbgSourceAlreadyResolved,[D.Value])
+            else if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
                 if ExtractFilePath(D.Value)='' then
                   begin
