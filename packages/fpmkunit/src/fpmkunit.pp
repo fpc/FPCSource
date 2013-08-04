@@ -6467,6 +6467,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
+              // Make sure that the package is resolved for each targbet
+              APackage.FAllFilesResolved:=false;
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
