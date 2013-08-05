@@ -67,6 +67,7 @@ type
     procedure TestQueryAfterReconnect; // bug 16438
 
     procedure TestParametersAndDates;
+    procedure TestParametersFloat;
     procedure TestExceptOnsecClose;
     procedure TestErrorOnEmptyStatement;
 
@@ -2249,6 +2250,44 @@ begin
 
     end
 end;
+
+procedure TTestFieldTypes.TestParametersFloat;
+// Tests if using parameters with floats works
+// See bug 24728
+const
+  ParamName  = 'floatparam';
+var
+  i          : byte;
+
+begin
+  CreateTableWithFieldType(ftFloat,'FLOAT');
+  TestFieldDeclaration(ftFloat,sizeof(double));
+
+  with TSQLDBConnector(DBConnector).Query do  
+    begin
+    // Test assigning parameter
+    SQL.Clear;
+    SQL.Add('insert into FPDEV2 (FT) values (:' + ParamName + ')');
+    
+    for i := 0 to testValuesCount-1 do
+      begin
+      // Bug reports that SetAsFloat generates an AV
+      Params.Parambyname(ParamName).asfloat := i + i/2;
+      ExecSQL;
+      end;    
+        
+    SQL.Clear;
+    SQL.Add('select FT from FPDEV2');        
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      AssertEquals(i+i/2,fields[0].AsFloat);
+      Next;
+      end;
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestExceptOnsecClose;
 
