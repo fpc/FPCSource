@@ -76,6 +76,7 @@ unit cgcpu;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
         procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);override;
 
+        procedure g_stackpointer_alloc(list : TAsmList;localsize: longint);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
@@ -1293,6 +1294,13 @@ unit cgcpu;
         tmpreg:=getintregister(list,size);
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
+      end;
+
+
+    procedure tcg8086.g_stackpointer_alloc(list : TAsmList;localsize: longint);
+      begin
+        if localsize>0 then
+          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,localsize,NR_STACK_POINTER_REG));
       end;
 
 
