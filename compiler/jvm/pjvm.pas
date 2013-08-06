@@ -951,7 +951,24 @@ implementation
                             end;
                           { otherwise we can't do anything, and
                             proc_add_definition will give an error }
-                        end
+                        end;
+                      { add method with the correct visibility }
+                      pd:=tprocdef(parentpd.getcopy);
+                      { get rid of the import name for inherited virtual class methods,
+                        it has to be regenerated rather than amended }
+                      if [po_classmethod,po_virtualmethod]<=pd.procoptions then
+                        begin
+                          stringdispose(pd.import_name);
+                          exclude(pd.procoptions,po_has_importname);
+                        end;
+                      pd.visibility:=p.visibility;
+                      pd.procoptions:=pd.procoptions+procoptions;
+                      { ignore this artificially added procdef when looking for overloads }
+                      include(pd.procoptions,po_ignore_for_overload_resolution);
+                      finish_copied_procdef(pd,parentpd.procsym.realname,obj.symtable,obj);
+                      exclude(pd.procoptions,po_external);
+                      pd.synthetickind:=tsk_anon_inherited;
+                      exit;
                     end;
                 end;
               { make the artificial getter/setter virtual so we can override it in
