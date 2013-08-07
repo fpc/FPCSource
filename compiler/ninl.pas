@@ -2740,15 +2740,7 @@ implementation
                                cordconstnode.create(1,sinttype,false));
                            exit;
                          end
-                        else if is_dynamic_array(left.resultdef) then
-                          begin
-                            hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
-                            result := ccallnode.createintern('fpc_dynarray_length',hp);
-                            { make sure the left node doesn't get disposed, since it's }
-                            { reused in the new node (JM)                              }
-                            left:=nil;
-                            exit;
-                          end
+                        { Length() for dynamic arrays is inlined }
                         else
                           begin
                             { will be handled in simplify }
