@@ -581,7 +581,9 @@ interface
          { subroutine contains inherited call }
          pi_has_inherited,
          { subroutine has nested exit }
-         pi_has_nested_exit
+         pi_has_nested_exit,
+         { allocates memory on stack, so stack is unbalanced on exit }
+         pi_has_stack_allocs
        );
        tprocinfoflags=set of tprocinfoflag;
 
