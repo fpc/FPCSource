@@ -2457,6 +2457,7 @@ unit cgx86;
       var
         stackmisalignment: longint;
         para: tparavarsym;
+        regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
 {$endif i8086}
@@ -2465,9 +2466,11 @@ unit cgx86;
         var
           r: longint;
         begin
+          regsize:=0;
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
             if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
               begin
+                inc(regsize,sizeof(aint));
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE)));
               end;
         end;
@@ -2558,10 +2561,11 @@ unit cgx86;
             if (not paramanager.use_fixed_stack) and
                (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
               begin
+                regsize:=0;
+                push_regs;
                 reference_reset_base(current_procinfo.save_regs_ref,
                   current_procinfo.framepointer,
-                  -(localsize+sizeof(aint)),sizeof(aint));
-                push_regs;
+                  -(localsize+regsize),sizeof(aint));
               end;
 {$endif i386}
           end;
@@ -2593,7 +2597,7 @@ unit cgx86;
         href: treference;
       begin
         href:=current_procinfo.save_regs_ref;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+        for r:=high(saved_standard_registers) downto low(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
               hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
@@ -2604,7 +2608,7 @@ unit cgx86;
               else
                 begin
                   a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
-                  dec(href.offset,sizeof(aint));
+                  inc(href.offset,sizeof(aint));
                 end;
             end;
       end;
