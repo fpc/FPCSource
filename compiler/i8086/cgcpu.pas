@@ -444,16 +444,16 @@ unit cgcpu;
                         internalerror(2013050102);
 
                     getcpuregister(list,NR_AX);
-                    if size in [OS_16,OS_S16] then
-                      getcpuregister(list,NR_DX);
 
                     a_load_const_reg(list,size,a,ax_subreg);
+                    if size in [OS_16,OS_S16] then
+                      getcpuregister(list,NR_DX);
                     list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
+                    if size in [OS_16,OS_S16] then
+                      ungetcpuregister(list,NR_DX);
                     a_load_reg_reg(list,size,size,ax_subreg,reg);
 
                     ungetcpuregister(list,NR_AX);
-                    if size in [OS_16,OS_S16] then
-                      ungetcpuregister(list,NR_DX);
 
                     { TODO: implement overflow checking? }
 
@@ -1110,13 +1110,13 @@ unit cgcpu;
               OS_S8:
                 begin
                   getcpuregister(list, NR_AX);
-                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, NR_AL));
+                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_none(A_CBW));
                   list.concat(taicpu.op_none(A_CWD));
                   add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_AX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_DX);
                 end;
               OS_16:
@@ -1127,13 +1127,13 @@ unit cgcpu;
               OS_S16:
                 begin
                   getcpuregister(list, NR_AX);
-                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, NR_AX));
+                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_none(A_CWD));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_AX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                   ungetcpuregister(list, NR_DX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                 end;
               OS_32,OS_S32:
                 begin
