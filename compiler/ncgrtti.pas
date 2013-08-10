@@ -53,7 +53,6 @@ interface
         procedure write_string(const s: string;rt:trttitype);
         procedure maybe_write_align(rt:trttitype);
         procedure write_unitinfo_reference;
-        procedure write_ext_rtti(def:tdef;rt:trttitype);
         function  rtti_asmlist(rt:trttitype):TAsmListType;
       public
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -111,12 +110,6 @@ implementation
       begin
       { write reference to TUnitInfo }
         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(current_module.extrttiinfo));
-      end;
-
-    procedure TRTTIWriter.write_ext_rtti(def: tdef; rt: trttitype);
-      begin
-        // Write reference to 'normal' typedata
-        current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Createname(tstoreddef(def).rtti_mangledname(fullrtti),0));
       end;
 
     function TRTTIWriter.rtti_asmlist(rt: trttitype): TAsmListType;
@@ -1080,10 +1073,13 @@ implementation
           with current_asmdata do
             begin
               rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA);
-              maybe_new_object_file(asmlists[al_rtti]);
-              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
-              asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
-              asmlists[al_rtti].concat(Tai_const.create_32bit(longint(mode)));
+              { Place this helper table in al_init, so that it is
+                not in the way while iterating through the typeinfo to get a
+                list of all types, as done in typinfo.GetNextTypeInfo }
+              maybe_new_object_file(asmlists[al_init]);
+              new_section(asmlists[al_init],sec_rodata,rttilab.name,const_align(sizeof(pint)));
+              asmlists[al_init].concat(Tai_symbol.create_global(rttilab,0));
+              asmlists[al_init].concat(Tai_const.create_32bit(longint(mode)));
               if mode=lookup then
                 begin
                   maybe_write_align(rt);
@@ -1092,26 +1088,26 @@ implementation
                     begin
                       while o<syms[i].value do
                         begin
-                          asmlists[al_rtti].concat(Tai_const.create_pint(0));
+                          asmlists[al_init].concat(Tai_const.create_pint(0));
                           inc(o);
                         end;
                       inc(o);
-                      asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                      asmlists[al_init].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                     end;
                 end
               else
                 begin
                   maybe_write_align(rt);
-                  asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
+                  asmlists[al_init].concat(Tai_const.create_32bit(sym_count));
                   for i:=0 to sym_count-1 do
                     begin
                       maybe_write_align(rt);
-                      asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                      asmlists[al_init].concat(Tai_const.create_32bit(syms[i].value));
                       maybe_write_align(rt);
-                      asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                      asmlists[al_init].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                     end;
                 end;
-              asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+              asmlists[al_init].concat(Tai_symbol_end.create(rttilab));
             end;
         end;
 
@@ -1128,21 +1124,24 @@ implementation
           with current_asmdata do
             begin
               rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA);
-              maybe_new_object_file(asmlists[al_rtti]);
-              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
-              asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
-              asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
+              { Place this helper table in al_init, so that it is
+                not in the way while iterating through the typeinfo to get a
+                list of all types, as done in typinfo.GetNextTypeInfo }
+              maybe_new_object_file(asmlists[al_init]);
+              new_section(asmlists[al_init],sec_rodata,rttilab.name,const_align(sizeof(pint)));
+              asmlists[al_init].concat(Tai_symbol.create_global(rttilab,0));
+              asmlists[al_init].concat(Tai_const.create_32bit(sym_count));
               { need to align the entry record according to the largest member }
               maybe_write_align(rt);
               for i:=0 to sym_count-1 do
                 begin
                   if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));  // necessary?
-                  asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                    current_asmdata.asmlists[al_init].concat(cai_align.Create(4));  // necessary?
+                  asmlists[al_init].concat(Tai_const.create_32bit(syms[i].value));
                   maybe_write_align(rt);
-                  asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                  asmlists[al_init].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                 end;
-              asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+              asmlists[al_init].concat(Tai_symbol_end.create(rttilab));
             end;
         end;
 
@@ -1299,12 +1298,13 @@ implementation
         { write rtti data }
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[rtti_asmlist(rt)]);
-        new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_rodata,rttilab.name,const_align(sizeof(pint)));
+        if rt=fullrtti then
+          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)))
+        else
+          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_rodata,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
 
         current_asmdata.asmlists[rtti_asmlist(rt)].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
-        if rt=fullrtti then
-          write_ext_rtti(def, rt);
         current_asmdata.asmlists[rtti_asmlist(rt)].concat(Tai_symbol_end.Create(rttilab));
         write_rtti_extrasyms(def,rt,rttilab);
       end;
@@ -1327,36 +1327,25 @@ implementation
 
     procedure TRTTIWriter.start_write_unit_extrtti_info;
       var
-        start_extrtti_symbollist,
-        end_extrtti_symbollist    : TAsmSymbol;
         s                         : string;
       begin
-        new_section(current_asmdata.asmlists[al_ext_rtti],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
+        new_section(current_asmdata.asmlists[al_rtti],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
 
         { Make symbol that point to the start of the TUnitInfo }
         current_module.extrttiinfo := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRU_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-        current_asmdata.asmlists[al_ext_rtti].Concat(Tai_symbol.Create_global(current_module.extrttiinfo,0));
+        current_asmdata.asmlists[al_rtti].Concat(Tai_symbol.Create_global(current_module.extrttiinfo,0));
 
         { write TUnitInfo }
 
-        { Make symbols for the start and the end of the symbol-list, so that
-          the linker can calculate the size of the structure. This because
-          some types could be omitted due to smart-linking }
-        start_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTR',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-        end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_const.Create_rel_sym(aitconst_aint, start_extrtti_symbollist, end_extrtti_symbollist));
-
         { write the TRTTIUnitOptions }
-        current_asmdata.AsmLists[al_ext_rtti].Concat(tai_const.Create_8bit(byte(longint(current_module.rtti_options))));
+        current_asmdata.AsmLists[al_rtti].Concat(tai_const.Create_8bit(byte(longint(current_module.rtti_options))));
 
         { Write the unit-name }
         s := current_module.realmodulename^;
-        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_const.Create_8bit(length(s)));
-        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_string.Create(s));
+        current_asmdata.AsmLists[al_rtti].Concat(Tai_const.Create_8bit(length(s)));
+        current_asmdata.AsmLists[al_rtti].Concat(Tai_string.Create(s));
 
         maybe_write_align(fullrtti);
-
-        current_asmdata.AsmLists[al_ext_rtti].Concat(Tai_symbol.Create_global(start_extrtti_symbollist,0));
       end;
 
 
@@ -1373,10 +1362,9 @@ implementation
     begin
       if current_module.extrttiinfo<>nil then
         begin
-          { Write the symbol to mark the end of the symbols-list }
-          end_extrtti_symbollist := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRE_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-          current_asmdata.asmlists[al_ext_rtti].concat(Tai_symbol.Create_global(end_extrtti_symbollist,0));
-          current_asmdata.asmlists[al_ext_rtti].concat(Tai_const.Create_8bit(0));
+          { Write a trailing 255 to mark the end of the symbols-list }
+          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(255));
 
           current_module.flags:=current_module.flags+uf_extrtti;
         end;

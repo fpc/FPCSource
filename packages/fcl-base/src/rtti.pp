@@ -319,49 +319,46 @@ var
   UnitList        : PUnitInfoList;
   UnitInd, TypeInd: longint;
   UnitInfo        : PUnitInfo;
-  UnitDataList    : PextRTTIDataList;
-  ExtRttiData     : PExtRTTIData;
+  TypeInfo        : PTypeInfo;
   TypelistUnitInd : longint;
   ARttiType       : TRttiType;
-  UnitStartIndex  : LongInt;
-  l               : LongInt;
+  Index           : longint;
 
 begin
   if not FAllTypesResolved then
     begin
-    UnitList:=GetUnitList;
-    TypelistUnitInd:=0;
-    SetLength(FTypesList,0);
-    for UnitInd:=0 to UnitList^.UnitCount-1 do
-      begin
-      UnitInfo := UnitList^.Units[UnitInd];
-      UnitDataList := GetRTTIDataListForUnit(UnitInfo);
-      l := GetRTTIDataCountForUnit(UnitInfo);
-      UnitStartIndex := length(FTypesList);
-      SetLength(FTypesList,UnitStartIndex+l);
-      for TypeInd:=0 to l-1 do
+      UnitList:=GetUnitList;
+      TypelistUnitInd:=0;
+      SetLength(FTypesList,0);
+      Index := -1;
+      for UnitInd:=0 to UnitList^.UnitCount-1 do
         begin
-        ExtRttiData := @UnitDataList^[TypeInd];
-        if Assigned(ExtRttiData^.TypeInfo) then
-          begin
-          case ExtRttiData^.TypeInfo^.Kind of
-            tkClass   : ARttiType := TRttiInstanceType.Create(ExtRttiData^.TypeInfo);
-            tkSString,
-            tkLString,
-            tkAString,
-            tkUString,
-            tkWString : ARttiType := TRttiStringType.Create(ExtRttiData^.TypeInfo);
-            tkFloat   : ARttiType := TRttiFloatType.Create(ExtRttiData^.TypeInfo);
-          else
-            ARttiType := TRttiType.Create(ExtRttiData^.TypeInfo);
-          end; {case}
-          end
-        else
-          ARttiType := TRttiType.Create(ExtRttiData^.TypeInfo);
-        FTypesList[UnitStartIndex+TypeInd] := ARttiType;
+          UnitInfo := UnitList^.Units[UnitInd];
+          TypeInfo := GetFirstTypeinfoFromUnit(UnitInfo);
+          while assigned(TypeInfo) do
+            begin
+              case TypeInfo^.Kind of
+                tkClass   : ARttiType := TRttiInstanceType.Create(TypeInfo);
+                tkSString,
+                tkLString,
+                tkAString,
+                tkUString,
+                tkWString : ARttiType := TRttiStringType.Create(TypeInfo);
+                tkFloat   : ARttiType := TRttiFloatType.Create(TypeInfo);
+              else
+                ARttiType := TRttiType.Create(TypeInfo);
+              end; {case}
+            end;
+
+          inc(index);
+          if index=length(FTypesList) then
+            setlength(FTypesList,length(FTypesList)+10);
+          FTypesList[Index] := ARttiType;
+
+          TypeInfo := GetNextTypeInfo(TypeInfo);
         end;
-      end;
-    FAllTypesResolved:=true;
+      FAllTypesResolved:=true;
+      setlength(FTypesList, index+1);
     end;
   result := FTypesList;
 end;

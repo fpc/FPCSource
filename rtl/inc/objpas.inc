@@ -931,7 +931,6 @@
       class function TObject.UnitName : ansistring;
         type
           TUnitInfo = packed record
-            UnitInfoSize: LongInt;
             UnitOptions: byte;
             UnitName: shortstring;
           end;
