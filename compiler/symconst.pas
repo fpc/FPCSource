@@ -553,8 +553,6 @@ type
   { RTTI information to store }
   trttitype = (
     fullrtti,initrtti,
-    { Extended RTTI }
-    extrtti, attribute,
     { Objective-C }
     objcmetartti,objcmetarortti,
     objcclassrtti,objcclassrortti
