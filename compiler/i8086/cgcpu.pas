@@ -723,8 +723,27 @@ unit cgcpu;
 
 
     procedure tcg8086.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+
+      procedure load_para_loc(r : TRegister;paraloc : PCGParaLocation);
+        var
+          ref : treference;
+        begin
+          paramanager.allocparaloc(list,paraloc);
+          case paraloc^.loc of
+             LOC_REGISTER,LOC_CREGISTER:
+               a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
+             LOC_REFERENCE,LOC_CREFERENCE:
+               begin
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2);
+                  a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
+               end;
+             else
+               internalerror(2002071004);
+          end;
+        end;
       var
-        pushsize, pushsize2: tcgsize;
+        pushsize,pushsize2 : tcgsize;
+
       begin
         check_register_size(size,r);
         if use_push(cgpara) then
@@ -767,7 +786,21 @@ unit cgcpu;
               end;
           end
         else
-          inherited a_load_reg_cgpara(list,size,r,cgpara);
+          begin
+            if tcgsize2size[cgpara.Size]=4 then
+              begin
+                if (cgpara.location^.Next=nil) or
+                  (tcgsize2size[cgpara.location^.size]<>2) or
+                  (tcgsize2size[cgpara.location^.Next^.size]<>2) or
+                  (cgpara.location^.Next^.Next<>nil) or
+                  (cgpara.location^.shiftval<>0) then
+                  internalerror(2013031102);
+                load_para_loc(r,cgpara.Location);
+                load_para_loc(GetNextReg(r),cgpara.Location^.Next);
+              end
+            else
+              inherited a_load_reg_cgpara(list,size,r,cgpara);
+          end;
       end;
 
 
