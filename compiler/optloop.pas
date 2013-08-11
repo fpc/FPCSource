@@ -100,6 +100,7 @@ unit optloop;
         unrollblock : tblocknode;
         getridoffor : boolean;
         replaceinfo : treplaceinfo;
+        usesbreakcontinue : boolean;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -117,6 +118,8 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
+                usesbreakcontinue:=foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil);
+
                 { don't unroll more than we need,
 
                   multiply unroll by two here because we can get rid
@@ -129,7 +132,7 @@ unit optloop;
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil));
+                getridoffor:=(unrolls=counts) and not(usesbreakcontinue);
 
                 if getridoffor then
                   begin
@@ -153,28 +156,28 @@ unit optloop;
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
-                        if getridoffor then
-                          begin
-                            foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
-                            if lnf_backward in tfornode(node).loopflags then
-                              replaceinfo.value:=replaceinfo.value-1
-                            else
-                              replaceinfo.value:=replaceinfo.value+1;
-                          end
+                    if getridoffor then
+                      begin
+                        foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
+                        if lnf_backward in tfornode(node).loopflags then
+                          replaceinfo.value:=replaceinfo.value-1
                         else
+                          replaceinfo.value:=replaceinfo.value+1;
+                      end
+                    else
+                      begin
+                        { for itself increases at the last iteration }
+                        if i<unrolls then
                           begin
-                            { for itself increases at the last iteration }
-                            if i<unrolls then
-                              begin
-                                { insert incr/decrementation of counter var }
-                                if lnf_backward in tfornode(node).loopflags then
-                                  addstatement(unrollstatement,
-                                    geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
-                                else
-                                  addstatement(unrollstatement,
-                                    geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
-                              end;
-                           end;
+                            { insert incr/decrementation of counter var }
+                            if lnf_backward in tfornode(node).loopflags then
+                              addstatement(unrollstatement,
+                                geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                            else
+                              addstatement(unrollstatement,
+                                geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
+                          end;
+                       end;
                   end;
                 { can we get rid of the for statement? }
                 if getridoffor then
