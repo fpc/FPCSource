@@ -24,7 +24,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'inoussa12@gmail.com';
     P.Description := 'Free Pascal implementation of Service Data Objects';
-    P.OSes:=AllOSes-[embedded];
+    P.OSes:=AllOSes-[embedded,msdos];
 
     // P.NeedLibC:= false;
     P.SourcePath.Add('src/base');
