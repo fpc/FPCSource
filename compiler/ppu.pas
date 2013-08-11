@@ -162,7 +162,6 @@ const
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
   uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
-  uf_extrtti            = $2000000; { this unit has extended rtti information }
 
 {$ifdef generic_cpu}
 { We need to use the correct size of aint and pint for

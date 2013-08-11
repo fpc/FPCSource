@@ -656,11 +656,8 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and uf_extrtti) <> 0 then
-           begin
-             unitinits.concat(Tai_const.Createname(make_mangledname('EXTRU_',hp.u.globalsymtable,''),0));
-             inc(count);
-           end;
+         unitinits.concat(Tai_const.Createname(make_mangledname('EXTRU_',hp.u.globalsymtable,''),0));
+         inc(count);
          hp:=tused_unit(hp.next);
        end;
       { Insert TableCount,InitCount at start }

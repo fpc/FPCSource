@@ -28,7 +28,6 @@ interface
     uses
       cclasses,constexp,
       aasmbase,aasmdata,
-      ppu,
       symbase,symconst,symtype,symdef;
 
     type
@@ -1365,8 +1364,6 @@ implementation
           { Write a trailing 255 to mark the end of the symbols-list }
           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(255));
-
-          current_module.flags:=current_module.flags+uf_extrtti;
         end;
     end;
 
