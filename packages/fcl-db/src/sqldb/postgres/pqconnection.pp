@@ -15,19 +15,33 @@ uses
 {$EndIf}
 
 type
+  TPQCursor = Class;
+
+  { TPQTrans }
+
   TPQTrans = Class(TSQLHandle)
-    protected
+  protected
     PGConn        : PPGConn;
+    FList : TThreadList;
+    Procedure RegisterCursor(S : TPQCursor);
+    Procedure UnRegisterCursor(S : TPQCursor);
+  Public
+    Constructor Create;
+    Destructor Destroy; override;
   end;
 
+  { TPQCursor }
+
   TPQCursor = Class(TSQLCursor)
-    protected
+  protected
     Statement    : string;
     StmtName     : string;
     tr           : TPQTrans;
     res          : PPGresult;
     CurTuple     : integer;
     FieldBinding : array of integer;
+   Public
+    Destructor Destroy; override;
   end;
 
   EPQDatabaseError = class(EDatabaseError)
@@ -158,6 +172,53 @@ const Oid_Bool     = 16;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
+{ TPQTrans }
+
+procedure TPQTrans.RegisterCursor(S: TPQCursor);
+begin
+  FList.Add(S);
+  S.tr:=Self;
+end;
+
+procedure TPQTrans.UnRegisterCursor(S: TPQCursor);
+begin
+  S.tr:=Nil;
+  FList.Remove(S);
+end;
+
+constructor TPQTrans.Create;
+begin
+  Flist:=TThreadList.Create;
+  FList.Duplicates:=dupIgnore;
+end;
+
+destructor TPQTrans.Destroy;
+
+Var
+  L : TList;
+  I : integer;
+
+begin
+  L:=Flist.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      TPQCursor(L[i]).tr:=Nil;
+  finally
+    Flist.UnlockList;
+  end;
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+{ TPQCursor }
+
+destructor TPQCursor.Destroy;
+begin
+  if Assigned(tr) then
+    Tr.UnRegisterCursor(Self);
+  inherited Destroy;
+end;
+
 
 constructor TPQConnection.Create(AOwner : TComponent);
 
@@ -171,6 +232,8 @@ end;
 
 destructor TPQConnection.destroy;
 begin
+  // We must disconnect here. If it is done in inherited, then connection pool is gone.
+  Connected:=False;
   FreeAndNil(FConnectionPool);
   inherited destroy;
 end;
@@ -264,15 +327,24 @@ var
   res : PPGresult;
   tr  : TPQTrans;
   i   : Integer;
+  L   : TList;
+
 begin
   result := false;
-
   tr := trans as TPQTrans;
-
+  L:=tr.FList.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      begin
+      UnprepareStatement(TPQCursor(L[i]));
+      TPQCursor(L[i]).tr:=Nil;
+      end;
+    L.Clear;
+  finally
+    tr.flist.UnlockList;
+  end;
   res := PQexec(tr.PGConn, 'ROLLBACK');
-
   CheckResultError(res,tr.PGConn,SErrRollbackFailed);
-
   PQclear(res);
   ReleaseConnection(tr.PGCOnn,false);
   result := true;
@@ -285,12 +357,9 @@ var
   i   : Integer;
 begin
   result := false;
-
   tr := trans as TPQTrans;
-
   res := PQexec(tr.PGConn, 'COMMIT');
   CheckResultError(res,tr.PGConn,SErrCommitFailed);
-
   PQclear(res);
   //make connection available in pool
   ReleaseConnection(tr.PGConn,false);
@@ -672,7 +741,8 @@ begin
       begin
       StmtName := 'prepst'+inttostr(FCursorCount);
       InterlockedIncrement(FCursorCount);
-      tr := TPQTrans(aTransaction.Handle);
+      TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
+
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
       s := 'prepare '+StmtName+' ';
@@ -801,7 +871,8 @@ begin
       end
     else
       begin
-      tr := TPQTrans(aTransaction.Handle);
+      // Registercursor sets tr
+      TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
 
       if Assigned(AParams) and (AParams.Count > 0) then
         begin
