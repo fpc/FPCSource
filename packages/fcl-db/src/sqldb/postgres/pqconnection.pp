@@ -50,12 +50,11 @@ type
 
   TPQConnection = class (TSQLConnection)
   private
-    FConnectionPool      : array of TPQTranConnection;
+    FConnectionPool      : TThreadList;
     FCursorCount         : dword;
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
-    FPool : TRTLCriticalSection;
     procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
@@ -167,12 +166,12 @@ begin
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
-  InitCriticalSection(FPool);
+  FConnectionPool:=TThreadlist.Create;
 end;
 
 destructor TPQConnection.destroy;
 begin
-  DoneCriticalSection(FPool);
+  FreeAndNil(FConnectionPool);
   inherited destroy;
 end;
 
@@ -223,41 +222,34 @@ end;
 
 procedure TPQConnection.AddConnection(T: TPQTranConnection);
 
-Var
-  I : Integer;
-
 begin
-  // make connection available in pool
-  EnterCriticalSection(FPool);
-  try
-    I:=Length(FConnectionPool);
-    SetLength(FConnectionPool,I+1);
-    FConnectionPool[i]:=T;
-  finally
-    EnterCriticalSection(FPool);
-  end;
+  FConnectionPool.Add(T);
 end;
 
 procedure TPQConnection.ReleaseConnection(Conn: PPGConn; DoClear: Boolean);
 
 Var
   I : Integer;
+  L : TList;
+  T : TPQTranConnection;
 
 begin
+  L:=FConnectionPool.LockList;
   // make connection available in pool
-  EnterCriticalSection(FPool);
   try
-    for i:=0 to length(FConnectionPool)-1 do
-      if (FConnectionPool[i].FPGConn=Conn) then
+    for i:=0 to L.Count-1 do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if (T.FPGConn=Conn) then
         begin
-
-        FConnectionPool[i].FTranActive:=false;
+        T.FTranActive:=false;
         if DoClear then
-          FConnectionPool[i].FPGConn:=Nil;
-          break;
+          T.FPGConn:=Nil;
+        break;
         end;
+      end
   finally
-    EnterCriticalSection(FPool);
+    FConnectionPool.UnlockList;
   end;
 end;
 
@@ -311,17 +303,19 @@ var
   tr  : TPQTrans;
   i   : Integer;
   t : TPQTranConnection;
+  L : TList;
 begin
   result:=false;
   tr := trans as TPQTrans;
 
   //find an unused connection in the pool
   i:=0;
-  EnterCriticalSection(FPool);
+  t:=Nil;
+  L:=FConnectionPool.LockList;
   try
-    while i<length(FConnectionPool) do
+    while (I<L.Count-1) do
       begin
-      T:=FConnectionPool[i];
+      T:=TPQTranConnection(L[i]);
       if (T.FPGConn=nil) or not T.FTranActive then
         break
       else
@@ -333,7 +327,7 @@ begin
     if Assigned(T) then
       T.FTranActive:=true;
   finally
-    LeaveCriticalSection(FPool);
+    FConnectionPool.UnLockList;
   end;
   if (T=Nil) then
     begin
@@ -428,20 +422,25 @@ begin
 end;
 
 procedure TPQConnection.DoInternalDisconnect;
-var i:integer;
+var
+  i:integer;
+  L : TList;
+  T : TPQTranConnection;
+
 begin
   Inherited;
-  EnterCriticalSection(FPool);
+  L:=FConnectionPool.LockList;
   try
-    for i:=0 to length(FConnectionPool)-1 do
+    for i:=0 to L.Count-1 do
       begin
-      if assigned(FConnectionPool[i].FPGConn) then
-        PQfinish(FConnectionPool[i].FPGConn);
-      FConnectionPool[i].Free;
+      T:=TPQTranConnection(L[i]);
+      if assigned(T.FPGConn) then
+        PQfinish(T.FPGConn);
+      T.Free;
       end;
-    Setlength(FConnectionPool,0);
+    L.Clear;
   finally
-    LeaveCriticalSection(FPool);
+    FConnectionPool.UnLockList;
   end;
 {$IfDef LinkDynamically}
   ReleasePostgres3;
@@ -863,26 +862,39 @@ end;
 function TPQConnection.GetHandle: pointer;
 var
   i:integer;
+  L : TList;
+  T : TPQTranConnection;
+
 begin
   result:=nil;
   if not Connected then
     exit;
   //Get any handle that is (still) connected
-  for i:=0 to length(FConnectionPool)-1 do
-    if assigned(FConnectionPool[i].FPGConn) and (PQstatus(FConnectionPool[i].FPGConn)<>CONNECTION_BAD) then
+  L:=FConnectionPool.LockList;
+  try
+    I:=L.Count-1;
+    While (I>=0) and (Result=Nil) do
       begin
-      Result :=FConnectionPool[i].FPGConn;
-      exit;
+      T:=TPQTranConnection(L[i]);
+      if assigned(T.FPGConn) and (PQstatus(T.FPGConn)<>CONNECTION_BAD) then
+        Result:=T.FPGConn;
+      Dec(I);
       end;
+  finally
+    FConnectionPool.UnLockList;
+  end;
+  if Result<>Nil then
+     exit;
   //Nothing connected!! Reconnect
-  if assigned(FConnectionPool[0].FPGConn) then
-    PQreset(FConnectionPool[0].FPGConn)
+  // T is element 0 after loop
+  if assigned(T.FPGConn) then
+    PQreset(T.FPGConn)
   else
-    FConnectionPool[0].FPGConn := PQconnectdb(pchar(FConnectString));
-  CheckConnectionStatus(FConnectionPool[0].FPGConn);
+    T.FPGConn := PQconnectdb(pchar(FConnectString));
+  CheckConnectionStatus(T.FPGConn);
   if CharSet <> '' then
-    PQsetClientEncoding(FConnectionPool[0].FPGConn, pchar(CharSet));
-  result:=FConnectionPool[0].FPGConn;
+    PQsetClientEncoding(T.FPGConn, pchar(CharSet));
+  result:=T.FPGConn;
 end;
 
 function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
