@@ -1248,12 +1248,11 @@ procedure TSQLTransaction.EndTransaction;
 
 begin
   Case Action of
-    caNone :
-      CloseTrans;
     caCommit :
       Commit;
     caCommitRetaining :
       CommitRetaining;
+    caNone,
     caRollback :
       RollBack;
     caRollbackRetaining :
