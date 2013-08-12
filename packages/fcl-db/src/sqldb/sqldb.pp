@@ -1248,7 +1248,8 @@ procedure TSQLTransaction.EndTransaction;
 
 begin
   Case Action of
-    caNone : ;
+    caNone :
+      CloseTrans;
     caCommit :
       Commit;
     caCommitRetaining :
@@ -1350,6 +1351,7 @@ end;
 destructor TSQLTransaction.Destroy;
 begin
   EndTransaction;
+  FreeAndNil(FTrans);
   FreeAndNil(FParams);
   inherited Destroy;
 end;
