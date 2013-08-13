@@ -96,10 +96,14 @@ begin
                         end;
               freebsd : begin
                           P.Options.Add('-Fl/usr/local/lib');
-                          P.Options.Add('Xd');
+                          P.Options.Add('-Xd');
                         end;
-              openbsd : P.Options.Add('-Fl/usr/local/lib');
-              netbsd  : P.Options.Add('Xd');
+              openbsd : begin
+                          P.Options.Add('-Fl/usr/local/lib');
+                          P.Options.Add('-Xd');
+                        end;
+              netbsd  : P.Options.Add('-Xd');
+              linux   : P.Options.Add('-Xd');
             end; {case}
 
             P.NeedLibc := true;
