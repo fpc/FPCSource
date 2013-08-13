@@ -72,7 +72,7 @@ interface
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable; virtual;
-      class procedure InsertExtRTTITable; virtual;
+      class procedure InsertRTTIUnitList; virtual;
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
@@ -645,7 +645,7 @@ implementation
     end;
 
 
-    class procedure tnodeutils.InsertExtRTTITable;
+    class procedure tnodeutils.InsertRTTIUnitList;
       var
         hp : tused_unit;
         unitinits : TAsmList;
@@ -656,7 +656,7 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         unitinits.concat(Tai_const.Createname(make_mangledname('EXTRU_',hp.u.globalsymtable,''),0));
+         unitinits.concat(Tai_const.Createname(make_mangledname('RTTIU_',hp.u.globalsymtable,''),0));
          inc(count);
          hp:=tused_unit(hp.next);
        end;
@@ -664,10 +664,10 @@ implementation
       unitinits.insert(Tai_const.Create_32bit(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'INITEXTRTTIUNITS',sizeof(pint));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITEXTRTTIUNITS',AT_DATA,0));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'RTTIUNITLIST',sizeof(pint));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('RTTIUNITLIST',AT_DATA,0));
       current_asmdata.asmlists[al_globals].concatlist(unitinits);
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITEXTRTTIUNITS'));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('RTTIUNITLIST'));
       unitinits.free;
     end;
 

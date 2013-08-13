@@ -97,7 +97,7 @@ interface
                   "If special .fpc section cannot be used on some target,
                   .text can be used instead." }
          sec_fpc,
-         sec_extrtti,
+         sec_rtti,
          { Table of contents section }
          sec_toc,
          sec_init,

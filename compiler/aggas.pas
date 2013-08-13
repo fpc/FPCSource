@@ -279,7 +279,7 @@ implementation
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
-          '.extrtti',
+          '.rtti',
           '.toc',
           '.init',
           '.fini',
@@ -337,7 +337,7 @@ implementation
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
-          '.extrtti',
+          '.rtti',
           '.toc',
           '.init',
           '.fini',
@@ -443,7 +443,7 @@ implementation
             result:='d';
 
           { TODO: these need a fix to become read-only }
-          sec_rodata, sec_rodata_norel, sec_extrtti:
+          sec_rodata, sec_rodata_norel, sec_rtti:
             result:='d';
 
           sec_bss:
@@ -1631,9 +1631,9 @@ implementation
                 result := '.section __TEXT, .fpc, regular, no_dead_strip';
                 exit;
               end;
-            sec_extrtti:
+            sec_rtti:
               begin
-                result := '.section __FPC, .extrtti, regular';
+                result := '.section __FPC, .rtti, regular';
                 exit;
               end;
             sec_code:

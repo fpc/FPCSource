@@ -1681,8 +1681,8 @@ implementation
 {$endif jvm}
         { Always write the TUnitInfo, even if there is further no type
           information for the module }
-        if current_module.extrttiinfo=nil then
-          RTTIWriter.start_write_unit_extrtti_info;
+        if current_module.rttiunitinfo=nil then
+          RTTIWriter.start_write_unit_info;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -1738,7 +1738,7 @@ implementation
               RTTIWriter.write_rtti(def,fullrtti);
           end;
         if st.symtabletype = staticsymtable then
-          RTTIWriter.after_write_unit_extrtti_info(st);
+          RTTIWriter.after_write_unit_info(st);
       end;
 
 

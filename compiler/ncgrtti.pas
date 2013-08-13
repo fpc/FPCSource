@@ -58,8 +58,8 @@ interface
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
-        procedure start_write_unit_extrtti_info;
-        procedure after_write_unit_extrtti_info(st: TSymtable);
+        procedure start_write_unit_info;
+        procedure after_write_unit_info(st: TSymtable);
       end;
 
     var
@@ -106,7 +106,7 @@ implementation
     procedure TRTTIWriter.write_unitinfo_reference;
       begin
       { write reference to TUnitInfo }
-        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(current_module.extrttiinfo));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(current_module.rttiunitinfo));
       end;
 
     function TRTTIWriter.rtti_asmlist(rt: trttitype): TAsmListType;
@@ -1296,9 +1296,9 @@ implementation
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[rtti_asmlist(rt)]);
         if rt=fullrtti then
-          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)))
+          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_rtti,make_mangledname('RTTIU',current_module.localsymtable,''),const_align(sizeof(pint)))
         else
-          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_rodata,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
+          new_section(current_asmdata.asmlists[rtti_asmlist(rt)],sec_rodata,make_mangledname('RTTIU',current_module.localsymtable,''),const_align(sizeof(pint)));
 
         current_asmdata.asmlists[rtti_asmlist(rt)].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
@@ -1322,15 +1322,15 @@ implementation
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
       end;
 
-    procedure TRTTIWriter.start_write_unit_extrtti_info;
+    procedure TRTTIWriter.start_write_unit_info;
       var
         s                         : string;
       begin
-        new_section(current_asmdata.asmlists[al_rtti],sec_extrtti,make_mangledname('EXTRU',current_module.localsymtable,''),const_align(sizeof(pint)));
+        new_section(current_asmdata.asmlists[al_rtti],sec_rtti,make_mangledname('RTTIU',current_module.localsymtable,''),const_align(sizeof(pint)));
 
         { Make symbol that point to the start of the TUnitInfo }
-        current_module.extrttiinfo := current_asmdata.DefineAsmSymbol(make_mangledname('EXTRU_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
-        current_asmdata.asmlists[al_rtti].Concat(Tai_symbol.Create_global(current_module.extrttiinfo,0));
+        current_module.rttiunitinfo := current_asmdata.DefineAsmSymbol(make_mangledname('RTTIU_',current_module.localsymtable,''),AB_GLOBAL,AT_DATA);
+        current_asmdata.asmlists[al_rtti].Concat(Tai_symbol.Create_global(current_module.rttiunitinfo,0));
 
         { write TUnitInfo }
 
@@ -1346,7 +1346,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.after_write_unit_extrtti_info(st: TSymtable);
+    procedure TRTTIWriter.after_write_unit_info(st: TSymtable);
       var
         start_extrtti_symbollist,
         end_extrtti_symbollist    : TAsmSymbol;
@@ -1357,7 +1357,7 @@ implementation
         unitname_item             : TLinkedListItem;
         s                         : string;
     begin
-      if current_module.extrttiinfo<>nil then
+      if current_module.rttiunitinfo<>nil then
         begin
           { Write a trailing 255 to mark the end of the symbols-list }
           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));

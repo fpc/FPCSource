@@ -457,7 +457,7 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 {$ifdef FPC_HAS_EXTENDED_RTTI}
 var
-  UnitList: TUnitInfoList; external name 'INITEXTRTTIUNITS';
+  UnitList: TUnitInfoList; external name 'RTTIUNITLIST';
 {$endif FPC_HAS_EXTENDED_RTTI}
 
 function GetUnitList: PUnitInfoList;

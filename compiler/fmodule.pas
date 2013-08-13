@@ -184,7 +184,7 @@ interface
         deprecatedmsg: pshortstring;
 
         { contains a reference to the TUnitInfo rtti information for this module }
-        extrttiinfo : TAsmSymbol;
+        rttiunitinfo : TAsmSymbol;
         rtti_options : trtti_moduleoptions;
 
         { contains a list of types that are extended by helper types; the key is
@@ -565,7 +565,7 @@ implementation
         deprecatedmsg:=nil;
         namespace:=nil;
         tcinitcode:=nil;
-        extrttiinfo:=nil;
+        rttiunitinfo:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(realmodulename^);
