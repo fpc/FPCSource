@@ -87,6 +87,7 @@ implementation
         function  genintmsgtab(list : TAsmList) : tasmlabel;
         function  genpublishedmethodstable(list : TAsmList) : tasmlabel;
         function  generate_field_table(list : TAsmList) : tasmlabel;
+        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef);
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
@@ -714,6 +715,27 @@ implementation
       end;
 
 
+    procedure TVMTWriter.generate_abstract_stub(list:TAsmList;pd:tprocdef);
+      var
+        sym: TAsmSymbol;
+      begin
+        { Generate stubs for abstract methods, so their symbols are present and
+          can be used e.g. to take address (see issue #24536). }
+        sym:=current_asmdata.GetAsmSymbol(pd.mangledname);
+        if assigned(sym) and (sym.bind<>AB_EXTERNAL) then
+          exit;
+        maybe_new_object_file(list);
+        new_section(list,sec_code,lower(pd.mangledname),target_info.alignment.procalign);
+        if (po_global in pd.procoptions) then
+          sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+        else
+          sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+        list.concat(Tai_symbol.Create(sym,0));
+        cg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
+        list.concat(Tai_symbol_end.Create(sym));
+      end;
+
+
     procedure TVMTWriter.writevirtualmethods(List:TAsmList);
       var
          vmtpd : tprocdef;
@@ -736,7 +758,10 @@ implementation
            if vmtpd.extnumber<>i then
              internalerror(200611083);
            if (po_abstractmethod in vmtpd.procoptions) then
-             procname:='FPC_ABSTRACTERROR'
+             begin
+               procname:='FPC_ABSTRACTERROR';
+               generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
+             end
            else if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              procname:='FPC_EMPTYMETHOD'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
