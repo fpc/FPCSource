@@ -1,3 +1,4 @@
+{ %OPT=-Sc }
 program test2;
 
 {$mode objfpc}{$H+}
