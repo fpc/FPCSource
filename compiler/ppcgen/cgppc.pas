@@ -320,7 +320,7 @@ unit cgppc;
         else
           stubalign:=16;
         new_section(current_asmdata.asmlists[al_imports],sec_stub,'',stubalign);
-        result := current_asmdata.RefAsmSymbol(stubname);
+        result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
