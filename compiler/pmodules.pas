@@ -195,20 +195,24 @@ implementation
     procedure maybeloadvariantsunit;
       var
         hp : tmodule;
+        load : boolean;
       begin
-        { Do we need the variants unit? Skip this
-          for VarUtils unit for bootstrapping }
-        if (current_module.flags and uf_uses_variants=0) or
-           (current_module.modulename^='VARUTILS') then
-          exit;
+        { Must not be called for units }
+        if current_module.is_unit then
+          InternalError(2013081601);
         { Variants unit already loaded? }
+        load:=(current_module.flags and uf_uses_variants)<>0;
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
             if hp.modulename^='VARIANTS' then
               exit;
+            if (hp.flags and uf_uses_variants)<>0 then
+              load:=true;
             hp:=tmodule(hp.next);
           end;
+        if (not load) then
+          exit;
         { Variants unit is not loaded yet, load it now }
         Message(parser_w_implicit_uses_of_variants_unit);
         AddUnit('variants');
@@ -1157,9 +1161,6 @@ type
 
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(current_module.globalsymtable,current_module.localsymtable);
-
-         { do we need to add the variants unit? }
-         maybeloadvariantsunit;
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable,true);
