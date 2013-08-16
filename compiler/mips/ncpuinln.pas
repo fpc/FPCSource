@@ -36,6 +36,7 @@ type
     procedure second_abs_real; override;
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
+    procedure second_get_frame; override;
   private
     procedure load_fpu_location;
   end;
@@ -132,6 +133,14 @@ begin
       internalerror(200410033);
   end;
 end;
+
+
+procedure tMIPSELinlinenode.second_get_frame;
+begin
+  location_reset(location,LOC_CREGISTER,OS_ADDR);
+  location.register:=NR_FRAME_POINTER_REG;
+end;
+
 
 begin
   cInlineNode := tMIPSELinlinenode;

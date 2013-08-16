@@ -76,6 +76,7 @@ var
   end;
 
 
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
@@ -94,6 +95,7 @@ function get_frame:pointer;assembler;nostackframe;
     // lw $2,0($sp)
     move $2,$30
   end;
+{$endif INTERNAL_BACKTRACE}
 
 
 { Try to find previous $fp,$ra register pair

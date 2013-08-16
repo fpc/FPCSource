@@ -1199,12 +1199,14 @@ function TUCA_PropItemRec.GetCodePoint() : UInt24;
 begin
   if HasCodePoint() then begin
     if Contextual then
-      Result := PUInt24(
-                  PtrUInt(@Self) + Self.GetSelfOnlySize()- SizeOf(UInt24) -
-                  Cardinal(GetContext()^.Size)
-                )^
+      Result := Unaligned(
+                  PUInt24(
+                    PtrUInt(@Self) + Self.GetSelfOnlySize()- SizeOf(UInt24) -
+                    Cardinal(GetContext()^.Size)
+                  )^
+                )
     else
-      Result := PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^
+      Result := Unaligned(PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^)
   end else begin
   {$ifdef uni_debug}
     raise EUnicodeException.Create('TUCA_PropItemRec.GetCodePoint : "No code point available."');
@@ -1238,17 +1240,17 @@ begin
   c := WeightLength;
   p := PByte(PtrUInt(@Self) + SizeOf(TUCA_PropItemRec));
   pd := ADest;
-  pd^.Weights[0] := PWord(p)^;
+  pd^.Weights[0] := Unaligned(PWord(p)^);
   p := p + 2;
   if not IsWeightCompress_1() then begin
-    pd^.Weights[1] := PWord(p)^;
+    pd^.Weights[1] := Unaligned(PWord(p)^);
     p := p + 2;
   end else begin
     pd^.Weights[1] := p^;
     p := p + 1;
   end;
   if not IsWeightCompress_2() then begin
-    pd^.Weights[2] := PWord(p)^;
+    pd^.Weights[2] := Unaligned(PWord(p)^);
     p := p + 2;
   end else begin
     pd^.Weights[2] := p^;

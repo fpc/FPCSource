@@ -95,7 +95,7 @@ implementation
         constructor create(c:tobjectdef);
         { write the VMT to al_globals }
         procedure writevmt;
-        procedure writeinterfaceids;
+        procedure writeinterfaceids(list: TAsmList);
       end;
 
 
@@ -446,7 +446,7 @@ implementation
 
                 lists[0].concat(Tai_const.Create_sym(l));
                 if po_abstractmethod in pd.procoptions then
-                  lists[0].concat(Tai_const.Create_sym(nil))
+                  lists[0].concat(Tai_const.Create_nil_codeptr)
                 else
                   lists[0].concat(Tai_const.Createname(pd.mangledname,0));
               end;
@@ -600,7 +600,7 @@ implementation
           rawdata.concat(Tai_const.CreateName(
             make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),0))
         else
-          rawdata.concat(Tai_const.Create_sym(nil));
+          rawdata.concat(Tai_const.Create_nil_dataptr);
 
         { VTable }
         rawdata.concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
@@ -658,7 +658,7 @@ implementation
 
 
   { Write interface identifiers to the data section }
-  procedure TVMTWriter.writeinterfaceids;
+  procedure TVMTWriter.writeinterfaceids(list: TAsmList);
     var
       i : longint;
       s : string;
@@ -666,21 +666,21 @@ implementation
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,const_align(sizeof(pint)));
-          current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_16bit(_class.iidguid^.D2));
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_16bit(_class.iidguid^.D3));
+          maybe_new_object_file(list);
+          new_section(list,sec_rodata_norel,s,const_align(sizeof(pint)));
+          list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+          list.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
+          list.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
+          list.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
           for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
+            list.concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
         end;
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+      maybe_new_object_file(list);
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,sizeof(pint));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-      current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(length(_class.iidstr^)));
-      current_asmdata.asmlists[al_globals].concat(Tai_string.Create(_class.iidstr^));
+      new_section(list,sec_rodata_norel,s,sizeof(pint));
+      list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+      list.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
+      list.concat(Tai_string.Create(_class.iidstr^));
     end;
 
 
@@ -819,7 +819,7 @@ implementation
             (oo_has_vmt in _class.childof.objectoptions) then
            current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,0))
          else
-           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+           current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
@@ -830,7 +830,7 @@ implementation
             if (oo_has_msgint in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(intmessagetable))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { pointer to method table or nil }
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(methodnametable));
             { pointer to field table }
@@ -841,25 +841,25 @@ implementation
             if _class.members_need_inittable then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { auto table }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(interfacetable))
             else if _class.implements_any_interfaces then
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr)
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF')));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
           end;
          { write virtual methods }
          writevirtualmethods(current_asmdata.asmlists[al_globals]);
-         current_asmdata.asmlists[al_globals].concat(Tai_const.create(aitconst_ptr,0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_codeptr);
          { write the size of the VMT }
          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
 {$ifdef vtentry}
@@ -958,7 +958,7 @@ implementation
                     begin
                       vmtwriter:=TVMTWriter.create(tobjectdef(def));
                       if is_interface(tobjectdef(def)) then
-                        vmtwriter.writeinterfaceids;
+                        vmtwriter.writeinterfaceids(current_asmdata.AsmLists[al_globals]);
                       if (oo_has_vmt in tobjectdef(def).objectoptions) then
                         vmtwriter.writevmt;
                       vmtwriter.free;

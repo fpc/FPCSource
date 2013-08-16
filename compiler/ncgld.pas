@@ -1337,7 +1337,7 @@ implementation
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
-                 advancearrayoffset(href,sizeof(pint)*2);
+                 advancearrayoffset(href,elesize);
                end
               else
               { normal array constructor of the same type }

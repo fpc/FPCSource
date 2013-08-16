@@ -65,8 +65,8 @@ implementation
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
-        { if (cs_generate_stackframes in current_settings.localswitches) or
-           not (cs_opt_stackframe in current_settings.optimizerswitches) then }
+        if (cs_generate_stackframes in current_settings.localswitches) or
+           not (cs_opt_stackframe in current_settings.optimizerswitches) then
           include(flags,pi_needs_stackframe);
 
         floatregssave:=12; { f20-f31 }

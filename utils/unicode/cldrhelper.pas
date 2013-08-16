@@ -28,6 +28,13 @@ unit cldrhelper;
 {$scopedenums on}
 {$typedaddress on}
 
+{$macro on}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=packed}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
 interface
 
 uses
@@ -64,7 +71,7 @@ type
 
   { TReorderUnit }
 
-  TReorderUnit = packed record
+  TReorderUnit = X_PACKED record
   public
     Context         : TUnicodeCodePointArray;
     ExpansionChars  : TUnicodeCodePointArray;
@@ -107,7 +114,7 @@ type
 
   { TReorderSequence }
 
-  TReorderSequence = packed record
+  TReorderSequence = X_PACKED record
   public
     Reset           : array of TUnicodeCodePoint;
     Elements        : array of TReorderUnit;

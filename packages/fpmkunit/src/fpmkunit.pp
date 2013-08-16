@@ -5165,11 +5165,8 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
         if (D.DependencyType=depInclude) then
           begin
             if D.TargetFileName<>'' then
-              begin
-              Exit;
-              Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name]);
-              end;
-            if (ACPU in D.CPUs) and (AOS in D.OSes) then
+              Log(vlDebug,SDbgSourceAlreadyResolved,[D.Value])
+            else if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
                 if ExtractFilePath(D.Value)='' then
                   begin
@@ -6115,7 +6112,7 @@ begin
   case Defaults.BuildMode of
     bmOneByOne:  begin
                    if (bmOneByOne in APackage.SupportBuildModes) then
-                     APackage.FBuildMode:=bmBuildUnit
+                     APackage.FBuildMode:=bmOneByOne
                    else if bmBuildUnit in APackage.SupportBuildModes then
                      begin
                        log(vlInfo,SInfoFallbackBuildmodeBU);
@@ -6467,6 +6464,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
+              // Make sure that the package is resolved for each targbet
+              APackage.FAllFilesResolved:=false;
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;

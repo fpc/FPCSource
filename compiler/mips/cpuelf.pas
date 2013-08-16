@@ -49,6 +49,7 @@ implementation
       stubcount: longint;
       trampolinesection: TObjSection;
       procedure MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
+      procedure MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
       procedure CreatePICStub(objsym:TObjSymbol);
     protected
       procedure PrepareGOT;override;
@@ -225,9 +226,18 @@ implementation
 
 
   function elf_mips_loadsection(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
+    var
+      ri: TElfReginfo;
     begin
       case shdr.sh_type of
         SHT_MIPS_REGINFO:
+          begin
+            objinput.ReadBytes(shdr.sh_offset,ri,sizeof(ri));
+            MaybeSwapElfReginfo(ri);
+            TElfObjData(objdata).gp_value:=ri.ri_gp_value;
+            result:=true;
+          end;
+        SHT_MIPS_DWARF:
           result:=true;
       else
         writeln('elf_mips_loadsection: ',hexstr(shdr.sh_type,8),' ',objdata.name);
@@ -555,6 +565,31 @@ implementation
         end;
     end;
 
+  procedure TElfExeOutputMIPS.MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
+    var
+      gotoff,tmp:aword;
+    begin
+      gotoff:=objsym.exesymbol.gotoffset;
+      if gotoff=0 then
+        InternalError(2012060903);
+
+      if gotoff=gotobjsec.Data.size+sizeof(pint) then
+        begin
+          tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
+          if (objsym.exesymbol.dynindex>0) then
+            begin
+              gotobjsec.writezeros(sizeof(pint));
+              dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_MIPS_TLS_TPREL32));
+            end
+          else
+            begin
+              putword(gotobjsec,relocval);
+              if IsSharedLibrary then
+                dynreloclist.Add(TObjRelocation.CreateRaw(tmp,nil,R_MIPS_TLS_TPREL32));
+            end;
+        end;
+    end;
+
   procedure TElfExeOutputMIPS.CreatePICStub(objsym:TObjSymbol);
     var
       textsec,newsec:TObjSection;
@@ -722,6 +757,9 @@ implementation
                 local_got_relocs.add(objreloc);
               end;
           end;
+
+        R_MIPS_TLS_GOTTPREL:
+          inherited AllocGOTSlot(objreloc.symbol);
       end;
     end;
 
@@ -917,6 +955,34 @@ implementation
             R_MIPS_PC16:
               //TODO: check overflow
               address:=(address and $FFFF0000) or ((((SmallInt(address) shl 2)+relocval-curloc) shr 2) and $FFFF);
+
+            R_MIPS_GPREL32:
+              address:=address+relocval+TElfObjData(objsec.objdata).gp_value-gotsymbol.address;
+
+            R_MIPS_TLS_GOTTPREL:
+              begin
+                if IsSharedLibrary then
+                  relocval:=relocval-tlsseg.MemPos
+                else
+                  relocval:=relocval-(tlsseg.MemPos+TP_OFFSET);
+                MaybeWriteTLSIEGotEntry(relocval,objreloc.symbol);
+                relocval:=-(gotsymbol.offset-(objreloc.symbol.exesymbol.gotoffset-sizeof(pint)));
+                // TODO: check overflow
+                address:=(address and $FFFF0000) or (relocval and $FFFF);
+              end;
+
+            R_MIPS_TLS_TPREL_HI16:
+              begin
+                tmp:=SmallInt(address)+relocval-(tlsseg.MemPos+TP_OFFSET);
+                tmp:=(tmp+$8000) shr 16;
+                address:=(address and $FFFF0000) or (tmp and $FFFF);
+              end;
+
+            R_MIPS_TLS_TPREL_LO16:
+              begin
+                tmp:=SmallInt(address)+relocval-(tlsseg.MemPos+TP_OFFSET);
+                address:=(address and $FFFF0000) or (tmp and $FFFF);
+              end;
 
             R_MIPS_JALR: {optimization hint, ignore for now }
               ;

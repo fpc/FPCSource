@@ -66,6 +66,8 @@ interface
        { tstoreddef }
 
        tstoreddef = class(tdef)
+       private
+          _fullownerhierarchyname : pshortstring;
        protected
           typesymderef  : tderef;
           procedure fillgenericparas(symtable:tsymtable);
@@ -100,6 +102,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  OwnerHierarchyName: string; override;
+          function  fullownerhierarchyname:string;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -1537,6 +1540,7 @@ implementation
           end;
         genericparas.free;
         genconstraintdata.free;
+        stringdispose(_fullownerhierarchyname);
         inherited destroy;
       end;
 
@@ -1624,6 +1628,36 @@ implementation
             break;
           result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
         until tmp=nil;
+      end;
+
+    function tstoreddef.fullownerhierarchyname: string;
+      var
+        tmp: tdef;
+      begin
+        if assigned(_fullownerhierarchyname) then
+          begin
+            result:=_fullownerhierarchyname^;
+            exit;
+          end;
+        { the def can only reside inside structured types or
+          procedures/functions/methods }
+        tmp:=self;
+        result:='';
+        repeat
+          { can be not assigned in case of a forwarddef }
+          if not assigned(tmp.owner) then
+            break
+          else
+            tmp:=tdef(tmp.owner.defowner);
+          if not assigned(tmp) then
+            break;
+          if tmp.typ in [recorddef,objectdef] then
+            result:=tabstractrecorddef(tmp).objrealname^+'.'+result
+          else
+            if tmp.typ=procdef then
+              result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
+        until tmp=nil;
+        _fullownerhierarchyname:=stringdup(result);
       end;
 
 
@@ -1777,6 +1811,8 @@ implementation
                 ispowerof2(recsize,temp) and
                 { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
                 (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                 { records cannot go into registers on 16 bit targets for now }
+                  and (sizeof(asizeint)>2)
                   and not trecorddef(self).contains_float_field) or
                   (recsize <= sizeof(asizeint)))
                 and not needs_inittable;
@@ -6167,27 +6203,37 @@ implementation
 
 
     function tobjectdef.vmtmethodoffset(index:longint):longint;
+      var
+        codeptrsize: Integer;
       begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          codeptrsize:=4
+        else
+          codeptrsize:=2;
+{$else i8086}
+        codeptrsize:=sizeof(pint);
+{$endif i8086}
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
           { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
+          vmtmethodoffset:=index*codeptrsize+10*sizeof(pint)+2*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba,odt_dispinterface:
-          vmtmethodoffset:=index*sizeof(pint);
+          vmtmethodoffset:=index*codeptrsize;
         odt_javaclass,
         odt_interfacejava:
           { invalid }
           vmtmethodoffset:=-1;
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*sizeof(pint);
+          vmtmethodoffset:=index*codeptrsize+4*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*sizeof(pint);
+          vmtmethodoffset:=index*codeptrsize+3*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;

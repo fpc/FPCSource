@@ -756,7 +756,7 @@ implementation
              case nodetype of
                 addn :
                   begin
-                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
                     typecheckpass(t);
                     tstringconstnode(t).changestringtype(resultdef);
                   end;

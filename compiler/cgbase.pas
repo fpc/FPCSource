@@ -624,6 +624,10 @@ implementation
             result:=result+'ms';
           R_SUBMMWHOLE:
             result:=result+'ma';
+          R_SUBMMX:
+            result:=result+'mx';
+          R_SUBMMY:
+            result:=result+'my';
           else
             internalerror(200308252);
         end;

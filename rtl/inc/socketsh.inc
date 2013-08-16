@@ -180,7 +180,7 @@ function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optle
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
 function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
-Function CloseSocket(Sock:Longint):Longint; // vote is still out on this one
+Function CloseSocket(Sock:Longint):Longint;
 
 {Basic Socket Functions}
 {$ifdef legacysocket}

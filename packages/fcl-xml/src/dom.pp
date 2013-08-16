@@ -3,7 +3,7 @@
 
     Implementation of DOM interfaces
     Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
-    Modified in 2006 by Sergei Gorelkin, sergei_gorelkin@mail.ru    
+    Modified in 2006 by Sergei Gorelkin, sergei_gorelkin@mail.ru
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -100,7 +100,11 @@ type
 
   TNodePool = class;
   PNodePoolArray = ^TNodePoolArray;
+{$ifdef CPU16}
+  TNodePoolArray = array[0..MaxSmallInt div sizeof(Pointer)-1] of TNodePool;
+{$else CPU16}
   TNodePoolArray = array[0..MaxInt div sizeof(Pointer)-1] of TNodePool;
+{$endif CPU16}
 
 {$ifndef fpc}
   TFPList = TList;
@@ -1164,7 +1168,7 @@ begin
     while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
       parent := parent.ParentNode;
     Result := TDOMElement(parent);
-  end;  
+  end;
 end;
 
 // TODO: specs prescribe to return default namespace if APrefix=null,
@@ -1201,7 +1205,7 @@ begin
         end;
       end
     end;
-  end;  
+  end;
   result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
 end;
 
@@ -1231,7 +1235,7 @@ begin
     begin
       result := (nsURI = namespaceURI);
       Exit;
-    end  
+    end
     else if HasAttributes then
     begin
       Map := Attributes;
@@ -1384,7 +1388,7 @@ begin
   if Assigned(RefChild) and (RefChild.ParentNode <> Self) then
     raise EDOMNotFound.Create('NodeWC.InsertBefore');
 
-  // TODO: skip checking Fragments as well? (Fragment itself cannot be in the tree)  
+  // TODO: skip checking Fragments as well? (Fragment itself cannot be in the tree)
   if not (NewChildType in [TEXT_NODE, CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE]) and (NewChild.FirstChild <> nil) then
   begin
     Tmp := Self;
@@ -1411,7 +1415,7 @@ begin
           raise EDOMHierarchyRequest.Create('NodeWC.InsertBefore');
         Tmp := Tmp.NextSibling;
       end;
-    
+
       while Assigned(TDOMDocumentFragment(NewChild).FFirstChild) do
         InsertBefore(TDOMDocumentFragment(NewChild).FFirstChild, RefChild);
     end;
@@ -2132,7 +2136,7 @@ begin
         Result := -NAMESPACE_ERR;
         Exit;
       end;
-    // Name validity has already been checked by IsXmlName() call above.  
+    // Name validity has already been checked by IsXmlName() call above.
     // So just check that colon isn't first or last char, and that it is follwed by NameStartChar.
     if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1)) then
     begin
@@ -3021,7 +3025,7 @@ begin
   if Assigned(FAttributes) then
     for I := 0 to FAttributes.Length - 1 do
       FAttributes[I].Normalize;
-  inherited Normalize;    
+  inherited Normalize;
 end;
 
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;

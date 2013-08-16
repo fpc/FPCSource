@@ -2250,6 +2250,7 @@ begin
     end
 end;
 
+
 procedure TTestFieldTypes.TestExceptOnsecClose;
 
 var passed : boolean;

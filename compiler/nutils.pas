@@ -673,6 +673,16 @@ implementation
 {$endif ARM}
                   exit;
                 end;
+              exitn:
+                begin
+                  inc(result,2);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p:=texitnode(p).left;
+                end;
               tempcreaten,
               tempdeleten,
               pointerconstn,

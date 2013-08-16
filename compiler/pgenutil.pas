@@ -278,7 +278,7 @@ uses
         if assigned(parsedtype) then
           begin
             genericdeflist.Add(parsedtype);
-            specializename:='$'+parsedtype.typename;
+            specializename:='$'+parsedtype.fulltypename;
             prettyname:=parsedtype.typesym.prettyname;
             if assigned(poslist) then
               begin
@@ -315,11 +315,11 @@ uses
                   message(type_e_generics_cannot_reference_itself)
                 else
                   begin
-                    specializename:=specializename+'$'+typeparam.resultdef.typename;
-                    if first then
-                      prettyname:=prettyname+typeparam.resultdef.typesym.prettyname
-                    else
-                      prettyname:=prettyname+','+typeparam.resultdef.typesym.prettyname;
+                    { we use the full name of the type to uniquely identify it }
+                    specializename:=specializename+'$'+typeparam.resultdef.fulltypename;
+                    if not first then
+                      prettyname:=prettyname+',';
+                    prettyname:=prettyname+typeparam.resultdef.fullownerhierarchyname+typeparam.resultdef.typesym.prettyname;
                   end;
               end
             else

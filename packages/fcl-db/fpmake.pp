@@ -32,7 +32,7 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded];
+    P.OSes:=AllOSes-[embedded,msdos];
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';

@@ -94,9 +94,12 @@ initc$(PPUEXT) : initc.pp system$(PPUEXT)
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
 dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
+
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)
+
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) ports.pp
 #
 # TP7 Compatible RTL Units
 #
@@ -174,18 +177,41 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other system-independent RTL Units
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
+        $(COMPILER) (PROCINC)/cpu.pp $(REDIR)
+
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) (PROCINC)/mmx.pp $(REDIR)
+
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp $(REDIR)
+
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
+
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/lineinfo.pp
+
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/lnfodwrf.pp
+
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
+
+matrix$(PPUEXT) : $(INC)/matrix.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/matrix.pp
+
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(INC)/ucomplex.pp $(REDIR)
 
 #
 # Other system-dependent RTL Units
 #
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+        $(COMPILER) msmouse.pp $(REDIR)
+
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/callspec.pp $(REDIR)
+
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
+

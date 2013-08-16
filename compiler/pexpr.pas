@@ -3112,7 +3112,7 @@ implementation
 
              _CSTRING :
                begin
-                 p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern));
+                 p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern),nil);
                  consume(_CSTRING);
                  if token in postfixoperator_tokens then
                    begin

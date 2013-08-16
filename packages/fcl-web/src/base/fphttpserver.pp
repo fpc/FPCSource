@@ -249,11 +249,6 @@ begin
   end;
 end;
 
-procedure HandleRequestError(Sender: TObject; E: Exception);
-begin
-
-end;
-
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
@@ -637,8 +632,6 @@ begin
     except
       // Do not let errors in user code escape.
     end
-  else
-    Writeln('Unhandled exception : ',E.ClassName,' : ',E.Message);
 end;
 
 function TFPCustomHttpServer.GetActive: Boolean;

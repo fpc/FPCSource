@@ -76,6 +76,9 @@ interface
        public
          ident: TElfIdent;
          flags: longword;
+{$ifdef mips}
+         gp_value: longword;
+{$endif mips}
          constructor create(const n:string);override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
@@ -148,6 +151,7 @@ interface
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
          function CreateSection(const shdr:TElfsechdr;index:longint;objdata:TObjData;
            out secname:string):TElfObjSection;
+         function ReadBytes(offs:longint;out buf;len:longint):boolean;
        end;
 
        TElfVersionDef = class(TFPHashObject)
@@ -267,6 +271,7 @@ interface
          procedure WriteShstrtab;
          procedure FixupSectionLinks;
          procedure InitDynlink;
+         procedure OrderOrphanSections;
        protected
          dynamiclink: boolean;
          hastextrelocs: boolean;
@@ -967,7 +972,7 @@ implementation
             end;
           AB_COMMON :
             begin
-              elfsym.st_value:=var_align(objsym.size);
+              elfsym.st_value:=size_2_align(objsym.size);
               elfsym.st_info:=STB_GLOBAL shl 4;
               elfsym.st_shndx:=SHN_COMMON;
             end;
@@ -1471,6 +1476,13 @@ implementation
         result.MemPos:=shdr.sh_addr;
         result.Size:=shdr.sh_size;
         FSecTbl[index].sec:=result;
+      end;
+
+
+    function TElfObjInput.ReadBytes(offs:longint;out buf;len:longint):boolean;
+      begin
+        FReader.Seek(offs);
+        result:=FReader.Read(buf,len);
       end;
 
 
@@ -2337,6 +2349,7 @@ implementation
         end;
 
       begin
+        OrderOrphanSections;
         inherited Order_end;
         set_oso_keep('.init');
         set_oso_keep('.fini');
@@ -2352,6 +2365,90 @@ implementation
           for removal as unused }
         if dynamiclink then
           WriteDynamicTags;
+      end;
+
+
+    procedure TElfExeOutput.OrderOrphanSections;
+      var
+        i,j:longint;
+        objdata:TObjData;
+        objsec:TObjSection;
+        exesec:TExeSection;
+        opts:TObjSectionOptions;
+        s:string;
+        newsections,tmp:TFPHashObjectList;
+        allsections:TFPList;
+        inserts:array[0..6] of TExeSection;
+        idx,inspos:longint;
+      begin
+        newsections:=TFPHashObjectList.Create(false);
+        allsections:=TFPList.Create;
+        { copy existing sections }
+        for i:=0 to ExeSectionList.Count-1 do
+          allsections.add(ExeSectionList[i]);
+        inserts[0]:=FindExeSection('.comment');
+        inserts[1]:=nil;
+        inserts[2]:=FindExeSection('.interp');
+        inserts[3]:=FindExeSection('.bss');
+        inserts[4]:=FindExeSection('.data');
+        inserts[5]:=FindExeSection('.rodata');
+        inserts[6]:=FindExeSection('.text');
+
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(ObjData.ObjSectionList[j]);
+                if objsec.Used then
+                  continue;
+                s:=objsec.name;
+                exesec:=TExeSection(newsections.Find(s));
+                if assigned(exesec) then
+                  begin
+                    exesec.AddObjSection(objsec);
+                    continue;
+                  end;
+                opts:=objsec.SecOptions*[oso_data,oso_load,oso_write,oso_executable];
+                if (objsec.SecOptions*[oso_load,oso_debug]=[]) then
+                  { non-alloc, after .comment
+                    GNU ld places .comment between stabs and dwarf debug info }
+                  inspos:=0
+                else if not (oso_load in objsec.SecOptions) then
+                  inspos:=1   { debugging, skip }
+                else if (oso_load in objsec.SecOptions) and
+                  (TElfObjSection(objsec).shtype=SHT_NOTE) then
+                  inspos:=2   { after .interp }
+                else if (opts=[oso_load,oso_write]) then
+                  inspos:=3   { after .bss }
+                else if (opts=[oso_data,oso_load,oso_write]) then
+                  inspos:=4   { after .data }
+                else if (opts=[oso_data,oso_load]) then
+                  inspos:=5   { rodata, relocs=??? }
+                else if (opts=[oso_data,oso_load,oso_executable]) then
+                  inspos:=6   { text }
+                else
+                  begin
+                    Comment(v_debug,'Orphan section '+objsec.fullname+' has attributes that are not handled!');
+                    continue;
+                  end;
+                if (inserts[inspos]=nil) then
+                  begin
+                    Comment(v_debug,'Orphan section '+objsec.fullname+': nowhere to insert, ignored');
+                    continue;
+                  end;
+                idx:=allsections.IndexOf(inserts[inspos]);
+                exesec:=CExeSection.Create(newsections,s);
+                allsections.Insert(idx+1,exesec);
+                inserts[inspos]:=exesec;
+                exesec.AddObjSection(objsec);
+              end;
+          end;
+        { Now replace the ExeSectionList with content of allsections }
+        if (newsections.count<>0) then
+          ReplaceExeSectionList(allsections);
+        newsections.Free;
+        allsections.Free;
       end;
 
 
@@ -2438,7 +2535,7 @@ implementation
                 if exesym.ObjSymbol.size=0 then
                   Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
                 internalobjdata.setSection(dynbssobjsec);
-                internalobjdata.allocalign(var_align(exesym.ObjSymbol.size));
+                internalobjdata.allocalign(size_2_align(exesym.ObjSymbol.size));
                 objsym:=internalobjdata.SymbolDefine(exesym.name,AB_GLOBAL,AT_DATA);
                 objsym.size:=exesym.ObjSymbol.size;
                 objsym.indsymbol:=exesym.ObjSymbol.indsymbol;

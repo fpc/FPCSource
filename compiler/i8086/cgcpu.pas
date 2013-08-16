@@ -76,6 +76,7 @@ unit cgcpu;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
         procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);override;
 
+        procedure g_stackpointer_alloc(list : TAsmList;localsize: longint);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
@@ -443,16 +444,16 @@ unit cgcpu;
                         internalerror(2013050102);
 
                     getcpuregister(list,NR_AX);
-                    if size in [OS_16,OS_S16] then
-                      getcpuregister(list,NR_DX);
 
                     a_load_const_reg(list,size,a,ax_subreg);
+                    if size in [OS_16,OS_S16] then
+                      getcpuregister(list,NR_DX);
                     list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
+                    if size in [OS_16,OS_S16] then
+                      ungetcpuregister(list,NR_DX);
                     a_load_reg_reg(list,size,size,ax_subreg,reg);
 
                     ungetcpuregister(list,NR_AX);
-                    if size in [OS_16,OS_S16] then
-                      ungetcpuregister(list,NR_DX);
 
                     { TODO: implement overflow checking? }
 
@@ -722,8 +723,27 @@ unit cgcpu;
 
 
     procedure tcg8086.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+
+      procedure load_para_loc(r : TRegister;paraloc : PCGParaLocation);
+        var
+          ref : treference;
+        begin
+          paramanager.allocparaloc(list,paraloc);
+          case paraloc^.loc of
+             LOC_REGISTER,LOC_CREGISTER:
+               a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
+             LOC_REFERENCE,LOC_CREFERENCE:
+               begin
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2);
+                  a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
+               end;
+             else
+               internalerror(2002071004);
+          end;
+        end;
       var
-        pushsize, pushsize2: tcgsize;
+        pushsize,pushsize2 : tcgsize;
+
       begin
         check_register_size(size,r);
         if use_push(cgpara) then
@@ -766,7 +786,21 @@ unit cgcpu;
               end;
           end
         else
-          inherited a_load_reg_cgpara(list,size,r,cgpara);
+          begin
+            if tcgsize2size[cgpara.Size]=4 then
+              begin
+                if (cgpara.location^.Next=nil) or
+                  (tcgsize2size[cgpara.location^.size]<>2) or
+                  (tcgsize2size[cgpara.location^.Next^.size]<>2) or
+                  (cgpara.location^.Next^.Next<>nil) or
+                  (cgpara.location^.shiftval<>0) then
+                  internalerror(2013031102);
+                load_para_loc(r,cgpara.Location);
+                load_para_loc(GetNextReg(r),cgpara.Location^.Next);
+              end
+            else
+              inherited a_load_reg_cgpara(list,size,r,cgpara);
+          end;
       end;
 
 
@@ -1109,13 +1143,13 @@ unit cgcpu;
               OS_S8:
                 begin
                   getcpuregister(list, NR_AX);
-                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, NR_AL));
+                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_none(A_CBW));
                   list.concat(taicpu.op_none(A_CWD));
                   add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_AX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_DX);
                 end;
               OS_16:
@@ -1126,13 +1160,13 @@ unit cgcpu;
               OS_S16:
                 begin
                   getcpuregister(list, NR_AX);
-                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, NR_AX));
+                  getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_none(A_CWD));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                   ungetcpuregister(list, NR_AX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                   ungetcpuregister(list, NR_DX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                 end;
               OS_32,OS_S32:
                 begin
@@ -1293,6 +1327,13 @@ unit cgcpu;
         tmpreg:=getintregister(list,size);
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
+      end;
+
+
+    procedure tcg8086.g_stackpointer_alloc(list : TAsmList;localsize: longint);
+      begin
+        if localsize>0 then
+          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,localsize,NR_STACK_POINTER_REG));
       end;
 
 

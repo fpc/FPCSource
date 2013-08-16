@@ -262,3 +262,9 @@ ppcjvm -O2 -g -B tw24089
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw24089
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B  -CTautosetterprefix=Set ujsetter
+if %errorlevel% neq 0 exit /b %errorlevel%
+javac -encoding utf-8 -cp ..\..\..\rtl\units\jvm-java;. tjsetter.java
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tjsetter
+if %errorlevel% neq 0 exit /b %errorlevel%

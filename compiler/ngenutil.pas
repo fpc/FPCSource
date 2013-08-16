@@ -545,6 +545,7 @@ implementation
       StructList: TFPList absolute arg;
     begin
       if (tdef(p).typ in [objectdef,recorddef]) and
+         not (df_generic in tdef(p).defoptions) and
          ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
         StructList.Add(p);
     end;

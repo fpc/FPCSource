@@ -51,6 +51,7 @@ Unit Rax86int;
          actasmtoken : tasmtoken;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
+         inexpression : boolean;
          constructor create;override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
@@ -128,9 +129,6 @@ Unit Rax86int;
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor','wrt','..gotpcrel'
       );
-
-    var
-      inexpression   : boolean;
 
     constructor tx86intreader.create;
       var

@@ -1183,7 +1183,10 @@ const
          (mask:pi_has_inherited;
          str:' subroutine contains inherited call '),
          (mask:pi_has_nested_exit;
-         str:' subroutine contains a nested subroutine which calls the exit of the current one ')
+         str:' subroutine contains a nested subroutine which calls the exit of the current one '),
+         (mask:pi_has_stack_allocs;
+         str:' allocates memory on stack, so stack may be unbalanced on exit ')
+         
   );
 var
   procinfooptions : tprocinfoflags;

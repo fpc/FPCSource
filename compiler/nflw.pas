@@ -1476,6 +1476,9 @@ implementation
          { loop unrolling }
          if cs_opt_loopunroll in current_settings.optimizerswitches then
            begin
+             res:=t2.simplify(false);
+             if assigned(res) then
+               t2:=res;
              res:=unroll_loop(self);
              if assigned(res) then
                begin

@@ -117,6 +117,8 @@ unit cgx86;
         procedure g_profilecode(list : TAsmList);override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
+        procedure g_save_registers(list: TAsmList); override;
+        procedure g_restore_registers(list: TAsmList); override;
 
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
@@ -138,6 +140,7 @@ unit cgx86;
         procedure floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
 
+        procedure internal_restore_regs(list: TAsmList; use_pop: boolean);
       end;
 
    const
@@ -2343,11 +2346,6 @@ unit cgx86;
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
 
       procedure decrease_sp(a : tcgint);
-{$ifdef i8086}
-        begin
-          list.concat(Taicpu.Op_const_reg(A_SUB,S_W,a,NR_STACK_POINTER_REG));
-        end;
-{$else i8086}
         var
           href : treference;
         begin
@@ -2355,7 +2353,6 @@ unit cgx86;
           { normally, lea is a better choice than a sub to adjust the stack pointer }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
-{$endif i8086}
 
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
@@ -2388,7 +2385,11 @@ unit cgx86;
                else
                  begin
                     current_asmdata.getjumplabel(again);
-                    getcpuregister(list,NR_EDI);
+                    { Using a_reg_alloc instead of getcpuregister, so this procedure
+                      does not change "used_in_proc" state of EDI and therefore can be
+                      called after saving registers with "push" instruction
+                      without creating an unbalanced "pop edi" in epilogue }
+                    a_reg_alloc(list,NR_EDI);
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
@@ -2402,7 +2403,7 @@ unit cgx86;
                     decrease_sp(localsize mod winstackpagesize-4);
                     reference_reset_base(href,NR_ESP,localsize-4,4);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
-                    ungetcpuregister(list,NR_EDI);
+                    a_reg_dealloc(list,NR_EDI);
                  end
              end
            else
@@ -2456,9 +2457,24 @@ unit cgx86;
       var
         stackmisalignment: longint;
         para: tparavarsym;
+        regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
 {$endif i8086}
+
+      procedure push_regs;
+        var
+          r: longint;
+        begin
+          regsize:=0;
+          for r := low(saved_standard_registers) to high(saved_standard_registers) do
+            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+              begin
+                inc(regsize,sizeof(aint));
+                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE)));
+              end;
+        end;
+
       begin
 {$ifdef i8086}
         { interrupt support for i8086 }
@@ -2506,48 +2522,24 @@ unit cgx86;
             stackmisalignment := sizeof(pint);
             list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-              CGmessage(cg_d_stackframe_omited)
+              begin
+{$ifdef i386}
+                if (not paramanager.use_fixed_stack) then
+                  push_regs;
+{$endif i386}
+                CGmessage(cg_d_stackframe_omited);
+              end
             else
               begin
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
-                if (target_info.system=system_x86_64_win64) then
-                  begin
-                    list.concat(cai_seh_directive.create_reg(ash_pushreg,NR_FRAME_POINTER_REG));
-                    include(current_procinfo.flags,pi_has_unwind_info);
-                  end;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
-                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
-                else
-                  begin
-                    { load framepointer from hidden $parentfp parameter }
-                    para:=tparavarsym(current_procinfo.procdef.paras[0]);
-                    if not (vo_is_parentfp in para.varoptions) then
-                      InternalError(201201142);
-                    if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
-                       (para.paraloc[calleeside].location^.next<>nil) then
-                      InternalError(201201143);
-                    list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],
-                      para.paraloc[calleeside].location^.register,NR_FRAME_POINTER_REG));
-                    { Need only as much stack space as necessary to do the calls.
-                      Exception filters don't have own local vars, and temps are 'mapped'
-                      to the parent procedure.
-                      maxpushedparasize is already aligned at least on x86_64. }
-                    localsize:=current_procinfo.maxpushedparasize;
-                  end;
+                list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
-                {
-                  TODO: current framepointer handling is not compatible with Win64 at all:
-                  Win64 expects FP to point to the top or into the middle of local area.
-                  In FPC it points to the bottom, making it impossible to generate
-                  UWOP_SET_FPREG unwind code if local area is > 240 bytes.
-                  So for now pretend we never have a framepointer.
-                }
               end;
 
             { allocate stackframe space }
@@ -2563,14 +2555,62 @@ unit cgx86;
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
-                if (target_info.system=system_x86_64_win64) then
-                  begin
-                    if localsize<>0 then
-                      list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
-                    include(current_procinfo.flags,pi_has_unwind_info);
-                  end;
               end;
+
+{$ifdef i386}
+            if (not paramanager.use_fixed_stack) and
+               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+              begin
+                regsize:=0;
+                push_regs;
+                reference_reset_base(current_procinfo.save_regs_ref,
+                  current_procinfo.framepointer,
+                  -(localsize+regsize),sizeof(aint));
+              end;
+{$endif i386}
           end;
+      end;
+
+
+    procedure tcgx86.g_save_registers(list: TAsmList);
+      begin
+{$ifdef i386}
+        if paramanager.use_fixed_stack then
+{$endif i386}
+          inherited g_save_registers(list);
+      end;
+
+
+    procedure tcgx86.g_restore_registers(list: TAsmList);
+      begin
+{$ifdef i386}
+        if paramanager.use_fixed_stack then
+{$endif i386}
+          inherited g_restore_registers(list);
+      end;
+
+
+    procedure tcgx86.internal_restore_regs(list: TAsmList; use_pop: boolean);
+      var
+        r: longint;
+        hreg: tregister;
+        href: treference;
+      begin
+        href:=current_procinfo.save_regs_ref;
+        for r:=high(saved_standard_registers) downto low(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              { Allocate register so the optimizer does not remove the load }
+              a_reg_alloc(list,hreg);
+              if use_pop then
+                list.concat(Taicpu.Op_reg(A_POP,tcgsize2opsize[OS_ADDR],hreg))
+              else
+                begin
+                  a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
+                  inc(href.offset,sizeof(aint));
+                end;
+            end;
       end;
 
 

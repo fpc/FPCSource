@@ -190,9 +190,15 @@ type
   PHashItem=^THashItem;
 
 const
+{$ifdef CPU16}
+  MaxHashListSize = maxsmallint div 16;
+  MaxHashStrSize  = maxsmallint;
+  MaxHashTableSize = maxsmallint div 4;
+{$else CPU16}
   MaxHashListSize = Maxint div 16;
   MaxHashStrSize  = Maxint;
   MaxHashTableSize = Maxint div 4;
+{$endif CPU16}
   MaxItemsPerHash = 3;
 
 type
@@ -2258,7 +2264,7 @@ begin
   if Assigned(N) then
     Result:=N.Data
   else
-    Result:=Nil;  
+    Result:=Nil;
 end;
 
 function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): THTDataNode;
@@ -2347,7 +2353,7 @@ begin
   if Assigned(N) then
     Result:=N.Data
   else
-    Result:='';  
+    Result:='';
 end;
 
 function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): THTStringNode;
@@ -2433,7 +2439,7 @@ begin
   if Assigned(N) then
     Result:=N.Data
   else
-    Result:=Nil;  
+    Result:=Nil;
 end;
 
 function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode;

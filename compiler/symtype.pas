@@ -68,12 +68,14 @@ interface
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  typename:string;
+         function  fulltypename:string;
          function  GetTypeName:string;virtual;
          function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
+         function  fullownerhierarchyname:string;virtual;abstract;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
@@ -274,11 +276,21 @@ implementation
           result:=result+GetTypeName;
       end;
 
+    function tdef.fulltypename:string;
+      begin
+        result:=fullownerhierarchyname;
+        if assigned(typesym) and
+           not(typ in [procvardef,procdef]) and
+           (typesym.realname[1]<>'$') then
+          result:=result+typesym.realname
+        else
+          result:=result+GetTypeName;
+      end;
+
 
     function tdef.GetTypeName : string;
       begin
-         GetTypeName:='<unknown type>'
-      end;
+         GetTypeName:='<unknown type>'      end;
 
 
     function tdef.typesymbolprettyname:string;

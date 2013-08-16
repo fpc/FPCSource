@@ -28,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;
-    P.OSes := P.OSes - [embedded,nativent];
+    P.OSes := P.OSes - [embedded,nativent,msdos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
