@@ -1078,10 +1078,13 @@ implementation
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
 
+// Issue #24863, commented out for now because it breaks building of RTL and needs extensive
+// testing and/or RTL patching.
+{
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
                not(cs_compilesystem in current_settings.moduleswitches) then
               current_module.flags:=current_module.flags or uf_uses_variants;
-
+}
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
 
