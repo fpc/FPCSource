@@ -721,16 +721,24 @@ implementation
       begin
         { Generate stubs for abstract methods, so their symbols are present and
           can be used e.g. to take address (see issue #24536). }
+        if (po_global in pd.procoptions) and
+           (pd.owner.defowner<>self._class) then
+          exit;
         sym:=current_asmdata.GetAsmSymbol(pd.mangledname);
         if assigned(sym) and (sym.bind<>AB_EXTERNAL) then
           exit;
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),target_info.alignment.procalign);
         if (po_global in pd.procoptions) then
-          sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+          begin
+            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION);
+            list.concat(Tai_symbol.Create_global(sym,0));
+          end
         else
-          sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
-        list.concat(Tai_symbol.Create(sym,0));
+          begin
+            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+            list.concat(Tai_symbol.Create(sym,0));
+          end;
         cg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
         list.concat(Tai_symbol_end.Create(sym));
       end;
