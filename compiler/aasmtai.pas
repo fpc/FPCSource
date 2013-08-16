@@ -1288,6 +1288,10 @@ implementation
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
+         { don't redefine global/external symbols as local, as code to access
+           such symbols is different on some platforms }
+         if not(sym.bind in [AB_NONE,AB_LOCAL]) then
+           internalerror(2013081601);
          sym.bind:=AB_LOCAL;
          is_global:=false;
       end;
