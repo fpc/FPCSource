@@ -103,7 +103,7 @@ implementation
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,ncon,
+       fmodule,node,htypechk,ncon,ppu,
        objcutil,
        { parser }
        scanner,
@@ -1077,6 +1077,10 @@ implementation
                   current_specializedef:=current_structdef;
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
+
+            if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
+               not(cs_compilesystem in current_settings.moduleswitches) then
+              current_module.flags:=current_module.flags or uf_uses_variants;
 
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
