@@ -17,5 +17,5 @@ begin
     Halt(1);
   Foo2 := @TMyClass2.MyAbstractMethod;
   if Foo<>Foo2 then
-    Halt(1);
+    Halt(2);
 end.
