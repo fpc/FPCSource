@@ -2788,6 +2788,22 @@ implementation
            factor_read_set:=buildp;
          end;
 
+         function can_load_self_node: boolean;
+         var
+           procinfo: tprocinfo;
+         begin
+           result:=false;
+           if (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
+              not assigned(current_structdef) or
+              not assigned(current_procinfo) then
+             exit;
+           procinfo:=current_procinfo;
+           if procinfo.procdef.parast.symtablelevel<normal_function_level then
+             exit;
+           while assigned(procinfo.parent)and(procinfo.procdef.parast.symtablelevel>normal_function_level) do
+             procinfo:=procinfo.parent;
+           result:=not procinfo.procdef.no_self_node;
+         end;
 
       {---------------------------------------------
                       Factor (Main)
@@ -2822,9 +2838,7 @@ implementation
          begin
            again:=true;
            { Handle references to self }
-           if (idtoken=_SELF) and
-              not(block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) and
-              assigned(current_structdef) then
+           if (idtoken=_SELF) and can_load_self_node then
              begin
                p1:=load_self_node;
                consume(_ID);

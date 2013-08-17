@@ -52,6 +52,9 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
+
+       { tprocinfo }
+
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
