@@ -907,6 +907,8 @@ implementation
 
 
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
+      var
+        pd: tprocdef;
       begin
         maybe_load_methodpointer:=false;
         if not assigned(p1) then
@@ -920,12 +922,17 @@ implementation
              ObjectSymtable,
              recordsymtable:
                begin
+                 { Escape nested procedures }
+                 if assigned(current_procinfo) then
+                   pd:=current_procinfo.get_normal_proc.procdef
+                 else
+                   pd:=nil;
                  { We are calling from the static class method which has no self node }
-                 if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
+                 if assigned(pd) and pd.no_self_node then
                    if st.symtabletype=recordsymtable then
-                     p1:=ctypenode.create(current_procinfo.procdef.struct)
+                     p1:=ctypenode.create(pd.struct)
                    else
-                     p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
+                     p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -2789,20 +2796,13 @@ implementation
          end;
 
          function can_load_self_node: boolean;
-         var
-           procinfo: tprocinfo;
          begin
            result:=false;
            if (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
               not assigned(current_structdef) or
               not assigned(current_procinfo) then
              exit;
-           procinfo:=current_procinfo;
-           if procinfo.procdef.parast.symtablelevel<normal_function_level then
-             exit;
-           while assigned(procinfo.parent)and(procinfo.procdef.parast.symtablelevel>normal_function_level) do
-             procinfo:=procinfo.parent;
-           result:=not procinfo.procdef.no_self_node;
+           result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
          end;
 
       {---------------------------------------------

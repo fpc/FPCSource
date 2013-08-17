@@ -168,6 +168,7 @@ unit procinfo;
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
+          function get_normal_proc: tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
@@ -269,6 +270,13 @@ implementation
     function tprocinfo.has_nestedprocs: boolean;
       begin
         result:=assigned(nestedprocs) and (nestedprocs.count>0);
+      end;
+
+    function tprocinfo.get_normal_proc: tprocinfo;
+      begin
+        result:=self;
+        while assigned(result.parent)and(result.procdef.parast.symtablelevel>normal_function_level) do
+          result:=result.parent;
       end;
 
     procedure tprocinfo.save_jump_labels(out saved: tsavedlabels);
