@@ -326,7 +326,7 @@ unit cgppc;
         if weak then
           current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
+        l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA);
         reference_reset_symbol(href,l1,0,sizeof(pint));
         href.refaddr := addr_higha;
         if (cs_create_pic in current_settings.moduleswitches) then

@@ -3139,14 +3139,14 @@ unit cgcpu;
 
         if not(cs_create_pic in current_settings.moduleswitches) then
           begin
-            l1 := current_asmdata.RefAsmSymbol('L'+s+'$slp');
+            l1 := current_asmdata.DefineAsmSymbol('L'+s+'$slp',AB_LOCAL,AT_DATA);
             reference_reset_symbol(href,l1,0,sizeof(pint));
             href.refaddr:=addr_full;
             current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R12,href));
             reference_reset_base(href,NR_R12,0,sizeof(pint));
             current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R15,href));
             current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
-            l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
+            l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA);
             current_asmdata.asmlists[al_imports].concat(tai_const.create_sym(l1));
           end
         else
