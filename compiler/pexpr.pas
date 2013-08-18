@@ -924,15 +924,17 @@ implementation
                begin
                  { Escape nested procedures }
                  if assigned(current_procinfo) then
-                   pd:=current_procinfo.get_normal_proc.procdef
-                 else
-                   pd:=nil;
-                 { We are calling from the static class method which has no self node }
-                 if assigned(pd) and pd.no_self_node then
-                   if st.symtabletype=recordsymtable then
-                     p1:=ctypenode.create(pd.struct)
-                   else
-                     p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                   begin
+                     pd:=current_procinfo.get_normal_proc.procdef;
+                     { We are calling from the static class method which has no self node }
+                     if assigned(pd) and pd.no_self_node then
+                       if st.symtabletype=recordsymtable then
+                         p1:=ctypenode.create(pd.struct)
+                       else
+                         p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                     else
+                       p1:=load_self_node;
+                   end
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -1295,7 +1297,7 @@ implementation
                             if assigned(p1) and
                               (
                                 is_self_node(p1) or
-                                (assigned(current_procinfo) and (current_procinfo.procdef.no_self_node) and
+                                (assigned(current_procinfo) and (current_procinfo.get_normal_proc.procdef.no_self_node) and
                                 (current_procinfo.procdef.struct=structh))) then
                               Message(parser_e_only_class_members)
                             else
@@ -2411,11 +2413,12 @@ implementation
            end;
 
          var
-           srsym : tsym;
-           srsymtable : TSymtable;
-           hdef  : tdef;
+           srsym: tsym;
+           srsymtable: TSymtable;
+           hdef: tdef;
+           pd: tprocdef;
            orgstoredpattern,
-           storedpattern : string;
+           storedpattern: string;
            callflags: tcallnodeflags;
            t : ttoken;
            unit_found : boolean;
@@ -2573,10 +2576,18 @@ implementation
                             else
                               p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
-                          if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
-                          else
-                            p1:=load_self_node;
+                            begin
+                              if assigned(current_procinfo) then
+                                begin
+                                  pd:=current_procinfo.get_normal_proc.procdef;
+                                  if assigned(pd) and pd.no_self_node then
+                                    p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                                  else
+                                    p1:=load_self_node;
+                                end
+                              else
+                                p1:=load_self_node;
+                            end;
                         { now, if the field itself is part of an objectsymtab }
                         { (it can be even if it was found in a withsymtable,  }
                         {  e.g., "with classinstance do field := 5"), then    }
