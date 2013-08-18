@@ -573,6 +573,8 @@ const
   Test8087 : byte = 3;
   { will be detected at startup }
   has_sse_support : boolean = false;
+  has_sse2_support : boolean = false;
+  has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
 {$ifdef cpui8086}
