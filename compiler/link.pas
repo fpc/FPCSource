@@ -1033,6 +1033,8 @@ Implementation
           exit;
         Comment(V_Tried,'Opening library '+para);
         objreader:=TArObjectreader.create(para,true);
+        if ErrorCount>0 then
+          exit;
         if objreader.isarchive then
           TFPObjectList(FGroupStack.Last).Add(TStaticLibrary.Create(para,objreader,CObjInput))
         else

@@ -502,8 +502,8 @@ begin
                  end
                 else
                  begin
-                   linklibc:=true;
-                 end;
+                  linklibc:=true;
+              end;
               end;
              Add(')');
            end
@@ -662,7 +662,7 @@ begin
        _end.  Align after .bss to ensure correct alignment even if the
        .bss section disappears because there are no input sections.}
       add('   . = ALIGN(32 / 8);');
-      add('  }');
+      add('}');
       add('  . = ALIGN(32 / 8);');
       add('  PROVIDE (_end = .);');
       add('  PROVIDE (end = .);');
@@ -1276,7 +1276,7 @@ begin
   { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
     and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
   if IsSharedLibrary then
-    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(dynlinker));
+    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(sysrootpath+dynlinker));
 
   linkToSharedLibs:=(not SharedLibFiles.Empty);
 
