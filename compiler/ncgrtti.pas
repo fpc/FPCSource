@@ -343,7 +343,7 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,0));
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,AT_FUNCTION,0));
                      typvalue:=1;
                   end
                 else
@@ -857,7 +857,7 @@ implementation
 
             if not is_objectpascal_helper(def) then
               if (oo_has_vmt in def.objectoptions) then
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(def.vmt_mangledname,0))
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(def.vmt_mangledname,AT_DATA,0))
               else
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr);
 
@@ -1307,7 +1307,7 @@ implementation
 
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1343,7 +1343,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1351,7 +1351,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1359,7 +1359,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);

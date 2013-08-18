@@ -242,7 +242,7 @@ implementation
          list.concat(cai_align.create(const_align(sizeof(pint))));
          list.concat(Tai_const.Create_sym(p^.nl));
          list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_const.Createname(p^.data.mangledname,0));
+         list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writestrentry(list,p^.r);
@@ -286,7 +286,7 @@ implementation
          list.concat(cai_align.create(const_align(sizeof(longint))));
          list.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
          list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_const.Createname(p^.data.mangledname,0));
+         list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writeintentry(list,p^.r);
@@ -449,7 +449,7 @@ implementation
                 if po_abstractmethod in pd.procoptions then
                   lists[0].concat(Tai_const.Create_nil_codeptr)
                 else
-                  lists[0].concat(Tai_const.Createname(pd.mangledname,0));
+                  lists[0].concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
               end;
            end;
       end;
@@ -547,7 +547,7 @@ implementation
             if (tf_requires_proper_alignment in target_info.flags) then
               list.concat(cai_align.Create(sizeof(TConstPtrUInt)));
             for i:=0 to classtablelist.Count-1 do
-              list.concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,0));
+              list.concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,AT_DATA,0));
             result:=fieldtable;
           end
         else
@@ -585,7 +585,7 @@ implementation
                 hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
                                      tostr(i)+'_$_'+pd.mangledname);
                 { create reference }
-                rawdata.concat(Tai_const.Createname(hs,0));
+                rawdata.concat(Tai_const.Createname(hs,AT_FUNCTION,0));
               end;
            end;
         rawdata.concat(tai_symbol_end.createname(vtblstr));
@@ -599,12 +599,12 @@ implementation
         { GUID (or nil for Corba interfaces) }
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
           rawdata.concat(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),0))
+            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0))
         else
           rawdata.concat(Tai_const.Create_nil_dataptr);
 
         { VTable }
-        rawdata.concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
+        rawdata.concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),AT_DATA,0));
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
           etFieldValue, etFieldValueClass,
@@ -613,6 +613,7 @@ implementation
           etStaticMethodResult, etStaticMethodClass:
             rawdata.concat(Tai_const.Createname(
               tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef).mangledname,
+              AT_FUNCTION,
               0
             ));
           etVirtualMethodResult, etVirtualMethodClass:
@@ -626,7 +627,7 @@ implementation
 
         { IIDStr }
         rawdata.concat(Tai_const.CreateName(
-          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),0));
+          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0));
         { IType }
         rawdata.concat(Tai_const.Create_pint(aint(AImplIntf.VtblImplIntf.IType)));
       end;
@@ -774,7 +775,7 @@ implementation
              procname:='FPC_EMPTYMETHOD'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
-           List.concat(Tai_const.createname(procname,0));
+           List.concat(Tai_const.createname(procname,AT_FUNCTION,0));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
@@ -850,7 +851,7 @@ implementation
          { it is not written for parents that don't have any vmt !! }
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
-           current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,0))
+           current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,AT_DATA,0))
          else
            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
 
@@ -865,9 +866,15 @@ implementation
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { pointer to method table or nil }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(methodnametable));
+            if assigned(methodnametable) then
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(methodnametable))
+            else
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { pointer to field table }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(fieldtablelabel));
+            if assigned(fieldtablelabel) then
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(fieldtablelabel))
+            else
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
             { pointer to type info of published section }
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)));
             { inittable for con-/destruction }
@@ -883,7 +890,7 @@ implementation
             else if _class.implements_any_interfaces then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr)
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF')));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA)));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))
