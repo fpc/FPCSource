@@ -1667,7 +1667,12 @@ implementation
            not(tf_smartlink_sections in target_info.flags)) or
           DLLSource or
           (assigned(current_procinfo) and
-           (po_inline in current_procinfo.procdef.procoptions)) or
+           ((po_inline in current_procinfo.procdef.procoptions) or
+            { globalasmsym is called normally before the body of a subroutine is parsed
+              so we cannot know if it will be auto inlined, so make all symbols of it
+              global if asked }
+            (cs_opt_autoinline in current_settings.optimizerswitches))
+          ) or
           (vo_is_public in varoptions);
       end;
 
