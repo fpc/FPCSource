@@ -337,8 +337,8 @@ implementation
                             begin
                               if not(assigned(exit_procinfo.nestedexitlabel)) then
                                 begin
-                                  include(exit_procinfo.flags,pi_has_nested_exit);
-                                  exclude(exit_procinfo.procdef.procoptions,po_inline);
+                                  include(current_procinfo.flags,pi_has_nested_exit);
+                                  exclude(current_procinfo.procdef.procoptions,po_inline);
 
                                   exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
 
