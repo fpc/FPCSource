@@ -572,14 +572,14 @@ implementation
           begin
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
             else
-              unitinits.concat(Tai_const.Create_pint(0));
+              unitinits.concat(Tai_const.Create_nil_codeptr);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
             else
-              unitinits.concat(Tai_const.Create_pint(0));
+              unitinits.concat(Tai_const.Create_nil_codeptr);
             inc(count);
           end;
           structlist.free;
@@ -598,13 +598,13 @@ implementation
          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
            begin
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
              else
-               unitinits.concat(Tai_const.Create_sym(nil));
+               unitinits.concat(Tai_const.Create_nil_codeptr);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
              else
-               unitinits.concat(Tai_const.Create_sym(nil));
+               unitinits.concat(Tai_const.Create_nil_codeptr);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
@@ -616,13 +616,13 @@ implementation
       if (current_module.flags and (uf_init or uf_finalize))<>0 then
         begin
           if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
           else
-            unitinits.concat(Tai_const.Create_sym(nil));
+            unitinits.concat(Tai_const.Create_nil_codeptr);
           if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
           else
-            unitinits.concat(Tai_const.Create_sym(nil));
+            unitinits.concat(Tai_const.Create_nil_codeptr);
           inc(count);
         end;
       { Insert TableCount,InitCount at start }
