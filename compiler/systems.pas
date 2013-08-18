@@ -40,13 +40,6 @@ interface
        TAbstractLinkerClass = class of TAbstractLinker;
 
 
-       { Abstract assembler class which is implemented in assemble module }
-       TAbstractAssembler = class
-       end;
-
-       TAbstractAssemblerClass = class of TAbstractAssembler;
-
-
        TAbstractResourceFile = class
          constructor create(const fn : ansistring);virtual;abstract;
        end;
