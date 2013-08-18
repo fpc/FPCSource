@@ -375,9 +375,8 @@ Implementation
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
                 and remove it if possible }
-              GetLastInstruction(p,hp1);
               asml.Remove(dealloc);
-              alloc:=FindRegAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
+              alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.previous));
               if assigned(alloc) then
                 begin
                   asml.Remove(alloc);
