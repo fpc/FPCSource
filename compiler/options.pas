@@ -3225,7 +3225,7 @@ begin
   { Force use of external linker if there is no
     internal linker or the linking is skipped }
   if not(cs_link_extern in init_settings.globalswitches) and
-     (not assigned(target_info.link) or
+     ((target_info.link=ld_none) or
       (cs_link_nolink in init_settings.globalswitches)) then
     include(init_settings.globalswitches,cs_link_extern);
 

@@ -332,11 +332,11 @@ end;
 
 initialization
 {$if defined(USE_LINKER_TLINK)}
-  RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosTLink);
+  RegisterLinker(ld_msdos,TExternalLinkerMsDosTLink);
 {$elseif defined(USE_LINKER_ALINK)}
-  RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosALink);
+  RegisterLinker(ld_msdos,TExternalLinkerMsDosALink);
 {$elseif defined(USE_LINKER_WLINK)}
-  RegisterExternalLinker(system_i8086_msdos_info,TExternalLinkerMsDosWLink);
+  RegisterLinker(ld_msdos,TExternalLinkerMsDosWLink);
 {$else}
   {$fatal no linker defined}
 {$endif}

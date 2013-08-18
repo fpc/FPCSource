@@ -46,7 +46,7 @@ interface
         DynamicLinker : string[100];
       end;
 
-      TLinker = class(TAbstractLinker)
+      TLinker = class(TObject)
       public
          HasResources,
          HasExports      : boolean;
@@ -132,12 +132,16 @@ interface
          procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);override;
        end;
 
+      TLinkerClass = class of Tlinker;
+
     var
       Linker  : TLinker;
 
     function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
+
+    procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
     procedure InitLinker;
     procedure DoneLinker;
@@ -154,8 +158,8 @@ Implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;
 
-    type
-     TLinkerClass = class of Tlinker;
+    var
+      CLinker : array[tlink] of TLinkerClass;
 
 {*****************************************************************************
                                    Helpers
@@ -1520,21 +1524,23 @@ Implementation
                                  Init/Done
 *****************************************************************************}
 
+    procedure RegisterLinker(id:tlink;c:TLinkerClass);
+      begin
+        CLinker[id]:=c;
+      end;
+
+
     procedure InitLinker;
-      var
-        lk : TlinkerClass;
       begin
         if (cs_link_extern in current_settings.globalswitches) and
-           assigned(target_info.linkextern) then
+           assigned(CLinker[target_info.linkextern]) then
           begin
-            lk:=TlinkerClass(target_info.linkextern);
-            linker:=lk.Create;
+            linker:=CLinker[target_info.linkextern].Create;
           end
         else
-          if assigned(target_info.link) then
+          if assigned(CLinker[target_info.link]) then
             begin
-              lk:=TLinkerClass(target_info.link);
-              linker:=lk.Create;
+              linker:=CLinker[target_info.link].Create;
             end
         else
           linker:=Tlinker.Create;

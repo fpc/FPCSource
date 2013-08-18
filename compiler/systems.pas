@@ -33,13 +33,6 @@ interface
 *****************************************************************************}
 
      type
-       { Abstract linker class which is implemented in link module }
-       TAbstractLinker = class
-       end;
-
-       TAbstractLinkerClass = class of TAbstractLinker;
-
-
        TAbstractResourceFile = class
          constructor create(const fn : ansistring);virtual;abstract;
        end;
@@ -187,8 +180,8 @@ interface
           dirsep       : char;
           assem        : tasm;
           assemextern  : tasm; { external assembler, used by -a }
-          link         : tabstractlinkerclass;
-          linkextern   : tabstractlinkerclass;  { external linker, used by -s }
+          link         : tlink;
+          linkextern   : tlink;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
           dbg          : tdbg;
@@ -387,19 +380,6 @@ interface
     procedure RegisterTarget(const r:tsysteminfo);
     procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
     procedure RegisterAr(const r:tarinfo);
-    { Register the external linker. This routine is called to setup the
-      class to use for the linker. It returns the tsysteminfo structure
-      updated with the correct linker class for external linking.
-    }
-    procedure RegisterExternalLinker(var system_info: tsysteminfo; c:TAbstractLinkerClass);
-    { Register the internal linker. This routine is called to setup the
-      class to use for the linker. It returns the tsysteminfo structure
-      updated with the correct linker class for internal linking.
-
-      If internal linking is not supported, this class can be set
-      to nil.
-    }
-    procedure RegisterInternalLinker(var system_info : tsysteminfo; c:TAbstractLinkerClass);
 
     procedure InitSystems;
 
@@ -660,16 +640,6 @@ begin
   else
     Getmem(arinfos[t],sizeof(tarinfo));
   arinfos[t]^:=r;
-end;
-
-procedure RegisterExternalLinker(var system_info: tsysteminfo; c:TAbstractLinkerClass);
-begin
-  system_info.linkextern := c;
-end;
-
-procedure RegisterInternalLinker(var system_info : tsysteminfo; c:TAbstractLinkerClass);
-begin
-  system_info.link := c;
 end;
 
 

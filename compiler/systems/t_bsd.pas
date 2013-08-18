@@ -879,29 +879,23 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_bsd,TLinkerBSD);
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x86_64_FreeBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
-  RegisterExternalLinker(system_x86_64_OpenBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_openbsd,timportlibbsd);
   RegisterExport(system_x86_64_openbsd,texportlibbsd);
   RegisterTarget(system_x86_64_openbsd_info);
-  RegisterExternalLinker(system_x86_64_NetBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_netbsd,timportlibbsd);
   RegisterExport(system_x86_64_netbsd,texportlibbsd);
   RegisterTarget(system_x86_64_netbsd_info);
 
-  RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
   RegisterExport(system_x86_64_darwin,texportlibdarwin);
   RegisterTarget(system_x86_64_darwin_info);
 {$endif}
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_i386_NetBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_i386_OpenBSD_info,TLinkerBSD);
   RegisterImport(system_i386_freebsd,timportlibbsd);
   RegisterExport(system_i386_freebsd,texportlibbsd);
   RegisterTarget(system_i386_freebsd_info);
@@ -911,42 +905,33 @@ initialization
   RegisterImport(system_i386_openbsd,timportlibbsd);
   RegisterExport(system_i386_openbsd,texportlibbsd);
   RegisterTarget(system_i386_openbsd_info);
-  RegisterExternalLinker(system_i386_darwin_info,TLinkerBSD);
   RegisterImport(system_i386_darwin,timportlibdarwin);
   RegisterExport(system_i386_darwin,texportlibdarwin);
   RegisterTarget(system_i386_darwin_info);
-  RegisterExternalLinker(system_i386_iphonesim_info,TLinkerBSD);
   RegisterImport(system_i386_iphonesim,timportlibdarwin);
   RegisterExport(system_i386_iphonesim,texportlibdarwin);
   RegisterTarget(system_i386_iphonesim_info);
 {$endif i386}
 {$ifdef m68k}
-//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_m68k_NetBSD_info,TLinkerBSD);
   RegisterImport(system_m68k_netbsd,timportlibbsd);
   RegisterExport(system_m68k_netbsd,texportlibbsd);
   RegisterTarget(system_m68k_netbsd_info);
 {$endif m68k}
 {$ifdef powerpc}
-//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_powerpc_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc_darwin,timportlibdarwin);
   RegisterExport(system_powerpc_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc_darwin_info);
 
-  RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
   RegisterImport(system_powerpc_netbsd,timportlibbsd);
   RegisterExport(system_powerpc_netbsd,texportlibbsd);
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  RegisterExternalLinker(system_powerpc64_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc64_darwin,timportlibdarwin);
   RegisterExport(system_powerpc64_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_darwin_info,TLinkerBSD);
   RegisterImport(system_arm_darwin,timportlibdarwin);
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);

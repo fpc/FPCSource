@@ -181,8 +181,11 @@ implementation
 *****************************************************************************}
 
 initialization
+  { Using external linker as internal doesn't look correct... }
+  RegisterLinker(ld_windows,TExternalLinkerWin);
+  RegisterLinker(ld_int_windows,TInternalLinkerWin);
 {$ifdef i386}
-  RegisterInternalLinker(system_i386_symbian_info,TExternalLinkerWin);
+  ///RegisterInternalLinker(system_i386_symbian_info,TExternalLinkerWin);
   RegisterImport(system_i386_symbian,TImportLibWin);
   RegisterExport(system_i386_symbian,TExportLibWin);
   RegisterDLLScanner(system_i386_symbian,TDLLScannerWin);
@@ -191,7 +194,7 @@ initialization
 {$endif i386}
 {$ifdef arm}
 //  RegisterExternalLinker(system_arm_symbian_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_arm_symbian_info,TInternalLinkerWin);
+  ///RegisterInternalLinker(system_arm_symbian_info,TInternalLinkerWin);
   RegisterImport(system_arm_symbian,TImportLibWin);
   RegisterExport(system_arm_symbian,TExportLibWin);
   RegisterTarget(system_arm_symbian_info);
