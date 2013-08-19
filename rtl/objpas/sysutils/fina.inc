@@ -195,8 +195,13 @@ var
     if (Base = '') or CharInSet(Base[Length (Base)],AllowDirectorySeparators) then
      SearchBase := Base
     else
+{$ifdef SYSUTILSUNICODE}
      SearchBase := Base + DirectorySeparator;
     RC := FindFirst (SearchBase + AllFilesMask, faAnyFile, SR);
+{$else SYSUTILSUNICODE}
+     SearchBase := Base + ToSingleByteFileSystemEncodedFileName(DirectorySeparator);
+    RC := FindFirst (SearchBase + ToSingleByteFileSystemEncodedFileName(AllFilesMask), faAnyFile, SR);
+{$endif SYSUTILSUNICODE}
     while (RC = 0) and (ItemsFound < 2) do
      begin
       if UpCase (NextPart) = UpCase (SR.Name) then
@@ -208,7 +213,11 @@ var
            FoundPath := SearchBase + SR.Name;
          end
         else if SR.Attr and faDirectory = faDirectory then
-         TryCase (SearchBase + SR.Name + DirectorySeparator, NextRest);
+{$ifdef SYSUTILSUNICODE}
+          TryCase (SearchBase + SR.Name + DirectorySeparator, NextRest);
+{$else SYSUTILSUNICODE}
+          TryCase (SearchBase + SR.Name + ToSingleByteFileSystemEncodedFileName(DirectorySeparator), NextRest);
+{$endif SYSUTILSUNICODE}
        end;
       if ItemsFound < 2 then
        RC := FindNext (SR);
@@ -273,9 +282,13 @@ Const
 
 function ExtractRelativepath (Const BaseName,DestName : PathStr): PathStr;
 
-Var Source, Dest : PathStr;
-    Sc,Dc,I,J    : Longint;
-    SD,DD        : Array[1..MaxDirs] of PathPChar;
+Var Source, Dest   : PathStr;
+    Sc,Dc,I,J
+{$ifndef SYSUTILSUNICODE}
+    ,Len, NewLen
+{$endif not SYSUTILSUNICODE}
+                   : Longint;
+    SD,DD          : Array[1..MaxDirs] of PathPChar;
 
 Const OneLevelBack = '..'+DirectorySeparator;
 
@@ -298,9 +311,39 @@ begin
       Break;
     end;
   Result:='';
+{$ifdef SYSUTILSUNICODE}
   For J:=I to SC do Result:=Result+OneLevelBack;
   For J:=I to DC do Result:=Result+DD[J]+DirectorySeparator;
-  Result:=Result+ExtractFileName(DestNAme);
+{$else SYSUTILSUNICODE}
+  { prevent conversion to DefaultSystemCodePage due to concatenation of
+    constant string -- and optimise a little by reducing the numher of
+    setlength cals }
+  if SC>=I then
+    begin
+      Len:=Length(Result);
+      SetLength(Result,Len+(SC-I+1)*Length(OneLevelBack));
+      For J:=0 to SC-I do
+        move(shortstring(OneLevelBack)[1],Result[Len+1+J*Length(OneLevelBack)],Length(OneLevelBack));
+    end;
+
+  if DC>=I then
+    begin
+      Len:=Length(Result);
+      NewLen:=Len+(DC-I+1)*sizeof(ansichar);
+      For J:=I to DC do
+        Inc(NewLen,Length(DD[J]));
+      SetLength(Result,NewLen);
+      For J:=I to DC do
+        begin
+          NewLen:=Length(DD[J]);
+          Move(DD[J][0],Result[Len+1],NewLen);
+          inc(Len,NewLen);
+          Result[Len+1]:=DirectorySeparator;
+          Inc(Len);
+        end;
+    end;
+{$endif SYSUTILSUNICODE}
+  Result:=Result+ExtractFileName(DestName);
 end;
 
 Procedure DoDirSeparators (Var FileName : PathStr);
@@ -359,7 +402,14 @@ begin
   Result:=Path;
   l:=Length(Result);
   If (L=0) or not CharInSet(Result[l],AllowDirectorySeparators) then
+{$ifdef SYSUTILSUNICODE}
     Result:=Result+DirectorySeparator;
+{$else SYSUTILSUNICODE}
+    begin
+      SetLength(Result,l+1);
+      Result[l+1]:=DirectorySeparator;
+    end;
+{$endif SYSUTILSUNICODE}
 end;
 
 function IncludeTrailingBackslash(Const Path : PathStr) : PathStr;
@@ -395,7 +445,15 @@ begin
   Result:=Path;
   l:=Length(Result);
   If (L=0) or not CharInSet(Result[1],AllowDirectorySeparators) then
+{$ifdef SYSUTILSUNICODE}
     Result:=DirectorySeparator+Result;
+{$else SYSUTILSUNICODE}
+    begin
+      SetLength(Result,l+1);
+      Move(Result[1],Result[2],l);
+      Result[1]:=DirectorySeparator;
+    end;
+{$endif SYSUTILSUNICODE}
 end;
 
 function ExcludeLeadingPathDelimiter(Const Path: PathStr): PathStr;
