@@ -146,7 +146,7 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end
     else
       begin
-        if GetFileVersionInfo(pchar(fn),h,size,@buf) then
+        if GetFileVersionInfoA(pchar(fn),h,size,@buf) then
           if VerQueryValue(@buf,'\',valrec,valsize) then
             result:=valrec^.dwFileVersionMS;
       end;
@@ -656,7 +656,7 @@ var
   L: Integer;
   Buf: array[0..255] of Char;
 begin
-  L := GetLocaleInfo(LID, LT, Buf, SizeOf(Buf));
+  L := GetLocaleInfoA(LID, LT, Buf, SizeOf(Buf));
   if L > 0 then
     SetString(Result, @Buf[0], L - 1)
   else
@@ -668,7 +668,7 @@ function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
 var
   Buf: array[0..3] of Char; // sdate allows 4 chars.
 begin
-  if GetLocaleInfo(LID, LT, Buf, sizeof(buf)) > 0 then
+  if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
   else
     Result := Def;
@@ -687,7 +687,7 @@ begin
 
   ALCID := GetThreadLocale;
 //  ALCID := SysLocale.DefaultLCID;
-  if GetDateFormat(ALCID , DATE_USE_ALT_CALENDAR
+  if GetDateFormatA(ALCID , DATE_USE_ALT_CALENDAR
       , @ASystemTime, PChar('gg')
       , @buf, SizeOf(buf)) > 0 then
   begin
@@ -730,7 +730,7 @@ begin
   ALCID := GetThreadLocale;
 //  ALCID := SysLocale.DefaultLCID;
 
-  if GetDateFormat(ALCID, DATE_USE_ALT_CALENDAR
+  if GetDateFormatA(ALCID, DATE_USE_ALT_CALENDAR
       , @ASystemTime, PChar(AFormatText)
       , @buf, SizeOf(buf)) > 0 then
   begin
@@ -792,7 +792,7 @@ begin
      EraNames[i] := '';  EraYearOffsets[i] := -1;
    end;
   ALCID := GetThreadLocale;
-  if GetLocaleInfo(ALCID , LOCALE_IOPTIONALCALENDAR, buf, sizeof(buf)) <= 0 then exit;
+  if GetLocaleInfoA(ALCID , LOCALE_IOPTIONALCALENDAR, buf, sizeof(buf)) <= 0 then exit;
   ACALID := StrToIntDef(buf,1);
 
   if ACALID in [3..5] then
@@ -935,7 +935,7 @@ begin
                  MsgBuffer,                 { This function allocs the memory }
                  MaxMsgSize,                           { Maximum message size }
                  nil);
-  SysErrorMessage := StrPas(MsgBuffer);
+  SysErrorMessage := MsgBuffer;
   FreeMem(MsgBuffer, MaxMsgSize);
 end;
 
@@ -1086,7 +1086,7 @@ begin
 
   ExecInherits:=ExecInheritsHandles in Flags;
 
-  if not CreateProcess(nil, pchar(CommandLine),
+  if not CreateProcessA(nil, pchar(CommandLine),
     Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
@@ -1197,7 +1197,7 @@ Procedure InitSysConfigDir;
 
 begin
   SetLength(SysConfigDir, MAX_PATH);
-  SetLength(SysConfigDir, GetWindowsDirectory(PChar(SysConfigDir), MAX_PATH));
+  SetLength(SysConfigDir, GetWindowsDirectoryA(PChar(SysConfigDir), MAX_PATH));
 end;
 
 {****************************************************************************
@@ -1249,7 +1249,7 @@ function Win32AnsiUpperCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharUpperBuff(pchar(result),length(result));
+        CharUpperBuffA(pchar(result),length(result));
       end
     else
       result:='';
@@ -1262,7 +1262,7 @@ function Win32AnsiLowerCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharLowerBuff(pchar(result),length(result));
+        CharLowerBuffA(pchar(result),length(result));
       end
     else
       result:='';
@@ -1271,52 +1271,52 @@ function Win32AnsiLowerCase(const s: string): string;
 
 function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
       pchar(s2),length(s2))-2;
   end;
 
 
 function Win32AnsiCompareText(const S1, S2: string): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
       pchar(s2),length(s2))-2;
   end;
 
 
 function Win32AnsiStrComp(S1, S2: PChar): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
   end;
 
 
 function Win32AnsiStrIComp(S1, S2: PChar): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
   end;
 
 
 function Win32AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
   end;
 
 
 function Win32AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
   end;
 
 
 function Win32AnsiStrLower(Str: PChar): PChar;
   begin
-    CharLower(str);
+    CharLowerA(str);
     result:=str;
   end;
 
 
 function Win32AnsiStrUpper(Str: PChar): PChar;
   begin
-    CharUpper(str);
+    CharUpperA(str);
     result:=str;
   end;
 
