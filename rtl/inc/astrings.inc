@@ -764,6 +764,12 @@ begin
       if Pointer(S)=nil then
         begin
           Pointer(S):=NewAnsiString(L);
+{$ifdef FPC_HAS_CPSTRING}
+          cp:=TranslatePlaceholderCP(cp);
+          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
+{$else}
+          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
         end
       else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
         begin
@@ -781,6 +787,7 @@ begin
         begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
+          PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
           { also move terminating null }
           lens:=succ(length(s));
           if l<lens then
@@ -791,12 +798,6 @@ begin
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
         end;
-{$ifdef FPC_HAS_CPSTRING}
-      cp:=TranslatePlaceholderCP(cp);
-      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
-{$else}
-      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
       { Force nil termination in case it gets shorter }
       PByte(Pointer(S)+l)^:=0;
       PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len:=l;
