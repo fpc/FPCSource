@@ -320,6 +320,18 @@ type
   ) : TUCASortKey;overload;
   function CompareSortKey(const A, B : TUCASortKey) : Integer;overload;
   function CompareSortKey(const A : TUCASortKey; const B : array of Word) : Integer;overload;
+  function IncrementalCompareString(
+    const AStrA      : PUnicodeChar;
+    const ALengthA   : SizeInt;
+    const AStrB      : PUnicodeChar;
+    const ALengthB   : SizeInt;
+    const ACollation : PUCA_DataBook
+  ) : Integer;overload;
+  function IncrementalCompareString(
+    const AStrA,
+          AStrB      : UnicodeString;
+    const ACollation : PUCA_DataBook
+  ) : Integer;inline;overload;
 
   function RegisterCollation(const ACollation : PUCA_DataBook) : Boolean;overload;
   function RegisterCollation(
@@ -648,11 +660,13 @@ var
   i : Integer;
   cl : PUCA_DataBook;
 begin
-  for i := Low(CollationTable) to High(CollationTable) do begin
-    if CollationTable[i].Dynamic then begin
-      cl := CollationTable[i];
-      CollationTable[i] := nil;
-      FreeCollation(cl);
+  if AFreeDynamicCollations then begin
+    for i := Low(CollationTable) to High(CollationTable) do begin
+      if CollationTable[i].Dynamic then begin
+        cl := CollationTable[i];
+        CollationTable[i] := nil;
+        FreeCollation(cl);
+      end;
     end;
   end;
   SetLength(CollationTable,0);
@@ -2379,6 +2393,875 @@ begin
   Result := r;
 end;
 
+type
+  TComputeKeyContext = record
+    Collation : PUCA_DataBook;
+    r : TUCA_PropWeightsArray;
+    ral {used length of "r"}: Integer;
+    rl  {capacity of "r"} : Integer;
+    i : Integer;
+    s : UnicodeString;
+    ps : PUnicodeChar;
+    cp : Cardinal;
+    cl : PUCA_DataBook;
+    pp : PUCA_PropItemRec;
+    ppLevel : Byte;
+    removedCharIndex : array of DWord;
+    removedCharIndexLength : DWord;
+    locHistoryTop : Integer;
+    locHistory : array[0..24] of record
+                                   i  : Integer;
+                                   cl : PUCA_DataBook;
+                                   pp : PUCA_PropItemRec;
+                                   ppLevel : Byte;
+                                   cp      : Cardinal;
+                                   removedCharIndexLength : DWord;
+                                 end;
+    suppressState : record
+                      cl : PUCA_DataBook;
+                      CharCount : Integer;
+                    end;
+    LastKeyOwner : record
+                      Length : Integer;
+                      Chars  : array[0..24] of UInt24;
+                   end;
+    c : Integer;
+    lastUnblockedNonstarterCCC : Byte;
+    surrogateState : Boolean;
+    Finished : Boolean;
+  end;
+  PComputeKeyContext = ^TComputeKeyContext;
+
+procedure ClearPP(AContext : PComputeKeyContext; const AClearSuppressInfo : Boolean = True);inline;
+begin
+  AContext^.cl := nil;
+  AContext^.pp := nil;
+  AContext^.ppLevel := 0;
+  if AClearSuppressInfo then begin
+    AContext^.suppressState.cl := nil;
+    AContext^.suppressState.CharCount := 0;
+  end;
+end;
+
+procedure InitContext(
+        AContext   : PComputeKeyContext;
+  const AStr       : PUnicodeChar;
+  const ALength    : SizeInt;
+  const ACollation : PUCA_DataBook
+);
+begin
+  AContext^.Collation := ACollation;
+  AContext^.c := ALength;
+  AContext^.s := NormalizeNFD(AStr,AContext^.c);
+  AContext^.c := Length(AContext^.s);
+  AContext^.rl := 3*AContext^.c;
+  SetLength(AContext^.r,AContext^.rl);
+  AContext^.ral := 0;
+  AContext^.ps := @AContext^.s[1];
+  ClearPP(AContext);
+  AContext^.locHistoryTop := -1;
+  AContext^.removedCharIndexLength := 0;
+  FillByte(AContext^.suppressState,SizeOf(AContext^.suppressState),0);
+  AContext^.LastKeyOwner.Length := 0;
+  AContext^.i := 1;
+  AContext^.Finished := False;
+end;
+
+function FormKey(
+  const AWeightArray  : TUCA_PropWeightsArray;
+  const ACollation    : PUCA_DataBook
+) : TUCASortKey;inline;
+begin
+  case ACollation.VariableWeight of
+    TUCA_VariableKind.ucaShifted        : Result := FormKeyShifted(AWeightArray,ACollation);
+    TUCA_VariableKind.ucaBlanked        : Result := FormKeyBlanked(AWeightArray,ACollation);
+    TUCA_VariableKind.ucaNonIgnorable   : Result := FormKeyNonIgnorable(AWeightArray,ACollation);
+    TUCA_VariableKind.ucaShiftedTrimmed : Result := FormKeyShiftedTrimmed(AWeightArray,ACollation);
+    else
+      Result := FormKeyShifted(AWeightArray,ACollation);
+  end;
+end;
+
+function ComputeRawSortKeyNextItem(
+  const AContext   : PComputeKeyContext
+) : Boolean;forward;
+function IncrementalCompareString_NonIgnorable(
+  const AStrA      : PUnicodeChar;
+  const ALengthA   : SizeInt;
+  const AStrB      : PUnicodeChar;
+  const ALengthB   : SizeInt;
+  const ACollation : PUCA_DataBook
+) : Integer;
+var
+  ctxA, ctxB : TComputeKeyContext;
+  lastKeyIndexA, keyIndexA, lengthMaxA : Integer;
+  keyIndexB : Integer;
+  keyA, keyB : TUCASortKey;
+begin
+  if ( (ALengthA = 0) and (ALengthB = 0) ) or
+     ( (PtrUInt(AStrA) = PtrUInt(AStrB)) and
+       (ALengthA = ALengthB)
+     )
+  then
+    exit(0);
+  if (ALengthA = 0) then
+    exit(-1);
+  if (ALengthB = 0) then
+    exit(1);
+
+  InitContext(@ctxA,AStrA,ALengthA,ACollation);
+  InitContext(@ctxB,AStrB,ALengthB,ACollation);
+  lastKeyIndexA := -1;
+  keyIndexA := -1;
+  lengthMaxA := 0;
+  keyIndexB := -1;
+  while True do begin
+    if not ComputeRawSortKeyNextItem(@ctxA) then
+      Break;
+    if (ctxA.ral = lengthMaxA) then
+      Continue;
+    lengthMaxA := ctxA.ral;
+    keyIndexA := lastKeyIndexA + 1;
+    while (keyIndexA < lengthMaxA) and (ctxA.r[keyIndexA].Weights[0] = 0) do begin
+      Inc(keyIndexA);
+    end;
+    if (keyIndexA = lengthMaxA) then begin
+      lastKeyIndexA := keyIndexA-1;
+      Continue;
+    end;
+
+    while (keyIndexA < lengthMaxA) do begin
+      if (ctxA.r[keyIndexA].Weights[0] = 0) then begin
+        Inc(keyIndexA);
+        Continue;
+      end;
+      Inc(keyIndexB);
+      while (ctxB.ral <= keyIndexB) or (ctxB.r[keyIndexB].Weights[0] = 0) do begin
+        if (ctxB.ral <= keyIndexB) then begin
+          if not ComputeRawSortKeyNextItem(@ctxB) then
+            Break;
+          Continue;
+        end;
+        Inc(keyIndexB);
+      end;
+      if (ctxB.ral <= keyIndexB) then
+        exit(1);
+      if (ctxA.r[keyIndexA].Weights[0] > ctxB.r[keyIndexB].Weights[0]) then
+        exit(1);
+      if (ctxA.r[keyIndexA].Weights[0] < ctxB.r[keyIndexB].Weights[0]) then
+        exit(-1);
+      Inc(keyIndexA);
+    end;
+    lastKeyIndexA := keyIndexA - 1;
+  end;
+  //Key(A) is completed !
+  Inc(keyIndexB);
+  while (ctxB.ral <= keyIndexB) or (ctxB.r[keyIndexB].Weights[0] = 0) do begin
+    if (ctxB.ral <= keyIndexB) then begin
+      if not ComputeRawSortKeyNextItem(@ctxB) then
+        Break;
+      Continue;
+    end;
+    Inc(keyIndexB);
+  end;
+  if (ctxB.ral > keyIndexB) then begin
+    //B has at least one more primary weight that A
+    exit(-1);
+  end;
+  while ComputeRawSortKeyNextItem(@ctxB) do begin
+    //
+  end;
+  //Key(B) is completed !
+  keyA := FormKey(ctxA.r,ctxA.Collation);
+  keyB := FormKey(ctxB.r,ctxB.Collation);
+  Result := CompareSortKey(keyA,keyB);
+end;
+
+function IncrementalCompareString_Shift(
+  const AStrA      : PUnicodeChar;
+  const ALengthA   : SizeInt;
+  const AStrB      : PUnicodeChar;
+  const ALengthB   : SizeInt;
+  const ACollation : PUCA_DataBook
+) : Integer;
+var
+  ctxA, ctxB : TComputeKeyContext;
+  lastKeyIndexA, keyIndexA, lengthMaxA : Integer;
+  keyIndexB : Integer;
+  keyA, keyB : TUCASortKey;
+begin
+  if ( (ALengthA = 0) and (ALengthB = 0) ) or
+     ( (PtrUInt(AStrA) = PtrUInt(AStrB)) and
+       (ALengthA = ALengthB)
+     )
+  then
+    exit(0);
+  if (ALengthA = 0) then
+    exit(-1);
+  if (ALengthB = 0) then
+    exit(1);
+
+  InitContext(@ctxA,AStrA,ALengthA,ACollation);
+  InitContext(@ctxB,AStrB,ALengthB,ACollation);
+  lastKeyIndexA := -1;
+  keyIndexA := -1;
+  lengthMaxA := 0;
+  keyIndexB := -1;
+  while True do begin
+    if not ComputeRawSortKeyNextItem(@ctxA) then
+      Break;
+    if (ctxA.ral = lengthMaxA) then
+      Continue;
+    lengthMaxA := ctxA.ral;
+    keyIndexA := lastKeyIndexA + 1;
+    while (keyIndexA < lengthMaxA) and
+          ( (ctxA.r[keyIndexA].Weights[0] = 0) or
+            ctxA.Collation^.IsVariable(@ctxA.r[keyIndexA].Weights)
+          )
+    do begin
+      Inc(keyIndexA);
+    end;
+    if (keyIndexA = lengthMaxA) then begin
+      lastKeyIndexA := keyIndexA-1;
+      Continue;
+    end;
+
+    while (keyIndexA < lengthMaxA) do begin
+      if (ctxA.r[keyIndexA].Weights[0] = 0) or
+         ctxA.Collation^.IsVariable(@ctxA.r[keyIndexA].Weights)
+      then begin
+        Inc(keyIndexA);
+        Continue;
+      end;
+      Inc(keyIndexB);
+      while (ctxB.ral <= keyIndexB) or
+            (ctxB.r[keyIndexB].Weights[0] = 0) or
+            ctxB.Collation^.IsVariable(@ctxB.r[keyIndexB].Weights)
+      do begin
+        if (ctxB.ral <= keyIndexB) then begin
+          if not ComputeRawSortKeyNextItem(@ctxB) then
+            Break;
+          Continue;
+        end;
+        Inc(keyIndexB);
+      end;
+      if (ctxB.ral <= keyIndexB) then
+        exit(1);
+      if (ctxA.r[keyIndexA].Weights[0] > ctxB.r[keyIndexB].Weights[0]) then
+        exit(1);
+      if (ctxA.r[keyIndexA].Weights[0] < ctxB.r[keyIndexB].Weights[0]) then
+        exit(-1);
+      Inc(keyIndexA);
+    end;
+    lastKeyIndexA := keyIndexA - 1;
+  end;
+  //Key(A) is completed !
+  Inc(keyIndexB);
+  while (ctxB.ral <= keyIndexB) or
+        (ctxB.r[keyIndexB].Weights[0] = 0) or
+        ctxB.Collation^.IsVariable(@ctxB.r[keyIndexB].Weights)
+  do begin
+    if (ctxB.ral <= keyIndexB) then begin
+      if not ComputeRawSortKeyNextItem(@ctxB) then
+        Break;
+      Continue;
+    end;
+    Inc(keyIndexB);
+  end;
+  if (ctxB.ral > keyIndexB) then begin
+    //B has at least one more primary weight that A
+    exit(-1);
+  end;
+  while ComputeRawSortKeyNextItem(@ctxB) do begin
+    //
+  end;
+  //Key(B) is completed !
+  keyA := FormKey(ctxA.r,ctxA.Collation);
+  keyB := FormKey(ctxB.r,ctxB.Collation);
+  Result := CompareSortKey(keyA,keyB);
+end;
+
+function IncrementalCompareString(
+  const AStrA      : PUnicodeChar;
+  const ALengthA   : SizeInt;
+  const AStrB      : PUnicodeChar;
+  const ALengthB   : SizeInt;
+  const ACollation : PUCA_DataBook
+) : Integer;
+begin
+  case ACollation^.VariableWeight of
+    TUCA_VariableKind.ucaNonIgnorable :
+      begin
+        Result := IncrementalCompareString_NonIgnorable(
+                    AStrA,ALengthA,AStrB,ALengthB,ACollation
+                  );
+      end;
+    TUCA_VariableKind.ucaBlanked,
+    TUCA_VariableKind.ucaShiftedTrimmed,
+    TUCA_VariableKind.ucaIgnoreSP,
+    TUCA_VariableKind.ucaShifted:
+      begin
+        Result := IncrementalCompareString_Shift(
+                    AStrA,ALengthA,AStrB,ALengthB,ACollation
+                  );
+      end;
+    else
+      begin
+        Result := IncrementalCompareString_Shift(
+                    AStrA,ALengthA,AStrB,ALengthB,ACollation
+                  );
+      end;
+  end;
+end;
+
+function IncrementalCompareString(
+  const AStrA,
+        AStrB      : UnicodeString;
+  const ACollation : PUCA_DataBook
+) : Integer;
+begin
+  Result := IncrementalCompareString(
+              Pointer(AStrA),Length(AStrA),Pointer(AStrB),Length(AStrB),
+              ACollation
+            );
+end;
+
+function ComputeRawSortKeyNextItem(
+  const AContext : PComputeKeyContext
+) : Boolean;
+var
+  ctx : PComputeKeyContext;
+
+  procedure GrowKey(const AMinGrow : Integer = 0);inline;
+  begin
+    if (ctx^.rl < AMinGrow) then
+      ctx^.rl := ctx^.rl + AMinGrow
+    else
+      ctx^.rl := 2 * ctx^.rl;
+    SetLength(ctx^.r,ctx^.rl);
+  end;
+
+  procedure SaveKeyOwner();
+  var
+    k : Integer;
+    kppLevel : Byte;
+  begin
+    k := 0;
+    kppLevel := High(Byte);
+    while (k <= ctx^.locHistoryTop) do begin
+      if (kppLevel <> ctx^.locHistory[k].ppLevel) then begin
+        ctx^.LastKeyOwner.Chars[k] := ctx^.locHistory[k].cp;
+        kppLevel := ctx^.locHistory[k].ppLevel;
+      end;
+      k := k + 1;
+    end;
+    if (k = 0) or (kppLevel <> ctx^.ppLevel) then begin
+      ctx^.LastKeyOwner.Chars[k] := ctx^.cp;
+      k := k + 1;
+    end;
+    ctx^.LastKeyOwner.Length := k;
+  end;
+
+  procedure AddWeights(AItem : PUCA_PropItemRec);inline;
+  begin
+    SaveKeyOwner();
+    if ((ctx^.ral + AItem^.WeightLength) > ctx^.rl) then
+      GrowKey(AItem^.WeightLength);
+    AItem^.GetWeightArray(@ctx^.r[ctx^.ral]);
+    ctx^.ral := ctx^.ral + AItem^.WeightLength;
+  end;
+
+  procedure AddContextWeights(AItem : PUCA_PropItemContextRec);inline;
+  begin
+    if ((ctx^.ral + AItem^.WeightCount) > ctx^.rl) then
+      GrowKey(AItem^.WeightCount);
+    Move(AItem^.GetWeights()^,ctx^.r[ctx^.ral],(AItem^.WeightCount*SizeOf(ctx^.r[0])));
+    ctx^.ral := ctx^.ral + AItem^.WeightCount;
+  end;
+
+  procedure AddComputedWeights(ACodePoint : Cardinal);inline;
+  begin
+    SaveKeyOwner();
+    if ((ctx^.ral + 2) > ctx^.rl) then
+      GrowKey();
+    DeriveWeight(ACodePoint,@ctx^.r[ctx^.ral]);
+    ctx^.ral := ctx^.ral + 2;
+  end;
+
+  procedure RecordDeletion();inline;
+  begin
+    if ctx^.pp^.IsValid() and ctx^.pp^.IsDeleted() (*pp^.GetWeightLength() = 0*) then begin
+      if (ctx^.suppressState.cl = nil) or
+         (ctx^.suppressState.CharCount > ctx^.ppLevel)
+      then begin
+        ctx^.suppressState.cl := ctx^.cl;
+        ctx^.suppressState.CharCount := ctx^.ppLevel;
+      end;
+    end;
+  end;
+
+  procedure RecordStep();inline;
+  begin
+    Inc(ctx^.locHistoryTop);
+    ctx^.locHistory[ctx^.locHistoryTop].i := ctx^.i;
+    ctx^.locHistory[ctx^.locHistoryTop].cl := ctx^.cl;
+    ctx^.locHistory[ctx^.locHistoryTop].pp := ctx^.pp;
+    ctx^.locHistory[ctx^.locHistoryTop].ppLevel := ctx^.ppLevel;
+    ctx^.locHistory[ctx^.locHistoryTop].cp := ctx^.cp;
+    ctx^.locHistory[ctx^.locHistoryTop].removedCharIndexLength := ctx^.removedCharIndexLength;
+    RecordDeletion();
+  end;
+
+  procedure ClearHistory();inline;
+  begin
+    ctx^.locHistoryTop := -1;
+  end;
+
+  function HasHistory() : Boolean;inline;
+  begin
+    Result := (ctx^.locHistoryTop >= 0);
+  end;
+
+  function GetHistoryLength() : Integer;inline;
+  begin
+    Result := (ctx^.locHistoryTop + 1);
+  end;
+
+  procedure GoBack();inline;
+  begin
+    Assert(ctx^.locHistoryTop >= 0);
+    ctx^.i := ctx^.locHistory[ctx^.locHistoryTop].i;
+    ctx^.cp := ctx^.locHistory[ctx^.locHistoryTop].cp;
+    ctx^.cl := ctx^.locHistory[ctx^.locHistoryTop].cl;
+    ctx^.pp := ctx^.locHistory[ctx^.locHistoryTop].pp;
+    ctx^.ppLevel := ctx^.locHistory[ctx^.locHistoryTop].ppLevel;
+    ctx^.removedCharIndexLength := ctx^.locHistory[ctx^.locHistoryTop].removedCharIndexLength;
+    ctx^.ps := @ctx^.s[ctx^.i];
+    Dec(ctx^.locHistoryTop);
+  end;
+
+  function IsUnblockedNonstarter(const AStartFrom : Integer) : Boolean;
+  var
+    k : DWord;
+    pk : PUnicodeChar;
+    puk : PUC_Prop;
+  begin
+    k := AStartFrom;
+    if (k > ctx^.c) then
+      exit(False);
+    if (ctx^.removedCharIndexLength>0) and
+       (IndexDWord(ctx^.removedCharIndex[0],ctx^.removedCharIndexLength,k) >= 0)
+    then begin
+      exit(False);
+    end;
+    {if (k = (i+1)) or
+       ( (k = (i+2)) and UnicodeIsHighSurrogate(s[i]) )
+    then
+      lastUnblockedNonstarterCCC := 0;}
+    pk := @ctx^.s[k];
+    if UnicodeIsHighSurrogate(pk^) then begin
+      if (k = ctx^.c) then
+        exit(False);
+      if UnicodeIsLowSurrogate(pk[1]) then
+        puk := GetProps(pk[0],pk[1])
+      else
+        puk := GetProps(Word(pk^));
+    end else begin
+      puk := GetProps(Word(pk^));
+    end;
+    if (puk^.CCC = 0) or (ctx^.lastUnblockedNonstarterCCC >= puk^.CCC) then
+      exit(False);
+    ctx^.lastUnblockedNonstarterCCC := puk^.CCC;
+    Result := True;
+  end;
+
+  procedure RemoveChar(APos : Integer);inline;
+  begin
+    if (ctx^.removedCharIndexLength >= Length(ctx^.removedCharIndex)) then
+      SetLength(ctx^.removedCharIndex,(2*ctx^.removedCharIndexLength + 2));
+    ctx^.removedCharIndex[ctx^.removedCharIndexLength] := APos;
+    Inc(ctx^.removedCharIndexLength);
+    if UnicodeIsHighSurrogate(ctx^.s[APos]) and (APos < ctx^.c) and UnicodeIsLowSurrogate(ctx^.s[APos+1]) then begin
+      if (ctx^.removedCharIndexLength >= Length(ctx^.removedCharIndex)) then
+          SetLength(ctx^.removedCharIndex,(2*ctx^.removedCharIndexLength + 2));
+        ctx^.removedCharIndex[ctx^.removedCharIndexLength] := APos+1;
+        Inc(ctx^.removedCharIndexLength);
+    end;
+  end;
+
+  procedure Inc_I();inline;
+  begin
+    if (ctx^.removedCharIndexLength = 0) then begin
+      Inc(ctx^.i);
+      Inc(ctx^.ps);
+      exit;
+    end;
+    while True do begin
+      Inc(ctx^.i);
+      Inc(ctx^.ps);
+      if (IndexDWord(ctx^.removedCharIndex[0],ctx^.removedCharIndexLength,ctx^.i) = -1) then
+        Break;
+    end;
+  end;
+
+  function MoveToNextChar() : Boolean;inline;
+  begin
+    Result := True;
+    if UnicodeIsHighSurrogate(ctx^.ps[0]) then begin
+      if (ctx^.i = ctx^.c) then
+        exit(False);
+      if UnicodeIsLowSurrogate(ctx^.ps[1]) then begin
+        ctx^.surrogateState := True;
+        ctx^.cp := ToUCS4(ctx^.ps[0],ctx^.ps[1]);
+      end else begin
+        ctx^.surrogateState := False;
+        ctx^.cp := Word(ctx^.ps[0]);
+      end;
+    end else begin
+      ctx^.surrogateState := False;
+      ctx^.cp := Word(ctx^.ps[0]);
+    end;
+  end;
+
+  function FindPropUCA() : Boolean;
+  var
+    candidateCL : PUCA_DataBook;
+  begin
+    ctx^.pp := nil;
+    if (ctx^.cl = nil) then
+      candidateCL := ctx^.Collation
+    else
+      candidateCL := ctx^.cl;
+    if ctx^.surrogateState then begin
+      while (candidateCL <> nil) do begin
+        ctx^.pp := GetPropUCA(ctx^.ps[0],ctx^.ps[1],candidateCL);
+        if (ctx^.pp <> nil) then
+          break;
+        candidateCL := candidateCL^.Base;
+      end;
+    end else begin
+      while (candidateCL <> nil) do begin
+        ctx^.pp := GetPropUCA(ctx^.ps[0],candidateCL);
+        if (ctx^.pp <> nil) then
+          break;
+        candidateCL := candidateCL^.Base;
+      end;
+    end;
+    ctx^.cl := candidateCL;
+    Result := (ctx^.pp <> nil);
+  end;
+
+  procedure AddWeightsAndClear();inline;
+  var
+    ctxNode : PUCA_PropItemContextTreeNodeRec;
+  begin
+    if (ctx^.pp^.WeightLength > 0) then begin
+      AddWeights(ctx^.pp);
+    end else
+    if (ctx^.LastKeyOwner.Length > 0) and ctx^.pp^.Contextual and
+       ctx^.pp^.GetContext()^.Find(@ctx^.LastKeyOwner.Chars[0],ctx^.LastKeyOwner.Length,ctxNode) and
+       (ctxNode^.Data.WeightCount > 0)
+    then begin
+      AddContextWeights(@ctxNode^.Data);
+    end;
+    //AddWeights(pp);
+    ClearHistory();
+    ClearPP(ctx);
+  end;
+
+  function StartMatch() : Boolean;
+
+    procedure HandleLastChar();
+    var
+      ctxNode : PUCA_PropItemContextTreeNodeRec;
+    begin
+      while True do begin
+        if ctx^.pp^.IsValid() then begin
+          if (ctx^.pp^.WeightLength > 0) then
+            AddWeights(ctx^.pp)
+          else
+          if (ctx^.LastKeyOwner.Length > 0) and ctx^.pp^.Contextual and
+             ctx^.pp^.GetContext()^.Find(@ctx^.LastKeyOwner.Chars[0],ctx^.LastKeyOwner.Length,ctxNode) and
+             (ctxNode^.Data.WeightCount > 0)
+          then
+            AddContextWeights(@ctxNode^.Data)
+          else
+            AddComputedWeights(ctx^.cp){handle deletion of code point};
+          break;
+        end;
+        if (ctx^.cl^.Base = nil) then begin
+          AddComputedWeights(ctx^.cp);
+          break;
+        end;
+        ctx^.cl := ctx^.cl^.Base;
+        if not FindPropUCA() then begin
+          AddComputedWeights(ctx^.cp);
+          break;
+        end;
+      end;
+    end;
+  var
+    tmpCtxNode : PUCA_PropItemContextTreeNodeRec;
+  begin
+    Result := False;
+    ctx^.ppLevel := 0;
+    if not FindPropUCA() then begin
+      AddComputedWeights(ctx^.cp);
+      ClearHistory();
+      ClearPP(ctx);
+      Result := True;
+    end else begin
+      if (ctx^.i = ctx^.c) then begin
+        HandleLastChar();
+        Result := True;
+      end else begin
+        if ctx^.pp^.IsValid()then begin
+          if (ctx^.pp^.ChildCount = 0) then begin
+            if (ctx^.pp^.WeightLength > 0) then
+              AddWeights(ctx^.pp)
+            else
+            if (ctx^.LastKeyOwner.Length > 0) and ctx^.pp^.Contextual and
+               ctx^.pp^.GetContext()^.Find(@ctx^.LastKeyOwner.Chars[0],ctx^.LastKeyOwner.Length,tmpCtxNode) and
+               (tmpCtxNode^.Data.WeightCount > 0)
+            then
+              AddContextWeights(@tmpCtxNode^.Data)
+            else
+              AddComputedWeights(ctx^.cp){handle deletion of code point};
+            ClearPP(ctx);
+            ClearHistory();
+            Result := True;
+          end else begin
+            RecordStep();
+          end
+        end else begin
+          if (ctx^.pp^.ChildCount = 0) then begin
+            AddComputedWeights(ctx^.cp);
+            ClearPP(ctx);
+            ClearHistory();
+            Result := True;
+          end else begin
+            RecordStep();
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  function TryPermutation() : Boolean;
+  var
+    kk : Integer;
+    b : Boolean;
+    puk : PUC_Prop;
+    ppk : PUCA_PropItemRec;
+  begin
+    Result := False;
+    puk := GetProps(ctx^.cp);
+    if (puk^.CCC = 0) then
+      exit;
+    ctx^.lastUnblockedNonstarterCCC := puk^.CCC;
+    if ctx^.surrogateState then
+      kk := ctx^.i + 2
+    else
+      kk := ctx^.i + 1;
+    while IsUnblockedNonstarter(kk) do begin
+      b := UnicodeIsHighSurrogate(ctx^.s[kk]) and (kk<ctx^.c) and UnicodeIsLowSurrogate(ctx^.s[kk+1]);
+      if b then
+        ppk := FindChild(ToUCS4(ctx^.s[kk],ctx^.s[kk+1]),ctx^.pp)
+      else
+        ppk := FindChild(Word(ctx^.s[kk]),ctx^.pp);
+      if (ppk <> nil) then begin
+        ctx^.pp := ppk;
+        RemoveChar(kk);
+        Inc(ctx^.ppLevel);
+        RecordStep();
+        Result := True;
+        if (ctx^.pp^.ChildCount = 0 ) then
+          Break;
+      end;
+      if b then
+        Inc(kk);
+      Inc(kk);
+    end;
+  end;
+
+  procedure AdvanceCharPos();inline;
+  begin
+    if UnicodeIsHighSurrogate(ctx^.ps[0]) and (ctx^.i<ctx^.c) and UnicodeIsLowSurrogate(ctx^.ps[1]) then begin
+      Inc(ctx^.i);
+      Inc(ctx^.ps);
+    end;
+    Inc_I();
+  end;
+
+var
+  ok : Boolean;
+  pp1 : PUCA_PropItemRec;
+  cltemp : PUCA_DataBook;
+  ctxNode : PUCA_PropItemContextTreeNodeRec;
+begin
+  if AContext^.Finished then
+    exit(False);
+  ctx := AContext;
+  while (ctx^.i <= ctx^.c) and MoveToNextChar() do begin
+    ok := False;
+    if (ctx^.pp = nil) then begin // Start Matching
+      ok := StartMatch();
+    end else begin
+      pp1 := FindChild(ctx^.cp,ctx^.pp);
+      if (pp1 <> nil) then begin
+        Inc(ctx^.ppLevel);
+        ctx^.pp := pp1;
+        if (ctx^.pp^.ChildCount = 0) or (ctx^.i = ctx^.c) then begin
+          ok := False;
+          if ctx^.pp^.IsValid() and (ctx^.suppressState.CharCount = 0) then begin
+            if (ctx^.pp^.WeightLength > 0) then begin
+              AddWeightsAndClear();
+              ok := True;
+            end else
+            if (ctx^.LastKeyOwner.Length > 0) and ctx^.pp^.Contextual and
+               ctx^.pp^.GetContext()^.Find(@ctx^.LastKeyOwner.Chars[0],ctx^.LastKeyOwner.Length,ctxNode) and
+               (ctxNode^.Data.WeightCount > 0)
+            then begin
+              AddContextWeights(@ctxNode^.Data);
+              ClearHistory();
+              ClearPP(ctx);
+              ok := True;
+            end
+          end;
+          if not ok then begin
+            RecordDeletion();
+            while HasHistory() do begin
+              GoBack();
+              if ctx^.pp^.IsValid() and
+                 ( ( (ctx^.cl = ctx^.suppressState.cl) and (ctx^.ppLevel <> ctx^.suppressState.CharCount) ) or
+                   ( (ctx^.cl <> ctx^.suppressState.cl) and (ctx^.ppLevel < ctx^.suppressState.CharCount) )
+                 )
+              then begin
+                AddWeightsAndClear();
+                ok := True;
+                Break;
+              end;
+            end;
+            if not ok then begin
+              cltemp := ctx^.cl^.Base;
+              if (cltemp <> nil) then begin
+                ClearPP(ctx,False);
+                ctx^.cl := cltemp;
+                Continue;
+              end;
+            end;
+
+            if not ok then begin
+              AddComputedWeights(ctx^.cp);
+              ClearHistory();
+              ClearPP(ctx);
+              ok := True;
+            end;
+          end;
+        end else begin
+          RecordStep();
+        end;
+      end else begin
+        // permutations !
+        ok := False;
+        if TryPermutation() and ctx^.pp^.IsValid() then begin
+          if (ctx^.suppressState.CharCount = 0) then begin
+            AddWeightsAndClear();
+            ok := True;
+            exit(True);// Continue;
+          end;
+          while True do begin
+            if ctx^.pp^.IsValid() and
+               (ctx^.pp^.WeightLength > 0) and
+               ( ( (ctx^.cl = ctx^.suppressState.cl) and (ctx^.ppLevel <> ctx^.suppressState.CharCount) ) or
+                 ( (ctx^.cl <> ctx^.suppressState.cl) and (ctx^.ppLevel < ctx^.suppressState.CharCount) )
+               )
+            then begin
+              AddWeightsAndClear();
+              ok := True;
+              break;
+            end;
+            if not HasHistory() then
+              break;
+            GoBack();
+            if (ctx^.pp = nil) then
+              break;
+          end;
+        end;
+        if not ok then begin
+          if ctx^.pp^.IsValid() and (ctx^.suppressState.CharCount = 0) then begin
+            if (ctx^.pp^.WeightLength > 0) then begin
+              AddWeightsAndClear();
+              ok := True;
+            end else
+            if (ctx^.LastKeyOwner.Length > 0) and ctx^.pp^.Contextual and
+               ctx^.pp^.GetContext()^.Find(@ctx^.LastKeyOwner.Chars[0],ctx^.LastKeyOwner.Length,ctxNode) and
+               (ctxNode^.Data.WeightCount > 0)
+            then begin
+              AddContextWeights(@ctxNode^.Data);
+              ClearHistory();
+              ClearPP(ctx);
+              ok := True;
+            end
+          end;
+          if ok then
+            exit(True);// Continue;
+        end;
+        if not ok then begin
+          if (ctx^.cl^.Base <> nil) then begin
+            cltemp := ctx^.cl^.Base;
+            while HasHistory() do
+              GoBack();
+            ctx^.pp := nil;
+            ctx^.ppLevel := 0;
+            ctx^.cl := cltemp;
+            Continue;
+          end;
+
+          //walk back
+          ok := False;
+          while HasHistory() do begin
+            GoBack();
+            if ctx^.pp^.IsValid() and
+               (ctx^.pp^.WeightLength > 0) and
+               ( (ctx^.suppressState.CharCount = 0) or
+                 ( ( (ctx^.cl = ctx^.suppressState.cl) and (ctx^.ppLevel <> ctx^.suppressState.CharCount) ) or
+                   ( (ctx^.cl <> ctx^.suppressState.cl) and (ctx^.ppLevel < ctx^.suppressState.CharCount) )
+                 )
+               )
+            then begin
+              AddWeightsAndClear();
+              ok := True;
+              Break;
+            end;
+          end;
+          if ok then begin
+            AdvanceCharPos();
+            exit(True);// Continue;
+          end;
+          if (ctx^.pp <> nil) then begin
+            AddComputedWeights(ctx^.cp);
+            ClearHistory();
+            ClearPP(ctx);
+            ok := True;
+          end;
+        end;
+      end;
+    end;
+    if ctx^.surrogateState then begin
+      Inc(ctx^.ps);
+      Inc(ctx^.i);
+    end;
+    //
+    Inc_I();
+    if ok then
+      exit(True);
+  end;
+  SetLength(ctx^.r,ctx^.ral);
+  ctx^.Finished := True;
+  Result := True;
+end;
+
 function ComputeSortKey(
   const AStr       : PUnicodeChar;
   const ALength    : SizeInt;
@@ -2388,14 +3271,7 @@ var
   r : TUCA_PropWeightsArray;
 begin
   r := ComputeRawSortKey(AStr,ALength,ACollation);
-  case ACollation^.VariableWeight of
-    TUCA_VariableKind.ucaShifted        : Result := FormKeyShifted(r,ACollation);
-    TUCA_VariableKind.ucaBlanked        : Result := FormKeyBlanked(r,ACollation);
-    TUCA_VariableKind.ucaNonIgnorable   : Result := FormKeyNonIgnorable(r,ACollation);
-    TUCA_VariableKind.ucaShiftedTrimmed : Result := FormKeyShiftedTrimmed(r,ACollation);
-    else
-      Result := FormKeyShifted(r,ACollation);
-  end;
+  Result := FormKey(r,ACollation);
 end;
 
 end.

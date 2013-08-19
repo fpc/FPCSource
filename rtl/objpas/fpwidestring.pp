@@ -403,16 +403,13 @@ begin
   Result:=LowerUnicodeString(u);
 end;
 
-function CompareUnicodeStringUCA(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;
-var
-  k1, k2 : TUCASortKey;
+
+function CompareUnicodeStringUCA(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
 begin
-  k1 := ComputeSortKey(p1,l1,current_Collation);
-  k2 := ComputeSortKey(p2,l2,current_Collation);
-  Result := CompareSortKey(k1,k2);
+  Result := IncrementalCompareString(p1,l1,p2,l2,current_Collation);
 end;
 
-function CompareUnicodeString(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;
+function CompareUnicodeString(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
 begin
   if (Pointer(p1)=Pointer(p2)) then
     exit(0);
