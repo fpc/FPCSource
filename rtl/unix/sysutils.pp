@@ -1074,7 +1074,7 @@ var
 begin
   SystemOldName:=ToSingleByteFileSystemEncodedFileName(OldName);
   SystemNewName:=ToSingleByteFileSystemEncodedFileName(NewName);
-  RenameFile:=BaseUnix.FpRename(pointer(SystemOldNAme),pointer(SystemNewName))>=0;
+  RenameFile:=BaseUnix.FpRename(pointer(SystemOldName),pointer(SystemNewName))>=0;
 end;
 
 
