@@ -152,6 +152,8 @@ begin
         Pa := UpCase (Path);
 {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
 
+{ already done before this routine is called from sysutils }
+{$IFNDEF FPC_FEXPAND_SYSUTILS}
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
 {$warnings off}
@@ -159,6 +161,7 @@ begin
 	    if CharInSet(Pa [I], AllowDirectorySeparators)  then
 	      Pa [I] := DirectorySeparator;
 {$warnings on}
+{$ENDIF not FPC_FEXPAND_SYSUTILS}
 
 (* PathStart is amount of characters to strip to get beginning *)
 (* of path without volume/drive specification.                 *)
