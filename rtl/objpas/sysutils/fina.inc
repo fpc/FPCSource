@@ -346,7 +346,7 @@ begin
   Result:=Result+ExtractFileName(DestName);
 end;
 
-Procedure DoDirSeparators (Var FileName : PathStr);
+Procedure DoDirSeparators (Var FileName : PathStr); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif}
 
 VAr I : longint;
 
@@ -371,7 +371,7 @@ end;
   if none were found.
 }
 
-Function GetDirs (Var DirName : PathStr; Var Dirs : Array of PathPChar) : Longint;
+Function GetDirs (Var DirName : PathStr; Var Dirs : Array of PathPChar) : Longint; {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif}
 
 Var I : Longint;
 

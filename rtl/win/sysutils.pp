@@ -183,7 +183,7 @@ begin
 end;
 
 
-function ExpandUNCFileName (const filename:string) : string;
+function ExpandUNCFileName (const filename:rawbytestring) : rawbytestring;
 { returns empty string on errors }
 var
   u: unicodestring;

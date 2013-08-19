@@ -25,7 +25,7 @@
   { Read disk function implementations }
   {$i disk.inc}
 {$undef SYSUTILSUNICODE}
-{$define PathStr:=AnsiString}
+{$define PathStr:=RawByteString}
 {$define PathPChar:=PAnsiChar}
   { Read filename handling functions implementation }
   {$i fina.inc}

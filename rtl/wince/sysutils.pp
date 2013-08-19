@@ -102,7 +102,7 @@ begin
 end;
 
 
-function ExpandUNCFileName (const filename:string) : string;
+function ExpandUNCFileName (const filename:rawbytestring) : rawbytestring;
 var
   u: unicodestring;
 begin

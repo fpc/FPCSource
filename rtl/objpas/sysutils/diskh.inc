@@ -17,10 +17,10 @@ Function  DiskFree(drive: byte) : int64;
 Function  DiskSize(drive: byte) : int64;
 Function GetCurrentDir : {$ifdef FPC_UNICODE_RTL}UnicodeString{$else}AnsiString{$endif};
 
-Function SetCurrentDir (Const NewDir : AnsiString) : Boolean;
-Function CreateDir (Const NewDir : AnsiString) : Boolean;
-Function RemoveDir (Const Dir : AnsiString) : Boolean;
-Function ForceDirectories(Const Dir: AnsiString): Boolean;
+Function SetCurrentDir (Const NewDir : RawByteString) : Boolean;
+Function CreateDir (Const NewDir : RawByteString) : Boolean;
+Function RemoveDir (Const Dir : RawByteString) : Boolean;
+Function ForceDirectories(Const Dir: RawByteString): Boolean;
 
 Function SetCurrentDir (Const NewDir : UnicodeString) : Boolean;
 Function CreateDir (Const NewDir : UnicodeString) : Boolean;

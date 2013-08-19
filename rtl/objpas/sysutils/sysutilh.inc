@@ -293,7 +293,7 @@ Type
 {$define PathPChar:=PWideChar}
   { Read filename handling functions declaration }
   {$i finah.inc}
-{$define PathStr:=AnsiString}
+{$define PathStr:=RawByteString}
 {$define PathPChar:=PAnsiChar}
   { Read filename handling functions declaration }
   {$i finah.inc}
