@@ -223,7 +223,7 @@ end;
 
 
 
-PROCEDURE find_setfields (VAR f : TsearchRec);
+PROCEDURE find_setfields (VAR f : TsearchRec; VAR Name : RawByteString);
 VAR T : Dos.DateTime;
 BEGIN
   WITH F DO
@@ -235,21 +235,25 @@ BEGIN
       UnpackTime(FindData.EntryP^.d_time + (LONGINT (FindData.EntryP^.d_date) SHL 16), T);
       time := DateTimeToFileDate(EncodeDate(T.Year,T.Month,T.day)+EncodeTime(T.Hour,T.Min,T.Sec,0));
       size := FindData.EntryP^.d_size;
-      name := strpas (FindData.EntryP^.d_nameDOS);
+      name := FindData.EntryP^.d_nameDOS;
+      SetCodePage(name, DefaultFileSystemCodePage, false);
     END ELSE
     BEGIN
-      FillChar (f,SIZEOF(f),0);
+      name := '';
     END;
   END;
 END;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
+var
+  SystemEncodedPath: RawByteString;
 begin
   IF path = '' then
     exit (18);
-  Rslt.FindData.DirP := _opendir (pchar(Path));
+  SystemEncodedPath := ToSingleByteEncodedFileName (Path);
+  Rslt.FindData.DirP := _opendir (pchar(SystemEncodedPath));
   IF Rslt.FindData.DirP = NIL THEN
     exit (18);
   IF attr <> faAnyFile THEN
@@ -263,13 +267,13 @@ begin
     result := 18;
   end else
   begin
-    find_setfields (Rslt);
+    find_setfields (Rslt,Name);
     result := 0;
   end;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 begin
   IF Rslt.FindData.Magic <> $AD01 THEN
@@ -277,14 +281,14 @@ begin
   Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
   IF Rslt.FindData.EntryP = NIL THEN
     exit (18);
-  find_setfields (Rslt);
+  find_setfields (Rslt,Name);
   result := 0;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-  IF F.FindData.Magic = $AD01 THEN
+  IF FindData.Magic = $AD01 THEN
   BEGIN
     IF F.FindData.DirP <> NIL THEN
       _closedir (F.FindData.DirP);

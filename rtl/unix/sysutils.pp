@@ -548,13 +548,13 @@ begin
     end;
 end;
 
-
-Function FileAge (Const FileName : String): Longint;
-
-Var Info : Stat;
-
+Function FileAge (Const FileName : RawByteString): Longint;
+Var
+  Info : Stat;
+  SystemFileName: RawByteString;
 begin
-  If  (fpstat (pointer(FileName),Info)<0) or fpS_ISDIR(info.st_mode) then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If  (fpstat(pchar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result:=info.st_mtime;
@@ -611,75 +611,253 @@ Function FNMatch(const Pattern,Name:string):Boolean;
 Var
   LenPat,LenName : longint;
 
+  { assumes that pattern and name have the same code page }
+  function NameUtf8CodePointLen(index: longint): longint;
+    var
+      bytes: longint;
+      firstzerobit: byte;
+    begin
+      { see https://en.wikipedia.org/wiki/UTF-8#Description for details }
+      Result:=1;
+      { multiple byte UTF-8 code point? }
+      if Name[index]>#127 then
+        begin
+          { bsr searches for the leftmost 1 bit. We are interested in the
+            leftmost 0 bit, so first invert the value
+          }
+          firstzerobit:=BsrByte(not(byte(Name[index])));
+          { if there is no zero bit or the first zero bit is the rightmost bit
+            (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+            UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+          }
+          if (firstzerobit=0) or (firstzerobit=255)  then
+            exit;
+          { the number of bytes belonging to this code point is
+            7-(pos first 0-bit). Subtract 1 since we're already at the first
+            byte. All subsequent bytes of the same sequence must have their
+            highest bit set and the next one unset. We stop when we detect an
+            invalid sequence.
+          }
+          bytes:=6-firstzerobit;
+          while (index+Result<=LenName) and
+                (bytes>0) and
+                ((ord(Name[index+Result]) and %10000000) = %10000000) do
+            begin
+              inc(Result);
+              dec(bytes);
+            end;
+          { stopped because of invalid sequence -> exit }
+          if bytes<>0 then
+            exit;
+        end;
+      { combining diacritics?
+          1) U+0300 - U+036F in UTF-8 = %11001100 10000000 - %11001101 10101111
+          2) U+1DC0 - U+1DFF in UTF-8 = %11100001 10110111 10000000 - %11100001 10110111 10111111
+          3) U+20D0 - U+20FF in UTF-8 = %11100010 10000011 10010000 - %11100010 10000011 10111111
+          4) U+FE20 - U+FE2F in UTF-8 = %11101111 10111000 10100000 - %11101111 10111000 10101111
+      }
+      repeat
+        bytes:=Result;
+        if (index+Result+1<=LenName) then
+          begin
+               { case 1) }
+            if ((ord(Name[index+Result]) and %11001100 = %11001100)) and
+                (ord(Name[index+Result+1]) >= %10000000) and
+                (ord(Name[index+Result+1]) <= %10101111) then
+              inc(Result,2)
+                { case 2), 3), 4) }
+            else if (index+Result+2<=LenName) and
+               (ord(Name[index+Result])>=%11100001) then
+              begin
+                   { case 2) }
+                if ((ord(Name[index+Result])=%11100001) and
+                    (ord(Name[index+Result+1])=%10110111) and
+                    (ord(Name[index+Result+2])>=%10000000)) or
+                   { case 3) }
+                   ((ord(Name[index+Result])=%11100010) and
+                    (ord(Name[index+Result+1])=%10000011) and
+                    (ord(Name[index+Result+2])>=%10010000)) or
+                   { case 4) }
+                   ((ord(Name[index+Result])=%11101111) and
+                    (ord(Name[index+Result+1])=%10111000) and
+                    (ord(Name[index+Result+2])>=%10100000) and
+                    (ord(Name[index+Result+2])<=%10101111)) then
+                  inc(Result,3);
+              end;
+          end;
+      until bytes=Result;
+    end;
+
+    procedure GoToLastByteOfUtf8CodePoint(var j: longint);
+    begin
+      { Take one less, because we have to stop at the last byte of the sequence.
+      }
+      inc(j,NameUtf8CodePointLen(j)-1);
+    end;
+
+  { input:
+      i: current position in pattern (start of utf-8 code point)
+      j: current position in name (start of utf-8 code point)
+      update_i_j: should i and j be changed by the routine or not
+
+    output:
+      i: if update_i_j, then position of last matching part of code point in
+         pattern, or first non-matching code point in pattern. Otherwise the
+         same value as on input.
+      j: if update_i_j, then position of last matching part of code point in
+         name, or first non-matching code point in name. Otherwise the
+         same value as on input.
+      result: true if match, false if no match
+  }
+  function CompareUtf8CodePoint(var i,j: longint; update_i_j: boolean): Boolean;
+    var
+      bytes,
+      new_i,
+      new_j: longint;
+    begin
+      bytes:=NameUtf8CodePointLen(j);
+      new_i:=i;
+      new_j:=j;
+      { ensure that a part of an UTF-8 codepoint isn't interpreted
+        as '*' or '?' }
+      repeat
+        dec(bytes);
+        Result:=
+          (new_j<=LenName) and
+          (new_i<=LenPat) and
+          (Pattern[new_i]=Name[new_j]);
+        inc(new_i);
+        inc(new_j);
+      until not(Result) or
+            (bytes=0);
+      if update_i_j then
+        begin
+          i:=new_i;
+          j:=new_j;
+        end;
+    end;
+
+
   Function DoFNMatch(i,j:longint):Boolean;
   Var
-    Found : boolean;
+    UTF8, Found : boolean;
   Begin
-  Found:=true;
-  While Found and (i<=LenPat) Do
-   Begin
-     Case Pattern[i] of
-      '?' : Found:=(j<=LenName);
-      '*' : Begin
-            {find the next character in pattern, different of ? and *}
-              while Found do
-                begin
-                inc(i);
-                if i>LenPat then Break;
-                case Pattern[i] of
-                  '*' : ;
-                  '?' : begin
-                          if j>LenName then begin DoFNMatch:=false; Exit; end;
-                          inc(j);
-                        end;
-                else
-                  Found:=false;
-                end;
-               end;
-              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
-            {Now, find in name the character which i points to, if the * or ?
-             wasn't the last character in the pattern, else, use up all the
-             chars in name}
-              Found:=false;
-              if (i<=LenPat) then
-              begin
-                repeat
-                  {find a letter (not only first !) which maches pattern[i]}
-                  while (j<=LenName) and (name[j]<>pattern[i]) do
-                    inc (j);
-                  if (j<LenName) then
+    Found:=true;
+    { ensure that we don't skip partial characters in UTF-8-encoded strings }
+    UTF8:=StringCodePage(Name)=CP_UTF8;
+    While Found and (i<=LenPat) Do
+     Begin
+       Case Pattern[i] of
+        '?' :
+          begin
+            Found:=(j<=LenName);
+            if UTF8 then
+              GoToLastByteOfUtf8CodePoint(j);
+          end;
+        '*' : Begin
+              {find the next character in pattern, different of ? and *}
+                while Found do
                   begin
-                    if DoFnMatch(i+1,j+1) then
-                    begin
-                      i:=LenPat;
-                      j:=LenName;{we can stop}
-                      Found:=true;
+                    inc(i);
+                    if i>LenPat then
                       Break;
-                    end else
-                      inc(j);{We didn't find one, need to look further}
-                  end else
-                  if j=LenName then
+                    case Pattern[i] of
+                      '*' : ;
+                      '?' : begin
+                              if j>LenName then
+                                begin
+                                  DoFNMatch:=false;
+                                  Exit;
+                                end;
+                              if UTF8 then
+                                GoToLastByteOfUtf8CodePoint(j);
+                              inc(j);
+                            end;
+                      else
+                        Found:=false;
+                      end;
+                 end;
+                Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
+                { Now, find in name the character which i points to, if the * or
+                  ? wasn't the last character in the pattern, else, use up all
+                  the chars in name }
+                Found:=false;
+                if (i<=LenPat) then
                   begin
+                    repeat
+                      {find a letter (not only first !) which maches pattern[i]}
+                      if UTF8 then
+                        begin
+                          while (j<=LenName) and
+                                ((name[j]<>pattern[i]) or
+                                 not CompareUtf8CodePoint(i,j,false)) do
+                            begin
+                              GoToLastByteOfUtf8CodePoint(j);
+                              inc(j);
+                            end;
+                        end
+                      else
+                        begin
+                          while (j<=LenName) and (name[j]<>pattern[i]) do
+                            inc (j);
+                        end;
+                      if (j<LenName) then
+                        begin
+                          { while positions i/j have already been checked, in
+                            case of UTF-8 we have to ensure that we don't split
+                            a code point. Otherwise we can skip over comparing
+                            the same characters twice }
+                          if DoFnMatch(i+ord(not UTF8),j+ord(not UTF8)) then
+                            begin
+                              i:=LenPat;
+                              j:=LenName;{we can stop}
+                              Found:=true;
+                              Break;
+                            end
+                          { We didn't find one, need to look further }
+                          else
+                            begin
+                              if UTF8 then
+                                GoToLastByteOfUtf8CodePoint(j);
+                              inc(j);
+                            end;
+                        end
+                      else if j=LenName then
+                        begin
+                          Found:=true;
+                          Break;
+                        end;
+                      { This 'until' condition must be j>LenName, not j>=LenName.
+                        That's because when we 'need to look further' and
+                        j = LenName then loop must not terminate. }
+                    until (j>LenName);
+                  end
+                else
+                  begin
+                    j:=LenName;{we can stop}
                     Found:=true;
-                    Break;
                   end;
-                  { This 'until' condition must be j>LenName, not j>=LenName.
-                    That's because when we 'need to look further' and
-                    j = LenName then loop must not terminate. }
-                until (j>LenName);
-              end else
-              begin
-                j:=LenName;{we can stop}
-                Found:=true;
               end;
-            end;
-     else {not a wildcard character in pattern}
-       Found:=(j<=LenName) and (pattern[i]=name[j]);
+        #128..#255:
+          begin
+            Found:=(j<=LenName) and (pattern[i]=name[j]);
+            if Found and UTF8 then
+              begin
+                { ensure that a part of an UTF-8 codepoint isn't matched with
+                  '*' or '?' }
+                Found:=CompareUtf8CodePoint(i,j,true);
+                { at this point, either Found is false (and we'll stop), or
+                  both pattern[i] and name[j] are the end of the current code
+                  point and equal }
+              end
+          end
+       else {not a wildcard character in pattern}
+         Found:=(j<=LenName) and (pattern[i]=name[j]);
+       end;
+       inc(i);
+       inc(j);
      end;
-     inc(i);
-     inc(j);
-   end;
-  DoFnMatch:=Found and (j>LenName);
+    DoFnMatch:=Found and (j>LenName);
   end;
 
 Begin {start FNMatch}
@@ -693,78 +871,73 @@ Type
   TUnixFindData = Record
     NamePos    : LongInt;     {to track which search this is}
     DirPtr     : Pointer;     {directory pointer for reading directory}
-    SearchSpec : String;
+    SearchSpec : RawbyteString;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;        {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
 
-Procedure FindClose(Var f: TSearchRec);
+Procedure InternalFindClose(var Handle: Pointer);
 var
-  UnixFindData : PUnixFindData;
-Begin
-  UnixFindData:=PUnixFindData(f.FindHandle);
-  If (UnixFindData=Nil) then
-    Exit;
-  if UnixFindData^.SearchType=0 then
-    begin
-      if UnixFindData^.dirptr<>nil then
-        fpclosedir(pdir(UnixFindData^.dirptr)^);
-    end;
-  Dispose(UnixFindData);
-  f.FindHandle:=nil;
-End;
-
-
-Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
-var
-  st           : baseunix.stat;
-  WinAttr      : longint;
-
+  D: PUnixFindData absolute Handle;
 begin
-  FindGetFileInfo:=false;
-  If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
-  else
-    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  If not FindGetFileInfo then
-    exit;
-  WinAttr:=LinuxToWinAttr(s,st);
-  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
-   Begin
-     f.Name:=ExtractFileName(s);
-     f.Attr:=WinAttr;
-     f.Size:=st.st_Size;
-     f.Mode:=st.st_mode;
-     f.Time:=st.st_mtime;
-     FindGetFileInfo:=true;
-   End
-  else
-    FindGetFileInfo:=false;
+  If D=Nil then
+    Exit;
+  if D^.SearchType=0 then
+    begin
+      if D^.dirptr<>nil then
+        fpclosedir(pdir(D^.dirptr)^);
+    end;
+  Dispose(D);
+  D:=nil;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
-{
-  re-opens dir if not already in array and calls FindGetFileInfo
-}
+Function FindGetFileInfo(const s: RawByteString; var f: TAbstractSearchRec; var Name: RawByteString):boolean;
 Var
-  DirName  : String;
+  st : baseunix.stat;
+  WinAttr : longint;
+begin
+  if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
+    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+  else
+    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
+  if not FindGetFileInfo then
+    exit;
+  WinAttr:=LinuxToWinAttr(s,st);
+  FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
+
+  if FindGetFileInfo then
+    begin
+      Name:=ExtractFileName(s);
+      f.Attr:=WinAttr;
+      f.Size:=st.st_Size;
+      f.Mode:=st.st_mode;
+      f.Time:=st.st_mtime;
+      FindGetFileInfo:=true;
+    end;
+end;
+
+
+// Returns the FOUND filename. Error code <> 0 if no file found
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
+
+Var
+  DirName  : RawByteString;
   FName,
-  SName    : string;
+  SName    : RawBytestring;
   Found,
   Finished : boolean;
   p        : pdirent;
   UnixFindData : PUnixFindData;
+
 Begin
   Result:=-1;
   UnixFindData:=PUnixFindData(Rslt.FindHandle);
   { SearchSpec='' means that there were no wild cards, so only one file to
     find.
   }
-  If (UnixFindData=Nil) then 
-    exit;
-  if UnixFindData^.SearchSpec='' then
+  If (UnixFindData=Nil) or (UnixFindData^.SearchSpec='') then
     exit;
   if (UnixFindData^.SearchType=0) and
      (UnixFindData^.Dirptr=nil) then
@@ -773,7 +946,7 @@ Begin
         DirName:='./'
       Else
         DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
-      UnixFindData^.DirPtr := fpopendir(Pchar(pointer(DirName)));
+      UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
     end;
   SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
   Found:=False;
@@ -789,9 +962,10 @@ Begin
       Finished:=True
      Else
       Begin
+        SetCodePage(FName,DefaultFileSystemCodePage,false);
         If FNMatch(SName,FName) Then
          Begin
-           Found:=FindGetFileInfo(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Rslt);
+           Found:=FindGetFileInfo(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Rslt,Name);
            if Found then
              begin
                Result:=0;
@@ -803,7 +977,7 @@ Begin
 End;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 {
   opens dir and calls FindNext if needed.
 }
@@ -811,6 +985,8 @@ var
   UnixFindData : PUnixFindData;
 Begin
   Result:=-1;
+  { this is safe even though Rslt actually contains a refcounted field, because
+    it is declared as "out" and hence has already been initialised }
   fillchar(Rslt,sizeof(Rslt),0);
   if Path='' then
     exit;
@@ -823,20 +999,20 @@ Begin
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
     begin
-    if FindGetFileInfo(Path,Rslt) then
+    if FindGetFileInfo(ToSingleByteFileSystemEncodedFileName(Path),Rslt,Name) then
       Result:=0;
     end
   else
     begin
     {Create Info}
-    UnixFindData^.SearchSpec := Path;
+    UnixFindData^.SearchSpec := ToSingleByteFileSystemEncodedFileName(Path);
     UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
     while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
       dec(UnixFindData^.NamePos);
-    Result:=FindNext(Rslt);
+    Result:=InternalFindNext(Rslt,Name);
     end;
   If (Result<>0) then
-    FindClose(Rslt); 
+    InternalFindClose(Rslt.FindHandle);
 End;
 
 

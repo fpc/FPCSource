@@ -40,6 +40,12 @@ begin
 end;
 
 
+Function FileAge (Const FileName : UnicodeString): Longint;
+begin
+  Result:=FileAge(ToSingleByteFileSystemEncodedFileName(FileName));
+end;
+
+
 Function FileExists (Const FileName : UnicodeString) : Boolean;
 begin
   Result:=FileExists(ToSingleByteFileSystemEncodedFileName(FileName));
@@ -91,6 +97,32 @@ begin
   Result:=FileSetDate(ToSingleByteFileSystemEncodedFileName(FileName),Age);
 end;
 {$endif}
+
+
+function FileAge(const FileName: RawByteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+Var
+  Info : TRawByteSearchRec;
+  A : Integer;
+begin
+  for A:=1 to Length(FileName) do
+    if CharInSet(FileName[A],['?','*']) then
+      Exit(False);
+  A:=0;
+  if not FollowLink then
+    A:=A or faSymLink;
+  Result:=FindFirst(FileName,A,Info)=0;
+  if Result then
+    begin
+      FileDateTime:=FileDatetoDateTime(Info.Time);
+      FindClose(Info);
+    end;
+end;
+
+
+Function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+begin
+  Result:=FileAge(ToSingleByteFileSystemEncodedFileName(FileName),FileDateTime,FollowLink);
+end;
 
 
 Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
@@ -205,6 +237,12 @@ begin
 end;
 
 
+Function FileAge (Const FileName : RawByteString): Longint;
+begin
+  Result:=FileAge(UnicodeString(FileName));
+end;
+
+
 Function FileExists (Const FileName : RawByteString) : Boolean;
 begin
   Result:=FileExists(UnicodeString(FileName));
@@ -253,6 +291,33 @@ begin
   Result:=FileSetDate(UnicodeString(FileName),Age);
 end;
 {$endif}
+
+
+function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+Var
+  Info : TUnicodeSearchRec;
+  A : Integer;
+
+begin
+  for A:=1 to Length(FileName) do
+    if CharInSet(FileName[A],['?','*']) then
+      Exit(False);
+  A:=0;
+  if not FollowLink then
+    A:=A or faSymLink;
+  Result:=FindFirst(FileName,A,Info)=0;
+  if Result then
+    begin
+      FileDateTime:=FileDatetoDateTime(Info.Time);
+      FindClose(Info);
+    end;
+end;
+
+
+Function FileAge(const FileName: RawbyteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+begin
+  Result:=FileAge(UnicodeString(FileName),FileDateTime,FollowLink);
+end;
 
 
 Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
@@ -347,5 +412,133 @@ end;
 Function GetFileHandle(var f : Text):THandle;
 begin
   Result:=textrec(f).handle;
+end;
+
+
+{ FindFirst/FindNext. In order to avoid having to duplicate most code in th
+  OS-specific implementations, we let those implementations fill in all
+  fields of TRawbyte/UnicodeSearchRec, except for the name. That field is
+  filled in by the OS-indepedent wrappers, which also takes care of setting
+  the appropriate code page if applicable.
+}
+
+type
+  TAbstractSearchRec = Record
+    Time : Longint;
+    Size : Int64;
+    Attr : Longint;
+    { this will be assigned by the generic code; it is actually either a
+      rawbytestring or unicodestring}
+    Name_do_not_touch : pointer;
+    ExcludeAttr : Longint;
+  {$ifdef unix}
+    FindHandle : Pointer;
+    Mode : TMode;
+  {$else unix}
+    FindHandle : THandle;
+  {$endif unix}
+  {$ifdef USEFINDDATA}
+    FindData : TFindData;
+  {$endif}
+  end;
+
+
+{$ifdef SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint; forward;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint; forward;
+{$endif SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
+{$ifdef SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint; forward;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint; forward;
+{$endif SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+
+procedure InternalFindClose(var Handle: {$ifdef unix}Pointer{$else}THandle{$endif}{$ifdef USEFINDDATA};var FindData: TFindData{$endif}); forward;
+
+
+{$ifndef SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+Function FindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TRawByteSearchRec) : Longint;
+var
+  Name: UnicodeString;
+begin
+  Result:=InternalFindFirst(UnicodeString(Path),Attr,TAbstractSearchRec(Rslt),Name);
+  if Result=0 then
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Name),Rslt.Name,DefaultRTLFileSystemCodePage,length(Name));
+end;
+
+
+Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;
+var
+  Name: UnicodeString;
+begin
+  Result:=InternalFindNext(TAbstractSearchRec(Rslt),Name);
+  if Result=0 then
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Name),Rslt.Name,DefaultRTLFileSystemCodePage,length(Name));
+end;
+
+{$else not SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
+Function FindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TRawByteSearchRec) : Longint;
+begin
+  Result:=InternalFindFirst(Path,Attr,TAbstractSearchRec(Rslt),Rslt.Name);
+  if Result=0 then
+    SetCodePage(Rslt.Name,DefaultRTLFileSystemCodePage);
+end;
+
+
+Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;
+begin
+  Result:=InternalFindNext(TAbstractSearchRec(Rslt),Rslt.Name);
+  if Result=0 then
+    SetCodePage(Rslt.Name,DefaultRTLFileSystemCodePage);
+end;
+
+{$endif not SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
+
+{$ifndef SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+Function FindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TUnicodeSearchRec) : Longint;
+var
+  Name: RawByteString;
+begin
+  Result:=InternalFindFirst(ToSingleByteFileSystemEncodedFileName(Path),Attr,TAbstractSearchRec(Rslt),Name);
+  if Result=0 then
+    Rslt.Name:=UnicodeString(Name);
+end;
+
+
+Function FindNext (Var Rslt : TUnicodeSearchRec) : Longint;
+var
+  Name: RawByteString;
+begin
+  Result:=InternalFindNext(TAbstractSearchRec(Rslt),Name);
+  if Result=0 then
+    Rslt.Name:=UnicodeString(Name);
+end;
+
+{$else not SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+
+Function FindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TUnicodeSearchRec) : Longint;
+begin
+  Result:=InternalFindFirst(Path,Attr,TAbstractSearchRec(Rslt),Rslt.Name);
+end;
+
+
+Function FindNext (Var Rslt : TUnicodeSearchRec) : Longint;
+begin
+  Result:=InternalFindNext(TAbstractSearchRec(Rslt),Rslt.Name);
+end;
+
+{$endif not SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+
+Procedure FindClose(Var f: TRawByteSearchRec);
+begin
+  InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
+end;
+
+
+Procedure FindClose(Var f: TUnicodeSearchRec);
+begin
+  InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
 end;
 

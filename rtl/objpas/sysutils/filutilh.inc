@@ -14,11 +14,36 @@
  **********************************************************************}
 
 Type
-  TSearchRec = Record
+
+
+  // Some operating systems need extra find data.
+{$if defined(Win32) or defined(WinCE) or defined(Win64)}
+    {$define USEFINDDATA}
+    TFindData = TWin32FindDataW;
+{$endif}
+{$ifdef netware_clib}
+    TFindData = TNetwareFindData;
+    {$define USEFINDDATA}
+{$endif}
+{$ifdef netware_libc}
+    TFindData = TNetwareLibcFindData;
+    {$define USEFINDDATA}
+{$endif}
+{$ifdef MacOS}
+    TFindData = TMacOSFindData;
+    {$define USEFINDDATA}
+{$endif}
+{$ifdef nativent}
+    TFindData = TNativeNTFindData;
+    {$define USEFINDDATA}
+{$endif}
+
+  // The actual unicode search record
+  TUnicodeSearchRec = Record
     Time : Longint;
     Size : Int64;
     Attr : Longint;
-    Name : TFileName;
+    Name : UnicodeString;
     ExcludeAttr : Longint;
 {$ifdef unix}
     FindHandle : Pointer;
@@ -26,22 +51,33 @@ Type
 {$else unix}
     FindHandle : THandle;
 {$endif unix}
-{$if defined(Win32) or defined(WinCE) or defined(Win64)}
-    FindData : TWin32FindData;
-{$endif}
-{$ifdef netware_clib}
-    FindData : TNetwareFindData;
-{$endif}
-{$ifdef netware_libc}
-    FindData : TNetwareLibcFindData;
-{$endif}
-{$ifdef MacOS}
-    FindData : TMacOSFindData;
-{$endif}
-{$ifdef nativent}
-    FindData : TNativeNTFindData;
+{$ifdef USEFINDDATA}
+    FindData : TFindData;
 {$endif}
   end;
+
+  TRawbyteSearchRec = Record
+    Time : Longint;
+    Size : Int64;
+    Attr : Longint;
+    Name : RawByteString;
+    ExcludeAttr : Longint;
+{$ifdef unix}
+    FindHandle : Pointer;
+    Mode : TMode;
+{$else unix}
+    FindHandle : THandle;
+{$endif unix}
+{$IFDEF USEFINDDATA}
+    FindData : TFindData;
+{$ENDIF}
+  end;
+
+{$IFDEF FPC_UNICODE_RTL}
+  TSearchRec = TUnicodeSearchRec;
+{$ELSE}
+  TSearchRec = TRawbyteSearchRec;
+{$ENDIF}
 
 Const
   { File attributes }
@@ -81,6 +117,9 @@ Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString) : THandle;
 Function FileCreate (Const FileName : UnicodeString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
+{$IFNDEF FPUNONE}
+Function FileAge (Const FileName : UnicodeString): Longint;
+{$ENDIF}
 Function FileExists (Const FileName : UnicodeString) : Boolean;
 Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
@@ -88,10 +127,14 @@ Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
+Function FindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TUnicodeSearchRec) : Longint;
+Function FindNext (Var Rslt : TUnicodeSearchRec) : Longint;
+Procedure FindClose (Var F : TUnicodeSearchrec);
 Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
 Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : Boolean) : UnicodeString;
 Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString = '') : UnicodeString;
 Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
+function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString) : THandle;
@@ -104,9 +147,15 @@ Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : RawByteString) : Boolean;
 Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+Function FindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TRawByteSearchRec) : Longint;
 Function FileSearch (Const Name, DirList : RawByteString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : RawByteString;
 Function FileSearch (Const Name, DirList : RawByteString; ImplicitCurrentDir : Boolean) : RawByteString;
 Function ExeSearch  (Const Name : RawByteString; Const DirList : RawByteString = '') : RawByteString;
+Function FileIsReadOnly(const FileName: RawByteString): Boolean;
+function FileAge(const FileName: RawByteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+{$ifndef FPUNONE}
+Function FileAge (Const FileName : RawByteString): Longint;
+{$endif}
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
@@ -114,14 +163,9 @@ Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
 Procedure FileClose (Handle : THandle);
 Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
-{$ifndef FPUNONE}
-Function FileAge (Const FileName : String): Longint;
-{$endif}
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
-Function FindNext (Var Rslt : TSearchRec) : Longint;
-Procedure FindClose (Var F : TSearchrec);
+Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;
+Procedure FindClose (Var F : TRawByteSearchrec);
 Function FileGetDate (Handle : THandle) : Longint;
 Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Function GetFileHandle(var f : File):THandle;
 Function GetFileHandle(var f : Text):THandle;
-function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;

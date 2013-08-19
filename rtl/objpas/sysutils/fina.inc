@@ -155,7 +155,11 @@ end;
 
 function ExpandFileNameCase (const FileName: PathStr; out MatchFound: TFilenameCaseMatch): PathStr;
 var
-  SR: TSearchRec;
+{$ifdef SYSUTILSUNICODE}
+  SR: TUnicodeSearchRec;
+{$else SYSUTILSUNICODE}
+  SR: TRawByteSearchRec;
+{$endif SYSUTILSUNICODE}
   ItemsFound: byte;
   FoundPath: PathStr;
   RestPos: SizeUInt;
@@ -163,7 +167,11 @@ var
 
   procedure TryCase (const Base, Rest: PathStr);
   var
-    SR: TSearchRec;
+{$ifdef SYSUTILSUNICODE}
+    SR: TUnicodeSearchRec;
+{$else SYSUTILSUNICODE}
+    SR: TRawByteSearchRec;
+{$endif SYSUTILSUNICODE}
     RC: longint;
     NextDirPos: SizeUInt;
     NextPart: PathStr;

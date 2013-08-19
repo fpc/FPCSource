@@ -333,9 +333,9 @@ end;
 (****** end of non portable routines ******)
 
 
-function FileAge (const FileName : String): Longint;
+function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpName: String;
+  tmpName: RawByteString;
   tmpLock: Longint;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -343,7 +343,7 @@ var
 
 begin
   validFile:=false;
-  tmpName := PathConv(FileName);
+  tmpName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   tmpLock := dosLock(tmpName, SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
@@ -382,15 +382,15 @@ begin
 end;
 
 
-function FindFirst(const Path: String; Attr : Longint; out Rslt: TSearchRec): Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 var
-  tmpStr: array[0..255] of Char;
+  tmpStr: RawByteString;
   Anchor: PAnchorPath;
   tmpDateTime: TDateTime;
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
-  tmpStr:=PathConv(path)+#0;
+  tmpStr:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
@@ -399,11 +399,12 @@ begin
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
 
-  if MatchFirst(@tmpStr,Anchor)<>0 then exit;
+  if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
   Rslt.FindHandle := longint(Anchor);
 
   with Anchor^.ap_Info do begin
-    Rslt.Name := StrPas(fib_FileName);
+    Name := fib_FileName;
+    SetCodePage(Name,DefaultFileSystemCodePage,False);
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
@@ -421,7 +422,7 @@ begin
 end;
 
 
-function FindNext (var Rslt : TSearchRec): Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   Anchor: PAnchorPath;
   validDate: boolean;
@@ -433,7 +434,8 @@ begin
   if MatchNext(Anchor) <> 0 then exit;
 
   with Anchor^.ap_Info do begin
-    Rslt.Name := StrPas(fib_FileName);
+    Name := fib_FileName;
+    SetCodePage(Name,DefaultFileSystemCodePage,False);
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
     if not validDate then exit;
@@ -449,14 +451,15 @@ begin
 end;
 
 
-procedure FindClose(var f: TSearchRec);
+Procedure InternalFindClose(var Handle: THandle);
 var
   Anchor: PAnchorPath;
 begin
-  Anchor:=PAnchorPath(f.FindHandle);
+  Anchor:=PAnchorPath(Handle);
   if not assigned(Anchor) then exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
+  Handle:=THandle(nil);
 end;
 
 

@@ -132,12 +132,12 @@ function GetFileVersion(const AFileName:string):Cardinal;
     result:=$fffffff;
     fn:=AFileName;
     UniqueString(fn);
-    size:=GetFileVersionInfoSize(pchar(fn),@h);
+    size:=GetFileVersionInfoSizeA(pchar(fn),@h);
     if size>sizeof(buf) then
       begin
         getmem(bufp,size);
         try
-          if GetFileVersionInfo(pchar(fn),h,size,bufp) then
+          if GetFileVersionInfoA(pchar(fn),h,size,bufp) then
             if VerQueryValue(bufp,'\',valrec,valsize) then
               result:=valrec^.dwFileVersionMS;
         finally
@@ -347,12 +347,12 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : UnicodeString): Longint;
 var
   Handle: THandle;
-  FindData: TWin32FindData;
+  FindData: TWin32FindDataW;
 begin
-  Handle := FindFirstFile(Pchar(FileName), FindData);
+  Handle := FindFirstFileW(Pwidechar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
@@ -388,13 +388,12 @@ begin
     Result:=False;
 end;
 
-
-Function FindMatch(var f: TSearchRec) : Longint;
+Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
-     if not FindNextFile (F.FindHandle,F.FindData) then
+     if not FindNextFileW (F.FindHandle,F.FindData) then
       begin
         Result:=GetLastError;
         exit;
@@ -404,42 +403,41 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=StrPas(@F.FindData.cFileName[0]);
+  Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
-  Rslt.Name:=Path;
+  Name:=Path;
   Rslt.Attr:=attr;
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a Win32 Call }
-  Rslt.FindHandle:=FindFirstFile (PChar(Path),Rslt.FindData);
+  Rslt.FindHandle:=FindFirstFileW (PWideChar(Path),Rslt.FindData);
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
      exit;
    end;
   { Find file with correct attribute }
-  Result:=FindMatch(Rslt);
+  Result:=FindMatch(Rslt,Name);
 end;
 
-
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
-  if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
-    Result := FindMatch(Rslt)
+  if FindNextFileW(Rslt.FindHandle, Rslt.FindData) then
+    Result := FindMatch(Rslt, Name)
   else
     Result := GetLastError;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-   if F.FindHandle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(F.FindHandle);
+   if Handle <> INVALID_HANDLE_VALUE then
+    Windows.FindClose(Handle);
 end;
 
 

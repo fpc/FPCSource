@@ -30,8 +30,8 @@ TYPE
     DirP  : Pdirent;          { used for opendir }
     EntryP: Pdirent;          { and readdir }
     Magic : longint;          { to avoid abends with uninitialized TSearchRec }
-    _mask : string;           { search mask i.e. *.* }
-    _dir  : string;           { directory where to search }
+    _mask : RawByteString;    { search mask i.e. *.* }
+    _dir  : RawByteString;    { directory where to search }
     _attr : longint;          { specified attribute }
     fname : string;           { full pathname of found file }
   END;
@@ -199,11 +199,13 @@ begin
   FileUnlock := -1;
 end;
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var Info : TStat;
     TM  : TTM;
+    SystemFileName: RawByteString;
 begin
-  If Fpstat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     exit(-1)
   else
     begin
@@ -233,10 +235,10 @@ end;
 
 
 {returns true if attributes match}
-function find_setfields (var f : TsearchRec; var AttrsOk : boolean) : longint;
+function find_setfields (var f : TsearchRec; var AttrsOk : boolean; var Name : RawByteString) : longint;
 var
   StatBuf : TStat;
-  fname   : string;
+  fname   : RawByteString;
 begin
   result := 0;
   with F do
@@ -245,7 +247,8 @@ begin
     begin
       attr := (Pdirent(FindData.EntryP)^.d_mode shr 16) and $ffff;
       size := Pdirent(FindData.EntryP)^.d_size;
-      name := strpas (Pdirent(FindData.EntryP)^.d_name);
+      name := Pdirent(FindData.EntryP)^.d_name;
+      SetCodePage(name, DefaultFileSystemCodePage, False);
       fname := FindData._dir + name;
       if Fpstat (pchar(fname),StatBuf) = 0 then
         time := UnixToWinAge (StatBuf.st_mtim.tv_sec)
@@ -261,14 +264,15 @@ begin
       AttrsOk := true;
     end else
     begin
-      FillChar (f,sizeof(f),0);
+      name :='';
       result := 18;
     end;
   end;
 end;
 
-function findfirst(const path : string;attr : longint; out Rslt : TsearchRec) : longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 var
+  SystemEncodedPath: RawByteString;
   path0 : string;
   p     : longint;
 begin
@@ -277,17 +281,18 @@ begin
     result := 18;
     exit;
   end;
+  SystemEncodedPath := ToSingleByteEncodedFileName(Path);
   Rslt.FindData._attr := attr;
-  p := length (path);
-  while (p > 0) and (not (path[p] in AllowDirectorySeparators)) do
+  p := length (SystemEncodedPath);
+  while (p > 0) and (not (SystemEncodedPath[p] in AllowDirectorySeparators)) do
     dec (p);
   if p > 0 then
   begin
-    Rslt.FindData._mask := copy (path,p+1,255);
-    Rslt.FindData._dir := copy (path,1,p);
+    Rslt.FindData._mask := copy (SystemEncodedPath,p+1,high (longint));
+    Rslt.FindData._dir := copy (SystemEncodedPath,1,p);
   end else
   begin
-    Rslt.FindData._mask := path;
+    Rslt.FindData._mask := SystemEncodedPath;
     Rslt.FindData._dir := GetCurrentDir;
     if (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '/') and
        (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '\') then
@@ -306,7 +311,7 @@ begin
 end;
 
 
-function findnext(var Rslt : TsearchRec) : longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var attrsOk : boolean;
 begin
   if Rslt.FindData.Magic <> $AD02 then
@@ -320,7 +325,7 @@ begin
     if Rslt.FindData.EntryP = nil then
       result := 18
     else
-    result := find_setfields (Rslt,attrsOk);
+    result := find_setfields (Rslt,attrsOk,Name);
     if (result = 0) and (attrsOk) then
     begin
       if Rslt.FindData._mask = #0 then exit;
@@ -331,12 +336,12 @@ begin
 end;
 
 
-Procedure FindClose(Var f: TSearchRec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-  if F.FindData.Magic <> $AD02 then exit;
+  if FindData.Magic <> $AD02 then exit;
   doserror:=0;
-  closedir (Pdirent(f.FindData.DirP));
-  FillChar (f,sizeof(f),0);
+  closedir (Pdirent(FindData.DirP));
+  FillChar (FindData,sizeof(FindData),0);
 end;
 
 

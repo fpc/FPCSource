@@ -138,7 +138,7 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 begin
   result := -1;
 end;
@@ -151,18 +151,18 @@ end;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 begin
 end;
 

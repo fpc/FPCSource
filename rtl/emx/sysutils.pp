@@ -643,7 +643,7 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileAge (const FileName: string): longint;
+function FileAge (const FileName: RawByteString): longint;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
@@ -679,9 +679,10 @@ type
   end;
   PSearchRec = ^SearchRec;
 
-function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 var
+  SystemEncodedPath: RawByteString;
   SR: PSearchRec;
   FStat: PFileFindBuf3L;
   Count: cardinal;
@@ -690,14 +691,15 @@ var
 begin
   if os_mode = osOS2 then
    begin
+    SystemEncodedPath:=ToSingleByteEncodedFileName(Path);
     New (FStat);
     Rslt.FindHandle := THandle ($FFFFFFFF);
     Count := 1;
     if FSApi64 then
-     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
     else
-     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
     if (Err = 0) and (Count = 0) then
      Err := 18;
@@ -710,15 +712,16 @@ begin
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
-        Rslt.Name := FStat^.Name;
+        Name := FStat^.Name;
         Rslt.Attr := FStat^.AttrFile;
        end
       else
        begin
         Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Name := PFileFindBuf3 (FStat)^.Name;
         Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
        end;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end
     else
      FindClose (Rslt);
@@ -738,14 +741,15 @@ begin
       Rslt.Size := cardinal (SR^.Size);
       Rslt.Attr := SR^.Attr;
       Rslt.ExcludeAttr := 0;
-      Rslt.Name := SR^.Name;
+      Name := SR^.Name;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end;
     DOS.DosError := Err;
    end;
 end;
 
 
-function FindNext (var Rslt: TSearchRec): longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 var
   SR: PSearchRec;
@@ -770,15 +774,16 @@ begin
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
-        Rslt.Name := FStat^.Name;
+        Name := FStat^.Name;
         Rslt.Attr := FStat^.AttrFile;
        end
       else
        begin
         Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Name := PFileFindBuf3 (FStat)^.Name;
         Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
        end;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end;
     Dispose (FStat);
    end
@@ -796,29 +801,30 @@ begin
         Rslt.Size := cardinal (SR^.Size);
         Rslt.Attr := SR^.Attr;
         Rslt.ExcludeAttr := 0;
-        Rslt.Name := SR^.Name;
+        Name := SR^.Name;
+        SetCodePage(Name, DefaultFileSystemCodePage, false);
        end;
      end;
    end;
 end;
 
 
-procedure FindClose (var F: TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 
 var SR: PSearchRec;
 
 begin
     if os_mode = osOS2 then
         begin
-            DosFindClose (F.FindHandle);
+            DosFindClose (Handle);
         end
     else
         begin
-            SR := PSearchRec (F.FindHandle);
+            SR := PSearchRec (Handle);
             DOS.FindClose (SR^);
             FreeMem (SR, SizeOf (SearchRec));
         end;
-    F.FindHandle := 0;
+    Handle := 0;
 end;
 
 

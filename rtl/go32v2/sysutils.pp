@@ -282,7 +282,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -354,7 +354,7 @@ begin
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 Var Sr : PSearchrec;
 
@@ -362,6 +362,8 @@ begin
   //!! Sr := New(PSearchRec);
   getmem(sr,sizeof(searchrec));
   Rslt.FindHandle := longint(Sr);
+  { no use in converting to defaultfilesystemcodepage, since the Dos shortstring
+    interface is called here }
   DOS.FindFirst(Path, Attr, Sr^);
   result := -DosError;
   if result = 0 then
@@ -370,12 +372,13 @@ begin
      Rslt.Size := Sr^.Size;
      Rslt.Attr := Sr^.Attr;
      Rslt.ExcludeAttr := 0;
-     Rslt.Name := Sr^.Name;
+     Name := Sr^.Name;
+     SetCodePage(Name,DefaultFileSystemCodePage,False);
    end ;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   Sr: PSearchRec;
 begin
@@ -390,17 +393,18 @@ begin
         Rslt.Size := Sr^.Size;
         Rslt.Attr := Sr^.Attr;
         Rslt.ExcludeAttr := 0;
-        Rslt.Name := Sr^.Name;
+        Name := Sr^.Name;
+        SetCodePage(Name,DefaultFileSystemCodePage,False);
       end;
    end;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 var
   Sr: PSearchRec;
 begin
-  Sr := PSearchRec(F.FindHandle);
+  Sr := PSearchRec(Handle);
   if Sr <> nil then
     begin
       //!! Dispose(Sr);
@@ -408,7 +412,7 @@ begin
       DOS.FindClose(SR^);
       freemem(sr,sizeof(searchrec));
     end;
-  F.FindHandle := 0;
+  Handle := 0;
 end;
 
 

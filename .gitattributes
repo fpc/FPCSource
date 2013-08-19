@@ -12117,6 +12117,7 @@ tests/test/units/sysutils/texec2.pp svneol=native#text/plain
 tests/test/units/sysutils/texpfncase.pp svneol=native#text/plain
 tests/test/units/sysutils/textractquote.pp svneol=native#text/plain
 tests/test/units/sysutils/tfexpand2.pp svneol=native#text/plain
+tests/test/units/sysutils/tffirst.pp svneol=native#text/plain
 tests/test/units/sysutils/tfile1.pp svneol=native#text/plain
 tests/test/units/sysutils/tfile2.pp svneol=native#text/plain
 tests/test/units/sysutils/tfilename.pp svneol=native#text/plain

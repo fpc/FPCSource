@@ -248,15 +248,12 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : UnicodeString): Longint;
 var
   Handle: THandle;
   FindData: TWin32FindData;
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(FileName);
-  Handle := FindFirstFile(fn, FindData);
-  FreeMem(fn);
+  Handle := FindFirstFile(PWideChar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
@@ -292,7 +289,7 @@ begin
 end;
 
 
-Function FindMatch(var f: TSearchRec) : Longint;
+Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -307,46 +304,45 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
-  PWideCharToString(@F.FindData.cFileName[0], f.Name);
+  Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 var
   fn: PWideChar;
 begin
-  fn:=StringToPWideChar(Path);
-  Rslt.Name:=Path;
+  fn:=PWideChar(Path);
+  Name:=Path;
   Rslt.Attr:=attr;
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a WinCE Call }
   Rslt.FindHandle:=FindFirstFile (fn, Rslt.FindData);
-  FreeMem(fn);
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
      exit;
    end;
   { Find file with correct attribute }
-  Result:=FindMatch(Rslt);
+  Result:=FindMatch(Rslt, Name);
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
-    Result := FindMatch(Rslt)
+    Result := FindMatch(Rslt, Name)
   else
     Result := GetLastError;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-   if F.FindHandle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(F.FindHandle);
+   if Handle <> INVALID_HANDLE_VALUE then
+     Windows.FindClose(Handle);
 end;
 
 

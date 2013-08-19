@@ -162,11 +162,13 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var 
   info: Stat;
+  SystemFileName: RawByteString;
 begin
-  if (_stat(pchar(FileName), Info) < 0) or S_ISDIR(info.st_mode) then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if (_stat(pchar(SystemFileName), Info) < 0) or S_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result := (info.st_mtime);
@@ -183,18 +185,18 @@ end;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: Pointer);
 begin
 
 end;
