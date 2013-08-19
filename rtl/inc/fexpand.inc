@@ -68,7 +68,7 @@ begin
 end;
 {$endif}
 
-procedure GetDirIO (DriveNr: byte; var Dir: PathStr);
+procedure GetDirIO (DriveNr: byte; var Dir: {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}RawByteString{$else}PathStr{$endif});
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
@@ -85,7 +85,7 @@ end;
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-procedure GetDirIO (const VolumeName: OpenString; var Dir: PathStr);
+procedure GetDirIO (const VolumeName: OpenString; var Dir: {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}RawByteString{$else}PathStr{$endif});
 
 var
   OldInOutRes: word;
@@ -128,7 +128,7 @@ const
     RootNotNeeded = false;
 {$ENDIF FPC_FEXPAND_UNC}
 
-var S, Pa, Dirs: PathStr;
+var S, Pa, Dirs, TmpS: {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}RawByteString{$else}PathStr{$endif};
     I, J: longint;
 
 begin
@@ -137,10 +137,20 @@ begin
 {$ENDIF FPC_FEXPAND_UNC}
 
 (* First convert the path to uppercase if appropriate for current platform. *)
+{$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+    { for sysutils/rawbytestring, process everything in
+      DefaultFileSystemCodePage to prevent risking data loss that may be
+      relevant when the file name is used }
+    if FileNameCasePreserving then
+        Pa := ToSingleByteFileSystemEncodedFileName (Path)
+    else
+        Pa := UpCase (ToSingleByteFileSystemEncodedFileName (Path));
+{$ELSE FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
     if FileNameCasePreserving then
         Pa := Path
     else
         Pa := UpCase (Path);
+{$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
 
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
@@ -171,7 +181,11 @@ begin
                       ((Pa [2] = DirectorySeparator) or (Length (Pa) = 1)) then
         begin
  {$IFDEF FPC_FEXPAND_SYSUTILS}
-            S := GetEnvironmentVariable ('HOME');
+   {$IFDEF SYSUTILSUNICODE}
+            S := PathStr(GetEnvironmentVariable ('HOME'));
+   {$ELSE SYSUTILSUNICODE}
+            S := ToSingleByteFileSystemEncodedFileName(GetEnvironmentVariable ('HOME'));
+   {$ENDIF SYSUTILSUNICODE}
  {$ELSE FPC_FEXPAND_SYSUTILS}
   {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
             S := StrPas (GetEnv ('HOME'));
@@ -230,19 +244,38 @@ begin
                         begin
                             { remove ending slash if it already exists }
                             if S [Length (S)] = DirectorySeparator then
-                               SetLength(S,Length(s)-1);
+                               SetLength(S,Length(S)-1);
+{$IFDEF FPC_FEXPAND_SYSUTILS}
+                            { not "Pa := S + DirectorySeparator + ..." because
+                              that will convert the result to
+                              DefaultSystemCodePage in case of RawByteString due
+                              to DirectorySeparator being an ansichar }
+                            TmpS := S;
+                            SetLength(TmpS, Length(TmpS) + 1);
+                            TmpS[Length(TmpS)] := DirectorySeparator;
+                            Pa := TmpS +
+                              Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
+{$ELSE FPC_FEXPAND_SYSUTILS}
                             Pa := S + DirectorySeparator +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
+{$ENDIF FPC_FEXPAND_SYSUTILS}
                         end
                     else
+                      begin
+                        TmpS := DriveSeparator + DirectorySeparator;
+  {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+                        SetCodePage(TmpS, DefaultFileSystemCodePage, false);
+  {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
+
   {$IFDEF FPC_FEXPAND_VOLUMES}
-                        Pa := Copy (Pa, 1, PathStart - 2) + DriveSeparator
-                           + DirectorySeparator +
+                        Pa := Copy (Pa, 1, PathStart - 2) + TmpS +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
   {$ELSE FPC_FEXPAND_VOLUMES}
-                        Pa := Pa [1] + DriveSeparator + DirectorySeparator +
+                        { copy() instead of Pa[1] to preserve string code page }
+                        Pa := Copy (Pa, 1, 1) + TmpS +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
   {$ENDIF FPC_FEXPAND_VOLUMES}
+                      end
  {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
         end
     else
@@ -295,8 +328,17 @@ begin
                                 {...or not even that one}
                                     PathStart := 2
                                 else
-                                    Pa := Pa + DirectorySeparator                            else
-                                if PathStart < Length (Pa) then
+                                  begin
+    {$IFDEF FPC_FEXPAND_SYSUTILS}
+                                    { no string concatenation to prevent code page
+                                      conversion for RawByteString }
+                                    SetLength(Pa, Length(Pa) + 1);
+                                    Pa[Length(Pa)] := DirectorySeparator
+    {$ELSE FPC_FEXPAND_SYSUTILS}
+                                    Pa := Pa + DirectorySeparator;
+    {$ENDIF FPC_FEXPAND_SYSUTILS}
+                                  end
+                                else if PathStart < Length (Pa) then
                                 {We have a resource name as well}
                                     begin
                                         RootNotNeeded := true;
@@ -309,8 +351,8 @@ begin
                         end
                     else
   {$ENDIF FPC_FEXPAND_UNC}
-  {$IFDEF FPC_FEXPAND_VOLUMES}
                         begin
+  {$IFDEF FPC_FEXPAND_VOLUMES}
                             I := Pos (DriveSeparator, S);
    {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
     {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
@@ -320,13 +362,20 @@ begin
                             Pa := Copy (S, 1, I) + Pa;
                             PathStart := I;
    {$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
-                            Pa := Copy (S, 1, Pred (I)) + DriveSeparator + Pa;
+                            TmpS := Copy (S, 1, Pred (I));
+                            SetLength(TmpS, Length(TmpS) + 1);
+                            TmpS[Length(TmpS)] := DriveSeparator;
+                            Pa := TmpS + Pa;
                             PathStart := Succ (I);
    {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-                        end;
   {$ELSE FPC_FEXPAND_VOLUMES}
-                        Pa := S [1] + DriveSeparator + Pa;
+                            TmpS := S[1] + DriveSeparator;
+  {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+                            SetCodePage(TmpS, DefaultFileSystemCodePage, false);
+  {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
+                            Pa := TmpS + Pa;
   {$ENDIF FPC_FEXPAND_VOLUMES}
+                        end;
                 end
             else
  {$ENDIF FPC_FEXPAND_DRIVES}
@@ -346,18 +395,42 @@ begin
                     (* with an empty string for compatibility, except *)
                     (* for platforms where this is invalid.           *)
                     if Length (Pa) = 0 then
-{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-                        Pa := S
-{$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
-                        Pa := S + DirectorySeparator
-{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+                      begin
+                        Pa := S;
+{$IFNDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+  {$IFDEF FPC_FEXPAND_SYSUTILS}
+                        { no string concatenation to prevent code page
+                          conversion for RawByteString }
+                        SetLength(Pa, Length(Pa) + 1);
+                        Pa[Length(Pa)] := DirectorySeparator
+  {$ELSE FPC_FEXPAND_SYSUTILS}
+                        Pa := Pa + DirectorySeparator;
+  {$ENDIF FPC_FEXPAND_SYSUTILS}
+{$ENDIF not FPC_FEXPAND_DIRSEP_IS_UPDIR}
+                      end
                     else
 {$IFDEF FPC_FEXPAND_UPDIR_HELPER}
                         if Pa [1] = DirectorySeparator then
                             Pa := S + Pa
                         else
 {$ENDIF FPC_FEXPAND_UPDIR_HELPER}
-                        Pa := S + DirectorySeparator + Pa;
+                          begin
+{$IFDEF FPC_FEXPAND_SYSUTILS}
+                            { not "Pa := S + DirectorySeparator + Pa" because
+                              that will convert the result to
+                              DefaultSystemCodePage in case of RawByteString due
+                              to DirectorySeparator being an ansichar. Don't
+                              always use this code because in case of
+                              truncation with shortstrings the result will be
+                              different }
+                            TmpS := S;
+                            SetLength(TmpS, Length(TmpS) + 1);
+                            TmpS[Length(TmpS)] := DirectorySeparator;
+                            Pa := TmpS + Pa;
+{$ELSE FPC_FEXPAND_SYSUTILS}
+                            Pa := S + DirectorySeparator + Pa
+{$ENDIF FPC_FEXPAND_SYSUTILS}
+                          end;
         end;
 
     {Get string of directories to only process relative references on this one}
@@ -495,7 +568,16 @@ begin
             Pa := Copy (Pa, 1, PathStart);
 {$IFNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
             if Pa [PathStart] <> DirectorySeparator then
+              begin
+  {$IFDEF FPC_FEXPAND_SYSUTILS}
+                { no string concatenation to prevent code page
+                  conversion for RawByteString }
+                SetLength(Pa, Length(Pa) + 1);
+                Pa[Length(Pa)] := DirectorySeparator
+  {$ELSE FPC_FEXPAND_SYSUTILS}
                 Pa := Pa + DirectorySeparator;
+  {$ENDIF FPC_FEXPAND_SYSUTILS}
+              end
 {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
         end
     else
