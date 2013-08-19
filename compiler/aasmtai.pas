@@ -140,7 +140,8 @@ interface
           aitconst_32bit_unaligned,
           aitconst_64bit_unaligned,
           { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
-          aitconst_farptr
+          aitconst_farptr,
+          aitconst_got
         );
 
     const
@@ -572,7 +573,9 @@ interface
           constructor Create_sym(_sym:tasmsymbol);
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
+          constructor Create_type_sym_offset(_typ:taiconst_type;_sym:tasmsymbol;ofs:aint);
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
+          constructor Create_rel_sym_offset(_typ : taiconst_type; _sym,_endsym : tasmsymbol; _ofs : int64);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
           constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
@@ -1684,6 +1687,24 @@ implementation
       end;
 
 
+    constructor tai_const.Create_type_sym_offset(_typ : taiconst_type;_sym : tasmsymbol; ofs : aint);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=_typ;
+         { sym is allowed to be nil, this is used to write nil pointers }
+         sym:=_sym;
+         endsym:=nil;
+         { store the original offset in symofs so that we can recalculate the
+           value field in the assembler }
+         symofs:=ofs;
+         value:=ofs;
+         { update sym info }
+         if assigned(sym) then
+           sym.increfs;
+      end;
+
+
     constructor tai_const.Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
       begin
          self.create_sym_offset(_sym,0);
@@ -1691,6 +1712,15 @@ implementation
          endsym:=_endsym;
          endsym.increfs;
       end;
+
+
+    constructor tai_const.Create_rel_sym_offset(_typ: taiconst_type; _sym,_endsym: tasmsymbol; _ofs: int64);
+       begin
+         self.create_sym_offset(_sym,_ofs);
+         consttype:=_typ;
+         endsym:=_endsym;
+         endsym.increfs;
+       end;
 
 
     constructor tai_const.Create_rva_sym(_sym:tasmsymbol);

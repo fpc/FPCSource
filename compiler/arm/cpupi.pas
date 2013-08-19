@@ -29,7 +29,8 @@ unit cpupi;
 
     uses
        globtype,cutils,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,
+       aasmdata;
 
     type
        tarmprocinfo = class(tcgprocinfo)
@@ -45,6 +46,7 @@ unit cpupi;
           function calc_stackframe_size:longint;override;
           procedure init_framepointer; override;
           procedure generate_parameter_info;override;
+          procedure allocate_got_register(list : TAsmList);override;
        end;
 
 
@@ -209,6 +211,12 @@ unit cpupi;
       begin
        procdef.total_stackframe_size:=stackframesize;
        inherited generate_parameter_info;
+      end;
+
+
+    procedure tarmprocinfo.allocate_got_register(list: TAsmList);
+      begin
+        got := cg.getaddressregister(list);
       end;
 
 

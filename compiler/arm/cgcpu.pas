@@ -74,6 +74,7 @@ unit cgcpu;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
+        procedure g_maybe_got_init(list : TAsmList); override;
 
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
@@ -624,6 +625,8 @@ unit cgcpu;
     procedure tbasecgarm.a_call_name(list : TAsmList;const s : string; weak: boolean);
       var
         branchopcode: tasmop;
+        r : treference;
+        sym : TAsmSymbol;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
         if CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype] then
@@ -631,10 +634,23 @@ unit cgcpu;
         else
           branchopcode:=A_BL;
         if target_info.system<>system_arm_darwin then
-          if not weak then
-            list.concat(taicpu.op_sym(branchopcode,current_asmdata.RefAsmSymbol(s)))
-          else
-            list.concat(taicpu.op_sym(branchopcode,current_asmdata.WeakRefAsmSymbol(s)))
+          begin
+            if not(weak) then
+              sym:=current_asmdata.RefAsmSymbol(s)
+            else
+              sym:=current_asmdata.WeakRefAsmSymbol(s);
+            reference_reset_symbol(r,sym,0,sizeof(pint));
+
+            if cs_create_pic in current_settings.moduleswitches then
+              begin
+                include(current_procinfo.flags,pi_needs_got);
+                r.refaddr:=addr_pic
+              end
+            else
+              r.refaddr:=addr_full;
+
+            list.concat(taicpu.op_ref(branchopcode,r));
+          end
         else
           list.concat(taicpu.op_sym(branchopcode,get_darwin_call_stub(s,weak)));
 {
@@ -2104,6 +2120,29 @@ unit cgcpu;
       end;
 
 
+    procedure tbasecgarm.g_maybe_got_init(list : TAsmList);
+      var
+        ref : treference;
+        l : TAsmLabel;
+      begin
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (pi_needs_got in current_procinfo.flags) then
+          begin
+            reference_reset(ref,4);
+            current_asmdata.getdatalabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            ref.symbol:=l;
+            ref.base:=NR_PC;
+            ref.symboldata:=current_procinfo.aktlocaldata.last;
+            list.concat(Taicpu.op_reg_ref(A_LDR,current_procinfo.got,ref));
+            current_asmdata.getaddrlabel(l);
+            current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
+            cg.a_label(list,l);
+            list.concat(Taicpu.op_reg_reg_reg(A_ADD,current_procinfo.got,NR_PC,current_procinfo.got));
+          end;
+      end;
+
+
     procedure tbasecgarm.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         b : byte;
@@ -2197,7 +2236,11 @@ unit cgcpu;
                 indirection_done:=true;
               end
             else
-              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+              if (cs_create_pic in current_settings.moduleswitches) and
+                (tf_pic_uses_got in target_info.flags) then
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym_offset(aitconst_got,ref.symbol,ref.offset))
+              else
+                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
           end
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
@@ -2209,6 +2252,16 @@ unit cgcpu;
             tmpref.symbol:=l;
             tmpref.base:=NR_PC;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+            if (cs_create_pic in current_settings.moduleswitches) and
+              (tf_pic_uses_got in target_info.flags) and
+              assigned(ref.symbol) then
+              begin
+                reference_reset(tmpref,4);
+                tmpref.base:=current_procinfo.got;
+                tmpref.index:=tmpreg;
+                list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+              end;
           end;
 
         { This routine can be called with PC as base/index in case the offset

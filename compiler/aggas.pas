@@ -956,6 +956,11 @@ implementation
                       AsmLn;
                     end;
 {$endif cpu64bitaddr}
+                 aitconst_got:
+                   begin
+                     AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
+                     Asmln;
+                   end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
 {$ifdef cpu64bitaddr}

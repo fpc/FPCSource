@@ -164,10 +164,10 @@ unit agarmgas;
                 if (base<>NR_NO) and not(is_pc(base)) then
                   internalerror(200309011);
                 s:=symbol.name;
-                if offset<0 then
-                  s:=s+tostr(offset)
-                else if offset>0 then
-                  s:=s+'+'+tostr(offset);
+                if offset<>0 then
+                  s:=s+tostr_with_plus(offset);
+                if refaddr=addr_pic then
+                  s:=s+'(PLT)';
               end
             else
               begin
