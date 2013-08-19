@@ -864,15 +864,17 @@ type
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
   protected
     procedure FreeBuffers; override;
+    function GetAsBytes: TBytes; override;
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
+    function GetAsWideString: WideString; override;
     function GetBlobSize: Longint; virtual;
     function GetIsNull: Boolean; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
-    function GetAsWideString: WideString; override;
     procedure SetAsWideString(const AValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
