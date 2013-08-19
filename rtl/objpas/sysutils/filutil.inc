@@ -386,7 +386,7 @@ Var
 begin
   D:=DirList;
   if (D='') then
-    D:=GetEnvironmentVariable('PATH');
+    D:=UnicodeString(GetEnvironmentVariable('PATH'));
 {$ifdef unix}
   O:=[];
 {$else unix}
