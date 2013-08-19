@@ -1420,10 +1420,19 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
 { use this wrapper for the simple case to avoid the generation of a temp. ansistring which causes
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+  var
+    TranslatedCodePage,
+    TranslatedCurrentCodePage: TSystemCodePage;
   begin
-    if (S='') or (PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage=CodePage) then
-      exit
-    else if not Convert and (PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref=1) then
+    if (S='') then
+      exit;
+    { if we're just replacing a placeholder code page with its actual value or
+      vice versa, we don't have to perform any conversion }
+    TranslatedCurrentCodePage:=TranslatePlaceholderCP(PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage);
+    TranslatedCodePage:=TranslatePlaceholderCP(CodePage);
+    Convert:=Convert and
+      (TranslatedCurrentCodePage<>TranslatedCodePage);
+    if not Convert and (PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref=1) then
       PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage:=CodePage
     else
       InternalSetCodePage(S,CodePage,Convert);
