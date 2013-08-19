@@ -22,9 +22,10 @@
 program cldrparser;
 
 {$mode objfpc}{$H+}
+{ $define WINCE_TEST}
 
 uses
-  SysUtils, classes, getopts,
+  SysUtils, classes, getopts,{$ifdef WINCE}StreamIO,{$endif}
   cldrhelper, helper, cldrtest, cldrxml, unicodeset;
 
 const
@@ -66,6 +67,12 @@ var
   idx, k : Integer;
   s : string;
 begin
+{$ifdef WINCE_TEST}
+  ADataDir := ExtractFilePath(ParamStr(0))+'data';
+  AOuputDir := ADataDir;
+  ACollationFileName := 'sv.xml';
+  exit(True);
+{$endif WINCE_TEST}
   if (ParamCount() = 0) then
     exit(False);
   Result := True;
@@ -101,14 +108,41 @@ end;
 var
   orderedChars : TOrderedCharacters;
   ucaBook : TUCA_DataBook;
-  stream, streamNE, streamOE : TMemoryStream;
+  stream, streamNE, streamOE, binaryStreamNE, binaryStreamOE : TMemoryStream;
   s, collationFileName, collationTypeName : string;
   i , c: Integer;
   collation : TCldrCollation;
   dataPath, outputPath : string;
   collationItem : TCldrCollationItem;
   testSuiteFlag : Boolean;
+{$ifdef WINCE}
+  fs : TFileStream;
+{$endif WINCE}
 begin
+{$ifdef WINCE}
+  s := ExtractFilePath(ParamStr(0))+'cldr-log.txt';
+  DeleteFile(s);
+  fs := TFileStream.Create(s,fmCreate);
+  AssignStream(Output,fs);
+  Rewrite(Output);
+  s := ExtractFilePath(ParamStr(0))+'cldr-err.txt';
+  DeleteFile(s);
+  fs := TFileStream.Create(s,fmCreate);
+  AssignStream(ErrOutput,fs);
+  Rewrite(ErrOutput);
+{$endif WINCE}
+{$ifdef WINCE_TEST}
+  testSuiteFlag := True;
+  try
+    exec_tests();
+  except
+    on e : Exception do begin
+      WriteLn('Exception : '+e.Message);
+      raise;
+    end;
+  end;
+  exit;
+{$endif WINCE_TEST}
   dataPath := '';
   outputPath := '';
   collationFileName := '';
@@ -132,10 +166,12 @@ begin
     outputPath := dataPath
   else
     outputPath := IncludeTrailingPathDelimiter(outputPath);
+{$ifndef WINCE_TEST}
   if (ParamCount() = 0) then begin
     WriteLn(SUsageText);
     Halt(1);
   end;
+{$endif WINCE_TEST}
   if not(
        FileExists(dataPath+'UCA_Rules_SHORT.xml') and
        FileExists(dataPath+'allkeys.txt')
@@ -155,6 +191,8 @@ begin
   stream := nil;
   streamNE := nil;
   streamOE := nil;
+  binaryStreamNE := nil;
+  binaryStreamOE := nil;
   collation := TCldrCollation.Create();
   try
     ParseCollationDocument(collationFileName,collation,TCldrParserMode.HeaderParsing);
@@ -194,9 +232,12 @@ begin
       stream.Clear();
       streamNE := TMemoryStream.Create();
       streamOE := TMemoryStream.Create();
+      binaryStreamNE := TMemoryStream.Create();
+      binaryStreamOE := TMemoryStream.Create();
       s := COLLATION_FILE_PREFIX + ChangeFileExt(LowerCase(ExtractFileName(collationFileName)),'.pas');
       GenerateCdlrCollation(
         collation,collationTypeName,s,stream,streamNE,streamOE,
+        binaryStreamNE,binaryStreamOE,
         orderedChars,ucaBook.Lines
       );
       stream.SaveToFile(ExtractFilePath(collationFileName)+s);
@@ -204,8 +245,20 @@ begin
         streamNE.SaveToFile(ExtractFilePath(collationFileName)+GenerateEndianIncludeFileName(s,ENDIAN_NATIVE));
         streamOE.SaveToFile(ExtractFilePath(collationFileName)+GenerateEndianIncludeFileName(s,ENDIAN_NON_NATIVE));
       end;
+      if (binaryStreamNE.Size > 0) then begin
+        binaryStreamNE.SaveToFile(
+          ExtractFilePath(collationFileName) +
+          ChangeFileExt(s,Format('_%s.bco',[ENDIAN_SUFFIX[ENDIAN_NATIVE]]))
+        );
+        binaryStreamOE.SaveToFile(
+          ExtractFilePath(collationFileName) +
+          ChangeFileExt(s,Format('_%s.bco',[ENDIAN_SUFFIX[ENDIAN_NON_NATIVE]]))
+        );
+      end;
     end;
   finally
+    binaryStreamOE.Free();
+    binaryStreamNE.Free();
     streamOE.Free();
     streamNE.Free();
     stream.Free();

@@ -208,14 +208,16 @@ type
   ) : Integer;
   function FindCollationDefaultItemName(ACollation : TCldrCollation) : string;
   procedure GenerateCdlrCollation(
-    ACollation           : TCldrCollation;
-    AItemName            : string;
-    AStoreName           : string;
+    ACollation                : TCldrCollation;
+    AItemName                 : string;
+    AStoreName                : string;
     AStream,
     ANativeEndianStream,
-    AOtherEndianStream   : TStream;
-    ARootChars           : TOrderedCharacters;
-    ARootWeigths         : TUCA_LineRecArray
+    AOtherEndianStream,
+    ABinaryNativeEndianStream,
+    ABinaryOtherEndianStream  : TStream;
+    ARootChars                : TOrderedCharacters;
+    ARootWeigths              : TUCA_LineRecArray
   );
 
   procedure GenerateUCA_CLDR_Head(
@@ -1635,14 +1637,16 @@ begin
 end;
 
 procedure GenerateCdlrCollation(
-  ACollation           : TCldrCollation;
-  AItemName            : string;
-  AStoreName           : string;
+  ACollation                : TCldrCollation;
+  AItemName                 : string;
+  AStoreName                : string;
   AStream,
   ANativeEndianStream,
-  AOtherEndianStream   : TStream;
-  ARootChars           : TOrderedCharacters;
-  ARootWeigths         : TUCA_LineRecArray
+  AOtherEndianStream,
+  ABinaryNativeEndianStream,
+  ABinaryOtherEndianStream  : TStream;
+  ARootChars                : TOrderedCharacters;
+  ARootWeigths              : TUCA_LineRecArray
 );
 
   procedure AddLine(const ALine : ansistring; ADestStream : TStream);
@@ -1665,6 +1669,8 @@ var
   ucaoSecondTable  : TucaOBmpSecondTable;
   locHasProps : Boolean;
   s : string;
+  serializedHeader : TSerializedCollationHeader;
+  e : TCollationField;
 begin
   locItem := ACollation.Find(AItemName);
   if (locItem = nil) then
@@ -1707,6 +1713,43 @@ begin
       AddLine('{$endif FPC_LITTLE_ENDIAN}',AStream);
     end;
     GenerateUCA_CLDR_Registration(AStream,@locUcaBook);
+
+    FillChar(serializedHeader,SizeOf(TSerializedCollationHeader),0);
+    serializedHeader.Base := locItem.Base;
+    serializedHeader.Version := ACollation.Version;
+    serializedHeader.CollationName := ACollation.Language;
+    serializedHeader.VariableWeight := Ord(locUcaBook.VariableWeight);
+    SetBit(serializedHeader.Backwards,0,locUcaBook.Backwards[0]);
+    SetBit(serializedHeader.Backwards,1,locUcaBook.Backwards[1]);
+    SetBit(serializedHeader.Backwards,2,locUcaBook.Backwards[2]);
+    SetBit(serializedHeader.Backwards,3,locUcaBook.Backwards[3]);
+    if locHasProps then begin
+      serializedHeader.BMP_Table1Length := Length(ucaFirstTable);
+      serializedHeader.BMP_Table2Length := Length(TucaBmpSecondTableItem) *
+                                           (Length(ucaSecondTable) * SizeOf(UInt24));
+      serializedHeader.OBMP_Table1Length := Length(ucaoFirstTable) * SizeOf(Word);
+      serializedHeader.OBMP_Table2Length := Length(TucaOBmpSecondTableItem) *
+                                           (Length(ucaoSecondTable) * SizeOf(UInt24));
+      serializedHeader.PropCount := locUcaProps^.ItemSize;
+      serializedHeader.VariableLowLimit := locUcaProps^.VariableLowLimit;
+      serializedHeader.VariableHighLimit := locUcaProps^.VariableHighLimit;
+    end else begin
+      serializedHeader.VariableLowLimit := High(Word);
+      serializedHeader.VariableHighLimit := 0;
+    end;
+    serializedHeader.ChangedFields := 0;
+    for e := Low(TCollationField) to High(TCollationField) do begin
+      if (e in locItem.ChangedFields) then
+        SetBit(serializedHeader.ChangedFields,Ord(e),True);
+    end;
+    ABinaryNativeEndianStream.Write(serializedHeader,SizeOf(serializedHeader));
+    ReverseRecordBytes(serializedHeader);
+    ABinaryOtherEndianStream.Write(serializedHeader,SizeOf(serializedHeader));
+    if locHasProps then begin
+      GenerateBinaryUCA_BmpTables(ABinaryNativeEndianStream,ABinaryOtherEndianStream,ucaFirstTable,ucaSecondTable);
+      GenerateBinaryUCA_OBmpTables(ABinaryNativeEndianStream,ABinaryOtherEndianStream,ucaoFirstTable,ucaoSecondTable);
+      GenerateBinaryUCA_PropTable(ABinaryNativeEndianStream,ABinaryOtherEndianStream,locUcaProps);
+    end;
   finally
     locSequence.Clear();
     FreeUcaBook(locUcaProps);

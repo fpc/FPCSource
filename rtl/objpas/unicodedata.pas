@@ -274,6 +274,7 @@ type
     Props              : PUCA_PropItemRec;
     VariableLowLimit   : Word;
     VariableHighLimit  : Word;
+    Dynamic            : Boolean;
   public
     function IsVariable(const AWeight : PUCA_PropWeights) : Boolean; inline;
   end;
@@ -320,8 +321,13 @@ type
   function CompareSortKey(const A, B : TUCASortKey) : Integer;overload;
   function CompareSortKey(const A : TUCASortKey; const B : array of Word) : Integer;overload;
 
-  function RegisterCollation(const ACollation : PUCA_DataBook) : Boolean;
+  function RegisterCollation(const ACollation : PUCA_DataBook) : Boolean;overload;
+  function RegisterCollation(
+    const ADirectory,
+          ALanguage : string
+  ) : Boolean;overload;
   function UnregisterCollation(const AName : ansistring): Boolean;
+  procedure UnregisterCollations(const AFreeDynamicCollations : Boolean);
   function FindCollation(const AName : ansistring): PUCA_DataBook;overload;
   function FindCollation(const AIndex : Integer): PUCA_DataBook;overload;
   function GetCollationCount() : Integer;
@@ -330,6 +336,29 @@ type
     const ABaseName      : ansistring;
     const AChangedFields : TCollationFields
   );
+  function LoadCollation(
+    const AData       : Pointer;
+    const ADataLength : Integer
+  ) : PUCA_DataBook;overload;
+  function LoadCollation(const AFileName : string) : PUCA_DataBook;overload;
+  function LoadCollation(
+    const ADirectory,
+          ALanguage : string
+  ) : PUCA_DataBook;overload;
+  procedure FreeCollation(AItem : PUCA_DataBook);
+
+type
+  TEndianKind = (Little, Big);
+const
+  ENDIAN_SUFFIX : array[TEndianKind] of string[2] = ('le','be');
+{$IFDEF ENDIAN_LITTLE}
+  ENDIAN_NATIVE     = TEndianKind.Little;
+  ENDIAN_NON_NATIVE = TEndianKind.Big;
+{$ENDIF ENDIAN_LITTLE}
+{$IFDEF ENDIAN_BIG}
+  ENDIAN_NATIVE = TEndianKind.Big;
+  ENDIAN_NON_NATIVE = TEndianKind.Little;
+{$ENDIF ENDIAN_BIG}
 
 resourcestring
   SCollationNotFound = 'Collation not found : "%s".';
@@ -535,6 +564,21 @@ begin
   Result := a <= Cardinal(b);
 end;
 
+type
+  TBitOrder = 0..7;
+function IsBitON(const AData : Byte; const ABit : TBitOrder) : Boolean ;inline;
+begin
+  Result := ( ( AData and ( 1 shl ABit ) ) <> 0 );
+end;
+
+procedure SetBit(var AData : Byte; const ABit : TBitOrder; const AValue : Boolean);inline;
+begin
+  if AValue then
+    AData := AData or (1 shl (ABit mod 8))
+  else
+    AData := AData and ( not ( 1 shl ( ABit mod 8 ) ) );
+end;
+
 var
   CollationTable : array of PUCA_DataBook;
 function IndexOfCollation(const AName : string) : Integer;
@@ -565,6 +609,23 @@ begin
   end;
 end;
 
+function RegisterCollation(const ADirectory, ALanguage : string) : Boolean;
+var
+  cl : PUCA_DataBook;
+begin
+  cl := LoadCollation(ADirectory,ALanguage);
+  if (cl = nil) then
+    exit(False);
+  try
+    Result := RegisterCollation(cl);
+  except
+    FreeCollation(cl);
+    raise;
+  end;
+  if not Result then
+    FreeCollation(cl);
+end;
+
 function UnregisterCollation(const AName : ansistring): Boolean;
 var
   i, c : Integer;
@@ -580,6 +641,21 @@ begin
       SetLength(CollationTable,(c-1));
     end;
   end;
+end;
+
+procedure UnregisterCollations(const AFreeDynamicCollations : Boolean);
+var
+  i : Integer;
+  cl : PUCA_DataBook;
+begin
+  for i := Low(CollationTable) to High(CollationTable) do begin
+    if CollationTable[i].Dynamic then begin
+      cl := CollationTable[i];
+      CollationTable[i] := nil;
+      FreeCollation(cl);
+    end;
+  end;
+  SetLength(CollationTable,0);
 end;
 
 function FindCollation(const AName : ansistring): PUCA_DataBook;overload;
@@ -630,6 +706,190 @@ begin
     p^.VariableLowLimit := base^.VariableLowLimit;
   if not(TCollationField.VariableHighLimit in AChangedFields) then
     p^.VariableLowLimit := base^.VariableHighLimit;
+end;
+
+type
+  TSerializedCollationHeader = packed record
+    Base               : TCollationName;
+    Version            : TCollationName;
+    CollationName      : TCollationName;
+    VariableWeight     : Byte;
+    Backwards          : Byte;
+    BMP_Table1Length   : DWord;
+    BMP_Table2Length   : DWord;
+    OBMP_Table1Length  : DWord;
+    OBMP_Table2Length  : DWord;
+    PropCount          : DWord;
+    VariableLowLimit   : Word;
+    VariableHighLimit  : Word;
+    ChangedFields      : Byte;
+  end;
+  PSerializedCollationHeader = ^TSerializedCollationHeader;
+
+procedure FreeCollation(AItem : PUCA_DataBook);
+var
+  h : PSerializedCollationHeader;
+begin
+  if (AItem = nil) or not(AItem^.Dynamic) then
+    exit;
+  h := PSerializedCollationHeader(PtrUInt(AItem) + SizeOf(TUCA_DataBook));
+  if (AItem^.BMP_Table1 <> nil) then
+    FreeMem(AItem^.BMP_Table1,h^.BMP_Table1Length);
+  if (AItem^.BMP_Table2 <> nil) then
+    FreeMem(AItem^.BMP_Table2,h^.BMP_Table2Length);
+  if (AItem^.OBMP_Table1 <> nil) then
+    FreeMem(AItem^.OBMP_Table1,h^.OBMP_Table1Length);
+  if (AItem^.OBMP_Table2 <> nil) then
+    FreeMem(AItem^.OBMP_Table2,h^.OBMP_Table2Length);
+  if (AItem^.Props <> nil) then
+    FreeMem(AItem^.Props,h^.PropCount);
+  FreeMem(AItem,(SizeOf(TUCA_DataBook)+SizeOf(TSerializedCollationHeader)));
+end;
+
+function LoadCollation(
+  const AData       : Pointer;
+  const ADataLength : Integer
+) : PUCA_DataBook;
+var
+  dataPointer : PByte;
+  readedLength : LongInt;
+
+  function ReadBuffer(ADest : Pointer; ALength : LongInt) : Boolean;
+  begin
+    Result := (readedLength + ALength) <= ADataLength;
+    if not result then
+      exit;
+    Move(dataPointer^,ADest^,ALength);
+    Inc(dataPointer,ALength);
+    readedLength := readedLength + ALength;
+  end;
+
+var
+  r : PUCA_DataBook;
+  h : PSerializedCollationHeader;
+  cfs : TCollationFields;
+  i : Integer;
+  baseName : TCollationName;
+begin
+  readedLength := 0;
+  dataPointer := AData;
+  r := AllocMem((SizeOf(TUCA_DataBook)+SizeOf(TSerializedCollationHeader)));
+  try
+    h := PSerializedCollationHeader(PtrUInt(r) + SizeOf(TUCA_DataBook));
+    if not ReadBuffer(h,SizeOf(TSerializedCollationHeader)) then
+      exit;
+    r^.Version := h^.Version;
+    r^.CollationName := h^.CollationName;
+    r^.VariableWeight := TUCA_VariableKind(h^.VariableWeight);
+    r^.Backwards[0] := IsBitON(h^.Backwards,0);
+    r^.Backwards[1] := IsBitON(h^.Backwards,1);
+    r^.Backwards[2] := IsBitON(h^.Backwards,2);
+    r^.Backwards[3] := IsBitON(h^.Backwards,3);
+    if (h^.BMP_Table1Length > 0) then begin
+      r^.BMP_Table1 := GetMem(h^.BMP_Table1Length);
+        if not ReadBuffer(r^.BMP_Table1,h^.BMP_Table1Length) then
+          exit;
+    end;
+    if (h^.BMP_Table2Length > 0) then begin
+      r^.BMP_Table2 := GetMem(h^.BMP_Table2Length);
+        if not ReadBuffer(r^.BMP_Table2,h^.BMP_Table2Length) then
+          exit;
+    end;
+    if (h^.OBMP_Table1Length > 0) then begin
+      r^.OBMP_Table1 := GetMem(h^.OBMP_Table1Length);
+        if not ReadBuffer(r^.OBMP_Table1,h^.OBMP_Table1Length) then
+          exit;
+    end;
+    if (h^.OBMP_Table2Length > 0) then begin
+      r^.OBMP_Table2 := GetMem(h^.OBMP_Table2Length);
+        if not ReadBuffer(r^.OBMP_Table2,h^.OBMP_Table2Length) then
+          exit;
+    end;
+    r^.PropCount := h^.PropCount;
+    if (h^.PropCount > 0) then begin
+      r^.Props := GetMem(h^.PropCount);
+        if not ReadBuffer(r^.Props,h^.PropCount) then
+          exit;
+    end;
+    r^.VariableLowLimit := h^.VariableLowLimit;
+    r^.VariableHighLimit := h^.VariableHighLimit;
+
+    cfs := [];
+    for i := Ord(Low(TCollationField)) to Ord(High(TCollationField)) do begin
+      if IsBitON(h^.ChangedFields,i) then
+        cfs := cfs + [TCollationField(i)];
+    end;
+    if (h^.Base <> '') then
+      baseName := h^.Base
+    else if (h^.CollationName <> ROOT_COLLATION_NAME) then
+      baseName := ROOT_COLLATION_NAME
+    else
+      baseName := '';
+    if (baseName <> '') then
+      PrepareCollation(r,baseName,cfs);
+    r^.Dynamic := True;
+    Result := r;
+  except
+    FreeCollation(r);
+    raise;
+  end;
+end;
+
+{$PUSH}
+function LoadCollation(const AFileName : string) : PUCA_DataBook;
+const
+  BLOCK_SIZE = 16*1024;
+var
+  f : File of Byte;
+  locSize, locReaded, c : LongInt;
+  locBuffer : PByte;
+  locBlockSize : LongInt;
+begin
+  Result := nil;
+{$I-}
+  if (AFileName = '') then
+    exit;
+  Assign(f,AFileName);
+  Reset(f);
+  try
+    if (IOResult <> 0) then
+      exit;
+    locSize := FileSize(f);
+    if (locSize < SizeOf(TSerializedCollationHeader)) then
+      exit;
+    locBuffer := GetMem(locSize);
+    try
+      locBlockSize := BLOCK_SIZE;
+      locReaded := 0;
+      while (locReaded < locSize) do begin
+        if (locBlockSize > (locSize-locReaded)) then
+          locBlockSize := locSize-locReaded;
+        BlockRead(f,locBuffer[locReaded],locBlockSize,c);
+        if (IOResult <> 0) or (c <= 0) then
+          exit;
+        locReaded := locReaded + c;
+      end;
+      Result := LoadCollation(locBuffer,locSize);
+    finally
+      FreeMem(locBuffer,locSize);
+    end;
+  finally
+    Close(f);
+  end;
+end;
+{$POP}
+
+function LoadCollation(const ADirectory, ALanguage : string) : PUCA_DataBook;
+var
+  fileName : string;
+begin
+  fileName := ADirectory;
+  if (fileName <> '') then begin
+    if (fileName[Length(fileName)] <> DirectorySeparator) then
+      fileName := fileName + DirectorySeparator;
+  end;
+  fileName := fileName + 'collation_' + ALanguage + '_' + ENDIAN_SUFFIX[ENDIAN_NATIVE] + '.bco';
+  Result := LoadCollation(fileName);
 end;
 
 {$INCLUDE unicodedata.inc}
@@ -1024,21 +1284,6 @@ begin
     SetLength(Result,i);
     CanonicalOrder(@Result[1],Length(Result));
   end;
-end;
-
-type
-  TBitOrder = 0..7;
-function IsBitON(const AData : Byte; const ABit : TBitOrder) : Boolean ;inline;
-begin
-  Result := ( ( AData and ( 1 shl ABit ) ) <> 0 );
-end;
-
-procedure SetBit(var AData : Byte; const ABit : TBitOrder; const AValue : Boolean);inline;
-begin
-  if AValue then
-    AData := AData or (1 shl (ABit mod 8))
-  else
-    AData := AData and ( not ( 1 shl ( ABit mod 8 ) ) );
 end;
 
 { TUCA_PropItemContextTreeNodeRec }

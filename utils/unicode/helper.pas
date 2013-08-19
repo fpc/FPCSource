@@ -487,13 +487,31 @@ const
     var   AFirstTable            : TucaBmpFirstTable;
     var   ASecondTable           : TucaBmpSecondTable
   );
+  procedure GenerateBinaryUCA_BmpTables(
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaBmpFirstTable;
+    var   ASecondTable           : TucaBmpSecondTable
+  );
   procedure GenerateUCA_PropTable(
           ADest     : TStream;
     const APropBook : PUCA_PropBook;
     const AEndian   : TEndianKind
   );
+  procedure GenerateBinaryUCA_PropTable(
+  // WARNING : files must be generated for each endianess (Little / Big)
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    const APropBook              : PUCA_PropBook
+  );
   procedure GenerateUCA_OBmpTables(
           AStream,
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaOBmpFirstTable;
+    var   ASecondTable           : TucaOBmpSecondTable
+  );
+  procedure GenerateBinaryUCA_OBmpTables(
           ANativeEndianStream,
           ANonNativeEndianStream : TStream;
     var   AFirstTable            : TucaOBmpFirstTable;
@@ -611,7 +629,6 @@ const
   ): PPropRec; inline;overload;
   procedure FromUCS4(const AValue : TUnicodeCodePoint; var AHighS, ALowS : Word);inline;
   function ToUCS4(const AHighS, ALowS : Word) : TUnicodeCodePoint; inline;
-//--------------------
 
 type
   TBitOrder = 0..7;
@@ -639,6 +656,29 @@ type
           AProp2   : PUCA_PropItemRec;
     const ADataLen : Integer
   );
+
+type
+  TCollationName = string[128];
+  TSerializedCollationHeader = packed record
+    Base               : TCollationName;
+    Version            : TCollationName;
+    CollationName      : TCollationName;
+    VariableWeight     : Byte;
+    Backwards          : Byte;
+    BMP_Table1Length   : DWord;
+    BMP_Table2Length   : DWord;
+    OBMP_Table1Length  : DWord;
+    OBMP_Table2Length  : DWord;
+    PropCount          : DWord;
+    VariableLowLimit   : Word;
+    VariableHighLimit  : Word;
+    ChangedFields      : Byte;
+  end;
+  PSerializedCollationHeader = ^TSerializedCollationHeader;
+
+  procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
+  procedure ReverseBytes(var AData; const ALength : Integer);
+  procedure ReverseArray(var AValue; const AArrayLength, AItemSize : PtrInt);
 
 resourcestring
   SInsufficientMemoryBuffer = 'Insufficient Memory Buffer';
@@ -3294,6 +3334,28 @@ begin
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
+procedure GenerateBinaryUCA_BmpTables(
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaBmpFirstTable;
+  var   ASecondTable           : TucaBmpSecondTable
+);
+var
+  i, j : Integer;
+  value : UInt24;
+begin
+  ANativeEndianStream.Write(AFirstTable[0],Length(AFirstTable));
+  ANonNativeEndianStream.Write(AFirstTable[0],Length(AFirstTable));
+  for i := Low(ASecondTable) to High(ASecondTable) do begin
+    for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      ANativeEndianStream.Write(value,SizeOf(value));
+      ReverseBytes(value,SizeOf(value));
+      ANonNativeEndianStream.Write(value,SizeOf(value));
+    end;
+  end;
+end;
+
 procedure GenerateUCA_PropTable(
 // WARNING : files must be generated for each endianess (Little / Big)
         ADest     : TStream;
@@ -3334,6 +3396,17 @@ begin
   locLine := '    ' + locLine;
   AddLine(locLine);
   AddLine('  );' + sLineBreak);
+end;
+
+procedure GenerateBinaryUCA_PropTable(
+// WARNING : files must be generated for each endianess (Little / Big)
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  const APropBook              : PUCA_PropBook
+);
+begin
+  ANativeEndianStream.Write(APropBook^.Items^,APropBook^.ItemSize);
+  ANonNativeEndianStream.Write(APropBook^.ItemsOtherEndian^,APropBook^.ItemSize);
 end;
 
 procedure GenerateUCA_OBmpTables(
@@ -3410,7 +3483,34 @@ begin
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
-//-------------------------------------------
+procedure GenerateBinaryUCA_OBmpTables(
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaOBmpFirstTable;
+  var   ASecondTable           : TucaOBmpSecondTable
+);
+var
+  i, j : Integer;
+  locLine : string;
+  wordValue : Word;
+  value : UInt24;
+begin
+  for i := Low(AFirstTable) to High(AFirstTable) do begin
+    wordValue := AFirstTable[i];
+    ANativeEndianStream.Write(wordValue,SizeOf(wordValue));
+    ReverseBytes(wordValue,SizeOf(wordValue));
+    ANonNativeEndianStream.Write(wordValue,SizeOf(wordValue));
+  end;
+
+  for i := Low(ASecondTable) to High(ASecondTable) do begin
+    for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      ANativeEndianStream.Write(value,SizeOf(value));
+      ReverseBytes(value,SizeOf(value));
+      ANonNativeEndianStream.Write(value,SizeOf(value));
+    end;
+  end;
+end;
 
 type
   POBmpSecondTableItem = ^TOBmpSecondTableItem;
@@ -4101,6 +4201,17 @@ begin
     tempTree.Free();
   end;
   Result := r;
+end;
+
+procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
+begin
+  ReverseBytes(AItem.BMP_Table1Length,SizeOf(AItem.BMP_Table1Length));
+  ReverseBytes(AItem.BMP_Table2Length,SizeOf(AItem.BMP_Table2Length));
+  ReverseBytes(AItem.OBMP_Table1Length,SizeOf(AItem.OBMP_Table1Length));
+  ReverseBytes(AItem.OBMP_Table2Length,SizeOf(AItem.OBMP_Table2Length));
+  ReverseBytes(AItem.PropCount,SizeOf(AItem.PropCount));
+  ReverseBytes(AItem.VariableLowLimit,SizeOf(AItem.VariableLowLimit));
+  ReverseBytes(AItem.VariableHighLimit,SizeOf(AItem.VariableHighLimit));
 end;
 
 procedure ReverseBytes(var AData; const ALength : Integer);
