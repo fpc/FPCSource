@@ -72,8 +72,8 @@ type
   TFields = Class;
   TDataSet = class;
   TDataBase = Class;
-  TDatasource = Class;
-  TDatalink = Class;
+  TDataSource = Class;
+  TDataLink = Class;
   TDBTransaction = Class;
 
 { Exception classes }
@@ -1406,7 +1406,7 @@ type
     Procedure DoInternalOpen;
     Function  GetBuffer (Index : longint) : TRecordBuffer;
     Function  GetField (Index : Longint) : TField;
-    Procedure RegisterDataSource(ADatasource : TDataSource);
+    Procedure RegisterDataSource(ADataSource : TDataSource);
     Procedure RemoveField (Field : TField);
     procedure SetConstraints(Value: TCheckConstraints);
     Procedure SetField (Index : Longint;Value : TField);
@@ -1414,7 +1414,7 @@ type
     Procedure ShiftBuffersBackward;
     Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
     Function GetActive : boolean;
-    Procedure UnRegisterDataSource(ADatasource : TDatasource);
+    Procedure UnRegisterDataSource(ADataSource : TDataSource);
     Procedure UpdateFieldDefs;
     procedure SetBlockReadSize(AValue: Integer); virtual;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
