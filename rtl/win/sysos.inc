@@ -218,7 +218,7 @@ threadvar
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
-   {$ifdef FPC_UNICODE_RTL}
+   {$ifdef FPC_UNICODE_RTLx}
    { command line/environment functions }
 
    function GetCommandLine : pwidechar;
