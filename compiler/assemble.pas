@@ -295,7 +295,7 @@ Implementation
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
-          dir : TSearchRec;
+          dir : TRawByteSearchRec;
         begin
           if findfirst(s+source_info.dirsep+'*'+AExt,faAnyFile,dir) = 0 then
             begin

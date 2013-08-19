@@ -877,7 +877,7 @@ implementation
       {$endif}
       {$ifdef mswindows}
         GetEnvPchar:=nil;
-        p:=GetEnvironmentStrings;
+        p:=GetEnvironmentStringsA;
         hp:=p;
         while hp^<>#0 do
          begin
