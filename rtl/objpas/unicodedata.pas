@@ -284,6 +284,7 @@ type
 
 const
   ROOT_COLLATION_NAME = 'DUCET';
+  ERROR_INVALID_CODEPOINT_SEQUENCE = 1;
 
   procedure FromUCS4(const AValue : UCS4Char; var AHighS, ALowS : UnicodeChar);inline;
   function ToUCS4(const AHighS, ALowS : UnicodeChar) : UCS4Char;inline;
@@ -293,6 +294,16 @@ const
   ) : Boolean;inline;
   function UnicodeIsHighSurrogate(const AValue : UnicodeChar) : Boolean;inline;
   function UnicodeIsLowSurrogate(const AValue : UnicodeChar) : Boolean;inline;
+  function UnicodeToUpper(
+    const AString                : UnicodeString;
+    const AIgnoreInvalidSequence : Boolean;
+    out   AResultString          : UnicodeString
+  ) : Integer;
+  function UnicodeToLower(
+    const AString                : UnicodeString;
+    const AIgnoreInvalidSequence : Boolean;
+    out   AResultString          : UnicodeString
+  ) : Integer;
 
   function GetProps(const ACodePoint : Word) : PUC_Prop;overload;inline;
   function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop;overload;inline;
@@ -997,7 +1008,137 @@ begin
   Result := GetProps(h,l);
 end;
 
+function UnicodeToUpper(
+  const AString                : UnicodeString;
+  const AIgnoreInvalidSequence : Boolean;
+  out   AResultString          : UnicodeString
+) : Integer;
+var
+  i, c : SizeInt;
+  pp, pr : PUnicodeChar;
+  pu : PUC_Prop;
+  locIsSurrogate : Boolean;
+  r : UnicodeString;
+begin
+  c := Length(AString);
+  SetLength(r,2*c);
+  if (c > 0) then begin
+    pp := @AString[1];
+    pr := @r[1];
+    i := 1;
+    while (i <= c) do begin
+      pu := GetProps(Word(pp^));
+      locIsSurrogate := (pu^.Category = UGC_Surrogate);
+      if locIsSurrogate then begin
+        if (i = c) or not(UnicodeIsSurrogatePair(pp[0],pp[1])) then begin
+          if AIgnoreInvalidSequence then begin
+            pr^ := pp^;
+            Inc(pp);
+            Inc(pr);
+            Inc(i);
+            Continue;
+          end;
+          exit(ERROR_INVALID_CODEPOINT_SEQUENCE);
+        end;
+        pu := GetProps(pp^,AString[i+1]);
+      end;
+      if (pu^.SimpleUpperCase = 0) then begin
+        pr^ := pp^;
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(pr);
+          Inc(i);
+          pr^ := pp^;
+        end;
+      end else begin
+        if (pu^.SimpleUpperCase <= $FFFF) then begin
+          pr^ := UnicodeChar(Word(pu^.SimpleUpperCase));
+        end else begin
+          FromUCS4(UCS4Char(Cardinal(pu^.SimpleUpperCase)),pr^,PUnicodeChar(PtrUInt(pr)+SizeOf(UnicodeChar))^);
+          Inc(pr);
+        end;
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(i);
+        end;
+      end;
+      Inc(pp);
+      Inc(pr);
+      Inc(i);
+    end;
+    Dec(pp);
+    i := ((PtrUInt(pr) - PtrUInt(@r[1])) div SizeOf(UnicodeChar));
+    SetLength(r,i);
+    AResultString := r;
+    Result := 0;
+  end;
+end;
 
+function UnicodeToLower(
+  const AString                : UnicodeString;
+  const AIgnoreInvalidSequence : Boolean;
+  out   AResultString          : UnicodeString
+) : Integer;
+var
+  i, c : SizeInt;
+  pp, pr : PUnicodeChar;
+  pu : PUC_Prop;
+  locIsSurrogate : Boolean;
+  r : UnicodeString;
+begin
+  c := Length(AString);
+  SetLength(r,2*c);
+  if (c > 0) then begin
+    pp := @AString[1];
+    pr := @r[1];
+    i := 1;
+    while (i <= c) do begin
+      pu := GetProps(Word(pp^));
+      locIsSurrogate := (pu^.Category = UGC_Surrogate);
+      if locIsSurrogate then begin
+        if (i = c) or not(UnicodeIsSurrogatePair(pp[0],pp[1])) then begin
+          if AIgnoreInvalidSequence then begin
+            pr^ := pp^;
+            Inc(pp);
+            Inc(pr);
+            Inc(i);
+            Continue;
+          end;
+          exit(ERROR_INVALID_CODEPOINT_SEQUENCE);
+        end;
+        pu := GetProps(pp^,AString[i+1]);
+      end;
+      if (pu^.SimpleLowerCase = 0) then begin
+        pr^ := pp^;
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(pr);
+          Inc(i);
+          pr^ := pp^;
+        end;
+      end else begin
+        if (pu^.SimpleLowerCase <= $FFFF) then begin
+          pr^ := UnicodeChar(Word(pu^.SimpleLowerCase));
+        end else begin
+          FromUCS4(UCS4Char(Cardinal(pu^.SimpleLowerCase)),pr^,PUnicodeChar(PtrUInt(pr)+SizeOf(UnicodeChar))^);
+          Inc(pr);
+        end;
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(i);
+        end;
+      end;
+      Inc(pp);
+      Inc(pr);
+      Inc(i);
+    end;
+    Dec(pp);
+    i := ((PtrUInt(pr) - PtrUInt(@r[1])) div SizeOf(UnicodeChar));
+    SetLength(r,i);
+    AResultString := r;
+    Result := 0;
+  end;
+end;
 
 //----------------------------------------------------------------------
 function DecomposeHangul(const AChar : Cardinal; ABuffer : PCardinal) : Integer;

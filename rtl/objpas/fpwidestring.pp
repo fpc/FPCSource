@@ -21,7 +21,7 @@ uses
 {$ifdef Unix}
   unixcp,
 {$endif}
-  sysutils, character, charset;
+  charset;
   
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$ifdef MSWINDOWS}
@@ -29,7 +29,7 @@ procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$endif MSWINDOWS}
 
 const
-  CharacterOptions = [TCharacterOption.coIgnoreInvalidSequence];
+  IgnoreInvalidSequenceFlag = True;
 var
   OldManager : TUnicodeStringManager;
 
@@ -379,7 +379,8 @@ end;
 
 function UpperUnicodeString(const S: UnicodeString): UnicodeString;
 begin
-  Result:=TCharacter.ToUpper(s,CharacterOptions);
+  if (UnicodeToUpper(S,IgnoreInvalidSequenceFlag,Result) <> 0) then
+    system.error(reRangeError);
 end;
 
 function UpperWideString(const S: WideString): WideString;
@@ -392,7 +393,8 @@ end;
 
 function LowerUnicodeString(const S: UnicodeString): UnicodeString;
 begin
-  Result:=TCharacter.ToLower(s,CharacterOptions);
+  if (UnicodeToLower(S,IgnoreInvalidSequenceFlag,Result) <> 0) then
+    system.error(reRangeError);
 end;
 
 function LowerWideString(const S: WideString): WideString;
@@ -527,7 +529,7 @@ begin
           ulen:=getunicode(p,mblen,locMap,@us[1]);
           if (Length(us)<>ulen) then
             SetLength(us,ulen);
-          usl:=TCharacter.ToUpper(us,CharacterOptions);
+          usl:=UpperUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
               aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
@@ -598,7 +600,7 @@ begin
           ulen:=getunicode(p,mblen,locMap,@us[1]);
           if (Length(us)<>ulen) then
             SetLength(us,ulen);
-          usl:=TCharacter.ToLower(us,CharacterOptions);
+          usl:=LowerUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
               aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
