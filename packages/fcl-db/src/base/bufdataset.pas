@@ -1129,12 +1129,14 @@ begin
   // If there are less fields then FieldDefs we know for sure that the dataset
   // is not (correctly) created.
 
-  // commented for now. If there are constant expressions in the select
-  // statement they are ftUnknown, and not created.
+  // If there are constant expressions in the select statement (for PostgreSQL)
+  // they are of type ftUnknown (in FieldDefs), and are not created (in Fields).
+  // So Fields.Count < FieldDefs.Count in this case
   // See mantis #22030
 
   //  if Fields.Count<FieldDefs.Count then
-  //    DatabaseError(SErrNoDataset);
+  if Fields.Count = 0 then
+    DatabaseError(SErrNoDataset);
 
   // If there is a field with FieldNo=0 then the fields are not found to the
   // FieldDefs which is a sign that there is no dataset created. (Calculated and
