@@ -785,7 +785,7 @@ begin
       Rslt.FindData.LastRes := res;
       if dirinfo^.Name.Length > 0 then begin
         SetLength(FName, dirinfo^.Name.Length div 2);
-        move(dirinfo^.Name.Buffer[0],FName[1],dirinfo^.Name.Length div 2);
+        move(dirinfo^.Name.Buffer[0],FName[1],dirinfo^.Name.Length);
 {$ifdef debug_findnext}
         Write(FName, ' (');
         for i := 0 to dirinfo^.TypeName.Length div 2 - 1 do
@@ -799,7 +799,7 @@ begin
         FName := '';
     end else begin
       SetLength(FName, filedirinfo^.FileNameLength div 2);
-      move(filedirinfo^.FileName[0],FName[1],filedirinfo^.FileNameLength div 2);
+      move(filedirinfo^.FileName[0],FName[1],filedirinfo^.FileNameLength);
     end;
     if FName = '' then
       Finished := True
