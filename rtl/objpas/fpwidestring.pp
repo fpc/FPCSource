@@ -248,7 +248,7 @@ begin
   if (cp=DefaultSystemCodePage) then
     begin
       { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
         begin
           FiniThread;
           InitThread;
@@ -321,7 +321,7 @@ begin
   if (cp=DefaultSystemCodePage) then
     begin
       { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
         begin
           FiniThread;
           InitThread;
@@ -356,7 +356,7 @@ begin
   if (cp=DefaultSystemCodePage) then
     begin
       { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
         begin
           FiniThread;
           InitThread;
@@ -500,7 +500,7 @@ begin
       exit;    
     end;
     
-  if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+  if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
     begin
       FiniThread;
       InitThread;
@@ -571,7 +571,7 @@ begin
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;    
     end;
-  if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+  if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
     begin
       FiniThread;
       InitThread;
