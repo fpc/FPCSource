@@ -2526,9 +2526,9 @@ begin
     else
       undef_system_macro('FPC_HAS_WINLIKERESOURCES');
 
-  { Extended RTTI }
+  { RTTI with unitinfo }
 
-  def_system_macro('FPC_HAS_EXTENDED_RTTI');
+  def_system_macro('FPC_HAS_UNIT_RTTI');
 
   { Features }
   case target_info.system of

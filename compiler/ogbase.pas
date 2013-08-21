@@ -941,7 +941,7 @@ implementation
           {debug_line} [oso_Data,oso_noload,oso_debug],
           {debug_abbrev} [oso_Data,oso_noload,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
-          {extrtti} [oso_Data,oso_load,oso_write,oso_keep],
+          {rtti} [oso_Data,oso_load,oso_write,oso_keep],
           {toc} [oso_Data,oso_load,oso_readonly],
           {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],

@@ -455,18 +455,18 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
-{$ifdef FPC_HAS_EXTENDED_RTTI}
+{$ifdef FPC_HAS_UNIT_RTTI}
 var
   UnitList: TUnitInfoList; external name 'RTTIUNITLIST';
-{$endif FPC_HAS_EXTENDED_RTTI}
+{$endif FPC_HAS_UNIT_RTTI}
 
 function GetUnitList: PUnitInfoList;
 begin
-{$ifdef FPC_HAS_EXTENDED_RTTI}
+{$ifdef FPC_HAS_UNIT_RTTI}
   result := @UnitList;
-{$else FPC_HAS_EXTENDED_RTTI}
+{$else FPC_HAS_UNIT_RTTI}
   result := nil;
-{$endif FPC_HAS_EXTENDED_RTTI}
+{$endif FPC_HAS_UNIT_RTTI}
 end;
 
 function GetAttributeData(TypeInfo: PTypeInfo): PAttributeData;

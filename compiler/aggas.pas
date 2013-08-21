@@ -1824,7 +1824,7 @@ implementation
          sec_debug_abbrev,
          { ELF resources (+ references to stabs debug information sections) }
          sec_code (* sec_fpc *),
-         sec_data (* sec_extrtti *),
+         sec_data (* sec_rtti *),
          { Table of contents section }
          sec_code (* sec_toc *),
          sec_code (* sec_init *),
