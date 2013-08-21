@@ -1070,8 +1070,8 @@ begin
     i := ((PtrUInt(pr) - PtrUInt(@r[1])) div SizeOf(UnicodeChar));
     SetLength(r,i);
     AResultString := r;
-    Result := 0;
   end;
+  Result := 0;
 end;
 
 function UnicodeToLower(
@@ -1136,8 +1136,8 @@ begin
     i := ((PtrUInt(pr) - PtrUInt(@r[1])) div SizeOf(UnicodeChar));
     SetLength(r,i);
     AResultString := r;
-    Result := 0;
   end;
+  Result := 0;
 end;
 
 //----------------------------------------------------------------------
