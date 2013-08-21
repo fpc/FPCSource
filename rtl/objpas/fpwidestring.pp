@@ -88,6 +88,21 @@ begin
   current_Map:=nil;
 end;
 
+function FindMap(const cp: TSystemCodePage): punicodemap;inline;
+begin
+  if (cp=DefaultSystemCodePage) then
+    begin
+      { update current_Map in case the DefaultSystemCodePage has been changed }
+      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
+        begin
+          FiniThread;
+          InitThread;
+        end;
+      Result:=current_Map;
+    end
+  else
+    Result:=getmap(cp);
+end;
 
 { return value:
   -1 if incomplete or invalid code point
@@ -245,18 +260,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
@@ -318,18 +322,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
@@ -353,18 +346,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultAnsi2WideMove(source,DefaultSystemCodePage,dest,len);
@@ -499,13 +481,8 @@ begin
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;    
     end;
-    
-  if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
-    begin
-      FiniThread;
-      InitThread;
-    end;
-  locMap:=current_Map;
+
+  locMap:=FindMap(DefaultSystemCodePage);
   if (locMap=nil) then
     exit(System.UpCase(s));
 
@@ -571,12 +548,7 @@ begin
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;    
     end;
-  if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
-    begin
-      FiniThread;
-      InitThread;
-    end;
-  locMap:=current_Map;
+  locMap:=FindMap(DefaultSystemCodePage);
   if (locMap=nil) then
     exit(System.LowerCase(s));
 
@@ -714,7 +686,7 @@ end;
 
 function StrCompAnsiString(S1, S2: PChar): PtrInt;
 var
-  l1,l2,l : PtrInt;
+  l1,l2 : PtrInt;
 begin
   l1:=strlen(S1);
   l2:=strlen(S2);
