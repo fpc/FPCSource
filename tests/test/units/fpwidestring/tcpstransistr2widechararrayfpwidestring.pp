@@ -1,7 +1,5 @@
 ﻿uses
-{$ifdef unix}
-  cwstring,
-{$endif unix}
+  unicodeducet, fpwidestring, cp850,
   sysutils;
   
 type  
