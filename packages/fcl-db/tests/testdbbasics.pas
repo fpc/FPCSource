@@ -324,11 +324,11 @@ begin
     begin
     aDatasource.DataSet := ds;
     DataEvents := '';
-    open;
-    Fields.add(tfield.Create(DBConnector.GetNDataset(1)));
+    Open;
+    Fields.Add(TField.Create(ds));
     CheckEquals('deUpdateState:0;deFieldListChange:0;',DataEvents);
     DataEvents := '';
-    fields.Clear;
+    Fields.Clear;
     CheckEquals('deFieldListChange:0;',DataEvents)
     end;
   aDatasource.Free;
@@ -1319,7 +1319,6 @@ begin
     first;
     CheckTrue(EOF);
 
-
     Close;
     end;
 end;
@@ -1327,14 +1326,13 @@ end;
 {$ifdef fpc}
 procedure TTestBufDatasetDBBasics.TestIsEmpty;
 begin
-  with tCustombufdataset(DBConnector.GetNDataset(True,1)) do
+  with DBConnector.GetNDataset(True,1) as TCustomBufDataset do
     begin
     open;
     delete;
     Resync([]);
-    applyupdates;
+    ApplyUpdates;
     CheckTrue(IsEmpty);
-
     end;
 end;
 
@@ -2333,7 +2331,6 @@ var i          : byte;
     DbfTableLevel: integer;
 
 begin
-  DbfTableLevel:=4;
   if (uppercase(dbconnectorname)='DBF') then
   begin
     DbfTableLevel:=strtointdef(dbconnectorparams,4);
@@ -2359,7 +2356,8 @@ var i          : byte;
 
 begin
   if (uppercase(dbconnectorname)='DBF') then
-    Ignore('TDBF Smallint support only from -999 to 9999');
+    Ignore('TDBF: Smallint support only from -999 to 9999');
+
   TestfieldDefinition(ftSmallint,2,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
@@ -2498,7 +2496,8 @@ var i          : byte;
 
 begin
   if (uppercase(dbconnectorname)='DBF') then
-    Ignore('This test does not apply to TDDBF as they store currency in BCD fields.');
+    Ignore('This test does not apply to TDBF as they store currency in BCD fields.');
+
   TestfieldDefinition(ftCurrency,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
