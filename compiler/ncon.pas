@@ -912,14 +912,16 @@ implementation
     procedure tstringconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        astringdefderef.build(astringdef);
+        if cst_type=cst_ansistring then
+          astringdefderef.build(astringdef);
       end;
 
 
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
-        astringdef:=tdef(astringdefderef.resolve);
+        if cst_type=cst_ansistring then
+          astringdef:=tdef(astringdefderef.resolve);
       end;
 
 
