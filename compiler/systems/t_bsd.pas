@@ -297,7 +297,9 @@ begin
   startupfile:=GetDarwinCrt1ObjName(isdll);
   if (startupfile<>'') and
      not librarysearchpath.FindFile(startupfile,false,result) then
-    result:='/usr/lib/'+startupfile;
+    result:='/usr/lib/'+startupfile
+  else
+    result:=startupfile;
   result:=maybequoted(result);
 end;
 
