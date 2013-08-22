@@ -187,6 +187,8 @@ uses MacTypes,CFBase,CFDictionary,IOSurfaceAPI,CVPixelBuffer,CVReturns;
 
 {$ifc (TARGET_OS_IPHONE and TARGET_OS_EMBEDDED) or TARGET_OS_MAC}
 {$setc COREVIDEO_SUPPORTS_IOSURFACE := TRUE}
+{$elsec}
+{$setc COREVIDEO_SUPPORTS_IOSURFACE := FALSE}
 {$endc}
 
 {$ifc TARGET_OS_MAC}
