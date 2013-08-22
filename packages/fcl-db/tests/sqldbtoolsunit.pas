@@ -12,7 +12,7 @@ uses
   ,pqconnection
   ,odbcconn
   {$IFNDEF WIN64}
-  {See packages\fcl-db\fpmake.pp: Oracle connector is not built if PostgreSQL connectoris not built}
+  {See packages\fcl-db\fpmake.pp: Oracle connector not built yet on Win64}
   ,oracleconnection
   {$ENDIF WIN64}
   ,sqlite3conn

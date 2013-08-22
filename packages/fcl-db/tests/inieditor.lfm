@@ -454,12 +454,14 @@ object FormIniEditor: TFormIniEditor
     Lines.Strings = (
       ''
     )
+    SelectedColor.FrameEdges = sfeAround
     SelectedColor.BackPriority = 50
     SelectedColor.ForePriority = 50
     SelectedColor.FramePriority = 50
     SelectedColor.BoldPriority = 50
     SelectedColor.ItalicPriority = 50
     SelectedColor.UnderlinePriority = 50
+    SelectedColor.StrikeOutPriority = 50
     OnStatusChange = SynMemoStatusChange
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
@@ -471,6 +473,7 @@ object FormIniEditor: TFormIniEditor
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
         MarkupInfo.Foreground = clNone
+        MarkupInfo.FrameEdges = sfeAround
         DigitCount = 2
         ShowOnlyLineNumbersMultiplesOf = 1
         ZeroStart = False
@@ -485,11 +488,15 @@ object FormIniEditor: TFormIniEditor
       object SynGutterSeparator1: TSynGutterSeparator
         Width = 2
         MouseActions = <>
+        MarkupInfo.Background = clWhite
+        MarkupInfo.Foreground = clGray
+        MarkupInfo.FrameEdges = sfeAround
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
+        MarkupInfo.FrameEdges = sfeAround
         MouseActionsExpanded = <>
         MouseActionsCollapsed = <>
       end
@@ -497,7 +504,7 @@ object FormIniEditor: TFormIniEditor
   end
   object FileNameEdit: TFileNameEdit
     Left = 56
-    Height = 23
+    Height = 21
     Top = 24
     Width = 368
     OnAcceptFileName = FileNameEditAcceptFileName
@@ -510,28 +517,28 @@ object FormIniEditor: TFormIniEditor
   end
   object INIFileLabel: TLabel
     Left = 8
-    Height = 15
+    Height = 13
     Top = 24
-    Width = 34
+    Width = 32
     Caption = 'INI file'
     ParentColor = False
   end
   object ProfileSelect: TComboBox
     Left = 56
-    Height = 23
+    Height = 21
     Hint = 'Choose the profile you want to enable'
     Top = 61
     Width = 164
-    ItemHeight = 15
+    ItemHeight = 13
     OnSelect = ProfileSelectSelect
     Sorted = True
     TabOrder = 1
   end
   object ProfileLabel: TLabel
     Left = 8
-    Height = 15
+    Height = 13
     Top = 64
-    Width = 34
+    Width = 30
     Caption = 'Profile'
     ParentColor = False
   end
@@ -555,6 +562,17 @@ object FormIniEditor: TFormIniEditor
     ModalResult = 2
     OnClick = CancelButtonClick
     TabOrder = 3
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 13
+    Top = 0
+    Width = 229
+    Caption = 'Changes need a program restart to load!'
+    Font.Color = clRed
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
   end
   object SynIniHighlighter: TSynIniSyn
     DefaultFilter = 'INI Files (*.ini)|*.ini'

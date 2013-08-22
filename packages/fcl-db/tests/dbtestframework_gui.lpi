@@ -1,10 +1,14 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
     <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <Title Value="DBTestFramework"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
     </General>
@@ -76,12 +80,17 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="dbtestframework_gui.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dbtestframework_gui"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="dbguitestrunner.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DBGuiTestRunner"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
