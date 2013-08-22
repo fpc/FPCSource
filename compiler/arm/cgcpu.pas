@@ -112,7 +112,6 @@ unit cgcpu;
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
-        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -633,26 +632,22 @@ unit cgcpu;
           branchopcode:=A_BLX
         else
           branchopcode:=A_BL;
-        if target_info.system<>system_arm_darwin then
+        if not(weak) then
+          sym:=current_asmdata.RefAsmSymbol(s)
+        else
+          sym:=current_asmdata.WeakRefAsmSymbol(s);
+        reference_reset_symbol(r,sym,0,sizeof(pint));
+
+        if (tf_pic_uses_got in target_info.flags) and
+           (cs_create_pic in current_settings.moduleswitches) then
           begin
-            if not(weak) then
-              sym:=current_asmdata.RefAsmSymbol(s)
-            else
-              sym:=current_asmdata.WeakRefAsmSymbol(s);
-            reference_reset_symbol(r,sym,0,sizeof(pint));
-
-            if cs_create_pic in current_settings.moduleswitches then
-              begin
-                include(current_procinfo.flags,pi_needs_got);
-                r.refaddr:=addr_pic
-              end
-            else
-              r.refaddr:=addr_full;
-
-            list.concat(taicpu.op_ref(branchopcode,r));
+            include(current_procinfo.flags,pi_needs_got);
+            r.refaddr:=addr_pic
           end
         else
-          list.concat(taicpu.op_sym(branchopcode,get_darwin_call_stub(s,weak)));
+          r.refaddr:=addr_full;
+
+        list.concat(taicpu.op_ref(branchopcode,r));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -2126,7 +2121,8 @@ unit cgcpu;
         l : TAsmLabel;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
-           (pi_needs_got in current_procinfo.flags) then
+           (pi_needs_got in current_procinfo.flags) and
+           (tf_pic_uses_got in target_info.flags) then
           begin
             reference_reset(ref,4);
             current_asmdata.getdatalabel(l);
@@ -2203,9 +2199,9 @@ unit cgcpu;
 
     procedure tbasecgarm.fixref(list : TAsmList;var ref : treference);
       var
-        tmpreg : tregister;
+        tmpreg, tmpreg2 : tregister;
         tmpref : treference;
-        l : tasmlabel;
+        l, piclabel : tasmlabel;
         indirection_done : boolean;
       begin
         { absolute symbols can't be handled directly, we've to store the symbol reference
@@ -2223,6 +2219,7 @@ unit cgcpu;
         current_asmdata.getjumplabel(l);
         cg.a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
+        piclabel:=nil;
 
         indirection_done:=false;
         if assigned(ref.symbol) then
@@ -2235,12 +2232,30 @@ unit cgcpu;
                   a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
-            else
-              if (cs_create_pic in current_settings.moduleswitches) and
-                (tf_pic_uses_got in target_info.flags) then
+            else if (cs_create_pic in current_settings.moduleswitches) then
+              if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym_offset(aitconst_got,ref.symbol,ref.offset))
               else
-                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+                begin
+                  { ideally, we would want to generate
+
+                      ldr       r1, LPICConstPool
+                    LPICLocal:
+                      ldr/str   r2,[pc,r1]
+
+                    ...
+                      LPICConstPool:
+                        .long _globsym-(LPICLocal+8)
+
+                    However, we cannot be sure that the ldr/str will follow
+                    right after the call to fixref, so we have to load the
+                    complete address already in a register.
+                  }
+                  current_asmdata.getaddrlabel(piclabel);
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,ref.symbol,ref.offset-8));
+                end
+            else
+              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
           end
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
@@ -2254,14 +2269,22 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
             if (cs_create_pic in current_settings.moduleswitches) and
-              (tf_pic_uses_got in target_info.flags) and
-              assigned(ref.symbol) then
+               (tf_pic_uses_got in target_info.flags) and
+               assigned(ref.symbol) then
               begin
                 reference_reset(tmpref,4);
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
                 list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
               end;
+          end;
+
+        if assigned(piclabel) then
+          begin
+            cg.a_label(list,piclabel);
+            tmpreg2:=getaddressregister(list);
+            a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,tmpreg,NR_PC,tmpreg2);
+            tmpreg:=tmpreg2
           end;
 
         { This routine can be called with PC as base/index in case the offset
@@ -3165,50 +3188,6 @@ unit cgcpu;
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
           a_load_reg_reg(list,OS_32,size,dst,dst);
-      end;
-
-
-    function tbasecgarm.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
-      var
-        stubname: string;
-        l1: tasmsymbol;
-        href: treference;
-      begin
-        stubname := 'L'+s+'$stub';
-        result := current_asmdata.getasmsymbol(stubname);
-        if assigned(result) then
-          exit;
-
-        if current_asmdata.asmlists[al_imports]=nil then
-          current_asmdata.asmlists[al_imports]:=TAsmList.create;
-
-        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',4);
-        result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION);
-        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
-        { register as a weak symbol if necessary }
-        if weak then
-          current_asmdata.weakrefasmsymbol(s);
-        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-
-        if not(cs_create_pic in current_settings.moduleswitches) then
-          begin
-            l1 := current_asmdata.DefineAsmSymbol('L'+s+'$slp',AB_LOCAL,AT_DATA);
-            reference_reset_symbol(href,l1,0,sizeof(pint));
-            href.refaddr:=addr_full;
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R12,href));
-            reference_reset_base(href,NR_R12,0,sizeof(pint));
-            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R15,href));
-            current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
-            l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA);
-            current_asmdata.asmlists[al_imports].concat(tai_const.create_sym(l1));
-          end
-        else
-          internalerror(2008100401);
-
-        new_section(current_asmdata.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
-        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
-        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
 
 

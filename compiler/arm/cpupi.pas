@@ -216,7 +216,9 @@ unit cpupi;
 
     procedure tarmprocinfo.allocate_got_register(list: TAsmList);
       begin
-        got := cg.getaddressregister(list);
+        { darwin doesn't use a got }
+        if tf_pic_uses_got in target_info.flags then
+          got := cg.getaddressregister(list);
       end;
 
 
