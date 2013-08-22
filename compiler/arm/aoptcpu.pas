@@ -2141,7 +2141,7 @@ Implementation
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
     var
-      hp1,hp2,hp3,hp4,hp5 : tai;
+      hp1,hp2,hp3,hp4,hp5,insertpos : tai;
       list : TAsmList;
     begin
       result:=true;
@@ -2232,11 +2232,22 @@ Implementation
                 end;
 
               asml.Remove(hp1);
+              { if there are address labels associated with hp2, those must
+                stay with hp2 (e.g. for GOT-less PIC) }
+              insertpos:=hp2;
+              while assigned(hp2.previous) and
+                    (tai(hp2.previous).typ<>ait_instruction) do
+                begin
+                  hp2:=tai(hp2.previous);
+                  if (hp2.typ=ait_label) and
+                     (tai_label(hp2).labsym.typ=AT_ADDR) then
+                    insertpos:=hp2;
+                end;
 {$ifdef DEBUG_PREREGSCHEDULER}
-              asml.insertbefore(tai_comment.Create(strpnew('Rescheduled')),hp2);
+              asml.insertbefore(tai_comment.Create(strpnew('Rescheduled')),insertpos);
 {$endif DEBUG_PREREGSCHEDULER}
-              asml.InsertBefore(hp1,hp2);
-              asml.InsertListBefore(hp2,list);
+              asml.InsertBefore(hp1,insertpos);
+              asml.InsertListBefore(insertpos,list);
               p:=tai(p.next)
             end
           else if p.typ=ait_instruction then
