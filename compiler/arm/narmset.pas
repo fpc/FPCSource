@@ -104,7 +104,7 @@ implementation
             hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
-            if current_settings.cputype in cpu_thumb then
+            if current_settings.cputype in cpu_thumb+cpu_thumb2 then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_LSL,hregister,left.location.register));
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
