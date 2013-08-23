@@ -389,17 +389,8 @@ interface
         if (nodetype in [equaln,unequaln]) and
           (left.nodetype=ordconstn) and (tordconstnode(left).value=0) then
           begin
-            location_reset(location,LOC_FLAGS,OS_NO);
-            location.resflags:=getresflags(unsigned);
-            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
-            dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-
-            if current_settings.cputype in cpu_thumb then
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,right.location.register64.reglo,right.location.register64.reghi,dummyreg)
-            else
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,right.location.register64.reglo,right.location.register64.reghi),PF_S));
+            { pass_left_right moves possible consts to the right }
+            internalerror(2013082201);
           end
         else if (nodetype in [equaln,unequaln]) and
           (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
