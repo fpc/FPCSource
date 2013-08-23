@@ -2474,6 +2474,7 @@ packages/fcl-process/src/wince/simpleipc.inc svneol=native#text/plain
 packages/fcl-registry/Makefile svneol=native#text/plain
 packages/fcl-registry/Makefile.fpc svneol=native#text/plain
 packages/fcl-registry/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-registry/examples/remotereg.pp svneol=native#text/pascal
 packages/fcl-registry/fpmake.pp svneol=native#text/plain
 packages/fcl-registry/src/regdef.inc svneol=native#text/plain
 packages/fcl-registry/src/regini.inc svneol=native#text/plain
