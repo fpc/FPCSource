@@ -386,6 +386,9 @@ type
     const
       FpcBinaryIdent1 = 'BinBufDataset'; // Old version 1; support for transient period;
       FpcBinaryIdent2 = 'BinBufDataSet';
+      StringFieldTypes = [ftString,ftFixedChar,ftWideString,ftFixedWideChar];
+      BlobFieldTypes = [ftBlob,ftMemo,ftWideMemo];
+      VarLenFieldTypes = StringFieldTypes + BlobFieldTypes + [ftBytes,ftVarBytes];
     var
       FVersion: byte;
   public
@@ -3591,14 +3594,22 @@ begin
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
           if AField=nil then continue;
-          L := Stream.ReadDWord;
-          SetLength(B, L);
-          if L > 0 then
-            Stream.ReadBuffer(B[0], L);
-          if FieldDefs[i].DataType in [ftBlob, ftMemo, ftWideMemo] then
-            RestoreBlobField(ADataset, AField, @B[0], L)
+          if AField.DataType in StringFieldTypes then
+            AField.AsString := Stream.ReadAnsiString
           else
-            AField.SetData(@B[0], False);  // set it to the FilterBuffer
+            begin
+            if AField.DataType in VarLenFieldTypes then
+              L := Stream.ReadDWord
+            else
+              L := AField.DataSize;
+            SetLength(B, L);
+            if L > 0 then
+              Stream.ReadBuffer(B[0], L);
+            if AField.DataType in BlobFieldTypes then
+              RestoreBlobField(ADataset, AField, @B[0], L)
+            else
+              AField.SetData(@B[0], False);  // set it to the FilterBuffer
+            end;
           end;
   end;
 end;
@@ -3624,11 +3635,17 @@ begin
       begin
       AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
       if AField=nil then continue;
-      B := AField.AsBytes;
-      L := length(B);
-      Stream.WriteDWord(L);
-      if L > 0 then
-        Stream.WriteBuffer(B[0], L);
+      if AField.DataType in StringFieldTypes then
+        Stream.WriteAnsiString(AField.AsString)
+      else
+        begin
+        B := AField.AsBytes;
+        L := length(B);
+        if AField.DataType in VarLenFieldTypes then
+          Stream.WriteDWord(L);
+        if L > 0 then
+          Stream.WriteBuffer(B[0], L);
+        end;
      end;
 end;
 
