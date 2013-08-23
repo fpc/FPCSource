@@ -121,6 +121,24 @@ unit rgcpu;
                         end;
                     end;
                 end;
+              A_MLA,
+              A_MUL:
+                begin
+                  if current_settings.cputype<cpu_armv6 then
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                   add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
+                   add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
+                   add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
+                   if taicpu(p).opcode=A_MLA then
+                     begin
+                       add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R13);
+                       add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
+                     end;
+                end;
+
               A_LDRB,
               A_STRB,
               A_STR,
@@ -486,8 +504,15 @@ unit rgcpu;
             case taicpu(p).opcode of
               A_MLA,
               A_MUL:
-                if current_settings.cputype<cpu_armv6 then
-                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                begin
+                  if current_settings.cputype<cpu_armv6 then
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
+                  add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
+                  add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
+                  if taicpu(p).opcode=A_MLA then
+                    add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
+                end;
               A_UMULL,
               A_UMLAL,
               A_SMULL,

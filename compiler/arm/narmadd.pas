@@ -53,7 +53,7 @@ interface
       defutil,htypechk,cgbase,cgutils,
       cpuinfo,pass_1,pass_2,procinfo,
       ncon,nadd,ncnv,ncal,nmat,
-      ncgutil,cgobj,
+      ncgutil,cgobj,cgcpu,
       hlcgobj
       ;
 
@@ -509,7 +509,7 @@ interface
             tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             asmList.concat(taicpu.op_reg_reg_reg(A_MUL,tmpreg,ll.reglo,rl.reghi));
             asmList.concat(taicpu.op_reg_reg_reg_reg(A_UMULL,res.reglo,res.reghi,rl.reglo,ll.reglo));
-            asmList.concat(taicpu.op_reg_reg_reg_reg(A_MLA,tmpreg,rl.reglo,ll.reghi,tmpreg));
+            tbasecgarm(cg).safe_mla(asmList,tmpreg,rl.reglo,ll.reghi,tmpreg);
             asmList.concat(taicpu.op_reg_reg_reg(A_ADD,res.reghi,tmpreg,res.reghi));
           end
         else

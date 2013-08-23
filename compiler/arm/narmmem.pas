@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,
+      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,cgcpu,
       cpuinfo,
       cgutils,
       procinfo;
@@ -84,7 +84,7 @@ implementation
            begin
              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_MLA,hreg,maybe_const_reg,hreg,location.reference.base));
+             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.base);
              location.reference.base:=hreg;
              { update alignment }
              if (location.reference.alignment=0) then
@@ -95,7 +95,7 @@ implementation
            begin
              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_MLA,hreg,maybe_const_reg,hreg,location.reference.index));
+             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.index);
              location.reference.base:=hreg;
              location.reference.index:=NR_NO;
              { update alignment }

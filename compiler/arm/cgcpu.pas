@@ -112,6 +112,9 @@ unit cgcpu;
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+
+        { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
+        procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -3188,6 +3191,30 @@ unit cgcpu;
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
           a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
+    procedure tbasecgarm.safe_mla(list : TAsmList; op1,op2,op3,op4 : TRegister);
+
+      procedure checkreg(var reg : TRegister);
+        var
+          tmpreg : TRegister;
+        begin
+          if ((current_settings.cputype in cpu_thumb+cpu_thumb2) and (getsupreg(reg)=RS_R13)) or
+            (getsupreg(reg)=RS_R15) then
+            begin
+              tmpreg:=getintregister(list,OS_INT);
+              a_load_reg_reg(list,OS_INT,OS_INT,reg,tmpreg);
+              reg:=tmpreg;
+            end;
+        end;
+
+      begin
+        checkreg(op1);
+        checkreg(op2);
+        checkreg(op3);
+        checkreg(op4);
+        list.concat(taicpu.op_reg_reg_reg_reg(A_MLA,op1,op2,op3,op4));
       end;
 
 
