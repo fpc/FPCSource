@@ -1036,14 +1036,21 @@ implementation
               (tai(hp).typ=ait_instruction) then
               begin
                 case taicpu(hp).opcode of
+                  A_BX,
                   A_LDR:
-                    if (taicpu(hp).oper[0]^.typ=top_reg) and
-                      (taicpu(hp).oper[0]^.reg=NR_PC) then
+                    { approximation if we hit a case jump table }
+                    if ((taicpu(hp).opcode=A_LDR) and not(current_settings.cputype in cpu_thumb+cpu_thumb2) and
+                       (taicpu(hp).oper[0]^.typ=top_reg) and
+                      (taicpu(hp).oper[0]^.reg=NR_PC)) or
+                      ((taicpu(hp).opcode=A_BX) and (current_settings.cputype in cpu_thumb) and
+                       (taicpu(hp).oper[0]^.typ=top_reg))
+                       then
                       begin
                         penalty:=multiplier;
                         hp:=tai(hp.next);
-                        { skip register allocations and comments inserted by the optimizer }
-                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
+                        { skip register allocations and comments inserted by the optimizer as well as a label
+                          as jump tables for thumb might have }
+                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label]) do
                           hp:=tai(hp.next);
                         while assigned(hp) and (hp.typ=ait_const) do
                           begin
