@@ -644,6 +644,8 @@ implementation
                   op:=A_FLDD;
                 R_SUBFS:
                   op:=A_FLDS;
+                R_SUBNONE:
+                  op:=A_VLDR;
                 else
                   internalerror(2009112905);
               end;
@@ -674,6 +676,8 @@ implementation
                   op:=A_FSTD;
                 R_SUBFS:
                   op:=A_FSTS;
+                R_SUBNONE:
+                  op:=A_VSTR;
                 else
                   internalerror(2009112904);
               end;
@@ -715,7 +719,8 @@ implementation
           A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
           A_SXTB16,A_UXTB16,
           A_UXTB,A_UXTH,A_SXTB,A_SXTH,
-          A_NEG:
+          A_NEG,
+          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB:
             if opnr=0 then
               result:=operand_write
             else
@@ -724,7 +729,8 @@ implementation
           A_CMN,A_CMP,A_TEQ,A_TST,
           A_CMF,A_CMFE,A_WFS,A_CNF,
           A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
-          A_FCMPZS,A_FCMPZD:
+          A_FCMPZS,A_FCMPZD,
+          A_VCMP,A_VCMPE:
             result:=operand_read;
           A_SMLAL,A_UMLAL:
             if opnr in [0,1] then
@@ -739,7 +745,8 @@ implementation
               result:=operand_read;
           A_STR,A_STRB,A_STRBT,
           A_STRH,A_STRT,A_STF,A_SFM,
-          A_FSTS,A_FSTD:
+          A_FSTS,A_FSTD,
+          A_VSTR:
             { important is what happens with the involved registers }
             if opnr=0 then
               result := operand_read
@@ -1049,7 +1056,8 @@ implementation
             if SimpleGetNextInstruction(curtai,hp) and
                (tai(hp).typ=ait_instruction) and
                ((taicpu(hp).opcode=A_FLDS) or
-                (taicpu(hp).opcode=A_FLDD)) then
+                (taicpu(hp).opcode=A_FLDD) or
+                (taicpu(hp).opcode=A_VLDR)) then
               limit:=254;
 
             { don't miss an insert }
@@ -1084,7 +1092,7 @@ implementation
                 else
                   limit:=1016;
 
-                { on arm thumb, insert the date always after all labels etc. following an instruction so it
+                { on arm thumb, insert the data always after all labels etc. following an instruction so it
                   is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
                   bxx) and the distance of bxx gets too long }
                 if current_settings.cputype in cpu_thumb then
