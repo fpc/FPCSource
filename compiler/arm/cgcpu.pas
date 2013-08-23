@@ -4489,7 +4489,7 @@ unit cgcpu;
             {else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))}
             else if (op = OP_AND) and is_thumb32_imm(a) then
-              list.concat(taicpu.op_reg_reg_const(A_MOV,dst,src,dword(a)))
+              list.concat(taicpu.op_reg_reg_const(A_AND,dst,src,dword(a)))
             else if (op = OP_AND) and (a = $FFFF) then
               list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
             else if (op = OP_AND) and is_thumb32_imm(not(dword(a))) then
@@ -4602,6 +4602,24 @@ unit cgcpu;
              begin
                if cgsetflags or setflags then
                  a_reg_alloc(list,NR_DEFAULTFLAGS);
+{$ifdef dummy}
+               { R13 is not allowed for certain instruction operands }
+               if op_reg_reg_opcg2asmopThumb2[op] in [A_ADD,A_SUB,A_AND,A_BIC,A_EOR] then
+                 begin
+                   if getsupreg(dst)=RS_R13 then
+                     begin
+                       tmpreg:=getintregister(list,OS_INT);
+                       a_load_reg_reg(list,OS_INT,OS_INT,dst,tmpreg);
+                       dst:=tmpreg;
+                     end;
+                   if getsupreg(src1)=RS_R13 then
+                     begin
+                       tmpreg:=getintregister(list,OS_INT);
+                       a_load_reg_reg(list,OS_INT,OS_INT,src1,tmpreg);
+                       src1:=tmpreg;
+                     end;
+                 end;
+{$endif}
                list.concat(setoppostfix(
                  taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmopThumb2[op],dst,src2,src1),toppostfix(ord(cgsetflags or setflags)*ord(PF_S))));
              end;
