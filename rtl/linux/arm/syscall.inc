@@ -235,6 +235,7 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldr   r7,[sp],#4
+  it ls
   movls pc,lr
   stmfd sp!,{lr}
   rsb   r0,r0,#0
@@ -255,6 +256,7 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldr   r7,[sp],#4
+  it ls
   movls pc,lr
   stmfd sp!,{lr}
   rsb   r0,r0,#0
@@ -276,6 +278,7 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldr   r7,[sp],#4
+  it ls
   movls pc,lr
   stmfd sp!,{lr}
   rsb   r0,r0,#0
@@ -298,6 +301,7 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldr   r7,[sp],#4
+  it ls
   movls pc,lr
   stmfd sp!,{lr}
   rsb   r0,r0,#0
