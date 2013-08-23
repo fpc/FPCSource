@@ -77,7 +77,6 @@ interface
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
-    procedure gen_proc_symbol(list:TAsmList);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
     procedure gen_stack_check_size_para(list:TAsmList);
@@ -1310,44 +1309,6 @@ implementation
             item := TCmdStrListItem(item.next);
           end;
        end;
-
-
-    procedure gen_proc_symbol(list:TAsmList);
-      var
-        item,
-        previtem : TCmdStrListItem;
-      begin
-        previtem:=nil;
-        item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
-        while assigned(item) do
-          begin
-{$ifdef arm}
-            if current_settings.cputype in cpu_thumb2+cpu_thumb then
-              list.concat(tai_thumb_func.create);
-{$endif arm}
-            { "double link" all procedure entry symbols via .reference }
-            { directives on darwin, because otherwise the linker       }
-            { sometimes strips the procedure if only on of the symbols }
-            { is referenced                                            }
-            if assigned(previtem) and
-               (target_info.system in systems_darwin) then
-              list.concat(tai_directive.create(asd_reference,item.str));
-            if (cs_profile in current_settings.moduleswitches) or
-              (po_global in current_procinfo.procdef.procoptions) then
-              list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0))
-            else
-              list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
-            if assigned(previtem) and
-               (target_info.system in systems_darwin) then
-              list.concat(tai_directive.create(asd_reference,previtem.str));
-            if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
-              list.concat(Tai_function_name.create(item.str));
-            previtem:=item;
-            item := TCmdStrListItem(item.next);
-          end;
-        current_procinfo.procdef.procstarttai:=tai(list.last);
-      end;
-
 
 
     procedure gen_proc_entry_code(list:TAsmList);
