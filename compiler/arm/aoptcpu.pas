@@ -1084,7 +1084,12 @@ Implementation
                             will also be in hp1 then.
                           }
                           if (taicpu(hp1).ops > I) and
-                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) and
+                             { prevent certain combinations on thumb(2), this is only a safe approximation }
+                             (not(current_settings.cputype in cpu_thumb+cpu_thumb2) or
+                              ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
+                               (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15))
+                             ) then
                             begin
                               DebugMsg('Peephole RedundantMovProcess done', hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
