@@ -881,23 +881,28 @@ Type
     AClass : TComponentClass;
   end;
 
+{$ifndef i8086}
+type
+  TCodePtrList = TList;
+{$endif i8086}
+
 Var
   InitHandlerList : TList;
-  FindGlobalComponentList : TList;
+  FindGlobalComponentList : TCodePtrList;
 
 procedure RegisterFindGlobalComponentProc(AFindGlobalComponent: TFindGlobalComponent);
   begin
     if not(assigned(FindGlobalComponentList)) then
-      FindGlobalComponentList:=TList.Create;
-    if FindGlobalComponentList.IndexOf(Pointer(AFindGlobalComponent))<0 then
-      FindGlobalComponentList.Add(Pointer(AFindGlobalComponent));
+      FindGlobalComponentList:=TCodePtrList.Create;
+    if FindGlobalComponentList.IndexOf(CodePointer(AFindGlobalComponent))<0 then
+      FindGlobalComponentList.Add(CodePointer(AFindGlobalComponent));
   end;
 
 
 procedure UnregisterFindGlobalComponentProc(AFindGlobalComponent: TFindGlobalComponent);
   begin
     if assigned(FindGlobalComponentList) then
-      FindGlobalComponentList.Remove(Pointer(AFindGlobalComponent));
+      FindGlobalComponentList.Remove(CodePointer(AFindGlobalComponent));
   end;
 
 
