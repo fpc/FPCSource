@@ -6542,8 +6542,11 @@ begin
           for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
             for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
               begin
-                DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
-                DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                if OSCPUSupported[AOS,ACPU] then
+                  begin
+                    DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+                    DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                  end;
               end;
           CmdRemoveTrees(DirectoryList);
         finally
@@ -6928,10 +6931,10 @@ begin
   Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If AllTargets or PackageOK(P) then
-      Clean(P, AllTargets);
-    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
+      P:=Packages.PackageItems[i];
+      If AllTargets or PackageOK(P) then
+        Clean(P, AllTargets);
+      log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);
