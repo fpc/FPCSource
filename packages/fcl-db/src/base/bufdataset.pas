@@ -350,6 +350,7 @@ type
   protected
     class function RowStateToByte(const ARowState : TRowState) : byte;
     class function ByteToRowState(const AByte : Byte) : TRowState;
+    class procedure RestoreBlobField(ADataset: TCustomBufDataset; AField: TField; ASource: pointer; ASize: integer);
   public
     constructor create(AStream : TStream); virtual;
     // Load a dataset from stream:
@@ -357,10 +358,10 @@ type
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); virtual; abstract;
     // Is called before the records are loaded
     procedure InitLoadRecords; virtual; abstract;
-    // Return the RowState of the current record, and the order of the update
-    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
     // Returns if there is at least one more record available in the stream
     function GetCurrentRecord : boolean; virtual; abstract;
+    // Return the RowState of the current record, and the order of the update
+    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
     // Store a record from stream in the current record buffer
     procedure RestoreRecord(ADataset : TCustomBufDataset); virtual; abstract;
     // Move the stream to the next record
@@ -381,18 +382,25 @@ type
   { TFpcBinaryDatapacketReader }
 
   TFpcBinaryDatapacketReader = class(TDataPacketReader)
+  private
+    const
+      FpcBinaryIdent1 = 'BinBufDataset'; // Old version 1; support for transient period;
+      FpcBinaryIdent2 = 'BinBufDataSet';
+    var
+      FVersion: byte;
   public
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
-    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure FinalizeStoreRecords; override;
-    function GetCurrentRecord : boolean; override;
-    procedure GotoNextRecord; override;
     procedure InitLoadRecords; override;
+    function GetCurrentRecord : boolean; override;
+    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
     procedure RestoreRecord(ADataset : TCustomBufDataset); override;
+    procedure GotoNextRecord; override;
     procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure FinalizeStoreRecords; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
+
 
   TCustomBufDataset = class(TDBDataSet)
   private
@@ -3462,24 +3470,45 @@ begin
   if (AByte and 8)=8 then Result := Result+[rsvUpdated];
 end;
 
+class procedure TDataPacketReader.RestoreBlobField(ADataset: TCustomBufDataset; AField: TField; ASource: pointer; ASize: integer);
+var
+  ABufBlobField: TBufBlobField;
+begin
+  ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
+  ABufBlobField.BlobBuffer^.Size:=ASize;
+  ReAllocMem(ABufBlobField.BlobBuffer^.Buffer, ASize);
+  move(ASource^, ABufBlobField.BlobBuffer^.Buffer^, ASize);
+  AField.SetData(@ABufBlobField);
+end;
+
 constructor TDataPacketReader.create(AStream: TStream);
 begin
   FStream := AStream;
 end;
 
-{ TFpcBinaryDatapacketReader }
 
-const FpcBinaryIdent = 'BinBufDataset';
+{ TFpcBinaryDatapacketReader }
 
 procedure TFpcBinaryDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
 
 var FldCount : word;
     i        : integer;
+    s        : string;
 
 begin
-  if not RecognizeStream(Stream) then
-    DatabaseError(SStreamNotRecognised);
+  // Identify version
+  SetLength(s, 13);
+  if (Stream.Read(s[1], 13) = 13) then
+    case s of
+      FpcBinaryIdent1:
+        FVersion := 10;
+      FpcBinaryIdent2:
+        FVersion := Stream.ReadByte;
+      else
+        DatabaseError(SStreamNotRecognised);
+    end;
 
+  // Read FieldDefs
   FldCount:=Stream.ReadWord;
   AFieldDefs.Clear;
   for i := 0 to FldCount -1 do with TFieldDef.create(AFieldDefs) do
@@ -3499,14 +3528,15 @@ end;
 procedure TFpcBinaryDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
 var i : integer;
 begin
-  Stream.Write(FpcBinaryIdent[1],length(FpcBinaryIdent));
+  Stream.Write(FpcBinaryIdent2[1], length(FpcBinaryIdent2));
+  Stream.WriteByte(20); // version 2.0
 
   Stream.WriteWord(AFieldDefs.Count);
   for i := 0 to AFieldDefs.Count -1 do with AFieldDefs[i] do
     begin
     Stream.WriteAnsiString(Name);
     Stream.WriteAnsiString(DisplayName);
-    Stream.WriteWord(size);
+    Stream.WriteWord(Size);
     Stream.WriteWord(ord(DataType));
 
     if faReadonly in Attributes then
@@ -3516,6 +3546,17 @@ begin
     end;
   i := AnAutoIncValue;
   Stream.WriteBuffer(i,sizeof(i));
+end;
+
+procedure TFpcBinaryDatapacketReader.InitLoadRecords;
+begin
+  //  Do nothing
+end;
+
+function TFpcBinaryDatapacketReader.GetCurrentRecord: boolean;
+var Buf : byte;
+begin
+  Result := (Stream.Read(Buf,1)=1) and (Buf=$fe);
 end;
 
 function TFpcBinaryDatapacketReader.GetRecordRowState(out AUpdOrder : Integer) : TRowState;
@@ -3529,55 +3570,85 @@ begin
     AUpdOrder := 0;
 end;
 
-procedure TFpcBinaryDatapacketReader.FinalizeStoreRecords;
-begin
-  //  Do nothing
-end;
-
-function TFpcBinaryDatapacketReader.GetCurrentRecord: boolean;
-var Buf : byte;
-begin
-  Result := (Stream.Read(Buf,1)=1) and (Buf=$fe);
-end;
-
 procedure TFpcBinaryDatapacketReader.GotoNextRecord;
 begin
   //  Do Nothing
 end;
 
-procedure TFpcBinaryDatapacketReader.InitLoadRecords;
-begin
-  //  SetLength(AChangeLog,0);
-end;
-
 procedure TFpcBinaryDatapacketReader.RestoreRecord(ADataset: TCustomBufDataset);
+var
+  AField: TField;
+  i: integer;
+  L: cardinal;
+  B: TBytes;
 begin
-  Stream.ReadBuffer(ADataset.GetCurrentBuffer^,ADataset.FRecordSize);
+  case FVersion of
+    10:
+      Stream.ReadBuffer(ADataset.GetCurrentBuffer^, ADataset.FRecordSize);  // Ugly because private members of ADataset are used...
+    20:
+      with ADataset do
+        for i:=0 to FieldDefs.Count-1 do
+          begin
+          AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
+          if AField=nil then continue;
+          L := Stream.ReadDWord;
+          SetLength(B, L);
+          if L > 0 then
+            Stream.ReadBuffer(B[0], L);
+          if FieldDefs[i].DataType in [ftBlob, ftMemo, ftWideMemo] then
+            RestoreBlobField(ADataset, AField, @B[0], L)
+          else
+            AField.SetData(@B[0], False);  // set it to the FilterBuffer
+          end;
+  end;
 end;
 
 procedure TFpcBinaryDatapacketReader.StoreRecord(ADataset: TCustomBufDataset;
   ARowState: TRowState; AUpdOrder : integer);
+var
+  AField: TField;
+  i: integer;
+  L: cardinal;
+  B: TBytes;
 begin
-  // Ugly because private members of ADataset are used...
+  // Record header
   Stream.WriteByte($fe);
   Stream.WriteByte(RowStateToByte(ARowState));
   if ARowState<>[] then
     Stream.WriteBuffer(AUpdOrder,sizeof(integer));
-  Stream.WriteBuffer(ADataset.GetCurrentBuffer^,ADataset.FRecordSize);
+
+  // Record data
+  // Old 1.0 version: Stream.WriteBuffer(ADataset.GetCurrentBuffer^, ADataset.FRecordSize);
+  with ADataset do
+    for i:=0 to FieldDefs.Count-1 do
+      begin
+      AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
+      if AField=nil then continue;
+      B := AField.AsBytes;
+      L := length(B);
+      Stream.WriteDWord(L);
+      if L > 0 then
+        Stream.WriteBuffer(B[0], L);
+     end;
 end;
 
-class function TFpcBinaryDatapacketReader.RecognizeStream(AStream: TStream
-  ): boolean;
-var s        : string;
-    len      : integer;
+procedure TFpcBinaryDatapacketReader.FinalizeStoreRecords;
 begin
-  Len := length(FpcBinaryIdent);
-  setlength(s,len);
-  if (AStream.Read (s[1],len) = len)
-  and (s=FpcBinaryIdent) then
-    Result := True
-  else
-    Result := False;
+  //  Do nothing
+end;
+
+class function TFpcBinaryDatapacketReader.RecognizeStream(AStream: TStream): boolean;
+var s : string;
+begin
+  SetLength(s, 13);
+  if (AStream.Read(s[1], 13) = 13) then
+    case s of
+      FpcBinaryIdent1,
+      FpcBinaryIdent2:
+        Result := True;
+      else
+        Result := False;
+    end;
 end;
 
 { TUniDirectionalBufIndex }
