@@ -92,7 +92,11 @@ unit rgcpu;
                   for hr := RS_R8 to RS_R15 do
                     add_edge(getsupreg(taicpu(p).oper[0]^.reg), hr);
                 end;
-              A_ADD:
+              A_ADD,
+              A_SUB,
+              A_AND,
+              A_BIC,
+              A_EOR:
                 begin
                   if taicpu(p).ops = 3 then
                     begin
@@ -138,7 +142,6 @@ unit rgcpu;
                        add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
                      end;
                 end;
-
               A_LDRB,
               A_STRB,
               A_STR,
