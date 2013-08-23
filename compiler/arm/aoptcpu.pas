@@ -1216,7 +1216,8 @@ Implementation
                              add r1, r3, #imm
                              ldr r0, [r1, r2, lsl #2]
                     }
-                    if (taicpu(p).opcode = A_MOV) and
+                    if (not(current_settings.cputype in cpu_thumb)) and
+                       (taicpu(p).opcode = A_MOV) and
                        (taicpu(p).ops = 3) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
@@ -1224,6 +1225,12 @@ Implementation
                          it is also extremly unlikely to be emitted this way}
                        (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
                        (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
+                       { thumb2 allows only lsl #0..#3 }
+                       (not(current_settings.cputype in cpu_thumb2) or
+                        ((taicpu(p).oper[2]^.shifterop^.shiftimm in [0..3]) and
+                         (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL)
+                        )
+                       ) and
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
