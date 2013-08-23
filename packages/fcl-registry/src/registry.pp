@@ -45,9 +45,7 @@ type
   TRegistry = class(TObject)
   private
     FStringSizeIncludesNull : Boolean;
-{$ifdef XMLREG}
     FSysData : Pointer;
-{$endif XMLREG}
     fAccess: LongWord;
     fCurrentKey: HKEY;
     fRootKey: HKEY;
