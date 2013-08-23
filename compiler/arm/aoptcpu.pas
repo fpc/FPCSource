@@ -735,7 +735,8 @@ Implementation
 
                         ldrb dst2, [ref]
                     }
-                    if (taicpu(p).oppostfix=PF_B) and
+                    if not(current_settings.cputype in cpu_thumb) and
+                       (taicpu(p).oppostfix=PF_B) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_NONE]) and
                        (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
