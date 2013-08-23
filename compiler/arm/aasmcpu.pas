@@ -1033,21 +1033,50 @@ implementation
             end;
             { special case for case jump tables }
             if SimpleGetNextInstruction(curtai,hp) and
-              (tai(hp).typ=ait_instruction) and
-              (taicpu(hp).opcode=A_LDR) and
-              (taicpu(hp).oper[0]^.typ=top_reg) and
-              (taicpu(hp).oper[0]^.reg=NR_PC) then
+              (tai(hp).typ=ait_instruction) then
               begin
-                penalty:=1*multiplier;
-                hp:=tai(hp.next);
-                { skip register allocations and comments inserted by the optimizer }
-                while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
-                  hp:=tai(hp.next);
-                while assigned(hp) and (hp.typ=ait_const) do
-                  begin
-                    inc(penalty,multiplier);
-                    hp:=tai(hp.next);
-                  end;
+                case taicpu(hp).opcode of
+                  A_LDR:
+                    if (taicpu(hp).oper[0]^.typ=top_reg) and
+                      (taicpu(hp).oper[0]^.reg=NR_PC) then
+                      begin
+                        penalty:=multiplier;
+                        hp:=tai(hp.next);
+                        { skip register allocations and comments inserted by the optimizer }
+                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
+                          hp:=tai(hp.next);
+                        while assigned(hp) and (hp.typ=ait_const) do
+                          begin
+                            inc(penalty,multiplier);
+                            hp:=tai(hp.next);
+                          end;
+                      end;
+                  A_IT:
+                    if current_settings.cputype in cpu_thumb2 then
+                      penalty:=multiplier;
+                  A_ITE,
+                  A_ITT:
+                    if current_settings.cputype in cpu_thumb2 then
+                      penalty:=2*multiplier;
+                  A_ITEE,
+                  A_ITTE,
+                  A_ITET,
+                  A_ITTT:
+                    if current_settings.cputype in cpu_thumb2 then
+                      penalty:=3*multiplier;
+                  A_ITEEE,
+                  A_ITTEE,
+                  A_ITETE,
+                  A_ITTTE,
+                  A_ITEET,
+                  A_ITTET,
+                  A_ITETT,
+                  A_ITTTT:
+                    if current_settings.cputype in cpu_thumb2 then
+                      penalty:=4*multiplier;
+                  else
+                    penalty:=0;
+                end;
               end
             else
               penalty:=0;
