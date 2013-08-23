@@ -4052,7 +4052,7 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,dst,imm2));
               end
 {$endif DUMMY}
-            else if (op in [OP_SHL, OP_SHR, OP_SAR, OP_ROR]) then
+            else if (op in [OP_SHL, OP_SHR, OP_SAR]) then
               begin
                 list.concat(taicpu.op_reg_reg_const(op_reg_opcg2asmop[op],dst,dst,a));
               end
