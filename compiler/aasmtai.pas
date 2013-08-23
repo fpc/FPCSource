@@ -486,7 +486,6 @@ interface
        { Generates an assembler label }
        tai_label = class(tai)
           labsym    : tasmlabel;
-          is_global : boolean;
 {$ifdef arm}
           { set to true when the label has been moved by insertpcrelativedata to the correct location
             so one label can be used multiple times }
@@ -2080,7 +2079,6 @@ implementation
         typ:=ait_label;
         labsym:=_labsym;
         labsym.is_set:=true;
-        is_global:=(labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN]);
       end;
 
 
@@ -2088,7 +2086,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         labsym:=tasmlabel(ppufile.getasmsymbol);
-        is_global:=boolean(ppufile.getbyte);
+        ppufile.getbyte; { was is_global flag, now unused }
       end;
 
 
@@ -2096,7 +2094,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putasmsymbol(labsym);
-        ppufile.putbyte(byte(is_global));
+        ppufile.putbyte(0); { was is_global flag, now unused }
       end;
 
 
