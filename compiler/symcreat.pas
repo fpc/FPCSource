@@ -64,7 +64,7 @@ interface
         * save the scanner state before calling this routine, and restore when done.
         * the code *must* be written in objfpc style
   }
-  function str_parse_method_impl(str: ansistring; get_code_block_func: tcggetcodeblockfunc; usefwpd: tprocdef; is_classdef: boolean):boolean;
+  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
 
   { parses a typed constant assignment to ssym
 
@@ -218,7 +218,7 @@ implementation
     end;
 
 
-  function str_parse_method_impl(str: ansistring; get_code_block_func: tcggetcodeblockfunc; usefwpd: tprocdef; is_classdef: boolean):boolean;
+  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -244,7 +244,7 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef,usefwpd,get_code_block_func);
+      read_proc(is_classdef,usefwpd,nil);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -357,7 +357,7 @@ implementation
          not is_void(pd.returndef) then
         str:=str+'result:=';
       str:=str+'inherited end;';
-      str_parse_method_impl(str,nil,pd,isclassmethod);
+      str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
@@ -401,7 +401,7 @@ implementation
             end;
         end;
       str:=str+'end;';
-      str_parse_method_impl(str,nil,pd,false);
+      str_parse_method_impl(str,pd,false);
     end;
 
 
@@ -433,7 +433,7 @@ implementation
             end;
         end;
       str:=str+'end;';
-      str_parse_method_impl(str,nil,pd,false);
+      str_parse_method_impl(str,pd,false);
     end;
 
 
@@ -466,7 +466,7 @@ implementation
             end;
         end;
       str:=str+'end;';
-      str_parse_method_impl(str,nil,pd,false);
+      str_parse_method_impl(str,pd,false);
     end;
 
   procedure implement_empty(pd: tprocdef);
@@ -478,7 +478,7 @@ implementation
         (po_classmethod in pd.procoptions) and
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
       str:='begin end;';
-      str_parse_method_impl(str,nil,pd,isclassmethod);
+      str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
@@ -520,7 +520,7 @@ implementation
       str:=str+callpd.procsym.realname+'(';
       addvisibibleparameters(str,pd);
       str:=str+') end;';
-      str_parse_method_impl(str,nil,pd,isclassmethod);
+      str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
@@ -839,7 +839,7 @@ implementation
     begin
       callthroughprop:=tpropertysym(pd.skpara);
       str:='begin result:='+callthroughprop.realname+'; end;';
-      str_parse_method_impl(str,nil,pd,po_classmethod in pd.procoptions)
+      str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
     end;
 
 
@@ -850,7 +850,7 @@ implementation
     begin
       callthroughprop:=tpropertysym(pd.skpara);
       str:='begin '+callthroughprop.realname+':=__fpc_newval__; end;';
-      str_parse_method_impl(str,nil,pd,po_classmethod in pd.procoptions)
+      str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
     end;
 
   function get_attribute_code_block(pd: tprocdef) : tnode;
