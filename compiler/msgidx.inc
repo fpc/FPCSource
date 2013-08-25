@@ -903,6 +903,7 @@ const
   unit_u_unload_resunit=10060;
   unit_e_different_wpo_file=10061;
   unit_u_indirect_crc_changed=10062;
+  unit_u_ppu_invalid_memory_model=10063;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -976,9 +977,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 69123;
+  MsgTxtSize = 69178;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,95,335,121,88,56,126,27,202,63,
+    26,95,335,121,88,56,126,27,202,64,
     54,20,1,1,1,1,1,1,1,1
   );

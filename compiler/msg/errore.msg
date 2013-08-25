@@ -3055,6 +3055,9 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
 % \end{description}
+unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
+% This unit file was compiled for a different i8086 memory model and
+% cannot be read.
 # EndOfTeX
 
 #
