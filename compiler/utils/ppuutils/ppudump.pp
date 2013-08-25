@@ -499,7 +499,10 @@ const
     (mask: $100000  ;str:'has_exports'),
     (mask: $400000  ;str:'has_wideinits'),
     (mask: $800000  ;str:'has_classinits'),
-    (mask: $1000000 ;str:'has_resstrinits')
+    (mask: $1000000 ;str:'has_resstrinits'),
+    (mask: $2000000 ;str:'i8086_far_code'),
+    (mask: $4000000 ;str:'i8086_far_data'),
+    (mask: $8000000 ;str:'i8086_huge_data')
   );
 var
   i,ntflags : longint;
