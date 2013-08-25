@@ -156,7 +156,7 @@ implementation
                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,numerator,helper1)
                     else
                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
-                    if current_settings.cputype in cpu_thumb then
+                    if GenerateThumbCode then
                       begin
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
@@ -437,7 +437,7 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        if GenerateThumbCode or GenerateThumb2Code then
           result:=inherited
         else
           result := nil;
@@ -512,7 +512,7 @@ implementation
         end;
 
       begin
-        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        if GenerateThumbCode or GenerateThumb2Code then
         begin
           inherited;
           exit;

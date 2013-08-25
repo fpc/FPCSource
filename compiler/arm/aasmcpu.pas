@@ -892,7 +892,7 @@ implementation
         lastinspos:=-1;
         curinspos:=0;
         extradataoffset:=0;
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             multiplier:=2;
             limit:=504;
@@ -922,7 +922,7 @@ implementation
                             begin
                               { create a new copy of a data entry on arm thumb if the entry has been inserted already
                                 before because arm thumb does not allow pc relative negative offsets }
-                              if (current_settings.cputype in cpu_thumb) and
+                              if (GenerateThumbCode) and
                                 tai_label(curdatatai).inserted then
                                 begin
                                   current_asmdata.getjumplabel(l);
@@ -1039,10 +1039,10 @@ implementation
                   A_BX,
                   A_LDR:
                     { approximation if we hit a case jump table }
-                    if ((taicpu(hp).opcode=A_LDR) and not(current_settings.cputype in cpu_thumb+cpu_thumb2) and
+                    if ((taicpu(hp).opcode=A_LDR) and not(GenerateThumbCode or GenerateThumb2Code) and
                        (taicpu(hp).oper[0]^.typ=top_reg) and
                       (taicpu(hp).oper[0]^.reg=NR_PC)) or
-                      ((taicpu(hp).opcode=A_BX) and (current_settings.cputype in cpu_thumb) and
+                      ((taicpu(hp).opcode=A_BX) and (GenerateThumbCode) and
                        (taicpu(hp).oper[0]^.typ=top_reg))
                        then
                       begin
@@ -1059,17 +1059,17 @@ implementation
                           end;
                       end;
                   A_IT:
-                    if current_settings.cputype in cpu_thumb2 then
+                    if GenerateThumb2Code then
                       penalty:=multiplier;
                   A_ITE,
                   A_ITT:
-                    if current_settings.cputype in cpu_thumb2 then
+                    if GenerateThumb2Code then
                       penalty:=2*multiplier;
                   A_ITEE,
                   A_ITTE,
                   A_ITET,
                   A_ITTT:
-                    if current_settings.cputype in cpu_thumb2 then
+                    if GenerateThumb2Code then
                       penalty:=3*multiplier;
                   A_ITEEE,
                   A_ITTEE,
@@ -1079,7 +1079,7 @@ implementation
                   A_ITTET,
                   A_ITETT,
                   A_ITTTT:
-                    if current_settings.cputype in cpu_thumb2 then
+                    if GenerateThumb2Code then
                       penalty:=4*multiplier;
                   else
                     penalty:=0;
@@ -1115,7 +1115,7 @@ implementation
               ) and
               (
                 { do not insert data after a B instruction due to their limited range }
-                not((current_settings.cputype in cpu_thumb) and
+                not((GenerateThumbCode) and
                     (taicpu(curtai).opcode=A_B)
                    )
               ) then
@@ -1123,7 +1123,7 @@ implementation
                 lastinspos:=-1;
                 extradataoffset:=0;
 
-                if current_settings.cputype in cpu_thumb then
+                if GenerateThumbCode then
                   limit:=502
                 else
                   limit:=1016;
@@ -1131,7 +1131,7 @@ implementation
                 { on arm thumb, insert the data always after all labels etc. following an instruction so it
                   is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
                   bxx) and the distance of bxx gets too long }
-                if current_settings.cputype in cpu_thumb then
+                if GenerateThumbCode then
                   while assigned(tai(curtai.Next)) and (tai(curtai.Next).typ in SkipInstr+[ait_label]) do
                     curtai:=tai(curtai.next);
 
@@ -1139,7 +1139,7 @@ implementation
                 current_asmdata.getjumplabel(l);
 
                 { align thumb in thumb .text section to 4 bytes }
-                if not(curdata.empty) and (current_settings.cputype in cpu_thumb) then
+                if not(curdata.empty) and (GenerateThumbCode) then
                   curdata.Insert(tai_align.Create(4));
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
@@ -1167,7 +1167,7 @@ implementation
               curtai:=tai(curtai.next);
           end;
         { align thumb in thumb .text section to 4 bytes }
-        if not(curdata.empty) and (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        if not(curdata.empty) and (GenerateThumbCode or GenerateThumb2Code) then
           curdata.Insert(tai_align.Create(4));
         list.concatlist(curdata);
         curdata.free;
@@ -1329,7 +1329,7 @@ implementation
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         { Do Thumb-2 16bit -> 32bit transformations }
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             ensurethumb2encodings(list);
             foldITInstructions(list);

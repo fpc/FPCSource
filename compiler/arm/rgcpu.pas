@@ -186,7 +186,7 @@ unit rgcpu;
 
       { Lets remove the bits we can fold in later and check if the result can be easily with an add or sub }
       a:=abs(spilltemp.offset);
-      if current_settings.cputype in cpu_thumb then
+      if GenerateThumbCode then
         begin
           {$ifdef DEBUG_SPILLING}
           helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
@@ -243,7 +243,7 @@ unit rgcpu;
    function fix_spilling_offset(offset : ASizeInt) : boolean;
      begin
        result:=(abs(offset)>4095) or
-          ((current_settings.cputype in cpu_thumb) and ((offset<0) or (offset>1020)));
+          ((GenerateThumbCode) and ((offset<0) or (offset>1020)));
      end;
 
 

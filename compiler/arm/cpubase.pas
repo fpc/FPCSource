@@ -374,6 +374,10 @@ unit cpubase;
     function IsIT(op: TAsmOp) : boolean;
     function GetITLevels(op: TAsmOp) : longint;
 
+    function GenerateARMCode : boolean;
+    function GenerateThumbCode : boolean;
+    function GenerateThumb2Code : boolean;
+
   implementation
 
     uses
@@ -526,7 +530,7 @@ unit cpubase;
       var
          i : longint;
       begin
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             for i:=0 to 24 do
               begin
@@ -616,7 +620,7 @@ unit cpubase;
       begin
         Result:=false;
         {Thumb2 is not supported (YET?)}
-        if current_settings.cputype in cpu_thumb2 then exit;
+        if GenerateThumb2Code then exit;
         d:=DWord(value);
         for i:=0 to 15 do
           begin
@@ -707,4 +711,24 @@ unit cpubase;
         end;
       end;
 
+
+    function GenerateARMCode : boolean;
+      begin
+        Result:=current_settings.instructionset=is_arm;
+      end;
+
+
+    function GenerateThumbCode : boolean;
+      begin
+        Result:=(current_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
+    function GenerateThumb2Code : boolean;
+      begin
+        Result:=(current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
 end.
+

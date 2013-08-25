@@ -957,7 +957,7 @@ implementation
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             framepointer:=NR_STACK_POINTER_REG;
             tg.direction:=1;

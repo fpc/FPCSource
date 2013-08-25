@@ -84,7 +84,7 @@ implementation
       begin
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=F_NE;
-        if (left.location.loc=LOC_CONSTANT) and not(current_settings.cputype in cpu_thumb) then
+        if (left.location.loc=LOC_CONSTANT) and not(GenerateThumbCode) then
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
               right.resultdef, right.resultdef, true);
@@ -104,7 +104,7 @@ implementation
             hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
-            if current_settings.cputype in cpu_thumb+cpu_thumb2 then
+            if GenerateThumbCode or GenerateThumb2Code then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_LSL,hregister,left.location.register));
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -199,7 +199,7 @@ implementation
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
 
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             if cs_create_pic in current_settings.moduleswitches then
               internalerror(2013082101);
@@ -218,7 +218,7 @@ implementation
             last:=min_;
             genitem_thumb2(current_asmdata.CurrAsmList,hp);
           end
-        else if current_settings.cputype in cpu_thumb then
+        else if GenerateThumbCode then
           begin
             if cs_create_pic in current_settings.moduleswitches then
               internalerror(2013082102);

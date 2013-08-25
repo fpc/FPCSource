@@ -332,7 +332,7 @@ interface
         (* Try to keep right as a constant *)
         if (right.location.loc <> LOC_CONSTANT) or
           not(is_shifter_const(right.location.value, b)) or
-          ((current_settings.cputype in cpu_thumb) and not(is_thumb_imm(right.location.value))) then
+          ((GenerateThumbCode) and not(is_thumb_imm(right.location.value))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
@@ -402,7 +402,7 @@ interface
             dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
-            if current_settings.cputype in cpu_thumb then
+            if GenerateThumbCode then
               cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
             else
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
@@ -419,7 +419,7 @@ interface
                 location.resflags:=getresflags(unsigned);
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-                if current_settings.cputype in (cpu_thumb+cpu_thumb2) then
+                if GenerateThumbCode or GenerateThumb2Code then
                   begin
                     current_asmdata.getjumplabel(l);
                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
@@ -515,7 +515,7 @@ interface
         if (not(cs_check_overflow in current_settings.localswitches)) and
            (nodetype in [muln]) and
            (is_64bitint(left.resultdef)) and
-           (not (current_settings.cputype in cpu_thumb)) then
+           (not (GenerateThumbCode)) then
           begin
             result := nil;
             firstpass(left);
@@ -630,8 +630,8 @@ interface
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         if right.location.loc = LOC_CONSTANT then
           begin
-             if (not(current_settings.cputype in cpu_thumb) and is_shifter_const(right.location.value,b)) or
-                ((current_settings.cputype in cpu_thumb) and is_thumb_imm(right.location.value)) then
+             if (not(GenerateThumbCode) and is_shifter_const(right.location.value,b)) or
+                ((GenerateThumbCode) and is_thumb_imm(right.location.value)) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin

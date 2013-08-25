@@ -1187,7 +1187,7 @@ unit cgcpu;
              ((abs(ref.offset) mod 4)<>0)
             )
            ) or
-           ((current_settings.cputype in cpu_thumb) and
+           ((GenerateThumbCode) and
             (((oppostfix in [PF_SB,PF_SH]) and (ref.offset<>0)) or
              ((oppostfix=PF_None) and ((ref.offset<0) or ((ref.base<>NR_STACK_POINTER_REG) and (ref.offset>124)) or
                ((ref.base=NR_STACK_POINTER_REG) and (ref.offset>1020)) or ((ref.offset mod 4)<>0))) or
@@ -1199,7 +1199,7 @@ unit cgcpu;
             fixref(list,ref);
           end;
 
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             { certain thumb load require base and index }
             if (oppostfix in [PF_SB,PF_SH]) and
@@ -1465,7 +1465,7 @@ unit cgcpu;
              else
                case fromsize of
                  OS_8:
-                   if current_settings.cputype in cpu_thumb then
+                   if GenerateThumbCode then
                      list.concat(taicpu.op_reg_reg(A_UXTB,reg2,reg1))
                    else
                      list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
@@ -1600,12 +1600,12 @@ unit cgcpu;
         b : byte;
       begin
         a_reg_alloc(list,NR_DEFAULTFLAGS);
-        if (not(current_settings.cputype in cpu_thumb) and is_shifter_const(a,b)) or
-          ((current_settings.cputype in cpu_thumb) and is_thumb_imm(a)) then
+        if (not(GenerateThumbCode) and is_shifter_const(a,b)) or
+          ((GenerateThumbCode) and is_thumb_imm(a)) then
           list.concat(taicpu.op_reg_const(A_CMP,reg,a))
         { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
           and CMP reg,$7fffffff regarding the flags according to the ARM manual }
-        else if (a<>$7fffffff) and (a<>-1) and not(current_settings.cputype in cpu_thumb) and is_shifter_const(-a,b) then
+        else if (a<>$7fffffff) and (a<>-1) and not(GenerateThumbCode) and is_shifter_const(-a,b) then
           list.concat(taicpu.op_reg_const(A_CMN,reg,-a))
         else
           begin
@@ -1634,7 +1634,7 @@ unit cgcpu;
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
             a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
-            if current_settings.cputype in cpu_thumb2 then
+            if GenerateThumb2Code then
               list.Concat(taicpu.op_cond(A_IT, C_EQ));
             list.Concat(setcondition(taicpu.op_reg_const(A_MOV,dst,$ff),C_EQ));
             a_reg_dealloc(list,NR_DEFAULTFLAGS);
@@ -1656,7 +1656,7 @@ unit cgcpu;
         ai : taicpu;
       begin
         { generate far jump, leave it to the optimizer to get rid of it }
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           ai:=taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s))
         else
           ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
@@ -1670,7 +1670,7 @@ unit cgcpu;
         ai : taicpu;
       begin
         { generate far jump, leave it to the optimizer to get rid of it }
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           ai:=taicpu.op_sym(A_BL,l)
         else
           ai:=taicpu.op_sym(A_B,l);
@@ -1685,7 +1685,7 @@ unit cgcpu;
         inv_flags : TResFlags;
         hlabel : TAsmLabel;
       begin
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             inv_flags:=f;
             inverse_flags(inv_flags);
@@ -2519,7 +2519,7 @@ unit cgcpu;
       begin
         if len=0 then
           exit;
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           maxtmpreg:=maxtmpreg_thumb
         else
           maxtmpreg:=maxtmpreg_arm;
@@ -2652,7 +2652,7 @@ unit cgcpu;
                 {if aligned then
                 genloop(len,4)
                 else}
-                if current_settings.cputype in cpu_thumb then
+                if GenerateThumbCode then
                   genloop_thumb(len,1)
                 else
                   genloop(len,1);
@@ -2746,7 +2746,7 @@ unit cgcpu;
         ai : taicpu;
         hlabel : TAsmLabel;
       begin
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             { the optimizer has to fix this if jump range is sufficient short }
             current_asmdata.getjumplabel(hlabel);
@@ -3031,7 +3031,7 @@ unit cgcpu;
           l : TAsmLabel;
         begin
           reference_reset_base(href,NR_R0,0,sizeof(pint));
-          if current_settings.cputype in cpu_thumb then
+          if GenerateThumbCode then
             begin
               if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
                 begin
@@ -3073,7 +3073,7 @@ unit cgcpu;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
-          if current_settings.cputype in cpu_thumb then
+          if GenerateThumbCode then
             begin
               reference_reset_base(href,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
               if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
@@ -3152,7 +3152,7 @@ unit cgcpu;
             op_onr12methodaddr;
           end
         { case 0 }
-        else if current_settings.cputype in cpu_thumb then
+        else if GenerateThumbCode then
           begin
             { bl cannot be used here because it destroys lr }
 
@@ -3200,7 +3200,7 @@ unit cgcpu;
         var
           tmpreg : TRegister;
         begin
-          if ((current_settings.cputype in cpu_thumb+cpu_thumb2) and (getsupreg(reg)=RS_R13)) or
+          if ((GenerateThumbCode or GenerateThumb2Code) and (getsupreg(reg)=RS_R13)) or
             (getsupreg(reg)=RS_R15) then
             begin
               tmpreg:=getintregister(list,OS_INT);
@@ -5237,14 +5237,14 @@ unit cgcpu;
 
     procedure create_codegen;
       begin
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             cg:=tthumb2cgarm.create;
             cg64:=tthumb2cg64farm.create;
 
             casmoptimizer:=TCpuThumb2AsmOptimizer;
           end
-        else if current_settings.cputype in cpu_thumb then
+        else if GenerateThumbCode then
           begin
             cg:=tthumbcgarm.create;
             cg64:=tthumbcg64farm.create;

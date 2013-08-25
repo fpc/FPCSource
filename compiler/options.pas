@@ -892,6 +892,19 @@ begin
                         exclude(init_settings.localswitches,cs_check_io)
                       else
                         include(init_settings.localswitches,cs_check_io);
+{$ifdef arm}
+                    'I' :
+                      begin
+                        if (upper(copy(more,j+1,length(more)-j))='THUMB') and
+                          { does selected CPU really understand thumb? }
+                          (init_settings.cputype in cpu_has_thumb) then
+                          init_settings.instructionset:=is_thumb
+                        else if upper(copy(more,j+1,length(more)-j))='ARM' then
+                          init_settings.instructionset:=is_arm
+                        else
+                          IllegalPara(opt);
+                      end;
+{$endif arm}
                     'n' :
                       If UnsetBool(More, j, opt, false) then
                         exclude(init_settings.globalswitches,cs_link_nolink)
@@ -915,7 +928,7 @@ begin
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
-                        if not(Setcputype(s,init_settings.cputype)) then
+                        if not(Setcputype(s,init_settings)) then
                           IllegalPara(opt);
                         CPUSetExplicitly:=true;
                         break;
@@ -1404,7 +1417,7 @@ begin
                       include(init_settings.optimizerswitches,cs_opt_size);
                     'p' :
                       begin
-                        if not Setcputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
+                        if not Setoptimizecputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
                           begin
                             OptCPUSetExplicitly:=true;
                             { Give warning for old i386 switches }
@@ -3324,14 +3337,14 @@ if (target_info.abi = abi_eabihf) then
 {$endif CPUARMV6}
   end;
 
-  if init_settings.cputype in cpu_thumb then
+  if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     begin
       def_system_macro('CPUTHUMB');
       if not option.FPUSetExplicitly then
         init_settings.fputype:=fpu_soft;
     end;
 
-  if init_settings.cputype in cpu_thumb2 then
+  if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     def_system_macro('CPUTHUMB2');
 {$endif arm}
 

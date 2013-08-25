@@ -86,7 +86,7 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
-        not(current_settings.cputype in cpu_thumb) and
+        not(GenerateThumbCode) and
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
         ((taicpu(p).opcode<A_IT) or (taicpu(p).opcode>A_ITTTT)) and
@@ -284,7 +284,7 @@ Implementation
 
   function isValidConstLoadStoreOffset(const aoffset: longint; const pf: TOpPostfix) : boolean;
     begin
-      if current_settings.cputype in cpu_thumb2 then
+      if GenerateThumb2Code then
         result := (aoffset<4096) and (aoffset>-256)
       else
         result := ((pf in [PF_None,PF_B]) and
@@ -419,7 +419,7 @@ Implementation
     var
       hp1: tai;
     begin
-      if (current_settings.cputype in cpu_arm) and
+      if GenerateARMCode and
         (p.ops=3) and
         MatchOperand(p.oper[0]^, p.oper[1]^.reg) and
         GetNextInstructionUsingReg(p, hp1, p.oper[0]^.reg) and
@@ -499,7 +499,7 @@ Implementation
         { don't apply the optimization if the (new) index register is loaded }
         (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) and
-        (current_settings.cputype in cpu_arm) then
+        GenerateARMCode then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
@@ -735,7 +735,7 @@ Implementation
 
                         ldrb dst2, [ref]
                     }
-                    if not(current_settings.cputype in cpu_thumb) and
+                    if not(GenerateThumbCode) and
                        (taicpu(p).oppostfix=PF_B) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_NONE]) and
@@ -1087,7 +1087,7 @@ Implementation
                           if (taicpu(hp1).ops > I) and
                              MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) and
                              { prevent certain combinations on thumb(2), this is only a safe approximation }
-                             (not(current_settings.cputype in cpu_thumb+cpu_thumb2) or
+                             (not(GenerateThumbCode or GenerateThumb2Code) or
                               ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
                                (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15))
                              ) then
@@ -1121,7 +1121,7 @@ Implementation
                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
                                               A_CMP, A_CMN],
                                         [taicpu(p).condition], [PF_None]) and
-                       (not ((current_settings.cputype in cpu_thumb2) and
+                       (not ((GenerateThumb2Code) and
                              (taicpu(hp1).opcode in [A_SBC]) and
                              (((taicpu(hp1).ops=3) and 
                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^.reg)) or
@@ -1222,7 +1222,7 @@ Implementation
                              add r1, r3, #imm
                              ldr r0, [r1, r2, lsl #2]
                     }
-                    if (not(current_settings.cputype in cpu_thumb)) and
+                    if (not(GenerateThumbCode)) and
                        (taicpu(p).opcode = A_MOV) and
                        (taicpu(p).ops = 3) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
@@ -1232,7 +1232,7 @@ Implementation
                        (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
                        (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
                        { thumb2 allows only lsl #0..#3 }
-                       (not(current_settings.cputype in cpu_thumb2) or
+                       (not(GenerateThumb2Code) or
                         ((taicpu(p).oper[2]^.shifterop^.shiftimm in [0..3]) and
                          (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL)
                         )
@@ -1906,7 +1906,7 @@ Implementation
                 case taicpu(p).opcode Of
                   A_B:
                     if (taicpu(p).condition<>C_None) and
-                      not(current_settings.cputype in cpu_thumb) then
+                      not(GenerateThumbCode) then
                       begin
                          { check for
                                 Bxx   xxx

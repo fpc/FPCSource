@@ -98,7 +98,7 @@ unit cpupi;
           tg.setfirsttemp(maxpushedparasize);
 
         { estimate stack frame size }
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             stackframesize:=maxpushedparasize+32;
             localsize:=0;
@@ -140,7 +140,7 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           result:=stackframesize
         else
           begin
@@ -194,7 +194,7 @@ unit cpupi;
 
     procedure tarmprocinfo.init_framepointer;
       begin
-        if (target_info.system in systems_darwin) or (current_settings.cputype in cpu_thumb) then
+        if (target_info.system in systems_darwin) or GenerateThumbCode then
           begin
             RS_FRAME_POINTER_REG:=RS_R7;
             NR_FRAME_POINTER_REG:=NR_R7;
