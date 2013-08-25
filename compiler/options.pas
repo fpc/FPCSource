@@ -1847,6 +1847,7 @@ begin
                       end;
                     'm':
                       begin
+{$if defined(i8086)}
                         if (target_info.system in [system_i8086_msdos]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
@@ -1862,6 +1863,7 @@ begin
                             break;
                           end
                         else
+{$endif defined(i8086)}
                           IllegalPara(opt);
                       end;
                     'M':

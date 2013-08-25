@@ -154,11 +154,13 @@ interface
 
          disabledircache : boolean;
 
+{$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
+{$endif}
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
-        controllertype   : tcontrollertype;
+         controllertype   : tcontrollertype;
 {$endif defined(ARM) or defined(AVR)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
@@ -479,7 +481,9 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+{$if defined(i8086)}
         x86memorymodel : mm_small;
+{$endif defined(i8086)}
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
