@@ -472,7 +472,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=24;
+  flagopts=27;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
