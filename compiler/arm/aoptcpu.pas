@@ -838,10 +838,10 @@ Implementation
                                 SM_LSR,
                                 SM_LSL:
                                   begin
-                                    hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
-                                    InsertLLItem(p.previous, p.next, hp1);
+                                    hp2:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
+                                    InsertLLItem(p.previous, p.next, hp2);
                                     p.free;
-                                    p:=hp1;
+                                    p:=hp2;
                                   end;
                                 else
                                   internalerror(2008072803);
