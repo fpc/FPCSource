@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2013 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -3401,7 +3401,7 @@ S*2Aas_Assemble using GNU AS
 **2bl_Generate local symbol info
 **1B_Build all modules
 **1C<x>_Code generation options:
-**2C3<x>_Turn on ieee error checking for constants
+**2C3_Turn on ieee error checking for constants
 **2Ca<x>_Select ABI, see fpc -i for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
