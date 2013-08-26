@@ -139,9 +139,13 @@ begin
     FieldDefs.Add('FDATETIME',ftDateTime);
     FieldDefs.Add('FBLOB',ftBlob);
     FieldDefs.Add('FMEMO',ftMemo);
-    FieldDefs.Add('FLARGEINT',ftLargeint);
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
+    FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FGUID',ftGuid,38);
     FieldDefs.Add('FFMTBCD',ftFmtBCD);
+    FieldDefs.Add('FWIDESTRING',ftWideString,10);
+    FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar,10);
+    FieldDefs.Add('FWIDEMEMO',ftWideMemo);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -161,9 +165,13 @@ begin
       FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
       FieldByName('FBLOB').AsString := testStringValues[i];
       FieldByName('FMEMO').AsString := testStringValues[i];
-      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FGUID').AsString := GuidToString(GUID_NULL);
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
+      FieldByName('FWIDESTRING').AsString := testStringValues[i];
+      FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FWIDEMEMO').AsString := testStringValues[i];
       Post;
     end;
     MergeChangeLog;

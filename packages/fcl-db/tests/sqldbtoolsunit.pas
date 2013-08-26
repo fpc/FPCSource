@@ -222,6 +222,9 @@ begin
       FieldtypeDefinitions[ftBlob]    := 'IMAGE';
       FieldtypeDefinitions[ftMemo]    := 'TEXT';
       FieldtypeDefinitions[ftGraphic] := '';
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
+      FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
+      FieldtypeDefinitions[ftWideMemo] := 'NTEXT';
       end;
     ssMySQL:
       begin
@@ -245,9 +248,10 @@ begin
     ssPostgreSQL:
       begin
       FieldtypeDefinitions[ftCurrency] := 'MONEY'; // ODBC?!
-      FieldtypeDefinitions[ftBlob] := 'BYTEA';
-      FieldtypeDefinitions[ftMemo] := 'TEXT';
-      FieldtypeDefinitions[ftGraphic] := '';
+      FieldtypeDefinitions[ftBlob]     := 'BYTEA';
+      FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      FieldtypeDefinitions[ftGraphic]  := '';
+      FieldtypeDefinitions[ftGuid]     := 'UUID';
       end;
     ssSQLite:
       begin
@@ -257,6 +261,7 @@ begin
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
+      FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
   end;
@@ -393,7 +398,6 @@ begin
 
     for countID := 0 to testValuesCount-1 do
       begin
-      
       Sql :=  'insert into FPDEV_FIELD (ID';
       Sql1 := 'values ('+IntToStr(countID);
       for FType := low(TFieldType)to high(TFieldType) do
@@ -471,7 +475,7 @@ begin
     begin
     sql.clear;
     sql.add('SELECT * FROM FPDEV_FIELD');
-    tsqlquery(Result).UniDirectional:=TestUniDirectional;
+    UniDirectional:=TestUniDirectional;
     end;
 end;
 
