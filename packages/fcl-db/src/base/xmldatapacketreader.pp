@@ -102,9 +102,9 @@ const
       '',
       '',
       '',
+      'string:Guid',        // ftGuid
       '',
-      '',
-      'fixedFMT',
+      'fixedFMT',           // ftFmtBCD
       'string.uni',         // ftFixedWideChar
       'bin.hex:WideText'    // ftWideMemo
     );
