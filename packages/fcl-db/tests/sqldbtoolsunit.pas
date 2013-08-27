@@ -224,7 +224,7 @@ begin
       FieldtypeDefinitions[ftGraphic] := '';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
-      FieldtypeDefinitions[ftWideMemo] := 'NTEXT';
+      //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
       end;
     ssMySQL:
       begin
