@@ -386,13 +386,9 @@ interface
 
         pass_left_right;
 
+        { pass_left_right moves possible consts to the right, the only
+          remaining case with left consts (currency) can take this path too (KB) }
         if (nodetype in [equaln,unequaln]) and
-          (left.nodetype=ordconstn) and (tordconstnode(left).value=0) then
-          begin
-            { pass_left_right moves possible consts to the right }
-            internalerror(2013082201);
-          end
-        else if (nodetype in [equaln,unequaln]) and
           (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
