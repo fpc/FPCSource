@@ -40,6 +40,7 @@ unit cpupi;
             if this size is too little the procedure must be compiled again with a larger value }
           stackframesize,
           floatregstart : aint;
+          stackpaddingreg: aint;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;

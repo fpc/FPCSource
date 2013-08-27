@@ -1729,6 +1729,7 @@ unit cgcpu;
         LocalSize:=align(LocalSize,4);
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
+        tarmprocinfo(current_procinfo).stackpaddingreg:=-1;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
@@ -1787,6 +1788,17 @@ unit cgcpu;
                      for r:=RS_R0 to RS_R15 do
                        if r in regs then
                          inc(stackmisalignment,4);
+
+                     { if the stack is not 8 byte aligned, try to add an extra register,
+                       so we can avoid the extra sub/add ...,#4 later (KB) }
+                     if ((stackmisalignment mod current_settings.alignment.localalignmax) <> 0) then
+                       for r:=RS_R3 downto RS_R0 do
+                         if not(r in regs) then begin
+                            regs:=regs+[r];
+                            inc(stackmisalignment,4);
+                            tarmprocinfo(current_procinfo).stackpaddingreg:=r;
+                            break;
+                         end;
                      list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
                    end;
 
@@ -1935,6 +1947,7 @@ unit cgcpu;
          saveregs,
          regs : tcpuregisterset;
          stackmisalignment: pint;
+         paddingreg: aint;
          mmpostfix: toppostfix;
          imm1, imm2: DWord;
       begin
@@ -2018,7 +2031,7 @@ unit cgcpu;
                 end;
               end;
 
-            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)        ;
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             if (pi_do_call in current_procinfo.flags) or
                (regs<>[]) or
                ((target_info.system in systems_darwin) and
@@ -2057,6 +2070,18 @@ unit cgcpu;
             for r:=RS_R0 to RS_R15 do
               if r in regs then
                 inc(stackmisalignment,4);
+
+            { reapply the stack padding reg, in case there was one, see the complimentary
+              comment in g_proc_entry() (KB) }
+            paddingreg:=tarmprocinfo(current_procinfo).stackpaddingreg;
+            if paddingreg >= RS_R0 then
+              if paddingreg in regs then
+                internalerror(201306190)
+              else
+                begin
+                  regs:=regs+[paddingreg];
+                  inc(stackmisalignment,4);
+                end;
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (target_info.system in systems_darwin) then
