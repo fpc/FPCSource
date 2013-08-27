@@ -1975,41 +1975,50 @@ begin
 end;
 
 procedure TTestFieldTypes.TestRowsAffected;
+var Query2: TSQLQuery;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    AssertEquals(-1,query.RowsAffected);
+    Query2 := GetNDataset(0) as TSQLQuery;
+
+    AssertEquals(-1, Query.RowsAffected);
     Connection.ExecuteDirect('create table FPDEV2 (' +
                               '  ID INT NOT NULL,  ' +
                               '  NAME VARCHAR(250),' +
-                              '  PRIMARY KEY (ID)  ' +
-                              ')                   ');
+                              '  PRIMARY KEY (ID) )');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
 
     Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
     Query.ExecSQL;
-    AssertEquals(1,query.RowsAffected);
+    AssertEquals(1, Query.RowsAffected);
     Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (2,''test2'')';
     Query.ExecSQL;
-    AssertEquals(1,query.RowsAffected);
+    AssertEquals(1, Query.RowsAffected);
+
     Query.SQL.Text := 'update FPDEV2 set NAME=''NewTest''';
     Query.ExecSQL;
-    AssertEquals(2,query.RowsAffected);
+
+    AssertEquals(-1, Query2.RowsAffected);
+    Query2.SQL.Text := 'insert into FPDEV2 values(3,''test3'')';
+    Query2.ExecSQL;
+    AssertEquals(1, Query2.RowsAffected);
+    // tests, that RowsAffected is specific per query, not per connection
+    //  i.e. that it doesn't return only RowsAffected of last query executed over connection
+    AssertEquals(2, Query.RowsAffected);
+
     Query.SQL.Text := 'select * from FPDEV2';
     Query.Open;
-    AssertTrue(query.RowsAffected<>0); // It should return -1 or the number of selected rows.
-    query.Close;
-    AssertTrue(query.RowsAffected<>0); // It should return -1 or the same as the last time it was called.
-    if (SQLConnType = sqlite3) then  // sqlite doesn't count the rowsaffected if there is no where-clause
-      Query.SQL.Text := 'delete from FPDEV2 where 1'
-    else
-      Query.SQL.Text := 'delete from FPDEV2';
+    AssertTrue(Query.RowsAffected<>0); // It should return -1 or the number of selected rows.
+    Query.Close;
+    AssertTrue(Query.RowsAffected<>0); // It should return -1 or the same as the last time it was called.
+
+    Query.SQL.Text := 'delete from FPDEV2 where ID>0'; // sqlite doesn't count the RowsAffected if there is no where-clause
     Query.ExecSQL;
-    AssertEquals(2,query.RowsAffected);
+    AssertEquals(3, Query.RowsAffected);
     Query.SQL.Text := 'delete from FPDEV2';
     Query.ExecSQL;
-    AssertEquals(0,query.RowsAffected);
+    AssertEquals(0, Query.RowsAffected);
     end;
 end;
 
