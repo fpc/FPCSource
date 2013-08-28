@@ -1729,7 +1729,7 @@ unit cgcpu;
         LocalSize:=align(LocalSize,4);
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
-        tarmprocinfo(current_procinfo).stackpaddingreg:=-1;
+        tarmprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
@@ -1948,7 +1948,7 @@ unit cgcpu;
          saveregs,
          regs : tcpuregisterset;
          stackmisalignment: pint;
-         paddingreg: aint;
+         paddingreg: TSuperRegister;
          mmpostfix: toppostfix;
          imm1, imm2: DWord;
       begin
@@ -2075,7 +2075,7 @@ unit cgcpu;
             { reapply the stack padding reg, in case there was one, see the complimentary
               comment in g_proc_entry() (KB) }
             paddingreg:=tarmprocinfo(current_procinfo).stackpaddingreg;
-            if paddingreg >= RS_R0 then
+            if paddingreg < RS_R4 then
               if paddingreg in regs then
                 internalerror(201306190)
               else

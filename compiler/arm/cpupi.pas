@@ -29,7 +29,7 @@ unit cpupi;
 
     uses
        globtype,cutils,
-       procinfo,cpuinfo,psub,
+       procinfo,cpuinfo,psub,cgbase,
        aasmdata;
 
     type
@@ -40,7 +40,7 @@ unit cpupi;
             if this size is too little the procedure must be compiled again with a larger value }
           stackframesize,
           floatregstart : aint;
-          stackpaddingreg: aint;
+          stackpaddingreg: TSuperRegister;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
@@ -58,7 +58,7 @@ unit cpupi;
        cpubase,
        tgobj,
        symconst,symtype,symsym,paramgr,
-       cgbase,cgutils,
+       cgutils,
        cgobj,
        defutil;
 
