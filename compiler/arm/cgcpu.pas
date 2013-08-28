@@ -1793,12 +1793,13 @@ unit cgcpu;
                        so we can avoid the extra sub/add ...,#4 later (KB) }
                      if ((stackmisalignment mod current_settings.alignment.localalignmax) <> 0) then
                        for r:=RS_R3 downto RS_R0 do
-                         if not(r in regs) then begin
-                            regs:=regs+[r];
-                            inc(stackmisalignment,4);
-                            tarmprocinfo(current_procinfo).stackpaddingreg:=r;
-                            break;
-                         end;
+                         if not(r in regs) then
+                           begin
+                             regs:=regs+[r];
+                             inc(stackmisalignment,4);
+                             tarmprocinfo(current_procinfo).stackpaddingreg:=r;
+                             break;
+                           end;
                      list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
                    end;
 
