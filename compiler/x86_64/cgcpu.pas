@@ -65,7 +65,6 @@ unit cgcpu;
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       var
         i : longint;
-        framepointer : tsuperregister;
       begin
         inherited init_register_allocators;
 
@@ -91,17 +90,12 @@ unit cgcpu;
                   saved_standard_registers[i]:=others_saved_std_regs[i];
               end;
           end;
-        if assigned(current_procinfo) then
-          framepointer:=getsupreg(current_procinfo.framepointer)
-        else
-          { in intf. wrapper code generation }
-          framepointer:=RS_FRAME_POINTER_REG;
         if target_info.system=system_x86_64_win64 then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
-            RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[framepointer])
+            RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_RSI,RS_RDI,RS_R8,
-            RS_R9,RS_R10,RS_R11,RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[framepointer]);
+            RS_R9,RS_R10,RS_R11,RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[]);
 
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
@@ -119,7 +113,7 @@ unit cgcpu;
         suppress_endprologue: boolean;
         stackmisalignment: longint;
         para: tparavarsym;
-      begin
+        begin
         hitem:=list.last;
         { pi_has_unwind_info may already be set at this point if there are
           SEH directives in assembler body. In this case, .seh_endprologue
@@ -215,14 +209,14 @@ unit cgcpu;
           since registers are not modified before they are saved, and saves do not
           change RSP, 'logically' all saves can happen at the end of prologue. }
         href:=current_procinfo.save_regs_ref;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
-            begin
-              templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
-                newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
-                href.offset+frame_offset));
-              inc(href.offset,sizeof(aint));
-            end;
+            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+              if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+                begin
+                  templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
+                    newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
+                    href.offset+frame_offset));
+                 inc(href.offset,sizeof(aint));
+                end;
         if uses_registers(R_MMREGISTER) then
           begin
             if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
@@ -349,8 +343,7 @@ unit cgcpu;
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-            list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,NR_RAX));
-            list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
+            list.concat(taicpu.op_ref(A_JMP,S_Q,href));
           end
         else
           begin
