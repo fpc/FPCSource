@@ -3435,6 +3435,7 @@ J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0)
 J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
 J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
+J*3CTlowercaseprocstart_ Lowercase the first character of procedure/function/method names
 J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>

@@ -232,7 +232,11 @@ interface
            these strings as prefixes for the generated getters/setter names }
          ts_auto_getter_prefix,
          ts_auto_setter_predix,
-         ts_thumb_interworking
+         ts_thumb_interworking,
+         { lowercase the first character of routine names, used to generate
+           names that are compliant with Java coding standards from code
+           written according to Delphi coding standards }
+         ts_lowercase_proc_start
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -313,7 +317,8 @@ interface
          (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ),
          (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
          (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
-         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true )
+         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ),
+         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true )
        );
 
        { switches being applied to all CPUs at the given level }
