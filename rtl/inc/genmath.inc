@@ -224,7 +224,7 @@ type
 invalid:
            float_raise(float_flag_invalid);
            if (aSign <> 0) then
-             float64_to_int32_round_to_zero:=$80000000
+             float64_to_int32_round_to_zero:=longint($80000000)
            else
              float64_to_int32_round_to_zero:=$7FFFFFFF;
            exit;
@@ -333,7 +333,7 @@ invalid:
                    exit;
                  end;
              End;
-           float32_to_int32_round_to_zero:=$80000000;
+           float32_to_int32_round_to_zero:=longint($80000000);
            exit;
          End
        else

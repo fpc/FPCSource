@@ -673,9 +673,9 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -698,9 +698,9 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -724,9 +724,9 @@ procedure inclocked(var l : longint);assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -749,9 +749,9 @@ procedure inclocked(var l : int64);assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx

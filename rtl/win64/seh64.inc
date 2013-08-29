@@ -304,6 +304,7 @@ begin
   args[1]:=PtrUint(Obj);
   args[2]:=GetBacktrace(ctx,AFrame,PPointer(args[3]));
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
+  result:=nil;
 end;
 
 procedure _fpc_local_unwind(frame,target: Pointer);[public,alias:'_FPC_local_unwind'];compilerproc;
@@ -429,7 +430,7 @@ var
 begin
   Adr:=rec.ExceptionInformation[0];
   Obj:=TObject(rec.ExceptionInformation[1]);
-  Framecount:=Longint(rec.ExceptionInformation[2]);
+  Framecount:=Longint(PtrUInt(rec.ExceptionInformation[2]));
   Frames:=rec.ExceptionInformation[3];
 
   if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
