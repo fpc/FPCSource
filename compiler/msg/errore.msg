@@ -3430,12 +3430,13 @@ J*2CT<x>_Target-specific code generation options
 A*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
+J*3CTautogetterprefix=X_  Automatically create getters for properties with prefix X (empty string disables)
+J*3CTautosetterprefix=X_  Automatically create setters for properties with prefix X (empty string disables)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
-J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
-J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
-J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
+J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
+J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
+J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
-J*3CTlowercaseprocstart_ Lowercase the first character of procedure/function/method names
 J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>

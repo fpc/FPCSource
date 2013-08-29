@@ -236,7 +236,10 @@ interface
          { lowercase the first character of routine names, used to generate
            names that are compliant with Java coding standards from code
            written according to Delphi coding standards }
-         ts_lowercase_proc_start
+         ts_lowercase_proc_start,
+         { initialise local variables on the JVM target so you won't get
+           accidental uses of uninitialised values }
+         ts_init_locals
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -318,7 +321,8 @@ interface
          (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
          (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
          (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ),
-         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true )
+         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ),
+         (name: 'INITLOCALS';          hasvalue: false; isglobal: true )
        );
 
        { switches being applied to all CPUs at the given level }

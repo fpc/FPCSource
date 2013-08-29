@@ -55,7 +55,8 @@ interface
      strict protected
       { called from wrap_proc_body to insert the trashing for the wrapped
         routine's local variables and parameters }
-      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode; virtual;
+      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
+      class function  check_insert_trashing(pd: tprocdef): boolean; virtual;
       { callback called for every local variable and parameter by
         maybe_insert_trashing(), calls through to maybe_trash_variable() }
       class procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
@@ -330,14 +331,20 @@ implementation
       stat: tstatementnode;
     begin
       result:=n;
-      if (localvartrashing<>-1)  and
-         not(po_assembler in pd.procoptions) then
+      if check_insert_trashing(pd) then
         begin
           result:=internalstatements(stat);
           pd.parast.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           pd.localst.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           addstatement(stat,n);
         end;
+    end;
+
+  class function tnodeutils.check_insert_trashing(pd: tprocdef): boolean;
+    begin
+      result:=
+        (localvartrashing<>-1) and
+        not(po_assembler in pd.procoptions);
     end;
 
 
