@@ -614,7 +614,11 @@ implementation
 
     constructor tprocsym.create(const n : string);
       begin
-         inherited create(procsym,n);
+         if not(ts_lowercase_proc_start in current_settings.targetswitches) or
+            (n='') then
+           inherited create(procsym,n)
+         else
+           inherited create(procsym,lowercase(n[1])+copy(n,2,length(n)-1));
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym

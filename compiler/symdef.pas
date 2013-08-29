@@ -5271,8 +5271,6 @@ implementation
                     tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$'+tostr(tprocdef(owner.defowner).procsym.symid)+'$'+tmpresult;
                     container:=container.defowner.owner;
                   end;
-                if ts_lowercase_proc_start in current_settings.targetswitches then
-                  tmpresult[1]:=lower(tmpresult[1]);
               end;
           end
         else
