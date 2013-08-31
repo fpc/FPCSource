@@ -1016,6 +1016,7 @@ packages/chm/src/paslzx.pas svneol=native#text/plain
 packages/chm/src/paslzxcomp.pas svneol=native#text/plain
 packages/cocoaint/Makefile svneol=native#text/plain
 packages/cocoaint/Makefile.fpc svneol=native#text/plain
+packages/cocoaint/fpmake.pp svneol=native#text/plain
 packages/cocoaint/src/AnonClassDefinitionsCoredata.pas svneol=native#text/plain
 packages/cocoaint/src/AnonClassDefinitionsQuartzcore.pas svneol=native#text/plain
 packages/cocoaint/src/AnonClassDefinitionsWebkit.pas svneol=native#text/plain

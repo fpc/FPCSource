@@ -52,7 +52,7 @@ begin
     T.ResourceStrings := True;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('fpsock.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
