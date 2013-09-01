@@ -53,7 +53,11 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
     {$else}
     stmia   r0,{v1-v6, sl, fp, sp, lr}
     mov     r0,#0
+    {$ifdef CPUARM_HAS_BX}
     bx      lr
+    {$else}
+    mov pc,lr
+    {$endif}
     {$endif}
   end;
 
