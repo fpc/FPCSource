@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libgbafpc');
+    P.OSes:=[gba];
 {$ifdef ALLPACKAGES}
     P.Directory:='libgbafpc';
 {$endif ALLPACKAGES}

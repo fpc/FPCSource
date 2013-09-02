@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libndsfpc');
+    P.OSes:=[nds];
 {$ifdef ALLPACKAGES}
     P.Directory:='libndsfpc';
 {$endif ALLPACKAGES}
