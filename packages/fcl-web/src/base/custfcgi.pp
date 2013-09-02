@@ -349,11 +349,11 @@ Type THttpToCGI = array[1..CGIVarCount] of byte;
 
 const HttpToCGI : THttpToCGI =
    (
-     18,  //  1 'HTTP_ACCEPT'           - fieldAccept
-     19,  //  2 'HTTP_ACCEPT_CHARSET'   - fieldAcceptCharset
-     20,  //  3 'HTTP_ACCEPT_ENCODING'  - fieldAcceptEncoding
-     26,  //  4 'HTTP_ACCEPT_LANGUAGE'  - fieldAcceptLanguage
-      0,  //  5
+     18,  //  1 'HTTP_ACCEPT'           - field Accept
+     19,  //  2 'HTTP_ACCEPT_CHARSET'   - field AcceptCharset
+     20,  //  3 'HTTP_ACCEPT_ENCODING'  - field AcceptEncoding
+     26,  //  4 'HTTP_ACCEPT_LANGUAGE'  - field AcceptLanguage
+     37,  //  5  HTTP_AUTHORIZATION     - field Authorization
       0,  //  6
       0,  //  7
       0,  //  8
@@ -391,8 +391,9 @@ const HttpToCGI : THttpToCGI =
 var ACgiVarNr : Integer;
 
 begin
+
   Result := '';
-  if assigned(FCGIParams) and (index < high(HttpToCGI)) and (index > 0) and (index<>35) then
+  if assigned(FCGIParams) and (index <= high(HttpToCGI)) and (index > 0) and (index<>35) then
     begin
     ACgiVarNr:=HttpToCGI[Index];
     if ACgiVarNr>0 then
