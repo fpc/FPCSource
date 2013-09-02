@@ -53,6 +53,8 @@ interface
         procedure WriteOper_jmp(const o:toper);
        protected
         fskipPopcountSuffix: boolean;
+        { http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56656 }
+        fNoInterUnitMovQ: boolean;
        public
         procedure WriteInstruction(hp: tai);override;
      end;
@@ -90,6 +92,8 @@ interface
         InstrWriter := Tx86InstrWriter.create(self);
         { Apple's assembler does not support a size suffix for popcount }
         Tx86InstrWriter(InstrWriter).fskipPopcountSuffix := true;
+        { Apple's assembler is broken regarding some movq suffix handling }
+        Tx86InstrWriter(InstrWriter).fNoInterUnitMovQ := true;
       end;
 
 {****************************************************************************
@@ -293,6 +297,23 @@ interface
                end;
            end;
 {$endif x86_64}
+        { see fNoInterUnitMovQ declaration comment }
+        if fNoInterUnitMovQ then
+          begin
+            if ((op=A_MOVQ) or
+                (op=A_VMOVQ)) and
+               (((taicpu(hp).oper[0]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[0]^.reg)=R_INTREGISTER)) or
+                ((taicpu(hp).oper[1]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[1]^.reg)=R_INTREGISTER))) then
+              begin
+                if op=A_MOVQ then
+                  op:=A_MOVD
+                else
+                  op:=A_VMOVD;
+                taicpu(hp).opcode:=op;
+              end;
+          end;
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
