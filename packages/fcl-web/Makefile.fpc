@@ -66,7 +66,11 @@ ifdef UNIXHier
 else
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
 endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) -ie
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) -ie
+endif
 
-# Normally distinstall also installs the examples, but in this case there are
-# none.
-distinstall:	install
