@@ -1415,9 +1415,25 @@ unit cgcpu;
 
        procedure do_shift(shiftmode : tshiftmode; shiftimm : byte; reg : tregister);
          begin
-           so.shiftmode:=shiftmode;
-           so.shiftimm:=shiftimm;
-           list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg,so));
+           if GenerateThumbCode then
+             begin
+               case shiftmode of
+                 SM_ASR:
+                   a_op_const_reg(list,OP_SAR,OS_32,shiftimm,reg);
+                 SM_LSR:
+                   a_op_const_reg(list,OP_SHR,OS_32,shiftimm,reg);
+                 SM_LSL:
+                   a_op_const_reg(list,OP_SHL,OS_32,shiftimm,reg);
+                 else
+                   internalerror(2013090301);
+               end;
+             end
+           else
+             begin
+               so.shiftmode:=shiftmode;
+               so.shiftimm:=shiftimm;
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg,so));
+             end;
          end;
 
        var
@@ -1437,7 +1453,10 @@ unit cgcpu;
              if current_settings.cputype<cpu_armv6 then
                case fromsize of
                  OS_8:
-                   list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                   if GenerateThumbCode then
+                     a_op_const_reg_reg(list,OP_AND,OS_32,$ff,reg1,reg2)
+                   else
+                     list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
                  OS_S8:
                    begin
                      do_shift(SM_LSL,24,reg1);
