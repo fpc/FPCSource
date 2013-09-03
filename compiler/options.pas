@@ -903,6 +903,7 @@ begin
                           init_settings.instructionset:=is_arm
                         else
                           IllegalPara(opt);
+                        break;
                       end;
 {$endif arm}
                     'n' :
