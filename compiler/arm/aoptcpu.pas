@@ -640,7 +640,8 @@ Implementation
                       into
                       strd reg1,ref
                     }
-                    else if (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+                    else if (GenerateARMCode or GenerateThumb2Code) and
+                       (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
                        (taicpu(p).oppostfix=PF_None) and
                        (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
@@ -704,7 +705,8 @@ Implementation
                            ...
                            ldrd reg1,ref
                         }
-                        else if (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+                        else if (GenerateARMCode or GenerateThumb2Code) and
+                          (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
                           { ldrd does not allow any postfixes ... }
                           (taicpu(p).oppostfix=PF_None) and
                           not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
