@@ -964,7 +964,7 @@ begin
   SetCapacity(NC);
 end;
 
-Procedure TStringList.InternalClear;
+Procedure TStringList.InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
 
 Var
   I: Integer;
@@ -972,7 +972,7 @@ Var
 begin
   if FOwnsObjects then
     begin
-      For I:=0 to FCount-1 do
+      For I:=FromIndex to FCount-1 do
         begin
           Flist^[I].FString:='';
           freeandnil(Flist^[i].FObject);
@@ -980,11 +980,12 @@ begin
     end
   else
     begin
-      For I:=0 to FCount-1 do
+      For I:=FromIndex to FCount-1 do
         Flist^[I].FString:='';
     end;
-  FCount:=0;
-  SetCapacity(0);
+  FCount:=FromIndex;
+  if Not ClearOnly then
+    SetCapacity(0);
 end;
 
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
@@ -1147,7 +1148,7 @@ end;
 Procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    MSize : Longint;
+    I,MSize : Longint;
 
 begin
   If (NewCapacity<0) then
@@ -1175,6 +1176,7 @@ begin
       FList := nil;
     end else
     begin
+      InternalClear(NewCapacity,True);
       GetMem(NewList, NewCapacity * SizeOf(TStringItem));
       System.Move(FList^, NewList^, NewCapacity * SizeOf(TStringItem));
       FreeMem(FList);
