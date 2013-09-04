@@ -3424,7 +3424,9 @@ if (target_info.abi = abi_eabihf) then
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
-  if CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype] then
+  if (CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype]) and
+     ((init_settings.instructionset=is_arm) or
+      (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype])) then
     begin
       def_system_macro('FPC_HAS_INTERNAL_BSR');
       if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
