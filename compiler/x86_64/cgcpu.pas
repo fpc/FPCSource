@@ -269,7 +269,7 @@ unit cgcpu;
 
         { We need to record postive offsets from RSP; if registers are saved
           at negative offsets from RBP we need to account for it. }
-        if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+        if (not use_push) then
           frame_offset:=current_procinfo.final_localsize
         else
           frame_offset:=0;
@@ -377,7 +377,7 @@ unit cgcpu;
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
-            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
+            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
