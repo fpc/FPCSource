@@ -1419,11 +1419,11 @@ unit cgcpu;
              begin
                case shiftmode of
                  SM_ASR:
-                   a_op_const_reg(list,OP_SAR,OS_32,shiftimm,reg);
+                   a_op_const_reg_reg(list,OP_SAR,OS_32,shiftimm,reg,reg2);
                  SM_LSR:
-                   a_op_const_reg(list,OP_SHR,OS_32,shiftimm,reg);
+                   a_op_const_reg_reg(list,OP_SHR,OS_32,shiftimm,reg,reg2);
                  SM_LSL:
-                   a_op_const_reg(list,OP_SHL,OS_32,shiftimm,reg);
+                   a_op_const_reg_reg(list,OP_SHL,OS_32,shiftimm,reg,reg2);
                  else
                    internalerror(2013090301);
                end;
