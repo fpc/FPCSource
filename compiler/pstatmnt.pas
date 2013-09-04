@@ -53,7 +53,7 @@ implementation
        nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,
+       pbase,ptype,pexpr,
        { codegen }
        procinfo,cgbase,
        { assembler reader }
@@ -900,22 +900,13 @@ implementation
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
                             begin
-                               consume_sym(srsym,srsymtable);
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 begin
-                                    ot:=ttypesym(srsym).typedef;
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
-                                 end
-                               else
-                                 begin
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrordef,[]);
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
-                                 end;
+                              single_type(ot,[]);
+                              if not (is_class(ot) or is_javaclass(ot)) then
+                                begin
+                                  Message1(type_e_class_type_expected,ot.typename);
+                                  ot:=generrordef;
+                                end;
+                              sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
                             begin
@@ -933,19 +924,23 @@ implementation
                                  consume(t);
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 ot:=ttypesym(srsym).typedef
+                               if (srsym.typ=typesym) then
+                                 begin
+                                   ot:=ttypesym(srsym).typedef;
+                                   parse_nested_types(ot,false,nil);
+                                   if not (is_class(ot) or is_javaclass(ot)) then
+                                     begin
+                                       Message1(type_e_class_type_expected,ot.typename);
+                                       ot:=generrordef;
+                                     end;
+                                 end
                                else
                                  begin
-                                    ot:=generrordef;
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
+                                   Message(type_e_type_id_expected);
+                                   ot:=generrordef;
                                  end;
-                               { create dummy symbol so we don't need a special
+
+                                 { create dummy symbol so we don't need a special
                                  case in ncgflw, and so that we always know the
                                  type }
                                sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
