@@ -2928,7 +2928,7 @@ end;
 procedure TBlobField.Clear;
 
 begin
-  GetBlobStream(bmWrite).free;
+  GetBlobStream(bmWrite).Free;
 end;
 
 

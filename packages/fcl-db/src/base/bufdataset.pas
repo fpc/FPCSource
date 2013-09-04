@@ -41,15 +41,18 @@ type
 
   TBufBlobStream = class(TStream)
   private
+    FField      : TBlobField;
+    FDataSet    : TCustomBufDataset;
     FBlobBuffer : PBlobBuffer;
     FPosition   : ptrint;
-    FDataset    : TCustomBufDataset;
+    FModified   : boolean;
   protected
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
   public
     constructor Create(Field: TBlobField; Mode: TBlobStreamMode);
+    destructor Destroy; override;
   end;
 
   { TCustomBufDataset }
@@ -2330,11 +2333,14 @@ begin
     ABuff := ActiveBuffer;
     NullMask := PByte(ABuff);
 
-    inc(ABuff,FFieldBufPositions[FUpdateBlobBuffers[i]^.FieldNo-1]);
-    Move(blobbuf, ABuff^, GetFieldSize(FieldDefs[FUpdateBlobBuffers[i]^.FieldNo-1]));
-    unSetFieldIsNull(NullMask,FUpdateBlobBuffers[i]^.FieldNo-1);
+    inc(ABuff,FFieldBufPositions[blobbuf.BlobBuffer^.FieldNo-1]);
+    Move(blobbuf, ABuff^, GetFieldSize(FieldDefs[blobbuf.BlobBuffer^.FieldNo-1]));
+    if blobbuf.BlobBuffer^.Size = 0 then
+      SetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1)
+    else
+      unSetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1);
     
-    FUpdateBlobBuffers[i]^.FieldNo := -1;
+    blobbuf.BlobBuffer^.FieldNo := -1;
     end;
 
   if State = dsInsert then
@@ -2582,6 +2588,8 @@ begin
   ABlobBuffer := Nil;
 end;
 
+{ TBufBlobStream }
+
 function TBufBlobStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
@@ -2617,6 +2625,7 @@ begin
   move(buffer,ptr^,count);
   inc(FBlobBuffer^.Size,count);
   inc(FPosition,count);
+  FModified := True;
   Result := count;
 end;
 
@@ -2625,29 +2634,46 @@ constructor TBufBlobStream.Create(Field: TBlobField; Mode: TBlobStreamMode);
 var bufblob : TBufBlobField;
 
 begin
-  FDataset := Field.DataSet as TCustomBufDataset;
-  if Mode = bmRead then
-    begin
-    if not Field.GetData(@bufblob) then
-      DatabaseError(SFieldIsNull);
-    if not assigned(bufblob.BlobBuffer) then with FDataSet do
+  FField := Field;
+  FDataSet := Field.DataSet as TCustomBufDataset;
+  with FDataSet do
+    if Mode = bmRead then
       begin
-      FBlobBuffer := GetNewBlobBuffer;
-      bufblob.BlobBuffer := FBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1],@bufblob);
+      if not Field.GetData(@bufblob) then
+        DatabaseError(SFieldIsNull);
+      if not assigned(bufblob.BlobBuffer) then
+        begin
+        FBlobBuffer := GetNewBlobBuffer;
+        bufblob.BlobBuffer := FBlobBuffer;
+        LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1],@bufblob);
+        end
+      else
+        FBlobBuffer := bufblob.BlobBuffer;
       end
-    else
-      FBlobBuffer := bufblob.BlobBuffer;
-    end
-  else if Mode=bmWrite then with FDataSet as TCustomBufDataset do
+    else if Mode=bmWrite then
+      begin
+      FBlobBuffer := GetNewWriteBlobBuffer;
+      FBlobBuffer^.FieldNo := Field.FieldNo;
+      if (Field.GetData(@bufblob)) and assigned(bufblob.BlobBuffer) then
+        FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
+      else
+        FBlobBuffer^.OrgBufID := -1;
+      FModified := True;
+      end;
+end;
+
+destructor TBufBlobStream.Destroy;
+begin
+  if FModified then
     begin
-    FBlobBuffer := GetNewWriteBlobBuffer;
-    FBlobBuffer^.FieldNo := Field.FieldNo;
-    if (Field.GetData(@bufblob)) and assigned(bufblob.BlobBuffer) then
-      FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
-    else
-      FBlobBuffer^.OrgBufID := -1;
+    // if TBufBlobStream was requested, but no data was written, then Size = 0;
+    //  used by TBlobField.Clear, so in this case set Field to null in InternalPost
+    //FField.Modified := True; // should be set to True, but TBlobField.Modified is never reset
+
+    if not (FDataSet.State in [dsFilter, dsCalcFields, dsNewValue]) then
+      FDataSet.DataEvent(deFieldChange, Ptrint(FField));
     end;
+  inherited Destroy;
 end;
 
 function TCustomBufDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
@@ -2669,9 +2695,6 @@ begin
       DatabaseErrorFmt(SNotEditing,[Name],self);
 
     result := TBufBlobStream.Create(Field as TBlobField, bmWrite);
-
-    if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-      DataEvent(deFieldChange, Ptrint(Field));
     end;
 end;
 

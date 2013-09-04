@@ -7,7 +7,7 @@ unit TestBufDatasetStreams;
 interface
 
 uses
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
   Classes, SysUtils, db, BufDataset;
 
 type
@@ -71,6 +71,7 @@ type
     procedure TestDeleteAllInsertXML;
     procedure TestStreamingBlobFieldsXML;
     procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingNullFieldsXML;
     procedure TestStreamingCalculatedFieldsXML;
 
     procedure TestAppendDeleteBIN;
@@ -473,8 +474,8 @@ begin
   SaveDS.First;
   while not LoadDS.EOF do
     begin
-    AssertEquals(LoadDS.FieldByName('FBLOB').AsString,SaveDS.FieldByName('FBLOB').AsString);
-    AssertEquals(LoadDS.FieldByName('FMEMO').AsString,SaveDS.FieldByName('FMEMO').AsString);
+    AssertEquals(SaveDS.FieldByName('FBLOB').AsString, LoadDS.FieldByName('FBLOB').AsString);
+    AssertEquals(SaveDS.FieldByName('FMEMO').AsString, LoadDS.FieldByName('FMEMO').AsString);
     LoadDS.Next;
     SaveDS.Next;
     end;
@@ -544,6 +545,44 @@ begin
     end;
   finally
     DeleteFile(fn);
+  end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFieldsXML;
+var
+  SaveDs: TCustomBufDataset;
+  LoadDs: TCustomBufDataset;
+  i: integer;
+begin
+  SaveDs := DBConnector.GetFieldDataset(true) as TCustomBufDataset;
+  with SaveDs do
+    begin
+    Open;
+    Next;
+    Edit;
+    // set all fields to null
+    for i:=0 to FieldCount-1 do
+      Fields[i].Clear;
+    Post;
+    // check if they are null
+    for i:=0 to FieldCount-1 do
+      AssertTrue(Fields[i].FieldName, Fields[i].IsNull);
+    SaveToFile(TestXMLFileName, dfXML);
+    end;
+
+  LoadDs := TCustomBufDataset.Create(nil);
+  try
+    LoadDs.LoadFromFile(TestXMLFileName);
+    SaveDs.First;
+    while not SaveDs.EOF do
+      begin
+      for i:=0 to SaveDs.FieldCount-1 do
+        AssertEquals(SaveDs.Fields[i].FieldName, SaveDs.Fields[i].IsNull, LoadDs.Fields[i].IsNull);
+      LoadDs.Next;
+      SaveDs.Next;
+      end;
+  finally
+    LoadDs.Free;
   end;
 end;
 
