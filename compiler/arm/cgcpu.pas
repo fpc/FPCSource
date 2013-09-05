@@ -4123,17 +4123,20 @@ unit cgcpu;
 
     procedure tthumbcgarm.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
       var
-        l : tasmlabel;
+        l1,l2 : tasmlabel;
         ai : taicpu;
       begin
-        current_asmdata.getjumplabel(l);
-        list.concat(taicpu.op_reg_const(A_MOV,reg,1));
-        ai:=setcondition(taicpu.op_sym(A_B,l),flags_to_cond(f));
+        current_asmdata.getjumplabel(l1);
+        current_asmdata.getjumplabel(l2);
+        ai:=setcondition(taicpu.op_sym(A_B,l1),flags_to_cond(f));
         ai.is_jmp:=true;
         list.concat(ai);
         list.concat(taicpu.op_reg_const(A_MOV,reg,0));
+        list.concat(taicpu.op_sym(A_B,l2));
+        cg.a_label(list,l1);
+        list.concat(taicpu.op_reg_const(A_MOV,reg,1));
         a_reg_dealloc(list,NR_DEFAULTFLAGS);
-        cg.a_label(list,l);
+        cg.a_label(list,l2);
       end;
 
 
