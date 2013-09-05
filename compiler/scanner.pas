@@ -844,6 +844,150 @@ In case not, the value returned can be arbitrary.
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
+        function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken):boolean;
+          var
+            hmodule: tmodule;
+            ns:ansistring;
+            nssym:tsym;
+          begin
+            result:=false;
+            tokentoconsume:=_ID;
+
+            if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
+              begin
+                if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
+                  internalerror(200501154);
+                { only allow unit.symbol access if the name was
+                  found in the current module
+                  we can use iscurrentunit because generic specializations does not
+                  change current_unit variable }
+                hmodule:=find_module_from_symtable(srsym.Owner);
+                if not Assigned(hmodule) then
+                  internalerror(201001120);
+                if hmodule.unit_index=current_filepos.moduleindex then
+                  begin
+                    preproc_consume(_POINT);
+                    current_scanner.skipspace;
+                    if srsym.typ=namespacesym then
+                      begin
+                        ns:=srsym.name;
+                        nssym:=srsym;
+                        while assigned(srsym) and (srsym.typ=namespacesym) do
+                          begin
+                            { we have a namespace. the next identifier should be either a namespace or a unit }
+                            searchsym_in_module(hmodule,ns+'.'+current_scanner.preproc_pattern,srsym,srsymtable);
+                            if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                              begin
+                                ns:=ns+'.'+current_scanner.preproc_pattern;
+                                nssym:=srsym;
+                                preproc_consume(_ID);
+                                current_scanner.skipspace;
+                                preproc_consume(_POINT);
+                                current_scanner.skipspace;
+                              end;
+                          end;
+                        { check if there is a hidden unit with this pattern in the namespace }
+                        if not assigned(srsym) and
+                           assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
+                          srsym:=tnamespacesym(nssym).unitsym;
+                        if assigned(srsym) and (srsym.typ<>unitsym) then
+                          internalerror(201108260);
+                        if not assigned(srsym) then
+                          begin
+                            result:=true;
+                            srsymtable:=nil;
+                            exit;
+                          end;
+                      end;
+                    case current_scanner.preproc_token of
+                      _ID:
+                        { system.char? (char=widechar comes from the implicit
+                          uuchar unit -> override) }
+                        if (current_scanner.preproc_pattern='CHAR') and
+                           (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                          begin
+                            if m_default_unicodestring in current_settings.modeswitches then
+                              searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
+                            else
+                              searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
+                          end
+                        else
+                          searchsym_in_module(tunitsym(srsym).module,current_scanner.preproc_pattern,srsym,srsymtable);
+                      _STRING:
+                        begin
+                          { system.string? }
+                          if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
+                            begin
+                              if cs_refcountedstrings in current_settings.localswitches then
+                                begin
+                                  if m_default_unicodestring in current_settings.modeswitches then
+                                    searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
+                                  else
+                                    searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
+                                end
+                              else
+                                searchsym_in_module(tunitsym(srsym).module,'SHORTSTRING',srsym,srsymtable);
+                              tokentoconsume:=_STRING;
+                            end;
+                        end
+                      end;
+                  end
+                else
+                  begin
+                    srsym:=nil;
+                    srsymtable:=nil;
+                  end;
+                result:=true;
+              end;
+          end;
+
+        procedure try_consume_nestedsym(var srsym:tsym;var srsymtable:TSymtable);
+          var
+            def:tdef;
+            tokentoconsume:ttoken;
+            found:boolean;
+          begin
+            found:=try_consume_unitsym(srsym,srsymtable,tokentoconsume);
+            if found then
+              begin
+                preproc_consume(tokentoconsume);
+                current_scanner.skipspace;
+              end;
+             while (current_scanner.preproc_token=_POINT) do
+               begin
+                 if srsym.typ=typesym then
+                   begin
+                     def:=ttypesym(srsym).typedef;
+                     if is_class_or_object(def) or is_record(def) or is_java_class_or_interface(def) then
+                       begin
+                         preproc_consume(_POINT);
+                         current_scanner.skipspace;
+                         if def.typ=objectdef then
+                           found:=searchsym_in_class(tobjectdef(def),tobjectdef(def),current_scanner.preproc_pattern,srsym,srsymtable,true)
+                         else
+                           found:=searchsym_in_record(trecorddef(def),current_scanner.preproc_pattern,srsym,srsymtable);
+                         if not found then
+                           begin
+                             Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
+                             exit;
+                           end;
+                         preproc_consume(_ID);
+                         current_scanner.skipspace;
+                       end
+                     else
+                       begin
+                         Message(parser_e_invalid_qualifier);
+                         exit;
+                       end;
+                   end
+                 else
+                   begin
+                     Message(type_e_type_id_expected);
+                     exit;
+                   end;
+               end;
+          end;
+
         function preproc_substitutedtoken(var macroType: TCTETypeSet; eval : Boolean): string;
                                 { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
@@ -941,7 +1085,7 @@ In case not, the value returned can be arbitrary.
 
         function read_factor(var factorType: TCTETypeSet; eval : Boolean) : string;
         var
-           hs,countstr : string;
+           hs,countstr,storedpattern: string;
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
@@ -950,7 +1094,6 @@ In case not, the value returned can be arbitrary.
            w : integer;
            hasKlammer: Boolean;
            setElemType : TCTETypeSet;
-
         begin
            read_factor:='';
            if current_scanner.preproc_token=_ID then
@@ -1069,27 +1212,30 @@ In case not, the value returned can be arbitrary.
                     else
                       Message(scan_e_preproc_syntax_error);
 
+                    storedpattern:=current_scanner.preproc_pattern;
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+
                     if eval then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                      if searchsym(storedpattern,srsym,srsymtable) then
                         begin
+                          try_consume_nestedsym(srsym,srsymtable);
                           l:=0;
-                          case srsym.typ of
-                            staticvarsym,
-                            localvarsym,
-                            paravarsym :
-                              l:=tabstractvarsym(srsym).getsize;
-                            typesym:
-                              l:=ttypesym(srsym).typedef.size;
-                            else
-                              Message(scan_e_error_in_preproc_expr);
-                          end;
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              staticvarsym,
+                              localvarsym,
+                              paravarsym :
+                                l:=tabstractvarsym(srsym).getsize;
+                              typesym:
+                                l:=ttypesym(srsym).typedef.size;
+                              else
+                                Message(scan_e_error_in_preproc_expr);
+                            end;
                           str(l,read_factor);
                         end
                       else
-                        Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
-
-                    preproc_consume(_ID);
-                    current_scanner.skipspace;
+                        Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -1110,23 +1256,29 @@ In case not, the value returned can be arbitrary.
                     else
                       Message(scan_e_preproc_syntax_error);
 
+                    storedpattern:=current_scanner.preproc_pattern;
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+
                     if eval then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                      if searchsym(storedpattern,srsym,srsymtable) then
                         begin
+                          try_consume_nestedsym(srsym,srsymtable);
                           hdef:=nil;
                           hs:='';
                           l:=0;
-                          case srsym.typ of
-                            staticvarsym,
-                            localvarsym,
-                            paravarsym :
-                              hdef:=tabstractvarsym(srsym).vardef;
-                            typesym:
-                              hdef:=ttypesym(srsym).typedef;
-                            else
-                              Message(scan_e_error_in_preproc_expr);
-                          end;
-                          if hdef<>nil then
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              staticvarsym,
+                              localvarsym,
+                              paravarsym :
+                                hdef:=tabstractvarsym(srsym).vardef;
+                              typesym:
+                                hdef:=ttypesym(srsym).typedef;
+                              else
+                                Message(scan_e_error_in_preproc_expr);
+                            end;
+                          if assigned(hdef) then
                             begin
                               if hdef.typ=setdef then
                                 hdef:=tsetdef(hdef).elementdef;
@@ -1159,10 +1311,7 @@ In case not, the value returned can be arbitrary.
                             read_factor:=hs;
                         end
                       else
-                        Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
-
-                    preproc_consume(_ID);
-                    current_scanner.skipspace;
+                        Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -1278,69 +1427,72 @@ In case not, the value returned can be arbitrary.
 
                     { Default is to return the original symbol }
                     read_factor:=hs;
-                    if eval and ([m_delphi,m_objfpc]*current_settings.modeswitches<>[]) and (ctetString in factorType) then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
-                        begin
-                          case srsym.typ of
-                            constsym :
-                              begin
-                                with tconstsym(srsym) do
-                                  begin
-                                    case consttyp of
-                                      constord :
-                                        begin
-                                          case constdef.typ of
-                                            orddef:
-                                              begin
-                                                if is_integer(constdef) then
-                                                  begin
-                                                    read_factor:=tostr(value.valueord);
-                                                    factorType:= [ctetInteger];
-                                                  end
-                                                else if is_boolean(constdef) then
-                                                  begin
-                                                    read_factor:=tostr(value.valueord);
-                                                    factorType:= [ctetBoolean];
-                                                  end
-                                                else if is_char(constdef) then
-                                                  begin
-                                                    read_factor:=char(qword(value.valueord));
-                                                    factorType:= [ctetString];
-                                                  end
-                                              end;
-                                            enumdef:
-                                              begin
-                                                read_factor:=tostr(value.valueord);
-                                                factorType:= [ctetInteger];
-                                              end;
-                                          end;
-                                        end;
-                                      conststring :
-                                        begin
-                                          read_factor := upper(pchar(value.valueptr));
-                                          factorType:= [ctetString];
-                                        end;
-                                      constset :
-                                        begin
-                                          hs:=',';
-                                          for l:=0 to 255 do
-                                            if l in pconstset(tconstsym(srsym).value.valueptr)^ then
-                                              hs:=hs+tostr(l)+',';
-                                          read_factor := hs;
-                                          factorType:= [ctetSet];
-                                        end;
-                                    end;
-                                  end;
-                              end;
-                            enumsym :
-                              begin
-                                read_factor:=tostr(tenumsym(srsym).value);
-                                factorType:= [ctetInteger];
-                              end;
-                          end;
-                        end;
+                    storedpattern:=current_scanner.preproc_pattern;
                     preproc_consume(_ID);
                     current_scanner.skipspace;
+                    if eval and ([m_delphi,m_objfpc]*current_settings.modeswitches<>[]) and (ctetString in factorType) then
+                      if searchsym(storedpattern,srsym,srsymtable) then
+                        begin
+                          try_consume_nestedsym(srsym,srsymtable);
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              constsym :
+                                begin
+                                  with tconstsym(srsym) do
+                                    begin
+                                      case consttyp of
+                                        constord :
+                                          begin
+                                            case constdef.typ of
+                                              orddef:
+                                                begin
+                                                  if is_integer(constdef) then
+                                                    begin
+                                                      read_factor:=tostr(value.valueord);
+                                                      factorType:= [ctetInteger];
+                                                    end
+                                                  else if is_boolean(constdef) then
+                                                    begin
+                                                      read_factor:=tostr(value.valueord);
+                                                      factorType:= [ctetBoolean];
+                                                    end
+                                                  else if is_char(constdef) then
+                                                    begin
+                                                      read_factor:=char(qword(value.valueord));
+                                                      factorType:= [ctetString];
+                                                    end
+                                                end;
+                                              enumdef:
+                                                begin
+                                                  read_factor:=tostr(value.valueord);
+                                                  factorType:= [ctetInteger];
+                                                end;
+                                            end;
+                                          end;
+                                        conststring :
+                                          begin
+                                            read_factor := upper(pchar(value.valueptr));
+                                            factorType:= [ctetString];
+                                          end;
+                                        constset :
+                                          begin
+                                            hs:=',';
+                                            for l:=0 to 255 do
+                                              if l in pconstset(tconstsym(srsym).value.valueptr)^ then
+                                                hs:=hs+tostr(l)+',';
+                                            read_factor := hs;
+                                            factorType:= [ctetSet];
+                                          end;
+                                      end;
+                                    end;
+                                end;
+                              enumsym :
+                                begin
+                                  read_factor:=tostr(tenumsym(srsym).value);
+                                  factorType:= [ctetInteger];
+                                end;
+                            end;
+                        end;
                   end
              end
            else if current_scanner.preproc_token =_LKLAMMER then
@@ -4719,6 +4871,11 @@ exit_label:
              begin
                current_scanner.preproc_pattern:=readval_asstring;
                readpreproc:=_ID;
+             end;
+           '.' :
+             begin
+               readchar;
+               readpreproc:=_POINT;
              end;
            ',' :
              begin
