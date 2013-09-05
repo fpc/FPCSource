@@ -908,6 +908,14 @@ implementation
                         searchagain:=true;
                       end
                      else
+                     if (m_delphi in current_settings.modeswitches) and
+                        (srsym.typ=absolutevarsym) and
+                        ([vo_is_funcret,vo_is_result]*tabstractvarsym(srsym).varoptions=[vo_is_funcret]) then
+                       begin
+                         HideSym(srsym);
+                         searchagain:=true;
+                       end
+                     else
                       begin
                         {  we use a different error message for tp7 so it looks more compatible }
                         if (m_fpc in current_settings.modeswitches) then
