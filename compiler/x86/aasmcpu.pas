@@ -3089,19 +3089,11 @@ implementation
       actRegTypes  : int64;
       actRegMemTypes: int64;
       NewRegSize: int64;
-      NewMemSize: int64;
-      NewConstSize: int64;
-      RegSize: int64;
-      MemSize: int64;
-      ConstSize: int64;
       RegMMXSizeMask: int64;
       RegXMMSizeMask: int64;
       RegYMMSizeMask: int64;
 
       bitcount: integer;
-      IsRegSizeMemSize: boolean;
-      ExistsRegMem: boolean;
-      s: string;
 
       function bitcnt(aValue: int64): integer;
       var
@@ -3134,10 +3126,6 @@ implementation
           InsTabMemRefSizeInfoCache^[AsmOp].ConstSize    := csiUnkown;
           InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := false;
 
-          RegSize := 0;
-          IsRegSizeMemSize := true;
-          ExistsRegMem     := false;
-
           insentry:=@instab[i];
           RegMMXSizeMask := 0;
           RegXMMSizeMask := 0;
@@ -3155,12 +3143,9 @@ implementation
             actMemSize       := 0;
             actMemCount      := 0;
             actRegMemTypes   := 0;
-            NewMemSize       := 0;
 
             actConstSize     := 0;
             actConstCount    := 0;
-            NewConstSize     := 0;
-
 
             if asmop = a_movups then
             begin
