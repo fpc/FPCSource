@@ -1476,8 +1476,8 @@ sym_e_forward_type_not_resolved=05009_E_Tipe forward tidak memecahkan "$1"
 % Simbol forward didefinisikan, tapi tidak ada deklarasi yang ditemukan.
 sym_e_only_static_in_static=05010_E_Hanya variabel statis bisa dipakai dalam metode statis atau di luar metode
 % Metode statis pada obyek hanya bisa mengakses variabel statis.
-sym_f_type_must_be_rec_or_class=05012_F_tipe record atau class diharapkan
-% Variabel atau ekspresi bukan tipe \var{record} atau \var{class}.
+sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
+% The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Turunan kelas atau obyek dengan metode abstrak tidak dibolehkan
 % Anda mencoba untuk membuat turunan kelas yang memiliki metode abstrak yang
 % tidak diganti.

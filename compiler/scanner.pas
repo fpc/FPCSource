@@ -955,7 +955,7 @@ In case not, the value returned can be arbitrary.
               end;
              while (current_scanner.preproc_token=_POINT) do
                begin
-                 if srsym.typ=typesym then
+                 if assigned(srsym)and(srsym.typ=typesym) then
                    begin
                      def:=ttypesym(srsym).typedef;
                      if is_class_or_object(def) or is_record(def) or is_java_class_or_interface(def) then
@@ -976,7 +976,7 @@ In case not, the value returned can be arbitrary.
                        end
                      else
                        begin
-                         Message(parser_e_invalid_qualifier);
+                         Message(sym_e_type_must_be_rec_or_object_or_class);
                          exit;
                        end;
                    end

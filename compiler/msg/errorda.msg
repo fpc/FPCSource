@@ -1326,8 +1326,8 @@ sym_e_forward_type_not_resolved=05009_E_Forward-type ikke erklæret: "$1"
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Kun statiske variabler kan bruges i statiske metoder, eller uden for metoder
 % A static method of an object can only access static variables.
-sym_f_type_must_be_rec_or_class=05012_F_Struktur- eller klassetype forventet
-% The variable or expression isn't of the type \var{record} or \var{class}.
+sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
+% The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Instancer af klasser eller objekter med abstrakte metoder er ikke tilladt
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.

@@ -552,7 +552,7 @@ const
   sym_e_error_in_type_def=05007;
   sym_e_forward_type_not_resolved=05009;
   sym_e_only_static_in_static=05010;
-  sym_f_type_must_be_rec_or_class=05012;
+  sym_e_type_must_be_rec_or_object_or_class=05012;
   sym_e_no_instance_of_abstract_object=05013;
   sym_w_label_not_defined=05014;
   sym_e_label_used_and_not_defined=05015;
@@ -977,7 +977,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 69467;
+  MsgTxtSize = 69477;
 
   MsgIdxMax : array[1..20] of longint=(
     26,95,335,121,88,56,126,27,202,64,
