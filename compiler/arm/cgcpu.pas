@@ -3676,12 +3676,14 @@ unit cgcpu;
          shift : byte;
          saveregs,
          regs : tcpuregisterset;
+         registerarea : DWord;
          stackmisalignment: pint;
          imm1, imm2: DWord;
+         stack_parameters : Boolean;
       begin
         if not(nostackframe) then
           begin
-            stackmisalignment:=0;
+            stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
             include(regs,RS_R15);
@@ -3689,12 +3691,19 @@ unit cgcpu;
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               include(regs,getsupreg(current_procinfo.framepointer));
 
+            registerarea:=0;
             for r:=RS_R0 to RS_R15 do
               if r in regs then
-                inc(stackmisalignment,4);
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+                inc(registerarea,4);
+
+            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+
             LocalSize:=current_procinfo.calc_stackframe_size;
-            localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+            if stack_parameters then
+              localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea
+            else
+              localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (target_info.system in systems_darwin) then
               begin
