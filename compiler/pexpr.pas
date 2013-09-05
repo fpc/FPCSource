@@ -1409,8 +1409,8 @@ implementation
                 if assigned(srsym) then
                   begin
                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                        consume(_ID);
-                        do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                    consume(_ID);
+                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
                   end
                 else
                   Message1(sym_e_id_no_member,orgpattern);
