@@ -825,6 +825,18 @@ implementation
 
 
     function try_statement : tnode;
+
+      procedure check_type_valid(var def: tdef);
+        begin
+           if not (is_class(def) or is_javaclass(def) or
+              { skip showing error message the second time }
+              (def.typ=errordef)) then
+             begin
+               Message1(type_e_class_type_expected,def.typename);
+               def:=generrordef;
+             end;
+        end;
+
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
@@ -901,11 +913,7 @@ implementation
                           if try_to_consume(_COLON) then
                             begin
                               single_type(ot,[]);
-                              if not (is_class(ot) or is_javaclass(ot)) then
-                                begin
-                                  Message1(type_e_class_type_expected,ot.typename);
-                                  ot:=generrordef;
-                                end;
+                              check_type_valid(ot);
                               sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
@@ -928,11 +936,7 @@ implementation
                                  begin
                                    ot:=ttypesym(srsym).typedef;
                                    parse_nested_types(ot,false,nil);
-                                   if not (is_class(ot) or is_javaclass(ot)) then
-                                     begin
-                                       Message1(type_e_class_type_expected,ot.typename);
-                                       ot:=generrordef;
-                                     end;
+                                   check_type_valid(ot);
                                  end
                                else
                                  begin
