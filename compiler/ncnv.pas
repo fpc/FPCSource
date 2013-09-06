@@ -1458,10 +1458,10 @@ implementation
 
       begin
          result:=nil;
-         if is_pwidechar(resultdef) then
-           inserttypeconv(left,cunicodestringtype)
-         else
-           inserttypeconv(left,cshortstringtype);
+         { handle any constants via cunicodestringtype because the compiler
+           cannot convert arbitrary unicodechar constants at compile time to
+           a shortstring (since it doesn't know the code page to use) }
+         inserttypeconv(left,cunicodestringtype);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for futher conversion }
