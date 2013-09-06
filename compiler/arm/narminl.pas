@@ -342,7 +342,7 @@ implementation
         ref : treference;
         r : tregister;
       begin
-        if CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype] then
+        if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) then
           begin
             secondpass(left);
             case left.location.loc of

@@ -502,8 +502,8 @@ begin
                  end
                 else
                  begin
-                   linklibc:=true;
-                 end;
+                  linklibc:=true;
+              end;
               end;
              Add(')');
            end
@@ -662,7 +662,7 @@ begin
        _end.  Align after .bss to ensure correct alignment even if the
        .bss section disappears because there are no input sections.}
       add('   . = ALIGN(32 / 8);');
-      add('  }');
+      add('}');
       add('  . = ALIGN(32 / 8);');
       add('  PROVIDE (_end = .);');
       add('  PROVIDE (end = .);');
@@ -1276,7 +1276,7 @@ begin
   { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
     and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
   if IsSharedLibrary then
-    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(dynlinker));
+    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(sysrootpath+dynlinker));
 
   linkToSharedLibs:=(not SharedLibFiles.Empty);
 
@@ -1497,67 +1497,58 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_linux,TLinkerLinux);
+  RegisterLinker(ld_int_linux,TInternalLinkerLinux);
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_linux_info,TLinkerLinux);
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
 
-  RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
   RegisterExport(system_x86_6432_linux,texportliblinux);
   RegisterTarget(system_x86_6432_linux_info);
 {$endif i386}
 {$ifdef m68k}
-  RegisterExternalLinker(system_m68k_linux_info,TLinkerLinux);
   RegisterImport(system_m68k_linux,timportliblinux);
   RegisterExport(system_m68k_linux,texportliblinux);
   RegisterTarget(system_m68k_linux_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_linux_info,TLinkerLinux);
   RegisterImport(system_powerpc_linux,timportliblinux);
   RegisterExport(system_powerpc_linux,texportliblinux);
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  RegisterExternalLinker(system_powerpc64_linux_info,TLinkerLinux);
   RegisterImport(system_powerpc64_linux,timportliblinux);
   RegisterExport(system_powerpc64_linux,texportliblinux);
   RegisterTarget(system_powerpc64_linux_info);
 {$endif powerpc64}
 {$ifdef alpha}
-  RegisterExternalLinker(system_alpha_linux_info,TLinkerLinux);
   RegisterImport(system_alpha_linux,timportliblinux);
   RegisterExport(system_alpha_linux,texportliblinux);
   RegisterTarget(system_alpha_linux_info);
 {$endif alpha}
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x86_64_linux_info,TLinkerLinux);
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
 {$endif x86_64}
 {$ifdef SPARC}
-  RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);
   RegisterImport(system_SPARC_linux,timportliblinux);
   RegisterExport(system_SPARC_linux,texportliblinux);
   RegisterTarget(system_SPARC_linux_info);
 {$endif SPARC}
 {$ifdef ARM}
-  RegisterExternalLinker(system_arm_linux_info,TLinkerLinux);
   RegisterImport(system_arm_linux,timportliblinux);
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
 {$ifdef MIPS}
 {$ifdef MIPSEL}
-  RegisterExternalLinker(system_mipsel_linux_info,TLinkerLinux);
   RegisterImport(system_mipsel_linux,timportliblinux);
   RegisterExport(system_mipsel_linux,texportliblinux);
   RegisterTarget(system_mipsel_linux_info);
 {$else MIPS}
-  RegisterExternalLinker(system_mipseb_linux_info,TLinkerLinux);
   RegisterImport(system_mipseb_linux,timportliblinux);
   RegisterExport(system_mipseb_linux,texportliblinux);
   RegisterTarget(system_mipseb_linux_info);

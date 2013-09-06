@@ -197,6 +197,39 @@
              ,as_jvm_jasmin
        );
 
+       tlink = (ld_none,
+             ld_aix,           { external linkers (one per OS, handles all CPUs) }
+             ld_amiga,
+             ld_android,
+             ld_beos,
+             ld_bsd,
+             ld_embedded,
+             ld_emx,
+             ld_gba,
+             ld_go32v2,
+             ld_haiku,
+             ld_jvm,
+             ld_linux,
+             ld_morphos,
+             ld_mpw,
+             ld_msdos,
+             ld_nds,
+             ld_netwlibc,
+             ld_netware,
+             ld_os2,
+             ld_palmos,
+             ld_solaris,
+             ld_watcom,
+             ld_wdosx,
+             ld_wii,
+             ld_windows,
+             ld_int_go32v2,    { implemented internal linkers }
+             ld_int_linux,
+             ld_int_nativent,
+             ld_int_netware,
+             ld_int_windows
+       );
+
        tar = (ar_none
             ,ar_gnu_ar
             ,ar_mpw_ar

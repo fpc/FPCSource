@@ -491,8 +491,8 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_haiku,TLinkerhaiku);
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_haiku_info,TLinkerhaiku);
   RegisterImport(system_i386_haiku,timportlibhaiku);
   RegisterExport(system_i386_haiku,texportlibhaiku);
   RegisterTarget(system_i386_haiku_info);

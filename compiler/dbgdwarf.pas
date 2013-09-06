@@ -921,10 +921,10 @@ implementation
                   begin
                     if not assigned(def.typesym) then
                       internalerror(200610011);
-                    def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
-                    def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)));
+                    def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AT_DATA);
+                    def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)),AT_DATA);
                     if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
-                      tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)));
+                      tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)),AT_DATA);
                     def.dbg_state:=dbg_state_written;
                   end
                 else
@@ -1251,7 +1251,7 @@ implementation
         else
           begin
             AddConstToAbbrev(ord(DW_FORM_ref4));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_DATA),sym));
           end;
       end;
 
@@ -1785,7 +1785,10 @@ implementation
           finish_children;
 
           { now the data array }
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
+          if arr.bind=AB_GLOBAL then
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(arr,0))
+          else
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
           append_entry(DW_TAG_array_type,true,[
             DW_AT_byte_size,DW_FORM_udata,def.size,
             DW_AT_byte_stride,DW_FORM_udata,1
@@ -1916,7 +1919,10 @@ implementation
 
             finish_children;
 
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(proc,0));
+            if proc.bind=AB_GLOBAL then
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(proc,0))
+            else
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(proc,0));
             doappend;
           end
         else
@@ -1931,10 +1937,14 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
 
         labsym:=def_dwarf_lab(def);
-        if ds_dwarf_dbg_info_written in def.defstates then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+        case labsym.bind of
+          AB_GLOBAL:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0));
+          AB_LOCAL:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          else
+            internalerror(2013082001);
+        end;
 
         { On Darwin, dwarf info is not linked in the final binary,
           but kept in the individual object files. This allows for
@@ -2013,10 +2023,14 @@ implementation
         { create a derived reference type for pass-by-reference parameters }
         { (gdb doesn't support DW_AT_variable_parameter yet)               }
         labsym:=def_dwarf_ref_lab(def);
-        if ds_dwarf_dbg_info_written in def.defstates then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+        case labsym.bind of
+          AB_GLOBAL:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0));
+          AB_LOCAL:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          else
+            internalerror(2013082002);
+        end;
         append_entry(DW_TAG_reference_type,false,[]);
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
         finish_entry;
@@ -2383,7 +2397,7 @@ implementation
                     else
                       begin
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.Create_type_name(offsetabstype,sym.mangledname,offset));
+                        templist.concat(tai_const.Create_type_name(aitconst_ptr,sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
                       end;
                   end;
@@ -2844,7 +2858,7 @@ implementation
           toasm :
             begin
               templist.concat(tai_const.create_8bit(3));
-              templist.concat(tai_const.create_type_name(offsetabstype,sym.mangledname,0));
+              templist.concat(tai_const.create_type_name(aitconst_ptr,sym.mangledname,0));
               blocksize:=1+sizeof(puint);
             end;
           tovar:
@@ -2960,7 +2974,7 @@ implementation
         if use_64bit_headers then
           linelist.concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
         linelist.concat(tai_const.create_rel_sym(offsetreltype,
-          lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
+          lbl,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'edebug_line0',AB_LOCAL,AT_DATA)));
         linelist.concat(tai_label.create(lbl));
 
         { version }
@@ -2969,7 +2983,7 @@ implementation
         { header length }
         current_asmdata.getlabel(lbl,alt_dbgfile);
         linelist.concat(tai_const.create_rel_sym(offsetreltype,
-          lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')));
+          lbl,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'ehdebug_line0',AB_LOCAL,AT_DATA)));
         linelist.concat(tai_label.create(lbl));
 
         { minimum_instruction_length }
@@ -3078,6 +3092,7 @@ implementation
         def: tdef;
         dbgname: string;
         vardatatype: ttypesym;
+        bind: tasmsymbind;
       begin
         current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
@@ -3109,7 +3124,7 @@ implementation
         if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
-          lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
+          lenstartlabel,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'edebug_info0',AB_LOCAL,AT_DATA)));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
@@ -3117,11 +3132,11 @@ implementation
         { abbrev table (=relative from section start)}
         if not(tf_dwarf_relative_addresses in target_info.flags) then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')))
+            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_DATA)))
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrevsection0'),
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
+            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrevsection0',AB_LOCAL,AT_DATA),
+            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_DATA)));
 
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
@@ -3136,23 +3151,28 @@ implementation
 
         { reference to line info section }
         if not(tf_dwarf_relative_addresses in target_info.flags) then
-          append_labelentry_dataptr_abs(DW_AT_stmt_list,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'))
+          append_labelentry_dataptr_abs(DW_AT_stmt_list,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_line0',AB_LOCAL,AT_DATA))
         else
           append_labelentry_dataptr_rel(DW_AT_stmt_list,
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
+            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_linesection0',AB_LOCAL,AT_DATA),
+            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_line0',AB_LOCAL,AT_DATA));
 
         if (m_objectivec1 in current_settings.modeswitches) then
           append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
 
         dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
         if (target_info.system in systems_darwin) then
-          dbgname:='L'+dbgname;
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(dbgname));
+          begin
+            bind:=AB_LOCAL;
+            dbgname:='L'+dbgname;
+          end
+        else
+          bind:=AB_GLOBAL;
+        append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_DATA));
         dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
         if (target_info.system in systems_darwin) then
           dbgname:='L'+dbgname;
-        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(dbgname));
+        append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_DATA));
 
         finish_entry;
 
@@ -3641,7 +3661,10 @@ implementation
                   current_asmdata.getaddrlabel(lab);
                 append_labelentry_ref(DW_AT_type,lab);
                 finish_entry;
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
+                if lab.bind=AB_GLOBAL then
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(lab,0))
+                else
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
                 { Sets of e.g. [1..5] are actually stored as a set of [0..7],
                   so write the exact boundaries of the set here. Let's hope no
                   debugger ever rejects this because this "subrange" type can

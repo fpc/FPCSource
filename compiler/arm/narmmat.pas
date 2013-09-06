@@ -91,13 +91,14 @@ implementation
               ispowerof2(tordconstnode(right).value,power) and
               (tordconstnode(right).value<=256) and
               (tordconstnode(right).value>0) then
-              result:=caddnode.create(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
+              result:=caddnode.create_internal(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
             else
               begin
-                result:=caddnode.create(subn,left,caddnode.create(muln,right.getcopy, cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
+                result:=caddnode.create_internal(subn,left,caddnode.create_internal(muln,right,cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
                 right:=nil;
               end;
             left:=nil;
+            firstpass(result);
           end
         else if (nodetype=modn) and
           (is_signed(left.resultdef)) and
@@ -105,13 +106,18 @@ implementation
           (tordconstnode(right).value=2) then
           begin
             // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
-            result:=caddnode.create(andn,caddnode.create(subn,cordconstnode.create(0,sinttype,false),caddnode.create(andn,left,cordconstnode.create(1,sinttype,false))),
-                                         caddnode.create(addn,cordconstnode.create(1,sinttype,false),
+            result:=caddnode.create_internal(andn,caddnode.create_internal(subn,cordconstnode.create(0,sinttype,false),caddnode.create_internal(andn,left,cordconstnode.create(1,sinttype,false))),
+                                         caddnode.create_internal(addn,cordconstnode.create(1,sinttype,false),
                                                               cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,ccallparanode.create(cordconstnode.create(31,sinttype,false),ccallparanode.Create(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
             left:=nil;
+            firstpass(result);
           end
         else
           result:=inherited first_moddivint;
+
+        { we may not change the result type here }
+        if assigned(result) and (torddef(result.resultdef).ordtype<>torddef(resultdef).ordtype) then
+          inserttypeconv(result,resultdef);
       end;
 
 
@@ -150,7 +156,7 @@ implementation
                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,numerator,helper1)
                     else
                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
-                    if current_settings.cputype in cpu_thumb then
+                    if GenerateThumbCode then
                       begin
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
@@ -431,7 +437,7 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        if GenerateThumbCode or GenerateThumb2Code then
           result:=inherited
         else
           result := nil;
@@ -506,7 +512,7 @@ implementation
         end;
 
       begin
-        if (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        if GenerateThumbCode or GenerateThumb2Code then
         begin
           inherited;
           exit;

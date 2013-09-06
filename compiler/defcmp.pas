@@ -2119,8 +2119,8 @@ implementation
 
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
       var
-        eq : tequaltype;
-        po_comp : tprocoptions;
+        eq: tequaltype;
+        po_comp: tprocoptions;
         pa_comp: tcompare_paras_options;
       begin
          proc_to_procvar_equal:=te_incompatible;
@@ -2154,8 +2154,10 @@ implementation
          if checkincompatibleuniv then
            include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
-         po_comp:=[po_staticmethod,po_interrupt,
-                   po_iocheck,po_varargs];
+         po_comp:=[po_interrupt,po_iocheck,po_varargs];
+         { check static only if we compare method pointers }
+         if def1.is_methodpointer then
+           include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
          if (def1.proccalloption=def2.proccalloption) and

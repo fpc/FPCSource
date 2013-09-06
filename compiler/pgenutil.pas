@@ -1009,6 +1009,10 @@ uses
 
               for i:=firstidx to result.count-1 do
                 ttypesym(result[i]).typedef:=basedef;
+              { we need a typesym in case we do a Delphi-mode inline
+                specialization with this parameter; so just use the first sym }
+              if not assigned(basedef.typesym) then
+                basedef.typesym:=ttypesym(result[firstidx]);
               firstidx:=result.count;
 
               constraintdata.free;

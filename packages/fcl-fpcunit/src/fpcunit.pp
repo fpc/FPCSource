@@ -588,7 +588,6 @@ class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: T
   end;
 
 begin
-  If (Expected<>Nil) then
   AssertTrue(AMessage + ComparisonMsg(GetN(Expected), GetN(Actual)), Expected = Actual);
 end;
 

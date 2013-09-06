@@ -217,10 +217,10 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i armdefines.inc}
-  {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
+  {$if defined(CPUTHUMB2)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
-    {$if defined(CPUARMV6M)}
+    {$if defined(CPUTHUMB)}
       {$i thumb.inc}  { Case dependent, don't change }
     {$else}
       {$i arm.inc}  { Case dependent, don't change }

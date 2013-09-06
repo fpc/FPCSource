@@ -110,9 +110,9 @@ unit agarmgas;
         if (current_settings.fputype = fpu_fpv4_s16) then
           result:='-mfpu=fpv4-sp-d16 '+result;
 
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
-        else if current_settings.cputype in cpu_thumb then
+        else if GenerateThumbCode then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
         // EDSP instructions in RTL require armv5te at least to not generate error
         else if current_settings.cputype >= cpu_armv5te then
@@ -126,7 +126,7 @@ unit agarmgas;
     procedure TArmGNUAssembler.WriteExtraHeader;
       begin
         inherited WriteExtraHeader;
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           AsmWriteLn(#9'.syntax unified');
       end;
 
@@ -164,10 +164,10 @@ unit agarmgas;
                 if (base<>NR_NO) and not(is_pc(base)) then
                   internalerror(200309011);
                 s:=symbol.name;
-                if offset<0 then
-                  s:=s+tostr(offset)
-                else if offset>0 then
-                  s:=s+'+'+tostr(offset);
+                if offset<>0 then
+                  s:=s+tostr_with_plus(offset);
+                if refaddr=addr_pic then
+                  s:=s+'(PLT)';
               end
             else
               begin
@@ -289,7 +289,7 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-      if current_settings.cputype in cpu_thumb2 then
+      if GenerateThumb2Code then
         begin
           postfix:='';
           if taicpu(hp).wideformat then

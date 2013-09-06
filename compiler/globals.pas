@@ -154,11 +154,17 @@ interface
 
          disabledircache : boolean;
 
+{$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
+{$endif defined(i8086)}
+
+{$if defined(ARM)}
+         instructionset : tinstructionset;
+{$endif defined(ARM)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
-        controllertype   : tcontrollertype;
+         controllertype   : tcontrollertype;
 {$endif defined(ARM) or defined(AVR)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
@@ -479,7 +485,12 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+{$if defined(i8086)}
         x86memorymodel : mm_small;
+{$endif defined(i8086)}
+{$if defined(ARM)}
+        instructionset : is_arm;
+{$endif defined(ARM)}
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
@@ -511,7 +522,8 @@ interface
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
     function Setabitype(const s:string;var a:tabi):boolean;
-    function Setcputype(const s:string;var a:tcputype):boolean;
+    function Setoptimizecputype(const s:string;var a:tcputype):boolean;
+    function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
 {$if defined(arm) or defined(avr)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
@@ -1107,7 +1119,7 @@ implementation
       end;
 
 
-    function Setcputype(const s:string;var a:tcputype):boolean;
+    function Setoptimizecputype(const s:string;var a:tcputype):boolean;
       var
         t  : tcputype;
         hs : string;
@@ -1121,6 +1133,33 @@ implementation
               result:=true;
               break;
             end;
+      end;
+
+
+    function Setcputype(const s:string;var a:tsettings):boolean;
+      var
+        t  : tcputype;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(tcputype) to high(tcputype) do
+          if cputypestr[t]=hs then
+            begin
+              a.cputype:=t;
+              result:=true;
+              break;
+            end;
+{$ifdef arm}
+        { set default instruction set for arm }
+        if result then
+          begin
+            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m] then
+              a.instructionset:=is_thumb
+            else
+              a.instructionset:=is_arm;
+          end;
+{$endif arm}
       end;
 
 

@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,
+      cutils,verbose,globals,aasmdata,aasmcpu,cgobj,cgcpu,
       cpuinfo,
       cgutils,
       procinfo;
@@ -54,7 +54,7 @@ implementation
     procedure tarmloadparentfpnode.pass_generate_code;
       begin
         { normally, we cannot use the stack pointer as normal register on arm thumb }
-        if (current_settings.cputype in cpu_thumb) and
+        if (GenerateThumbCode) and
           (getsupreg(current_procinfo.framepointer) in [RS_R8..RS_R15]) and
           (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
@@ -76,7 +76,7 @@ implementation
          hl : longint;
        begin
          if ((location.reference.base=NR_NO) and (location.reference.index=NR_NO)) or
-            (current_settings.cputype in cpu_thumb) or
+            (GenerateThumbCode) or
             { simple constant? }
             (l=1) or ispowerof2(l,hl) or ispowerof2(l+1,hl) or ispowerof2(l-1,hl) then
            inherited update_reference_reg_mul(maybe_const_reg,l)
@@ -84,7 +84,7 @@ implementation
            begin
              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_MLA,hreg,maybe_const_reg,hreg,location.reference.base));
+             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.base);
              location.reference.base:=hreg;
              { update alignment }
              if (location.reference.alignment=0) then
@@ -95,7 +95,7 @@ implementation
            begin
              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,l,hreg);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(A_MLA,hreg,maybe_const_reg,hreg,location.reference.index));
+             tbasecgarm(cg).safe_mla(current_asmdata.CurrAsmList,hreg,maybe_const_reg,hreg,location.reference.index);
              location.reference.base:=hreg;
              location.reference.index:=NR_NO;
              { update alignment }

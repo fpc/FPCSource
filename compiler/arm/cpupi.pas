@@ -29,7 +29,8 @@ unit cpupi;
 
     uses
        globtype,cutils,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,cgbase,
+       aasmdata;
 
     type
        tarmprocinfo = class(tcgprocinfo)
@@ -39,12 +40,14 @@ unit cpupi;
             if this size is too little the procedure must be compiled again with a larger value }
           stackframesize,
           floatregstart : aint;
+          stackpaddingreg: TSuperRegister;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
           procedure init_framepointer; override;
           procedure generate_parameter_info;override;
+          procedure allocate_got_register(list : TAsmList);override;
        end;
 
 
@@ -55,7 +58,7 @@ unit cpupi;
        cpubase,
        tgobj,
        symconst,symtype,symsym,paramgr,
-       cgbase,cgutils,
+       cgutils,
        cgobj,
        defutil;
 
@@ -96,7 +99,7 @@ unit cpupi;
           tg.setfirsttemp(maxpushedparasize);
 
         { estimate stack frame size }
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             stackframesize:=maxpushedparasize+32;
             localsize:=0;
@@ -138,7 +141,7 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           result:=stackframesize
         else
           begin
@@ -192,7 +195,7 @@ unit cpupi;
 
     procedure tarmprocinfo.init_framepointer;
       begin
-        if (target_info.system in systems_darwin) or (current_settings.cputype in cpu_thumb) then
+        if (target_info.system in systems_darwin) or GenerateThumbCode then
           begin
             RS_FRAME_POINTER_REG:=RS_R7;
             NR_FRAME_POINTER_REG:=NR_R7;
@@ -209,6 +212,14 @@ unit cpupi;
       begin
        procdef.total_stackframe_size:=stackframesize;
        inherited generate_parameter_info;
+      end;
+
+
+    procedure tarmprocinfo.allocate_got_register(list: TAsmList);
+      begin
+        { darwin doesn't use a got }
+        if tf_pic_uses_got in target_info.flags then
+          got := cg.getaddressregister(list);
       end;
 
 

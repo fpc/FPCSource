@@ -358,7 +358,7 @@ begin
   if (len < 0) or
      (len > high(PtrInt) div 2) or
      (psrc+len < psrc) then
-    pend:=pdword(high(PtrUInt)-sizeof(dword))
+    pend:=pdword(high(PtrUInt)-PtrUInt(sizeof(dword)))
   else
     pend:=psrc+len;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -399,7 +399,7 @@ begin
   if (len < 0) or
      (len > high(PtrInt) div 4) or
      (psrc+len < psrc) then
-    pend:=pqword(high(PtrUInt)-sizeof(qword))
+    pend:=pqword(high(PtrUInt)-PtrUInt(sizeof(qword)))
   else
     pend:=psrc+len;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -548,8 +548,7 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  if (len <= high(ptrint)) and
-     (psrc+len >= psrc) then
+  if (psrc+len >= psrc) then
     pend:=psrc+len
   else
     pend:=pword(high(ptruint)-2);
@@ -689,7 +688,7 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) then
-    pend:=pbyte(high(PtrUInt)-sizeof(byte))
+    pend:=pbyte(high(PtrUInt)-PtrUInt(sizeof(byte)))
   else
     pend:=psrc+len;
   while (psrc<pend) and (psrc^<>0) do

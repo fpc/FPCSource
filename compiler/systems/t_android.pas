@@ -424,14 +424,13 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_android,TLinkerAndroid);
 {$ifdef ARM}
-  RegisterExternalLinker(system_arm_android_info,TLinkerAndroid);
   RegisterImport(system_arm_android,timportlibandroid);
   RegisterExport(system_arm_android,texportlibandroid);
   RegisterTarget(system_arm_android_info);
 {$endif ARM}
 {$ifdef I386}
-  RegisterExternalLinker(system_i386_android_info,TLinkerAndroid);
   RegisterImport(system_i386_android,timportlibandroid);
   RegisterExport(system_i386_android,texportlibandroid);
   RegisterTarget(system_i386_android_info);

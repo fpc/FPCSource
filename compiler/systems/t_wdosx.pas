@@ -74,7 +74,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_wdosx_info,TExternalLinkerWdosx);
+  RegisterLinker(ld_wdosx,TExternalLinkerWdosx);
   RegisterImport(system_i386_wdosx,TImportLibWdosx);
   RegisterExport(system_i386_wdosx,TExportLibWdosx);
   RegisterDLLScanner(system_i386_wdosx,TDLLScannerWdosx);

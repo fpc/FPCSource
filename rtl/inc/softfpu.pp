@@ -762,7 +762,7 @@ begin
     end
     else
     begin
-         if ( count < 64 ) then
+         if ( count < 128 ) then
           z1 := a0 shr ( count and 63 )
         else
           z1 := 0;

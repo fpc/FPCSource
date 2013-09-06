@@ -542,7 +542,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_emx_info,TLinkerEMX);
+  RegisterLinker(ld_emx,TLinkerEMX);
   RegisterImport(system_i386_emx,TImportLibEMX);
   RegisterRes(res_wrc_os2_info,TResourceFile);
   RegisterTarget(system_i386_emx_info);

@@ -92,7 +92,11 @@ unit rgcpu;
                   for hr := RS_R8 to RS_R15 do
                     add_edge(getsupreg(taicpu(p).oper[0]^.reg), hr);
                 end;
-              A_ADD:
+              A_ADD,
+              A_SUB,
+              A_AND,
+              A_BIC,
+              A_EOR:
                 begin
                   if taicpu(p).ops = 3 then
                     begin
@@ -120,6 +124,23 @@ unit rgcpu;
                             end;
                         end;
                     end;
+                end;
+              A_MLA,
+              A_MUL:
+                begin
+                  if current_settings.cputype<cpu_armv6 then
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                   add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
+                   add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
+                   add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R13);
+                   add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
+                   if taicpu(p).opcode=A_MLA then
+                     begin
+                       add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R13);
+                       add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
+                     end;
                 end;
               A_LDRB,
               A_STRB,
@@ -165,7 +186,7 @@ unit rgcpu;
 
       { Lets remove the bits we can fold in later and check if the result can be easily with an add or sub }
       a:=abs(spilltemp.offset);
-      if current_settings.cputype in cpu_thumb then
+      if GenerateThumbCode then
         begin
           {$ifdef DEBUG_SPILLING}
           helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
@@ -222,7 +243,7 @@ unit rgcpu;
    function fix_spilling_offset(offset : ASizeInt) : boolean;
      begin
        result:=(abs(offset)>4095) or
-          ((current_settings.cputype in cpu_thumb) and ((offset<0) or (offset>1020)));
+          ((GenerateThumbCode) and ((offset<0) or (offset>1020)));
      end;
 
 
@@ -486,8 +507,15 @@ unit rgcpu;
             case taicpu(p).opcode of
               A_MLA,
               A_MUL:
-                if current_settings.cputype<cpu_armv6 then
-                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                begin
+                  if current_settings.cputype<cpu_armv6 then
+                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
+                  add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
+                  add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
+                  if taicpu(p).opcode=A_MLA then
+                    add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
+                end;
               A_UMULL,
               A_UMLAL,
               A_SMULL,

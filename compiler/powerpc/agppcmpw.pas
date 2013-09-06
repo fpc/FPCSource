@@ -1036,7 +1036,7 @@ interface
                         //Procedure entry points:
                         if not macos_direct_globals then
                           begin
-                            WriteDataHeader(s, tai_label(hp).is_global, true);
+                            WriteDataHeader(s, tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN], true);
                           end
                         else
                           begin

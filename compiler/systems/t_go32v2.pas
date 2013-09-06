@@ -511,7 +511,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_go32v2_info,TExternalLinkerGo32v2);
-  RegisterInternalLinker(system_i386_go32v2_info,TInternalLinkerGo32v2);
+  RegisterLinker(ld_go32v2,TExternalLinkerGo32v2);
+  RegisterLinker(ld_int_go32v2,TInternalLinkerGo32v2);
   RegisterTarget(system_i386_go32v2_info);
 end.

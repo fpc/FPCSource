@@ -607,7 +607,11 @@ asm
   movs r0, r1
 // unlock and return
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -692,7 +696,11 @@ asm
   mov r0, r1
 // unlock and return
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -752,7 +760,11 @@ asm
 // unlock and return
   mov r2, #0
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -816,7 +828,11 @@ asm
 // unlock and return
   mov r2, #0
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -881,7 +897,11 @@ asm
 // unlock and return
   mov r3, #0
   str r3, [r12]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock

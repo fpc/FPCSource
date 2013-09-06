@@ -49,6 +49,9 @@ interface
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
+    { parse nested type declaration of the def (typedef) }
+    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
+
 
     { add a definition for a method to a record/objectdef that will contain
       all code for initialising typed constants (only for targets in

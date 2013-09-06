@@ -1183,7 +1183,7 @@ interface
             id           : as_i386_nasmcoff;
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
-            asmcmd : '-f coff -o $OBJ $ASM';
+            asmcmd : '-f coff -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_go32v2];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1196,7 +1196,7 @@ interface
             id           : as_i386_nasmwin32;
             idtxt  : 'NASMWIN32';
             asmbin : 'nasm';
-            asmcmd : '-f win32 -o $OBJ $ASM';
+            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_win32];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1209,7 +1209,7 @@ interface
             id           : as_i386_nasmobj;
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
-            asmcmd : '-f obj -o $OBJ $ASM';
+            asmcmd : '-f obj -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1222,7 +1222,7 @@ interface
             id           : as_i386_nasmwdosx;
             idtxt  : 'NASMWDOSX';
             asmbin : 'nasm';
-            asmcmd : '-f win32 -o $OBJ $ASM';
+            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_wdosx];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1236,7 +1236,7 @@ interface
             id           : as_i386_nasmelf;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1249,7 +1249,7 @@ interface
             id           : as_i386_nasmbeos;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_beos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1262,7 +1262,7 @@ interface
             id           : as_i386_nasmhaiku;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
             supported_targets : [system_i386_haiku];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';

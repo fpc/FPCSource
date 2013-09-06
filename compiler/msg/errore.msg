@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2013 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -1969,8 +1969,8 @@ sym_e_forward_type_not_resolved=05009_E_Forward type not resolved "$1"
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Only static variables can be used in static methods or outside methods
 % A static method of an object can only access static variables.
-sym_f_type_must_be_rec_or_class=05012_F_record or class type expected
-% The variable or expression isn't of the type \var{record} or \var{class}.
+sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
+% The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Instances of classes or objects with an abstract method are not allowed
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
@@ -3055,6 +3055,9 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
 % \end{description}
+unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
+% This unit file was compiled for a different i8086 memory model and
+% cannot be read.
 # EndOfTeX
 
 #
@@ -3398,7 +3401,7 @@ S*2Aas_Assemble using GNU AS
 **2bl_Generate local symbol info
 **1B_Build all modules
 **1C<x>_Code generation options:
-**2C3<x>_Turn on ieee error checking for constants
+**2C3_Turn on ieee error checking for constants
 **2Ca<x>_Select ABI, see fpc -i for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
@@ -3409,6 +3412,7 @@ S*2Aas_Assemble using GNU AS
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
+A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
@@ -3426,10 +3430,12 @@ J*2CT<x>_Target-specific code generation options
 A*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
+J*3CTautogetterprefix=X_  Automatically create getters for properties with prefix X (empty string disables)
+J*3CTautosetterprefix=X_  Automatically create setters for properties with prefix X (empty string disables)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
-J*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
-J*3CTautogetterprefix=X_ Automatically create getters for properties with prefix X (empty string disables)
-J*3CTautosetterprefix=X_ Automatically create setters for properties with prefix X (empty string disables)
+J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
+J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
+J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library

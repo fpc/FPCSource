@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 162;
+  CurrentPPUVersion = 163;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -162,6 +162,9 @@ const
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
   uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
+  uf_i8086_far_code     = $2000000; { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
+  uf_i8086_far_data     = $4000000; { this unit uses an i8086 memory model with far data (i.e. compact or large) }
+  uf_i8086_huge_data    = $8000000; { this unit uses an i8086 memory model with huge data (i.e. huge) }
 
 {$ifdef generic_cpu}
 { We need to use the correct size of aint and pint for

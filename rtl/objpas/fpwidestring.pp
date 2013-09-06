@@ -23,7 +23,7 @@ uses
 {$ifdef Unix}
   unixcp,
 {$endif}
-  sysutils, character, charset;
+  charset;
   
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$ifdef MSWINDOWS}
@@ -31,7 +31,7 @@ procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$endif MSWINDOWS}
 
 const
-  CharacterOptions = [TCharacterOption.coIgnoreInvalidSequence];
+  IgnoreInvalidSequenceFlag = True;
 var
   OldManager : TUnicodeStringManager;
 
@@ -90,6 +90,21 @@ begin
   current_Map:=nil;
 end;
 
+function FindMap(const cp: TSystemCodePage): punicodemap;inline;
+begin
+  if (cp=DefaultSystemCodePage) then
+    begin
+      { update current_Map in case the DefaultSystemCodePage has been changed }
+      if (current_DefaultSystemCodePage<>DefaultSystemCodePage) or not Assigned(current_Map) then
+        begin
+          FiniThread;
+          InitThread;
+        end;
+      Result:=current_Map;
+    end
+  else
+    Result:=getmap(cp);
+end;
 
 { return value:
   -1 if incomplete or invalid code point
@@ -247,18 +262,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
@@ -320,18 +324,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
@@ -355,18 +348,7 @@ begin
       exit;
     end;
 
-  if (cp=DefaultSystemCodePage) then
-    begin
-      { update current_Map in case the DefaultSystemCodePage has been changed }
-      if current_DefaultSystemCodePage<>DefaultSystemCodePage then
-        begin
-          FiniThread;
-          InitThread;
-        end;
-      locMap:=current_Map;
-    end
-  else
-    locMap:=getmap(cp);
+  locMap:=FindMap(cp);
   if (locMap=nil) then
     begin
       DefaultAnsi2WideMove(source,DefaultSystemCodePage,dest,len);
@@ -381,7 +363,8 @@ end;
 
 function UpperUnicodeString(const S: UnicodeString): UnicodeString;
 begin
-  Result:=TCharacter.ToUpper(s,CharacterOptions);
+  if (UnicodeToUpper(S,IgnoreInvalidSequenceFlag,Result) <> 0) then
+    system.error(reRangeError);
 end;
 
 function UpperWideString(const S: WideString): WideString;
@@ -394,7 +377,8 @@ end;
 
 function LowerUnicodeString(const S: UnicodeString): UnicodeString;
 begin
-  Result:=TCharacter.ToLower(s,CharacterOptions);
+  if (UnicodeToLower(S,IgnoreInvalidSequenceFlag,Result) <> 0) then
+    system.error(reRangeError);
 end;
 
 function LowerWideString(const S: WideString): WideString;
@@ -405,16 +389,13 @@ begin
   Result:=LowerUnicodeString(u);
 end;
 
-function CompareUnicodeStringUCA(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;
-var
-  k1, k2 : TUCASortKey;
+
+function CompareUnicodeStringUCA(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
 begin
-  k1 := ComputeSortKey(p1,l1,current_Collation);
-  k2 := ComputeSortKey(p2,l2,current_Collation);
-  Result := CompareSortKey(k1,k2);
+  Result := IncrementalCompareString(p1,l1,p2,l2,current_Collation);
 end;
 
-function CompareUnicodeString(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;
+function CompareUnicodeString(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
 begin
   if (Pointer(p1)=Pointer(p2)) then
     exit(0);
@@ -502,13 +483,8 @@ begin
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;    
     end;
-    
-  if current_DefaultSystemCodePage<>DefaultSystemCodePage then
-    begin
-      FiniThread;
-      InitThread;
-    end;
-  locMap:=current_Map;
+
+  locMap:=FindMap(DefaultSystemCodePage);
   if (locMap=nil) then
     exit(System.UpCase(s));
 
@@ -532,7 +508,7 @@ begin
           ulen:=getunicode(p,mblen,locMap,@us[1]);
           if (Length(us)<>ulen) then
             SetLength(us,ulen);
-          usl:=TCharacter.ToUpper(us,CharacterOptions);
+          usl:=UpperUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
               aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
@@ -574,12 +550,7 @@ begin
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;    
     end;
-  if current_DefaultSystemCodePage<>DefaultSystemCodePage then
-    begin
-      FiniThread;
-      InitThread;
-    end;
-  locMap:=current_Map;
+  locMap:=FindMap(DefaultSystemCodePage);
   if (locMap=nil) then
     exit(System.LowerCase(s));
 
@@ -603,7 +574,7 @@ begin
           ulen:=getunicode(p,mblen,locMap,@us[1]);
           if (Length(us)<>ulen) then
             SetLength(us,ulen);
-          usl:=TCharacter.ToLower(us,CharacterOptions);
+          usl:=LowerUnicodeString(us);
           for k:=1 to Length(usl) do
             begin
               aalen:=getascii(tunicodechar(us[k]),locMap,@aa[Low(aa)],Length(aa));
@@ -717,7 +688,7 @@ end;
 
 function StrCompAnsiString(S1, S2: PChar): PtrInt;
 var
-  l1,l2,l : PtrInt;
+  l1,l2 : PtrInt;
 begin
   l1:=strlen(S1);
   l2:=strlen(S2);

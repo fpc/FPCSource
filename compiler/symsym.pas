@@ -614,7 +614,11 @@ implementation
 
     constructor tprocsym.create(const n : string);
       begin
-         inherited create(procsym,n);
+         if not(ts_lowercase_proc_start in current_settings.targetswitches) or
+            (n='') then
+           inherited create(procsym,n)
+         else
+           inherited create(procsym,lowercase(n[1])+copy(n,2,length(n)-1));
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
@@ -1667,7 +1671,12 @@ implementation
            not(tf_smartlink_sections in target_info.flags)) or
           DLLSource or
           (assigned(current_procinfo) and
-           (po_inline in current_procinfo.procdef.procoptions)) or
+           ((po_inline in current_procinfo.procdef.procoptions) or
+            { globalasmsym is called normally before the body of a subroutine is parsed
+              so we cannot know if it will be auto inlined, so make all symbols of it
+              global if asked }
+            (cs_opt_autoinline in current_settings.optimizerswitches))
+          ) or
           (vo_is_public in varoptions);
       end;
 

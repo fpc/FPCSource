@@ -102,9 +102,9 @@ const
       '',
       '',
       '',
+      'string:Guid',        // ftGuid
       '',
-      '',
-      'fixedFMT',
+      'fixedFMT',           // ftFmtBCD
       'string.uni',         // ftFixedWideChar
       'bin.hex:WideText'    // ftWideMemo
     );
@@ -344,11 +344,11 @@ var FieldNr      : integer;
 begin
   with ADataset do for FieldNr:=0 to FieldDefs.Count-1 do
     begin
+    AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
     AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
     if assigned(AFieldNode) then
       begin
        s := AFieldNode.NodeValue;
-       AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
        if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
          s := DecodeStringBase64(s);
        if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo, ftWideMemo] then
@@ -362,25 +362,28 @@ begin
       else
         AField.AsString := s;  // set it to the filterbuffer
       end
+    else
+      AField.SetData(nil);
     end;
 end;
 
 procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
     AFieldDef: TFieldDef;
-    s: string;
+    AField: TField;
     ARecordNode : TDOMElement;
 begin
   inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
-  for FieldNr := 0 to ADataset.FieldDefs.Count-1 do
+  with ADataset do for FieldNr := 0 to FieldDefs.Count-1 do
     begin
-    AFieldDef := ADataset.FieldDefs[FieldNr];
-    s := ADataset.Fields.FieldByNumber(AFieldDef.FieldNo).AsString;
-    if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
-      ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(s))
-    else
-      ARecordNode.SetAttribute(AFieldDef.Name, s);
+    AFieldDef := FieldDefs[FieldNr];
+    AField := Fields.FieldByNumber(AFieldDef.FieldNo);
+    if not AField.IsNull then
+      if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
+        ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(AField.AsString))
+      else
+        ARecordNode.SetAttribute(AFieldDef.Name, AField.AsString);
     end;
   if ARowState<>[] then
     begin

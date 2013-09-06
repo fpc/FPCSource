@@ -1553,8 +1553,9 @@ implementation
         { the shortstring-longint val routine by default                   }
         if (sourcepara.resultdef.typ = stringdef) then
           procname := procname + tstringdef(sourcepara.resultdef).stringtypname
-        { zero-based arrays (of char) can be implicitely converted to ansistring }
-        else if is_zero_based_array(sourcepara.resultdef) then
+        { zero-based arrays (of char) can be implicitely converted to ansistring, but don't do
+          so if not needed because the array is too short }
+        else if is_zero_based_array(sourcepara.resultdef) and (sourcepara.resultdef.size>255) then
           procname := procname + 'ansistr'
         else
           procname := procname + 'shortstr';

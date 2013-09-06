@@ -75,51 +75,87 @@ prt0$(OEXT) : v2prt0.as
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
+
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 #
 # System Dependent Units
 #
 go32$(PPUEXT) : go32.pp system$(PPUEXT)
+	$(COMPILER) go32.pp
+
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
         $(COMPILER) -Sg dpmiexcp.pp
+
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
+	$(COMPILER) initc.pp
+
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
+	$(COMPILER) profile.pp
+
 dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
+	$(COMPILER) dxetype.pp
+
 dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) dxeload.pp
+
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)
+        $(COMPILER) emu387.pp
+
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) ports.pp
+
 #
 # TP7 Compatible RTL Units
 #
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) dos.pp
+
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) crt.pp
+
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/objects.pp
+
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
+	$(COMPILER) printer.pp
 #
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
+
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
+
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
+
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
@@ -128,16 +164,22 @@ fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) varia
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+
 convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
+
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
         $(COMPILER) $(OBJPASDIR)/strutils.pp
+
 stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) system$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/stdconvs.pp
@@ -150,20 +192,46 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other system-independent RTL Units
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
+
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(PROCINC)/mmx.pp
+
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/getopts.pp
+
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
+
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/lineinfo.pp
+
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/lnfodwrf.pp
+
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
+
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/matrix.pp
+
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(INC)/ucomplex.pp
 
 #
 # Other system-dependent RTL Units
 #
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+	$(COMPILER) msmouse.pp
+
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/callspec.pp
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/cmem.pp
+
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/ctypes.pp

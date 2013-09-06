@@ -3888,7 +3888,7 @@ implementation
       while assigned(item) do
         begin
 {$ifdef arm}
-          if current_settings.cputype in cpu_thumb2+cpu_thumb then
+          if GenerateThumbCode or GenerateThumb2Code then
             list.concat(tai_thumb_func.create);
 {$endif arm}
           { "double link" all procedure entry symbols via .reference }
@@ -3911,15 +3911,15 @@ implementation
           previtem:=item;
           item := TCmdStrListItem(item.next);
         end;
-	  if (use_ent) then
-	    list.concat(Tai_ent.create(current_procinfo.procdef.mangledname));
+      if (use_ent) then
+        list.concat(Tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
       current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-	  if (use_ent) then
-	    list.concat(Tai_ent_end.create(current_procinfo.procdef.mangledname));
+      if (use_ent) then
+        list.concat(Tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
       current_procinfo.procdef.procendtai:=tai(list.last);

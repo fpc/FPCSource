@@ -559,8 +559,6 @@ implementation
     begin
       maybepreparedivu32(list,op,size,trunc32);
       case op of
-        OP_NEG,OP_NOT:
-          ;
         OP_SHL,OP_SHR,OP_SAR:
           if not is_64bitint(size) then
             a_load_reg_stack(list,size,reg)
@@ -590,8 +588,6 @@ implementation
         internalerror(2010121102);
       maybepreparedivu32(list,op,size,trunc32);
       case op of
-        OP_NEG,OP_NOT:
-          ;
         OP_SHL,OP_SHR,OP_SAR:
           begin
             if not is_64bitint(size) then
@@ -1157,14 +1153,16 @@ implementation
 
   procedure thlcgjvm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
     begin
-      a_load_reg_stack(list,size,reg);
+      if not(op in [OP_NOT,OP_NEG]) then
+        a_load_reg_stack(list,size,reg);
       a_op_ref_stack(list,op,size,ref);
       a_load_stack_reg(list,size,reg);
     end;
 
   procedure thlcgjvm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister);
     begin
-      a_load_reg_stack(list,size,src2);
+      if not(op in [OP_NOT,OP_NEG]) then
+        a_load_reg_stack(list,size,src2);
       a_op_reg_stack(list,op,size,src1);
       a_load_stack_reg(list,size,dst);
     end;

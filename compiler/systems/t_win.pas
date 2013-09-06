@@ -1815,26 +1815,22 @@ implementation
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_int_windows,TInternalLinkerWin);
+  RegisterLinker(ld_windows,TExternalLinkerWin);
 {$ifdef i386}
   { Win32 }
-  RegisterExternalLinker(system_i386_win32_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_i386_win32_info,TInternalLinkerWin);
   RegisterImport(system_i386_win32,TImportLibWin);
   RegisterExport(system_i386_win32,TExportLibWin);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin);
   RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterTarget(system_i386_win32_info);
   { WinCE }
-  RegisterExternalLinker(system_i386_wince_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_i386_wince_info,TInternalLinkerWin);
   RegisterImport(system_i386_wince,TImportLibWin);
   RegisterExport(system_i386_wince,TExportLibWin);
   RegisterDLLScanner(system_i386_wince,TDLLScannerWin);
   RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x64_win64_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_x64_win64_info,TInternalLinkerWin);
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
@@ -1842,8 +1838,6 @@ initialization
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_wince_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_arm_wince_info,TInternalLinkerWin);
   RegisterImport(system_arm_wince,TImportLibWin);
   RegisterExport(system_arm_wince,TExportLibWin);
   RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);

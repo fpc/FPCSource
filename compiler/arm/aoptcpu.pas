@@ -86,7 +86,7 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
-        not(current_settings.cputype in cpu_thumb) and
+        not(GenerateThumbCode) and
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
         ((taicpu(p).opcode<A_IT) or (taicpu(p).opcode>A_ITTTT)) and
@@ -284,7 +284,7 @@ Implementation
 
   function isValidConstLoadStoreOffset(const aoffset: longint; const pf: TOpPostfix) : boolean;
     begin
-      if current_settings.cputype in cpu_thumb2 then
+      if GenerateThumb2Code then
         result := (aoffset<4096) and (aoffset>-256)
       else
         result := ((pf in [PF_None,PF_B]) and
@@ -375,9 +375,8 @@ Implementation
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
                 and remove it if possible }
-              GetLastInstruction(p,hp1);
               asml.Remove(dealloc);
-              alloc:=FindRegAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
+              alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.previous));
               if assigned(alloc) then
                 begin
                   asml.Remove(alloc);
@@ -420,7 +419,7 @@ Implementation
     var
       hp1: tai;
     begin
-      if (current_settings.cputype in cpu_arm) and
+      if GenerateARMCode and
         (p.ops=3) and
         MatchOperand(p.oper[0]^, p.oper[1]^.reg) and
         GetNextInstructionUsingReg(p, hp1, p.oper[0]^.reg) and
@@ -500,7 +499,7 @@ Implementation
         { don't apply the optimization if the (new) index register is loaded }
         (p.oper[0]^.reg<>taicpu(hp1).oper[2]^.reg) and
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) and
-        (current_settings.cputype in cpu_arm) then
+        GenerateARMCode then
         begin
           DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
           p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
@@ -641,7 +640,8 @@ Implementation
                       into
                       strd reg1,ref
                     }
-                    else if (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+                    else if (GenerateARMCode or GenerateThumb2Code) and
+                       (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
                        (taicpu(p).oppostfix=PF_None) and
                        (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
@@ -705,7 +705,8 @@ Implementation
                            ...
                            ldrd reg1,ref
                         }
-                        else if (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+                        else if (GenerateARMCode or GenerateThumb2Code) and
+                          (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
                           { ldrd does not allow any postfixes ... }
                           (taicpu(p).oppostfix=PF_None) and
                           not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
@@ -736,7 +737,8 @@ Implementation
 
                         ldrb dst2, [ref]
                     }
-                    if (taicpu(p).oppostfix=PF_B) and
+                    if not(GenerateThumbCode) and
+                       (taicpu(p).oppostfix=PF_B) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_NONE]) and
                        (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
@@ -838,10 +840,10 @@ Implementation
                                 SM_LSR,
                                 SM_LSL:
                                   begin
-                                    hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
-                                    InsertLLItem(p.previous, p.next, hp1);
+                                    hp2:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
+                                    InsertLLItem(p.previous, p.next, hp2);
                                     p.free;
-                                    p:=hp1;
+                                    p:=hp2;
                                   end;
                                 else
                                   internalerror(2008072803);
@@ -1085,7 +1087,12 @@ Implementation
                             will also be in hp1 then.
                           }
                           if (taicpu(hp1).ops > I) and
-                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) and
+                             { prevent certain combinations on thumb(2), this is only a safe approximation }
+                             (not(GenerateThumbCode or GenerateThumb2Code) or
+                              ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
+                               (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15))
+                             ) then
                             begin
                               DebugMsg('Peephole RedundantMovProcess done', hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
@@ -1116,7 +1123,7 @@ Implementation
                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
                                               A_CMP, A_CMN],
                                         [taicpu(p).condition], [PF_None]) and
-                       (not ((current_settings.cputype in cpu_thumb2) and
+                       (not ((GenerateThumb2Code) and
                              (taicpu(hp1).opcode in [A_SBC]) and
                              (((taicpu(hp1).ops=3) and 
                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^.reg)) or
@@ -1217,7 +1224,8 @@ Implementation
                              add r1, r3, #imm
                              ldr r0, [r1, r2, lsl #2]
                     }
-                    if (taicpu(p).opcode = A_MOV) and
+                    if (not(GenerateThumbCode)) and
+                       (taicpu(p).opcode = A_MOV) and
                        (taicpu(p).ops = 3) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
@@ -1225,6 +1233,12 @@ Implementation
                          it is also extremly unlikely to be emitted this way}
                        (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
                        (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
+                       { thumb2 allows only lsl #0..#3 }
+                       (not(GenerateThumb2Code) or
+                        ((taicpu(p).oper[2]^.shifterop^.shiftimm in [0..3]) and
+                         (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL)
+                        )
+                       ) and
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
@@ -1894,7 +1908,7 @@ Implementation
                 case taicpu(p).opcode Of
                   A_B:
                     if (taicpu(p).condition<>C_None) and
-                      not(current_settings.cputype in cpu_thumb) then
+                      not(GenerateThumbCode) then
                       begin
                          { check for
                                 Bxx   xxx
@@ -2142,7 +2156,7 @@ Implementation
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
     var
-      hp1,hp2,hp3,hp4,hp5 : tai;
+      hp1,hp2,hp3,hp4,hp5,insertpos : tai;
       list : TAsmList;
     begin
       result:=true;
@@ -2233,11 +2247,22 @@ Implementation
                 end;
 
               asml.Remove(hp1);
+              { if there are address labels associated with hp2, those must
+                stay with hp2 (e.g. for GOT-less PIC) }
+              insertpos:=hp2;
+              while assigned(hp2.previous) and
+                    (tai(hp2.previous).typ<>ait_instruction) do
+                begin
+                  hp2:=tai(hp2.previous);
+                  if (hp2.typ=ait_label) and
+                     (tai_label(hp2).labsym.typ=AT_ADDR) then
+                    insertpos:=hp2;
+                end;
 {$ifdef DEBUG_PREREGSCHEDULER}
-              asml.insertbefore(tai_comment.Create(strpnew('Rescheduled')),hp2);
+              asml.insertbefore(tai_comment.Create(strpnew('Rescheduled')),insertpos);
 {$endif DEBUG_PREREGSCHEDULER}
-              asml.InsertBefore(hp1,hp2);
-              asml.InsertListBefore(hp2,list);
+              asml.InsertBefore(hp1,insertpos);
+              asml.InsertListBefore(insertpos,list);
               p:=tai(p.next)
             end
           else if p.typ=ait_instruction then

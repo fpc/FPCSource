@@ -15,6 +15,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$pointermath on}
+{$PACKENUM 1}
 unit charset;
 
   interface
@@ -31,14 +32,14 @@ unit charset;
          umf_unused);
 
        punicodecharmapping = ^tunicodecharmapping;
-       tunicodecharmapping = record
+       tunicodecharmapping = packed record
           unicode : tunicodechar;
           flag : tunicodecharmappingflag;
           reserved : byte;
        end;
 
        preversecharmapping = ^treversecharmapping;
-       treversecharmapping = record
+       treversecharmapping = packed record
           unicode : tunicodechar;
           char1   : Byte;
           char2   : Byte;
@@ -59,8 +60,26 @@ unit charset;
        tcp2unicode = class(tcsconvert)
        end;
 
+       TSerializedMapHeader = packed record
+          cpName           : string[20];
+          cp               : UInt16;
+          mapLength        : UInt32;
+          lastChar         : Int32;
+          reverseMapLength : UInt32;
+       end;
+
+    const
+      BINARY_MAPPING_FILE_EXT = '.bcm';
+
     function loadunicodemapping(const cpname,f : string; cp :word) : punicodemap;
+    function loadbinaryunicodemapping(const directory,cpname : string) : punicodemap;overload;
+    function loadbinaryunicodemapping(const filename : string) : punicodemap;overload;
+    function loadbinaryunicodemapping(
+      const AData       : Pointer;
+      const ADataLength : Integer
+    ) : punicodemap;overload;
     procedure registermapping(p : punicodemap);
+    function registerbinarymapping(const directory,cpname : string):Boolean;
     function getmap(const s : string) : punicodemap; 
     function getmap(cp : word) : punicodemap;   
     function mappingavailable(const s : string) : boolean;inline;
@@ -371,6 +390,136 @@ unit charset;
          loadunicodemapping:=p;
       end;
 
+
+    function loadbinaryunicodemapping(const directory, cpname : string) : punicodemap;
+      const
+        {$IFDEF ENDIAN_LITTLE}
+          ENDIAN_SUFFIX = 'le';
+        {$ENDIF ENDIAN_LITTLE}
+        {$IFDEF ENDIAN_BIG}
+          ENDIAN_SUFFIX = 'be';
+        {$ENDIF ENDIAN_BIG}
+      var
+        fileName : string;
+      begin
+        fileName := directory;
+        if (fileName <> '') then begin
+          if (fileName[Length(fileName)] <> DirectorySeparator) then
+            fileName := fileName + DirectorySeparator;
+        end;
+        fileName := fileName + cpname + '_' + ENDIAN_SUFFIX + BINARY_MAPPING_FILE_EXT;
+        Result := loadbinaryunicodemapping(fileName);
+      end;
+
+    {$PUSH}
+      {$I-}
+    function loadbinaryunicodemapping(const filename : string) : punicodemap;
+      const
+        BLOCK_SIZE = 16*1024;
+      var
+        f : File of Byte;
+        locSize, locReaded, c : LongInt;
+        locBuffer : PByte;
+        locBlockSize : LongInt;
+      begin
+        Result := nil;
+        if (filename='') then
+          exit;
+        Assign(f,filename);
+        Reset(f);
+        if (IOResult<>0) then
+          begin
+            Close(f);
+            exit;
+          end;
+        locSize:=FileSize(f);
+        if (locSize<SizeOf(TSerializedMapHeader)) then
+          begin
+            Close(f);
+            exit;
+          end;
+        locBuffer:=GetMem(locSize);
+        locBlockSize:=BLOCK_SIZE;
+        locReaded:=0;
+        c := 0;
+        while (locReaded<locSize) do
+          begin
+            if (locBlockSize>(locSize-locReaded)) then
+              locBlockSize:=locSize-locReaded;
+            BlockRead(f,locBuffer[locReaded],locBlockSize,c);
+            if (IOResult<>0) or (c<=0) then
+              begin
+                FreeMem(locBuffer,locSize);
+                Close(f);
+                exit;
+              end;
+            locReaded:=locReaded+c;
+          end;
+        Result:=loadbinaryunicodemapping(locBuffer,locSize);
+        FreeMem(locBuffer,locSize);
+        Close(f);
+      end;
+    {$POP}
+
+    procedure freemapping(amapping : punicodemap);
+      begin
+        if (amapping = nil) then
+          exit;
+        if (amapping^.map <> nil) then
+          freemem(amapping^.map);
+        if (amapping^.reversemap <> nil) then
+          freemem(amapping^.reversemap);
+        dispose(amapping);
+      end;
+
+    function loadbinaryunicodemapping(
+      const AData       : Pointer;
+      const ADataLength : Integer
+    ) : punicodemap;
+      var
+        dataPointer : PByte;
+        readedLength : LongInt;
+
+        function ReadBuffer(ADest : Pointer; ALength : LongInt) : Boolean;
+          begin
+            Result := (readedLength + ALength) <= ADataLength;
+            if not result then
+              exit;
+            Move(dataPointer^,ADest^,ALength);
+            Inc(dataPointer,ALength);
+            readedLength := readedLength + ALength;
+          end;
+
+      var
+        h : TSerializedMapHeader;
+        r : punicodemap;
+      begin
+        Result := nil;
+        readedLength := 0;
+        dataPointer := AData;
+        if not ReadBuffer(@h,SizeOf(h)) then
+          exit;
+        New(r);
+        FillChar(r^,SizeOf(tunicodemap),0);
+        r^.cpname := h.cpName;
+        r^.cp := h.cp;
+        r^.map := AllocMem(h.mapLength);
+        if not ReadBuffer(r^.map,h.mapLength) then
+          begin
+            freemapping(r);
+            exit;
+          end;
+        r^.lastchar := h.lastChar;
+        r^.reversemap := AllocMem(h.reverseMapLength);
+        if not ReadBuffer(r^.reversemap,h.reverseMapLength) then
+          begin
+            freemapping(r);
+            exit;
+          end;
+        r^.reversemaplength := (h.reverseMapLength div SizeOf(treversecharmapping));
+        Result := r;
+      end;
+
     procedure registermapping(p : punicodemap);
 
       begin
@@ -385,6 +534,19 @@ unit charset;
     {$endif FPC_HAS_FEATURE_THREADING}
       strmapcache : string;
       strmapcachep : punicodemap;
+
+    function registerbinarymapping(const directory, cpname : string) : Boolean;
+      var
+        p : punicodemap;
+      begin
+        Result := False;
+        p := loadbinaryunicodemapping(directory,cpname);
+        if (p = nil) then
+          exit;
+        registermapping(p);
+        Result := True;
+      end;
+
     function getmap(const s : string) : punicodemap;
 
       var

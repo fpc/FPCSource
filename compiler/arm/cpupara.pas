@@ -298,7 +298,7 @@ unit cpupara;
         curfloatreg:=RS_F0;
         curmmreg:=RS_D0;
 
-        if (current_settings.cputype in cpu_thumb) and (side=calleeside) then
+        if GenerateThumbCode and (side=calleeside) then
           cur_stack_offset:=(p as tprocdef).total_stackframe_size
         else
           cur_stack_offset:=0;
@@ -581,7 +581,7 @@ unit cpupara;
                    begin
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
-                         if current_settings.cputype in cpu_thumb then
+                         if GenerateThumbCode then
                            begin
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                            end

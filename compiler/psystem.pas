@@ -683,8 +683,6 @@ implementation
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;
-        aiclass[ait_ent]:=tai_ent;
-        aiclass[ait_ent_end]:=tai_ent_end;
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
         aiclass[ait_frame]:=tai_frame;

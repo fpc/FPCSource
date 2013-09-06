@@ -775,6 +775,6 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_arm_nds_info,TLinkerNDS);
+  RegisterLinker(ld_nds,TLinkerNDS);
   RegisterTarget(system_arm_nds_info);
 end.

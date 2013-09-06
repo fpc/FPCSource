@@ -13,6 +13,8 @@ else
   fi
 fi
 
+rm -rf org
+
 $PPC -O2 -g unsupported
 $PPC -O2 -g testintf
 $PPC -O2 -g nested
@@ -149,4 +151,8 @@ java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tw24089
 $PPC -O2 -g -B -Sa -CTautosetterprefix=Set ujsetter
 javac -encoding utf-8 -cp ../../../rtl/units/$RTLDIR:. tjsetter.java
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tjsetter
-
+$PPC -O2 -g -B -Sa tlowercaseproc
+javac -encoding utf-8 -cp ../../../rtl/units/$RTLDIR:. tjavalowercaseproc.java
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tjavalowercaseproc
+$PPC -O2 -g -B -Sa -CTinitlocals tinitvar
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. org.freepascal.test.tinitvar.tinitvar

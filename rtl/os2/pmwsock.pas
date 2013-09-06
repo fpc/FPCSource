@@ -52,17 +52,17 @@ type
 
 
 Function __WSAFDIsSet(a: TSocket;var b: fdset): Longint; cdecl;
-    external 'PMWSock' name '__WSAFDIsSet';
+    external 'PMWSock' index 151;
 Function __WSAFDIsSet_(s:TSocket; var FDSet:TFDSet): Longint; cdecl;
-    external 'PMWSock' name '__WSAFDIsSet';
+    external 'PMWSock' index 151;
 Function __WSAFDIsSet2_(s:TSocket; var FDSet:TFDSet): boolean; cdecl;
-    external 'PMWSock' name '__WSAFDIsSet';
+    external 'PMWSock' index 151;
 
 Function FD_ISSET2(a: TSocket;var b: fdset): Longint; cdecl;
-    external 'PMWSock' name '__WSAFDIsSet';
+    external 'PMWSock' index 151;
 
 Function FD_ISSET(a: TSocket;var b: fdset): boolean; cdecl;
-    external 'PMWSock' name '__WSAFDIsSet';
+    external 'PMWSock' index 151;
 
 Procedure FD_CLR(ASocket: TSocket; var aset: fdset);
 Procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
@@ -708,195 +708,195 @@ Const
 // Socket function prototypes
 
 Function accept(s: TSocket; Var addr; Var addrlen: LongInt): TSocket; cdecl;
-    external 'PMWSock' name 'accept';
+    external 'PMWSock' index 1;
 Function accept(s:TSocket; addr: PSockAddr; addrlen : PLongint) : TSocket; cdecl;
-    external 'PMWSock' name 'accept';
+    external 'PMWSock' index 1;
 Function accept(s:TSocket; addr: PSockAddr; var addrlen : Longint) : TSocket; cdecl;
-    external 'PMWSock' name 'accept';
+    external 'PMWSock' index 1;
 
 Function bind(s: TSocket; Const addr; namelen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'bind';
+    external 'PMWSock' index 2;
 Function bind(s:TSocket; addr: PSockaddr;namelen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'bind';
+    external 'PMWSock' index 2;
 
 Function closesocket(s: TSocket): LongInt; cdecl;
-    external 'PMWSock' name 'closesocket';
+    external 'PMWSock' index 3;
 
 Function connect(s: TSocket; Const name: sockaddr; namelen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'connect';
+    external 'PMWSock' index 4;
 Function connect(s:TSocket; addr:PSockAddr; namelen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'connect';
+    external 'PMWSock' index 4;
 
 Function ioctlsocket(s: TSocket; cmd: LongInt; Var argp: Cardinal): LongInt; cdecl;
-    external 'PMWSock' name 'ioctlsocket';
+    external 'PMWSock' index 12;
 Function ioctlsocket(s: TSocket; cmd: longint; var arg:longint): Longint; cdecl;
-    external 'PMWSock' name 'ioctlsocket';
+    external 'PMWSock' index 12;
 Function ioctlsocket(s: TSocket; cmd: longint; argp: PCardinal): Longint; cdecl;
-    external 'PMWSock' name 'ioctlsocket';
+    external 'PMWSock' index 12;
 
 Function getpeername(s: TSocket; Var name: sockaddr; Var nameLen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'getpeername';
+    external 'PMWSock' index 5;
 
 Function getsockname(s: TSocket;Var name: sockaddr; Var namelen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'getsockname';
+    external 'PMWSock' index 6;
 
 Function getsockopt(s: TSocket; level, optname: LongInt;Var optval; Var optlen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'getsockopt';
+    external 'PMWSock' index 7;
 Function getsockopt(s: TSocket; level: Longint; optname: Longint; optval:pchar;var optlen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'getsockopt';
+    external 'PMWSock' index 7;
 
 Function htonl(hostlong: Cardinal): Cardinal; cdecl;
-    external 'PMWSock' name 'htonl';
+    external 'PMWSock' index 8;
 
 Function htons(hostshort: Word): Word; cdecl;
-    external 'PMWSock' name 'htons';
+    external 'PMWSock' index 9;
 
 Function inet_addr(cp: pchar): Cardinal; cdecl;
-    external 'PMWSock' name 'inet_addr';
+    external 'PMWSock' index 10;
 
 Function inet_ntoa(Var _in: in_addr): PChar; cdecl;
-    external 'PMWSock' name 'inet_ntoa';
+    external 'PMWSock' index 11;
 Function inet_ntoa(i: PInAddr): pchar; cdecl;
-    external 'PMWSock' name 'inet_ntoa';
+    external 'PMWSock' index 11;
 
 Function listen(s: TSocket; backlog: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'listen';
+    external 'PMWSock' index 13;
 
 Function ntohl(netlong: Cardinal): Cardinal; cdecl;
-    external 'PMWSock' name 'ntohl';
+    external 'PMWSock' index 14;
 
 Function ntohs(netshort: Word): Word; cdecl;
-    external 'PMWSock' name 'ntohs';
+    external 'PMWSock' index 15;
 
 Function recv(s: TSocket;Var Buf; len, flags: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'recv';
+    external 'PMWSock' index 16;
 Function recv(s: TSocket; buf:pchar; len: Longint; flags: Longint): Longint; cdecl;
-    external 'PMWSock' name 'recv';
+    external 'PMWSock' index 16;
 
 Function recvfrom(s: TSocket; Var Buf: PChar; len, flags:LongInt;
                          Var from: sockaddr; Var fromLen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'recvfrom';
+    external 'PMWSock' index 17;
 Function recvfrom(s: TSocket; buf:pchar; len: Longint; flags: Longint;
                          from: PSockAddr; fromlen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'recvfrom';
+    external 'PMWSock' index 17;
 Function recvfrom(s: TSocket; var buf; len: Longint; flags: Longint;
                          Const from: TSockAddr; var fromlen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'recvfrom';
+    external 'PMWSock' index 17;
 
 Function select(nfds: LongInt; Var readfds, writefds, exceptfds: fdset;
                        Const timeout: timeval): LongInt; cdecl;
-    external 'PMWSock' name 'select';
+    external 'PMWSock' index 18;
 Function select(nfds: Longint; readfds, writefds, exceptfds : PFDSet;
                        timeout: PTimeVal): Longint; cdecl;
-    external 'PMWSock' name 'select';
+    external 'PMWSock' index 18;
 
 Function send(s: TSocket; Const Buf: PChar; len, flags: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'send';
+    external 'PMWSock' index 19;
 
 Function sendto(s: TSocket; Const Buf: PChar; len, flags: LongInt;
                     Const _to: sockaddr; tolen: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'sendto';
+    external 'PMWSock' index 20;
 Function sendto(s: TSocket; buf: pchar; len: Longint; flags: Longint;
                     toaddr: PSockAddr; tolen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'sendto';
+    external 'PMWSock' index 20;
 
 Function setsockopt(s: TSocket; level: Longint; optname: Longint;
                            optval: pchar; optlen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'setsockopt';
+    external 'PMWSock' index 21;
 
 Function shutdown(s: TSocket; how: LongInt): LongInt; cdecl;
-    external 'PMWSock' name 'shutdown';
+    external 'PMWSock' index 22;
 
 Function socket(af, typ, protocol: LongInt): TSocket; cdecl;
-    external 'PMWSock' name 'socket';
+    external 'PMWSock' index 23;
 
 // Database function prototypes
 
 Function gethostbyaddr(addr: pchar; len: Longint; t: Longint): PHostEnt; cdecl;
-    external 'PMWSock' name 'gethostbyaddr';
+    external 'PMWSock' index 51;
 
 Function gethostbyname(name: pchar): PHostEnt; cdecl;
-    external 'PMWSock' name 'gethostbyname';
+    external 'PMWSock' index 52;
 
 Function gethostname(name: pchar; namelen: Longint): Longint; cdecl;
-    external 'PMWSock' name 'gethostname';
+    external 'PMWSock' index 57;
 
 Function getservbyport(port: Longint; proto: pchar): PServEnt; cdecl;
-    external 'PMWSock' name 'getservbyport';
+    external 'PMWSock' index 56;
 
 Function getservbyname(name: pchar; proto: pchar): PServEnt; cdecl;
-    external 'PMWSock' name 'getservbyname';
+    external 'PMWSock' index 55;
 
 Function getprotobynumber(proto: LongInt): pprotoent; cdecl;
-    external 'PMWSock' name 'getprotobynumber';
+    external 'PMWSock' index 54;
 
 Function getprotobyname(name: pchar): PProtoEnt; cdecl;
-    external 'PMWSock' name 'getprotobyname';
+    external 'PMWSock' index 53;
 
 // Microsoft Windows Extension function prototypes
 
 Function WSAStartup(wVersionRequired: Word;Var aWSAData: WSAData): LongInt; cdecl;
-    external 'PMWSock' name 'WSAStartup';
+    external 'PMWSock' index 115;
 
 Function WSACleanup: LongInt; cdecl;
-    external 'PMWSock' name 'WSACleanup';
+    external 'PMWSock' index 116;
 
 Procedure WSASetLastError(iError: LongInt); cdecl;
-    external 'PMWSock' name 'WSASetLastError';
+    external 'PMWSock' index 112;
 
 Function WSAGetLastError: LongInt; cdecl;
-    external 'PMWSock' name 'WSAGetLastError';
+    external 'PMWSock' index 111;
 
 Function WSAIsBlocking: Longbool; cdecl;
-    external 'PMWSock' name 'WSAIsBlocking';
+    external 'PMWSock' index 114;
 
 Function WSAUnhookBlockingHook: LongInt; cdecl;
-    external 'PMWSock' name 'WSAUnhookBlockingHook';
+    external 'PMWSock' index 110;
 
 Function WSASetBlockingHook(lpBlockFunc: Pointer): Pointer; cdecl;
-    external 'PMWSock' name 'WSASetBlockingHook';
+    external 'PMWSock' index 109;
 
 Function WSACancelBlockingCall: LongInt; cdecl;
-    external 'PMWSock' name 'WSACancelBlockingCall';
+    external 'PMWSock' index 113;
 
 Function WSAAsyncGetServByName(hWnd: HWND; wMsg: Cardinal;
                                      name: pchar; proto: pchar;
                                      buf: pchar;
                                      buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetServByName';
+    external 'PMWSock' index 107;
 
 Function WSAAsyncGetServByPort(hWnd: HWND; wMsg: Cardinal;
                                       port: Longint;
                                       proto: pchar; buf: pchar;
                                       buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetServByPort';
+    external 'PMWSock' index 106;
 
 Function WSAAsyncGetProtoByName(hWnd: HWND; wMsg: Cardinal;
                                        name: pchar; buf: pchar;
                                        buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetProtoByName';
+    external 'PMWSock' index 105;
 
 Function WSAAsyncGetProtoByNumber(hWnd: HWND; wMsg: Cardinal;
                                          number: Longint;
                                          buf: pchar;
                                          buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetProtoByNumber';
+    external 'PMWSock' index 104;
 
 Function WSAAsyncGetHostByName(hWnd: HWND; wMsg: Cardinal;
                                       name: pchar; buf: pchar;
                                       buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetHostByName';
+    external 'PMWSock' index 103;
 
 Function WSAAsyncGetHostByAddr(hWnd: HWND; wMsg: Cardinal;
                                       addr: pchar; len: Longint; t: Longint;
                                       buf: pchar; buflen: Longint): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncGetHostByAddr';
+    external 'PMWSock' index 102;
 
 Function WSACancelAsyncRequest(hAsyncTaskHandle: Cardinal): LongInt; cdecl;
-    external 'PMWSock' name 'WSACancelAsyncRequest';
+    external 'PMWSock' index 108;
 
 Function WSAAsyncSelect(s: TSocket; ahWnd: HWND; wMsg: Cardinal; lEvent: LongInt): Cardinal; cdecl;
-    external 'PMWSock' name 'WSAAsyncSelect';
+    external 'PMWSock' index 101;
 
 // Windows message parameter composition and decomposition
 // macros.

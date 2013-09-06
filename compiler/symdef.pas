@@ -4735,14 +4735,14 @@ implementation
       begin
         { don't check assigned(_class), that's also the case for nested
           procedures inside methods }
-        result:=owner.symtabletype=ObjectSymtable;
+        result:=(owner.symtabletype=ObjectSymtable)and not no_self_node;
       end;
 
 
     function tprocdef.is_addressonly:boolean;
       begin
         result:=assigned(owner) and
-                (owner.symtabletype<>ObjectSymtable) and
+                not is_methodpointer and
                 (not(m_nested_procvars in current_settings.modeswitches) or
                  not is_nested_pd(self));
       end;

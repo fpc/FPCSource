@@ -263,6 +263,6 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_powerpc_morphos_info,TLinkerMorphOS);
+  RegisterLinker(ld_morphos,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
 end.

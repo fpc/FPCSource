@@ -1510,7 +1510,7 @@ var
   P: TProcess;
   BytesRead: longint;
 
-  function ReadFromStream: longint;
+  function ReadFromStream(const ReadFromStdErr: boolean): longint;
 
   const
     READ_BYTES = 2048;
@@ -1534,7 +1534,10 @@ var
     ConsoleOutput.SetSize(BytesRead + READ_BYTES);
 
     // try reading it
-    n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
+    if ReadFromStdErr then
+      n := P.Stderr.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES)
+    else
+      n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
     if n > 0 then
     begin
       Inc(BytesRead, n);
@@ -1602,11 +1605,17 @@ begin
 
     P.Execute;
     while P.Running do
-      ReadFromStream;
+      ReadFromStream(false);
 
     // read last part
     repeat
-    until ReadFromStream = 0;
+    until ReadFromStream(false)=0;
+
+    // read stderr
+    // JvdS: Note that this way stderr is added to the end of the stream. But I
+    // see no way showing the stderr output at the place it was actually written
+    repeat
+    until ReadFromStream(true)=0;
     ConsoleOutput.SetSize(BytesRead);
 
     result := P.ExitStatus;
@@ -6542,8 +6551,11 @@ begin
           for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
             for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
               begin
-                DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
-                DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                if OSCPUSupported[AOS,ACPU] then
+                  begin
+                    DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+                    DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                  end;
               end;
           CmdRemoveTrees(DirectoryList);
         finally
@@ -6928,10 +6940,10 @@ begin
   Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If AllTargets or PackageOK(P) then
-      Clean(P, AllTargets);
-    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
+      P:=Packages.PackageItems[i];
+      If AllTargets or PackageOK(P) then
+        Clean(P, AllTargets);
+      log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);

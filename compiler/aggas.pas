@@ -956,6 +956,11 @@ implementation
                       AsmLn;
                     end;
 {$endif cpu64bitaddr}
+                 aitconst_got:
+                   begin
+                     AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
+                     Asmln;
+                   end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
 {$ifdef cpu64bitaddr}
@@ -1337,23 +1342,7 @@ implementation
              begin
                AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
              end;
-           ait_ent:
-             begin
-               AsmWrite(#9'.ent'#9);
-			   if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent(hp).Name))
-               else
-                 AsmWriteLn(tai_ent(hp).Name);
-             end;
-           ait_ent_end:
-             begin
-               AsmWrite(#9'.end'#9);
-			   if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent_end(hp).Name))
-               else
-  			     AsmWriteLn(tai_ent_end(hp).Name);
-             end;
-            ait_symbol_end :
+           ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
                 begin

@@ -3567,11 +3567,11 @@ implementation
           are smaller than an entire register }
         if result and
            { don't try to check the size of an open array }
-           is_open_array(resultdef) or
-           (resultdef.size<left.resultdef.size) or
-           ((resultdef.size=left.resultdef.size) and
-            (left.resultdef.size<sizeof(aint)) and
-            (is_signed(resultdef) xor is_signed(left.resultdef))) then
+           (is_open_array(resultdef) or
+            (resultdef.size<left.resultdef.size) or
+            ((resultdef.size=left.resultdef.size) and
+             (left.resultdef.size<sizeof(aint)) and
+             (is_signed(resultdef) xor is_signed(left.resultdef)))) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 

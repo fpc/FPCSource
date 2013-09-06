@@ -42,7 +42,7 @@ interface
        AsmOutSize=32768*4;
 
     type
-      TAssembler=class(TAbstractAssembler)
+      TAssembler=class(TObject)
       public
       {filenames}
         path        : TPathStr;

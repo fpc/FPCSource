@@ -289,12 +289,22 @@ Unit AoptObj;
         { returns true if the operands o1 and o2 are completely equal }
         Function OpsEqual(const o1,o2:toper): Boolean;
 
-        { Returns the next ait_alloc object with ratype ra_dealloc for
+        { Returns the next ait_alloc object with ratype ra_alloc for
           Reg is found in the block
           of Tai's starting with StartPai and ending with the next "real"
           instruction. If none is found, it returns
-          nil                                                                        }
+          nil
+        }
         Function FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+
+        { Returns the last ait_alloc object with ratype ra_alloc for
+          Reg is found in the block
+          of Tai's starting with StartPai and ending with the next "real"
+          instruction. If none is found, it returns
+          nil
+        }
+        Function FindRegAllocBackward(Reg : TRegister; StartPai : Tai) : tai_regalloc;
+
 
         { Returns the next ait_alloc object with ratype ra_dealloc
           for Reg which is found in the block of Tai's starting with StartPai
@@ -1041,6 +1051,33 @@ Unit AoptObj;
                  exit;
                end;
               StartPai := Tai(StartPai.Next);
+            End
+          else
+            exit;
+        Until false;
+      End;
+
+
+      Function TAOptObj.FindRegAllocBackward(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      Begin
+        Result:=nil;
+        Repeat
+          While Assigned(StartPai) And
+                ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
+                 ((StartPai.typ = ait_label) and
+                  Not(Tai_Label(StartPai).labsym.Is_Used))) Do
+            StartPai := Tai(StartPai.Previous);
+          If Assigned(StartPai) And
+             (StartPai.typ = ait_regAlloc) Then
+            Begin
+              if (tai_regalloc(StartPai).ratype=ra_alloc) and
+                (getregtype(tai_regalloc(StartPai).Reg) = getregtype(Reg)) and
+                (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
+               begin
+                 Result:=tai_regalloc(StartPai);
+                 exit;
+               end;
+              StartPai := Tai(StartPai.Previous);
             End
           else
             exit;

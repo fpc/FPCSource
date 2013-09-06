@@ -1031,17 +1031,17 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
 
 initialization
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_arm_embedded_info);
 {$endif arm}
 
 {$ifdef avr}
-  RegisterExternalLinker(system_avr_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_avr_embedded_info);
 {$endif avr}
 
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
 end.

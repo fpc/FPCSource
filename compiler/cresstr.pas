@@ -152,8 +152,8 @@ uses
         { Write unitname entry }
         namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage,False);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
-        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
-        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_nil_dataptr);
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_nil_dataptr);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
 {$ifdef cpu64bitaddr}
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));

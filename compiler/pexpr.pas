@@ -337,8 +337,8 @@ implementation
                             begin
                               if not(assigned(exit_procinfo.nestedexitlabel)) then
                                 begin
-                                  include(exit_procinfo.flags,pi_has_nested_exit);
-                                  exclude(exit_procinfo.procdef.procoptions,po_inline);
+                                  include(current_procinfo.flags,pi_has_nested_exit);
+                                  exclude(current_procinfo.procdef.procoptions,po_inline);
 
                                   exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
 
@@ -907,6 +907,8 @@ implementation
 
 
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
+      var
+        pd: tprocdef;
       begin
         maybe_load_methodpointer:=false;
         if not assigned(p1) then
@@ -920,12 +922,19 @@ implementation
              ObjectSymtable,
              recordsymtable:
                begin
-                 { We are calling from the static class method which has no self node }
-                 if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                   if st.symtabletype=recordsymtable then
-                     p1:=ctypenode.create(current_procinfo.procdef.struct)
-                   else
-                     p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
+                 { Escape nested procedures }
+                 if assigned(current_procinfo) then
+                   begin
+                     pd:=current_procinfo.get_normal_proc.procdef;
+                     { We are calling from the static class method which has no self node }
+                     if assigned(pd) and pd.no_self_node then
+                       if st.symtabletype=recordsymtable then
+                         p1:=ctypenode.create(pd.struct)
+                       else
+                         p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                     else
+                       p1:=load_self_node;
+                   end
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -1288,7 +1297,7 @@ implementation
                             if assigned(p1) and
                               (
                                 is_self_node(p1) or
-                                (assigned(current_procinfo) and (current_procinfo.procdef.no_self_node) and
+                                (assigned(current_procinfo) and (current_procinfo.get_normal_proc.procdef.no_self_node) and
                                 (current_procinfo.procdef.struct=structh))) then
                               Message(parser_e_only_class_members)
                             else
@@ -1400,8 +1409,8 @@ implementation
                 if assigned(srsym) then
                   begin
                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                        consume(_ID);
-                        do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                    consume(_ID);
+                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
                   end
                 else
                   Message1(sym_e_id_no_member,orgpattern);
@@ -2404,11 +2413,12 @@ implementation
            end;
 
          var
-           srsym : tsym;
-           srsymtable : TSymtable;
-           hdef  : tdef;
+           srsym: tsym;
+           srsymtable: TSymtable;
+           hdef: tdef;
+           pd: tprocdef;
            orgstoredpattern,
-           storedpattern : string;
+           storedpattern: string;
            callflags: tcallnodeflags;
            t : ttoken;
            unit_found : boolean;
@@ -2566,10 +2576,18 @@ implementation
                             else
                               p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
-                          if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
-                          else
-                            p1:=load_self_node;
+                            begin
+                              if assigned(current_procinfo) then
+                                begin
+                                  pd:=current_procinfo.get_normal_proc.procdef;
+                                  if assigned(pd) and pd.no_self_node then
+                                    p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                                  else
+                                    p1:=load_self_node;
+                                end
+                              else
+                                p1:=load_self_node;
+                            end;
                         { now, if the field itself is part of an objectsymtab }
                         { (it can be even if it was found in a withsymtable,  }
                         {  e.g., "with classinstance do field := 5"), then    }
@@ -2664,12 +2682,10 @@ implementation
                       begin
                         if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
                           { if we are accessing a owner procsym from the nested }
-                          { class we need to call it as a class member          }
-                          if assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
-                          else
-                          if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
-                          { no self node in static class methods }
+                          { class or from a static class method we need to call }
+                          { it as a class member                                }
+                          if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                             (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                             p1:=load_self_node;
@@ -2788,6 +2804,15 @@ implementation
            factor_read_set:=buildp;
          end;
 
+         function can_load_self_node: boolean;
+         begin
+           result:=false;
+           if (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
+              not assigned(current_structdef) or
+              not assigned(current_procinfo) then
+             exit;
+           result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
+         end;
 
       {---------------------------------------------
                       Factor (Main)
@@ -2822,9 +2847,7 @@ implementation
          begin
            again:=true;
            { Handle references to self }
-           if (idtoken=_SELF) and
-              not(block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) and
-              assigned(current_structdef) then
+           if (idtoken=_SELF) and can_load_self_node then
              begin
                p1:=load_self_node;
                consume(_ID);

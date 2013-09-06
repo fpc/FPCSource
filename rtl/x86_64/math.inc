@@ -13,24 +13,13 @@
 
  **********************************************************************}
 
-label
-  FPC_ABSMASK_DOUBLE,
-  FPC_ABSMASK_SINGLE;
 
-procedure dummyproc;assembler;nostackframe;
-  asm
-  .data
-    .balign 16
-    .globl FPC_ABSMASK_SINGLE
-FPC_ABSMASK_SINGLE:
-    .quad 0x7FFFFFFF7FFFFFFF
-    .quad 0x7FFFFFFF7FFFFFFF
-    .globl FPC_ABSMASK_DOUBLE
-FPC_ABSMASK_DOUBLE:
-    .quad 0x7FFFFFFFFFFFFFFF
-    .quad 0x7FFFFFFFFFFFFFFF
-  .text
-  end;
+{$push}
+{$codealign constmin=16}
+const
+  FPC_ABSMASK_SINGLE: array[0..1] of qword=($7fffffff7fffffff,$7fffffff7fffffff); cvar; public;
+  FPC_ABSMASK_DOUBLE: array[0..1] of qword=($7fffffffffffffff,$7fffffffffffffff); cvar; public;
+{$pop}
 
 {****************************************************************************
                             FPU Control word

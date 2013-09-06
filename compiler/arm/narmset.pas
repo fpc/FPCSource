@@ -84,7 +84,7 @@ implementation
       begin
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=F_NE;
-        if (left.location.loc=LOC_CONSTANT) and not(current_settings.cputype in cpu_thumb) then
+        if (left.location.loc=LOC_CONSTANT) and not(GenerateThumbCode) then
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
               right.resultdef, right.resultdef, true);
@@ -104,7 +104,7 @@ implementation
             hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
-            if current_settings.cputype in cpu_thumb then
+            if GenerateThumbCode or GenerateThumb2Code then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_LSL,hregister,left.location.register));
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -144,8 +144,9 @@ implementation
         basereg,
         indexreg : tregister;
         href : treference;
-        tablelabel: TAsmLabel;
+        tablelabel, piclabel : TAsmLabel;
         opcgsize : tcgsize;
+        picoffset : int64;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -155,9 +156,15 @@ implementation
               genitem(list,t^.less);
             { fill possible hole }
             for i:=last.svalue+1 to t^._low.svalue-1 do
-              list.concat(Tai_const.Create_sym(elselabel));
+              if cs_create_pic in current_settings.moduleswitches then
+                list.concat(Tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,elselabel,picoffset))
+              else
+                list.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low.svalue to t^._high.svalue do
-              list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+              if cs_create_pic in current_settings.moduleswitches then
+                list.concat(Tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,blocklabel(t^.blockid),picoffset))
+              else
+                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high.svalue;
             if assigned(t^.greater) then
               genitem(list,t^.greater);
@@ -192,8 +199,10 @@ implementation
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
 
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
+            if cs_create_pic in current_settings.moduleswitches then
+              internalerror(2013082101);
             { adjust index }
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             { create reference and generate jump table }
@@ -209,8 +218,10 @@ implementation
             last:=min_;
             genitem_thumb2(current_asmdata.CurrAsmList,hp);
           end
-        else if current_settings.cputype in cpu_thumb then
+        else if GenerateThumbCode then
           begin
+            if cs_create_pic in current_settings.moduleswitches then
+              internalerror(2013082102);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
             current_asmdata.getaddrlabel(tablelabel);
 
@@ -232,14 +243,26 @@ implementation
         else
           begin
             { adjust index }
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,
+              min_+ord(not(cs_create_pic in current_settings.moduleswitches)),
+              indexreg,indexreg);
             { create reference and generate jump table }
             reference_reset(href,4);
             href.base:=NR_PC;
             href.index:=indexreg;
             href.shiftmode:=SM_LSL;
             href.shiftimm:=2;
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
+            if cs_create_pic in current_settings.moduleswitches then
+              begin
+                picoffset:=-8;
+                current_asmdata.getaddrlabel(piclabel);
+                indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,indexreg);
+                cg.a_label(current_asmdata.CurrAsmList,piclabel);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,indexreg,NR_PC);
+              end
+            else
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
             { generate jump table }
             last:=min_;
             genitem(current_asmdata.CurrAsmList,hp);

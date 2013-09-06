@@ -277,11 +277,11 @@ end;
 initialization
 {$ifdef m68k}
 { TODO: No executable creation support for m68k yet!}
-  RegisterExternalLinker(system_m68k_Amiga_info,TLinkerAmiga);
+  RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_Amiga_info,TLinkerAmiga);
+  RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_powerpc_Amiga_info);
 {$endif powerpc}
 end.
