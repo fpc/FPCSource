@@ -29,6 +29,11 @@ uses DOS;
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 TYPE
   TNetwareFindData =
   RECORD
@@ -85,35 +90,38 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
-BEGIN
+    SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NWOpenFlags:=0;
   Case (Mode and 3) of
     0 : NWOpenFlags:=NWOpenFlags or O_RDONLY;
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := _open (pchar(FileName),NWOpenFlags,0);
+  FileOpen := _open (pchar(SystemFileName),NWOpenFlags,0);
 
   //!! We need to set locking based on Mode !!
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
-
+Function FileCreate (Const FileName : RawByteString) : THandle;
+VAR SystemFileName: RawByteString;
 begin
-  FileCreate:=_open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc,0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_open(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
 
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode: Longint; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode: Longint; Rights:longint) : THandle;
 
 begin
   FileCreate:=FileCreate (FileName);
@@ -205,15 +213,17 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 VAR Info : NWStatBufT;
+    SystemFileName: RawByteString;
 begin
-  FileExists:=(_stat(pchar(filename),Info) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists:=(_stat(pchar(SystemFileName),Info) = 0);
 end;
 
 
 
-PROCEDURE find_setfields (VAR f : TsearchRec);
+PROCEDURE find_setfields (VAR f : TsearchRec; VAR Name : RawByteString);
 VAR T : Dos.DateTime;
 BEGIN
   WITH F DO
@@ -225,21 +235,25 @@ BEGIN
       UnpackTime(FindData.EntryP^.d_time + (LONGINT (FindData.EntryP^.d_date) SHL 16), T);
       time := DateTimeToFileDate(EncodeDate(T.Year,T.Month,T.day)+EncodeTime(T.Hour,T.Min,T.Sec,0));
       size := FindData.EntryP^.d_size;
-      name := strpas (FindData.EntryP^.d_nameDOS);
+      name := FindData.EntryP^.d_nameDOS;
+      SetCodePage(name, DefaultFileSystemCodePage, false);
     END ELSE
     BEGIN
-      FillChar (f,SIZEOF(f),0);
+      name := '';
     END;
   END;
 END;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
+var
+  SystemEncodedPath: RawByteString;
 begin
   IF path = '' then
     exit (18);
-  Rslt.FindData.DirP := _opendir (pchar(Path));
+  SystemEncodedPath := ToSingleByteEncodedFileName (Path);
+  Rslt.FindData.DirP := _opendir (pchar(SystemEncodedPath));
   IF Rslt.FindData.DirP = NIL THEN
     exit (18);
   IF attr <> faAnyFile THEN
@@ -253,13 +267,13 @@ begin
     result := 18;
   end else
   begin
-    find_setfields (Rslt);
+    find_setfields (Rslt,Name);
     result := 0;
   end;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 begin
   IF Rslt.FindData.Magic <> $AD01 THEN
@@ -267,14 +281,14 @@ begin
   Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
   IF Rslt.FindData.EntryP = NIL THEN
     exit (18);
-  find_setfields (Rslt);
+  find_setfields (Rslt,Name);
   result := 0;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-  IF F.FindData.Magic = $AD01 THEN
+  IF FindData.Magic = $AD01 THEN
   BEGIN
     IF F.FindData.DirP <> NIL THEN
       _closedir (F.FindData.DirP);
@@ -313,38 +327,48 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Var Info : NWStatBufT;
+    SystemFileName: RawByteString;
 begin
-  If _stat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If _stat (pchar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := Info.st_attr AND $FFFF;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 VAR MS : NWModifyStructure;
+    SystemFileName: RawByteString;
 begin
+  { The Attr parameter is not used! }
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   FillChar (MS, SIZEOF (MS), 0);
-  if _ChangeDirectoryEntry (PChar (Filename), MS, MFileAtrributesBit, 0) <> 0 then
+  if _ChangeDirectoryEntry (PChar (SystemFilename), MS, MFileAtrributesBit, 0) <> 0 then
     result := -1
   else
     result := 0;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result:= (_UnLink (pchar(FileName)) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:= (_UnLink (pchar(SystemFileName)) = 0);
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile:=(_rename(pchar(OldName),pchar(NewName)) = 0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile:=(_rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
 end;
 
 
@@ -416,43 +440,13 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
-begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
 function DirectoryExists (const Directory: string): boolean;
-VAR Info : NWStatBufT;
+var
+  Info : NWStatBufT;
+  SystemFileName: RawByteString;
 begin
-  If _stat (pchar(Directory),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  If _stat (pchar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_attr and faDirectory) <> 0);
@@ -523,7 +517,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(_getenv(PChar(EnvVar)));
+  Result:=_getenv(PChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -533,7 +527,7 @@ begin
   Result:=0;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);

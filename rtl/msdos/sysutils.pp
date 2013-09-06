@@ -28,6 +28,12 @@ uses
   {go32,}dos;
 
 {$DEFINE HAS_SLEEP}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -78,7 +84,7 @@ end ;}
 
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-function OpenFile(const FileName: string; var Handle: THandle; Mode, Action: word): longint;
+function OpenFile(const FileName: RawByteString; var Handle: THandle; Mode, Action: word): longint;
 var
    Regs: registers;
 begin
@@ -110,7 +116,7 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 var
   e: integer;
 Begin
@@ -120,7 +126,7 @@ Begin
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : RawByteString) : THandle;
 var
   e: integer;
 begin
@@ -130,13 +136,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights : longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; Rights : longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -270,7 +276,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -284,7 +290,7 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
@@ -299,9 +305,9 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
 Var
-  Dir : String;
+  Dir : RawByteString;
   drive : byte;
   FADir, StoredIORes : longint;
 begin
@@ -340,7 +346,7 @@ begin
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 Var Sr : PSearchrec;
 
@@ -356,12 +362,12 @@ begin
      Rslt.Size := Sr^.Size;
      Rslt.Attr := Sr^.Attr;
      Rslt.ExcludeAttr := 0;
-     Rslt.Name := Sr^.Name;
+     Name := Sr^.Name;
    end ;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   Sr: PSearchRec;
 begin
@@ -376,17 +382,17 @@ begin
         Rslt.Size := Sr^.Size;
         Rslt.Attr := Sr^.Attr;
         Rslt.ExcludeAttr := 0;
-        Rslt.Name := Sr^.Name;
+        Name := Sr^.Name;
       end;
    end;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 var
   Sr: PSearchRec;
 begin
-  Sr := PSearchRec(F.FindHandle);
+  Sr := PSearchRec(Handle);
   if Sr <> nil then
     begin
       //!! Dispose(Sr);
@@ -394,7 +400,7 @@ begin
       DOS.FindClose(SR^);
       freemem(sr,sizeof(searchrec));
     end;
-  F.FindHandle := 0;
+  Handle := 0;
 end;
 
 
@@ -432,7 +438,7 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
 begin
@@ -453,7 +459,7 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
 begin
@@ -475,7 +481,7 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
@@ -492,7 +498,7 @@ begin
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
@@ -604,39 +610,6 @@ end;
 function disksize(drive : byte) : int64;
 begin
   disksize:=Do_DiskData(drive,false);
-end;
-
-
-Function GetCurrentDir : String;
-begin
-  GetDir(0, result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
 end;
 
 
@@ -794,7 +767,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);

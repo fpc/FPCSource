@@ -1083,8 +1083,17 @@ end;
 
 
 procedure getfattr(var f;var attr : word);
+{$ifndef FPC_ANSI_TEXTFILEREC}
+var
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
 begin
+{$ifdef FPC_ANSI_TEXTFILEREC}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+  copytodos(pchar(r)^,length(r)+1);
+{$endif}
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
   if LFNSupport then
@@ -1101,6 +1110,10 @@ end;
 
 
 procedure setfattr(var f;attr : word);
+{$ifndef FPC_ANSI_TEXTFILEREC}
+var
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
 begin
   { Fail for setting VolumeId. }
   if ((attr and VolumeID)<>0) then
@@ -1108,7 +1121,12 @@ begin
     doserror:=5;
     exit;
   end;
+{$ifdef FPC_ANSI_TEXTFILEREC}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+  copytodos(pchar(r)^,length(r)+1);
+{$endif}
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
   if LFNSupport then

@@ -114,8 +114,10 @@ function  TellDir(p:pdir):TOff;
 Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
 Function AssignPipe  (var pipe_in,pipe_out:text):cint;
 Function AssignPipe  (var pipe_in,pipe_out:file):cint;
-Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
-Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
+Function POpen       (var F:text;const Prog:RawByteString;rw:char):cint;
+Function POpen       (var F:file;const Prog:RawByteString;rw:char):cint;
+Function POpen       (var F:text;const Prog:UnicodeString;rw:char):cint;
+Function POpen       (var F:file;const Prog:UnicodeString;rw:char):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function GetDomainName:String; deprecated; // because linux only.
@@ -655,7 +657,7 @@ begin
 end;
 
 
-Function POpen(var F:text;const Prog:Ansistring;rw:char):cint;
+Function POpen_internal(var F:text;const Prog:RawByteString;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -767,10 +769,10 @@ begin
      move(pid,pl^,sizeof(pid));
      textrec(f).closefunc:=@PCloseText;
    end;
- POpen:=0;
+ POpen_internal:=0;
 end;
 
-Function POpen(var F:file;const Prog:Ansistring;rw:char):cint;
+Function POpen_internal(var F:file;const Prog:RawByteString;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -880,8 +882,36 @@ begin
      { avoid alignment error on sparc }
      move(pid,pl^,sizeof(pid));
    end;
- POpen:=0;
+ POpen_internal:=0;
 end;
+
+Function POpen(var F:text;const Prog:RawByteString;rw:char):cint;
+begin
+  { can't do the ToSingleByteFileSystemEncodedFileName() conversion inside
+    POpen_internal, because this may destroy the temp rawbytestring result
+    of that function in the parent before the child is finished with it }
+  POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
+end;
+
+Function POpen(var F:file;const Prog:RawByteString;rw:char):cint;
+begin
+  { can't do the ToSingleByteFileSystemEncodedFileName() conversion inside
+    POpen_internal, because this may destroy the temp rawbytestring result
+    of that function in the parent before the child is finished with it }
+  POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
+end;
+
+function POpen(var F: text; const Prog: UnicodeString; rw: char): cint;
+begin
+  POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
+end;
+
+
+function POpen(var F: file; const Prog: UnicodeString; rw: char): cint;
+begin
+  POpen:=POpen_internal(F,ToSingleByteFileSystemEncodedFileName(Prog),rw);
+end;
+
 
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 {

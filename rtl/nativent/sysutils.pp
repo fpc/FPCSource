@@ -30,7 +30,7 @@ uses
 
 type
   TNativeNTFindData = record
-    SearchSpec: String;
+    SearchSpec: UnicodeString;
     NamePos: LongInt;
     Handle: THandle;
     IsDirObj: Boolean;
@@ -38,6 +38,12 @@ type
     Context: ULONG;
     LastRes: NTSTATUS;
   end;
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API (actually it's
+  unicodestring, but that's not yet implemented) }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -56,7 +62,7 @@ implementation
                               File Functions
 ****************************************************************************}
 
-function FileOpen(const FileName : string; Mode : Integer) : THandle;
+function FileOpen(const FileName : UnicodeString; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of ACCESS_MASK  = (
     GENERIC_READ,
@@ -73,7 +79,7 @@ var
   objattr: OBJECT_ATTRIBUTES;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   NtCreateFile(@Result, AccessMode[Mode and 3] or NT_SYNCHRONIZE, @objattr,
     @iostatus, Nil, FILE_ATTRIBUTE_NORMAL, ShareMode[(Mode and $F0) shr 4],
@@ -82,19 +88,19 @@ begin
 end;
 
 
-function FileCreate(const FileName : String) : THandle;
+function FileCreate(const FileName : UnicodeString) : THandle;
 begin
   FileCreate := FileCreate(FileName, fmShareDenyNone, 0);
 end;
 
 
-function FileCreate(const FileName : String; Rights: longint) : THandle;
+function FileCreate(const FileName : UnicodeString; Rights: longint) : THandle;
 begin
   FileCreate := FileCreate(FileName, fmShareDenyNone, Rights);
 end;
 
 
-function FileCreate(const FileName : String; ShareMode : longint; Rights: longint) : THandle;
+function FileCreate(const FileName : UnicodeString; ShareMode : longint; Rights: longint) : THandle;
 const
   ShareModeFlags: array[0..4] of ULONG = (
                0,
@@ -108,7 +114,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   res: NTSTATUS;
 begin
-  AnsiStrToNTStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   NtCreateFile(@Result, GENERIC_READ or GENERIC_WRITE or NT_SYNCHRONIZE,
     @objattr, @iostatus, Nil, FILE_ATTRIBUTE_NORMAL,
@@ -305,14 +311,14 @@ begin
   aNtTime.QuadPart := local.QuadPart + bias.QuadPart;
 end;
 
-function FileAge(const FileName: String): Longint;
+function FileAge(const FileName: UnicodeString): Longint;
 begin
   { TODO }
   Result := -1;
 end;
 
 
-function FileExists(const FileName: String): Boolean;
+function FileExists(const FileName: UnicodeString): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -320,7 +326,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   h: THandle;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
            @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -333,7 +339,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : String) : Boolean;
+function DirectoryExists(const Directory : UnicodeString) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -341,7 +347,7 @@ var
   iostatus: IO_STATUS_BLOCK;
   h: THandle;
 begin
-  AnsiStrToNtStr(Directory, ntstr);
+  UnicodeStrToNtStr(Directory, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   { first test wether this is a object directory }
@@ -364,80 +370,193 @@ begin
   FreeNtStr(ntstr);
 end;
 
-{ copied from rtl/unix/sysutils.pp }
-Function FNMatch(const Pattern,Name:string):Boolean;
+{ copied from rtl/unix/sysutils.pp and adapted to UTF-16 }
+Function FNMatch(const Pattern,Name:UnicodeString):Boolean;
 Var
   LenPat,LenName : longint;
+
+  function NameUtf16CodePointLen(index: longint): longint;
+    begin
+      { see https://en.wikipedia.org/wiki/UTF-16#Description for details }
+      Result:=1;
+      { valid surrogate pair? }
+      if (Name[index]>=#$D800) and
+         (Name[index]<=#$DBFF) then
+        begin
+          if (index+1<=LenName) and
+             (Name[index+1]>=#$DC00) and
+             (Name[index+1]<=#$DFFF) then
+            inc(Result)
+          else
+            exit;
+        end;
+      { combining diacritics?
+          1) U+0300 - U+036F
+          2) U+1DC0 - U+1DFF
+          3) U+20D0 - U+20FF
+          4) U+FE20 - U+FE2F
+      }
+      while (index+Result+1<=LenName) and
+            ((word(ord(Name[index+Result+1])-$0300) <= word($036F-$0300)) or
+             (word(ord(Name[index+Result+1])-$1DC0) <= word($1DFF-$1DC0)) or
+             (word(ord(Name[index+Result+1])-$20D0) <= word($20FF-$20D0)) or
+             (word(ord(Name[index+Result+1])-$FE20) <= word($FE2F-$FE20))) do
+        begin
+          inc(Result)
+        end;
+    end;
+
+    procedure GoToLastByteOfUtf16CodePoint(var j: longint);
+    begin
+      { Take one less, because we have to stop at the last word of the sequence.
+      }
+      inc(j,NameUtf16CodePointLen(j)-1);
+    end;
+
+  { input:
+      i: current position in pattern (start of utf-16 code point)
+      j: current position in name (start of utf-16 code point)
+      update_i_j: should i and j be changed by the routine or not
+
+    output:
+      i: if update_i_j, then position of last matching part of code point in
+         pattern, or first non-matching code point in pattern. Otherwise the
+         same value as on input.
+      j: if update_i_j, then position of last matching part of code point in
+         name, or first non-matching code point in name. Otherwise the
+         same value as on input.
+      result: true if match, false if no match
+  }
+  function CompareUtf16CodePoint(var i,j: longint; update_i_j: boolean): Boolean;
+    var
+      words,
+      new_i,
+      new_j: longint;
+    begin
+      words:=NameUtf16CodePointLen(j);
+      new_i:=i;
+      new_j:=j;
+      { ensure that a part of an UTF-8 codepoint isn't interpreted
+        as '*' or '?' }
+      repeat
+        dec(words);
+        Result:=
+          (new_j<=LenName) and
+          (new_i<=LenPat) and
+          (Pattern[new_i]=Name[new_j]);
+        inc(new_i);
+        inc(new_j);
+      until not(Result) or
+            (words=0);
+      if update_i_j then
+        begin
+          i:=new_i;
+          j:=new_j;
+        end;
+    end;
+
 
   Function DoFNMatch(i,j:longint):Boolean;
   Var
     Found : boolean;
   Begin
-  Found:=true;
-  While Found and (i<=LenPat) Do
-   Begin
-     Case Pattern[i] of
-      '?' : Found:=(j<=LenName);
-      '*' : Begin
-            {find the next character in pattern, different of ? and *}
-              while Found do
-                begin
-                inc(i);
-                if i>LenPat then Break;
-                case Pattern[i] of
-                  '*' : ;
-                  '?' : begin
-                          if j>LenName then begin DoFNMatch:=false; Exit; end;
+    Found:=true;
+    While Found and (i<=LenPat) Do
+     Begin
+       Case Pattern[i] of
+        '?' :
+          begin
+            Found:=(j<=LenName);
+            GoToLastByteOfUtf16CodePoint(j);
+          end;
+        '*' : Begin
+              {find the next character in pattern, different of ? and *}
+                while Found do
+                  begin
+                    inc(i);
+                    if i>LenPat then
+                      Break;
+                    case Pattern[i] of
+                      '*' : ;
+                      '?' : begin
+                              if j>LenName then
+                                begin
+                                  DoFNMatch:=false;
+                                  Exit;
+                                end;
+                              GoToLastByteOfUtf16CodePoint(j);
+                              inc(j);
+                            end;
+                      else
+                        Found:=false;
+                      end;
+                 end;
+                Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
+                { Now, find in name the character which i points to, if the * or
+                  ? wasn't the last character in the pattern, else, use up all
+                  the chars in name }
+                Found:=false;
+                if (i<=LenPat) then
+                  begin
+                    repeat
+                      {find a letter (not only first !) which maches pattern[i]}
+                      while (j<=LenName) and
+                            ((name[j]<>pattern[i]) or
+                             not CompareUtf16CodePoint(i,j,false)) do
+                        begin
+                          GoToLastByteOfUtf16CodePoint(j);
                           inc(j);
                         end;
+                      if (j<LenName) then
+                        begin
+                          { while positions i/j have already been checked, we have to
+                            ensure that we don't split a code point }
+                          if DoFnMatch(i,j) then
+                            begin
+                              i:=LenPat;
+                              j:=LenName;{we can stop}
+                              Found:=true;
+                              Break;
+                            end
+                          { We didn't find one, need to look further }
+                          else
+                            begin
+                              GoToLastByteOfUtf16CodePoint(j);
+                              inc(j);
+                            end;
+                        end
+                      else if j=LenName then
+                        begin
+                          Found:=true;
+                          Break;
+                        end;
+                      { This 'until' condition must be j>LenName, not j>=LenName.
+                        That's because when we 'need to look further' and
+                        j = LenName then loop must not terminate. }
+                    until (j>LenName);
+                  end
                 else
-                  Found:=false;
-                end;
-               end;
-              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
-            {Now, find in name the character which i points to, if the * or ?
-             wasn't the last character in the pattern, else, use up all the
-             chars in name}
-              Found:=false;
-              if (i<=LenPat) then
-              begin
-                repeat
-                  {find a letter (not only first !) which maches pattern[i]}
-                  while (j<=LenName) and (name[j]<>pattern[i]) do
-                    inc (j);
-                  if (j<LenName) then
                   begin
-                    if DoFnMatch(i+1,j+1) then
-                    begin
-                      i:=LenPat;
-                      j:=LenName;{we can stop}
-                      Found:=true;
-                      Break;
-                    end else
-                      inc(j);{We didn't find one, need to look further}
-                  end else
-                  if j=LenName then
-                  begin
+                    j:=LenName;{we can stop}
                     Found:=true;
-                    Break;
                   end;
-                  { This 'until' condition must be j>LenName, not j>=LenName.
-                    That's because when we 'need to look further' and
-                    j = LenName then loop must not terminate. }
-                until (j>LenName);
-              end else
-              begin
-                j:=LenName;{we can stop}
-                Found:=true;
               end;
-            end;
-     else {not a wildcard character in pattern}
-       Found:=(j<=LenName) and (pattern[i]=name[j]);
+        #$D800..#$DBFF:
+          begin
+            { ensure that a part of an UTF-16 codepoint isn't matched with
+              '*' or '?' }
+            Found:=CompareUtf16CodePoint(i,j,true);
+            { at this point, either Found is false (and we'll stop), or
+              both pattern[i] and name[j] are the end of the current code
+              point and equal }
+          end
+       else {not a wildcard character in pattern}
+         Found:=(j<=LenName) and (pattern[i]=name[j]);
+       end;
+       inc(i);
+       inc(j);
      end;
-     inc(i);
-     inc(j);
-   end;
-  DoFnMatch:=Found and (j>LenName);
+    DoFnMatch:=Found and (j>LenName);
   end;
 
 Begin {start FNMatch}
@@ -447,7 +566,7 @@ Begin {start FNMatch}
 End;
 
 
-function FindGetFileInfo(const s: String; var f: TSearchRec): Boolean;
+function FindGetFileInfo(const s: UnicodeString; var f: TAbstractSearchRec; var Name: UnicodeString): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -455,14 +574,13 @@ var
   h: THandle;
   iostatus: IO_STATUS_BLOCK;
   attr: LongInt;
-  filename: String;
+  filename: UnicodeString;
   isfileobj: Boolean;
-  buf: array of Byte;
   objinfo: OBJECT_BASIC_INFORMATION;
   fileinfo: FILE_BASIC_INFORMATION;
   time: LongInt;
 begin
-  AnsiStrToNtStr(s, ntstr);
+  UnicodeStrToNtStr(s, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   filename := ExtractFileName(s);
@@ -545,7 +663,7 @@ begin
   end;
 
   if (attr and not f.FindData.SearchAttr) = 0 then begin
-    f.Name := filename;
+    Name := filename;
     f.Attr := attr;
     f.Size := 0;
 {$ifndef FPUNONE}
@@ -564,21 +682,24 @@ begin
 end;
 
 
-procedure FindClose(var F: TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-  if f.FindData.Handle <> 0 then
-    NtClose(f.FindData.Handle);
+  if FindData.Handle <> 0 then
+    begin
+      NtClose(FindData.Handle);
+      FindData.Handle:=0;
+    end;
 end;
 
 
-function FindNext(var Rslt: TSearchRec): LongInt;
+Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
 {
   re-opens dir if not already in array and calls FindGetFileInfo
 }
 Var
-  DirName  : String;
+  DirName  : UnicodeString;
   FName,
-  SName    : string;
+  SName    : UnicodeString;
   Found,
   Finished : boolean;
   ntstr: UNICODE_STRING;
@@ -590,7 +711,7 @@ Var
   dirinfo: POBJECT_DIRECTORY_INFORMATION;
   filedirinfo: PFILE_DIRECTORY_INFORMATION;
   pc: PChar;
-  name: AnsiString;
+  filename: UnicodeString;
   iostatus: IO_STATUS_BLOCK;
 begin
   { TODO : relative directories }
@@ -606,13 +727,13 @@ begin
 
   if Rslt.FindData.Handle = 0 then begin
     if Rslt.FindData.NamePos > 1 then
-      name := Copy(Rslt.FindData.SearchSpec, 1, Rslt.FindData.NamePos - 1)
+      filename := Copy(Rslt.FindData.SearchSpec, 1, Rslt.FindData.NamePos - 1)
     else
     if Rslt.FindData.NamePos = 1 then
-      name := Copy(Rslt.FindData.SearchSpec, 1, 1)
+      filename := Copy(Rslt.FindData.SearchSpec, 1, 1)
     else
-      name := Rslt.FindData.SearchSpec;
-    AnsiStrToNtStr(name, ntstr);
+      filename := Rslt.FindData.SearchSpec;
+    UnicodeStrToNtStr(filename, ntstr);
     InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
     res := NtOpenDirectoryObject(@Rslt.FindData.Handle,
@@ -664,14 +785,7 @@ begin
       Rslt.FindData.LastRes := res;
       if dirinfo^.Name.Length > 0 then begin
         SetLength(FName, dirinfo^.Name.Length div 2);
-        pc := PChar(FName);
-        for i := 0 to dirinfo^.Name.Length div 2 - 1 do begin
-          if dirinfo^.Name.Buffer[i] < #256 then
-            pc^ := AnsiChar(Byte(dirinfo^.Name.Buffer[i]))
-          else
-            pc^ := '?';
-          pc := pc + 1;
-        end;
+        move(dirinfo^.Name.Buffer[0],FName[1],dirinfo^.Name.Length);
 {$ifdef debug_findnext}
         Write(FName, ' (');
         for i := 0 to dirinfo^.TypeName.Length div 2 - 1 do
@@ -685,21 +799,14 @@ begin
         FName := '';
     end else begin
       SetLength(FName, filedirinfo^.FileNameLength div 2);
-      pc := PChar(FName);
-      for i := 0 to filedirinfo^.FileNameLength div 2 - 1 do begin
-        if filedirinfo^.FileName[i] < #256 then
-          pc^ := AnsiChar(Byte(filedirinfo^.FileName[i]))
-        else
-          pc^ := '?';
-        pc := pc + 1;
-      end;
+      move(filedirinfo^.FileName[0],FName[1],filedirinfo^.FileNameLength);
     end;
     if FName = '' then
       Finished := True
     else begin
       if FNMatch(SName, FName) then begin
         Found := FindGetFileInfo(Copy(Rslt.FindData.SearchSpec, 1,
-                   Rslt.FindData.NamePos) + FName, Rslt);
+                   Rslt.FindData.NamePos) + FName, Rslt, Name);
         if Found then begin
           Result := 0;
           Exit;
@@ -710,19 +817,18 @@ begin
 end;
 
 
-function FindFirst(const Path: String; Attr: Longint; out Rslt: TSearchRec): Longint;
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 {
   opens dir and calls FindNext if needed.
 }
 Begin
   Result := -1;
-  FillChar(Rslt, SizeOf(Rslt), 0);
   if Path = '' then
     Exit;
   Rslt.FindData.SearchAttr := Attr;
   {Wildcards?}
   if (Pos('?', Path) = 0) and (Pos('*', Path) = 0) then begin
-    if FindGetFileInfo(Path, Rslt) then
+    if FindGetFileInfo(Path, Rslt, Name) then
       Result := 0;
   end else begin
     {Create Info}
@@ -732,10 +838,10 @@ Begin
         and (Rslt.FindData.SearchSpec[Rslt.FindData.NamePos] <> DirectorySeparator)
         do
       Dec(Rslt.FindData.NamePos);
-    Result := FindNext(Rslt);
+    Result := InternalFindNext(Rslt,Name);
   end;
   if Result <> 0 then
-    FindClose(Rslt);
+    InternalFindClose(Rslt.FindHandle,Rslt.FindData);
 end;
 
 
@@ -779,14 +885,14 @@ begin
 end;
 
 
-function FileGetAttr(const FileName: String): Longint;
+function FileGetAttr(const FileName: UnicodeString): Longint;
 var
   objattr: OBJECT_ATTRIBUTES;
   info: FILE_NETWORK_OPEN_INFORMATION;
   res: NTSTATUS;
   ntstr: UNICODE_STRING;
 begin
-  AnsiStrToNtStr(FileName, ntstr);
+  UnicodeStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   res := NtQueryFullAttributesFile(@objattr, @info);
@@ -799,7 +905,7 @@ begin
 end;
 
 
-function FileSetAttr(const Filename: String; Attr: LongInt): Longint;
+function FileSetAttr(const Filename: UnicodeString; Attr: LongInt): Longint;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -808,7 +914,7 @@ var
   res: NTSTATUS;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(Filename, ntstr);
+  UnicodeStrToNtStr(Filename, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h,
            NT_SYNCHRONIZE or FILE_READ_ATTRIBUTES or FILE_WRITE_ATTRIBUTES,
@@ -834,7 +940,7 @@ begin
 end;
 
 
-function DeleteFile(const FileName: String): Boolean;
+function DeleteFile(const FileName: UnicodeString): Boolean;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -843,7 +949,7 @@ var
   res: NTSTATUS;
   iostatus: IO_STATUS_BLOCK;
 begin
-  AnsiStrToNtStr(Filename, ntstr);
+  UnicodeStrToNtStr(Filename, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   res := NtOpenFile(@h, NT_DELETE, @objattr, @iostatus,
            FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE,
@@ -865,7 +971,7 @@ begin
 end;
 
 
-function RenameFile(const OldName, NewName: String): Boolean;
+function RenameFile(const OldName, NewName: UnicodeString): Boolean;
 var
   h: THandle;
   objattr: OBJECT_ATTRIBUTES;
@@ -875,7 +981,7 @@ var
   res: LongInt;
 begin
   { check whether the destination exists first }
-  AnsiStrToNtStr(NewName, dest);
+  UnicodeStrToNtStr(NewName, dest);
   InitializeObjectAttributes(objattr, @dest, 0, 0, Nil);
 
   res := NtCreateFile(@h, 0, @objattr, @iostatus, Nil, 0,
@@ -886,7 +992,7 @@ begin
     NtClose(h);
     Result := False;
   end else begin
-    AnsiStrToNtStr(OldName, src);
+    UnicodeStrToNtStr(OldName, src);
     InitializeObjectAttributes(objattr, @src, 0, 0, Nil);
 
     res := NtCreateFile(@h,
@@ -942,39 +1048,6 @@ function disksize(drive: byte): int64;
 begin
   { here the mount manager needs to be queried }
   Result := -1;
-end;
-
-
-function GetCurrentDir: String;
-begin
-  GetDir(0, result);
-end;
-
-
-function SetCurrentDir(const NewDir: String): Boolean;
-begin
-{$I-}
-  ChDir(NewDir);
-{$I+}
-  Result := IOResult = 0;
-end;
-
-
-function CreateDir(const NewDir: String): Boolean;
-begin
-{$I-}
-  MkDir(NewDir);
-{$I+}
-  Result := IOResult = 0;
-end;
-
-
-function RemoveDir(const Dir: String): Boolean;
-begin
-{$I-}
-  RmDir(Dir);
-{$I+}
-  Result := IOResult = 0;
 end;
 
 
@@ -1047,7 +1120,7 @@ function wstrlen(p: PWideChar): SizeInt; external name 'FPC_PWIDECHAR_LENGTH';
 
 function GetEnvironmentVariable(const EnvVar: String): String;
 var
-   s : string;
+   s, upperenvvar : UTF8String;
    i : longint;
    hp: pwidechar;
    len: sizeint;
@@ -1055,15 +1128,19 @@ begin
    { TODO : test once I know how to execute processes }
    Result:='';
    hp:=PPEB(CurrentPEB)^.ProcessParameters^.Environment;
+   { first convert to UTF-8, then uppercase in order to avoid potential data
+     loss }
+   upperenvvar:=EnvVar;
+   upperenvvar:=UpperCase(upperenvvar);
    while hp^<>#0 do
      begin
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(s,len);
         UnicodeToUTF8(PChar(s), hp, len);
-        //s:=strpas(hp);
         i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upcase(envvar) then
+        if uppercase(copy(s,1,i-1))=upperenvvar then
           begin
+             { copy() returns a rawbytestring -> will keep UTF-8 encoding }
              Result:=copy(s,i+1,length(s)-i);
              break;
           end;
@@ -1086,7 +1163,7 @@ begin
       end;
 end;
 
-function GetEnvironmentString(Index: Integer): String;
+function GetEnvironmentString(Index: Integer): {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 var
   hp : pwidechar;
   len: sizeint;
@@ -1097,14 +1174,19 @@ begin
     begin
     while (hp^<>#0) and (Index>1) do
       begin
-      Dec(Index);
-      hp:=hp+wstrlen(hp)+1;
+        Dec(Index);
+        hp:=hp+wstrlen(hp)+1;
       end;
     If (hp^<>#0) then
       begin
+{$ifdef FPC_RTL_UNICODE}
+        Result:=hp;
+{$else}
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(Result, len);
         UnicodeToUTF8(PChar(Result), hp, len);
+        SetCodePage(RawByteString(Result),CP_UTF8,false);
+{$endif}
       end;
     end;
 end;

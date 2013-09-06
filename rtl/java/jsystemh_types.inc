@@ -295,6 +295,7 @@ Type
 { some values which are used in RTL for TSystemCodePage type }
 const
   CP_ACP     = 0;     // default to ANSI code page
+  CP_OEMCP   = 1;     // default to OEM (console) code page
   CP_UTF16   = 1200;  // utf-16
   CP_UTF16BE = 1201;  // unicodeFFFE
   CP_UTF7    = 65000; // utf-7
@@ -533,6 +534,13 @@ var
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
+  { the code page to use when sending paths/file names to OS file system API
+    calls using single byte strings, and to interpret the results gotten back
+    from such API calls }
+  DefaultFileSystemCodePage,
+  { the code page to use to return file names from single byte file system calls
+    in the RTL that return ansistrings (by default, same as a above) }
+  DefaultRTLFileSystemCodePage,
   UTF8CompareLocale : TSystemCodePage;
 
 

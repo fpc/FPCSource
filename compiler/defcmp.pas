@@ -1144,7 +1144,10 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        eq:=te_convert_l2;
+                        if is_pwidechar(def_to)=(m_default_unicodestring in current_settings.modeswitches) then
+                          eq:=te_convert_l2
+                        else
+                          eq:=te_convert_l3
                       end
                      else
                       if (cdo_explicit in cdoptions) or (fromtreetype = arrayconstructorn) then
@@ -1175,7 +1178,10 @@ implementation
                            (is_pchar(def_to) or is_pwidechar(def_to)) then
                          begin
                            doconv:=tc_cchar_2_pchar;
-                           eq:=te_convert_l1;
+                           if is_pwidechar(def_to)=(m_default_unicodestring in current_settings.modeswitches) then
+                             eq:=te_convert_l1
+                           else
+                             eq:=te_convert_l2
                          end
                         else
                          if (m_delphi in current_settings.modeswitches) and is_integer(def_from) then

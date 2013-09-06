@@ -20,6 +20,8 @@ unit dynlibs;
 
 interface
 
+{$i rtldefs.inc}
+
 { ---------------------------------------------------------------------
   Read OS-dependent interface declarations.
   ---------------------------------------------------------------------}
@@ -33,8 +35,11 @@ interface
   ---------------------------------------------------------------------}
 
 
-Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
-Function LoadLibrary(const Name : AnsiString) : TLibHandle;
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
+
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: string;
@@ -55,19 +60,11 @@ Implementation
 
 {$i dynlibs.inc}
 
-Function FreeLibrary(Lib : TLibHandle) : Boolean;
-
-begin
-  Result:=UnloadLibrary(lib);
-end;
-
-Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
-
-begin
-  Result:=GetProcedureAddress(Lib,Procname);
-end;
-
-Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function DoSafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+{$else not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function DoSafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 {$if defined(cpui386) or defined(cpux86_64)}
   var
     fpucw : Word;
@@ -82,11 +79,7 @@ Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 {$endif cpui386}
         ssecw:=GetSSECSR;
 {$endif}
-{$if defined(windows) or defined(win32)}
-      Result:=LoadLibraryA(PChar(Name));
-{$else}
-      Result:=loadlibrary(Name);
-{$endif}
+      Result:=doloadlibrary(Name);
       finally
 {$if defined(cpui386) or defined(cpux86_64)}
       Set8087CW(fpucw);
@@ -97,6 +90,68 @@ Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 {$endif}
     end;
   end;
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(UnicodeString(Name));
+end;
+
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(UnicodeString(Name));
+end;
+
+{$else not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+{$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+{$else not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(Name);
+end;
+
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(Name);
+end;
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+
+Function FreeLibrary(Lib : TLibHandle) : Boolean;
+
+begin
+  Result:=UnloadLibrary(lib);
+end;
+
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
+
+begin
+  Result:=GetProcedureAddress(Lib,Procname);
+end;
 
 
 end.

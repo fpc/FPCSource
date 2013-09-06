@@ -42,24 +42,26 @@ Const
 
 uses dl;
 
-Function LoadLibrary(const Name : AnsiString) : TLibHandle;
+Function DoLoadLibrary(const Name : RawByteString) : TLibHandle;
 {$ifdef aix}
 var
-  MemberName: AnsiString;
+  MemberName: RawByteString;
 {$endif}
 begin
 {$ifndef aix}
-  Result:=TLibHandle(dlopen(Pchar(Name),RTLD_LAZY));
+  Result:=TLibHandle(dlopen(PAnsiChar(Name),RTLD_LAZY));
 {$else aix}
   { in aix, most shared libraries are static libraries (archives) that contain
     a single object: shr.o for 32 bit, shr_64.o for 64 bit. You have to specify
     this object file explicitly via the RTLD_MEMBER member flag }
 {$ifdef cpu64}
-  MemberName:=Name+'(shr_64.o)';
+  MemberName:='(shr_64.o)';
 {$else cpu64}
-  MemberName:=Name+'(shr.o)';
+  MemberName:='(shr.o)';
 {$endif cpu64}
-  Result:=TLibHandle(dlopen(Pchar(MemberName),RTLD_LAZY or RTLD_MEMBER));
+  SetCodePage(MemberName,DefaultFileSystemCodePage,false);
+  MemberName:=Name+MemberName;
+  Result:=TLibHandle(dlopen(PAnsiChar(MemberName),RTLD_LAZY or RTLD_MEMBER));
 {$endif aix}
 end;
 

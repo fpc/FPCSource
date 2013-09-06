@@ -17,6 +17,18 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
+{$define FPC_HAS_TRANSLATEPLACEHOLDERCP}
+function TranslatePlaceholderCP(cp: TSystemCodePage): TSystemCodePage; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  TranslatePlaceholderCP:=cp;
+  case cp of
+    CP_OEMCP,
+    CP_ACP:
+      TranslatePlaceholderCP:=DefaultSystemCodePage;
+  end;
+end;
+
+
 constructor AnsistringClass.Create(len: longint; cp: TSystemCodePage);
 begin
   fElementSize:=1;
@@ -146,7 +158,7 @@ end;
 
 function AnsistringClass.toUnicodeString: unicodestring;
 begin
-  widestringmanager.Ansi2UnicodeMoveProc(pchar(fdata),fCodePage,result,system.length(fdata)-1);
+  widestringmanager.Ansi2UnicodeMoveProc(pchar(fdata),TranslatePlaceholderCP(fCodePage),result,system.length(fdata)-1);
 end;
 
 
@@ -302,11 +314,8 @@ begin
   Size:=Length(S);
   if Size>0 then
     begin
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
-      orgcp:=StringCodePage(S);
-      if (orgcp=CP_ACP) then
-        orgcp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
+      orgcp:=TranslatePlaceholderCP(StringCodePage(S));
       if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           result:=RawByteString(AnsistringClass.Create(S,cp));
@@ -325,16 +334,17 @@ Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): 
 {$define FPC_HAS_ANSISTR_CONCAT_MULTI}
 procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
-  lowstart,i  : Longint;
+  lowstart,
+  nonemptystart,
+  i           : Longint;
   p           : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
   destcopy    : RawByteString;
-  DestCP      : TSystemCodePage;
   U           : UnicodeString;
-  sameCP      : Boolean;
-  tmpStr      : RawByteString;
+  DestCP      : TSystemCodePage;
   tmpCP       : TSystemCodePage;
+  sameCP      : Boolean;
 begin
   if high(sarr)=0 then
     begin
@@ -342,23 +352,26 @@ begin
       exit;
     end;
 {$ifdef FPC_HAS_CPSTRING}
-  if (Pointer(DestS)=nil) then
-    DestCP:=cp
-  else
-    DestCP:=StringCodePage(DestS);
+  DestCP:=cp;
+  if DestCp=CP_NONE then
+    DestCP:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_ACP) then
-    DestCP:=DefaultSystemCodePage;
+  DestCP:=TranslatePlaceholderCP(DestCP);
   sameCP:=true;
   lowstart:=low(sarr);
-  for i:=lowstart to high(sarr) do
+  { skip empty strings }
+  while (lowstart<=high(sarr)) and
+        (sarr[lowstart]='') do
+    inc(lowstart);
+  tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
+  for i:=lowstart+1 to high(sarr) do
     begin
-      tmpCP:=StringCodePage(sarr[i]);
-      if tmpCP=CP_ACP then
-        tmpCP:=DefaultSystemCodePage;
-      if (DestCP<>tmpCp) then
+      { ignore the code page of empty strings, it will always be
+        DefaultSystemCodePage but it doesn't matter for the outcome }
+      if (sarr[i]<>'') and
+         (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
         begin
           sameCP:=false;
           break;
@@ -367,43 +380,44 @@ begin
   if not sameCP then
     begin
       U:='';
-      for i:=lowstart to high(sarr) do begin
-        tmpCP:=StringCodePage(sarr[i]);
-        if (tmpCP=CP_ACP) then
-          begin
-            tmpStr:=sarr[i];
-            SetCodePage(tmpStr,DefaultSystemCodePage,False);
-            U:=U+UnicodeString(tmpStr);
-          end
-        else
+      for i:=lowstart to high(sarr) do
+        if sarr[i]<>'' then
           U:=U+UnicodeString(sarr[i]);
-      end;
 
       DestS:='';
       widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(U).toCharArray),DestS,DestCP,Length(U));
       exit;
     end;
+  {$ifdef FPC_HAS_CPSTRING}
+    { if the result is rawbytestring and all strings have the same code page,
+      keep that code page }
+    if cp=CP_NONE then
+      DestCP:=tmpCP;
+  {$endif FPC_HAS_CPSTRING}
 
-  lowstart:=low(sarr);
-  if Pointer(DestS)=Pointer(sarr[lowstart]) then
-    inc(lowstart);
+  nonemptystart:=lowstart;
   { Check for another reuse, then we can't use
     the append optimization }
-  for i:=lowstart to high(sarr) do
+  if DestS<>'' then
     begin
-      if Pointer(DestS)=Pointer(sarr[i]) then
+      if Pointer(DestS)=Pointer(sarr[lowstart]) then
+        inc(lowstart);
+      for i:=lowstart to high(sarr) do
         begin
-          { if DestS is used somewhere in the middle of the expression,
-            we need to make sure the original string still exists after
-            we empty/modify DestS -- not necessary on JVM platform, ansistrings
-            are not explicitly refrence counted there }
-          lowstart:=low(sarr);
-          break;
+          if Pointer(DestS)=Pointer(sarr[i]) then
+            begin
+              { if DestS is used somewhere in the middle of the expression,
+                we need to make sure the original string still exists after
+                we empty/modify DestS -- not necessary on JVM platform, ansistrings
+                are not explicitly refrence counted there }
+              lowstart:=nonemptystart;
+              break;
+            end;
         end;
     end;
   { Start with empty DestS if we start with concatting
-    the first array element }
-  if lowstart=low(sarr) then
+    the first (non-empty) array element }
+  if lowstart=nonemptystart then
     DestS:='';
   OldDestLen:=length(DestS);
   { Calculate size of the result so we can do
@@ -412,8 +426,6 @@ begin
   for i:=low(sarr) to high(sarr) do
     inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
-  if (StringCodePage(DestS) <> DestCP) then
-    SetCodePage(DestS,DestCP,False);
   { Concat all strings, except the string we already
     copied in DestS }
   NewLen:=OldDestLen;
@@ -426,6 +438,11 @@ begin
           fpc_pchar_pchar_intern_charmove(pchar(ansistring(p)),0,pchar(DestS),NewLen,Size+1);
           inc(NewLen,size);
         end;
+    end;
+  if NewLen<>0 then
+    begin
+      SetCodePage(DestS,tmpCP,False);
+      SetCodePage(DestS,DestCP,True);
     end;
 end;
 
@@ -468,8 +485,7 @@ begin
   if L > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -552,10 +568,11 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
+      cp1:=TranslatePlaceholderCP(cp1);
+      if (cp1<>StringCodePage(r1)) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
+      if (cp2<>StringCodePage(r2)) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
@@ -599,10 +616,12 @@ begin
   if cp1<>cp2 then
     begin
       r1:=S1;
-      if (cp1=CP_ACP) then
+      cp1:=TranslatePlaceholderCP(cp1);
+      if (cp1<>StringCodePage(r1)) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_ACP) then
+      cp2:=TranslatePlaceholderCP(cp2);
+      if (cp2<>StringCodePage(r2)) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
@@ -631,8 +650,7 @@ var
   oldlen: longint;
   result: RawByteString;
 begin
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   { no explicit reference counting possible -> can't reuse S because we don't
     know how many references exist to it }
   result:=RawByteString(AnsistringClass.Create(l,cp));

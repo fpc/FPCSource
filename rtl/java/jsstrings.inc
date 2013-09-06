@@ -220,13 +220,13 @@ end;
 
 
 {$define FPC_HAS_CHAR_TO_SHORTSTR}
-procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compilerproc;
+function fpc_Char_To_ShortStr(const c : AnsiChar): shortstring; compilerproc;
 {
   Converts an AnsiChar to a ShortString;
 }
 begin
-  setlength(res,1);
-  ShortstringClass(@res).fdata[0]:=c;
+  setlength(result,1);
+  ShortstringClass(@result).fdata[0]:=c;
 end;
 
 

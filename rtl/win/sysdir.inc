@@ -20,53 +20,50 @@
 type
  TDirFnType=function(name:pointer):longbool;stdcall;
 
-procedure dirfn(afunc : TDirFnType;s:pchar;len:integer);
+function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
+begin
+  CreateDirectoryTrunc:=CreateDirectoryW(name,nil);
+end;
+
+procedure dirfn(afunc : TDirFnType;s:unicodestring);
 begin
   DoDirSeparators(s);
-  if not aFunc(s) then
+  if not aFunc(punicodechar(s)) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
     end;
 end;
-
-function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
+Procedure do_MkDir(const s: UnicodeString);
 begin
-  CreateDirectoryTrunc:=CreateDirectory(name,nil);
+  dirfn(TDirFnType(@CreateDirectoryTrunc),s);
 end;
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_RmDir(const s: UnicodeString);
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@CreateDirectoryTrunc),s,len);
-end;
-
-Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
-
-begin
-  if (len=1) and (s^ ='.') then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-{$ifdef WINCE}
-  if (len=2) and (s[0]='.') and (s[1]='.') then
-    InOutRes := 5;
-{$endif WINCE}
-  dirfn(TDirFnType(@RemoveDirectory),s,len);
+  if (s ='.') then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
+  {$ifdef WINCE}
+  if (s='..') then
+    begin
+      InOutRes := 5;
+      exit;
+    end;
+  {$endif WINCE}
+  dirfn(TDirFnType(@RemoveDirectoryW),s);
 {$ifdef WINCE}
   if (Inoutres=3) and (Pos(DirectorySeparator, s)<2) then
     Inoutres:=2;
 {$endif WINCE}
 end;
 
-Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
-
+Procedure do_ChDir(const s: UnicodeString);
 begin
 {$ifndef WINCE}
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@SetCurrentDirectory),s,len);
+  dirfn(TDirFnType(@SetCurrentDirectoryW),s);
   if Inoutres=2 then
    Inoutres:=3;
 {$else WINCE}
@@ -74,38 +71,44 @@ begin
 {$endif WINCE}
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir (DriveNr: byte; var Dir: Unicodestring);
 {$ifndef WINCE}
 var
-  Drive:array[0..3]of char;
+  Drive:array[0..3]of widechar;
   defaultdrive:boolean;
-  DirBuf,SaveBuf:array[0..259] of Char;
+  savebuf: UnicodeString;
+  len : integer;
 {$endif WINCE}
 begin
 {$ifndef WINCE}
   defaultdrive:=drivenr=0;
   if not defaultdrive then
    begin
-    byte(Drive[0]):=Drivenr+64;
+    Drive[0]:=widechar(Drivenr+64);
     Drive[1]:=':';
     Drive[2]:=#0;
     Drive[3]:=#0;
-    GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
-    if not SetCurrentDirectory(@Drive) then
+    len:=GetCurrentDirectoryW(0,nil); // in TChar
+    setlength(savebuf,len-1); // -1 because len is #0 inclusive
+
+    GetCurrentDirectoryW(len,punicodechar(SaveBuf)); // in TChar
+    if not SetCurrentDirectoryW(@Drive) then
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
-      Dir := char (DriveNr + 64) + ':\';
-      SetCurrentDirectory(@SaveBuf);
+      Dir := widechar (DriveNr + 64) + ':\';
+      SetCurrentDirectoryW(punicodechar(SaveBuf));
       Exit;
      end;
    end;
-  GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
+
+  len:=GetCurrentDirectoryW(0,nil);
+  setlength(dir,len-1); // -1 because len is #0 inclusive
+  GetCurrentDirectoryW(len,punicodechar(dir));
   if not defaultdrive then
-   SetCurrentDirectory(@SaveBuf);
-  dir:=strpas(DirBuf);
+    SetCurrentDirectoryW(punicodechar(SaveBuf));
   if not FileNameCasePreserving then
-   dir:=upcase(dir);
+    dir:=upcase(dir);
 {$else WINCE}
   Dir:='\';
 {$endif WINCE}

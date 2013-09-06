@@ -12,79 +12,43 @@
 
  **********************************************************************}
 
+  { MCBS functions }
+  {$i sysansi.inc}
+  {$i syscodepages.inc}
+
+{$macro on}
+{$define PathStr:=UnicodeString}
+{$define PathPChar:=PWideChar}
+{$define SYSUTILSUNICODE}
   { Read filename handling functions implementation }
   {$i fina.inc}
+  { Read disk function implementations }
+  {$i disk.inc}
+{$undef SYSUTILSUNICODE}
+{$define PathStr:=RawByteString}
+{$define PathPChar:=PAnsiChar}
+  { Read filename handling functions implementation }
+  {$i fina.inc}
+  { Read disk function implementations }
+  {$i disk.inc}
+{$undef PathStr}
+{$undef PathPChar}
+
+  { Read file utility functions implementation }
+  {$i filutil.inc}
 
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
-    Var
-      I : longint;
-      Temp : String;
-
-    begin
-      Result:=Name;
-      temp:=SetDirSeparators(DirList);
-      // Start with checking the file in the current directory
-      If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
-        exit;
-      while True do begin
-        If Temp = '' then
-          Break; // No more directories to search - fail
-        I:=pos(PathSeparator,Temp);
-        If I<>0 then
-          begin
-            Result:=Copy (Temp,1,i-1);
-            system.Delete(Temp,1,I);
-          end
-        else
-          begin
-            Result:=Temp;
-            Temp:='';
-          end;
-        If Result<>'' then
-          begin
-          If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
-            Result:=Copy(Result,2,Length(Result)-2);
-          if (Result<>'') then
-            Result:=IncludeTrailingPathDelimiter(Result)+name;
-          end;
-        If (Result <> '') and FileExists(Result) Then
-          exit;
-      end;
-      result:='';
-    end;
-
-    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
-
-    begin
-      if ImplicitCurrentDir then
-        Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
-      else  
-        Result:=FileSearch(Name,DirList,[]);
-    end;
-    
-    Function ExeSearch (Const Name : String; Const DirList : String ='' ) : String;
-    
-    Var
-      D : String;
-      O : TFileSearchOptions;
-    begin
-      D:=DirList;
-      if (D='') then
-        D:=GetEnvironmentVariable('PATH');
-    {$ifdef unix}
-      O:=[];
-    {$else unix}
-      O:=[sfoImplicitCurrentDir,sfoStripQuotes];
-    {$endif unix}
-      Result := FileSearch(Name, D, O);
-    end;
 
   {$ifndef OS_FILEISREADONLY}
-  Function FileIsReadOnly(const FileName: String): Boolean;
+  Function FileIsReadOnly(const FileName: RawByteString): Boolean;
+  begin
+    Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
+  end;
 
+
+  Function FileIsReadOnly(const FileName: UnicodeString): Boolean;
   begin
     Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
   end;
@@ -92,7 +56,28 @@
 
 
   {$ifndef OS_FILESETDATEBYNAME}
-  Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+  Var
+    fd : THandle;
+  begin
+    { at least windows requires fmOpenWrite here }
+    fd:=FileOpen(FileName,fmOpenWrite);
+    If (Fd<>feInvalidHandle) then
+      try
+        Result:=FileSetDate(fd,Age);
+      finally
+        FileClose(fd);
+      end
+    else
+  {$ifdef HAS_OSERROR}
+      Result:=GetLastOSError;
+  {$else}
+      Result:=-1;
+  {$endif}
+  end;
+
+
+  Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
   Var
     fd : THandle;
   begin
@@ -149,10 +134,6 @@ end;
   { generic internationalisation code }
   {$i sysint.inc}
 
-  { MCBS functions }
-  {$i sysansi.inc}
-  {$i syscodepages.inc}
-
   { wide string functions }
   {$i syswide.inc}
 
@@ -177,24 +158,6 @@ end;
         temp.free;
       end;
 
-   function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
-   
-   Var
-     Info : TSearchRec;
-     A : Integer;
-      
-   begin
-     for A:=1 to Length(FileName) do
-       If (FileName[A] in ['?','*']) then
-         Exit(False);
-     A:=0;
-     if Not FollowLink then
-       A:=A or faSymLink;
-     Result:=FindFirst(FileName,A,Info)=0;
-     If Result then 
-       FileDateTime:=FileDatetoDateTime (Info.Time);
-     FindClose(Info);
-   end;
 
   { Interfaces support }
   {$i sysuintf.inc}
@@ -659,50 +622,14 @@ end;
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
 
-function ForceDirectories(Const Dir: string): Boolean;
-
-var
-  E: EInOutError;
-  ADrv : String;
-
-function DoForceDirectories(Const Dir: string): Boolean;
-var
-  ADir : String;
-  APath: String;
+Function GetCurrentDir: {$ifdef FPC_UNICODE_RTL}UnicodeString{$else}AnsiString{$endif};
 begin
-  Result:=True;
-  ADir:=ExcludeTrailingPathDelimiter(Dir);
-  if (ADir='') then Exit;
-  if Not DirectoryExists(ADir) then
-    begin
-      APath := ExtractFilePath(ADir);
-      //this can happen on Windows if user specifies Dir like \user\name/test/
-      //and would, if not checked for, cause an infinite recusrsion and a stack overflow
-      if (APath = ADir) then Result := False
-        else Result:=DoForceDirectories(APath);
-    If Result then
-      Result := CreateDir(ADir);
-    end;
+  GetDir(0,Result);
 end;
 
-function IsUncDrive(const Drv: String): Boolean;
-begin
-  Result := (Length(Drv) > 2) and (Drv[1] = PathDelim) and (Drv[2] = PathDelim);
-end;
-
-begin
-  Result := False;
-  ADrv := ExtractFileDrive(Dir);
-  if (ADrv<>'') and (not DirectoryExists(ADrv))
-  {$IFNDEF FORCEDIR_NO_UNC_SUPPORT} and (not IsUncDrive(ADrv)){$ENDIF} then Exit;
-  if Dir='' then
-    begin
-      E:=EInOutError.Create(SCannotCreateEmptyDir);
-      E.ErrorCode:=3;
-      Raise E;
-    end;
-  Result := DoForceDirectories(SetDirSeparators(Dir));
-end;
+{ ---------------------------------------------------------------------
+    Other functions, OS independent.
+  ---------------------------------------------------------------------}
 
 Var
   GUIDCalledRandomize : Boolean = False;
@@ -790,7 +717,7 @@ function GetModuleName(Module: HMODULE): string;
 begin
 {$ifdef MSWINDOWS}
   SetLength(Result,MAX_PATH);
-  SetLength(Result,GetModuleFileName(Module, Pchar(Result),Length(Result)));
+  SetLength(Result,GetModuleFileNameA(Module, Pchar(Result),Length(Result)));
 {$ELSE}
   Result:='';
 {$ENDIF}

@@ -3197,7 +3197,7 @@ begin
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find
     .o files that are not for the target }
-  if (ExePath<>GetCurrentDir) and
+  if (ExePath<>cfileutl.GetCurrentDir) and
      not(cs_link_on_target in init_settings.globalswitches) then
    UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }

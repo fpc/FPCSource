@@ -28,6 +28,12 @@ uses
   watcom,dos;
 
 {$DEFINE HAS_SLEEP}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -64,27 +70,24 @@ Type
 
 {  converts S to a pchar and copies it to the transfer-buffer.   }
 
-procedure StringToTB(const S: string);
-var
-  P: pchar;
-  Len: integer;
+procedure StringToTB(const S: RawByteString);
 begin
-  Len := Length(S) + 1;
-  P := StrPCopy(StrAlloc(Len), S);
-  SysCopyToDos(longint(P), Len);
-  StrDispose(P);
+  { include terminating null char }
+  SysCopyToDos(longint(pointer(s)), Length(S) + 1);
 end ;
 
 
 {  Native OpenFile function.
    if return value <> 0 call failed.  }
-function OpenFile(const FileName: string; var Handle: longint; Mode, Action: word): longint;
+function OpenFile(const FileName: RawByteString; var Handle: longint; Mode, Action: word): longint;
 var
-   Regs: registers;
+  Regs: registers;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   result := 0;
   Handle := 0;
-  StringToTB(FileName);
+  StringToTB(SystemFileName);
   if LFNSupport then
     Regs.Eax := $716c                       { Use LFN Open/Create API }
   else  { Check if Extended Open/Create API is safe to use }
@@ -115,8 +118,8 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
-var
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
+Var
   e: integer;
 Begin
   e := OpenFile(FileName, result, Mode, faOpen);
@@ -125,7 +128,7 @@ Begin
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 var
   e: integer;
 begin
@@ -135,12 +138,12 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : Longint;
+Function FileCreate (Const FileName : RawByteString; Rights:longint) : Longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights: Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; Rights: Longint) : Longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -274,7 +277,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -288,10 +291,11 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if FileName = '' then
    Result := false
   else
@@ -303,10 +307,11 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if Directory = '' then
    Result := false
   else
@@ -330,7 +335,7 @@ begin
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 Var Sr : PSearchrec;
 
@@ -338,6 +343,7 @@ begin
   //!! Sr := New(PSearchRec);
   getmem(sr,sizeof(searchrec));
   Rslt.FindHandle := longint(Sr);
+  { FIXME: Dos version has shortstring interface -> discards encoding }
   DOS.FindFirst(Path, Attr, Sr^);
   result := -DosError;
   if result = 0 then
@@ -346,12 +352,13 @@ begin
      Rslt.Size := Sr^.Size;
      Rslt.Attr := Sr^.Attr;
      Rslt.ExcludeAttr := 0;
-     Rslt.Name := Sr^.Name;
+     Name := Sr^.Name;
+     SetCodePage(Name,DefaultFileSystemCodePage,False);
    end ;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   Sr: PSearchRec;
 begin
@@ -366,17 +373,18 @@ begin
         Rslt.Size := Sr^.Size;
         Rslt.Attr := Sr^.Attr;
         Rslt.ExcludeAttr := 0;
-        Rslt.Name := Sr^.Name;
+        Name := Sr^.Name;
+        SetCodePage(Name,DefaultFileSystemCodePage,False);
       end;
    end;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: Pointer);
 var
   Sr: PSearchRec;
 begin
-  Sr := PSearchRec(F.FindHandle);
+  Sr := PSearchRec(Handle);
   if Sr <> nil then
     begin
       //!! Dispose(Sr);
@@ -384,7 +392,7 @@ begin
       DOS.FindClose(SR^);
       freemem(sr,sizeof(searchrec));
     end;
-  F.FindHandle := 0;
+  Handle := 0;
 end;
 
 
@@ -422,11 +430,13 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -444,11 +454,13 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -467,11 +479,13 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
+  SystemFileName: RawByteString;
 begin
-  StringToTB(FileName);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  StringToTB(SystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
   if LFNSupport then
@@ -485,14 +499,17 @@ begin
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 var
   Regs: registers;
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  StringToTB(OldName + #0 + NewName);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewFile);
+  StringToTB(OldSystemFileName + #0 + NewSystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
-  Regs.Edi := tb_offset + Length(OldName) + 1;
+  Regs.Edi := tb_offset + Length(OldSystemFileName) + 1;
   Regs.Es := tb_segment;
   if LFNSupport then
     Regs.Eax := $7156
@@ -597,39 +614,6 @@ end;
 function disksize(drive : byte) : int64;
 begin
   disksize:=Do_DiskData(drive,false);
-end;
-
-
-Function GetCurrentDir : String;
-begin
-  GetDir(0, result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
 end;
 
 
@@ -786,7 +770,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);

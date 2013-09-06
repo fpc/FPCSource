@@ -902,9 +902,20 @@ end;
 
 
 procedure getfattr(var f;var attr : word);
+var
+  path: pchar;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
 begin
-  dosregs.dx:=Ofs(filerec(f).name);
-  dosregs.ds:=Seg(filerec(f).name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  path:=@filerec(f).Name;
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+  path:=pchar(r);
+{$endif}
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
   if LFNSupport then
    begin
      dosregs.ax:=$7143;
@@ -919,6 +930,11 @@ end;
 
 
 procedure setfattr(var f;attr : word);
+var
+  path: pchar;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
 begin
   { Fail for setting VolumeId. }
   if ((attr and VolumeID)<>0) then
@@ -926,8 +942,14 @@ begin
     doserror:=5;
     exit;
   end;
-  dosregs.dx:=Ofs(filerec(f).name);
-  dosregs.ds:=Seg(filerec(f).name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  path:=@filerec(f).Name;
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+  path:=pchar(r);
+{$endif}
+  dosregs.dx:=Ofs(path);
+  dosregs.ds:=Seg(path);
   if LFNSupport then
    begin
      dosregs.ax:=$7143;

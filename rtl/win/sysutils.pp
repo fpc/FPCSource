@@ -33,6 +33,14 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+
+{ used OS file system APIs use unicodestring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+{ OS has a unicodestring/two byte environment variable API }
+{$define SYSUTILS_HAS_UNICODESTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -124,12 +132,12 @@ function GetFileVersion(const AFileName:string):Cardinal;
     result:=$fffffff;
     fn:=AFileName;
     UniqueString(fn);
-    size:=GetFileVersionInfoSize(pchar(fn),@h);
+    size:=GetFileVersionInfoSizeA(pchar(fn),@h);
     if size>sizeof(buf) then
       begin
         getmem(bufp,size);
         try
-          if GetFileVersionInfo(pchar(fn),h,size,bufp) then
+          if GetFileVersionInfoA(pchar(fn),h,size,bufp) then
             if VerQueryValue(bufp,'\',valrec,valsize) then
               result:=valrec^.dwFileVersionMS;
         finally
@@ -138,7 +146,7 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end
     else
       begin
-        if GetFileVersionInfo(pchar(fn),h,size,@buf) then
+        if GetFileVersionInfoA(pchar(fn),h,size,@buf) then
           if VerQueryValue(@buf,'\',valrec,valsize) then
             result:=valrec^.dwFileVersionMS;
       end;
@@ -152,7 +160,6 @@ function GetFileVersion(const AFileName:string):Cardinal;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-
 
 function ConvertEraYearString(Count ,Year,Month,Day : integer) : string; forward;
 function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
@@ -176,13 +183,24 @@ begin
 end;
 
 
-function ExpandUNCFileName (const filename:string) : string;
+function ExpandUNCFileName (const filename:rawbytestring) : rawbytestring;
 { returns empty string on errors }
 var
-  s    : ansistring;
+  u: unicodestring;
+begin
+  { prevent data loss due to unsupported characters in ansi code page }
+  u:=ExpandUNCFileName(unicodestring(filename));
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(u),result,DefaultRTLFileSystemCodePage,length(u));
+end;
+
+
+function ExpandUNCFileName (const filename:unicodestring) : unicodestring;
+{ returns empty string on errors }
+var
+  s    : unicodestring;
   size : dword;
   rc   : dword;
-  buf : pchar;
+  buf : pwidechar;
 begin
   s := ExpandFileName (filename);
 
@@ -192,12 +210,12 @@ begin
   getmem(buf,size);
 
   try
-    rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+    rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
 
     if rc=ERROR_MORE_DATA then
       begin
         buf:=reallocmem(buf,size);
-        rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+        rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
       Result := PRemoteNameInfo(buf)^.lpUniversalName
@@ -227,27 +245,28 @@ const
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+
+Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin
-  result := CreateFile(PChar(FileName), dword(AccessMode[Mode and 3]),
+  result := CreateFileW(PWideChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareModes[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
 
-Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : UnicodeString) : THandle;
 begin
   FileCreate:=FileCreate(FileName, fmShareExclusive, 0);
 end;
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName, fmShareExclusive, Rights);
 end;
 
-Function FileCreate (Const FileName : String; ShareMode : Integer; Rights : Integer) : THandle;
+Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights : Integer) : THandle;
 begin
-  Result := CreateFile(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFileW(PwideChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        dword(ShareModes[(ShareMode and $F0) shr 4]), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
@@ -328,12 +347,12 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : UnicodeString): Longint;
 var
   Handle: THandle;
-  FindData: TWin32FindData;
+  FindData: TWin32FindDataW;
 begin
-  Handle := FindFirstFile(Pchar(FileName), FindData);
+  Handle := FindFirstFileW(Pwidechar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
@@ -345,11 +364,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
-  Attr:=GetFileAttributes(PChar(FileName));
+
+  Attr:=GetFileAttributesW(PWideChar(FileName));
   if Attr <> $ffffffff then
     Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
   else
@@ -357,24 +377,23 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
-  Attr:=GetFileAttributes(PChar(Directory));
+  Attr:=GetFileAttributesW(PWideChar(Directory));
   if Attr <> $ffffffff then
     Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
   else
     Result:=False;
 end;
 
-
-Function FindMatch(var f: TSearchRec) : Longint;
+Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
-     if not FindNextFile (F.FindHandle,F.FindData) then
+     if not FindNextFileW (F.FindHandle,F.FindData) then
       begin
         Result:=GetLastError;
         exit;
@@ -384,42 +403,41 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=StrPas(@F.FindData.cFileName[0]);
+  Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
-  Rslt.Name:=Path;
+  Name:=Path;
   Rslt.Attr:=attr;
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a Win32 Call }
-  Rslt.FindHandle:=FindFirstFile (PChar(Path),Rslt.FindData);
+  Rslt.FindHandle:=FindFirstFileW (PWideChar(Path),Rslt.FindData);
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
      exit;
    end;
   { Find file with correct attribute }
-  Result:=FindMatch(Rslt);
+  Result:=FindMatch(Rslt,Name);
 end;
 
-
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
-  if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
-    Result := FindMatch(Rslt)
+  if FindNextFileW(Rslt.FindHandle, Rslt.FindData) then
+    Result := FindMatch(Rslt, Name)
   else
     Result := GetLastError;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-   if F.FindHandle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(F.FindHandle);
+   if Handle <> INVALID_HANDLE_VALUE then
+    Windows.FindClose(Handle);
 end;
 
 
@@ -446,30 +464,30 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 begin
-  Result:=Longint(GetFileAttributes(PChar(FileName)));
+  Result:=Longint(GetFileAttributesW(PWideChar(FileName)));
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
 begin
-  if SetFileAttributes(PChar(FileName), Attr) then
+  if SetFileAttributesW(PWideChar(FileName), Attr) then
     Result:=0
   else
     Result := GetLastError;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  Result:=Windows.DeleteFile(Pchar(FileName));
+  Result:=Windows.DeleteFileW(PWidechar(FileName));
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
 begin
-  Result := MoveFile(PChar(OldName), PChar(NewName));
+  Result := MoveFileW(PWideChar(OldName), PWideChar(NewName));
 end;
 
 
@@ -552,30 +570,6 @@ begin
        else
          disksize:=-1;
     end;
-end;
-
-
-Function GetCurrentDir : String;
-begin
-  GetDir(0, result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  Result:=SetCurrentDirectory(PChar(NewDir));
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  Result:=CreateDirectory(PChar(NewDir),nil);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  Result:=RemoveDirectory(PChar(Dir));
 end;
 
 
@@ -662,7 +656,7 @@ var
   L: Integer;
   Buf: array[0..255] of Char;
 begin
-  L := GetLocaleInfo(LID, LT, Buf, SizeOf(Buf));
+  L := GetLocaleInfoA(LID, LT, Buf, SizeOf(Buf));
   if L > 0 then
     SetString(Result, @Buf[0], L - 1)
   else
@@ -674,7 +668,7 @@ function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
 var
   Buf: array[0..3] of Char; // sdate allows 4 chars.
 begin
-  if GetLocaleInfo(LID, LT, Buf, sizeof(buf)) > 0 then
+  if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
   else
     Result := Def;
@@ -693,7 +687,7 @@ begin
 
   ALCID := GetThreadLocale;
 //  ALCID := SysLocale.DefaultLCID;
-  if GetDateFormat(ALCID , DATE_USE_ALT_CALENDAR
+  if GetDateFormatA(ALCID , DATE_USE_ALT_CALENDAR
       , @ASystemTime, PChar('gg')
       , @buf, SizeOf(buf)) > 0 then
   begin
@@ -736,7 +730,7 @@ begin
   ALCID := GetThreadLocale;
 //  ALCID := SysLocale.DefaultLCID;
 
-  if GetDateFormat(ALCID, DATE_USE_ALT_CALENDAR
+  if GetDateFormatA(ALCID, DATE_USE_ALT_CALENDAR
       , @ASystemTime, PChar(AFormatText)
       , @buf, SizeOf(buf)) > 0 then
   begin
@@ -798,7 +792,7 @@ begin
      EraNames[i] := '';  EraYearOffsets[i] := -1;
    end;
   ALCID := GetThreadLocale;
-  if GetLocaleInfo(ALCID , LOCALE_IOPTIONALCALENDAR, buf, sizeof(buf)) <= 0 then exit;
+  if GetLocaleInfoA(ALCID , LOCALE_IOPTIONALCALENDAR, buf, sizeof(buf)) <= 0 then exit;
   ACALID := StrToIntDef(buf,1);
 
   if ACALID in [3..5] then
@@ -941,7 +935,7 @@ begin
                  MsgBuffer,                 { This function allocs the memory }
                  MaxMsgSize,                           { Maximum message size }
                  nil);
-  SysErrorMessage := StrPas(MsgBuffer);
+  SysErrorMessage := MsgBuffer;
   FreeMem(MsgBuffer, MaxMsgSize);
 end;
 
@@ -956,18 +950,50 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 var
-   s : string;
-   i : longint;
+   oemenvvar, oemstr : RawByteString;
+   i, hplen : longint;
    hp,p : pchar;
 begin
+   oemenvvar:=uppercase(envvar);
+   SetCodePage(oemenvvar,CP_OEMCP);
    Result:='';
-   p:=GetEnvironmentStrings;
+   p:=GetEnvironmentStringsA;
    hp:=p;
    while hp^<>#0 do
      begin
-        s:=strpas(hp);
+        oemstr:=hp;
+        { cache length, may change after uppercasing depending on code page }
+        hplen:=length(oemstr);
+        { all environment variables are encoded in the oem code page }
+        SetCodePage(oemstr,CP_OEMCP,false);
+        i:=pos('=',oemstr);
+        if uppercase(copy(oemstr,1,i-1))=oemenvvar then
+          begin
+             Result:=copy(oemstr,i+1,length(oemstr)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+hplen+1;
+     end;
+   FreeEnvironmentStringsA(p);
+end;
+
+Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
+
+var
+   s, upperenv : Unicodestring;
+   i : longint;
+   hp,p : pwidechar;
+begin
+   Result:='';
+   p:=GetEnvironmentStringsW;
+   hp:=p;
+   upperenv:=uppercase(envvar);
+   while hp^<>#0 do
+     begin
+        s:=hp;
         i:=pos('=',s);
-        if uppercase(copy(s,1,i-1))=upcase(envvar) then
+        if uppercase(copy(s,1,i-1))=upperenv then
           begin
              Result:=copy(s,i+1,length(s)-i);
              break;
@@ -975,7 +1001,7 @@ begin
         { next string entry}
         hp:=hp+strlen(hp)+1;
      end;
-   FreeEnvironmentStrings(p);
+   FreeEnvironmentStringsW(p);
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -984,7 +1010,7 @@ var
   hp,p : pchar;
 begin
   Result:=0;
-  p:=GetEnvironmentStrings;
+  p:=GetEnvironmentStringsA;
   hp:=p;
   If (Hp<>Nil) then
     while hp^<>#0 do
@@ -992,28 +1018,40 @@ begin
       Inc(Result);
       hp:=hp+strlen(hp)+1;
       end;
-  FreeEnvironmentStrings(p);
+  FreeEnvironmentStringsA(p);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 var
   hp,p : pchar;
+{$ifdef FPC_RTL_UNICODE}
+  tmpstr : RawByteString;
+{$endif}
 begin
   Result:='';
-  p:=GetEnvironmentStrings;
+  p:=GetEnvironmentStringsA;
   hp:=p;
   If (Hp<>Nil) then
     begin
-    while (hp^<>#0) and (Index>1) do
-      begin
-      Dec(Index);
-      hp:=hp+strlen(hp)+1;
-      end;
+      while (hp^<>#0) and (Index>1) do
+        begin
+          Dec(Index);
+          hp:=hp+strlen(hp)+1;
+        end;
     If (hp^<>#0) then
-      Result:=StrPas(HP);
+      begin
+{$ifdef FPC_RTL_UNICODE}
+        tmpstr:=hp;
+        SetCodePage(tmpstr,CP_OEMCP,false);
+        Result:=tmpstr;
+{$else}
+        Result:=hp;
+        SetCodePage(RawByteString(Result),CP_OEMCP,false);
+{$endif}
+      end;
     end;
-  FreeEnvironmentStrings(p);
+  FreeEnvironmentStringsA(p);
 end;
 
 {$pop}
@@ -1048,7 +1086,7 @@ begin
 
   ExecInherits:=ExecInheritsHandles in Flags;
 
-  if not CreateProcess(nil, pchar(CommandLine),
+  if not CreateProcessA(nil, pchar(CommandLine),
     Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
@@ -1159,7 +1197,7 @@ Procedure InitSysConfigDir;
 
 begin
   SetLength(SysConfigDir, MAX_PATH);
-  SetLength(SysConfigDir, GetWindowsDirectory(PChar(SysConfigDir), MAX_PATH));
+  SetLength(SysConfigDir, GetWindowsDirectoryA(PChar(SysConfigDir), MAX_PATH));
 end;
 
 {****************************************************************************
@@ -1211,7 +1249,7 @@ function Win32AnsiUpperCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharUpperBuff(pchar(result),length(result));
+        CharUpperBuffA(pchar(result),length(result));
       end
     else
       result:='';
@@ -1224,7 +1262,7 @@ function Win32AnsiLowerCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharLowerBuff(pchar(result),length(result));
+        CharLowerBuffA(pchar(result),length(result));
       end
     else
       result:='';
@@ -1233,52 +1271,52 @@ function Win32AnsiLowerCase(const s: string): string;
 
 function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
       pchar(s2),length(s2))-2;
   end;
 
 
 function Win32AnsiCompareText(const S1, S2: string): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
       pchar(s2),length(s2))-2;
   end;
 
 
 function Win32AnsiStrComp(S1, S2: PChar): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
   end;
 
 
 function Win32AnsiStrIComp(S1, S2: PChar): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
   end;
 
 
 function Win32AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
   end;
 
 
 function Win32AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
   begin
-    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
   end;
 
 
 function Win32AnsiStrLower(Str: PChar): PChar;
   begin
-    CharLower(str);
+    CharLowerA(str);
     result:=str;
   end;
 
 
 function Win32AnsiStrUpper(Str: PChar): PChar;
   begin
-    CharUpper(str);
+    CharUpperA(str);
     result:=str;
   end;
 

@@ -138,6 +138,7 @@ interface
           procedure deref;override;
           function  GetTypeName:string;override;
           function  getmangledparaname:TSymStr;override;
+          function  size:asizeint;override;
           procedure setsize;
        end;
 
@@ -1129,7 +1130,11 @@ implementation
     function getparaencoding(def:tdef):tstringencoding; inline;
       begin
         { don't pass CP_NONE encoding to internal functions
-          they expect 0 encoding instead }
+          they expect 0 encoding instead
+          exception: result of string concatenation, because if you pass the
+          result of a string concatenation to a rawbytestring, the result of
+          that concatenation shouldn't be converted to defaultsystemcodepage
+          if all strings have the same type }
         result:=tstringdef(def).encoding;
         if result=CP_NONE then
           result:=0
@@ -2614,7 +2619,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_text;
          typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2623,7 +2627,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_untyped;
          typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2632,7 +2635,6 @@ implementation
          inherited create(filedef);
          filetyp:=ft_typed;
          typedfiledef:=def;
-         setsize;
       end;
 
 
@@ -2644,7 +2646,6 @@ implementation
            ppufile.getderef(typedfiledefderef)
          else
            typedfiledef:=nil;
-         setsize;
       end;
 
 
@@ -2679,58 +2680,23 @@ implementation
       end;
 
 
+    function  tfiledef.size:asizeint;
+      begin
+        if savesize=0 then
+          setsize;
+        size:=savesize;
+      end;
+
+
     procedure tfiledef.setsize;
       begin
-{$ifdef cpu64bitaddr}
-        case filetyp of
-          ft_text :
-            if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=640
-            else
-              savesize:=632;
-          ft_typed,
-          ft_untyped :
-            if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=376
-            else
-              savesize:=368;
-        end;
-{$endif cpu64bitaddr}
-{$ifdef cpu32bitaddr}
-        case filetyp of
-          ft_text :
-            savesize:=596; { keep this dividable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
-          ft_typed,
-          ft_untyped :
-            savesize:=332;
-        end;
-{$endif cpu32bitaddr}
-{$ifdef cpu16bitaddr}
-        case filetyp of
-          ft_text :
-            {$if defined(avr)}
-              savesize:=96;
-            {$elseif defined(i8086)}
-              case current_settings.x86memorymodel of
-                mm_tiny,mm_small: savesize:=576;
-                mm_medium:        savesize:=584;
-                else
-                  internalerror(2013060901);
-              end;
-            {$else}
-              {$fatal TODO: define the textrec size for your cpu}
-            {$endif}
-          ft_typed,
-          ft_untyped :
-            {$if defined(avr)}
-              savesize:=76;
-            {$elseif defined(i8086)}
-              savesize:=316;
-            {$else}
-              {$fatal TODO: define the textrec size for your cpu}
-            {$endif}
-        end;
-{$endif cpu16bitaddr}
+       case filetyp of
+         ft_text    :
+           savesize:=search_system_type('TEXTREC').typedef.size;
+         ft_typed,
+         ft_untyped :
+           savesize:=search_system_type('FILEREC').typedef.size;
+         end;
       end;
 
 

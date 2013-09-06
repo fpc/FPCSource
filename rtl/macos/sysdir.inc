@@ -18,16 +18,14 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure mkdir(const s:string);[IOCheck];
+procedure do_mkdir(const s: rawbytestring);
 var
   spec: FSSpec;
   createdDirID: Longint;
   err: OSErr;
   res: Integer;
 begin
-  If (s='') or (InOutRes <> 0) then
-    exit;
-
+  { TODO: convert PathArgToFSSpec (and the routines it calls) to rawbytestring }
   res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
@@ -38,7 +36,7 @@ begin
     InOutRes:=res;
 end;
 
-procedure rmdir(const s:string);[IOCheck];
+procedure do_rmdir(const s: rawbytestring);
 
 var
   spec: FSSpec;
@@ -46,9 +44,6 @@ var
   res: Integer;
 
 begin
-  If (s='') or (InOutRes <> 0) then
-    exit;
-
   res:= PathArgToFSSpec(s, spec);
 
   if (res = 0) then
@@ -65,15 +60,12 @@ begin
     InOutRes:=res;
 end;
 
-procedure chdir(const s:string);[IOCheck];
+procedure do_chdir(const s: rawbytestring);
 var
   spec, newDirSpec: FSSpec;
   err: OSErr;
   res: Integer;
 begin
-  if (s='') or (InOutRes <> 0) then
-    exit;
-
   res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
@@ -98,22 +90,16 @@ begin
     InOutRes:=res;
 end;
 
-procedure getDir (DriveNr: byte; var Dir: ShortString);
+procedure do_getDir (DriveNr: byte; var Dir: RawByteString);
 
 var
-  fullPath: AnsiString;
   pathHandleSize: Longint;
 
 begin
-  if FSpGetFullPath(workingDirectorySpec, fullPath, false) <> noErr then
+  if FSpGetFullPath(workingDirectorySpec, Dir, false) <> noErr then
     Halt(3);  {exit code 3 according to MPW}
 
-  if Length(fullPath) <= 255 then {because dir is ShortString}
-    InOutRes := 0
-  else
-    InOutRes := 1; //TODO Exchange to something better
-
-  dir:= fullPath;
+  SetCodePage(Dir,DefaultFileSystemCodePage,false);
 end;
 
 

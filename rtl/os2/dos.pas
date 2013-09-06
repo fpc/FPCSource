@@ -592,10 +592,19 @@ procedure GetFAttr (var F; var Attr: word);
 var
   PathInfo: TFileStatus3;
   RC: cardinal;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  R: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
+  P: pchar;
 begin
   Attr := 0;
-  RC := DosQueryPathInfo (@FileRec (F).Name, ilStandard,
-                                                 @PathInfo, SizeOf (PathInfo));
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  P := @FileRec (F).Name;
+{$else FPC_ANSI_TEXTFILEREC}
+  R := ToSingleByteFileSystemEncodedFileName (FileRec (F).Name);
+  P := PChar (R);
+{$endif FPC_ANSI_TEXTFILEREC}
+  RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   DosError := integer (RC);
   if RC = 0 then
     Attr := PathInfo.AttrFile;
@@ -606,14 +615,23 @@ procedure SetFAttr (var F; Attr: word);
 var
   PathInfo: TFileStatus3;
   RC: cardinal;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  R: rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
+  P: pchar;
 begin
-  RC := DosQueryPathInfo (@FileRec (F).Name, ilStandard,
-                                                 @PathInfo, SizeOf (PathInfo));
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  P := @FileRec (F).Name;
+{$else FPC_ANSI_TEXTFILEREC}
+  R := ToSingleByteFileSystemEncodedFileName (FileRec (F).Name);
+  P := PChar (R);
+{$endif FPC_ANSI_TEXTFILEREC}
+  RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   if RC = 0 then
   begin
     PathInfo.AttrFile := Attr;
-    RC := DosSetPathInfo (@FileRec (F).Name, ilStandard, @PathInfo,
-                                               SizeOf (PathInfo), doWriteThru);
+    RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo),
+                                                        doWriteThru);
   end;
   DosError := integer (RC);
 end;

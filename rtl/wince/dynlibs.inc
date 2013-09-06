@@ -36,13 +36,9 @@ Const
 
 Uses windows;
 
-Function LoadLibrary(const Name : AnsiString) : TlibHandle;
-var
-  ws: PWideChar;
+Function DoLoadLibrary(const Name : UnicodeString) : TlibHandle;
 begin
-  ws:=StringToPWideChar(Name);
-  Result:=Windows.LoadLibrary(ws);
-  FreeMem(ws);
+  Result:=Windows.LoadLibrary(PWideChar(Name));
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;

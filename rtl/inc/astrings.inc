@@ -59,6 +59,20 @@ Const
                     Internal functions, not in interface.
 ****************************************************************************}
 
+{$ifndef FPC_HAS_TRANSLATEPLACEHOLDERCP}
+{$define FPC_HAS_TRANSLATEPLACEHOLDERCP}
+function TranslatePlaceholderCP(cp: TSystemCodePage): TSystemCodePage; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  TranslatePlaceholderCP:=cp;
+  case cp of
+    CP_OEMCP,
+    CP_ACP:
+      TranslatePlaceholderCP:=DefaultSystemCodePage;
+  end;
+end;
+{$endif FPC_HAS_TRANSLATEPLACEHOLDERCP}
+
+
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
@@ -200,15 +214,13 @@ Var
   S1CP, S2CP, DestCP: TSystemCodePage;
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (Pointer(DestS)=nil) then
-    DestCP:=cp
-  else
-    DestCP:=StringCodePage(DestS);
+  DestCP:=cp;
+  if DestCp=CP_NONE then
+    DestCP:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_ACP) then
-    DestCP:=DefaultSystemCodePage;
+  DestCP:=TranslatePlaceholderCP(DestCP);
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
     DefaultSystemCodePage in that case, which may differ from other addend/dest) }
@@ -216,14 +228,19 @@ begin
     S1CP:=DestCP
   else
     S1CP:=StringCodePage(S1);
-  if (S1CP=CP_ACP) then
-    S1CP:=DefaultSystemCodePage;
+  S1CP:=TranslatePlaceholderCP(S1CP);
   if S2='' then
     S2CP:=DestCP
   else
     S2CP:=StringCodePage(S2);
-  if (S2CP=CP_ACP) then
-    S2CP:=DefaultSystemCodePage;
+  S2CP:=TranslatePlaceholderCP(S2CP);
+{$ifdef FPC_HAS_CPSTRING}
+  { if the result is rawbytestring and both strings have the same code page,
+    keep that code page }
+  if (cp=CP_NONE) and
+     (S1CP=S2CP) then
+    DestCP:=S1CP;
+{$endif FPC_HAS_CPSTRING}
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
@@ -273,15 +290,17 @@ end;
 {$define FPC_HAS_ANSISTR_CONCAT_MULTI}
 procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
-  lowstart,i  : Longint;
+  lowstart,
+  nonemptystart,
+  i           : Longint;
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
   destcopy    : pointer;
-  DestCP      : TSystemCodePage;
   U           : UnicodeString;
-  sameCP      : Boolean;
+  DestCP,
   tmpCP       : TSystemCodePage;
+  sameCP      : Boolean;
 begin
   if high(sarr)=0 then
     begin
@@ -289,23 +308,26 @@ begin
       exit;
     end;
 {$ifdef FPC_HAS_CPSTRING}
-  if (Pointer(DestS)=nil) then
-    DestCP:=cp
-  else
-    DestCP:=StringCodePage(DestS);
+  DestCP:=cp;
+  if DestCp=CP_NONE then
+    DestCP:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_ACP) then
-    DestCP:=DefaultSystemCodePage;
+  DestCP:=TranslatePlaceholderCP(DestCP);
   sameCP:=true;
   lowstart:=low(sarr);
-  for i:=lowstart to high(sarr) do
+  { skip empty strings }
+  while (lowstart<=high(sarr)) and
+        (sarr[lowstart]='') do
+    inc(lowstart);
+  tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
+  for i:=lowstart+1 to high(sarr) do
     begin
-      tmpCP:=StringCodePage(sarr[i]);
-      if tmpCP=CP_ACP then
-        tmpCP:=DefaultSystemCodePage;
-      if (DestCP<>tmpCp) then
+      { ignore the code page of empty strings, it will always be
+        DefaultSystemCodePage but it doesn't matter for the outcome }
+      if (sarr[i]<>'') and
+         (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
         begin
           sameCP:=false;
           break;
@@ -314,48 +336,53 @@ begin
   if not sameCP then
     begin
       U:='';
-      for i:=lowstart to high(sarr) do begin
-        tmpCP:=StringCodePage(sarr[i]);
-        U:=U+UnicodeString(sarr[i]);
-      end;
+      for i:=lowstart to high(sarr) do
+        if sarr[i]<>'' then
+          U:=U+UnicodeString(sarr[i]);
 
       DestS:='';
       widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
       exit;
     end;
-
+{$ifdef FPC_HAS_CPSTRING}
+  { if the result is rawbytestring and all strings have the same code page,
+    keep that code page }
+  if cp=CP_NONE then
+    DestCP:=tmpCP;
+{$endif FPC_HAS_CPSTRING}
   destcopy:=nil;
-  lowstart:=low(sarr);
-  if Pointer(DestS)=Pointer(sarr[lowstart]) then
-    inc(lowstart);
+  nonemptystart:=lowstart;
   { Check for another reuse, then we can't use
     the append optimization }
-  for i:=lowstart to high(sarr) do
+  if DestS<>'' then
     begin
-      if Pointer(DestS)=Pointer(sarr[i]) then
+      if Pointer(DestS)=Pointer(sarr[lowstart]) then
+        inc(lowstart);
+      for i:=lowstart to high(sarr) do
         begin
-          { if DestS is used somewhere in the middle of the expression,
-            we need to make sure the original string still exists after
-            we empty/modify DestS                                       }
-          destcopy:=pointer(dests);
-          fpc_AnsiStr_Incr_Ref(destcopy);
-          lowstart:=low(sarr);
-          break;
+          if Pointer(DestS)=Pointer(sarr[i]) then
+            begin
+              { if DestS is used somewhere in the middle of the expression,
+                we need to make sure the original string still exists after
+                we empty/modify DestS                                       }
+              destcopy:=pointer(dests);
+              fpc_AnsiStr_Incr_Ref(destcopy);
+              lowstart:=nonemptystart;
+              break;
+            end;
         end;
     end;
   { Start with empty DestS if we start with concatting
-    the first array element }
-  if lowstart=low(sarr) then
+    the first (non-empty) array element }
+  if lowstart=nonemptystart then
     DestS:='';
   OldDestLen:=length(DestS);
   { Calculate size of the result so we can do
     a single call to SetLength() }
   NewLen:=0;
-  for i:=low(sarr) to high(sarr) do
+  for i:=nonemptystart to high(sarr) do
     inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
-  if (StringCodePage(DestS) <> DestCP) then
-    SetCodePage(DestS,DestCP,False);
   { Concat all strings, except the string we already
     copied in DestS }
   pc:=Pointer(DestS)+OldDestLen;
@@ -369,6 +396,8 @@ begin
           inc(pc,size);
         end;
     end;
+  SetCodePage(DestS,tmpCP,False);
+  SetCodePage(DestS,DestCP,True);
   fpc_AnsiStr_Decr_Ref(destcopy);
 end;
 {$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
@@ -410,11 +439,8 @@ begin
   Size:=Length(S);
   if Size>0 then
     begin
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
-      orgcp:=StringCodePage(S);
-      if (orgcp=CP_ACP) then
-        orgcp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
+      orgcp:=TranslatePlaceholderCP(StringCodePage(S));
       if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           SetLength(result,Size);
@@ -471,8 +497,7 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -499,8 +524,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -529,8 +553,7 @@ begin
   if L > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -567,8 +590,7 @@ begin
   if i > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
+      cp:=TranslatePlaceholderCP(cp);
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
@@ -628,12 +650,8 @@ begin
       result:=Length(S1);
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  if cp1=CP_ACP then
-    cp1:=DefaultSystemCodePage;
-  cp2:=StringCodePage(S2);
-  if cp2=CP_ACP then
-    cp2:=DefaultSystemCodePage;
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
     begin
       Maxi:=Length(S1);
@@ -692,12 +710,8 @@ begin
       result:=1;
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  if cp1=CP_ACP then
-    cp1:=DefaultSystemCodePage;
-  cp2:=StringCodePage(S2);
-  if cp2=CP_ACP then
-    cp2:=DefaultSystemCodePage;
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
     begin
       Maxi:=Length(S1);
@@ -750,6 +764,12 @@ begin
       if Pointer(S)=nil then
         begin
           Pointer(S):=NewAnsiString(L);
+{$ifdef FPC_HAS_CPSTRING}
+          cp:=TranslatePlaceholderCP(cp);
+          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
+{$else}
+          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
         end
       else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
         begin
@@ -767,6 +787,7 @@ begin
         begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
+          PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
           { also move terminating null }
           lens:=succ(length(s));
           if l<lens then
@@ -777,13 +798,6 @@ begin
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
         end;
-{$ifdef FPC_HAS_CPSTRING}
-      if (cp=CP_ACP) then
-        cp:=DefaultSystemCodePage;
-      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
-{$else}
-      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
       { Force nil termination in case it gets shorter }
       PByte(Pointer(S)+l)^:=0;
       PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len:=l;
@@ -1280,9 +1294,7 @@ begin
    index := LS+1;
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
-  cp:=StringCodePage(S);
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(StringCodePage(S));
   SetCodePage(Temp,cp,false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
@@ -1408,10 +1420,19 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
 { use this wrapper for the simple case to avoid the generation of a temp. ansistring which causes
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+  var
+    TranslatedCodePage,
+    TranslatedCurrentCodePage: TSystemCodePage;
   begin
-    if (S='') or (PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage=CodePage) then
-      exit
-    else if not Convert and (PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref=1) then
+    if (S='') then
+      exit;
+    { if we're just replacing a placeholder code page with its actual value or
+      vice versa, we don't have to perform any conversion }
+    TranslatedCurrentCodePage:=TranslatePlaceholderCP(PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage);
+    TranslatedCodePage:=TranslatePlaceholderCP(CodePage);
+    Convert:=Convert and
+      (TranslatedCurrentCodePage<>TranslatedCodePage);
+    if not Convert and (PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref=1) then
       PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage:=CodePage
     else
       InternalSetCodePage(S,CodePage,Convert);
@@ -1422,5 +1443,17 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
 procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
   begin
     DefaultSystemCodePage:=CodePage;
+  end;
+
+
+procedure SetMultiByteFileSystemCodePage(CodePage: TSystemCodePage);
+  begin
+    DefaultFileSystemCodePage:=CodePage;
+  end;
+
+
+procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
+  begin
+    DefaultRTLFileSystemCodePage:=CodePage;
   end;
 

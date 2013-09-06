@@ -71,11 +71,11 @@ uses
 
   var
     Tmm: TMemoryBasicInformation;
-{$ifdef wince}
+{$ifdef FPC_OS_UNICODE}
     TST: array[0..Max_Path] of WideChar;
-{$else wince}
+{$else}
     TST: array[0..Max_Path] of Char;
-{$endif wince}
+{$endif FPC_OS_UNICODE}
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
       baseaddr:=nil;
@@ -86,11 +86,11 @@ uses
           baseaddr:=Tmm.AllocationBase;
           TST[0]:= #0;
           GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
-{$ifdef wince}
+{$ifdef FPC_OS_UNICODE}
           filename:= String(PWideChar(@TST));
-{$else wince}
+{$else}
           filename:= String(PChar(@TST));
-{$endif wince}
+{$endif FPC_OS_UNICODE}
         end;
     end;
 

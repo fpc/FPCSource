@@ -57,18 +57,6 @@ Const
                                 Local types
 ****************************************************************************}
 
-{
-  TextRec and FileRec are put in a separate file to make it available to other
-  units without putting it explicitly in systemh.
-  This way we keep TP compatibility, and the TextRec definition is available
-  for everyone who needs it.
-}
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-{$i filerec.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-{$i textrec.inc}
-
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
     {$if High(errorcode)<>maxExitCode}
@@ -1430,13 +1418,49 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
-procedure DoDirSeparators(p:Pchar);
+procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
 var
   i : longint;
+  len : sizeint;
+  newp : pchar;
 begin
-  for i:=0 to strlen(p) do
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
     if p[i] in AllowDirectorySeparators then
-      p[i]:=DirectorySeparator;
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,len+1);
+            move(p^,newp^,len+1);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var p: pwidechar; inplace: boolean = true);
+var
+  i : longint;
+  len : sizeint;
+  newp : pwidechar;
+begin
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
+    if (ord(p[i])<255) and
+       (ansichar(ord(p[i])) in AllowDirectorySeparators) then
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,(len+1)*2);
+            move(p^,newp^,(len+1)*2);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
 end;
 
 procedure DoDirSeparators(var p:shortstring);
@@ -1447,11 +1471,129 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+
+
+procedure DoDirSeparators(var ps:RawByteString);
+var
+  i : longint;
+  p : pchar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pchar(ps);
+            unique:=true;
+          end;
+        p[i-1]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var ps:UnicodeString);
+var
+  i : longint;
+  p : pwidechar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pwidechar(ps);
+            unique:=true;
+          end;
+        p[i-1]:=DirectorySeparator;
+      end;
+end;
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i sysfile.inc}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pansichar; flags: longint; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_open(f,pwidechar(u),flags,true);
+end;
+
+procedure do_erase(p: pansichar; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_erase(pwidechar(u),true);
+end;
+
+procedure do_rename(src, dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  usrc, udst: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  widestringmanager.Ansi2UnicodeMoveProc(dst,DefaultFileSystemCodePage,udst,length(dst));
+  do_rename(pwidechar(usrc),pwidechar(udst),true,true);
+end;
+
+procedure do_rename(src: pansichar; dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  usrc: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  do_rename(pwidechar(usrc),dst,true,dstchangeable);
+end;
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{$ifndef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pwidechar; flags: longint; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_open(f,pansichar(s),flags,true);
+end;
+
+procedure do_erase(p: pwidechar; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_erase(pansichar(s),true);
+end;
+
+procedure do_rename(src, dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc, rdst: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  widestringmanager.Unicode2AnsiMoveProc(dst,rdst,DefaultFileSystemCodePage,length(dst));
+  do_rename(pansichar(rsrc),pansichar(rdst),true,true);
+end;
+
+procedure do_rename(src: pwidechar; dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  do_rename(pansichar(rsrc),dst,true,dstchangeable);
+end;
+{$endif not FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
@@ -1473,55 +1615,182 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 var
-  s : shortstring;
+  u: unicodestring;
 begin
-  getdir(drivenr,s);
+  Do_getdir(drivenr,u);
+  widestringmanager.Unicode2AnsiMoveProc(pwidechar(u),dir,DefaultRTLFileSystemCodePage,length(u));
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure MkDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_mkdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_mkdir(S);
+{$endif}
+end;
+
+
+Procedure RmDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_rmdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_rmdir(S);
+{$endif}
+End;
+
+
+Procedure ChDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_chdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_chdir(S);
+{$endif}
+End;
+
+
+Procedure getdir(drivenr:byte;Var dir:rawbytestring);
+begin
+  Do_getdir(drivenr,dir);
+  { we should return results in the DefaultRTLFileSystemCodePage -> convert if
+    necessary }
+  setcodepage(dir,DefaultRTLFileSystemCodePage,true);
+end;
+
+{ the generic shortstring ones are only implemented elsewhere for systems *not*
+  supporting ansi/unicodestrings; for now assume there are no systems that
+  support unicodestrings but not ansistrings }
+
+{ avoid double string conversions }
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): RawByteString;
+begin
+  GetDirStrFromShortstring:=ToSingleByteFileSystemEncodedFileName(ansistring(s));
+end;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): UnicodeString;
+begin
+  GetDirStrFromShortstring:=s;
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure MkDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure RmDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure ChDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure getdir(drivenr:byte;Var dir:shortstring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
+  if length(s)<=high(dir) then
+    dir:=s
+  else
+    inoutres:=3;
+end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+{$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{ overloads required for mkdir/rmdir/chdir to ensure that the string is
+  converted to the right code page }
+procedure do_mkdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_mkdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_rmdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_rmdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_chdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_chdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_getdir(drivenr : byte;var dir : unicodestring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
   dir:=s;
 end;
-{$endif}
+{$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO)}
-
-Procedure MkDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+Procedure MkDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  MkDir(@buffer[0],length(s));
+  Do_mkdir(S);
 End;
 
-Procedure RmDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+
+Procedure RmDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  RmDir(@buffer[0],length(s));
+  Do_rmdir(S);
 End;
 
-Procedure ChDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+
+Procedure ChDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  ChDir(@buffer[0],length(s));
+  Do_chdir(S);
 End;
-{$endif}
+
+
+Procedure getdir(drivenr:byte;Var dir:unicodestring);
+begin
+  Do_getdir(drivenr,dir);
+end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+{$endif FPC_HAS_FEATURE_FILEIO}
+
 
 {*****************************************************************************
                             Resources support

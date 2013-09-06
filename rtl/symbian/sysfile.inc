@@ -31,13 +31,13 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p : pchar; pchangeable: boolean);
 begin
 
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
 begin
 
 end;
@@ -85,7 +85,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 begin
 
 end;

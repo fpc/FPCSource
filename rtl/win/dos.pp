@@ -612,9 +612,11 @@ end;
 procedure getfattr(var f;var attr : word);
 var
    l : longint;
+   s : RawByteString;
 begin
   doserror:=0;
-  l:=GetFileAttributes(filerec(f).name);
+  s:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+  l:=GetFileAttributes(pchar(s));
   if l=longint($ffffffff) then
    begin
      doserror:=getlasterror;
@@ -626,15 +628,19 @@ end;
 
 
 procedure setfattr(var f;attr : word);
+var s : RawByteString;
 begin
   { Fail for setting VolumeId }
   if (attr and VolumeID)<>0 then
     doserror:=5
   else
-   if SetFileAttributes(filerec(f).name,attr) then
-    doserror:=0
-  else
-    doserror:=getlasterror;
+     begin
+       s:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
+       if SetFileAttributes(pchar(s),attr) then
+        doserror:=0
+      else
+        doserror:=getlasterror;
+     end;
 end;
 
 { change to short filename if successful win32 call PM }

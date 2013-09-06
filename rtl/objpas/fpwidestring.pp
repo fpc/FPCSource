@@ -6,6 +6,8 @@ interface
 uses
   unicodedata;
 
+{$i rtldefs.inc}
+
   function SetActiveCollation(const AName : TCollationName) : Boolean;
   function SetActiveCollation(const ACollation : PUCA_DataBook) : Boolean;
   function GetActiveCollation() : PUCA_DataBook;
@@ -788,6 +790,12 @@ begin
   DefaultSystemCodePage:=GetSystemCodepage;
   if (DefaultSystemCodePage = CP_NONE) then
     DefaultSystemCodePage:=CP_UTF8;
+{$ifdef FPCRTL_FILESYSTEM_UTF8}
+  DefaultFileSystemCodePage:=CP_UTF8;
+{$else}
+  DefaultFileSystemCodePage:=DefaultSystemCodepage;
+{$endif}
+  DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
 {$endif UNIX}
 end;
 

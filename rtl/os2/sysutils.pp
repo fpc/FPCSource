@@ -23,6 +23,12 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -63,15 +69,17 @@ const
  FindResvdMask = $00003737; {Allowed bits in attribute
                              specification for DosFindFirst call.}
 
-function FileOpen (const FileName: string; Mode: integer): THandle;
+function FileOpen (const FileName: rawbytestring; Mode: integer): THandle;
 Var
+  SystemFileName: RawByteString;
   Handle: THandle;
   Rc, Action: cardinal;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
 (* DenyNone if sharing not specified. *)
   if (Mode and 112 = 0) or (Mode and 112 > 64) then
    Mode := Mode or 64;
-  Rc:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
+  Rc:=Sys_DosOpenL(PChar (SystemFileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
   else
@@ -79,28 +87,30 @@ begin
     //should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end;
 
-function FileCreate (const FileName: string): THandle;
+function FileCreate (const FileName: RawByteString): THandle;
 begin
   FileCreate := FileCreate (FileName, doDenyRW, 777); (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; Rights: integer): THandle;
+function FileCreate (const FileName: RawByteString; Rights: integer): THandle;
 begin
   FileCreate := FileCreate (FileName, doDenyRW, Rights);
                                       (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode: integer;
+function FileCreate (const FileName: RawByteString; ShareMode: integer;
                                                      Rights: integer): THandle;
 var
+  SystemFileName: RawByteString;
   Handle: THandle;
   RC, Action: cardinal;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   ShareMode := ShareMode and 112;
   (* Sharing to DenyAll as default in case of values not allowed by OS/2. *)
   if (ShareMode = 0) or (ShareMode > 64) then
    ShareMode := doDenyRW;
-  RC := Sys_DosOpenL (PChar (FileName), Handle, Action, 0, 0, $12,
+  RC := Sys_DosOpenL (PChar (SystemFileName), Handle, Action, 0, 0, $12,
                                     faCreate or ofReadWrite or ShareMode, nil);
   if RC = 0 then
    FileCreate := Handle
@@ -157,7 +167,7 @@ begin
   FileSeek(Handle, 0, 2);
 end;
 
-function FileAge (const FileName: string): longint;
+function FileAge (const FileName: RawByteString): longint;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
@@ -171,16 +181,17 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if FileName = '' then
-   Result := false
+    Result := false
   else
    begin
-    L := FileGetAttr (FileName);
-    Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
+     L := FileGetAttr (FileName);
+     Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
 (* Neither VolumeIDs nor directories are files. *)
    end;
 end;
@@ -191,27 +202,29 @@ type    TRec = record
         end;
         PSearchRec = ^TSearchRec;
 
-function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3L;
     Count: cardinal;
     Err: cardinal;
     I: cardinal;
+    SystemEncodedPath: RawByteString;
 
 begin
+  SystemEncodedPath := ToSingleByteFileSystemEncodedFileName(Path);
   New (FStat);
   Rslt.FindHandle := THandle ($FFFFFFFF);
   Count := 1;
   if FSApi64 then
-   Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+   Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
   else
-   Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+   Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
   if (Err = 0) and (Count = 0) then
    Err := 18;
-  FindFirst := -Err;
+  InternalFindFirst := -Err;
   if Err = 0 then
    begin
     Rslt.ExcludeAttr := 0;
@@ -220,24 +233,25 @@ begin
     if FSApi64 then
      begin
       Rslt.Size := FStat^.FileSize;
-      Rslt.Name := FStat^.Name;
+      Name := FStat^.Name;
       Rslt.Attr := FStat^.AttrFile;
      end
     else
      begin
       Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-      Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+      Name := PFileFindBuf3 (FStat)^.Name;
       Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
      end;
+    SetCodePage (Name, DefaultFileSystemCodePage, false);
    end
   else
-   FindClose(Rslt);
+   InternalFindClose(Rslt.FindHandle);
 
   Dispose (FStat);
 end;
 
 
-function FindNext (var Rslt: TSearchRec): longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   SR: PSearchRec;
   FStat: PFileFindBuf3L;
@@ -249,7 +263,7 @@ begin
   Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^), Count);
   if (Err = 0) and (Count = 0) then
    Err := 18;
-  FindNext := -Err;
+  InternalFindNext := -Err;
   if Err = 0 then
   begin
     Rslt.ExcludeAttr := 0;
@@ -258,26 +272,27 @@ begin
     if FSApi64 then
      begin
       Rslt.Size := FStat^.FileSize;
-      Rslt.Name := FStat^.Name;
+      Name := FStat^.Name;
       Rslt.Attr := FStat^.AttrFile;
      end
     else
      begin
       Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-      Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+      Name := PFileFindBuf3 (FStat)^.Name;
       Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
      end;
+    SetCodePage (Name, DefaultFileSystemCodePage, false);
   end;
   Dispose (FStat);
 end;
 
 
-procedure FindClose (var F: TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 var
   SR: PSearchRec;
 begin
-  DosFindClose (F.FindHandle);
-  F.FindHandle := 0;
+  DosFindClose (Handle);
+  Handle := 0;
 end;
 
 function FileGetDate (Handle: THandle): longint;
@@ -321,36 +336,47 @@ begin
   Dispose (FStat);
 end;
 
-function FileGetAttr (const FileName: string): longint;
+function FileGetAttr (const FileName: RawByteString): longint;
 var
   FS: PFileStatus3;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  Result:=-DosQueryPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^));
+  Result:=-DosQueryPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
   If Result=0 Then Result:=FS^.attrFile;
   Dispose(FS);
 end;
 
-function FileSetAttr (const Filename: string; Attr: longint): longint;
+function FileSetAttr (const Filename: RawByteString; Attr: longint): longint;
 Var
   FS: PFileStatus3;
+  SystemFileName: RawByteString;
 Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
   FillChar(FS, SizeOf(FS^), 0);
   FS^.AttrFile:=Attr;
-  Result:=-DosSetPathInfo(PChar (FileName), ilStandard, FS, SizeOf(FS^), 0);
+  Result:=-DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
   Dispose(FS);
 end;
 
 
-function DeleteFile (const FileName: string): boolean;
+function DeleteFile (const FileName: RawByteString): boolean;
+var
+  SystemFileName: RawByteString;
 Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   Result:=(DosDelete(PChar (FileName))=0);
 End;
 
-function RenameFile (const OldName, NewName: string): boolean;
+function RenameFile (const OldName, NewName: RawByteString): boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 Begin
-  Result:=(DosMove(PChar (OldName), PChar (NewName))=0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  Result:=(DosMove(PChar (OldSystemFileName), PChar (NewSystemFileName))=0);
 End;
 
 {****************************************************************************
@@ -388,58 +414,11 @@ begin
 end;
 
 
-function GetCurrentDir: string;
-begin
- GetDir (0, Result);
-end;
-
-
-function SetCurrentDir (const NewDir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- ChDir (NewDir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
-function CreateDir (const NewDir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- MkDir (NewDir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
-function RemoveDir (const Dir: string): boolean;
-var
- OrigInOutRes: word;
-begin
- OrigInOutRes := InOutRes;
- InOutRes := 0;
-{$I-}
- RmDir (Dir);
- Result := InOutRes = 0;
-{$I+}
- InOutRes := OrigInOutRes;
-end;
-
-
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if Directory = '' then
    Result := false
   else
@@ -624,7 +603,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-    GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
+    GetEnvironmentVariable := GetEnvPChar (EnvVar);
 end;
 
 
@@ -636,7 +615,7 @@ begin
 end;
 
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP (EnvP, Index);
