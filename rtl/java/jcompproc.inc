@@ -36,7 +36,7 @@ procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 //procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 { JVM-specific }
-procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compilerproc;
+function fpc_Char_To_ShortStr(const c : AnsiChar): ShortString; compilerproc;
 
 
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
@@ -285,7 +285,7 @@ Function fpc_Char_To_UChar(const c : AnsiChar): UnicodeChar; compilerproc;
 Function fpc_UChar_To_Char(const c : UnicodeChar): AnsiChar; compilerproc;
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
+function fpc_UChar_To_ShortStr(const c : UnicodeChar): shortstring; compilerproc;
 
 Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}

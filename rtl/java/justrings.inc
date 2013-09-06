@@ -321,7 +321,7 @@ end;
 
 
 {$define FPC_HAS_UCHAR_TO_SHORTSTR}
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
+function fpc_UChar_To_ShortStr(const c : UnicodeChar): shortstring; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
@@ -329,7 +329,7 @@ var
   u: unicodestring;
 begin
   u:=c;
-  res:=u;
+  result:=u;
 end;
 
 

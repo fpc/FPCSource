@@ -598,7 +598,11 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_SHORTSTR}
 {$define FPC_HAS_UCHAR_TO_SHORTSTR}
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
+{$ifdef VER2_6}
+procedure fpc_UChar_To_ShortStr(out result : shortstring;const c : WideChar); compilerproc;
+{$else}
+function fpc_UChar_To_ShortStr(const c : WideChar): shortstring; compilerproc;
+{$endif}
 {
   Converts a WideChar to a ShortString;
 }
@@ -606,7 +610,7 @@ var
   s: ansistring;
 begin
   widestringmanager.Wide2AnsiMoveProc(@c,s,DefaultSystemCodePage,1);
-  res:=s;
+  result:=s;
 end;
 {$endif FPC_HAS_UCHAR_TO_SHORTSTR}
 

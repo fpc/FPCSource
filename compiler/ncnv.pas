@@ -1125,9 +1125,11 @@ implementation
                               // Delphi converts UniocodeChar to ansistring at the compile time
                               // old behavior:
                               // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              para:=ccallparanode.create(left,nil);
+                              if tstringdef(resultdef).stringtype=st_ansistring then
+                                para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
                               result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
-                                   ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
-                                   ccallparanode.create(left,nil)),resultdef);
+                                para,resultdef);
                               left:=nil;
                               exit;
                             end
@@ -1159,57 +1161,35 @@ implementation
               (torddef(left.resultdef).ordtype=uwidechar) or
               (target_info.system in systems_managed_vm) then
              begin
-               if (tstringdef(resultdef).stringtype<>st_shortstring) then
+               { parameter }
+               para:=ccallparanode.create(left,nil);
+               { encoding required? }
+               if tstringdef(resultdef).stringtype=st_ansistring then
+                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+
+               { create the procname }
+               if torddef(left.resultdef).ordtype<>uwidechar then
                  begin
-                   { parameter }
-                   para:=ccallparanode.create(left,nil);
-                   { encoding required? }
-                   if tstringdef(resultdef).stringtype=st_ansistring then
-                     para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
-
-                   { create the procname }
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     begin
-                       procname:='fpc_char_to_';
-                       if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
-                     end
-                   else
-                     begin
-                       procname:='fpc_uchar_to_';
-                       if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                     end;
-                   procname:=procname+tstringdef(resultdef).stringtypname;
-
-                   { and finally the call }
-                   result:=ccallnode.createinternres(procname,para,resultdef);
+                   procname:='fpc_char_to_';
+                   if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
                  end
                else
                  begin
-                   if nf_explicit in flags then
-                     Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                   else
-                     Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                   newblock:=internalstatements(newstat);
-                   restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
-                   addstatement(newstat,restemp);
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname := 'fpc_char_to_shortstr'
-                   else
-                     procname := 'fpc_uchar_to_shortstr';
-                   addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-                     ctemprefnode.create(restemp),nil))));
-                   addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-                   addstatement(newstat,ctemprefnode.create(restemp));
-                   result:=newblock;
+                   procname:='fpc_uchar_to_';
+                   if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                  end;
+               procname:=procname+tstringdef(resultdef).stringtypname;
+
+               { and finally the call }
+               result:=ccallnode.createinternres(procname,para,resultdef);
                left := nil;
              end
            else
