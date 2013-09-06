@@ -1178,7 +1178,7 @@ implementation
                            (is_pchar(def_to) or is_pwidechar(def_to)) then
                          begin
                            doconv:=tc_cchar_2_pchar;
-                           if is_char(def_from)=is_pchar(def_to) then
+                           if is_pwidechar(def_to)=(m_default_unicodestring in current_settings.modeswitches) then
                              eq:=te_convert_l1
                            else
                              eq:=te_convert_l2
