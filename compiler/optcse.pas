@@ -178,10 +178,10 @@ unit optcse;
               load nodes are not considered if they load para or local symbols from the
               current stack frame, those are in registers anyways if possible
             }
-            (not(n.nodetype=loadn) or
-             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
+            (not(actualtargetnode(@n)^.nodetype=loadn) or
+             not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
              { apply cse on non-regable static variables }
-             ((tloadnode(n).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(n).symtableentry).varregable=vr_none)) or
+             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varregable=vr_none)) or
              (node_complexity(n)>1)
             ) and
 
