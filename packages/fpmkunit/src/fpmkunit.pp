@@ -1256,6 +1256,7 @@ ResourceString
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
+  SInfoFallbackBuildmodeBU= 'Buildmode not supported by package, falling back to compilation using a buildunit';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
@@ -5404,8 +5405,13 @@ begin
 
   case Defaults.BuildMode of
     bmOneByOne:  begin
-                   if bmOneByOne in APackage.SupportBuildModes then
-                     APackage.FBuildMode:=bmOneByOne
+                   if (bmOneByOne in APackage.SupportBuildModes) then
+                     APackage.FBuildMode:=bmBuildUnit
+                   else if bmBuildUnit in APackage.SupportBuildModes then
+                     begin
+                       log(vlInfo,SInfoFallbackBuildmodeBU);
+                       APackage.FBuildMode:=bmBuildUnit;
+                     end
                    else
                      raise exception.create(SErrUnsupportedBuildmode);
                  end;
