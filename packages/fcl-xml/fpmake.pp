@@ -144,7 +144,6 @@ begin
         begin
           AddUnit('xmlread');
         end;
-    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('dtdmodel.pp');
       with T.Dependencies do
         begin

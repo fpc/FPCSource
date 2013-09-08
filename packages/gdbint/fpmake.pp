@@ -133,6 +133,8 @@ begin
     P.Description := 'Interface to libgdb, the GDB debugger in library format';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
+    P.OSes:=[beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2];
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

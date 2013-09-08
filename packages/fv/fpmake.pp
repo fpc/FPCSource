@@ -51,6 +51,7 @@ begin
           AddUnit('app');
         end;
     T:=P.Targets.AddUnit('buildfv.pas');
+    T.Install := false; // Build-unit
       with T.Dependencies do
         begin
           AddUnit('fvcommon');

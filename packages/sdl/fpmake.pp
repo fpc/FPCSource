@@ -19,8 +19,8 @@ begin
     P.Version:='2.6.3';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
-    P.Dependencies.Add('x11');
-    P.Dependencies.Add('pthreads');
+    P.Dependencies.Add('x11',AllUnixOSes);
+    P.Dependencies.Add('pthreads',AllUnixOSes);
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do
@@ -69,7 +69,7 @@ begin
           AddInclude('jedi-sdl.inc');
           AddUnit('sdl');
         end;
-    T:=P.Targets.AddUnit('sdlutils.pas',[i386,powerpc],[linux,freebsd,win32,darwin]);
+    T:=P.Targets.AddUnit('sdlutils.pas',[i386,powerpc],[linux,freebsd,win32,darwin,iphonesim]);
       with T.Dependencies do
         begin
           AddInclude('jedi-sdl.inc');

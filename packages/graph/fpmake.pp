@@ -29,6 +29,7 @@ begin
 
     P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
     P.Dependencies.Add('ptc',[win32,win64,linux]);
+
     // Dependencies for ptc, due to fpcmake bug:
     P.Dependencies.Add('fcl-base',[win32,win64,linux]);
     P.Dependencies.Add('x11',[win32,win64,linux]);
@@ -59,7 +60,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    T:=P.Targets.AddUnit('graph.pp');
+    // Graph unit Linux/i386
+    T:=P.Targets.AddUnit('graph.pp',[i386],[linux]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -72,6 +74,21 @@ begin
           AddInclude('gtext.inc');
           AddInclude('graph16.inc',[freebsd,linux]);
         end;
+    // Graph unit other targets
+    T:=P.Targets.AddUnit('graph.pp',[go32v2,amiga,win32,win64,freebsd]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
+          AddInclude('graph16.inc',[freebsd,linux]);
+        end;
+
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
       with T.Dependencies do
         begin
@@ -84,12 +101,12 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    T:=P.Targets.AddUnit('wincrt.pp',[win32]);
+    T:=P.Targets.AddUnit('wincrt.pp',[win32, win64]);
       with T.Dependencies do
         begin
           AddUnit('graph');
         end;
-    T:=P.Targets.AddUnit('winmouse.pp',[win32]);
+    T:=P.Targets.AddUnit('winmouse.pp',[win32, win64]);
       with T.Dependencies do
         begin
           AddUnit('graph');

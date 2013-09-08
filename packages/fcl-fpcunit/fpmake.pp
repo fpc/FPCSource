@@ -105,9 +105,9 @@ begin
           AddUnit('fpcunit');
           AddUnit('fpcunitreport');
           AddUnit('testutils');
-          AddUnit('xmltestreport.pp');
-          AddUnit('latextestreport.pp');
-          AddUnit('plaintestreport.pp');
+          AddUnit('xmltestreport');
+          AddUnit('latextestreport');
+          AddUnit('plaintestreport');
         end;
 
 {$ifndef ALLPACKAGES}

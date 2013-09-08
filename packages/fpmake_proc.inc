@@ -82,11 +82,7 @@ begin
 {$include fcl-base/fpmake.pp}
 end;
 
-procedure add_fcl_db;
-begin
-  with Installer do
 {$include fcl-db/fpmake.pp}
-end;
 
 procedure add_fcl_extra;
 begin
@@ -177,6 +173,8 @@ begin
   with Installer do
 {$include fpmkunit/fpmake.pp}
 end;
+
+{$include fppkg/fpmake.pp}
 
 procedure add_fv;
 begin

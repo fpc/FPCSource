@@ -2828,6 +2828,7 @@ packages/fpmkunit/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 packages/fppkg/Makefile svneol=native#text/plain
 packages/fppkg/Makefile.fpc svneol=native#text/plain
+packages/fppkg/fpmake.pp svneol=native#text/plain
 packages/fppkg/src/fpmkunitsrc.inc svneol=native#text/plain
 packages/fppkg/src/fprepos.pp svneol=native#text/plain
 packages/fppkg/src/fpxmlrep.pp svneol=native#text/plain
