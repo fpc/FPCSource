@@ -598,7 +598,7 @@ Var
   B : Boolean;
 
 begin
-  Log(vlDebug,'Converting '+AFileName);
+  Log(llDebug,'Converting '+AFileName);
   T:=Nil;
   D:=Nil;
   S:=Nil;
@@ -684,7 +684,7 @@ Var
   L : TStrings;
 
 begin
-  Log(vlInfo,SLogGeneratingFPMake);
+  Log(llInfo,SLogGeneratingFPMake);
   L:=TStringList.Create;
   Try
     StartInstaller(L);
