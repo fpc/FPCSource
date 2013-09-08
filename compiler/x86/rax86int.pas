@@ -81,7 +81,7 @@ Unit Rax86int;
        cutils,
        { global }
        globals,verbose,
-       systems,
+       systems,cpuinfo,
        { aasm }
        aasmtai,aasmdata,aasmcpu,
        { symtable }
@@ -2128,6 +2128,17 @@ Unit Rax86int;
         if (instr.ops=1) and
            (instr.operands[1].typesize<>0) then
           instr.operands[1].setsize(instr.operands[1].typesize,false);
+{$ifdef i8086}
+        { convert 'call symbol' to 'call far symbol' for memory models with far code }
+        for i:=1 to operandnum do
+          with instr.operands[i].opr do
+            if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
+              if current_settings.x86memorymodel in x86_far_code_models then
+                begin
+                  instr.operands[i].InitRef;
+                  ref.refaddr:=addr_far;
+                end;
+{$endif i8086}
       end;
 
 
