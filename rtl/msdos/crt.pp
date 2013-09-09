@@ -639,7 +639,7 @@ end;
 
 Procedure CrtWrite(var f : textrec);
 var
-  i : longint;
+  i : smallint;
 begin
   GetScreenCursor(CurrX,CurrY);
   for i:=0 to f.bufpos-1 do
