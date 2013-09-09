@@ -348,8 +348,23 @@ End;
 *************************************************************************}
 
 var
+   keyboard_type: byte;  { 0=83/84-key keyboard, $10=101/102+ keyboard }
    is_last : boolean;
    last    : char;
+
+procedure DetectKeyboard;
+var
+  regs: registers;
+begin
+  keyboard_type:=0;
+  if (Mem[$40:$96] and $10)<>0 then
+    begin
+      regs.ax:=$1200;
+      intr($16,regs);
+      if regs.ax<>$1200 then
+        keyboard_type:=$10;
+    end;
+end;
 
 function readkey : char;
 var
@@ -364,7 +379,7 @@ begin
    end
   else
    begin
-     regs.ah:=$10;
+     regs.ah:=keyboard_type;
      intr($16,regs);
      if (regs.al=$e0) and (regs.ah<>0) then
       regs.al:=0;
@@ -391,7 +406,7 @@ begin
    end
   else
    begin
-     regs.ah:=$11;
+     regs.ah:=keyboard_type+1;
      intr($16,regs);
      keypressed:=((regs.flags and fZero) = 0);
    end;
@@ -780,6 +795,8 @@ end;
 var
   x,y : longint;
 begin
+{ Detect keyboard type }
+  DetectKeyboard;
 { Load startup values }
   ScreenWidth:=GetScreenWidth;
   ScreenHeight:=GetScreenHeight;
