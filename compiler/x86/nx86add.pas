@@ -1192,9 +1192,8 @@ unit nx86add;
 
 
     procedure tx86addnode.second_cmpfloat;
-      var
-        resflags   : tresflags;
 {$ifdef i8086}
+      var
         tmpref: treference;
 {$endif i8086}
       begin
@@ -1237,28 +1236,6 @@ unit nx86add;
                 emit_none(A_SAHF,S_NO);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
               end;
-            if nf_swapped in flags then
-             begin
-               case nodetype of
-                   equaln : resflags:=F_E;
-                 unequaln : resflags:=F_NE;
-                      ltn : resflags:=F_A;
-                     lten : resflags:=F_AE;
-                      gtn : resflags:=F_B;
-                     gten : resflags:=F_BE;
-               end;
-             end
-            else
-             begin
-               case nodetype of
-                   equaln : resflags:=F_E;
-                 unequaln : resflags:=F_NE;
-                      ltn : resflags:=F_B;
-                     lten : resflags:=F_BE;
-                      gtn : resflags:=F_A;
-                     gten : resflags:=F_AE;
-               end;
-             end;
           end
         else
 {$endif x86_64}
@@ -1268,34 +1245,10 @@ unit nx86add;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FSTP,S_NO,NR_ST0));
             tcgx86(cg).dec_fpu_stack;
             tcgx86(cg).dec_fpu_stack;
-
-            { load fpu flags }
-            if nf_swapped in flags then
-             begin
-               case nodetype of
-                   equaln : resflags:=F_E;
-                 unequaln : resflags:=F_NE;
-                      ltn : resflags:=F_A;
-                     lten : resflags:=F_AE;
-                      gtn : resflags:=F_B;
-                     gten : resflags:=F_BE;
-               end;
-             end
-            else
-             begin
-               case nodetype of
-                   equaln : resflags:=F_E;
-                 unequaln : resflags:=F_NE;
-                      ltn : resflags:=F_B;
-                     lten : resflags:=F_BE;
-                      gtn : resflags:=F_A;
-                     gten : resflags:=F_AE;
-               end;
-             end;
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=resflags;
+        location.resflags:=getresflags(true);
       end;
 
 
