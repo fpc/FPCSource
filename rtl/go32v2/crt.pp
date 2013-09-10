@@ -521,7 +521,6 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$90A;
   If VidSeg=$b800 then
     regs.realecx:=$90A
   else
