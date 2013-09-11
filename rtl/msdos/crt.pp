@@ -111,7 +111,7 @@ begin
 end;
 
 
-procedure GetScreenCursor(var x,y : longint);
+procedure GetScreenCursor(var x,y : smallint);
 begin
   x:=mem[$40:$50]+1;
   y:=mem[$40:$51]+1;
@@ -307,7 +307,7 @@ Procedure ClrEol;
   Clear from current position to end of line.
 }
 var
-  x,y : longint;
+  x,y : smallint;
   fil : word;
 Begin
   GetScreenCursor(x,y);
@@ -323,7 +323,7 @@ Function WhereX: tcrtcoord;
   Return current X-position of cursor.
 }
 var
-  x,y : longint;
+  x,y : smallint;
 Begin
   GetScreenCursor(x,y);
   WhereX:=x-WinMinX;
@@ -336,7 +336,7 @@ Function WhereY: tcrtcoord;
   Return current Y-position of cursor.
 }
 var
-  x,y : longint;
+  x,y : smallint;
 Begin
   GetScreenCursor(x,y);
   WhereY:=y-WinMinY;
@@ -614,7 +614,7 @@ end;
 *****************************************************************************}
 
 var
-  CurrX,CurrY : longint;
+  CurrX,CurrY : smallint;
 
 Procedure WriteChar(c:char);
 var
@@ -792,7 +792,7 @@ end;
 //function __djgpp_set_ctrl_c(enable : longint) : boolean;cdecl;external;
 
 var
-  x,y : longint;
+  x,y : smallint;
 begin
 { Detect keyboard type }
   DetectKeyboard;
