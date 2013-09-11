@@ -1,7 +1,7 @@
 1. fpXMLXSDExport
 =================
 This export module provides export to various forms of XML, selectable by the ExportFormat setting.
-Note that not exporting indexes appears as a limitation in most formats below, but indexes probably will probably need to be changed anyway in an new environment/database.
+Note that not exporting indexes appears as a limitation in most formats below, but indexes will probably need to be changed anyway in an new environment/database.
 
 1.1 AccessCompatible
 ====================
@@ -18,7 +18,7 @@ We cannot replicate this functionality, so we just base64 encode the BLOB, and l
 
 1.2 ADONETCompatible
 ====================
-This format generates XML compatible with the .Net framework (specifically the ADO.NET data access libraries). It should work for versions 2 to 4; version 1/1.1 has not been tested.
+This format generates XML compatible with the .Net framework (specifically the ADO.NET data access libraries). It should work for .Net versions 2 to 4; version 1/1.1 has not been tested.
 In this format you can also specify XSD or no XSD using the CreateXSD setting.
 This output format is fairly generic and could be usable for import in other applications, as well.
 Limitations:
@@ -49,7 +49,7 @@ Limitations:
 
 2. Other settings
 =================
-As the XML formats used above defines how date/time formats, boolean formats etc are used, these general export settings have no effect:
+As the XML formats used above define how date/time formats, boolean formats etc are used, these general export settings have no effect:
 - BooleanFalse
 - BooleanTrue
 - DateFormat
@@ -63,6 +63,6 @@ As the XML formats used above defines how date/time formats, boolean formats etc
 3. License
 ==========
 The fpXMLXSDExport module is freeware, licensed under the MIT license: all use free, but no liability accepted.
-It is also licensed under the FreePascal license, so take your pick, but don't blame me for things that go wrong.
+It is also licensed under the FreePascal modified LGPL license, so take your pick, but don't blame me for things that go wrong.
 
 Reinier Olislagers, 2011

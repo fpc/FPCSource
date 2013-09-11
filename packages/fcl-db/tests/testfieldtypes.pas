@@ -6,7 +6,7 @@ unit TestFieldTypes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
+  Classes, SysUtils, fpcunit, testregistry,
   db;
 
 type
@@ -24,7 +24,7 @@ type
     procedure TestSQLFieldType(ADatatype: TFieldType; ASQLTypeDecl: string;
       ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc;
       ACheckFieldValueProc: TCheckFieldValueProc);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
+    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
     procedure SetUp; override;
@@ -57,7 +57,6 @@ type
     procedure TestNonNullableParams;
     procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
-    procedure TestScript;
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
     procedure TestOpenSpecialStatements;
@@ -76,6 +75,7 @@ type
 
     procedure TestLargeRecordSize;
     procedure TestInt;
+    procedure TestTinyint;
     procedure TestNumeric;
     procedure TestFloat;
     procedure TestDate;
@@ -203,33 +203,6 @@ begin
     end;
 end;
 
-procedure TTestFieldTypes.TestScript;
-
-var Ascript : TSQLScript;
-
-begin
-  Ascript := tsqlscript.create(nil);
-  try
-    with Ascript do
-      begin
-      DataBase := TSQLDBConnector(DBConnector).Connection;
-      transaction := TSQLDBConnector(DBConnector).Transaction;
-      script.clear;
-      script.append('create table a (id int);');
-      script.append('create table b (id int);');
-      ExecuteScript;
-      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      TSQLDBConnector(DBConnector).CommitDDL;
-      end;
-  finally
-    AScript.Free;
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
-    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
-  end;
-end;
-
 procedure TTestFieldTypes.TestLargeRecordSize;
 
 begin
@@ -302,6 +275,62 @@ begin
       end;
     close;
     end;
+end;
+
+procedure TTestFieldTypes.TestTinyint;
+const
+  testValuesCount = 5;
+  testValues : Array[0..testValuesCount-1] of byte = (0,1,127,128,255);
+var
+  datatype: string;
+  fieldtype: TFieldType;
+  i: integer;
+begin
+  case SQLServerType of
+    ssMSSQL:
+      begin
+      datatype  := 'TINYINT';
+      fieldtype := ftWord;
+      end;
+    ssMySQL:
+      begin
+      datatype  := 'TINYINT UNSIGNED';
+      fieldtype := ftWord;
+      end;
+    ssSQLite:
+      begin
+      datatype  := 'TINYINT';
+      fieldtype := ftSmallint;
+      end;
+    else
+      begin
+      fieldtype := ftSmallint;
+      datatype  := FieldtypeDefinitions[fieldtype];
+      end;
+  end;
+
+  CreateTableWithFieldType(fieldtype, datatype);
+  TestFieldDeclaration(fieldtype, sizeof(Smallint));
+
+  with TSQLDBConnector(DBConnector) do
+  begin
+    Query.Open;
+    for i := 0 to testValuesCount-1 do
+      Query.AppendRecord([testValues[i]]);
+    Query.ApplyUpdates;
+    Query.Close;
+
+    for i := 0 to testValuesCount-1 do
+      ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testValues[i]) + ')');
+
+    Query.Open;
+    for i := 0 to testValuesCount*2-1 do
+    begin
+      AssertEquals(testValues[i mod testValuesCount], Query.Fields[0].AsInteger);
+      Query.Next;
+    end;
+    Query.Close;
+  end;
 end;
 
 procedure TTestFieldTypes.TestNumeric;

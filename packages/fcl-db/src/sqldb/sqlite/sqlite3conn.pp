@@ -374,13 +374,14 @@ Type
   end;
   
 Const
-  FieldMapCount = 27;
+  FieldMapCount = 28;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
-   (n:'LARGEINT'; t:ftlargeInt),
-   (n:'BIGINT'; t:ftlargeInt),
-   (n:'WORD'; t: ftWord),
+   (n:'LARGEINT'; t:ftLargeInt),
+   (n:'BIGINT'; t:ftLargeInt),
    (n:'SMALLINT'; t: ftSmallint),
+   (n:'TINYINT'; t: ftSmallint),
+   (n:'WORD'; t: ftWord),
    (n:'BOOLEAN'; t: ftBoolean),
    (n:'REAL'; t: ftFloat),
    (n:'FLOAT'; t: ftFloat),
@@ -395,8 +396,8 @@ Const
    (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
-   (n:'TEXT'; t: ftmemo),
-   (n:'CLOB'; t: ftmemo),
+   (n:'TEXT'; t: ftMemo),
+   (n:'CLOB'; t: ftMemo),
    (n:'BLOB'; t: ftBlob),
    (n:'NCHAR'; t: ftFixedWideChar),
    (n:'NVARCHAR'; t: ftWideString),
@@ -731,6 +732,7 @@ procedure TSQLite3Connection.DoInternalConnect;
 var
   str1: string;
 begin
+  Inherited;
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSqlite(SQLiteDefaultLibrary);
@@ -745,6 +747,7 @@ end;
 procedure TSQLite3Connection.DoInternalDisconnect;
 
 begin
+  Inherited;
   if fhandle <> nil then 
     begin
     checkerror(sqlite3_close(fhandle));

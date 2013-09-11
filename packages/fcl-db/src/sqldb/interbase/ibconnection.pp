@@ -356,6 +356,7 @@ end;
 
 procedure TIBConnection.DoInternalDisconnect;
 begin
+  Inherited;
   FDialect := INVALID_DATA;
   if not Connected then
   begin
