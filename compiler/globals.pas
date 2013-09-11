@@ -935,11 +935,6 @@ implementation
       {$endif}
       end;
 
-{$if defined(MORPHOS) or defined(AMIGA)}
-  {$define AMIGASHELL}
-{$endif}
-
-{$UNDEF AMIGASHELL}
       function is_number_float(d : double) : boolean;
         var
            bytearray : array[0..7] of byte;
