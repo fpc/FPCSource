@@ -127,7 +127,7 @@ Function WinMinX: Byte;
   Current Minimum X coordinate
 }
 Begin
-  WinMinX:=(WindMin and $ff)+1;
+  WinMinX:=WindMin and $ff;
 End;
 
 
@@ -137,7 +137,7 @@ Function WinMinY: Byte;
   Current Minimum Y Coordinate
 }
 Begin
-  WinMinY:=(WindMin shr 8)+1;
+  WinMinY:=WindMin shr 8;
 End;
 
 
@@ -147,7 +147,7 @@ Function WinMaxX: Byte;
   Current Maximum X coordinate
 }
 Begin
-  WinMaxX:=(WindMax and $ff)+1;
+  WinMaxX:=WindMax and $ff;
 End;
 
 
@@ -157,7 +157,7 @@ Function WinMaxY: Byte;
   Current Maximum Y coordinate;
 }
 Begin
-  WinMaxY:=(WindMax shr 8) + 1;
+  WinMaxY:=WindMax shr 8;
 End;
 
 
@@ -167,8 +167,8 @@ Function FullWin:boolean;
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
 }
 begin
-  FullWin:=(WinMinX=1) and (WinMinY=1) and
-           (WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
+  FullWin:=(WinMinX=0) and (WinMinY=0) and
+           ((WinMaxX+1)=ScreenWidth) and ((WinMaxY+1)=ScreenHeight);
 end;
 
 
@@ -261,8 +261,8 @@ Begin
   If (X>0) and (X<=WinMaxX- WinMinX+1) and
      (Y>0) and (Y<=WinMaxY-WinMinY+1) Then
    Begin
-     Inc(X,WinMinX-1);
-     Inc(Y,WinMinY-1);
+     Inc(X,WinMinX);
+     Inc(Y,WinMinY);
      SetScreenCursor(x,y);
    End;
 End;
@@ -296,7 +296,7 @@ begin
   else
    begin
      for y:=WinMinY to WinMaxY do
-      DosmemFillWord(VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,WinMaxX-WinMinX+1,fil);
+      DosmemFillWord(VidSeg,(y*ScreenWidth+WinMinX)*2,WinMaxX-WinMinX+1,fil);
    end;
   Gotoxy(1,1);
 end;
@@ -312,8 +312,8 @@ var
 Begin
   GetScreenCursor(x,y);
   fil:=32 or (textattr shl 8);
-  if x<=WinMaxX then
-   DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
+  if x<=(WinMaxX+1) then
+   DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+2,fil);
 End;
 
 
@@ -326,7 +326,7 @@ var
   x,y : longint;
 Begin
   GetScreenCursor(x,y);
-  WhereX:=x-WinMinX+1;
+  WhereX:=x-WinMinX;
 End;
 
 
@@ -339,7 +339,7 @@ var
   x,y : longint;
 Begin
   GetScreenCursor(x,y);
-  WhereY:=y-WinMinY+1;
+  WhereY:=y-WinMinY;
 End;
 
 
@@ -535,14 +535,14 @@ var
   fil : word;
 begin
   fil:=32 or (textattr shl 8);
-  y:=WinMinY+y-1;
-  While (y<WinMaxY) do
+  y:=WinMinY+y;
+  While (y<=WinMaxY) do
    begin
-     dosmemmove(VidSeg,(y*ScreenWidth+(WinMinX-1))*2,
-                VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
+     dosmemmove(VidSeg,(y*ScreenWidth+WinMinX)*2,
+                VidSeg,((y-1)*ScreenWidth+WinMinX)*2,(WinMaxX-WinMinX+1)*2);
      inc(y);
    end;
-  dosmemfillword(VidSeg,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
+  dosmemfillword(VidSeg,(WinMaxY*ScreenWidth+WinMinX)*2,(WinMaxX-WinMinX+1),fil);
 end;
 
 
@@ -562,11 +562,11 @@ begin
   my:=WinMaxY-WinMinY;
   while (my>=y) do
    begin
-     dosmemmove(VidSeg,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
-                VidSeg,(((WinMinY+my)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
+     dosmemmove(VidSeg,((WinMinY+my-1)*ScreenWidth+WinMinX)*2,
+                VidSeg,((WinMinY+my)*ScreenWidth+WinMinX)*2,(WinMaxX-WinMinX+1)*2);
      dec(my);
    end;
-  dosmemfillword(VidSeg,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
+  dosmemfillword(VidSeg,((WinMinY+y-1)*ScreenWidth+WinMinX)*2,(WinMaxX-WinMinX+1),fil);
 end;
 
 
@@ -622,9 +622,9 @@ var
 begin
   case c of
    #10 : inc(CurrY);
-   #13 : CurrX:=WinMinX;
+   #13 : CurrX:=WinMinX+1;
     #8 : begin
-           if CurrX>WinMinX then
+           if CurrX>(WinMinX+1) then
             dec(CurrX);
          end;
     #7 : begin { beep }
@@ -638,12 +638,12 @@ begin
      inc(CurrX);
    end;
   end;
-  if CurrX>WinMaxX then
+  if CurrX>(WinMaxX+1) then
    begin
-     CurrX:=WinMinX;
+     CurrX:=(WinMinX+1);
      inc(CurrY);
    end;
-  while CurrY>WinMaxY do
+  while CurrY>(WinMaxY+1) do
    begin
      removeline(1);
      dec(CurrY);
