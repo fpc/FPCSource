@@ -560,13 +560,15 @@ begin
     Open;
     Next;
     Edit;
-    // set all fields to null
+    // set all fields, which are not required to null
     for i:=0 to FieldCount-1 do
-      Fields[i].Clear;
+      if not Fields[i].Required and not Fields[i].ReadOnly then
+        Fields[i].Clear;
     Post;
     // check if they are null
     for i:=0 to FieldCount-1 do
-      AssertTrue(Fields[i].FieldName, Fields[i].IsNull);
+      if not Fields[i].Required and not Fields[i].ReadOnly then
+        AssertTrue(Fields[i].FieldName, Fields[i].IsNull);
     SaveToFile(TestXMLFileName, dfXML);
     end;
 
