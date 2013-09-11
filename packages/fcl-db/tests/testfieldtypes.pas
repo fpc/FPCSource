@@ -167,6 +167,16 @@ const
     '0001-01-01'
   );
 
+  testBlobValuesCount = 6;
+  testBlobValues : Array[0..testBlobValuesCount-1] of ansistring = (
+    'Test deze Blob',    // common value
+    '',                  // empty value
+    'a'#0'b'#13#10#1'c', // binary data
+    '''":a',             // single quotes
+    '\''\',              // backslash
+    '\n'#13'\0ab''c'
+  );
+
   testBytesValuesCount = 5;
   testVarBytesValuesCount = 8;
   testBytesValues : Array[0..testVarBytesValuesCount-1] of shortstring = (
@@ -1545,7 +1555,7 @@ begin
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
         ftString : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
-        ftTime   : Params.ParamByName('field1').AsTime  := TimeStringToDateTime(testTimeValues[i]);
+        ftTime   : Params.ParamByName('field1').AsTime    := TimeStringToDateTime(testTimeValues[i]);
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
@@ -1580,20 +1590,20 @@ begin
       begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
-        ftSmallInt: AssertEquals(testSmallIntValues[i],FieldByName('FIELD1').AsInteger);
-        ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
-        ftLargeInt: AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
-        ftBoolean: AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
-        ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
-        ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
+        ftSmallInt : AssertEquals(testSmallIntValues[i],FieldByName('FIELD1').AsInteger);
+        ftInteger  : AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
+        ftLargeInt : AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
+        ftBoolean  : AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
+        ftFloat    : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
+        ftBCD      : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
-        ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
-        ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
-        ftDate   : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
+        ftString   : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
+        ftTime     : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
+        ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
         ftVarBytes,
-        ftBytes  : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
+        ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1607,32 +1617,36 @@ begin
 end;
 
 procedure TTestFieldTypes.TestSetBlobAsParam(asWhat: integer);
-const
-  TestValue='Test deze BLob';
-var
-  ASQL          : TSQLQuery;
+var i: integer;
 begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
-  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
-  with ASql  do
-    begin
-    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
-    case asWhat of
-      0: Params.ParamByName('blobParam').AsMemo := TestValue;
-      1: Params.ParamByName('blobParam').AsString := TestValue;
-      2: Params.ParamByName('blobParam').AsBlob := TestValue;
-    end;
-    ExecSQL;
-    end;
-
   with TSQLDBConnector(DBConnector).Query do
     begin
+    SQL.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
+    for i:=0 to testBlobValuesCount - 1 do
+      begin
+      case asWhat of
+        0: Params.ParamByName('blobParam').AsMemo   := TestBlobValues[i];
+        1: Params.ParamByName('blobParam').AsBlob   := TestBlobValues[i];
+        2: Params.ParamByName('blobParam').AsString := TestBlobValues[i];
+      end;
+      ExecSQL;
+      end;
+    Params.ParamByName('blobParam').Clear;
+    ExecSQL;
+
+    SQL.Text := 'select FT from FPDEV2';
     Open;
-    if not eof then
-      AssertEquals(TestValue, Fields[0].AsString);
-    close;
+    for i:=0 to testBlobValuesCount - 1 do
+      begin
+      AssertEquals(TestBlobValues[i], Fields[0].AsString);
+      Next;
+      end;
+    AssertTrue(Fields[0].IsNull);
+
+    Close;
     end;
 end;
 
@@ -1645,12 +1659,12 @@ end;
 
 procedure TTestFieldTypes.TestSetBlobAsBlobParam;
 begin
-  TestSetBlobAsParam(2);
+  TestSetBlobAsParam(1);
 end;
 
 procedure TTestFieldTypes.TestSetBlobAsStringParam;
 begin
-  TestSetBlobAsParam(1);
+  TestSetBlobAsParam(2);
 end;
 
 
