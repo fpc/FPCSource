@@ -100,7 +100,7 @@ begin
 end;
 
 
-procedure SetScreenCursor(x,y : longint);
+procedure SetScreenCursor(x,y : smallint);
 var
   regs : registers;
 begin
