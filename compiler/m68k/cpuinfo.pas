@@ -34,7 +34,10 @@ Type
       (cpu_none,
        cpu_MC68000,
        cpu_MC68020,
-       cpu_Coldfire
+       cpu_isa_a,
+       cpu_isa_a_p,
+       cpu_isa_b,
+       cpu_isa_c
       );
 
    tfputype =
@@ -60,13 +63,19 @@ Const
    cputypestr : array[tcputype] of string[8] = ('',
      '68000',
      '68020',
-     'COLDFIRE'
+     'ISAA',
+     'ISAA+',
+     'ISAB',
+     'ISAC'
    );
 
    gascputypestr : array[tcputype] of string[8] = ('',
      '68000',
      '68020',
-     'cfv4e'
+     'isaa',
+     'isaaplus',
+     'isab',
+     'isac'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
@@ -89,6 +98,28 @@ Const
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
+
+type
+  tcpuflags =
+     (CPUM68K_HAS_DBRA,      { CPU supports the DBRA instruction                         }
+      CPUM68K_HAS_CAS,       { CPU supports the CAS instruction                          }
+      CPUM68K_HAS_TAS,       { CPU supports the TAS instruction                          }
+      CPUM68K_HAS_BRAL       { CPU supports the BRA.L/Bcc.L instructions                 }
+     );
+
+const
+  cpu_capabilities : array[tcputype] of set of tcpuflags =
+    ( { cpu_none     } [],
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_isaa     } [],
+      { cpu_isaap    } [CPUM68K_HAS_BRAL],
+      { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_isac     } [CPUM68K_HAS_TAS]
+    );
+
+  { all CPUs commonly cold "coldfire" }
+  cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c];
 
 Implementation
 

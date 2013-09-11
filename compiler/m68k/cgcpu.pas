@@ -517,7 +517,10 @@ unit cgcpu;
                      fixref:=true;
                    end;
              end;
-           cpu_Coldfire:
+           cpu_isa_a,
+           cpu_isa_a_p,
+           cpu_isa_b,
+           cpu_isa_c:
              begin
                if (ref.base<>NR_NO) then
                  begin
@@ -742,7 +745,7 @@ unit cgcpu;
         fixref(list,href);
         { for coldfire we need to go through a temporary register if we have a
           offset, index or symbol given }
-        if (current_settings.cputype=cpu_coldfire) and
+        if (current_settings.cputype in cpu_coldfire) and
             (
               (href.offset<>0) or
               { TODO : check whether we really need this second condition }
@@ -788,7 +791,7 @@ unit cgcpu;
 //        writeln('a_load_ref_ref');
 {$endif DEBUG_CHARLIE}
         { Coldfire dislikes certain move combinations }
-        if current_settings.cputype=cpu_coldfire then
+        if current_settings.cputype in cpu_coldfire then
           begin
             { TODO : move.b/w only allowed in newer coldfires... (ISA_B+) }
 
@@ -1179,7 +1182,7 @@ unit cgcpu;
         case op of
           OP_ADD :
               begin
-                 if current_settings.cputype = cpu_ColdFire then
+                 if current_settings.cputype in cpu_ColdFire then
                   begin
                     { operation only allowed only a longword }
                     sign_extend(list, size, reg1);
@@ -1216,7 +1219,7 @@ unit cgcpu;
                  else
                    hreg2 := reg2;
 
-                 if current_settings.cputype = cpu_ColdFire then
+                 if current_settings.cputype in cpu_ColdFire then
                   begin
                     { operation only allowed only a longword }
                     {!***************************************
@@ -1351,7 +1354,7 @@ unit cgcpu;
                     hreg2 := reg2;
 
                 { coldfire only supports long version }
-                if current_settings.cputype = cpu_ColdFire then
+                if current_settings.cputype in cpu_ColdFire then
                   begin
                     sign_extend(list, size,hreg2);
                     list.concat(taicpu.op_reg(topcg2tasmop[op],S_L,hreg2));
@@ -1402,7 +1405,7 @@ unit cgcpu;
          end
        else
          begin
-           if (current_settings.cputype = cpu_ColdFire) then
+           if (current_settings.cputype in cpu_ColdFire) then
              begin
                {
                  only longword comparison is supported,
@@ -1622,7 +1625,7 @@ unit cgcpu;
                    a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
                    a_label(list,hl2);
-                   if current_settings.cputype=cpu_coldfire then
+                   if current_settings.cputype in cpu_coldfire then
                      begin
                        { Coldfire does not support DBRA }
                        list.concat(taicpu.op_const_reg(A_SUB,S_L,1,hregister));

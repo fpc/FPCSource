@@ -148,6 +148,7 @@
   {$define cpurox}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   { default to armel }
@@ -175,6 +176,7 @@
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
 {$endif m68k}
 
 {$ifdef avr}
@@ -187,6 +189,7 @@
   {$define cpuneedsdiv32helper}
   {$define cpuneedsmulhelper}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
 {$endif avr}
 
 {$ifdef mipsel}

@@ -93,7 +93,11 @@ implementation
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
         current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
 
-        current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1));
+        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
+          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
+        else
+          { better use JMP? }
+          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
@@ -213,7 +217,11 @@ implementation
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
         current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
 
-        current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1));
+        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
+          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
+        else
+          { ToDo : use JMP? }
+          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 

@@ -666,7 +666,7 @@ implementation
                           { the Coldfire manual suggests the TBF instruction for
                             alignments, but somehow QEMU does not interpret that
                             correctly... }
-                          {if current_settings.cputype=cpu_coldfire then
+                          {if current_settings.cputype in cpu_coldfire then
                             instr:='0x51fc'
                           else}
                             instr:='0x4e71';
