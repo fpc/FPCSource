@@ -148,6 +148,10 @@ function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
 {$ENDIF}
 
+{$if FPC_FULLVERSION < 20701}
+type
+  TRawByteSearchRec = TSearchRec;
+{$endif}
 
 
 implementation
