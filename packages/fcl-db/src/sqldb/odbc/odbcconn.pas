@@ -1284,6 +1284,7 @@ end;
 
 procedure TODBCConnection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
+  Len: integer;
   StmtHandle:SQLHSTMT;
   Res:SQLRETURN;
   IndexDef: TIndexDef;
@@ -1299,6 +1300,13 @@ var
 const
   DEFAULT_NAME_LEN = 255;
 begin
+  Len := length(TableName);
+  if Len > 2 then
+    if (TableName[1] in ['"','`']) and (TableName[Len]  in ['"','`']) then
+      TableName := AnsiDequotedStr(TableName, TableName[1])
+    else if (TableName[1] in ['[']) and (TableName[Len] in [']']) then
+      TableName := copy(TableName, 2, Len-2);
+
   // allocate statement handle
   StmtHandle := SQL_NULL_HANDLE;
   ODBCCheckResult(

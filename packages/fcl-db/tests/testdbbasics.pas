@@ -18,14 +18,11 @@ type
 
   { TTestDBBasics }
 
-  TTestDBBasics = class(TTestCase)
+  TTestDBBasics = class(TDBBasicsTestCase)
   private
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
@@ -66,13 +63,10 @@ type
 
   { TTestBufDatasetDBBasics }
 {$ifdef fpc}
-  TTestBufDatasetDBBasics = class(TTestCase)
+  TTestBufDatasetDBBasics = class(TDBBasicsTestCase)
   private
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
@@ -120,14 +114,11 @@ type
 
   { TTestCursorDBBasics }
 
-  TTestCursorDBBasics = class(TTestCase)
+  TTestCursorDBBasics = class(TDBBasicsTestCase)
   private
     procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
   published
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
@@ -175,6 +166,7 @@ type
     procedure OneTimeTearDown; override;
   end;
 {$endif fpc}
+
 implementation
 
 uses
@@ -186,19 +178,9 @@ uses
   strutils,
   FmtBCD;
 
-type THackDataLink=class(TdataLink);
+type THackDataLink=class(TDataLink);
 
 { TTestCursorDBBasics }
-
-procedure TTestCursorDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestCursorDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 
 procedure TTestCursorDBBasics.TestAppendOnEmptyDataset;
 begin
@@ -615,16 +597,6 @@ begin
     end;
 end;
 
-
-procedure TTestDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 
 procedure TTestCursorDBBasics.TestOldValueObsolete;
 var v : variant;
@@ -1383,8 +1355,12 @@ begin
   ds.close;
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('test.xml');
-  FTestXMLDatasetDefinition(LoadDS);
+  try
+    LoadDs.LoadFromFile('test.xml');
+    FTestXMLDatasetDefinition(LoadDS);
+  finally
+    LoadDS.free;
+  end;
 end;
 
 procedure TTestBufDatasetDBBasics.TestFileNameProperty;
@@ -1414,26 +1390,31 @@ var ds : TCustomBufDataset;
     i  : integer;
 begin
   ds := TCustomBufDataset.Create(nil);
-  DS.FieldDefs.Add('ID',ftInteger);
-  DS.FieldDefs.Add('NAME',ftString,50);
-  DS.CreateDataset;
-  DS.Open;
-  for i := 1 to 10 do
-    begin
-    ds.Append;
-    ds.FieldByName('ID').AsInteger := i;
-    ds.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
-    DS.Post;
-    end;
-  ds.first;
-  for i := 1 to 10 do
-    begin
-    CheckEquals(i,ds.fieldbyname('ID').asinteger);
-    CheckEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
-    ds.next;
-    end;
-  CheckTrue(ds.EOF);
-  DS.Close;
+    try
+    DS.FieldDefs.Add('ID',ftInteger);
+    DS.FieldDefs.Add('NAME',ftString,50);
+    DS.CreateDataset;
+    DS.Open;
+    for i := 1 to 10 do
+      begin
+      ds.Append;
+      ds.FieldByName('ID').AsInteger := i;
+      ds.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+      DS.Post;
+      end;
+    ds.first;
+    for i := 1 to 10 do
+      begin
+      CheckEquals(i,ds.fieldbyname('ID').asinteger);
+      CheckEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
+      ds.next;
+      end;
+    CheckTrue(ds.EOF);
+    DS.Close;
+
+  finally
+    ds.Free;
+  end;
 end;
 
 procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd;
@@ -1565,7 +1546,7 @@ procedure TTestBufDatasetDBBasics.TestMergeChangeLog;
 var
   ds: TCustomBufDataset;
   i: integer;
-  s: string;
+  s, FN: string;
 begin
   ds := DBConnector.GetNDataset(5) as TCustomBufDataset;
   with ds do
@@ -1580,10 +1561,41 @@ begin
     checkequals(fields[0].OldValue,i);
     checkequals(fields[1].OldValue,s);
     CheckEquals(ChangeCount,1);
+    Next;
+    Edit;
+    i := fields[0].AsInteger;
+    s := fields[1].AsString;
+    fields[0].AsInteger:=23;
+    fields[1].AsString:='hanged';
+    Post;
+    checkequals(fields[0].OldValue,i);
+    checkequals(fields[1].OldValue,s);
+    CheckEquals(ChangeCount,2);
     MergeChangeLog;
     CheckEquals(ChangeCount,0);
-    checkequals(fields[0].OldValue,64);
-    checkequals(fields[1].OldValue,'Changed');
+    checkequals(fields[0].OldValue,23);
+    checkequals(fields[1].OldValue,'hanged');
+    end;
+
+  // Test handling of [Update]BlobBuffers in TBufDataset
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
+  with ds do
+    begin
+    // Testing scenario: read some records, so blob data are added into FBlobBuffers,
+    // then update blob field, so element is added to FUpdateBlobBuffers, then read again some records
+    // so next elements are added to FBlobBuffers, then again update blob field
+    // DefaultBufferCount is 10
+    PacketRecords:=1;
+    Open;
+    FN := 'F'+FieldTypeNames[ftBlob];
+    First;     Edit; FieldByName(FN).AsString:='b01'; Post;
+    RecNo:=11; Edit; FieldByName(FN).AsString:='b11'; Post;
+    Next     ; Edit; FieldByName(FN).AsString:='b12'; Post;
+    Last;
+    MergeChangeLog;
+    First;     CheckEquals('b01', FieldByName(FN).AsString);
+    RecNo:=11; CheckEquals('b11', FieldByName(FN).AsString);
+    Next;      CheckEquals('b12', FieldByName(FN).AsString);
     end;
 end;
 
@@ -1716,6 +1728,7 @@ begin
     AFieldType:=ftString;
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     FList := TStringList.Create;
+    try
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
     FList.Duplicates:=dupAccept;
@@ -1744,6 +1757,9 @@ begin
       CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;
+    finally
+      flist.free;
+    end;  
     end;
 end;
 
@@ -1760,34 +1776,38 @@ begin
     AFieldType:=ftString;
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[],'F'+FieldTypeNames[AfieldType]);
     FList := TStringList.Create;
-    FList.Sorted:=true;
-    FList.CaseSensitive:=True;
-    FList.Duplicates:=dupAccept;
-    open;
+    try
+      FList.Sorted:=true;
+      FList.CaseSensitive:=True;
+      FList.Duplicates:=dupAccept;
+      open;
 
-    while not eof do
-      begin
-      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      Next;
-      end;
+      while not eof do
+        begin
+        flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        Next;
+        end;
 
-    IndexName:='testindex';
-    first;
-    i:=FList.Count-1;
+      IndexName:='testindex';
+      first;
+      i:=FList.Count-1;
 
-    while not eof do
-      begin
-      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      dec(i);
-      Next;
-      end;
+      while not eof do
+        begin
+        CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        dec(i);
+        Next;
+        end;
 
-    while not bof do
-      begin
-      inc(i);
-      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      Prior;
-      end;
+      while not bof do
+        begin
+        inc(i);
+        CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        Prior;
+        end;
+    finally
+      flist.free;
+    end;  
     end;
 end;
 
@@ -1804,33 +1824,37 @@ begin
     AFieldType:=ftString;
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[],'','F'+FieldTypeNames[AfieldType]);
     FList := TStringList.Create;
-    FList.Sorted:=true;
-    FList.Duplicates:=dupAccept;
-    open;
+    try
+      FList.Sorted:=true;
+      FList.Duplicates:=dupAccept;
+      open;
 
-    while not eof do
-      begin
-      flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      Next;
-      end;
+      while not eof do
+        begin
+        flist.Add(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        Next;
+        end;
 
-    IndexName:='testindex';
-    first;
-    i:=0;
+      IndexName:='testindex';
+      first;
+      i:=0;
 
-    while not eof do
-      begin
-      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      inc(i);
-      Next;
-      end;
+      while not eof do
+        begin
+        CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        inc(i);
+        Next;
+        end;
 
-    while not bof do
-      begin
-      dec(i);
-      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      Prior;
-      end;
+      while not bof do
+        begin
+        dec(i);
+        CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+        Prior;
+        end;
+    finally
+      FList.Free;
+    end;  
     end;
 end;
 
@@ -1915,6 +1939,7 @@ begin
     begin
     AFieldType:=ftString;
     FList := TStringList.Create;
+    try
     FList.Sorted:=true;
     FList.CaseSensitive:=True;
     FList.Duplicates:=dupAccept;
@@ -1971,6 +1996,9 @@ begin
       end;
 
     CheckEquals('',IndexFieldNames);
+    finally
+      flist.free;
+    end;  
 
     end;
 end;
@@ -2726,19 +2754,8 @@ begin
   DBConnector.TestUniDirectional:=false;
   inherited OneTimeTearDown;
 end;
-
-{ TTestBufDatasetDBBasics }
-
-procedure TTestBufDatasetDBBasics.SetUp;
-begin
-  DBConnector.StartTest;
-end;
-
-procedure TTestBufDatasetDBBasics.TearDown;
-begin
-  DBConnector.StopTest;
-end;
 {$endif fpc}
+
 
 initialization
 {$ifdef fpc}
