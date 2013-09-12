@@ -176,8 +176,6 @@ type
     property BookmarkSize : integer read GetBookmarkSize;
   end;
   
-  TDataPacketFormat = (dfBinary,dfXML,dfXMLUTF8,dfAny);
-
   { TDoubleLinkedBufIndex }
 
   TDoubleLinkedBufIndex = class(TBufIndex)
@@ -343,6 +341,8 @@ type
 type
 
   { TDataPacketReader }
+
+  TDataPacketFormat = (dfBinary,dfXML,dfXMLUTF8,dfAny);
 
   TDatapacketReaderClass = class of TDatapacketReader;
   TDataPacketReader = class(TObject)
@@ -1129,21 +1129,23 @@ begin
   // If there are less fields then FieldDefs we know for sure that the dataset
   // is not (correctly) created.
 
-  // commented for now. If there are constant expressions in the select
-  // statement they are ftUnknown, and not created.
+  // If there are constant expressions in the select statement (for PostgreSQL)
+  // they are of type ftUnknown (in FieldDefs), and are not created (in Fields).
+  // So Fields.Count < FieldDefs.Count in this case
   // See mantis #22030
 
   //  if Fields.Count<FieldDefs.Count then
-  //    DatabaseError(SErrNoDataset);
+  if Fields.Count = 0 then
+    DatabaseError(SErrNoDataset);
 
   // If there is a field with FieldNo=0 then the fields are not found to the
   // FieldDefs which is a sign that there is no dataset created. (Calculated and
   // lookup fields have FieldNo=-1)
   for i := 0 to Fields.Count-1 do
-    if fields[i].FieldNo=0 then
+    if Fields[i].FieldNo=0 then
       DatabaseError(SErrNoDataset)
-    else if (FAutoIncValue>-1) and (fields[i] is TAutoIncField) and not assigned(FAutoIncField) then
-      FAutoIncField := TAutoIncField(fields[i]);
+    else if (FAutoIncValue>-1) and (Fields[i] is TAutoIncField) and not assigned(FAutoIncField) then
+      FAutoIncField := TAutoIncField(Fields[i]);
 
   InitDefaultIndexes;
   CalcRecordSize;
@@ -2662,19 +2664,6 @@ begin
     end;
 end;
 
-procedure TCustomBufDataset.SaveToFile(AFileName: string;
-  Format: TDataPacketFormat);
-var AFileStream : TFileStream;
-begin
-  if AFileName='' then AFileName := FFileName;
-  AFileStream := TFileStream.Create(AFileName,fmCreate);
-  try
-    SaveToStream(AFileStream, Format);
-  finally
-    AFileStream.Free;
-  end;
-end;
-
 procedure TCustomBufDataset.SetDatasetPacket(AReader: TDataPacketReader);
 begin
   FDatasetReader := AReader;
@@ -2828,31 +2817,43 @@ begin
   end;
 end;
 
-procedure TCustomBufDataset.CreateDataset;
-var AStoreFilename: string;
+procedure TCustomBufDataset.SaveToFile(AFileName: string;
+  Format: TDataPacketFormat);
+var AFileStream : TFileStream;
+begin
+  if AFileName='' then AFileName := FFileName;
+  AFileStream := TFileStream.Create(AFileName,fmCreate);
+  try
+    SaveToStream(AFileStream, Format);
+  finally
+    AFileStream.Free;
+  end;
+end;
 
+procedure TCustomBufDataset.CreateDataset;
+var AStoreFileName: string;
 begin
   CheckInactive;
   if ((FieldCount=0) or (FieldDefs.Count=0)) then
     begin
     if (FieldDefs.Count>0) then
       CreateFields
-    else if (fields.Count>0) then
+    else if (Fields.Count>0) then
       begin
-      InitFieldDefsFromfields;
+      InitFieldDefsFromFields;
       BindFields(True);
       end
     else
       raise Exception.Create(SErrNoFieldsDefined);
     FAutoIncValue:=1;
     end;
-  // When a filename is set, do not read from this file
-  AStoreFilename:=FFileName;
+  // When a FileName is set, do not read from this file
+  AStoreFileName:=FFileName;
   FFileName := '';
   try
     Open;
   finally
-    FFileName:=AStoreFilename;
+    FFileName:=AStoreFileName;
   end;
 end;
 

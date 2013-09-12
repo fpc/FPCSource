@@ -6,8 +6,8 @@ A closed BufDataset normally has no data, so these tests won't work.
 
 To circumvent this, this unit saves the dataset contents to file and reloads them on opening
 using the BufDataset persistence mechanism.
-
 }
+
 {$mode objfpc}{$H+}
 
 interface
@@ -18,7 +18,6 @@ uses
   BufDataset;
 
 type
-{ TbufdatasetConnector }
 
   { TbufdatasetDBConnector }
 

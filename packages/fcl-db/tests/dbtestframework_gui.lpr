@@ -14,10 +14,11 @@ program dbtestframework_gui;
 uses
   Interfaces, Forms,
   // GUI:
-  GuiTestRunner, inieditor,
+  StdCtrls {to extend GuiTestRunner},
+  DBGuiTestRunner, inieditor,
   // Generic DB test framework units
   ToolsUnit,
-  // Connectors for different database-types
+  // Connectors for different database types
   sqldbtoolsunit,
   dbftoolsunit,
   bufdatasettoolsunit,
@@ -37,29 +38,10 @@ uses
 
 {$R *.res}
 
-var
-  DBSelectForm: TFormIniEditor;
-  TestRunForm: TGUITestRunner;
 begin
+  Application.Title:='DBTestFramework';
   Application.Initialize;
-  DBSelectForm:=TFormIniEditor.Create(nil);
-  try
-    DBSelectForm.INIFile:='database.ini';
-    DBSelectForm.ProfileSelectSection:='Database';
-    DBSelectForm.ProfileSelectKey:='type';
-    // We can ignore resulting db selection as the file is saved already:
-    DBSelectForm.ShowModal;
-  finally
-    DBSelectForm.Free;
-  end;
-  // Manually run this form because autocreation could have loaded an old
-  // database.ini file (if the user changed it using DBSelectForm)
-  TestRunForm:=TGUITestRunner.Create(nil);
-  try
-    TestRunForm.Show;
-    Application.Run;
-  finally
-    TestRunForm.Free;
-  end;
+  Application.CreateForm(TDBGuiTestRunnerForm, DBGuiTestRunnerForm);
+  Application.Run;
 end.
 

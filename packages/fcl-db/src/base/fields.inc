@@ -2737,7 +2737,7 @@ end;
 
 { TBlobField }
 
-Function TBlobField.GetBlobStream(Mode : TBlobStreamMode) : TStream;
+function TBlobField.GetBlobStream(Mode: TBlobStreamMode): TStream;
 
 begin
   Result:=FDataset.CreateBlobStream(Self,Mode);
@@ -2748,6 +2748,24 @@ procedure TBlobField.FreeBuffers;
 begin
 end;
 
+function TBlobField.GetAsBytes: TBytes;
+var
+  Stream : TStream;
+  Len    : Integer;
+begin
+  Stream := GetBlobStream(bmRead);
+  if Stream <> nil then
+    try
+      Len := Stream.Size;
+      SetLength(Result, Len);
+      if Len > 0 then
+        Stream.ReadBuffer(Result[0], Len);
+    finally
+      Stream.Free;
+    end
+  else
+    SetLength(Result, 0);
+end;
 
 function TBlobField.GetAsString: string;
 var
@@ -2756,7 +2774,7 @@ var
 begin
   Stream := GetBlobStream(bmRead);
   if Stream <> nil then
-    With Stream do
+    with Stream do
       try
         Len := Size;
         SetLength(Result, Len);
@@ -2776,7 +2794,7 @@ var
 begin
   Stream := GetBlobStream(bmRead);
   if Stream <> nil then
-    With Stream do
+    with Stream do
       try
         Len := Size;
         SetLength(Result, (Len+1) div 2);
@@ -2799,7 +2817,8 @@ begin
     s := GetAsString;
     result := s;
     end
-  else result := Null;
+  else
+    result := Null;
 end;
 
 
@@ -2807,29 +2826,29 @@ function TBlobField.GetBlobSize: Longint;
 var
   Stream: TStream;
 begin
-  Stream := GetBlobStream(bmread);
+  Stream := GetBlobStream(bmRead);
   if Stream <> nil then
-    With Stream do
+    with Stream do
       try
         Result:=Size;
       finally
         Free;
       end
   else
-    result := 0;
+    Result := 0;
 end;
 
 
 function TBlobField.GetIsNull: Boolean;
 
 begin
-  If Not Modified then
-    result:= inherited GetIsnull
+  if Not Modified then
+    Result:= inherited GetIsNull
   else
-    With GetBlobStream(bmread) do
+    with GetBlobStream(bmRead) do
       try
         Result:=(Size=0);
-      Finally
+      finally
         Free;
       end;
 end;
@@ -2841,12 +2860,26 @@ begin
   TheText:=inherited GetAsString;
 end;
 
+procedure TBlobField.SetAsBytes(const AValue: TBytes);
+var
+  Len : Integer;
+begin
+  with GetBlobStream(bmWrite) do
+    try
+      Len := Length(AValue);
+      if Len > 0 then
+        WriteBuffer(AValue[0], Len);
+    finally
+      Free;
+    end;
+end;
+
 
 procedure TBlobField.SetAsString(const AValue: string);
 var
   Len : Integer;
 begin
-  With GetBlobStream(bmwrite) do
+  with GetBlobStream(bmWrite) do
     try
       Len := Length(AValue);
       if Len > 0 then
@@ -2861,7 +2894,7 @@ procedure TBlobField.SetAsWideString(const AValue: WideString);
 var
   Len : Integer;
 begin
-  With GetBlobStream(bmwrite) do
+  with GetBlobStream(bmWrite) do
     try
       Len := Length(AValue) * 2;
       if Len > 0 then
@@ -2923,8 +2956,8 @@ end;
 procedure TBlobField.LoadFromStream(Stream: TStream);
 
 begin
-  With GetBlobStream(bmWrite) do
-    Try
+  with GetBlobStream(bmWrite) do
+    try
       CopyFrom(Stream,0);
     finally
       Free;
