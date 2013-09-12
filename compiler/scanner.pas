@@ -1076,7 +1076,7 @@ type
               result:=texprvalue.create_error;
             end;
         end;
-        _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH:
+        _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR:
         if check_compatbile then
           begin
             if (is_ordinal(def) and is_ordinal(v.def)) then
@@ -1104,6 +1104,14 @@ type
                     result:=texprvalue.create_ord(lv*rv);
                   _SLASH:
                     result:=texprvalue.create_real(lv/rv);
+                  _OP_DIV:
+                    result:=texprvalue.create_ord(lv div rv);
+                  _OP_MOD:
+                    result:=texprvalue.create_ord(lv mod rv);
+                  _OP_SHL:
+                    result:=texprvalue.create_ord(lv shl rv);
+                  _OP_SHR:
+                    result:=texprvalue.create_ord(lv shr rv);
                 end;
               end
             else
@@ -1139,6 +1147,11 @@ type
                     result:=texprvalue.create_real(lvd*rvd);
                   _SLASH:
                     result:=texprvalue.create_real(lvd/rvd);
+                  else
+                    begin
+                      Message(parser_e_illegal_expression);
+                      result:=texprvalue.create_error;
+                    end;
                 end;
               end
             else
@@ -1160,7 +1173,7 @@ type
                   result:=texprvalue.create_bool(lvs<=rvs);
                 _PLUS:
                   result:=texprvalue.create_str(lvs+rvs);
-                _MINUS, _STAR, _SLASH:
+                else
                   begin
                     Message(parser_e_illegal_expression);
                     result:=texprvalue.create_error;
@@ -1245,7 +1258,7 @@ type
     end;
 
   const
-    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_IN,_OP_AND,_OP_OR];
+    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR,_OP_IN,_OP_AND,_OP_OR];
 
     function preproc_comp_expr:texprvalue;
 
