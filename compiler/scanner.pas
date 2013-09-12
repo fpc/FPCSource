@@ -1043,6 +1043,38 @@ type
               result:=texprvalue.create_error;
             end;
         end;
+        _OP_OR:
+        begin
+          if is_boolean(def) then
+            if is_boolean(v.def) then
+              result:=texprvalue.create_bool(asBool or v.asBool)
+            else
+              begin
+                v.error('Boolean','OR');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','OR');
+              result:=texprvalue.create_error;
+            end;
+        end;
+        _OP_AND:
+        begin
+          if is_boolean(def) then
+            if is_boolean(v.def) then
+              result:=texprvalue.create_bool(asBool and v.asBool)
+            else
+              begin
+                v.error('Boolean','AND');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','AND');
+              result:=texprvalue.create_error;
+            end;
+        end;
         _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH:
         if check_compatbile then
           begin
@@ -1833,81 +1865,54 @@ type
         function read_term(eval: Boolean):texprvalue;
         var
           hs1,hs2: texprvalue;
-          b: boolean;
         begin
-          hs1:=read_factor(eval);
+          result:=read_factor(eval);
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
             if current_scanner.preproc_pattern<>'AND' then
               break;
 
-            if eval then
-              begin
-                {Check if first expr is boolean. Must be done here, after we know
-                 it is an AND expression.}
-                if not is_boolean(hs1.def) then
-                  hs1.error('Boolean', 'AND');
-
-                eval:=hs1.asBool; {Short circuit evaluation of AND}
-              end;
-
             preproc_consume(_ID);
             hs2:=read_factor(eval);
 
             if eval then
               begin
-                if not is_boolean(hs2.def) then
-                  hs2.error('Boolean', 'AND');
-                b:=hs1.asBool and hs2.asBool;
+                hs1:=result;
+                result:=hs1.evaluate(hs2,_OP_AND);
                 hs1.free;
                 hs2.free;
-                hs1:=texprvalue.create_bool(b);
               end
             else
              hs2.free;
           until false;
-          result:=hs1;
         end;
 
 
         function read_simple_expr(eval: Boolean): texprvalue;
         var
           hs1,hs2: texprvalue;
-          b: boolean;
         begin
-          hs1:=read_term(eval);
+          result:=read_term(eval);
           repeat
             if (current_scanner.preproc_token<>_ID) then
               break;
             if current_scanner.preproc_pattern<>'OR' then
-             break;
-
-            if eval then
-              begin
-                {Check if first expr is boolean. Must be done here, after we know
-                 it is an OR expression.}
-                if not is_boolean(hs1.def) then
-                  hs1.error('Boolean', 'OR');
-                eval:=not hs1.asBool; {Short circuit evaluation of OR}
-              end;
+              break;
 
             preproc_consume(_ID);
             hs2:=read_term(eval);
 
             if eval then
               begin
-                if not is_boolean(hs2.def) then
-                  hs2.error('Boolean', 'OR');
-                b:=hs1.asBool or hs2.asBool;
+                hs1:=result;
+                result:=hs1.evaluate(hs2,_OP_OR);
                 hs1.free;
                 hs2.free;
-                hs1:=texprvalue.create_bool(b);
               end
             else
               hs2.free;
           until false;
-          result:=hs1;
         end;
 
         function read_expr(eval:Boolean): texprvalue;
