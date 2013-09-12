@@ -295,6 +295,15 @@ type
     _GREATERTHANOREQUAL
   );
 
+  { sub_expr(opmultiply) is need to get -1 ** 4 to be
+    read as - (1**4) and not (-1)**4 PM }
+  toperator_precedence=(
+    opcompare,
+    opaddition,
+    opmultiply,
+    oppower
+  );
+
 const
   tokenlenmin = 1;
   tokenlenmax = 18;
@@ -306,6 +315,16 @@ const
   first_overloaded = succ(NOTOKEN);
   last_overloaded  = _OP_DEC;
   last_operator = _GENERICSPECIALTOKEN;
+
+  highest_precedence = oppower;
+
+  { Warning these stay be ordered !! }
+  operator_levels:array[Toperator_precedence] of set of NOTOKEN..last_operator=
+      ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
+       [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
+       [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
+        _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+       [_STARSTAR] );
 
 type
   tokenrec=record

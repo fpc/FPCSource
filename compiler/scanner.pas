@@ -1014,7 +1014,7 @@ type
       lvs,rvs: string;
     begin
       case op of
-        _IN:
+        _OP_IN:
         begin
           if not is_set(v.def) then
             begin
@@ -1231,9 +1231,12 @@ type
       inherited destroy;
     end;
 
-    function parse_compiler_expr:texprvalue;
+  const
+    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_IN,_OP_AND,_OP_OR];
 
-        function read_expr(eval:Boolean): texprvalue; forward;
+    function preproc_comp_expr:texprvalue;
+
+        function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean):texprvalue; forward;
 
         procedure preproc_consume(t:ttoken);
         begin
@@ -1472,7 +1475,7 @@ type
             end;
         end;
 
-        function read_factor(eval: Boolean):texprvalue;
+        function preproc_factor(eval: Boolean):texprvalue;
         var
            hs,countstr,storedpattern: string;
            mac: tmacro;
@@ -1768,7 +1771,7 @@ type
                 if current_scanner.preproc_pattern='NOT' then
                   begin
                     preproc_consume(_ID);
-                    exprvalue:=read_factor(eval);
+                    exprvalue:=preproc_factor(eval);
                     if eval then
                       result:=exprvalue.evaluate(nil,_OP_NOT)
                     else
@@ -1818,7 +1821,7 @@ type
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                result:=read_expr(eval);
+                result:=preproc_sub_expr(opcompare,true);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
@@ -1827,7 +1830,7 @@ type
                ns:=[];
                while current_scanner.preproc_token in [_ID,_INTCONST] do
                begin
-                 exprvalue:=read_factor(eval);
+                 exprvalue:=preproc_factor(eval);
                  include(ns,exprvalue.asInt);
                  if current_scanner.preproc_token = _COMMA then
                    preproc_consume(_COMMA);
@@ -1862,101 +1865,51 @@ type
              result:=texprvalue.create_error;
         end;
 
-        function read_term(eval: Boolean):texprvalue;
+        function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean): texprvalue;
         var
           hs1,hs2: texprvalue;
+          op: ttoken;
         begin
-          result:=read_factor(eval);
+          if pred_level=highest_precedence then
+            result:=preproc_factor(eval)
+          else
+            result:=preproc_sub_expr(succ(pred_level),eval);
+
           repeat
-            if (current_scanner.preproc_token<>_ID) then
-              break;
-            if current_scanner.preproc_pattern<>'AND' then
-              break;
-
-            preproc_consume(_ID);
-            hs2:=read_factor(eval);
-
-            if eval then
-              begin
-                hs1:=result;
-                result:=hs1.evaluate(hs2,_OP_AND);
-                hs1.free;
-                hs2.free;
-              end
-            else
-             hs2.free;
-          until false;
-        end;
-
-
-        function read_simple_expr(eval: Boolean): texprvalue;
-        var
-          hs1,hs2: texprvalue;
-        begin
-          result:=read_term(eval);
-          repeat
-            if (current_scanner.preproc_token<>_ID) then
-              break;
-            if current_scanner.preproc_pattern<>'OR' then
-              break;
-
-            preproc_consume(_ID);
-            hs2:=read_term(eval);
-
-            if eval then
-              begin
-                hs1:=result;
-                result:=hs1.evaluate(hs2,_OP_OR);
-                hs1.free;
-                hs2.free;
-              end
-            else
-              hs2.free;
-          until false;
-        end;
-
-        function read_expr(eval:Boolean): texprvalue;
-        var
-           hs1,hs2: texprvalue;
-           op: ttoken;
-        begin
-           hs1:=read_simple_expr(eval);
-           op:=current_scanner.preproc_token;
-           if (op = _ID) and (current_scanner.preproc_pattern = 'IN') then
-             op := _IN;
-           if not (op in [_IN,_EQ,_NE,_LT,_GT,_LTE,_GTE]) then
+            op:=current_scanner.preproc_token;
+            if (op in preproc_operators) and
+               (op in operator_levels[pred_level]) then
              begin
-               result:=hs1;
-               exit;
-             end;
-
-           if (op = _IN) then
-             preproc_consume(_ID)
+               hs1:=result;
+               preproc_consume(op);
+               if pred_level=highest_precedence then
+                 hs2:=preproc_factor(eval)
+               else
+                 hs2:=preproc_sub_expr(succ(pred_level),eval);
+               if eval then
+                 result:=hs1.evaluate(hs2,op)
+               else
+                 result:=texprvalue.create_bool(false); {Just to have something}
+               hs1.free;
+               hs2.free;
+             end
            else
-             preproc_consume(op);
-           hs2:=read_simple_expr(eval);
-
-           if eval then
-             result:=hs1.evaluate(hs2,op)
-           else
-             result:=texprvalue.create_bool(false); {Just to have something}
-
-           hs1.free;
-           hs2.free;
+             break;
+          until false;
         end;
 
      begin
        current_scanner.skipspace;
        { start preproc expression scanner }
        current_scanner.preproc_token:=current_scanner.readpreproc;
-       parse_compiler_expr:=read_expr(true);
+       preproc_comp_expr:=preproc_sub_expr(opcompare,true);
      end;
 
     function boolean_compile_time_expr(var valuedescr: string): Boolean;
       var
         hs: texprvalue;
       begin
-        hs:=parse_compiler_expr;
+        hs:=preproc_comp_expr;
         if is_boolean(hs.def) then
           result:=hs.asBool
         else
@@ -2132,7 +2085,7 @@ type
         if c='=' then
           begin
              current_scanner.readchar;
-             exprvalue:=parse_compiler_expr;
+             exprvalue:=preproc_comp_expr;
              if not is_boolean(exprvalue.def) and
                 not is_integer(exprvalue.def) then
                exprvalue.error('Boolean, Integer', 'SETC');
@@ -5082,6 +5035,9 @@ exit_label:
 
 
     function tscannerfile.readpreproc:ttoken;
+      var
+        low,high,mid: longint;
+        optoken: ttoken;
       begin
          skipspace;
          case c of
@@ -5089,8 +5045,34 @@ exit_label:
            'A'..'Z',
            'a'..'z' :
              begin
-               current_scanner.preproc_pattern:=readid;
-               readpreproc:=_ID;
+               readstring;
+               optoken:=_ID;
+               if (pattern[1]<>'_') and (length(pattern) in [tokenlenmin..tokenlenmax]) then
+                begin
+                  low:=ord(tokenidx^[length(pattern),pattern[1]].first);
+                  high:=ord(tokenidx^[length(pattern),pattern[1]].last);
+                  while low<high do
+                   begin
+                     mid:=(high+low+1) shr 1;
+                     if pattern<tokeninfo^[ttoken(mid)].str then
+                      high:=mid-1
+                     else
+                      low:=mid;
+                   end;
+                  with tokeninfo^[ttoken(high)] do
+                    if pattern=str then
+                      begin
+                        if (keyword*current_settings.modeswitches)<>[] then
+                          if op=NOTOKEN then
+                            optoken:=ttoken(high)
+                          else
+                            optoken:=op;
+                      end;
+                  if not (optoken in preproc_operators) then
+                    optoken:=_ID;
+                end;
+               current_scanner.preproc_pattern:=pattern;
+               readpreproc:=optoken;
              end;
            '0'..'9' :
              begin

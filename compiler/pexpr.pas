@@ -73,14 +73,6 @@ implementation
        pbase,pinline,ptype,pgenutil,procinfo,cpuinfo
        ;
 
-    { sub_expr(opmultiply) is need to get -1 ** 4 to be
-      read as - (1**4) and not (-1)**4 PM }
-    type
-      Toperator_precedence=(opcompare,opaddition,opmultiply,oppower);
-
-    const
-      highest_precedence = oppower;
-
     function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;forward;
 
     const
@@ -3392,15 +3384,6 @@ implementation
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
-   const
-      { Warning these stay be ordered !! }
-      operator_levels:array[Toperator_precedence] of set of NOTOKEN..last_operator=
-         ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
-          [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
-          [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
-           _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
-          [_STARSTAR] );
-
     function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
