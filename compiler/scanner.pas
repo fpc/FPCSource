@@ -825,6 +825,7 @@ type
     class function try_parse_real(s:string):texprvalue; static;
     function evaluate(v:texprvalue;op:ttoken):texprvalue;
     procedure error(expecteddef, place: string);
+    function isBoolean: Boolean;
     function asBool: Boolean;
     function asInt: Integer;
     function asStr: String;
@@ -1035,7 +1036,7 @@ type
         end;
         _OP_NOT:
         begin
-          if is_boolean(def) then
+          if isBoolean then
             result:=texprvalue.create_bool(not asBool)
           else
             begin
@@ -1045,8 +1046,8 @@ type
         end;
         _OP_OR:
         begin
-          if is_boolean(def) then
-            if is_boolean(v.def) then
+          if isBoolean then
+            if v.isBoolean then
               result:=texprvalue.create_bool(asBool or v.asBool)
             else
               begin
@@ -1061,8 +1062,8 @@ type
         end;
         _OP_AND:
         begin
-          if is_boolean(def) then
-            if is_boolean(v.def) then
+          if isBoolean then
+            if v.isBoolean then
               result:=texprvalue.create_bool(asBool and v.asBool)
             else
               begin
@@ -1179,6 +1180,18 @@ type
                def.typename,
                place
               );
+    end;
+
+  function texprvalue.isBoolean: Boolean;
+    var
+      i: integer;
+    begin
+      result:=is_boolean(def);
+      if not result and is_integer(def) then
+        begin
+          i:=asInt;
+          result:=(i=0)or(i=1);
+        end;
     end;
 
   function texprvalue.asBool: Boolean;
@@ -1881,7 +1894,7 @@ type
              begin
                hs1:=result;
                preproc_consume(op);
-               if (op=_OP_OR)and is_boolean(hs1.def) and hs1.asBool then
+               if (op=_OP_OR)and hs1.isBoolean and hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(true);
@@ -1890,7 +1903,7 @@ type
                    else
                      hs2:=preproc_sub_expr(succ(pred_level),false);
                  end
-               else if (op=_OP_AND)and is_boolean(hs1.def) and not hs1.asBool then
+               else if (op=_OP_AND)and hs1.isBoolean and not hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(false);
@@ -1930,7 +1943,7 @@ type
         hs: texprvalue;
       begin
         hs:=preproc_comp_expr;
-        if is_boolean(hs.def) then
+        if hs.isBoolean then
           result:=hs.asBool
         else
           begin
@@ -2115,7 +2128,7 @@ type
                begin
                  {If we are absolutely shure it is boolean, translate
                   to TRUE/FALSE to increase possibility to do future type check}
-                 if is_boolean(exprvalue.def) then
+                 if exprvalue.isBoolean then
                    begin
                      if exprvalue.asBool then
                        hs:='TRUE'
