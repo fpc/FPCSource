@@ -814,6 +814,7 @@ type
     def: tdef;
     constructor create_const(c:tconstsym);
     constructor create_error;
+    constructor create_ord(v: Tconstexprint);
     constructor create_int(v: int64);
     constructor create_uint(v: qword);
     constructor create_bool(b: boolean);
@@ -822,7 +823,7 @@ type
     constructor create_real(r: bestreal);
     class function try_parse_number(s:string):texprvalue; static;
     class function try_parse_real(s:string):texprvalue; static;
-    function evaluate(v:texprvalue;op:ttoken): boolean;
+    function evaluate(v:texprvalue;op:ttoken):texprvalue;
     procedure error(expecteddef, place: string);
     function asBool: Boolean;
     function asInt: Integer;
@@ -892,6 +893,17 @@ type
       fillchar(value,sizeof(value),#0);
       consttyp:=constnone;
       def:=generrordef;
+    end;
+
+  constructor texprvalue.create_ord(v: Tconstexprint);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constord;
+      value.valueord:=v;
+      if v.signed then
+        def:=sintdef
+      else
+        def:=uintdef;
     end;
 
   constructor texprvalue.create_int(v: int64);
@@ -984,7 +996,7 @@ type
         result:=nil;
     end;
 
-  function texprvalue.evaluate(v:texprvalue;op:ttoken): boolean;
+  function texprvalue.evaluate(v:texprvalue;op:ttoken):texprvalue;
 
     function check_compatbile: boolean;
       begin
@@ -994,103 +1006,138 @@ type
                 ) or
                 (is_string(v.def) and is_string(def));
         if not result then
-          incompatibletypes(def,v.def);
+          Message2(type_e_incompatible_types,def.typename,v.def.typename);
       end;
     var
       lv,rv: tconstexprint;
       lvd,rvd: bestreal;
       lvs,rvs: string;
     begin
-      if op = _IN then
+      case op of
+        _IN:
         begin
           if not is_set(v.def) then
             begin
-              v.error('set', 'IN');
-              result:=false;
+              v.error('Set', 'IN');
+              result:=texprvalue.create_error;
             end
           else
           if not is_ordinal(def) then
             begin
-              error('ordinal', 'IN');
-              result:=false;
+              error('Ordinal', 'IN');
+              result:=texprvalue.create_error;
             end
           else
           if value.valueord.signed then
-            result:=value.valueord.svalue in pnormalset(v.value.valueptr)^
+            result:=texprvalue.create_bool(value.valueord.svalue in pnormalset(v.value.valueptr)^)
           else
-           result:=value.valueord.uvalue in pnormalset(v.value.valueptr)^;
-        end
-      else
-      if check_compatbile then
+            result:=texprvalue.create_bool(value.valueord.uvalue in pnormalset(v.value.valueptr)^);
+        end;
+        _OP_NOT:
         begin
-          if (is_ordinal(def) and is_ordinal(v.def)) then
-            begin
-              lv:=value.valueord;
-              rv:=v.value.valueord;
-              case op of
-                _EQ:
-                  result:=lv=rv;
-                _NE:
-                  result:=lv<>rv;
-                _LT:
-                  result:=lv<rv;
-                _GT:
-                  result:=lv>rv;
-                _GTE:
-                  result:=lv>=rv;
-                _LTE:
-                  result:=lv<=rv;
-              end;
-            end
+          if is_boolean(def) then
+            result:=texprvalue.create_bool(not asBool)
           else
-          if (is_fpu(def) or is_ordinal(def)) and
-             (is_fpu(v.def) or is_ordinal(v.def)) then
             begin
-              if is_fpu(def) then
-                lvd:=pbestreal(value.valueptr)^
-              else
-                lvd:=value.valueord;
-              if is_fpu(v.def) then
-                rvd:=pbestreal(v.value.valueptr)^
-              else
-                rvd:=v.value.valueord;
-              case op of
-                _EQ:
-                  result:=lvd=rvd;
-                _NE:
-                  result:=lvd<>rvd;
-                _LT:
-                  result:=lvd<rvd;
-                _GT:
-                  result:=lvd>rvd;
-                _GTE:
-                  result:=lvd>=rvd;
-                _LTE:
-                  result:=lvd<=rvd;
-              end;
-            end
-          else
-          begin
-            lvs:=asStr;
-            rvs:=v.asStr;
-            case op of
-              _EQ:
-                result:=lvs=rvs;
-              _NE:
-                result:=lvs<>rvs;
-              _LT:
-                result:=lvs<rvs;
-              _GT:
-                result:=lvs>rvs;
-              _GTE:
-                result:=lvs>=rvs;
-              _LTE:
-                result:=lvs<=rvs;
+              error('Boolean', 'NOT');
+              result:=texprvalue.create_error;
             end;
-          end;
-        end
-      else
-        result:=false;
+        end;
+        _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH:
+        if check_compatbile then
+          begin
+            if (is_ordinal(def) and is_ordinal(v.def)) then
+              begin
+                lv:=value.valueord;
+                rv:=v.value.valueord;
+                case op of
+                  _EQ:
+                    result:=texprvalue.create_bool(lv=rv);
+                  _NE:
+                    result:=texprvalue.create_bool(lv<>rv);
+                  _LT:
+                    result:=texprvalue.create_bool(lv<rv);
+                  _GT:
+                    result:=texprvalue.create_bool(lv>rv);
+                  _GTE:
+                    result:=texprvalue.create_bool(lv>=rv);
+                  _LTE:
+                    result:=texprvalue.create_bool(lv<=rv);
+                  _PLUS:
+                    result:=texprvalue.create_ord(lv+rv);
+                  _MINUS:
+                    result:=texprvalue.create_ord(lv-rv);
+                  _STAR:
+                    result:=texprvalue.create_ord(lv*rv);
+                  _SLASH:
+                    result:=texprvalue.create_real(lv/rv);
+                end;
+              end
+            else
+            if (is_fpu(def) or is_ordinal(def)) and
+               (is_fpu(v.def) or is_ordinal(v.def)) then
+              begin
+                if is_fpu(def) then
+                  lvd:=pbestreal(value.valueptr)^
+                else
+                  lvd:=value.valueord;
+                if is_fpu(v.def) then
+                  rvd:=pbestreal(v.value.valueptr)^
+                else
+                  rvd:=v.value.valueord;
+                case op of
+                  _EQ:
+                    result:=texprvalue.create_bool(lvd=rvd);
+                  _NE:
+                    result:=texprvalue.create_bool(lvd<>rvd);
+                  _LT:
+                    result:=texprvalue.create_bool(lvd<rvd);
+                  _GT:
+                    result:=texprvalue.create_bool(lvd>rvd);
+                  _GTE:
+                    result:=texprvalue.create_bool(lvd>=rvd);
+                  _LTE:
+                    result:=texprvalue.create_bool(lvd<=rvd);
+                  _PLUS:
+                    result:=texprvalue.create_real(lvd+rvd);
+                  _MINUS:
+                    result:=texprvalue.create_real(lvd-rvd);
+                  _STAR:
+                    result:=texprvalue.create_real(lvd*rvd);
+                  _SLASH:
+                    result:=texprvalue.create_real(lvd/rvd);
+                end;
+              end
+            else
+            begin
+              lvs:=asStr;
+              rvs:=v.asStr;
+              case op of
+                _EQ:
+                  result:=texprvalue.create_bool(lvs=rvs);
+                _NE:
+                  result:=texprvalue.create_bool(lvs<>rvs);
+                _LT:
+                  result:=texprvalue.create_bool(lvs<rvs);
+                _GT:
+                  result:=texprvalue.create_bool(lvs>rvs);
+                _GTE:
+                  result:=texprvalue.create_bool(lvs>=rvs);
+                _LTE:
+                  result:=texprvalue.create_bool(lvs<=rvs);
+                _PLUS:
+                  result:=texprvalue.create_str(lvs+rvs);
+                _MINUS, _STAR, _SLASH:
+                  begin
+                    Message(parser_e_illegal_expression);
+                    result:=texprvalue.create_error;
+                  end;
+              end;
+            end;
+          end
+        else
+          result:=texprvalue.create_error;
+      end;
     end;
 
   procedure texprvalue.error(expecteddef, place: string);
@@ -1375,9 +1422,9 @@ type
           result:=texprvalue.try_parse_number(pp);
           if not assigned(result) then
             begin
-              if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='FALSE') then
+              if assigned(mac) and (pp='FALSE') then
                 result:=texprvalue.create_bool(false)
-              else if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='TRUE') then
+              else if assigned(mac) and (pp='TRUE') then
                 result:=texprvalue.create_bool(true)
               else if (m_mac in current_settings.modeswitches) and
                       (not assigned(mac) or not mac.defined) and
@@ -1691,24 +1738,19 @@ type
                     preproc_consume(_ID);
                     exprvalue:=read_factor(eval);
                     if eval then
-                      begin
-                        if is_boolean(exprvalue.def) then
-                          result:=texprvalue.create_bool(not exprvalue.asBool)
-                        else
-                         exprvalue.error('Boolean', 'NOT');
-                      end
+                      result:=exprvalue.evaluate(nil,_OP_NOT)
                     else
                       result:=texprvalue.create_bool(false); {Just to have something}
                     exprvalue.free;
                   end
                 else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='TRUE') then
+                if (current_scanner.preproc_pattern='TRUE') then
                   begin
                     result:=texprvalue.create_bool(true);
                     preproc_consume(_ID);
                   end
                 else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='FALSE') then
+                if (current_scanner.preproc_pattern='FALSE') then
                   begin
                     result:=texprvalue.create_bool(false);
                     preproc_consume(_ID);
@@ -1871,8 +1913,7 @@ type
         function read_expr(eval:Boolean): texprvalue;
         var
            hs1,hs2: texprvalue;
-           b : boolean;
-           op : ttoken;
+           op: ttoken;
         begin
            hs1:=read_simple_expr(eval);
            op:=current_scanner.preproc_token;
@@ -1891,14 +1932,12 @@ type
            hs2:=read_simple_expr(eval);
 
            if eval then
-             b:=hs1.evaluate(hs2,op)
+             result:=hs1.evaluate(hs2,op)
            else
-             b:= false; {Just to have something}
+             result:=texprvalue.create_bool(false); {Just to have something}
 
            hs1.free;
            hs2.free;
-
-           result:=texprvalue.create_bool(b);
         end;
 
      begin
