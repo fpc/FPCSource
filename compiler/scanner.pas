@@ -1870,11 +1870,10 @@ type
           hs1,hs2: texprvalue;
           op: ttoken;
         begin
-          if pred_level=highest_precedence then
-            result:=preproc_factor(eval)
-          else
-            result:=preproc_sub_expr(succ(pred_level),eval);
-
+           if pred_level=highest_precedence then
+             result:=preproc_factor(eval)
+           else
+             result:=preproc_sub_expr(succ(pred_level),eval);
           repeat
             op:=current_scanner.preproc_token;
             if (op in preproc_operators) and
@@ -1882,14 +1881,35 @@ type
              begin
                hs1:=result;
                preproc_consume(op);
-               if pred_level=highest_precedence then
-                 hs2:=preproc_factor(eval)
+               if (op=_OP_OR)and is_boolean(hs1.def) and hs1.asBool then
+                 begin
+                   { stop evaluation the rest of expression }
+                   result:=texprvalue.create_bool(true);
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(false)
+                   else
+                     hs2:=preproc_sub_expr(succ(pred_level),false);
+                 end
+               else if (op=_OP_AND)and is_boolean(hs1.def) and not hs1.asBool then
+                 begin
+                   { stop evaluation the rest of expression }
+                   result:=texprvalue.create_bool(false);
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(false)
+                   else
+                     hs2:=preproc_sub_expr(succ(pred_level),false);
+                 end
                else
-                 hs2:=preproc_sub_expr(succ(pred_level),eval);
-               if eval then
-                 result:=hs1.evaluate(hs2,op)
-               else
-                 result:=texprvalue.create_bool(false); {Just to have something}
+                 begin
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(eval)
+                   else
+                     hs2:=preproc_sub_expr(succ(pred_level),eval);
+                   if eval then
+                     result:=hs1.evaluate(hs2,op)
+                   else
+                     result:=texprvalue.create_bool(false); {Just to have something}
+                 end;
                hs1.free;
                hs2.free;
              end
