@@ -25,7 +25,7 @@ program chmcmd;
 uses
   Classes, Sysutils, chmfilewriter, GetOpts;
 
-Const 
+Const
   CHMCMDVersion = '2.6.0';
 
 Procedure Usage;
@@ -129,7 +129,7 @@ begin
        except
          on e:exception do
            begin
-             Writeln('This HHP CHM project seems corrupt, please check it ',name);
+             Writeln('This HHP CHM project seems corrupt, please check it ',name,' (', e.message,')');
              halt(1);
            end;
        end;

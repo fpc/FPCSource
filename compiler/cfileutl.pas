@@ -288,8 +288,8 @@ end;
                     DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
             until findnext(dir) <> 0;
+            findclose(dir);
           end;
-        findclose(dir);
       end;
 
 
@@ -1109,8 +1109,8 @@ end;
                         end;
                     end;
                 until findnext(dir) <> 0;
+                FindClose(dir);
               end;
-            FindClose(dir);
 {$endif usedircache}
             if not subdirfound then
               WarnNonExistingPath(currpath);

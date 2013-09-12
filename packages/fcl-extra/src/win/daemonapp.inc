@@ -368,6 +368,8 @@ begin
           else
             Terminate;
           end;
+        if not Terminated then
+          WaitMessage;  
       Until Terminated;
       end;
   finally

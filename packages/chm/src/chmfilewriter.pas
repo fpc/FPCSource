@@ -63,6 +63,10 @@ type
     FSpareString   : TStringIndex;
     FBasePath      : String;     // location of the .hhp file. Needed to resolve relative paths
     FReadmeMessage : String;     // readme message
+    FToc,
+    FIndex         : TCHMSiteMap;
+    FTocStream,
+    FIndexStream   : TMemoryStream;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -79,6 +83,7 @@ type
     procedure SaveToFile(AFileName: String); virtual;
     procedure WriteChm(AOutStream: TStream); virtual;
     function ProjectDir: String;
+    procedure LoadSitemaps;
     procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
     procedure Error(errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
     // though stored in the project file, it is only there for the program that uses the unit
@@ -139,45 +144,32 @@ end;
 
 procedure TChmProject.LastFileAdded(Sender: TObject);
 var
-  IndexStream: TFileStream;
-  TOCStream: TFileStream;
   Writer: TChmWriter;
-  TOCSitemap  : TChmSiteMap;
-  IndexSiteMap: TChmSiteMap;
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
   {$ifdef chmindex}
     Writeln('binindex filename ',IndexFileName);
   {$endif}
-  if (IndexFileName <> '') and FileExists(IndexFileName) then begin
-    IndexStream := TFileStream.Create(IndexFileName, fmOpenRead);
-    Writer.AppendIndex(IndexStream);
+  if assigned(FIndexStream) then
+    begin
+    FIndexStream.position:=0;
+    Writer.AppendIndex(FIndexStream);
     if MakeBinaryIndex then
     begin
       {$ifdef chmindex}
         Writeln('into binindex ');
       {$endif}
-      IndexStream.Position := 0;
-      IndexSitemap := TChmSiteMap.Create(stIndex);
-      indexSitemap.LoadFromStream(IndexStream);
-      Writer.AppendBinaryIndexFromSiteMap(IndexSitemap,False);
-      IndexSitemap.Free;
+      Writer.AppendBinaryIndexFromSiteMap(FIndex,False);
     end;
-    IndexStream.Free;
   end;
-  if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
-    TOCStream := TFileStream.Create(TableOfContentsFileName, fmOpenRead);
-    Writer.AppendTOC(TOCStream);
+  if assigned(FTocStream) then
+    begin
+    Writer.AppendTOC(FTOCStream);
     if MakeBinaryTOC then
     begin
-      TOCStream.Position := 0;
-      TOCSitemap := TChmSiteMap.Create(stTOC);
-      TOCSitemap.LoadFromStream(TOCStream);
-      Writer.AppendBinaryTOCFromSiteMap(TOCSitemap);
-      TOCSitemap.Free;
+      Writer.AppendBinaryTOCFromSiteMap(FToc);
     end;
-    TOCStream.Free;
   end;
   if not assigned(sender) then
     Writer.Free;
@@ -210,6 +202,10 @@ begin
   FTotalFileList.FreeAndClear;
   FTotalFileList.Free;
   fAllowedExtensions.Free;
+  FToc.free;
+  FIndex.free;
+  FTocStream.Free;
+  FIndexStream.Free;
   inherited Destroy;
 end;
 
@@ -401,7 +397,7 @@ procedure addalias(const key,value :string);
 
 var i,j : integer;
     node: TCHMContextNode;
-    keyupper : string;
+    keyupper,valueupper : string;
 begin
  { Defaults other than global }
    MakeBinaryIndex:=True;
@@ -419,7 +415,9 @@ begin
     writeln('alias new node:',key);
    {$endif}
     node:=TCHMContextNode.create;
-    node.URLName:=value;
+    valueupper:=stringReplace(value, '\', '/', [rfReplaceAll]);
+    valueupper:= StringReplace(valueupper, '//', '/', [rfReplaceAll]);
+    node.URLName:=valueupper;
     node.contextname:=key;
   end
  else
@@ -552,7 +550,7 @@ begin
     for j:=0 to strs.count-1 do
       begin
           nd:=TChmContextNode.Create;
-          nd.urlname:=strs[j];
+          nd.urlname:=StringReplace(strs[j],'\', '/', [rfReplaceAll]);
           nd.contextnumber:=0;
           nd.contextname:='';
           Files.AddObject(nd.urlname,nd);
@@ -941,7 +939,6 @@ var
   helplist,
   localfilelist: TStringList;
   i      : integer;
-  x      : TChmSiteMap;
   strrec : TStringIndex;
 begin
 
@@ -974,45 +971,29 @@ begin
      otherfiles.addstrings(localfilelist);
      localfilelist.clear;
    end;
- if FTableOfContentsFileName<>'' then
+ if assigned(FToc) then
    begin
-     if fileexists(FTableOfContentsFileName) then
-       begin
        Error(chmnote,'Scanning TOC file : '+FTableOfContentsFileName+'.',3);
-        x:=TChmSiteMap.Create(sttoc);
         try
-          x.loadfromfile(FTableOfcontentsFilename);
-          scansitemap(x,localfilelist,true);
+          scansitemap(ftoc,localfilelist,true);
           otherfiles.addstrings(localfilelist);
         except
           on e: Exception do
-            error(chmerror,'Error loading TOC file '+FTableOfContentsFileName);
+            error(chmerror,'Error scanning TOC file ('+FTableOfContentsFileName+')');
           end;
-        x.free;
-       end
-     else
-       error(chmerror,'Can''t find TOC file'+FTableOfContentsFileName);
    end;
   LocalFileList.clear;
-  if FIndexFileName<>'' then
-   begin
-     if fileexists(FIndexFileName) then
-       begin
-       Error(chmnote,'Scanning Index file : '+FIndexFileName+'.',3);
-        x:=TChmSiteMap.Create(stindex);
-        try
-          x.loadfromfile(FIndexFileName);
-          scansitemap(x,localfilelist,true);
-          otherfiles.addstrings(localfilelist);
-        except
-          on e: Exception do
-            error(chmerror,'Error loading index file '+FIndexFileName);
-          end;
-        x.free;
-       end
-     else
-       error(chmerror,'Can''t find TOC index file '+FIndexFileName);
-   end;
+  if assigned(FIndex) then
+    begin
+      Error(chmnote,'Scanning Index file : '+FIndexFileName+'.',3);
+      try
+        scansitemap(FIndex,localfilelist,true);
+        otherfiles.addstrings(localfilelist);
+      except
+        on e: Exception do
+          error(chmerror,'Error scanning index file ('+FIndexFileName+')');
+        end;
+    end;
  localfilelist.free;
 end;
 
@@ -1025,8 +1006,10 @@ var
   nd         : TChmContextNode;
   I          : Integer;
 begin
-  // Scan html for "rest" files.
 
+  LoadSiteMaps;
+
+  // Scan html for "rest" files.
   If ScanHtmlContents Then
     ScanHtml;                 // Since this is slowing we opt to skip this step, and only do this on html load.
 
@@ -1056,6 +1039,7 @@ begin
   Writer.IndexName := ExtractFileName(IndexFileName);
   Writer.TocName   := ExtractFileName(TableOfContentsFileName);
   Writer.ReadmeMessage := ReadmeMessage;
+  Writer.DefaultWindow := FDefaultWindow;
   for i:=0 to files.count-1 do
     begin
       nd:=TChmContextNode(files.objects[i]);
@@ -1066,6 +1050,10 @@ begin
     end;
   if FWIndows.Count>0 then
     Writer.Windows:=FWIndows;
+  if FMergeFiles.Count>0 then
+    Writer.Mergefiles:=FMergeFiles;
+  if assigned(ftoc) then
+    Writer.TocSitemap:=ftoc;
 
   // and write!
 
@@ -1078,6 +1066,54 @@ begin
   Writer.Free;
 end;
 
+procedure TChmProject.LoadSitemaps;
+// #IDXHDR (merged files) goes into the system file, and need to keep  TOC sitemap around
+begin
+   if FTableOfContentsFileName<>'' then
+   begin
+     if fileexists(FTableOfContentsFileName) then
+       begin
+         FTocStream:=TMemoryStream.Create;
+         try
+           FTocStream.loadfromfile(FTableOfContentsFilename);
+           writeln(ftableofcontentsfilename, ' ' ,ftocstream.size);
+           FTocStream.Position:=0;
+           FToc:=TChmSiteMap.Create(sttoc);
+           FToc.loadfromstream(FTocStream);
+           ftoc.savetofile('bla.something');
+         except
+          on e:exception do
+            begin
+               error(chmerror,'Error loading TOC file '+FTableOfContentsFileName);
+               freeandnil(ftoc); freeandnil(FTocStream);
+             end;
+           end;
+       end
+     else
+       error(chmerror,'Can''t find TOC file'+FTableOfContentsFileName);
+   end;
+   if FIndexFileName<>'' then
+   begin
+     if fileexists(FIndexFileName) then
+       begin
+        FIndexStream:=TMemoryStream.Create;
+        try
+          FIndexStream.LoadFromFile(FIndexFileName);
+          FIndexStream.Position:=0;
+          FIndex:=TChmSiteMap.Create(stindex);
+          FIndex.loadfromfile(FIndexFileName);
+        except
+          on e: Exception do
+            begin
+              error(chmerror,'Error loading index file '+FIndexFileName);
+              freeandnil(findex); freeandnil(findexstream);
+            end;
+          end;
+       end
+     else
+       error(chmerror,'Can''t find index file '+FIndexFileName);
+   end;
+end;
 
 
 end.

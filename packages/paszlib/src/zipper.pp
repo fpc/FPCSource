@@ -1605,7 +1605,7 @@ Begin
   if Assigned(FOnOpenInputStream) then
     FOnOpenInputStream(Self, FZipStream);
   if FZipStream = nil then
-    FZipStream:=TFileStream.Create(FFileName,fmOpenRead);
+    FZipStream:=TFileStream.Create(FFileName,fmOpenRead or fmShareDenyWrite);
 End;
 
 
