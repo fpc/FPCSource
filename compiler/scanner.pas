@@ -201,7 +201,6 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
-          function  readval_asstring:string;
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
@@ -3834,13 +3833,6 @@ type
       end;
 
 
-    function tscannerfile.readval_asstring:string;
-      begin
-        readnumber;
-        readval_asstring:=pattern;
-      end;
-
-
     function tscannerfile.readcomment:string;
       var
         i : longint;
@@ -5102,10 +5094,23 @@ exit_label:
                  readpreproc:=_INTCONST;
                current_scanner.preproc_pattern:=pattern;
              end;
-           '$','%','&' :
+           '$','%':
              begin
-               current_scanner.preproc_pattern:=readval_asstring;
-               readpreproc:=_ID;
+               readnumber;
+               current_scanner.preproc_pattern:=pattern;
+               readpreproc:=_INTCONST;
+             end;
+           '&' :
+             begin
+                readnumber;
+                if length(pattern)=1 then
+                  begin
+                    readstring;
+                    readpreproc:=_ID;
+                  end
+                else
+                  readpreproc:=_INTCONST;
+               current_scanner.preproc_pattern:=pattern;
              end;
            '.' :
              begin
