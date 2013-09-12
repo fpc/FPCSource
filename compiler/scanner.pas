@@ -806,7 +806,7 @@ type
     { we can't use built-in defs since they
       may be not created at the moment }
     class var
-       sintdef,uintdef,booldef,strdef,setdef: tdef;
+       sintdef,uintdef,booldef,strdef,setdef,realdef: tdef;
     class constructor createdefs;
     class destructor destroydefs;
   public
@@ -820,6 +820,9 @@ type
     constructor create_bool(b: boolean);
     constructor create_str(s: string);
     constructor create_set(ns: tnormalset);
+    constructor create_real(r: bestreal);
+    class function try_parse_number(s:string):texprvalue; static;
+    class function try_parse_real(s:string):texprvalue; static;
     function evaluate(v:texprvalue;op:ttoken): boolean;
     procedure error(expecteddef, place: string);
     function asBool: Boolean;
@@ -835,6 +838,7 @@ type
       booldef:=torddef.create(pasbool8,0,1);
       strdef:=tstringdef.createansi(0);
       setdef:=tsetdef.create(sintdef,0,255);
+      realdef:=tfloatdef.create(s80real);
     end;
 
   class destructor texprvalue.destroydefs;
@@ -844,6 +848,7 @@ type
       uintdef.free;
       booldef.free;
       strdef.free;
+      realdef.free;
     end;
 
   constructor texprvalue.create_const(c: tconstsym);
@@ -936,6 +941,48 @@ type
       new(pnormalset(value.valueptr));
       pnormalset(value.valueptr)^:=ns;
       def:=setdef;
+    end;
+
+  constructor texprvalue.create_real(r: bestreal);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constreal;
+      new(pbestreal(value.valueptr));
+      pbestreal(value.valueptr)^:=r;
+      def:=realdef;
+    end;
+
+  class function texprvalue.try_parse_number(s:string):texprvalue;
+    var
+      ic: int64;
+      qc: qword;
+      code: integer;
+    begin
+      { try int64 }
+      val(s,ic,code);
+      if code=0 then
+        result:=texprvalue.create_int(ic)
+      else
+        begin
+          { try qword }
+          val(s,qc,code);
+          if code=0 then
+            result:=texprvalue.create_uint(qc)
+          else
+            result:=try_parse_real(s);
+        end;
+    end;
+
+  class function texprvalue.try_parse_real(s:string):texprvalue;
+    var
+      d: bestreal;
+      code: integer;
+    begin
+      val(s,d,code);
+      if code=0 then
+        result:=texprvalue.create_real(d)
+      else
+        result:=nil;
     end;
 
   function texprvalue.evaluate(v:texprvalue;op:ttoken): boolean;
@@ -1110,7 +1157,7 @@ type
 
         function read_expr(eval:Boolean): texprvalue; forward;
 
-        procedure preproc_consume(t : ttoken);
+        procedure preproc_consume(t:ttoken);
         begin
           if t<>current_scanner.preproc_token then
             Message(scan_e_preproc_syntax_error);
@@ -1273,8 +1320,6 @@ type
           mac: tmacro;
           macrocount,
           len: integer;
-          numres: longint;
-          w: word;
         begin
           pp:=current_scanner.preproc_pattern;
           if not eval then
@@ -1328,24 +1373,25 @@ type
 
           { At this point, result do contain the value. Do some decoding and
             determine the type.}
-          val(pp,numres,w);
-          if (w=0) then {It is an integer}
-            result:=texprvalue.create_int(numres)
-          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='FALSE') then
-            result:=texprvalue.create_bool(false)
-          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='TRUE') then
-            result:=texprvalue.create_bool(true)
-          else if (m_mac in current_settings.modeswitches) and
-                  (not assigned(mac) or not mac.defined) and
-                  (macrocount = 1) then
+          result:=texprvalue.try_parse_number(pp);
+          if not assigned(result) then
             begin
-              {Errors in mode mac is issued here. For non macpas modes there is
-               more liberty, but the error will eventually be caught at a later stage.}
-              Message1(scan_e_error_macro_undefined, pp);
-              result:=texprvalue.create_str(pp); { just to have something }
-            end
-          else
-            result:=texprvalue.create_str(pp);
+              if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='FALSE') then
+                result:=texprvalue.create_bool(false)
+              else if assigned(mac) and (m_mac in current_settings.modeswitches) and (pp='TRUE') then
+                result:=texprvalue.create_bool(true)
+              else if (m_mac in current_settings.modeswitches) and
+                      (not assigned(mac) or not mac.defined) and
+                      (macrocount = 1) then
+                begin
+                  {Errors in mode mac is issued here. For non macpas modes there is
+                   more liberty, but the error will eventually be caught at a later stage.}
+                  Message1(scan_e_error_macro_undefined, pp);
+                  result:=texprvalue.create_str(pp); { just to have something }
+                end
+              else
+                result:=texprvalue.create_str(pp);
+            end;
         end;
 
         function read_factor(eval: Boolean):texprvalue;
@@ -1356,7 +1402,6 @@ type
            srsymtable : TSymtable;
            hdef : TDef;
            l : longint;
-           w : integer;
            hasKlammer: Boolean;
            exprvalue:texprvalue;
            ns:tnormalset;
@@ -1707,7 +1752,7 @@ type
              begin
                preproc_consume(_LECKKLAMMER);
                ns:=[];
-               while current_scanner.preproc_token = _ID do
+               while current_scanner.preproc_token in [_ID,_INTCONST] do
                begin
                  exprvalue:=read_factor(eval);
                  include(ns,exprvalue.asInt);
@@ -1717,6 +1762,26 @@ type
                // TODO Add check of setElemType
                preproc_consume(_RECKKLAMMER);
                result:=texprvalue.create_set(ns);
+             end
+           else if current_scanner.preproc_token = _INTCONST then
+             begin
+               result:=texprvalue.try_parse_number(current_scanner.preproc_pattern);
+               if not assigned(result) then
+                 begin
+                   Message(parser_e_invalid_integer);
+                   result:=texprvalue.create_int(1);
+                 end;
+               preproc_consume(_INTCONST);
+             end
+           else if current_scanner.preproc_token = _REALNUMBER then
+             begin
+               result:=texprvalue.try_parse_real(current_scanner.preproc_pattern);
+               if not assigned(result) then
+                 begin
+                   Message(parser_e_error_in_real);
+                   result:=texprvalue.create_real(1.0);
+                 end;
+               preproc_consume(_REALNUMBER);
              end
            else
              Message(scan_e_error_in_preproc_expr);
@@ -4993,18 +5058,49 @@ exit_label:
              end;
            '0'..'9' :
              begin
-               current_scanner.preproc_pattern:=readval_asstring;
-               { realnumber? }
-               if c='.' then
+               readnumber;
+               if (c in ['.','e','E']) then
                  begin
-                   readchar;
-                   while c in ['0'..'9'] do
+                   { first check for a . }
+                   if c='.' then
                      begin
-                       current_scanner.preproc_pattern:=current_scanner.preproc_pattern+c;
                        readchar;
+                       if c in ['0'..'9'] then
+                         begin
+                           { insert the number after the . }
+                           pattern:=pattern+'.';
+                           while c in ['0'..'9'] do
+                             begin
+                               pattern:=pattern+c;
+                               readchar;
+                             end;
+                         end
+                       else
+                         Illegal_Char(c);
                      end;
-                 end;
-               readpreproc:=_ID;
+                  { E can also follow after a point is scanned }
+                   if c in ['e','E'] then
+                     begin
+                       pattern:=pattern+'E';
+                       readchar;
+                       if c in ['-','+'] then
+                         begin
+                           pattern:=pattern+c;
+                           readchar;
+                         end;
+                       if not(c in ['0'..'9']) then
+                         Illegal_Char(c);
+                       while c in ['0'..'9'] do
+                         begin
+                           pattern:=pattern+c;
+                           readchar;
+                         end;
+                     end;
+                   readpreproc:=_REALNUMBER;
+                 end
+               else
+                 readpreproc:=_INTCONST;
+               current_scanner.preproc_pattern:=pattern;
              end;
            '$','%','&' :
              begin
