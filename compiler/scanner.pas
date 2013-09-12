@@ -1794,6 +1794,38 @@ type
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
+                if current_scanner.preproc_pattern='ORD' then
+                  begin
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_preproc_syntax_error);
+
+                    exprvalue:=preproc_factor(eval);
+                    if eval then
+                      begin
+                        if is_ordinal(exprvalue.def) then
+                          result:=texprvalue.create_int(exprvalue.asInt)
+                        else
+                          begin
+                            exprvalue.error('Ordinal','ORD');
+                            result:=texprvalue.create_int(0);
+                          end;
+                      end
+                    else
+                      result:=texprvalue.create_int(0);
+                    exprvalue.free;
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                  end
+                else
                 if current_scanner.preproc_pattern='NOT' then
                   begin
                     preproc_consume(_ID);
