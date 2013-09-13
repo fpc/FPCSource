@@ -1102,59 +1102,59 @@ Function Pos (s : ShortString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE
   end;
 
 
-Function Pos (a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(a,AnsiString(v));
   end;
 
 
-Function Pos (w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(w,WideString(v));
   end;
 
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-Function Pos (w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(w,UnicodeString(v));
   end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 
-Function Pos (v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(ShortString(v),c);
   end;
 
 
-Function Pos (v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(ShortString(v),s);
   end;
 
 
-Function Pos (v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(AnsiString(v),a);
   end;
 
 
-Function Pos (v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(WideString(v),w);
   end;
 
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-Function Pos (v : Variant; Const w : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const w : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(UnicodeString(v),w);
   end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 
-Function Pos (v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(WideString(v1),WideString(v2));
   end;
