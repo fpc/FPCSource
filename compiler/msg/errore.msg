@@ -3311,6 +3311,9 @@ Supported CPU instruction sets:
 Supported FPU instruction sets:
   $FPUINSTRUCTIONSETS
 
+Supported inline assembler modes:
+  $ASMMODES
+
 Supported ABI targets:
   $ABITARGETS
 

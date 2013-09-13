@@ -188,6 +188,7 @@ var
   opt : toptimizerswitch;
   wpopt: twpoptimizerswitch;
   abi : tabi;
+  asmmode : tasmmode;
 {$if defined(arm) or defined(avr)}
   controllertype : tcontrollertype;
 {$endif defined(arm) or defined(avr)}
@@ -310,6 +311,20 @@ begin
                   end;
               end;
           end
+      end
+     else if pos('$ASMMODES',s)>0 then
+      begin
+        for asmmode:=low(tasmmode) to high(tasmmode) do
+         if assigned(asmmodeinfos[asmmode]) then
+           begin
+             hs:=s;
+             hs1:=asmmodeinfos[asmmode]^.idtxt;
+             if hs1<>'' then
+               begin
+                 Replace(hs,'$ASMMODES',hs1);
+                 Comment(V_Normal,hs);
+               end;
+           end;
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
