@@ -933,7 +933,7 @@ end;
 
 {$if not defined(FPC_TESTGENERICS)}
 
-Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+Procedure TStringList.ExchangeItemsInt(Index1, Index2: Integer);
 
 Var P1,P2 : Pointer;
 
@@ -946,6 +946,11 @@ begin
   Pointer(Flist^[Index2].FObject):=P2;
 end;
 
+
+Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+begin
+  ExchangeItemsInt(Index1, Index2);
+end;
 
 
 Procedure TStringList.Grow;
@@ -991,11 +996,18 @@ end;
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 var
   Pivot, vL, vR: Integer;
+  ExchangeProc: procedure(Left, Right: Integer) of object;
 begin
+  //if ExchangeItems is override call that, else call (faster) ExchangeItemsInt
+  if TMethod(@Self.ExchangeItems).Code = Pointer(@TStringList.ExchangeItems) then
+    ExchangeProc := @ExchangeItemsInt
+  else
+    ExchangeProc := @ExchangeItems;
+
   if R - L <= 1 then begin // a little bit of time saver
     if L < R then
       if CompareFn(Self, L, R) > 0 then
-        ExchangeItems(L, R);
+        ExchangeProc(L, R);
 
     Exit;
   end;
@@ -1012,7 +1024,7 @@ begin
     while (vR > Pivot) and (CompareFn(Self, vR, Pivot) > 0) do
       Dec(vR);
 
-    ExchangeItems(vL, vR);
+    ExchangeProc(vL, vR);
 
     if Pivot = vL then // swap pivot if we just hit it from one side
       Pivot := vR
@@ -1258,7 +1270,7 @@ begin
   If (Index2<0) or (Index2>=FCount) then
     Error(SListIndexError,Index2);
   Changing;
-  ExchangeItems(Index1,Index2);
+  ExchangeItemsInt(Index1,Index2);
   changed;
 end;
 

@@ -728,13 +728,14 @@ type
     FSorted: Boolean;
     FForceSort : Boolean;
     FOwnsObjects : Boolean;
-    procedure ExchangeItems(Index1, Index2: Integer);
+    procedure ExchangeItemsInt(Index1, Index2: Integer); inline;
     procedure Grow;
     procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
   protected
+    procedure ExchangeItems(Index1, Index2: Integer); virtual;
     procedure Changed; virtual;
     procedure Changing; virtual;
     function Get(Index: Integer): string; override;

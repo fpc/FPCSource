@@ -11988,6 +11988,7 @@ tests/test/units/character/tutf32convert.pp svneol=native#text/pascal
 tests/test/units/classes/tbytesstreamtest.pp svneol=native#text/pascal
 tests/test/units/classes/tmakeobjinst.pp svneol=native#text/plain
 tests/test/units/classes/tsetstream.pp svneol=native#text/plain
+tests/test/units/classes/tstringlistexchange.pp svneol=native#text/pascal
 tests/test/units/classes/tvclcomobject.pp svneol=native#text/plain
 tests/test/units/crt/tcrt.pp svneol=native#text/plain
 tests/test/units/crt/tctrlc.pp svneol=native#text/plain
