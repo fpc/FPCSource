@@ -33,7 +33,7 @@
 {$ifdef  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
-    function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; compilerproc;
+    function fpc_shl_qword(value : qword;shift : sizeint) : qword; [public,alias: 'FPC_SHL_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -53,7 +53,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
-   function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
+   function fpc_shr_qword(value : qword;shift : sizeint) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -73,7 +73,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
-    function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; compilerproc;
+    function fpc_shl_int64(value : int64;shift : sizeint) : int64; [public,alias: 'FPC_SHL_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -93,7 +93,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
-    function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
+    function fpc_shr_int64(value : int64;shift : sizeint) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then

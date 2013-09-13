@@ -436,10 +436,10 @@ function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compiler
 *)
 
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-function fpc_shl_qword(value,shift : qword) : qword; compilerproc;
-function fpc_shr_qword(value,shift : qword) : qword; compilerproc;
-function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
-function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
+function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
+function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
+function fpc_shl_int64(value : int64; shift : sizeint) : int64; compilerproc;
+function fpc_shr_int64(value : int64; shift : sizeint) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 
