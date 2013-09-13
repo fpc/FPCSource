@@ -424,12 +424,13 @@ implementation
               try_to_consume(_OP_IN) then
              fn:=FixFileName(get_stringconst);
            { Give a warning if lineinfo is loaded }
-           if s='LINEINFO' then begin
-            Message(parser_w_no_lineinfo_use_switch);
-            if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
-              s := 'LNFODWRF';
-            sorg := s;
-           end;
+           if s='LINEINFO' then
+             begin
+               Message(parser_w_no_lineinfo_use_switch);
+               if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
+                s := 'LNFODWRF';
+              sorg := s;
+             end;
            { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
@@ -484,7 +485,7 @@ implementation
                tppumodule(pu.u).loadppu;
                { is our module compiled? then we can stop }
                if current_module.state=ms_compiled then
-                exit;
+                 exit;
                { add this unit to the dependencies }
                pu.u.adddependency(current_module);
                { save crc values }
