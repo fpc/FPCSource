@@ -1535,15 +1535,15 @@ var
   sign : valreal;
   esign,
   exponent,
+  expstart,
   decpoint : SizeInt;
-  flags    : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;
   exponent:=0;
   decpoint:=0;
   esign:=1;
-  flags:=0;
+  hd:=0.0;
   sign:=1;
   while (code<=length(s)) and (s[code] in [' ',#9]) do
     inc(code);
@@ -1555,32 +1555,29 @@ begin
              inc(code);
            end;
     end;
-  while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
+  expstart:=code;
+  while (Code<=Length(s)) do
     begin
-   { Read integer part }
-      flags:=flags or 1;
-      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
+      case s[code] of
+        '0'..'9':
+          hd:=hd*10+(ord(s[code])-ord('0'));
+        '.':
+          if decpoint=0 then
+            decpoint:=code
+          else
+            exit;
+      else
+        break;
+      end;
       inc(code);
     end;
-{ Decimal ? }
-  if (length(s)>=code) and (s[code]='.') then
-    begin
-      inc(code);
-      while (length(s)>=code) and (s[code] in ['0'..'9']) do
-        begin
-           { Read fractional part. }
-          flags:=flags or 2;
-          fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
-          inc(decpoint);
-          inc(code);
-        end;
-   end;
- { Again, read integer and fractional part}
-  if flags=0 then
-    begin
-      fpc_Val_Real_ShortStr:=0.0;
-      exit;
-    end;
+  { must have seen at least one digit }
+  if (code-expstart)<1+ord(decpoint<>0) then
+    exit;
+
+  if decpoint<>0 then
+    decpoint:=code-decpoint-1;
+
  { Exponent ? }
   if (length(s)>=code) and (s[code] in ['e','E']) then
     begin
@@ -1594,18 +1591,19 @@ begin
              esign:=-1;
              inc(code);
            end;
-      if (length(s)<code) or not(s[code] in ['0'..'9']) then
-        begin
-          fpc_Val_Real_ShortStr:=0.0;
-          exit;
-        end;
+      expstart:=code;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
-          exponent:=exponent*10;
-          exponent:=exponent+ord(s[code])-ord('0');
+          exponent:=exponent*10+(ord(s[code])-ord('0'));
           inc(code);
         end;
+      if code=expstart then
+        exit;
     end;
+{ Not all characters are read ? }
+  if length(s)>=code then
+    exit;
+
 { adjust exponent based on decimal point }
   if esign>0 then
     begin
@@ -1620,7 +1618,7 @@ begin
     inc(exponent,decpoint);
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
-  fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
+  fpc_Val_Real_ShortStr:=hd*sign;
 
 { Calculate Exponent }
   hd:=1.0;
@@ -1645,13 +1643,6 @@ begin
   else
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
 
-
-{ Not all characters are read ? }
-  if length(s)>=code then
-    begin
-      fpc_Val_Real_ShortStr:=0.0;
-      exit;
-    end;
 { success ! }
   code:=0;
 end;
