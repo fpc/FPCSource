@@ -1415,7 +1415,7 @@ type
                end;
           end;
 
-        function preproc_substitutedtoken(eval : Boolean): texprvalue;
+        function preproc_substitutedtoken(searchstr:string;eval:Boolean):texprvalue;
         { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
@@ -1423,24 +1423,23 @@ type
           recursivelly substituted).}
 
         var
-          hs,pp: string;
+          hs: string;
           mac: tmacro;
           macrocount,
           len: integer;
         begin
-          pp:=current_scanner.preproc_pattern;
           if not eval then
             begin
-              result:=texprvalue.create_str(pp);
+              result:=texprvalue.create_str(searchstr);
               exit;
             end;
 
-          mac:= nil;
+          mac:=nil;
           { Substitue macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
-            mac:=tmacro(search_macro(pp));
+            mac:=tmacro(search_macro(searchstr));
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -1461,18 +1460,16 @@ type
                     len:=mac.buflen;
                   hs[0]:=char(len);
                   move(mac.buftext^,hs[1],len);
-                  pp:=upcase(hs);
+                  searchstr:=upcase(hs);
                   mac.is_used:=true;
                 end
               else
                 begin
-                  Message1(scan_e_error_macro_lacks_value, pp);
+                  Message1(scan_e_error_macro_lacks_value,searchstr);
                   break;
                 end
             else
-              begin
-                  break;
-              end;
+              break;
 
             if mac.is_compiler_var then
               break;
@@ -1480,12 +1477,12 @@ type
 
           { At this point, result do contain the value. Do some decoding and
             determine the type.}
-          result:=texprvalue.try_parse_number(pp);
+          result:=texprvalue.try_parse_number(searchstr);
           if not assigned(result) then
             begin
-              if assigned(mac) and (pp='FALSE') then
+              if assigned(mac) and (searchstr='FALSE') then
                 result:=texprvalue.create_bool(false)
-              else if assigned(mac) and (pp='TRUE') then
+              else if assigned(mac) and (searchstr='TRUE') then
                 result:=texprvalue.create_bool(true)
               else if (m_mac in current_settings.modeswitches) and
                       (not assigned(mac) or not mac.defined) and
@@ -1493,11 +1490,11 @@ type
                 begin
                   {Errors in mode mac is issued here. For non macpas modes there is
                    more liberty, but the error will eventually be caught at a later stage.}
-                  Message1(scan_e_error_macro_undefined, pp);
-                  result:=texprvalue.create_str(pp); { just to have something }
+                  Message1(scan_e_error_macro_undefined,searchstr);
+                  result:=texprvalue.create_str(searchstr); { just to have something }
                 end
               else
-                result:=texprvalue.create_str(pp);
+                result:=texprvalue.create_str(searchstr);
             end;
         end;
 
@@ -1850,24 +1847,23 @@ type
                   end
                 else
                   begin
-                    result:=preproc_substitutedtoken(eval);
-
-                    { Default is to return the original symbol }
                     storedpattern:=current_scanner.preproc_pattern;
                     preproc_consume(_ID);
                     current_scanner.skipspace;
+                    { first look for a macros/int/float }
+                    result:=preproc_substitutedtoken(storedpattern,eval);
                     if eval and (result.consttyp=conststring) then
                       if searchsym(storedpattern,srsym,srsymtable) then
                         begin
                           try_consume_nestedsym(srsym,srsymtable);
                           if assigned(srsym) then
                             case srsym.typ of
-                              constsym :
+                              constsym:
                                 begin
                                   result.free;
                                   result:=texprvalue.create_const(tconstsym(srsym));
                                 end;
-                              enumsym :
+                              enumsym:
                                 begin
                                   result.free;
                                   result:=texprvalue.create_int(tenumsym(srsym).value);
