@@ -522,7 +522,7 @@ var
 begin
   regs.realeax:=$0100;
   If VidSeg=$b800 then
-    regs.realecx:=$90A
+    regs.realecx:=$0607
   else
     regs.realecx:=$b0d;
   realintr($10,regs);
@@ -544,7 +544,7 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$10A;
+  regs.realecx:=$0007;
   realintr($10,regs);
 end;
 
