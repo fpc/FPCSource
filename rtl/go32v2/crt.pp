@@ -534,7 +534,7 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$0200;
+  regs.realecx:=$2000;
   realintr($10,regs);
 end;
 

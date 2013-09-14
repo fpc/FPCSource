@@ -564,7 +564,7 @@ var
   regs : registers;
 begin
   regs.ax:=$0100;
-  regs.cx:=$0200;
+  regs.cx:=$2000;
   intr($10,regs);
 end;
 
