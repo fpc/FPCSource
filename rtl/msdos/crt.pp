@@ -552,7 +552,7 @@ var
 begin
   regs.ax:=$0100;
   If VidSeg=$b800 then
-    regs.cx:=$90A
+    regs.cx:=$0607
   else
     regs.cx:=$b0d;
   intr($10,regs);
@@ -574,7 +574,7 @@ var
   regs : registers;
 begin
   regs.ax:=$0100;
-  regs.cx:=$10A;
+  regs.cx:=$0007;
   intr($10,regs);
 end;
 
