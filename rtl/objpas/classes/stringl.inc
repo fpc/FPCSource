@@ -999,7 +999,7 @@ var
   ExchangeProc: procedure(Left, Right: Integer) of object;
 begin
   //if ExchangeItems is override call that, else call (faster) ExchangeItemsInt
-  if TMethod(@Self.ExchangeItems).Code = Pointer(@TStringList.ExchangeItems) then
+  if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
     ExchangeProc := @ExchangeItemsInt
   else
     ExchangeProc := @ExchangeItems;
