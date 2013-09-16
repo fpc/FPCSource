@@ -118,6 +118,58 @@ begin
 end;
 
 
+procedure DetectSnow;
+var
+  regs: Registers;
+  ega_switches: Byte;
+begin
+  { the CGA snow bug exists only in 80x25 text modes. The 40x25 text modes and
+    the graphics modes have no snow even on a true CGA. The monochrome 80x25
+    text mode (lastmode=7) is not supported by CGA and is not snowy on every
+    video card that support it (MDA, Hercules, EGA, VGA+) }
+  if (lastmode<>2) and (lastmode<>3) then
+  begin
+    CheckSnow:=false;
+    exit;
+  end;
+
+  { MCGA/VGA+ test }
+  regs.ax:=$1A00;
+  intr($10,regs);
+  { function supported? }
+  if regs.al=$1A then
+    begin
+      { at this point we have established that an MCGA or VGA+ card is present
+        in the system. However there could still be two video cards present
+        (i.e. an oldschool dual monitor configuration), and one of them could be
+        a CGA, so check BL (=active display code) as well. }
+      CheckSnow:=regs.bl=2;
+      exit;
+    end;
+
+  { EGA test }
+  regs.ah:=$12;
+  regs.bx:=$FF10;
+  intr($10,regs);
+  { function supported? }
+  if regs.bh<>$FF then
+    begin
+      ega_switches:=regs.cl and $0f;
+      { in all the following cases a CGA card is also present and the EGA only
+        works in monochrome mode, but we've already checked that we're not in a
+        monochrome text mode (because lastmode<>7), so it must be the CGA
+        currently active }
+      CheckSnow:=(ega_switches=4)   { primary CGA 40x25, secondary EGA+ 80x25 mono }
+              or (ega_switches=5)   { primary CGA 80x25, secondary EGA+ 80x25 mono }
+              or (ega_switches=10)  { primary EGA+ 80x25 mono, secondary CGA 40x25 (optional) }
+              or (ega_switches=11); { primary EGA+ 80x25 mono, secondary CGA 80x25 (optional) }
+      exit;
+    end;
+
+  CheckSnow:=true;
+end;
+
+
 {****************************************************************************
                               Helper Routines
 ****************************************************************************}
@@ -169,6 +221,8 @@ begin
   screenheight:=getscreenheight;
   windmin:=0;
   windmax:=(screenwidth-1) or ((screenheight-1) shl 8);
+
+  DetectSnow;
 end;
 
 
@@ -775,6 +829,7 @@ begin
   lastmode := mem[$40:$49];
   if screenheight>25 then
     lastmode:=lastmode or $100;
+  DetectSnow;
   If not(lastmode=Mono) then
     VidSeg := $b800
   else
