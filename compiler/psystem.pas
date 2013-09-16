@@ -104,6 +104,8 @@ implementation
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
         systemunit.insert(tsyssym.create('Default',in_default_x));
+        systemunit.insert(tconstsym.create_ord('False',constord,0,pasbool8type));
+        systemunit.insert(tconstsym.create_ord('True',constord,1,pasbool8type));
       end;
 
 

@@ -281,8 +281,8 @@ implementation
          begin
            systemunit:=tglobalsymtable(current_module.localsymtable);
            { create system defines }
-           create_intern_symbols;
            create_intern_types;
+           create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
            generrorsym.owner:=systemunit;

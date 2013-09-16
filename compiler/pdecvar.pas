@@ -681,96 +681,84 @@ implementation
               begin
                 include(p.propoptions,ppo_stored);
                 p.propaccesslist[palt_stored].clear;
-                case token of
-                  _ID:
-                    begin
-                      { in the case that idtoken=_DEFAULT }
-                      { we have to do nothing except      }
-                      { setting ppo_stored, it's the same }
-                      { as stored true                    }
-                      if idtoken<>_DEFAULT then
-                       begin
-                         { parse_symlist cannot deal with constsyms, and
-                           we also don't want to put constsyms in symlists
-                           since they have to be evaluated immediately rather
-                           than each time the property is accessed
+                if token=_ID then
+                  begin
+                    { in the case that idtoken=_DEFAULT }
+                    { we have to do nothing except      }
+                    { setting ppo_stored, it's the same }
+                    { as stored true                    }
+                    if idtoken<>_DEFAULT then
+                     begin
+                       { parse_symlist cannot deal with constsyms, and
+                         we also don't want to put constsyms in symlists
+                         since they have to be evaluated immediately rather
+                         than each time the property is accessed
 
-                           The proper fix would be to always create a parse tree
-                           and then convert that one, if appropriate, to a symlist.
-                           Currently, we e.g. don't support any constant expressions
-                           yet either here, while Delphi does.
+                         The proper fix would be to always create a parse tree
+                         and then convert that one, if appropriate, to a symlist.
+                         Currently, we e.g. don't support any constant expressions
+                         yet either here, while Delphi does.
 
-                         }
-                         { make sure we don't let constants mask class fields/
-                           methods
-                         }
-                         if (not assigned(astruct) or
-                             (search_struct_member(astruct,pattern)=nil)) and
-                            searchsym(pattern,sym,srsymtable) and
-                            (sym.typ = constsym) then
-                           begin
-                              addsymref(sym);
-                              if not is_boolean(tconstsym(sym).constdef) then
-                                Message(parser_e_stored_property_must_be_boolean)
-                              else if (tconstsym(sym).value.valueord=0) then
-                                { same as for _FALSE }
-                                exclude(p.propoptions,ppo_stored)
-                              else
-                                { same as for _TRUE }
-                                p.default:=longint($80000000);
-                              consume(_ID);
-                            end
-                         else if parse_symlist(p.propaccesslist[palt_stored],def) then
-                          begin
-                            sym:=p.propaccesslist[palt_stored].firstsym^.sym;
-                            case sym.typ of
-                              procsym :
-                                begin
-                                   { Create a temporary procvardef to handle parameters }
-                                   storedprocdef:=tprocvardef.create(normal_function_level);
-                                   include(storedprocdef.procoptions,po_methodpointer);
-                                   { Return type must be boolean }
-                                   storedprocdef.returndef:=pasbool8type;
-                                   { Add index parameter if needed }
-                                   if ppo_indexed in p.propoptions then
-                                     begin
-                                       hparavs:=tparavarsym.create('$index',10,vs_value,p.indexdef,[]);
-                                       storedprocdef.parast.insert(hparavs);
-                                     end;
+                       }
+                       { make sure we don't let constants mask class fields/
+                         methods
+                       }
+                       if (not assigned(astruct) or
+                           (search_struct_member(astruct,pattern)=nil)) and
+                          searchsym(pattern,sym,srsymtable) and
+                          (sym.typ = constsym) then
+                         begin
+                            addsymref(sym);
+                            if not is_boolean(tconstsym(sym).constdef) then
+                              Message(parser_e_stored_property_must_be_boolean)
+                            else if (tconstsym(sym).value.valueord=0) then
+                              { same as for _FALSE }
+                              exclude(p.propoptions,ppo_stored)
+                            else
+                              { same as for _TRUE }
+                              p.default:=longint($80000000);
+                            consume(_ID);
+                          end
+                       else if parse_symlist(p.propaccesslist[palt_stored],def) then
+                        begin
+                          sym:=p.propaccesslist[palt_stored].firstsym^.sym;
+                          case sym.typ of
+                            procsym :
+                              begin
+                                 { Create a temporary procvardef to handle parameters }
+                                 storedprocdef:=tprocvardef.create(normal_function_level);
+                                 include(storedprocdef.procoptions,po_methodpointer);
+                                 { Return type must be boolean }
+                                 storedprocdef.returndef:=pasbool8type;
+                                 { Add index parameter if needed }
+                                 if ppo_indexed in p.propoptions then
+                                   begin
+                                     hparavs:=tparavarsym.create('$index',10,vs_value,p.indexdef,[]);
+                                     storedprocdef.parast.insert(hparavs);
+                                   end;
 
-                                   { Insert hidden parameters }
-                                   handle_calling_convention(storedprocdef);
-                                   p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
-                                   if not assigned(p.propaccesslist[palt_stored].procdef) then
-                                     message(parser_e_ill_property_storage_sym);
-                                   { Not needed anymore }
-                                   storedprocdef.owner.deletedef(storedprocdef);
-                                end;
-                              fieldvarsym :
-                                begin
-                                  if not assigned(def) then
-                                    internalerror(200310073);
-                                  if (ppo_hasparameters in p.propoptions) or
-                                     not(is_boolean(def)) then
-                                   Message(parser_e_stored_property_must_be_boolean);
-                                end;
-                              else
-                                Message(parser_e_ill_property_access_sym);
-                            end;
+                                 { Insert hidden parameters }
+                                 handle_calling_convention(storedprocdef);
+                                 p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                                 if not assigned(p.propaccesslist[palt_stored].procdef) then
+                                   message(parser_e_ill_property_storage_sym);
+                                 { Not needed anymore }
+                                 storedprocdef.owner.deletedef(storedprocdef);
+                              end;
+                            fieldvarsym :
+                              begin
+                                if not assigned(def) then
+                                  internalerror(200310073);
+                                if (ppo_hasparameters in p.propoptions) or
+                                   not(is_boolean(def)) then
+                                 Message(parser_e_stored_property_must_be_boolean);
+                              end;
+                            else
+                              Message(parser_e_ill_property_access_sym);
                           end;
-                       end;
-                    end;
-                  _FALSE:
-                    begin
-                      consume(_FALSE);
-                      exclude(p.propoptions,ppo_stored);
-                    end;
-                  _TRUE:
-                    begin
-                      p.default:=longint($80000000);
-                      consume(_TRUE);
-                    end;
-                end;
+                        end;
+                     end;
+                  end;
               end;
            end;
          if not is_record(astruct) and try_to_consume(_DEFAULT) then

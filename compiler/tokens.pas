@@ -141,7 +141,6 @@ type
     _SELF,
     _SYSV,
     _THEN,
-    _TRUE,
     _TYPE,
     _UNIT,
     _UNIV,
@@ -155,7 +154,6 @@ type
     _CLASS,
     _CONST,
     _EQUAL,
-    _FALSE,
     _FAR16,
     _FINAL,
     _INDEX,
@@ -459,7 +457,6 @@ const
       (str:'SELF'          ;special:false;keyword:[m_none];op:NOTOKEN), {set inside methods only PM }
       (str:'SYSV'          ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'THEN'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
-      (str:'TRUE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'UNIT'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
       (str:'UNIV'          ;special:false;keyword:[m_mac];op:NOTOKEN),
@@ -473,7 +470,6 @@ const
       (str:'CLASS'         ;special:false;keyword:[m_class];op:NOTOKEN),
       (str:'CONST'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'EQUAL'         ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
-      (str:'FALSE'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'FAR16'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'FINAL'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'INDEX'         ;special:false;keyword:[m_none];op:NOTOKEN),
