@@ -2096,7 +2096,7 @@ implementation
                      if token=_ID then
                        begin
                          srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
-                         if assigned(srsym) and (srsym.typ=enumsym) then
+                         if assigned(srsym) and (srsym.typ=enumsym) and (p1.nodetype=typen) then
                            begin
                              p1.destroy;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
