@@ -116,6 +116,8 @@ type
     property Items[Index: integer]: TIniFileSection read GetItem; default;
   end;
 
+  { TCustomIniFile }
+
   TCustomIniFile = class
   Private
     FFileName: string;
@@ -131,6 +133,8 @@ type
     procedure WriteString(const Section, Ident, Value: String); virtual; abstract;
     function ReadInteger(const Section, Ident: string; Default: Longint): Longint; virtual;
     procedure WriteInteger(const Section, Ident: string; Value: Longint); virtual;
+    function ReadInt64(const Section, Ident: string; Default: Int64): Longint; virtual;
+    procedure WriteInt64(const Section, Ident: string; Value: Int64); virtual;
     function ReadBool(const Section, Ident: string; Default: Boolean): Boolean; virtual;
     procedure WriteBool(const Section, Ident: string; Value: Boolean); virtual;
     function ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
@@ -461,6 +465,17 @@ begin
 end;
 
 procedure TCustomIniFile.WriteInteger(const Section, Ident: string; Value: Longint);
+begin
+  WriteString(Section, Ident, IntToStr(Value));
+end;
+
+function TCustomIniFile.ReadInt64(const Section, Ident: string; Default: Int64
+  ): Longint;
+begin
+  Result := StrToInt64Def(ReadString(Section, Ident, ''), Default);
+end;
+
+procedure TCustomIniFile.WriteInt64(const Section, Ident: string; Value: Int64);
 begin
   WriteString(Section, Ident, IntToStr(Value));
 end;
