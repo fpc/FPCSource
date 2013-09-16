@@ -2783,9 +2783,8 @@ implementation
                       tcallparanode(left).get_paratype;
                     end;
 
-                  { converting to an add node is tricky because of differences
-                    in procvar handling between FPC and Delphi handling, so
-                    handle specially }
+                  { Postpone conversion into addnode until firstpass, so targets
+                    may override first_assigned and insert specific code. }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=pasbool8type;
                 end;
@@ -3983,10 +3982,13 @@ implementation
           end;
        end;
 
+
      function tinlinenode.first_assigned: tnode;
        begin
-         result:=nil;
-         expectloc := LOC_JUMP;
+         { Comparison must not call procvars, indicate that with nf_load_procvar flag }
+         result:=caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create);
+         include(result.flags,nf_load_procvar);
+         tcallparanode(left).left:=nil;
        end;
 
 

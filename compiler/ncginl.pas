@@ -579,10 +579,7 @@ implementation
 
     procedure tcginlinenode.second_assigned;
       begin
-        secondpass(tcallparanode(left).left);
-        hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,OC_NE,0,tcallparanode(left).left.location,current_procinfo.CurrTrueLabel);
-        hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-        location_reset(location,LOC_JUMP,OS_NO);
+        internalerror(2013091602);
       end;
 
     procedure Tcginlinenode.second_get_frame;

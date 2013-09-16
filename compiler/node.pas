@@ -251,6 +251,7 @@ interface
 
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
          { second one also for subtractions of u32-u32 implicitly upcasted to s64 }
+         { last one also used on addnode to inhibit procvar calling }
          nf_explicit,
          nf_internal,  { no warnings/hints generated }
          nf_load_procvar,

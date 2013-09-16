@@ -1017,9 +1017,15 @@ implementation
          if codegenerror then
            exit;
 
-         { tp procvar support }
-         maybe_call_procvar(left,true);
-         maybe_call_procvar(right,true);
+         { tp procvar support. Omit for converted assigned() nodes }
+         if not (nf_load_procvar in flags) then
+           begin
+             maybe_call_procvar(left,true);
+             maybe_call_procvar(right,true);
+           end
+         else
+           if not (nodetype in [equaln,unequaln]) then
+             InternalError(2013091601);
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
