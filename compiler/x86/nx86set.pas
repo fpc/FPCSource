@@ -85,13 +85,21 @@ implementation
             i:=last.svalue+1;
             while i<=t^._low.svalue-1 do
               begin
+{$ifdef i8086}
+                list.concat(Tai_const.Create_sym_near(elselabel));
+{$else i8086}
                 list.concat(Tai_const.Create_sym(elselabel));
+{$endif i8086}
                 inc(i);
               end;
             i:=t^._low.svalue;
             while i<=t^._high.svalue do
               begin
+{$ifdef i8086}
+                list.concat(Tai_const.Create_sym_near(blocklabel(t^.blockid)));
+{$else i8086}
                 list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+{$endif i8086}
                 inc(i);
               end;
             last:=t^._high;
