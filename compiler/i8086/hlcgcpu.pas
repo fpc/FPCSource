@@ -201,12 +201,12 @@ implementation
       r,tmpref: treference;
     begin
       { handle i8086 6-byte (mixed near + far) method pointers }
-      if (size.typ=procvardef) and (size.size=6) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      if (size.typ in [procvardef,recorddef]) and (size.size=6) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
 
-          if po_far in tprocvardef(size).procoptions then
+          if current_settings.x86memorymodel in x86_far_code_models then
             begin
               cg.a_load_reg_ref(list,OS_32,OS_32,l.register,tmpref);
               inc(tmpref.offset,4);
