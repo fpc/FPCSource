@@ -48,6 +48,30 @@ unit objpas;
        PPointerArray = ^PointerArray;
        TBoundArray = array of integer;
 
+
+{$if FPC_FULLVERSION >= 20701}
+      { Generic support for enumerator interfaces. These are added here, because
+        mode (Obj)FPC does currently not allow the overloading of types with
+        generic types (this will need a modeswitch...) }
+
+      { Note: In Delphi these two generic types inherit from the two interfaces
+              above, but in FPC as well as in Delphi(!) this leads to problems,
+              because of method hiding and method implementation. E.g.
+              consider a class which enumerates integers one needs to implement
+              a GetCurrent for TObject as well... }
+       generic IEnumerator<T> = interface
+         function GetCurrent: T;
+         function MoveNext: Boolean;
+         procedure Reset;
+         property Current: T read GetCurrent;
+       end;
+
+       generic IEnumerable<T> = interface
+         function GetEnumerator: specialize IEnumerator<T>;
+       end;
+{$endif}
+
+
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 Var
    ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
