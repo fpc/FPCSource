@@ -1286,10 +1286,6 @@ implementation
                            else
                              MessagePos(pd.fileinfo,type_e_type_id_expected);
                        end;
-                     if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
-                        ((pd.returndef.typ<>orddef) or
-                         (torddef(pd.returndef).ordtype<>pasbool8)) then
-                        Message(parser_e_comparative_operator_return_boolean);
                      if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                         equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                         (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
