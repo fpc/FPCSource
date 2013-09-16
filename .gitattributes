@@ -1947,6 +1947,7 @@ packages/fcl-base/src/iostream.pp svneol=native#text/plain
 packages/fcl-base/src/maskutils.pp svneol=native#text/plain
 packages/fcl-base/src/netware/custapp.inc svneol=native#text/plain
 packages/fcl-base/src/netwlibc/custapp.inc svneol=native#text/plain
+packages/fcl-base/src/nullstream.pp svneol=native#text/plain
 packages/fcl-base/src/os2/custapp.inc svneol=native#text/plain
 packages/fcl-base/src/os2/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/pooledmm.pp svneol=native#text/plain
