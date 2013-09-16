@@ -531,6 +531,9 @@ interface
 
 
        { Generates an integer const }
+
+       { tai_const }
+
        tai_const = class(tai)
           sym,
           endsym  : tasmsymbol;
@@ -557,6 +560,10 @@ interface
           constructor Create_pint(_value : pint);
           constructor Create_pint_unaligned(_value : pint);
           constructor Create_sym(_sym:tasmsymbol);
+{$ifdef i8086}
+          constructor Create_sym_near(_sym:tasmsymbol);
+          constructor Create_sym_far(_sym:tasmsymbol);
+{$endif i8086}
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
           constructor Create_type_sym_offset(_typ:taiconst_type;_sym:tasmsymbol;ofs:aint);
@@ -1616,6 +1623,21 @@ implementation
       begin
          self.create_sym_offset(_sym,0);
       end;
+
+
+{$ifdef i8086}
+    constructor tai_const.Create_sym_near(_sym: tasmsymbol);
+      begin
+         self.create_sym(_sym);
+         consttype:=aitconst_ptr;
+      end;
+
+    constructor tai_const.Create_sym_far(_sym: tasmsymbol);
+      begin
+        self.create_sym(_sym);
+        consttype:=aitconst_farptr;
+      end;
+{$endif i8086}
 
 
     constructor tai_const.Create_sym_offset(_sym:tasmsymbol;ofs:aint);
