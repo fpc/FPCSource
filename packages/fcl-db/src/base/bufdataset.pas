@@ -384,6 +384,21 @@ type
 
   { TFpcBinaryDatapacketReader }
 
+  { Format description:
+    Header:
+      Identification: 13 bytes: 'BinBufDataSet'
+      Version: 1 byte
+    FieldDefs:
+      Number of Fields: 2 bytes
+      For each FieldDef: Name, DisplayName, Size: 2 bytes, DataType: 2 bytes, ReadOnlyAttr: 1 byte
+      AutoInc Value: 4 bytes
+    Records:
+      Record header: each record begins with $fe: 1 byte
+                     row state: 1 byte
+                     update order: 4 bytes
+      Record data:
+  }
+
   TFpcBinaryDatapacketReader = class(TDataPacketReader)
   private
     const
@@ -392,9 +407,11 @@ type
       StringFieldTypes = [ftString,ftFixedChar,ftWideString,ftFixedWideChar];
       BlobFieldTypes = [ftBlob,ftMemo,ftWideMemo];
       VarLenFieldTypes = StringFieldTypes + BlobFieldTypes + [ftBytes,ftVarBytes];
+  protected
     var
       FVersion: byte;
   public
+    constructor Create(AStream : TStream); override;
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
@@ -2339,7 +2356,7 @@ begin
       SetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1)
     else
       unSetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1);
-    
+
     blobbuf.BlobBuffer^.FieldNo := -1;
     end;
 
@@ -3515,6 +3532,12 @@ end;
 
 { TFpcBinaryDatapacketReader }
 
+constructor TFpcBinaryDatapacketReader.Create(AStream: TStream);
+begin
+  inherited;
+  FVersion := 20; // default version 2.0
+end;
+
 procedure TFpcBinaryDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
 
 var FldCount : word;
@@ -3555,7 +3578,7 @@ procedure TFpcBinaryDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAu
 var i : integer;
 begin
   Stream.Write(FpcBinaryIdent2[1], length(FpcBinaryIdent2));
-  Stream.WriteByte(20); // version 2.0
+  Stream.WriteByte(FVersion);
 
   Stream.WriteWord(AFieldDefs.Count);
   for i := 0 to AFieldDefs.Count -1 do with AFieldDefs[i] do
@@ -3608,11 +3631,11 @@ var
   L: cardinal;
   B: TBytes;
 begin
-  case FVersion of
-    10:
-      Stream.ReadBuffer(ADataset.GetCurrentBuffer^, ADataset.FRecordSize);  // Ugly because private members of ADataset are used...
-    20:
-      with ADataset do
+  with ADataset do
+    case FVersion of
+      10:
+        Stream.ReadBuffer(GetCurrentBuffer^, FRecordSize);  // Ugly because private members of ADataset are used...
+      20:
         for i:=0 to FieldDefs.Count-1 do
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
@@ -3634,7 +3657,7 @@ begin
               AField.SetData(@B[0], False);  // set it to the FilterBuffer
             end;
           end;
-  end;
+    end;
 end;
 
 procedure TFpcBinaryDatapacketReader.StoreRecord(ADataset: TCustomBufDataset;
@@ -3652,24 +3675,28 @@ begin
     Stream.WriteBuffer(AUpdOrder,sizeof(integer));
 
   // Record data
-  // Old 1.0 version: Stream.WriteBuffer(ADataset.GetCurrentBuffer^, ADataset.FRecordSize);
   with ADataset do
-    for i:=0 to FieldDefs.Count-1 do
-      begin
-      AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
-      if AField=nil then continue;
-      if AField.DataType in StringFieldTypes then
-        Stream.WriteAnsiString(AField.AsString)
-      else
-        begin
-        B := AField.AsBytes;
-        L := length(B);
-        if AField.DataType in VarLenFieldTypes then
-          Stream.WriteDWord(L);
-        if L > 0 then
-          Stream.WriteBuffer(B[0], L);
-        end;
-     end;
+    case FVersion of
+      10:
+        Stream.WriteBuffer(GetCurrentBuffer^, FRecordSize); // Old 1.0 version
+      20:
+        for i:=0 to FieldDefs.Count-1 do
+          begin
+          AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
+          if AField=nil then continue;
+          if AField.DataType in StringFieldTypes then
+            Stream.WriteAnsiString(AField.AsString)
+          else
+            begin
+            B := AField.AsBytes;
+            L := length(B);
+            if AField.DataType in VarLenFieldTypes then
+              Stream.WriteDWord(L);
+            if L > 0 then
+              Stream.WriteBuffer(B[0], L);
+            end;
+         end;
+    end;
 end;
 
 procedure TFpcBinaryDatapacketReader.FinalizeStoreRecords;
