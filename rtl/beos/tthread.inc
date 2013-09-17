@@ -151,6 +151,7 @@ begin
   while Thread.FHandle = 0 do fpsleep(1);
   if Thread.FSuspended then Thread.suspend();
   try
+    CurrentThreadVar := Thread;
     Thread.Execute;
   except
     Thread.FFatalException := TObject(AcquireExceptionObject);
@@ -423,10 +424,12 @@ begin
     if LThread.FInitialSuspended then begin
       SemaphoreWait(LThread.FSem);
       if not LThread.FInitialSuspended then begin
+        CurrentThreadVar := LThread;
         WRITE_DEBUG('going into LThread.Execute');
         LThread.Execute;
       end;
     end else begin
+      CurrentThreadVar := LThread;
       WRITE_DEBUG('going into LThread.Execute');
       LThread.Execute;
     end;

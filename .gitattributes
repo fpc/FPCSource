@@ -11864,6 +11864,7 @@ tests/test/tthlp6.pp svneol=native#text/pascal
 tests/test/tthlp7.pp svneol=native#text/pascal
 tests/test/tthlp8.pp svneol=native#text/pascal
 tests/test/tthlp9.pp svneol=native#text/pascal
+tests/test/tthread1.pp svneol=native#text/pascal
 tests/test/ttpara1.pp svneol=native#text/plain
 tests/test/ttpara2.pp svneol=native#text/plain
 tests/test/ttypeconvtypes.pp svneol=native#text/pascal

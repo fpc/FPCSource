@@ -111,6 +111,7 @@ begin
             if not LThread.FSuspended then
               begin
                 LThread.FInitialSuspended := false;
+                CurrentThreadVar := LThread;
                 WRITE_DEBUG('going into LThread.Execute');
                 LThread.Execute;
               end
@@ -125,6 +126,7 @@ begin
          LThread.FSuspendedInternal := true;
          WRITE_DEBUG('waiting for SuspendedInternal - ', LThread.ClassName);
         CurrentTM.SemaphoreWait(LThread.FSem);
+         CurrentThreadVar := LThread;
          WRITE_DEBUG('going into LThread.Execute - ', LThread.ClassName);
          LThread.Execute;
        end;
