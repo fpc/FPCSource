@@ -149,7 +149,7 @@ begin
 {$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
       try
 {$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
-      prev_frame:=get_caller_frame(curr_addr, curr_frame);
+      prev_frame:=get_caller_frame(curr_frame, curr_addr);
 {$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
       except
         halt(217);
