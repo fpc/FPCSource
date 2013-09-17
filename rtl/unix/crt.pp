@@ -1252,7 +1252,7 @@ begin
 end;
 
 
-Function CrtWrite(Var F: TextRec): Integer;
+Procedure CrtWrite(Var F: TextRec);
 {
   Top level write function for CRT
 }
@@ -1276,11 +1276,10 @@ Begin
    end;
 
   ttySetFlush(oldFLush);
-  CrtWrite:=0;
 End;
 
 
-Function CrtRead(Var F: TextRec): Integer;
+Procedure CrtRead(Var F: TextRec);
 {
   Read from CRT associated file.
 }
@@ -1340,27 +1339,24 @@ Begin
   if not(OutputRedir or InputRedir) then
     CrtWrite(F)
   else F.BufPos := 0;
-  CrtRead:=0;
 End;
 
 
-Function CrtReturn(Var F:TextRec):Integer;
+Procedure CrtReturn(Var F:TextRec);
 Begin
-  CrtReturn:=0;
 end;
 
 
-Function CrtClose(Var F: TextRec): Integer;
+Procedure CrtClose(Var F: TextRec);
 {
   Close CRT associated file.
 }
 Begin
   F.Mode:=fmClosed;
-  CrtClose:=0;
 End;
 
 
-Function CrtOpen(Var F: TextRec): Integer;
+Procedure CrtOpen(Var F: TextRec);
 {
   Open CRT associated file.
 }
@@ -1377,7 +1373,6 @@ Begin
      TextRec(F).FlushFunc:=@CrtReturn;
    end;
   TextRec(F).CloseFunc:=@CrtClose;
-  CrtOpen:=0;
 End;
 
 
