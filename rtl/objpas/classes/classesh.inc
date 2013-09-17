@@ -1692,7 +1692,7 @@ type
       NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
       Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
-    function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult;
+    function SafeCallException(ExceptObject: TObject; ExceptAddr: CodePointer): HResult;
     procedure FreeOnRelease;
   end;
 
@@ -1809,7 +1809,7 @@ type
     procedure InsertComponent(AComponent: TComponent);
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
-      ExceptAddr: Pointer): HResult; override;
+      ExceptAddr: CodePointer): HResult; override;
     procedure SetSubComponent(ASubComponent: Boolean);
     function UpdateAction(Action: TBasicAction): Boolean; dynamic;
     property ComObject: IUnknown read GetComObject;

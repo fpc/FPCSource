@@ -622,7 +622,7 @@ end;
 
 
 Function  TComponent.SafeCallException(ExceptObject: TObject;
-  ExceptAddr: Pointer): HResult;
+  ExceptAddr: CodePointer): HResult;
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject).SafeCallException(ExceptObject, ExceptAddr)
