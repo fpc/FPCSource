@@ -1,7 +1,9 @@
+{ %NORUN }
+
 program tw10477;
 
 uses
-  uthlp;
+  uw10477;
 
 begin
 end.
