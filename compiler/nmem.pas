@@ -143,6 +143,9 @@ implementation
       symconst,symbase,defutil,defcmp,
       nbas,nutils,
       wpobase,
+{$ifdef i8086}
+      cpuinfo,
+{$endif i8086}
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
       ;
 
@@ -614,6 +617,16 @@ implementation
                    result:=cpointerconstnode.create(offset,voidpointertype);
                  exit;
                end
+{$ifdef i8086}
+              else if (hp.nodetype=loadn) and
+               (tloadnode(hp).symtableentry.typ=labelsym) then
+                begin
+                  if current_settings.x86memorymodel in x86_far_code_models then
+                    resultdef:=voidfarpointertype
+                  else
+                    resultdef:=voidnearpointertype;
+                end
+{$endif i8086}
               else if (nf_internal in flags) or
                  valid_for_addr(left,true) then
                 begin
