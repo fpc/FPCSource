@@ -831,6 +831,7 @@ interface
          procedure removehelpers(st: TSymtable);
        public
          procedure push(st: TSymtable); override;
+         procedure pushafter(st,afterst:TSymtable); override;
          procedure pop(st: TSymtable); override;
        end;
 
@@ -1389,6 +1390,15 @@ implementation
             (sto_has_helper in st.tableoptions) then
           addhelpers(st);
         inherited push(st);
+      end;
+
+    procedure tdefawaresymtablestack.pushafter(st,afterst:TSymtable);
+      begin
+        { nested helpers will be added as well }
+        if (st.symtabletype in [globalsymtable,staticsymtable]) and
+            (sto_has_helper in st.tableoptions) then
+          addhelpers(st);
+        inherited pushafter(st,afterst);
       end;
 
     procedure tdefawaresymtablestack.pop(st: TSymtable);

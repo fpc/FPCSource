@@ -396,7 +396,7 @@ implementation
       end;
 
 
-    procedure loadunits;
+    procedure loadunits(preservest:tsymtable);
       var
          s,sorg  : ansistring;
          fn      : string;
@@ -495,7 +495,10 @@ implementation
                { connect unitsym to the module }
                pu.unitsym.module:=pu.u;
                { add to symtable stack }
-               symtablestack.push(pu.u.globalsymtable);
+               if assigned(preservest) then
+                 symtablestack.pushafter(pu.u.globalsymtable,preservest)
+               else
+                 symtablestack.push(pu.u.globalsymtable);
                if (m_mac in current_settings.modeswitches) and
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
@@ -536,16 +539,6 @@ implementation
                   end;
               end;
           end;
-      end;
-
-
-    procedure parse_implementation_uses;
-      begin
-         if token=_USES then
-           begin
-             loadunits;
-             consume(_SEMICOLON);
-           end;
       end;
 
 
@@ -847,7 +840,7 @@ type
          if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
            begin
-             loadunits;
+             loadunits(nil);
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
                exit;
@@ -927,21 +920,28 @@ type
          { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
          maybe_load_got;
 
+         symtablestack.push(current_module.globalsymtable);
          if not current_module.interface_only then
            begin
              consume(_IMPLEMENTATION);
              Message1(unit_u_loading_implementation_units,current_module.modulename^);
              { Read the implementation units }
-             parse_implementation_uses;
+             if token=_USES then
+               begin
+                 loadunits(current_module.globalsymtable);
+                 consume(_SEMICOLON);
+               end;
            end;
 
          if current_module.state=ms_compiled then
-           exit;
+           begin
+             symtablestack.pop(current_module.globalsymtable);
+             exit;
+           end;
 
          { All units are read, now give them a number }
          current_module.updatemaps;
 
-         symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
 
          if not current_module.interface_only then
@@ -2014,7 +2014,7 @@ type
          {Load the units used by the program we compile.}
          if token=_USES then
            begin
-             loadunits;
+             loadunits(nil);
              consume_semicolon_after_uses:=true;
            end
          else

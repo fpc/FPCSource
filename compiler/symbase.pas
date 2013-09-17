@@ -130,7 +130,9 @@ interface
          constructor create;
          destructor destroy;override;
          procedure clear;
+         function finditem(st:TSymtable):psymtablestackitem;
          procedure push(st:TSymtable); virtual;
+         procedure pushafter(st,afterst:TSymtable); virtual;
          procedure pop(st:TSymtable); virtual;
          function  top:TSymtable;
          function getcopyuntil(finalst: TSymtable): TSymtablestack;
@@ -397,6 +399,14 @@ implementation
           end;
       end;
 
+    function TSymtablestack.finditem(st: TSymtable): psymtablestackitem;
+      begin
+        if not assigned(stack) then
+          internalerror(200601233);
+        result:=stack;
+        while assigned(result)and(result^.symtable<>st) do
+          result:=result^.next;
+      end;
 
     procedure TSymtablestack.push(st:TSymtable);
       var
@@ -408,6 +418,21 @@ implementation
         stack:=hp;
       end;
 
+    procedure TSymtablestack.pushafter(st,afterst:TSymtable);
+      var
+        hp,afteritem: psymtablestackitem;
+      begin
+        afteritem:=finditem(afterst);
+        if assigned(afteritem) then
+          begin
+            new(hp);
+            hp^.symtable:=st;
+            hp^.next:=afteritem^.next;
+            afteritem^.next:=hp;
+          end
+        else
+          internalerror(201309171);
+      end;
 
     procedure TSymtablestack.pop(st:TSymtable);
       var
