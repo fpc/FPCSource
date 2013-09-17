@@ -281,13 +281,16 @@ end;
 
 {$push}
 {$S-}
-Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
+Procedure CatchUnhandledException (Obj : TObject; Addr: CodePointer; FrameCount: Longint; Frames: PCodePointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
   i : longint;
   hstdout : ^text;
 begin
   hstdout:=@stdout;
+{$if defined(CPUI8086) and (defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE))}
+{$else}
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
+{$endif}
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
   else
@@ -364,7 +367,7 @@ Var OutOfMemory : EOutOfMemory;
     InValidPointer : EInvalidPointer;
 
 
-Procedure RunErrorToExcept (ErrNo : Longint; Address,Frame : Pointer);
+Procedure RunErrorToExcept (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
 var
   E: Exception;
   HS: PString;
@@ -495,7 +498,7 @@ begin
     Result:=RaiseList^.FObject;
 end;
 
-function ExceptAddr: Pointer;
+function ExceptAddr: CodePointer;
 
 begin
   If RaiseList=Nil then
@@ -513,7 +516,7 @@ begin
     Result:=RaiseList^.Framecount;
 end;
 
-function ExceptFrames: PPointer;
+function ExceptFrames: PCodePointer;
 
 begin
   If RaiseList=Nil then
@@ -565,7 +568,7 @@ end;
 procedure Abort;
 
 begin
-  Raise EAbort.Create(SAbortError) at Pointer(Get_Caller_addr(Get_Frame));
+  Raise EAbort.Create(SAbortError) at CodePointer(Get_Caller_addr(Get_Frame));
 end;
 
 procedure OutOfMemoryError;

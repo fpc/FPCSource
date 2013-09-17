@@ -217,9 +217,9 @@ type
 
    { Exception handling routines }
    function ExceptObject: TObject;
-   function ExceptAddr: Pointer;
+   function ExceptAddr: CodePointer;
    function ExceptFrameCount: Longint;
-   function ExceptFrames: PPointer;
+   function ExceptFrames: PCodePointer;
    function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
                                   Buffer: PChar; Size: Integer): Integer;
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
