@@ -69,8 +69,8 @@ Const
 
 Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer); forward;
+Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -686,7 +686,7 @@ End;
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need
     the instruction address to walk the stack. }
-function get_pc_addr : pointer;
+function get_pc_addr : codepointer;
 begin
   get_pc_addr:=nil;
 end;
@@ -697,9 +697,10 @@ end;
     of get_caller_stackinfo procedure,
     using get_caller_addr and get_caller_frame
     functions. }
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+procedure get_caller_stackinfo(var framebp : pointer; addr : codepointer);
 var
-  nextbp,nextaddr : pointer;
+  nextbp : pointer;
+  nextaddr : codepointer;
 begin
   nextbp:=get_caller_frame(framebp,addr);
   nextaddr:=get_caller_addr(framebp,addr);
@@ -967,7 +968,11 @@ Begin
   pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
+{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
+     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(DWord(erroraddr) shr 16,4),':',hexstr(DWord(erroraddr) and $FFFF,4));
+{$else}
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
+{$endif}
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
      dump_stack(pstdout^,ErrorBase,ErrorAddr);
@@ -1041,13 +1046,17 @@ Begin
 end;
 
 
-function SysBackTraceStr (Addr: Pointer): ShortString;
+function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
+{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
+  SysBackTraceStr:='  $'+hexstr(DWord(addr) shr 16,4)+':'+hexstr(DWord(addr) and $FFFF,4);
+{$else}
   SysBackTraceStr:='  $'+hexstr(addr);
+{$endif}
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
@@ -1064,7 +1073,7 @@ end;
 { This is used internally by system skip first level,
   and generated the same output as before, when
   HandleErrorFrame function was used internally. }
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer);
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer);
 begin
   get_caller_stackinfo (frame, addr);
   HandleErrorAddrFrame (Errno,addr,frame);
@@ -1093,7 +1102,8 @@ end;
 
 procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
 var
-  bp,pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
 begin
   errorcode:=w;
   pcaddr:=get_pc_addr;
@@ -1123,14 +1133,14 @@ begin
 end;
 
 
-Procedure dump_stack(var f : text;fp,addr : Pointer);
+Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
   i : Longint;
   prevfp : Pointer;
-  prevaddr : pointer;
+  prevaddr : CodePointer;
   is_dev : boolean;
-  caller_frame,
-  caller_addr : Pointer;
+  caller_frame : Pointer;
+  caller_addr : CodePointer;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
@@ -1171,7 +1181,7 @@ procedure DumpExceptionBackTrace(var f:text);
 var
   FrameNumber,
   FrameCount   : longint;
-  Frames       : PPointer;
+  Frames       : PCodePointer;
 begin
   if RaiseList=nil then
     exit;

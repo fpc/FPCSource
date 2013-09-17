@@ -618,7 +618,7 @@ const
 
 { Exit Procedure handling consts and types  }
   ExitProc : codepointer = nil;
-  Erroraddr: pointer = nil;
+  Erroraddr: codepointer = nil;
   Errorcode: Word    = 0;
 
 { file input modes }
@@ -1258,11 +1258,11 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
-Function Get_pc_addr : Pointer;
+Function Get_pc_addr : CodePointer;
 
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
+function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;
+procedure get_caller_stackinfo(var framebp : pointer; addr : codepointer);
 
 Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
@@ -1344,7 +1344,7 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-Procedure Dump_Stack(var f : text;fp:pointer;addr : pointer = nil);
+Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
@@ -1387,7 +1387,7 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 procedure EmptyMethod;external name 'FPC_EMPTYMETHOD';
-Function  SysBackTraceStr(Addr:Pointer): ShortString;
+Function  SysBackTraceStr(Addr:CodePointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 (* Supposed to return address of previous CtrlBreakHandler *)
 (* (may be nil), returned value of pointer (-1) means that *)
@@ -1396,8 +1396,8 @@ function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 
 { Error handlers }
 Type
-  TBackTraceStrFunc = Function (Addr: Pointer): ShortString;
-  TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
+  TBackTraceStrFunc = Function (Addr: CodePointer): ShortString;
+  TErrorProc = Procedure (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
   TSafeCallErrorProc = Procedure(error : HResult;addr : pointer);

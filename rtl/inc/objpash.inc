@@ -196,7 +196,7 @@
           class function newinstance : tobject;virtual;
           procedure FreeInstance;virtual;
           function SafeCallException(exceptobject : tobject;
-            exceptaddr : pointer) : HResult;virtual;
+            exceptaddr : codepointer) : HResult;virtual;
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
@@ -322,17 +322,17 @@
        PInterface = PUnknown;
 
 
-       TExceptProc = Procedure (Obj : TObject; Addr : Pointer; FrameCount:Longint; Frame: PPointer);
+       TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
        { Exception object stack }
        PExceptObject = ^TExceptObject;
        TExceptObject = record
          FObject    : TObject;
-         Addr       : pointer;
+         Addr       : codepointer;
          Next       : PExceptObject;
          refcount   : Longint;
          Framecount : Longint;
-         Frames     : PPointer;
+         Frames     : PCodePointer;
        end;
 
     Const

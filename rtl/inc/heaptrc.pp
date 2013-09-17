@@ -132,7 +132,7 @@ type
     release_sig : longword;
     prev_valid  : pheap_mem_info;
 {$endif EXTRA}
-    calls    : array [1..tracesize] of pointer;
+    calls    : array [1..tracesize] of codepointer;
     exact_info_size : word;
     extra_info_size : word;
     extra_info      : pheap_extra_info;
@@ -336,7 +336,8 @@ end;
 
 procedure dump_already_free(p : pheap_mem_info;var ptext : text);
 var
-  bp, pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' released');
   call_free_stack(p,ptext);
@@ -349,7 +350,8 @@ end;
 
 procedure dump_error(p : pheap_mem_info;var ptext : text);
 var
-  bp, pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
@@ -382,7 +384,8 @@ end;
 
 procedure dump_wrong_size(p : pheap_mem_info;size : ptruint;var ptext : text);
 var
-  bp, pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
@@ -464,7 +467,8 @@ Function TraceGetMem(size:ptruint):pointer;
 var
   allocsize,i : ptruint;
   oldbp,
-  bp,pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
   pl : pdword;
   p  : pointer;
   pp : pheap_mem_info;
@@ -573,7 +577,8 @@ function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean; inline;
 var
   i: ptruint;
-  bp,pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
   ptext : ^text;
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
@@ -798,8 +803,8 @@ var
   movesize,
   i  : ptruint;
   oldbp,
-  bp,
-  pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
   pl : pdword;
   pp : pheap_mem_info;
   oldsize,
@@ -1005,7 +1010,8 @@ var
 {$ifdef morphos}
   stack_top: longword;
 {$endif morphos}
-  bp,pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
   ptext : ^text;
 label
   _exit;

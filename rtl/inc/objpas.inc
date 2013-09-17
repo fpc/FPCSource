@@ -501,7 +501,7 @@
         end;
 
       function TObject.SafeCallException(exceptobject : tobject;
-        exceptaddr : pointer) : HResult;
+        exceptaddr : codepointer) : HResult;
 
         begin
           safecallexception:=E_UNEXPECTED;

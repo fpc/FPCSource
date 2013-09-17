@@ -112,18 +112,18 @@ end;
   {$define FPC_CHECK_GET_CALLER_EXCEPTIONS}
 {$endif}
 
-Procedure PushExceptObject(Obj : TObject; AnAddr,AFrame : Pointer);
+Procedure PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
   framebufsize,
   framecount  : longint;
-  frames      : PPointer;
+  frames      : PCodePointer;
   prev_frame,
   curr_frame,
+  caller_frame : Pointer;
   curr_addr,
-  caller_frame,
-  caller_addr : Pointer;
+  caller_addr : CodePointer;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
@@ -179,7 +179,7 @@ begin
           if (framecount>=framebufsize) then
             begin
               inc(framebufsize,16);
-              reallocmem(frames,framebufsize*sizeof(pointer));
+              reallocmem(frames,framebufsize*sizeof(codepointer));
             end;
           frames[framecount]:=caller_addr;
           inc(framecount);
@@ -211,7 +211,7 @@ begin
 end;
 
 {$ifndef FPC_SYSTEM_HAS_RAISEEXCEPTION}
-Function fpc_RaiseException (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
+Function fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
@@ -376,7 +376,7 @@ begin
 end;
 
 { TODO: no longer used, clean up }
-function fpc_GetExceptionAddr : Pointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
+function fpc_GetExceptionAddr : CodePointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
 begin
@@ -411,7 +411,7 @@ end;
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;
 var
   raiselist: PExceptObject;
-  adr: Pointer;
+  adr: CodePointer;
   exc: TObject;
 begin
   raiselist:=ExceptObjectStack;

@@ -592,14 +592,14 @@ procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
-Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject; compilerproc;
+Function fpc_Raiseexception (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer) : TObject; compilerproc;
 Procedure fpc_PopAddrStack; compilerproc;
 function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
-function fpc_GetExceptionAddr : Pointer; compilerproc;
+function fpc_GetExceptionAddr : CodePointer; compilerproc;
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
 function fpc_safecallcheck(res : hresult) : hresult; compilerproc; {$ifdef CPU86} register; {$endif}
 procedure fpc_doneexception; compilerproc;
