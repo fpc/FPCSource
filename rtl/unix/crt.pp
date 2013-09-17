@@ -1325,7 +1325,6 @@ Begin
         end;
       until (c in [#10,#13]) or (i >= F.BufSize);
       F.BufEnd := i;
-      CrtRead := 0;
       exit;
     end;
   F.BufEnd:=fpRead(F.Handle, F.BufPtr^, F.BufSize);
