@@ -184,6 +184,11 @@ interface
           the full name of the type and the data is a TFPObjectList of
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
+        { contains a list of the current topmost non-generic symbol for a
+          typename of which at least one generic exists; the key is the
+          non-generic typename and the data is a TFPObjectList of tgenericdummyentry
+          instances whereby the last one is the current top most one }
+        genericdummysyms: TFPHashObjectList;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -547,6 +552,7 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs:=TFPHashObjectList.Create(true);
+        genericdummysyms:=tfphashobjectlist.create(true);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
         globalsymtable:=nil;
@@ -636,6 +642,7 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         extendeddefs.Free;
+        genericdummysyms.free;
         waitingforunit.free;
         waitingunits.free;
         stringdispose(asmprefix);

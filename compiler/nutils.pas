@@ -1042,7 +1042,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,[ssf_search_helper])
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then

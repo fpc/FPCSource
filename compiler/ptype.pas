@@ -493,8 +493,16 @@ implementation
                   )
                 then
               begin
-                Message(parser_e_no_generics_as_types);
-                def:=generrordef;
+                srsym:=resolve_generic_dummysym(srsym.name);
+                if assigned(srsym) and
+                    not (sp_generic_dummy in srsym.symoptions) and
+                    (srsym.typ=typesym) then
+                  def:=ttypesym(srsym).typedef
+                else
+                  begin
+                    Message(parser_e_no_generics_as_types);
+                    def:=generrordef;
+                  end;
               end
             else if (def.typ=undefineddef) and
                 (sp_generic_dummy in srsym.symoptions) and
@@ -504,8 +512,16 @@ implementation
               begin
                 if m_delphi in current_settings.modeswitches then
                   begin
-                    Message(parser_e_no_generics_as_types);
-                    def:=generrordef;
+                    srsym:=resolve_generic_dummysym(srsym.name);
+                    if assigned(srsym) and
+                        not (sp_generic_dummy in srsym.symoptions) and
+                        (srsym.typ=typesym) then
+                      def:=ttypesym(srsym).typedef
+                    else
+                      begin
+                        Message(parser_e_no_generics_as_types);
+                        def:=generrordef;
+                      end;
                   end
                 else
                   def:=current_genericdef;
@@ -887,6 +903,9 @@ implementation
            old_block_type : tblock_type;
            dospecialize : boolean;
            newdef  : tdef;
+           sym     : tsym;
+           genstr  : string;
+           gencount : longint;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -1031,8 +1050,26 @@ implementation
                              )
                            then
                          begin
-                           Message(parser_e_no_generics_as_types);
-                           def:=generrordef;
+                           if assigned(def.typesym) then
+                             begin
+                               if ttypesym(def.typesym).typedef.typ<>undefineddef then
+                                 { non-Delphi modes... }
+                                 split_generic_name(def.typesym.name,genstr,gencount)
+                               else
+                                 genstr:=def.typesym.name;
+                               sym:=resolve_generic_dummysym(genstr);
+                             end
+                           else
+                             sym:=nil;
+                           if assigned(sym) and
+                               not (sp_generic_dummy in sym.symoptions) and
+                               (sym.typ=typesym) then
+                             def:=ttypesym(sym).typedef
+                           else
+                             begin
+                               Message(parser_e_no_generics_as_types);
+                               def:=generrordef;
+                             end;
                          end
                        else if is_classhelper(def) then
                          begin
@@ -1515,7 +1552,15 @@ implementation
                     (tt2.typ=undefineddef) and
                     assigned(tt2.typesym) and
                     (sp_generic_dummy in tt2.typesym.symoptions) then
-                  Message(parser_e_no_generics_as_types);
+                  begin
+                    sym:=resolve_generic_dummysym(tt2.typesym.name);
+                    if assigned(sym) and
+                        not (sp_generic_dummy in sym.symoptions) and
+                        (sym.typ=typesym) then
+                      tt2:=ttypesym(sym).typedef
+                    else
+                      Message(parser_e_no_generics_as_types);
+                  end;
                 { don't use getpointerdef() here, since this is a type
                   declaration (-> must create new typedef) }
                 def:=tpointerdef.create(tt2);

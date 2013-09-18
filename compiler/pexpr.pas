@@ -1382,7 +1382,7 @@ implementation
                  result:=ctypenode.create(hdef);
                  ttypenode(result).typesym:=sym;
                  { search also in inherited methods }
-                 searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
+                 searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,[ssf_search_helper]);
                  if assigned(srsym) then
                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                  consume(_ID);
@@ -2197,7 +2197,7 @@ implementation
                       if token=_ID then
                         begin
                           structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                           if assigned(srsym) then
                             begin
                               check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2221,7 +2221,7 @@ implementation
                       if token=_ID then
                         begin
                           structh:=tobjectdef(p1.resultdef);
-                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                           if assigned(srsym) then
                             begin
                                check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2920,9 +2920,9 @@ implementation
                        else
                        { helpers have their own ways of dealing with inherited }
                        if is_objectpascal_helper(current_structdef) then
-                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
-                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                      end
                     else
                      begin
@@ -2932,9 +2932,9 @@ implementation
                        anon_inherited:=false;
                        { helpers have their own ways of dealing with inherited }
                        if is_objectpascal_helper(current_structdef) then
-                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
-                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2992,7 +2992,7 @@ implementation
                           if (po_msgint in pd.procoptions) or
                              (po_msgstr in pd.procoptions) then
                             begin
-                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,true);
+                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,[ssf_search_helper]);
                               if not assigned(srsym) or
                                  (srsym.typ<>procsym) then
                                 internalerror(200303171);

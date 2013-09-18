@@ -825,15 +825,26 @@ interface
           function  is_publishable : boolean;override;
        end;
 
+
+       tgenericdummyentry = class
+         dummysym : tsym;
+         resolvedsym : tsym;
+       end;
+
+
        tdefawaresymtablestack = class(TSymtablestack)
        private
-         procedure addhelpers(st: TSymtable);
-         procedure removehelpers(st: TSymtable);
+         procedure add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
+         procedure remove_helpers_and_generics(st:tsymtable);inline;
+         procedure remove_helpers(st:tsymtable);
+         procedure remove_generics(st:tsymtable);
+         procedure pushcommon(st:tsymtable);inline;
        public
          procedure push(st: TSymtable); override;
          procedure pushafter(st,afterst:TSymtable); override;
          procedure pop(st: TSymtable); override;
        end;
+
 
     var
        current_structdef: tabstractrecorddef; { used for private functions check !! }
@@ -1080,6 +1091,8 @@ implementation
 {$ifdef jvm}
       jvmdef,
 {$endif}
+      { parser }
+      pgenutil,
       { module }
       fmodule,
       { other }
@@ -1316,12 +1329,15 @@ implementation
            the pushed/popped symtables)
 ****************************************************************************}
 
-    procedure tdefawaresymtablestack.addhelpers(st: TSymtable);
+    procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
       var
         i: integer;
         s: string;
         list: TFPObjectList;
         def: tdef;
+        sym,srsym : tsym;
+        srsymtable : tsymtable;
+        entry : tgenericdummyentry;
       begin
         { search the symtable from first to last; the helper to use will be the
           last one in the list }
@@ -1330,6 +1346,7 @@ implementation
             if not (st.symlist[i] is ttypesym) then
               continue;
             def:=ttypesym(st.SymList[i]).typedef;
+            sym:=tsym(st.symlist[i]);
             if is_objectpascal_helper(def) then
               begin
                 s:=generate_objectpascal_helper_key(tobjectdef(def).extendeddef);
@@ -1343,13 +1360,62 @@ implementation
                 list.Add(def);
               end
             else
-              { add nested helpers as well }
-              if def.typ in [recorddef,objectdef] then
-                addhelpers(tabstractrecorddef(def).symtable);
+              begin
+                if addgenerics and
+                    (sp_generic_dummy in sym.symoptions)
+                    then
+                  begin
+                    { did we already search for a generic with that name? }
+                    list:=tfpobjectlist(current_module.genericdummysyms.find(sym.name));
+                    if not assigned(list) then
+                      begin
+                        list:=tfpobjectlist.create(true);
+                        current_module.genericdummysyms.add(sym.name,list);
+                      end;
+                    { is the dummy sym still "dummy"? }
+                    if (sym.typ=typesym) and
+                        (
+                          { dummy sym defined in mode Delphi }
+                          (ttypesym(sym).typedef.typ=undefineddef) or
+                          { dummy sym defined in non-Delphi mode }
+                          (tstoreddef(ttypesym(sym).typedef).is_generic)
+                        ) then
+                      begin
+                        { do we have a non-generic type of the same name
+                          available? }
+                        if not searchsym_with_flags(sym.name,srsym,srsymtable,[ssf_no_addsymref]) then
+                          srsym:=nil;
+                      end
+                    else
+                      { dummy symbol is already not so dummy anymore }
+                      srsym:=nil;
+                    if assigned(srsym) then
+                      begin
+                        entry:=tgenericdummyentry.create;
+                        entry.resolvedsym:=srsym;
+                        entry.dummysym:=sym;
+                        list.add(entry);
+                      end;
+                  end;
+                { add nested helpers as well }
+                if (def.typ in [recorddef,objectdef]) and
+                    (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) then
+                  add_helpers_and_generics(tabstractrecorddef(def).symtable,false);
+              end;
           end;
       end;
 
-    procedure tdefawaresymtablestack.removehelpers(st: TSymtable);
+
+    procedure tdefawaresymtablestack.remove_helpers_and_generics(st:tsymtable);
+      begin
+        if sto_has_helper in st.tableoptions then
+          remove_helpers(st);
+        if sto_has_generic in st.tableoptions then
+          remove_generics(st);
+      end;
+
+
+    procedure tdefawaresymtablestack.remove_helpers(st:TSymtable);
       var
         i, j: integer;
         tmpst: TSymtable;
@@ -1383,31 +1449,63 @@ implementation
           end;
       end;
 
+
+    procedure tdefawaresymtablestack.remove_generics(st:tsymtable);
+      var
+        i,j : longint;
+        entry : tgenericdummyentry;
+        list : tfpobjectlist;
+      begin
+        for i:=current_module.genericdummysyms.count-1 downto 0 do
+          begin
+            list:=tfpobjectlist(current_module.genericdummysyms[i]);
+            if not assigned(list) then
+              continue;
+            for j:=list.count-1 downto 0 do
+              begin
+                entry:=tgenericdummyentry(list[j]);
+                if entry.dummysym.owner=st then
+                  list.delete(j);
+              end;
+            if list.count=0 then
+              current_module.genericdummysyms.delete(i);
+          end;
+      end;
+
+
+    procedure tdefawaresymtablestack.pushcommon(st:tsymtable);
+      begin
+        if (sto_has_generic in st.tableoptions) or
+            (
+              (st.symtabletype in [globalsymtable,staticsymtable]) and
+              (sto_has_helper in st.tableoptions)
+            ) then
+          { nested helpers will be added as well }
+          add_helpers_and_generics(st,true);
+      end;
+
     procedure tdefawaresymtablestack.push(st: TSymtable);
       begin
-        { nested helpers will be added as well }
-        if (st.symtabletype in [globalsymtable,staticsymtable]) and
-            (sto_has_helper in st.tableoptions) then
-          addhelpers(st);
+        pushcommon(st);
         inherited push(st);
       end;
 
     procedure tdefawaresymtablestack.pushafter(st,afterst:TSymtable);
       begin
-        { nested helpers will be added as well }
-        if (st.symtabletype in [globalsymtable,staticsymtable]) and
-            (sto_has_helper in st.tableoptions) then
-          addhelpers(st);
+        pushcommon(st);
         inherited pushafter(st,afterst);
       end;
 
     procedure tdefawaresymtablestack.pop(st: TSymtable);
       begin
         inherited pop(st);
-        { nested helpers will be removed as well }
-        if (st.symtabletype in [globalsymtable,staticsymtable]) and
-            (sto_has_helper in st.tableoptions) then
-          removehelpers(st);
+        if (sto_has_generic in st.tableoptions) or
+            (
+              (st.symtabletype in [globalsymtable,staticsymtable]) and
+              (sto_has_helper in st.tableoptions)
+            ) then
+          { nested helpers will be removed as well }
+          remove_helpers_and_generics(st);
       end;
 
 

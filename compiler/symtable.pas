@@ -206,6 +206,15 @@ interface
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
+    type
+       tsymbol_search_flag = (
+         ssf_search_option,
+         ssf_search_helper,
+         ssf_has_inherited,
+         ssf_no_addsymref
+       );
+       tsymbol_search_flags = set of tsymbol_search_flag;
+
 
 {****************************************************************************
                              Functions
@@ -233,19 +242,20 @@ interface
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
-    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchoption:boolean;option:tsymoption):boolean;
+    function  searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
+    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
     { searches for a symbol with the given name that has the given option in
       symoptions set }
     function  searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-    function  searchsym_in_class(classh: tobjectdef; contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function  searchsym_in_class(classh: tobjectdef; contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     { searches symbols inside of a helper's implementation }
-    function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
+    function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  try_search_system_type(const s: TIDString): ttypesym;
     function  search_system_proc(const s: TIDString): tprocdef;
@@ -2313,10 +2323,17 @@ implementation
 
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       begin
-        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,false,sp_none);
+        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
       end;
 
-    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchoption:boolean;option:tsymoption):boolean;
+
+    function  searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
+      begin
+        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,flags,sp_none);
+      end;
+
+
+    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
       var
         hashedid   : THashedIDString;
         contextstructdef : tabstractrecorddef;
@@ -2331,12 +2348,12 @@ implementation
             if (srsymtable.symtabletype=objectsymtable) then
               begin
                 { TODO : implement the search for an option in classes as well }
-                if searchoption then
+                if ssf_search_option in flags then
                   begin
                     result:=false;
                     exit;
                   end;
-                if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable,true) then
+                if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable,flags+[ssf_search_helper]) then
                   begin
                     result:=true;
                     exit;
@@ -2360,7 +2377,7 @@ implementation
                       contextstructdef:=current_structdef;
                     if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
                        is_visible_for_object(srsym,contextstructdef) and
-                       (not searchoption or (option in srsym.symoptions)) then
+                       (not (ssf_search_option in flags) or (option in srsym.symoptions)) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
@@ -2368,7 +2385,8 @@ implementation
                         if assigned(current_procinfo) and
                            (srsym.owner.symtabletype=staticsymtable) then
                           include(current_procinfo.flags,pi_uses_static_symtable);
-                        addsymref(srsym);
+                        if not (ssf_no_addsymref in flags) then
+                          addsymref(srsym);
                         result:=true;
                         exit;
                       end;
@@ -2383,7 +2401,7 @@ implementation
     function searchsym_with_symoption(const s: TIDString;out srsym:tsym;out
       srsymtable:TSymtable;option:tsymoption):boolean;
       begin
-        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,true,option);
+        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[ssf_search_option],option);
       end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -2615,7 +2633,7 @@ implementation
       end;
 
 
-    function searchsym_in_class(classh: tobjectdef;contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function searchsym_in_class(classh: tobjectdef;contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
       var
         hashedid : THashedIDString;
         orgclass : tobjectdef;
@@ -2651,13 +2669,14 @@ implementation
             if assigned(srsym) and
                is_visible_for_object(srsym,contextclassh) then
               begin
-                addsymref(srsym);
+                if not (ssf_no_addsymref in flags) then
+                  addsymref(srsym);
                 result:=true;
                 exit;
               end;
             for i:=0 to classh.ImplementedInterfaces.count-1 do
               begin
-                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable,false) then
+                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable,flags-[ssf_search_helper]) then
                   begin
                     result:=true;
                     exit;
@@ -2668,7 +2687,7 @@ implementation
         if is_objectpascal_helper(classh) then
           begin
             { helpers have their own obscure search logic... }
-            result:=searchsym_in_helper(classh,tobjectdef(contextclassh),s,srsym,srsymtable,false);
+            result:=searchsym_in_helper(classh,tobjectdef(contextclassh),s,srsym,srsymtable,flags-[ssf_has_inherited]);
             if result then
               exit;
           end
@@ -2680,7 +2699,9 @@ implementation
               begin
                 { search for a class helper method first if this is an Object
                   Pascal class and we haven't yet found a helper symbol }
-                if is_class(classh) and searchhelper and not assigned(hlpsrsym) then
+                if is_class(classh) and
+                    (ssf_search_helper in flags) and
+                    not assigned(hlpsrsym) then
                   begin
                     result:=search_objectpascal_helper(classh,contextclassh,s,srsym,srsymtable);
                     if result then
@@ -2703,7 +2724,8 @@ implementation
                 if assigned(srsym) and
                    is_visible_for_object(srsym,contextclassh) then
                   begin
-                    addsymref(srsym);
+                    if not (ssf_no_addsymref in flags) then
+                      addsymref(srsym);
                     result:=true;
                     exit;
                   end;
@@ -2840,7 +2862,7 @@ implementation
         srsymtable:=nil;
       end;
 
-    function searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
+    function searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
       var
         hashedid      : THashedIDString;
         parentclassh  : tobjectdef;
@@ -2855,7 +2877,7 @@ implementation
           3. search the symbol in the parent helpers
           4. only classes: search the symbol in the parents of the extended type
         }
-        if not aHasInherited then
+        if not (ssf_has_inherited in flags) then
           begin
             { search in the helper itself }
             srsymtable:=classh.symtable;
@@ -2863,7 +2885,8 @@ implementation
             if assigned(srsym) and
                is_visible_for_object(srsym,contextclassh) then
               begin
-                addsymref(srsym);
+                if not (ssf_no_addsymref in flags) then
+                  addsymref(srsym);
                 result:=true;
                 exit;
               end;
@@ -2876,7 +2899,8 @@ implementation
             if assigned(srsym) and
                is_visible_for_object(srsym,contextclassh) then
               begin
-                addsymref(srsym);
+                if not (ssf_no_addsymref in flags) then
+                  addsymref(srsym);
                 result:=true;
                 exit;
               end;
@@ -2890,7 +2914,8 @@ implementation
             if assigned(srsym) and
                is_visible_for_object(srsym,contextclassh) then
               begin
-                addsymref(srsym);
+                if not (ssf_no_addsymref in flags) then
+                  addsymref(srsym);
                 result:=true;
                 exit;
               end;
@@ -2898,7 +2923,7 @@ implementation
           end;
         if is_class(classh.extendeddef) then
           { now search in the parents of the extended class (with helpers!) }
-          result:=searchsym_in_class(tobjectdef(classh.extendeddef).childof,contextclassh,s,srsym,srsymtable,true);
+          result:=searchsym_in_class(tobjectdef(classh.extendeddef).childof,contextclassh,s,srsym,srsymtable,flags+[ssf_search_helper]);
           { addsymref is already called by searchsym_in_class }
       end;
 

@@ -41,11 +41,14 @@ uses
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
     function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+    function resolve_generic_dummysym(const name:tidstring):tsym;
 
     type
       tspecializationstate = record
         oldsymtablestack   : tsymtablestack;
         oldextendeddefs    : TFPHashObjectList;
+        oldgenericdummysyms: tfphashobjectlist;
       end;
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
@@ -566,7 +569,7 @@ uses
         if assigned(genericdef) and (genericdef.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             if genericdef.owner.symtabletype = objectsymtable then
-              found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,false)
+              found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,[])
             else
               found:=searchsym_in_record(tabstractrecorddef(genericdef.owner.defowner),ugenname,srsym,st);
           end
@@ -1102,6 +1105,38 @@ uses
       result:=name+'$crc'+hexstr(crc,8);
     end;
 
+    procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+      var
+        i,code : longint;
+        countstr : string;
+      begin
+        for i:=length(name) downto 1 do
+          if name[i]='$' then
+            begin
+              nongeneric:=copy(name,1,i-1);
+              countstr:=copy(name,i+1,length(name)-i);
+              val(countstr,count,code);
+              if code<>0 then
+                internalerror(2013091605);
+              exit;
+            end;
+        nongeneric:=name;
+        count:=0;
+      end;
+
+
+    function resolve_generic_dummysym(const name:tidstring):tsym;
+      var
+        list : tfpobjectlist;
+      begin
+        list:=tfpobjectlist(current_module.genericdummysyms.find(name));
+        if assigned(list) and (list.count>0) then
+          result:=tgenericdummyentry(list.last).resolvedsym
+        else
+          result:=nil;
+      end;
+
+
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var
       pu : tused_unit;
@@ -1117,7 +1152,9 @@ uses
         the resolved symbols }
       state.oldsymtablestack:=symtablestack;
       state.oldextendeddefs:=current_module.extendeddefs;
+      state.oldgenericdummysyms:=current_module.genericdummysyms;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
+      current_module.genericdummysyms:=tfphashobjectlist.create(true);
       symtablestack:=tdefawaresymtablestack.create;
       hmodule:=find_module_from_symtable(genericdef.owner);
       if hmodule=nil then
@@ -1169,6 +1206,8 @@ uses
       { Restore symtablestack }
       current_module.extendeddefs.free;
       current_module.extendeddefs:=state.oldextendeddefs;
+      current_module.genericdummysyms.free;
+      current_module.genericdummysyms:=state.oldgenericdummysyms;
       symtablestack.free;
       symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }

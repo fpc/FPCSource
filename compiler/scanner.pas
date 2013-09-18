@@ -1390,7 +1390,7 @@ type
                          preproc_consume(_POINT);
                          current_scanner.skipspace;
                          if def.typ=objectdef then
-                           found:=searchsym_in_class(tobjectdef(def),tobjectdef(def),current_scanner.preproc_pattern,srsym,srsymtable,true)
+                           found:=searchsym_in_class(tobjectdef(def),tobjectdef(def),current_scanner.preproc_pattern,srsym,srsymtable,[ssf_search_helper])
                          else
                            found:=searchsym_in_record(trecorddef(def),current_scanner.preproc_pattern,srsym,srsymtable);
                          if not found then
