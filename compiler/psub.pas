@@ -997,7 +997,12 @@ implementation
                 not(cs_generate_stackframes in current_settings.localswitches) and
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
-                not ((pi_has_stackparameter in flags) and (not paramanager.use_fixed_stack)) and
+                not ((pi_has_stackparameter in flags)
+{$ifndef arm}  { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+                 with fixed stack. On ARM it fails, see bug #25050 }
+                  and (not paramanager.use_fixed_stack)
+{$endif arm}
+                  ) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_needs_stackframe]+
                         exception_flags[(target_info.cpu=cpu_i386)
