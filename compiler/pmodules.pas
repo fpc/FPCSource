@@ -875,7 +875,6 @@ type
          addmoduleclass;
 {$endif}
          read_interface_declarations;
-         symtablestack.pop(current_module.globalsymtable);
 
          { Export macros defined in the interface for macpas. The macros
            are put in the globalmacrosymtable that will only be used by other
@@ -891,6 +890,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            symtablestack.pop(current_module.globalsymtable);
             exit;
           end;
 
@@ -920,7 +920,6 @@ type
          { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
          maybe_load_got;
 
-         symtablestack.push(current_module.globalsymtable);
          if not current_module.interface_only then
            begin
              consume(_IMPLEMENTATION);
