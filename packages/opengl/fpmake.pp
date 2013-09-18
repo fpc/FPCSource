@@ -17,7 +17,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=AllUnixOSes+[Win32,Win64]-[Android];
+    P.OSes:=AllUnixOSes+[Win32,Win64]+[MorphOS]-[Android];
 
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     if Defaults.CPU<>arm then
@@ -27,7 +27,7 @@ begin
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddImplicitUnit('freeglut.pp',AllOSes-[morphos]);
-    T:=P.Targets.AddUnit('glext.pp');
+    T:=P.Targets.AddUnit('glext.pp',AllOSes-[morphos]);
     T:=P.Targets.AddUnit('gl.pp');
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
