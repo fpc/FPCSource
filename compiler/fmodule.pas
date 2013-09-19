@@ -580,7 +580,7 @@ implementation
         tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
-        asmdata:=casmdata.create(realmodulename^);
+        asmdata:=casmdata.create(modulename);
         InitDebugInfo(self,false);
       end;
 
@@ -750,7 +750,7 @@ implementation
         derefdataintflen:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
-        asmdata:=casmdata.create(realmodulename^);
+        asmdata:=casmdata.create(modulename);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;
@@ -1024,8 +1024,7 @@ implementation
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }
-        current_asmdata.name:=modulename^;
-        current_asmdata.realname:=realmodulename^;
+        current_asmdata.name:=modulename;
       end;
 
 

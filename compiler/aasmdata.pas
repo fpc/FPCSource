@@ -155,15 +155,14 @@ interface
         FConstPools    : array[TConstPoolType] of THashSet;
         function GetConstPools(APoolType: TConstPoolType): THashSet;
       public
-        name,
-        realname      : string[80];
+        name          : pshortstring;       { owned by tmodule }
         NextVTEntryNr : longint;
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
         ResStrInits   : TLinkedList;
-        constructor create(const n:string);
+        constructor create(n: pshortstring);
         destructor  destroy;override;
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
@@ -343,14 +342,13 @@ implementation
         Result := FConstPools[APoolType];
       end;
 
-    constructor TAsmData.create(const n:string);
+    constructor TAsmData.create(n:pshortstring);
       var
         alt : TAsmLabelType;
         hal : TAsmListType;
       begin
         inherited create;
-        realname:=n;
-        name:=upper(n);
+        name:=n;
         { symbols }
         FAsmSymbolDict:=TFPHashObjectList.create(true);
         FAltSymbolList:=TFPObjectList.Create(false);
@@ -494,7 +492,7 @@ implementation
              but if we create_smartlink_sections, this is useless }
            (create_smartlink_library) and
            (alt = alt_dbgline) then
-          l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
+          l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt],alt)
         else
           l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
         inc(FNextLabelNr[alt]);
@@ -509,13 +507,13 @@ implementation
 
     procedure TAsmData.getglobaljumplabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_jump],alt_jump);
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt_jump],alt_jump);
         inc(FNextLabelNr[alt_jump]);
       end;
 
     procedure TAsmData.getdatalabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_data],alt_data);
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);
       end;
 
