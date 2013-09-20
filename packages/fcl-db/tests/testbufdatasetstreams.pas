@@ -36,6 +36,9 @@ type
     procedure NullInsertChange(ADataset: TCustomBufDataset);
     procedure NullEditChange(ADataset: TCustomBufDataset);
     procedure AppendDeleteChange(ADataset: TCustomBufDataset);
+
+    procedure TestStreamingBlobFields(AFormat: TDataPacketFormat);
+    procedure TestStreamingNullFields(AFormat: TDataPacketFormat);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -69,8 +72,10 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
+    procedure TestStreamingBlobFieldsBIN;
     procedure TestStreamingBlobFieldsXML;
     procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingNullFieldsBIN;
     procedure TestStreamingNullFieldsXML;
     procedure TestStreamingCalculatedFieldsXML;
 
@@ -87,6 +92,7 @@ uses toolsunit, SQLDBToolsUnit, sqldb, XMLDatapacketReader;
 
 const TestXMLFileName = 'test.xml';
       TestBINFileName = 'test.dat';
+      TestFileNames: array[TDataPacketFormat] of string = (TestBINFileName, TestXMLFileName, TestXMLFileName, '');
 
 procedure TTestBufDatasetStreams.CompareDatasets(ADataset1,
   ADataset2: TDataset);
@@ -148,10 +154,7 @@ var FileName: string;
     SaveDs,
     LoadDs : TCustomBufDataset;
 begin
-  case AFormat of
-    dfBinary:  FileName := 'Basics.dat';
-    else       FileName := 'Basics.xml';
-  end;
+  FileName := TestFileNames[AFormat];
 
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
@@ -411,10 +414,10 @@ var SaveDs: TCustomBufDataset;
 begin
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
-  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.SaveToFile(TestXMLFileName, dfXML);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('Basics.xml');
+  LoadDs.LoadFromFile(TestXMLFileName);
   CompareDatasets(SaveDs,LoadDs);
   LoadDs.Free;
 end;
@@ -459,16 +462,16 @@ begin
   TestChangesXML(@DeleteAllInsertChange);
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+procedure TTestBufDatasetStreams.TestStreamingBlobFields(AFormat: TDataPacketFormat);
 var SaveDs: TCustomBufDataset;
     LoadDs: TCustomBufDataset;
 begin
   SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
   SaveDs.Open;
-  SaveDs.SaveToFile(TestXMLFileName,dfXML);
+  SaveDs.SaveToFile(TestFileNames[AFormat], AFormat);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile(TestXMLFileName);
+  LoadDs.LoadFromFile(TestFileNames[AFormat]);
 
   LoadDS.First;
   SaveDS.First;
@@ -481,6 +484,16 @@ begin
     end;
 
   LoadDs.Free;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingBlobFieldsBIN;
+begin
+  TestStreamingBlobFields(dfBinary);
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+begin
+  TestStreamingBlobFields(dfXML);
 end;
 
 procedure TTestBufDatasetStreams.TestStreamingBigBlobFieldsXML;
@@ -548,7 +561,7 @@ begin
   end;
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingNullFieldsXML;
+procedure TTestBufDatasetStreams.TestStreamingNullFields(AFormat: TDataPacketFormat);
 var
   SaveDs: TCustomBufDataset;
   LoadDs: TCustomBufDataset;
@@ -569,12 +582,12 @@ begin
     for i:=0 to FieldCount-1 do
       if not Fields[i].Required and not Fields[i].ReadOnly then
         AssertTrue(Fields[i].FieldName, Fields[i].IsNull);
-    SaveToFile(TestXMLFileName, dfXML);
+    SaveToFile(TestFileNames[AFormat], AFormat);
     end;
 
   LoadDs := TCustomBufDataset.Create(nil);
   try
-    LoadDs.LoadFromFile(TestXMLFileName);
+    LoadDs.LoadFromFile(TestFileNames[AFormat]);
     SaveDs.First;
     while not SaveDs.EOF do
       begin
@@ -586,6 +599,16 @@ begin
   finally
     LoadDs.Free;
   end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFieldsBIN;
+begin
+  TestStreamingNullFields(dfBinary);
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFieldsXML;
+begin
+  TestStreamingNullFields(dfXML);
 end;
 
 procedure TTestBufDatasetStreams.TestStreamingCalculatedFieldsXML;

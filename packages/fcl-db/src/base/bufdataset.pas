@@ -384,19 +384,22 @@ type
 
   { TFpcBinaryDatapacketReader }
 
-  { Format description:
-    Header:
-      Identification: 13 bytes: 'BinBufDataSet'
-      Version: 1 byte
-    FieldDefs:
-      Number of Fields: 2 bytes
-      For each FieldDef: Name, DisplayName, Size: 2 bytes, DataType: 2 bytes, ReadOnlyAttr: 1 byte
-      AutoInc Value: 4 bytes
-    Records:
-      Record header: each record begins with $fe: 1 byte
-                     row state: 1 byte
-                     update order: 4 bytes
-      Record data:
+  { Data layout:
+     Header section:
+       Identification: 13 bytes: 'BinBufDataSet'
+       Version: 1 byte
+     Columns section:
+       Number of Fields: 2 bytes
+       For each FieldDef: Name, DisplayName, Size: 2 bytes, DataType: 2 bytes, ReadOnlyAttr: 1 byte
+     Parameter section:
+       AutoInc Value: 4 bytes
+     Rows section:
+       Row header: each row begins with $fe: 1 byte
+                   row state: 1 byte (original, deleted, inserted, modified)
+                   update order: 4 bytes
+                   null bitmap: 1 byte per each 8 fields (if field is null corresponding bit is 1)
+       Row data: variable length data are prefixed with 4 byte length indicator
+                 null fields are not stored (see: null bitmap)
   }
 
   TFpcBinaryDatapacketReader = class(TDataPacketReader)
@@ -405,8 +408,11 @@ type
       FpcBinaryIdent1 = 'BinBufDataset'; // Old version 1; support for transient period;
       FpcBinaryIdent2 = 'BinBufDataSet';
       StringFieldTypes = [ftString,ftFixedChar,ftWideString,ftFixedWideChar];
-      BlobFieldTypes = [ftBlob,ftMemo,ftWideMemo];
+      BlobFieldTypes = [ftBlob,ftMemo,ftGraphic,ftWideMemo];
       VarLenFieldTypes = StringFieldTypes + BlobFieldTypes + [ftBytes,ftVarBytes];
+    var
+      FNullBitmapSize: integer;
+      FNullBitmap: TBytes;
   protected
     var
       FVersion: byte;
@@ -3558,9 +3564,9 @@ begin
     end;
 
   // Read FieldDefs
-  FldCount:=Stream.ReadWord;
+  FldCount := Stream.ReadWord;
   AFieldDefs.Clear;
-  for i := 0 to FldCount -1 do with TFieldDef.create(AFieldDefs) do
+  for i := 0 to FldCount - 1 do with TFieldDef.Create(AFieldDefs) do
     begin
     Name := Stream.ReadAnsiString;
     Displayname := Stream.ReadAnsiString;
@@ -3572,6 +3578,9 @@ begin
     end;
   Stream.ReadBuffer(i,sizeof(i));
   AnAutoIncValue := i;
+
+  FNullBitmapSize := (FldCount + 7) div 8;
+  SetLength(FNullBitmap, FNullBitmapSize);
 end;
 
 procedure TFpcBinaryDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
@@ -3595,6 +3604,9 @@ begin
     end;
   i := AnAutoIncValue;
   Stream.WriteBuffer(i,sizeof(i));
+
+  FNullBitmapSize := (AFieldDefs.Count + 7) div 8;
+  SetLength(FNullBitmap, FNullBitmapSize);
 end;
 
 procedure TFpcBinaryDatapacketReader.InitLoadRecords;
@@ -3636,11 +3648,17 @@ begin
       10:
         Stream.ReadBuffer(GetCurrentBuffer^, FRecordSize);  // Ugly because private members of ADataset are used...
       20:
+        begin
+        // Restore field's Null bitmap
+        Stream.ReadBuffer(FNullBitmap[0], FNullBitmapSize);
+        // Restore field's data
         for i:=0 to FieldDefs.Count-1 do
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
           if AField=nil then continue;
-          if AField.DataType in StringFieldTypes then
+          if GetFieldIsNull(PByte(FNullBitmap), i) then
+            AField.SetData(nil)
+          else if AField.DataType in StringFieldTypes then
             AField.AsString := Stream.ReadAnsiString
           else
             begin
@@ -3657,6 +3675,7 @@ begin
               AField.SetData(@B[0], False);  // set it to the FilterBuffer
             end;
           end;
+        end;
     end;
 end;
 
@@ -3680,10 +3699,21 @@ begin
       10:
         Stream.WriteBuffer(GetCurrentBuffer^, FRecordSize); // Old 1.0 version
       20:
+        begin
+        // store fields Null bitmap
+        FillByte(FNullBitmap[0], FNullBitmapSize, 0);
         for i:=0 to FieldDefs.Count-1 do
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
-          if AField=nil then continue;
+          if assigned(AField) and AField.IsNull then
+            SetFieldIsNull(PByte(FNullBitmap), i);
+          end;
+        Stream.WriteBuffer(FNullBitmap[0], FNullBitmapSize);
+
+        for i:=0 to FieldDefs.Count-1 do
+          begin
+          AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
+          if not assigned(AField) or AField.IsNull then continue;
           if AField.DataType in StringFieldTypes then
             Stream.WriteAnsiString(AField.AsString)
           else
@@ -3695,7 +3725,8 @@ begin
             if L > 0 then
               Stream.WriteBuffer(B[0], L);
             end;
-         end;
+          end;
+        end;
     end;
 end;
 
