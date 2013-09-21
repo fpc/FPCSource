@@ -14,7 +14,7 @@
  **********************************************************************}
 
 var
-  ExitSave: pointer;
+  ExitSave: codepointer;
 
 const
   firstCallOfInitGraph: boolean = true;
