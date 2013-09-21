@@ -486,6 +486,7 @@ var ind,len,
     j,k     : integer;
     arr     : array[0..3] of integer;
     s2      : string;
+    bArr    : Boolean;
 begin
   j:=pos('=',txt);
   if j>0 then
@@ -504,17 +505,35 @@ begin
   nav_style         :=getnextint(txt,ind,len,flags,valid_navigation_pane_style);
   navpanewidth      :=getnextint(txt,ind,len,flags,valid_navigation_pane_width);
   buttons           :=getnextint(txt,ind,len,flags,valid_buttons);
+  
+  (* initialize arr[] *)
+  arr[0] :=0;
+  arr[1] :=0;
+  arr[2] :=0;
+  arr[3] :=0;
   k:=0;
-  repeat
-   s2:=getnext(txt,ind,len);
-   if (length(s2)>0) and (s2[1]='[') then delete(s2,1,1);
-   j:=pos(']',s2);
-   if j>0 then delete(s2,j,1);
-   if length(trim(s2))>0 then
-     include(flags,valid_tab_position);
-   arr[k]:=strtointdef(s2,0);
-   inc(k);
-  until (j<>0) or (ind>len);
+  bArr   := False;
+  (* "[" int,int,int,int "]", |,  *)
+  s2:=getnext(txt,ind,len);
+  if length(s2)>0 then begin
+    (* check if first chart is "[" *)
+    if (s2[1]='[') then begin
+      delete(s2,1,1);
+      bArr := True;
+    end;
+    (* looking for a max 4 int followed by a closing "]" *)
+    repeat
+      if k > 0 then s2:=getnext(txt,ind,len);
+      
+      j:=pos(']',s2);
+      if j>0 then delete(s2,j,1);
+      if length(trim(s2))>0 then
+        include(flags,valid_tab_position);
+      arr[k]:=strtointdef(s2,0);
+      inc(k);
+    until (bArr <> True) or (j<>0) or (ind>len);
+  end;
+   
   left  :=arr[0];
   top   :=arr[1];
   right :=arr[2];
