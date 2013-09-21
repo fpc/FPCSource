@@ -1956,8 +1956,18 @@ begin
                         if (target_info.system in [system_i8086_msdos]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
-                              'EXE': init_settings.msdostargetformat:=msdos_exe;
-                              'COM': init_settings.msdostargetformat:=msdos_com;
+                              'EXE':
+                                begin
+                                  init_settings.msdostargetformat:=msdos_exe;
+                                  targetinfos[system_i8086_msdos]^.exeext:='.exe';
+                                  target_info.exeext:='.exe';
+                                end;
+                              'COM':
+                                begin
+                                  init_settings.msdostargetformat:=msdos_com;
+                                  targetinfos[system_i8086_msdos]^.exeext:='.com';
+                                  target_info.exeext:='.com';
+                                end;
                               else
                                 IllegalPara(opt);
                             end;
