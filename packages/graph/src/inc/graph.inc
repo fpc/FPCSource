@@ -47,7 +47,7 @@ const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
 
 type
-  tinttable = array[0..16383] of smallint;
+  tinttable = array[0..16382] of smallint;
   pinttable = ^tinttable;
 
   WordArray = Array [0..StdbufferSize] Of word;
@@ -1110,7 +1110,7 @@ end;
 
 Procedure DefaultPutImage(X,Y: smallint; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..$fffffff] of word;
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
   k: longint;
@@ -1176,7 +1176,7 @@ end;
 
 Procedure DefaultGetImage(X1,Y1,X2,Y2: smallint; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..$fffffff] of word;
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
   i,j: smallint;
@@ -1906,7 +1906,7 @@ end;
   procedure DrawPoly(numpoints : word;var polypoints);
     type
       ppointtype = ^pointtype;
-      pt = array[0..16000] of pointtype;
+      pt = array[0..8190] of pointtype;
     var
       i, j, LastPolygonStart: longint;
       Closing: boolean;

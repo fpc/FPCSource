@@ -191,7 +191,7 @@ type
 {$endif}
 
     TResolutionRec = record
-      x,y: longint;
+      x,y: {$ifdef cpu16}smallint{$else}longint{$endif};
     end;
 
     const
@@ -388,25 +388,25 @@ type
        { consecutive mode number for that, so they are generated on-the-fly }
        { starting from 1)                                                   }
 
-       detectMode = 30000;
-       m320x200 = 30001;
-       m320x256 = 30002; { amiga resolution (PAL) }
-       m320x400 = 30003; { amiga/atari resolution }
-       m512x384 = 30004; { mac resolution }
-       m640x200 = 30005; { vga resolution }
-       m640x256 = 30006; { amiga resolution (PAL) }
-       m640x350 = 30007; { vga resolution }
-       m640x400 = 30008;
-       m640x480 = 30009;
-       m800x600 = 30010;
-       m832x624 = 30011; { mac resolution }
-       m1024x768 = 30012;
-       m1280x1024 = 30013;
-       m1600x1200 = 30014;
-       m2048x1536 = 30015;
+       detectMode = {$ifdef cpu16}3000{$else}30000{$endif};
+       m320x200   = detectMode +  1;
+       m320x256   = detectMode +  2; { amiga resolution (PAL) }
+       m320x400   = detectMode +  3; { amiga/atari resolution }
+       m512x384   = detectMode +  4; { mac resolution }
+       m640x200   = detectMode +  5; { vga resolution }
+       m640x256   = detectMode +  6; { amiga resolution (PAL) }
+       m640x350   = detectMode +  7; { vga resolution }
+       m640x400   = detectMode +  8;
+       m640x480   = detectMode +  9;
+       m800x600   = detectMode + 10;
+       m832x624   = detectMode + 11; { mac resolution }
+       m1024x768  = detectMode + 12;
+       m1280x1024 = detectMode + 13;
+       m1600x1200 = detectMode + 14;
+       m2048x1536 = detectMode + 15;
 
-       lowNewMode = 30001;
-       highNewMode = 30015;
+       lowNewMode = m320x200;
+       highNewMode = m2048x1536;
 
        resolutions: array[lowNewMode..highNewMode] of TResolutionRec =
        ((x:320;y:200),
