@@ -1125,13 +1125,14 @@ interface
           { we add empty declarations to make sure they exist, even if empty }
           AsmWriteLn('SECTION .rodata');
           AsmWriteLn('SECTION .data');
+          AsmWriteLn('SECTION .fpc');
           { WLINK requires class=bss in order to leave the BSS section out of the executable }
           AsmWriteLn('SECTION .bss class=bss');
           { group these sections in the same segment }
           if current_settings.x86memorymodel=mm_tiny then
-            AsmWriteLn('GROUP dgroup text rodata data bss')
+            AsmWriteLn('GROUP dgroup text rodata data fpc bss')
           else
-            AsmWriteLn('GROUP dgroup rodata data bss');
+            AsmWriteLn('GROUP dgroup rodata data fpc bss');
         end;
       AsmWriteLn('SECTION ' + CodeSectionName);
 {$else i8086}
