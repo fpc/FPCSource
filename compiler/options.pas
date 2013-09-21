@@ -1950,6 +1950,23 @@ begin
                         else
                           IllegalPara(opt);
                       end;
+                    't':
+                      begin
+{$if defined(i8086)}
+                        if (target_info.system in [system_i8086_msdos]) then
+                          begin
+                            case Upper(Copy(More,j+1,255)) of
+                              'EXE': init_settings.msdostargetformat:=msdos_exe;
+                              'COM': init_settings.msdostargetformat:=msdos_com;
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
+                          end
+                        else
+{$endif defined(i8086)}
+                          IllegalPara(opt);
+                      end;
                     'T':
                       begin
                         if target_info.system in systems_macos then

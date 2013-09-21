@@ -268,13 +268,13 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  if current_settings.x86memorymodel=mm_tiny then
-    LinkRes.Add('format dos com')
-  else
-    LinkRes.Add('format dos');
+  case current_settings.msdostargetformat of
+    msdos_exe: LinkRes.Add('format dos');
+    msdos_com: LinkRes.Add('format dos com');
+    else
+      InternalError(2013092101);
+  end;
   LinkRes.Add('option dosseg');
-{  if current_settings.x86memorymodel=mm_tiny then
-    LinkRes.Add('system com');}
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
   { Write and Close response }
