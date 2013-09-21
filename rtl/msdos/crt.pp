@@ -640,6 +640,47 @@ end;
 var
   CurrX,CurrY : smallint;
 
+Procedure VidMemWriteWord(vidmem_offset,w: word);assembler;
+label
+  in_retrace, no_retrace, no_snow, done;
+asm
+  mov di, vidmem_offset
+  xor ax, ax
+  mov es, ax
+  mov dx, es:[$463]
+  add dx, 6         { DX = CRT Status Register }
+  mov ax, VidSeg
+  mov es, ax
+  test CheckSnow, 1
+  jz no_snow
+  mov bx, w
+
+  { time critical code follows }
+  { if you ever need to change this code, make sure you test it on a real }
+  { 4.77 MHz 8088 with an original IBM CGA card and make sure it doesn't  }
+  { produce snow }
+  cli
+in_retrace:
+  in al, dx
+  shr al, 1
+  jc in_retrace
+no_retrace:
+  in al, dx
+  shr al, 1
+  jnc no_retrace
+  xchg ax, bx
+  stosw
+  sti
+  { time critical code ends here }
+  jmp done
+
+  { separate code path to avoid the unnecessary sti }
+no_snow:
+  mov ax, w
+  stosw
+done:
+end;
+
 Procedure WriteChar(c:char);
 var
   regs : registers;
@@ -658,7 +699,7 @@ begin
          end;
   else
    begin
-     memw[VidSeg:(word(CurrY-1)*ScreenWidth+word(CurrX-1))*2]:=(textattr shl 8) or byte(c);
+     VidMemWriteWord((word(CurrY-1)*ScreenWidth+word(CurrX-1))*2,(textattr shl 8) or byte(c));
      inc(CurrX);
    end;
   end;
