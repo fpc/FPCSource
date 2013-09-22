@@ -89,20 +89,6 @@
       runerror(207);
       result:=0;
     end;
-    {$define FPC_SYSTEM_HAS_SIN}
-    function fpc_sin_real(d : ValReal) : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
-    {$define FPC_SYSTEM_HAS_COS}
-    function fpc_cos_real(d : ValReal) : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
 
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
