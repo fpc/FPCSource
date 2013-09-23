@@ -101,7 +101,7 @@ function get_frame:pointer;assembler;nostackframe;
 { Try to find previous $fp,$ra register pair
   reset both to nil if failure }
 {$define FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 const
   instr_size = 4;
   MAX_INSTRUCTIONS = 64000;

@@ -1262,7 +1262,7 @@ Function Get_pc_addr : CodePointer;
 
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;
-procedure get_caller_stackinfo(var framebp : pointer; addr : codepointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 
 Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];

@@ -697,7 +697,7 @@ end;
     of get_caller_stackinfo procedure,
     using get_caller_addr and get_caller_frame
     functions. }
-procedure get_caller_stackinfo(var framebp : pointer; addr : codepointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 var
   nextbp : pointer;
   nextaddr : codepointer;
