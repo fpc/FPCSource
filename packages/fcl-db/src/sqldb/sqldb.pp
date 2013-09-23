@@ -667,11 +667,15 @@ begin
   if FDatabase=AValue then Exit;
   UnPrepare;
   If Assigned(FDatabase) then
+    begin
+    FDatabase.UnregisterStatement(Self);
     FDatabase.RemoveFreeNotification(Self);
+    end;
   FDatabase:=AValue;
   If Assigned(FDatabase) then
     begin
     FDatabase.FreeNotification(Self);
+    FDatabase.RegisterStatement(Self);
     if (Transaction=nil) and (Assigned(FDatabase.Transaction)) then
       transaction := FDatabase.Transaction;
     OnChangeSQL(Self);
@@ -833,20 +837,14 @@ procedure TCustomSQLStatement.AllocateCursor;
 
 begin
   if not assigned(FCursor) then
-    begin
     // Do this as late as possible.
     FCursor:=Database.AllocateCursorHandle;
-    FDatabase.RegisterStatement(Self);
-    end;
 end;
 
 procedure TCustomSQLStatement.DeAllocateCursor;
 begin
   if Assigned(FCursor) and Assigned(Database) then
-    begin
     DataBase.DeAllocateCursorHandle(FCursor);
-    Database.UnRegisterStatement(Self);
-    end;
 end;
 
 procedure TCustomSQLStatement.DoPrepare;
@@ -1214,7 +1212,8 @@ end;
 
 procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
 begin
-  FStatements.Remove(S);
+  if Assigned(FStatements) then // Can be nil, when we are destroying and datasets are uncoupled.
+    FStatements.Remove(S);
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
@@ -1597,6 +1596,8 @@ begin
     Exit;
   if not Cursor.FSelectable then
     Exit;
+  If LogEvent(detFetch) then
+    Log(detFetch,FSQLBuf);
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Cursor);
   Result := not FIsEOF;
 end;
