@@ -301,6 +301,11 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryW';
    function GetCurrentDirectoryW(bufsize : longint;name : punicodechar) : Dword;
      stdcall;external KernelDLL name 'GetCurrentDirectoryW';
+   function GetFullPathNameW (lpFileName: PUnicodeChar; nBufferLength: DWord;
+     lpBuffer: PUnicodeChar; var lpFilePart: PUnicodeChar): DWord;
+     stdcall; external KernelDLL name 'GetFullPathNameW';
+   function SetEnvironmentVariableW (lpName: PUnicodeChar; lpValue: PUnicodeChar): BOOL;
+     stdcall; external KernelDLL name 'SetEnvironmentVariableW';
 
    { Console functions needed for WriteFile fix for bug 17550 }
    function GetConsoleMode(hConsoleHandle:thandle; lpMode:LPDWORD):BOOL;

@@ -61,9 +61,40 @@ begin
 end;
 
 Procedure do_ChDir(const s: UnicodeString);
+{$ifndef WINCE}
+var
+  EnvName: array [0..3] of WideChar;
+  Len, Len2: cardinal;
+  FullPath: UnicodeString;
+  P: PWideChar;
+{$ENDIF WINCE}
 begin
 {$ifndef WINCE}
-  dirfn(TDirFnType(@SetCurrentDirectoryW),s);
+  Len := GetFullPathNameW (PUnicodeChar (S), 0, nil, P); // in TChar
+  SetLength (FullPath, Len - 1); // -1 because len is #0 inclusive
+  Len2 := GetFullPathNameW (PUnicodeChar (S), Len, PUnicodeChar (FullPath), P);
+  if Len2 <> 0 then
+   begin
+(* Remove potential trailing backslashes *)
+    while (Len2 > 3) and (FullPath [Len2] = WideChar ('\')) do
+     Dec (Len2);
+    if Len2 <> Len - 1 then
+{ Real length returned by GetFullPathNameW seems to be usually smaller than originally requested buffer size }
+     SetLength (FullPath, Len2);
+{ Use FullPath for SetCurrentDirectory instead of original input to ensure consistency }
+    DirFn (TDirFnType (@SetCurrentDirectoryW), FullPath);
+    if (InOutRes = 0) and (Length (S) > 2) and (S [2] = ':') then
+     begin
+      EnvName [0] := '=';
+      EnvName [1] := S [1];
+      EnvName [2] := ':';
+      EnvName [3] := #0;
+      SetEnvironmentVariableW (@EnvName, PUnicodeChar (FullPath));
+     end
+   end
+  else
+{ Try SetCurrentDirectoryW with the original input if GetFullPathNameW errors out }
+   dirfn(TDirFnType(@SetCurrentDirectoryW),s);
   if Inoutres=2 then
    Inoutres:=3;
 {$else WINCE}
@@ -75,40 +106,45 @@ procedure do_GetDir (DriveNr: byte; var Dir: Unicodestring);
 {$ifndef WINCE}
 var
   Drive:array[0..3]of widechar;
-  defaultdrive:boolean;
-  savebuf: UnicodeString;
-  len : integer;
+  P: PWideChar;
+  Len, Len2: cardinal;
 {$endif WINCE}
 begin
 {$ifndef WINCE}
-  defaultdrive:=drivenr=0;
-  if not defaultdrive then
+  if DriveNr <> 0 then
    begin
-    Drive[0]:=widechar(Drivenr+64);
+    Drive[0]:=widechar(DriveNr+ Ord ('A') - 1);
     Drive[1]:=':';
     Drive[2]:=#0;
     Drive[3]:=#0;
-    len:=GetCurrentDirectoryW(0,nil); // in TChar
-    setlength(savebuf,len-1); // -1 because len is #0 inclusive
+    Len := GetFullPathNameW (@Drive, 0, nil, P); // in TChar
+    SetLength (Dir, Len - 1); // -1 because len is #0 inclusive
 
-    GetCurrentDirectoryW(len,punicodechar(SaveBuf)); // in TChar
-    if not SetCurrentDirectoryW(@Drive) then
+    Len2 := GetFullPathNameW (@Drive, Len, PUnicodeChar (Dir), P);
+    if Len2 = 0 then
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
-      Dir := widechar (DriveNr + 64) + ':\';
-      SetCurrentDirectoryW(punicodechar(SaveBuf));
+      Dir := widechar (DriveNr + Ord ('A') - 1) + ':\';
       Exit;
+     end
+    else
+     begin
+{ Real length returned by GetFullPathNameW seems to be usually smaller than originally requested buffer size }
+      if Len2 <> Len - 1 then
+       SetLength (Dir, Len2);
+      if not FileNameCasePreserving then
+       Dir := UpCase (Dir);
      end;
+   end
+  else
+   begin
+    Len := GetCurrentDirectoryW (0,nil);
+    SetLength (Dir, Len - 1); // -1 because len is #0 inclusive
+    GetCurrentDirectoryW (Len, PUnicodeChar (Dir));
+    if not FileNameCasePreserving then
+     Dir := UpCase (Dir);
    end;
-
-  len:=GetCurrentDirectoryW(0,nil);
-  setlength(dir,len-1); // -1 because len is #0 inclusive
-  GetCurrentDirectoryW(len,punicodechar(dir));
-  if not defaultdrive then
-    SetCurrentDirectoryW(punicodechar(SaveBuf));
-  if not FileNameCasePreserving then
-    dir:=upcase(dir);
 {$else WINCE}
   Dir:='\';
 {$endif WINCE}
