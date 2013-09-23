@@ -37,7 +37,7 @@ type
     procedure NullEditChange(ADataset: TCustomBufDataset);
     procedure AppendDeleteChange(ADataset: TCustomBufDataset);
 
-    procedure TestStreamingBlobFields(AFormat: TDataPacketFormat);
+    procedure TestStreamingDataFields(AFormat: TDataPacketFormat);
     procedure TestStreamingNullFields(AFormat: TDataPacketFormat);
   protected
     procedure SetUp; override;
@@ -72,8 +72,8 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
-    procedure TestStreamingBlobFieldsBIN;
-    procedure TestStreamingBlobFieldsXML;
+    procedure TestStreamingDataFieldsBIN;
+    procedure TestStreamingDataFieldsXML;
     procedure TestStreamingBigBlobFieldsXML;
     procedure TestStreamingNullFieldsBIN;
     procedure TestStreamingNullFieldsXML;
@@ -462,9 +462,10 @@ begin
   TestChangesXML(@DeleteAllInsertChange);
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingBlobFields(AFormat: TDataPacketFormat);
+procedure TTestBufDatasetStreams.TestStreamingDataFields(AFormat: TDataPacketFormat);
 var SaveDs: TCustomBufDataset;
     LoadDs: TCustomBufDataset;
+    i: integer;
 begin
   SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
   SaveDs.Open;
@@ -472,13 +473,15 @@ begin
 
   LoadDs := TCustomBufDataset.Create(nil);
   LoadDs.LoadFromFile(TestFileNames[AFormat]);
+  AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);
 
   LoadDS.First;
   SaveDS.First;
   while not LoadDS.EOF do
     begin
-    AssertEquals(SaveDS.FieldByName('FBLOB').AsString, LoadDS.FieldByName('FBLOB').AsString);
-    AssertEquals(SaveDS.FieldByName('FMEMO').AsString, LoadDS.FieldByName('FMEMO').AsString);
+    for i:=0 to LoadDS.FieldCount-1 do
+      // all FieldTypes supports GetAsString
+      AssertEquals(LoadDS.Fields[i].FieldName, SaveDS.Fields[i].AsString, LoadDS.Fields[i].AsString);
     LoadDS.Next;
     SaveDS.Next;
     end;
@@ -486,14 +489,14 @@ begin
   LoadDs.Free;
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingBlobFieldsBIN;
+procedure TTestBufDatasetStreams.TestStreamingDataFieldsBIN;
 begin
-  TestStreamingBlobFields(dfBinary);
+  TestStreamingDataFields(dfBinary);
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+procedure TTestBufDatasetStreams.TestStreamingDataFieldsXML;
 begin
-  TestStreamingBlobFields(dfXML);
+  TestStreamingDataFields(dfXML);
 end;
 
 procedure TTestBufDatasetStreams.TestStreamingBigBlobFieldsXML;
@@ -588,6 +591,7 @@ begin
   LoadDs := TCustomBufDataset.Create(nil);
   try
     LoadDs.LoadFromFile(TestFileNames[AFormat]);
+    AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);
     SaveDs.First;
     while not SaveDs.EOF do
       begin

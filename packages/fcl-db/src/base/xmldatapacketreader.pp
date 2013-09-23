@@ -341,6 +341,7 @@ var FieldNr      : integer;
     ABufBlobField: TBufBlobField;
     AField: TField;
     s: string;
+    ws: widestring;
 begin
   with ADataset do for FieldNr:=0 to FieldDefs.Count-1 do
     begin
@@ -348,19 +349,20 @@ begin
     AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
     if assigned(AFieldNode) then
       begin
-       s := AFieldNode.NodeValue;
-       if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
-         s := DecodeStringBase64(s);
-       if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo, ftWideMemo] then
-        begin
-        ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
-        ABufBlobField.BlobBuffer^.Size:=length(s);
-        ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
-        move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
-        AField.SetData(@ABufBlobField);
-        end
-      else
-        AField.AsString := s;  // set it to the filterbuffer
+      s := AFieldNode.NodeValue;
+      if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
+        s := DecodeStringBase64(s);
+      case FieldDefs[FieldNr].DataType of
+        ftBlob, ftMemo:
+          RestoreBlobField(ADataset, AField, @s[1], length(s));
+        ftWideMemo:
+          begin
+          ws := s;
+          RestoreBlobField(ADataset, AField, @ws[1], length(ws)*sizeof(WideChar));
+          end
+        else;
+          AField.AsString := s;  // set it to the filterbuffer
+      end;
       end
     else
       AField.SetData(nil);
