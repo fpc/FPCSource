@@ -578,7 +578,7 @@ implementation
             else
               begin
                 lefttemp:=nil;
-                stringtemp:=left;
+                stringtemp:=ctypeconvnode.create_explicit(left,stringclass);
               end;
             left:=nil;
             lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);
