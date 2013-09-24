@@ -2046,24 +2046,8 @@ type
 
 
 function IsNan(const d : Single): Boolean; overload;
-  type
-    TSplitSingle = packed record
-      case byte of
-        0: (bytes: Array[0..3] of byte);
-        1: (words: Array[0..1] of word);
-        2: (cards: Array[0..0] of cardinal);
-    end;
-  var
-    fraczero, expMaximal: boolean;
   begin
-{$ifdef FPC_BIG_ENDIAN}
-    expMaximal := ((TSplitSingle(d).words[0] shr 7) and $ff) = 255;
-    fraczero:= (TSplitSingle(d).cards[0] and $7fffff = 0);
-{$else FPC_BIG_ENDIAN}
-    expMaximal := ((TSplitSingle(d).words[1] shr 7) and $ff) = 255;
-    fraczero := (TSplitSingle(d).cards[0] and $7fffff = 0);
-{$endif FPC_BIG_ENDIAN}
-    Result:=expMaximal and not(fraczero);
+    result:=(longword(d) and $7fffffff)>$7f800000;
   end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
