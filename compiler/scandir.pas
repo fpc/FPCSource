@@ -237,7 +237,8 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
-                                       system_arm_nds] + systems_nativent) then
+                                       system_arm_nds, system_i8086_msdos] +
+                                       systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
               Message(scan_n_app_type_not_support)
@@ -252,9 +253,9 @@ unit scandir;
               begin
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
-                 if hs='GUI' then
+                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos]) then
                    SetApptype(app_gui)
-                 else if hs='CONSOLE' then
+                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos]) then
                    SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
                    SetApptype(app_native)
@@ -267,6 +268,10 @@ unit scandir;
                    SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm7)
+                 else if (hs='COM') and (target_info.system in [system_i8086_msdos]) then
+                   SetApptype(app_com)
+                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos]) then
+                   SetApptype(app_cui)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
               end;
