@@ -4003,6 +4003,22 @@ Const
      TWINDOWPOS = WINDOWPOS;
      PWINDOWPOS = ^WINDOWPOS;
 
+     PWindowInfo = ^TWindowInfo;
+     LPWindowInfo = ^TWindowInfo;
+     tagWINDOWINFO = record
+          cbSize: DWORD;
+          rcWindow: TRect;
+          rcClient: TRect;
+          dwStyle: DWORD;
+          dwExStyle: DWORD;
+          dwWindowStatus: DWORD;
+          cxWindowBorders: UINT;
+          cyWindowBorders: UINT;
+          atomWindowType: TAtom;
+          wCreatorVersion: WORD;
+       end;
+     TWindowInfo = tagWINDOWINFO;
+
      HD_LAYOUT = record
           prc : ^RECT;
           pwpos : ^WINDOWPOS;

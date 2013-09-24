@@ -208,7 +208,7 @@ function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCritica
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
 
-
+function GetWindowInfo(hWnd:HWND; var pwi:TWindowInfo):WINBOOL; external 'user32' name 'GetWindowInfo';
 function ControlService(hService:SC_HANDLE; dwControl:DWORD; var ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'ControlService';
 function QueryServiceStatus(hService:SC_HANDLE; var lpServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'QueryServiceStatus';
 function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; const ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'SetServiceStatus';
