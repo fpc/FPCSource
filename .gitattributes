@@ -7970,7 +7970,6 @@ rtl/inc/video.inc svneol=native#text/plain
 rtl/inc/videoh.inc svneol=native#text/plain
 rtl/inc/wstringh.inc svneol=native#text/plain
 rtl/inc/wstrings.inc svneol=native#text/plain
-rtl/inc/wustrings.inc svneol=native#text/plain
 rtl/java/Makefile svneol=native#text/plain
 rtl/java/Makefile.fpc svneol=native#text/plain
 rtl/java/jastringh.inc svneol=native#text/plain

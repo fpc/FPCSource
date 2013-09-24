@@ -77,7 +77,6 @@ begin
           AddInclude('int64.inc');
           AddInclude('astrings.inc');
           AddInclude('wstrings.inc');
-          AddInclude('wustrings.inc');
           AddInclude('aliases.inc');
           AddInclude('dynarr.inc');
           AddInclude('objpas.inc');

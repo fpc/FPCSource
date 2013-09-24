@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$i wustrings.inc}
-
 
 {$ifndef FPC_UNICODESTRING_TYPE_DEFINED}
 {$define FPC_UNICODESTRING_TYPE_DEFINED}
