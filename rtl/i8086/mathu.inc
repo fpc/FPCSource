@@ -12,7 +12,7 @@
 
 **********************************************************************}
 
-{$ASMMODE ATT}
+{$ASMMODE intel}
 {//$define FPC_MATH_HAS_ARCTAN2}
 {function arctan2(y,x : float) : float;assembler;
   asm
@@ -177,9 +177,9 @@ end;
 
 procedure ClearExceptions(RaisePending: Boolean);assembler;
 asm
-  cmpb $0,RaisePending
-  je .Lclear
+  cmp byte RaisePending, 0
+  je @Lclear
   fwait
-.Lclear:
+@Lclear:
   fnclex
 end;
