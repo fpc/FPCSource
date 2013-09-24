@@ -48,14 +48,14 @@ type
     FLastChange    : integer;
   public
     destructor destroy; override;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
-    procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure StoreFieldDefs(AnAutoIncValue : integer); override;
+    procedure StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
+    procedure LoadFieldDefs(var AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure RestoreRecord(ADataset : TCustomBufDataset); override;
+    procedure RestoreRecord; override;
     procedure GotoNextRecord; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
@@ -123,7 +123,7 @@ begin
   inherited destroy;
 end;
 
-procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
+procedure TXMLDatapacketReader.LoadFieldDefs(var AnAutoIncValue: integer);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
   var AnAttr : TDomNode;
@@ -157,7 +157,7 @@ begin
     AFieldNode := item[i];
     if AFieldNode.CompareName('FIELD')=0 then
       begin
-      AFieldDef := TFieldDef.create(AFieldDefs);
+      AFieldDef := TFieldDef.Create(DataSet.FieldDefs);
       AFieldDef.DisplayName:=GetNodeAttribute(AFieldNode,'fieldname');
       AFieldDef.Name:=GetNodeAttribute(AFieldNode,'attrname');
       AFieldDef.Size:=StrToIntDef(GetNodeAttribute(AFieldNode,'width'),0);
@@ -189,7 +189,7 @@ begin
   FRecordNode := nil;
 end;
 
-procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
+procedure TXMLDatapacketReader.StoreFieldDefs(AnAutoIncValue: integer);
 
 var i,p         : integer;
     AFieldNode  : TDOMElement;
@@ -203,7 +203,7 @@ begin
   MetaDataNode := XMLDocument.CreateElement('METADATA');
   FieldsNode := XMLDocument.CreateElement('FIELDS');
 
-  for i := 0 to AFieldDefs.Count -1 do with AFieldDefs[i] do
+  for i := 0 to DataSet.FieldDefs.Count - 1 do with DataSet.FieldDefs[i] do
     begin
     AFieldNode := XMLDocument.CreateElement('FIELD');
     if Name <> '' then AFieldNode.SetAttribute('fieldname',Name);
@@ -335,7 +335,7 @@ begin
     end;
 end;
 
-procedure TXMLDatapacketReader.RestoreRecord(ADataset : TCustomBufDataset);
+procedure TXMLDatapacketReader.RestoreRecord;
 var FieldNr      : integer;
     AFieldNode   : TDomNode;
     ABufBlobField: TBufBlobField;
@@ -343,7 +343,7 @@ var FieldNr      : integer;
     s: string;
     ws: widestring;
 begin
-  with ADataset do for FieldNr:=0 to FieldDefs.Count-1 do
+  with DataSet do for FieldNr:=0 to FieldDefs.Count-1 do
     begin
     AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
     AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
@@ -354,11 +354,11 @@ begin
         s := DecodeStringBase64(s);
       case FieldDefs[FieldNr].DataType of
         ftBlob, ftMemo:
-          RestoreBlobField(ADataset, AField, @s[1], length(s));
+          RestoreBlobField(AField, @s[1], length(s));
         ftWideMemo:
           begin
           ws := s;
-          RestoreBlobField(ADataset, AField, @ws[1], length(ws)*sizeof(WideChar));
+          RestoreBlobField(AField, @ws[1], length(ws)*sizeof(WideChar));
           end
         else;
           AField.AsString := s;  // set it to the filterbuffer
@@ -369,7 +369,7 @@ begin
     end;
 end;
 
-procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
+procedure TXMLDatapacketReader.StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
     AFieldDef: TFieldDef;
     AField: TField;
@@ -377,7 +377,7 @@ var FieldNr : Integer;
 begin
   inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
-  with ADataset do for FieldNr := 0 to FieldDefs.Count-1 do
+  with DataSet do for FieldNr := 0 to FieldDefs.Count-1 do
     begin
     AFieldDef := FieldDefs[FieldNr];
     AField := Fields.FieldByNumber(AFieldDef.FieldNo);

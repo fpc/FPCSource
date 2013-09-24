@@ -350,15 +350,17 @@ type
   TDatapacketReaderClass = class of TDatapacketReader;
   TDataPacketReader = class(TObject)
     FStream : TStream;
+    FDataSet: TCustomBufDataset;
   protected
     class function RowStateToByte(const ARowState : TRowState) : byte;
     class function ByteToRowState(const AByte : Byte) : TRowState;
-    class procedure RestoreBlobField(ADataset: TCustomBufDataset; AField: TField; ASource: pointer; ASize: integer);
+    procedure RestoreBlobField(AField: TField; ASource: pointer; ASize: integer);
+    property DataSet: TCustomBufDataset read FDataSet;
   public
-    constructor create(AStream : TStream); virtual;
+    constructor Create(ADataSet: TCustomBufDataset; AStream : TStream); virtual;
     // Load a dataset from stream:
     // Load the field definitions from a stream.
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); virtual; abstract;
+    procedure LoadFieldDefs(var AnAutoIncValue : integer); virtual; abstract;
     // Is called before the records are loaded
     procedure InitLoadRecords; virtual; abstract;
     // Returns if there is at least one more record available in the stream
@@ -366,15 +368,15 @@ type
     // Return the RowState of the current record, and the order of the update
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
     // Store a record from stream in the current record buffer
-    procedure RestoreRecord(ADataset : TCustomBufDataset); virtual; abstract;
+    procedure RestoreRecord; virtual; abstract;
     // Move the stream to the next record
     procedure GotoNextRecord; virtual; abstract;
 
     // Store a dataset to stream:
     // Save the field definitions to a stream.
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); virtual; abstract;
+    procedure StoreFieldDefs(AnAutoIncValue : integer); virtual; abstract;
     // Save a record from the current record buffer to the stream
-    procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); virtual; abstract;
+    procedure StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0); virtual; abstract;
     // Is called after all records are stored
     procedure FinalizeStoreRecords; virtual; abstract;
     // Checks if the provided stream is of the right format for this class
@@ -417,15 +419,15 @@ type
     var
       FVersion: byte;
   public
-    constructor Create(AStream : TStream); override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
+    constructor Create(ADataSet: TCustomBufDataset; AStream : TStream); override;
+    procedure LoadFieldDefs(var AnAutoIncValue : integer); override;
+    procedure StoreFieldDefs(AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure RestoreRecord(ADataset : TCustomBufDataset); override;
+    procedure RestoreRecord; override;
     procedure GotoNextRecord; override;
-    procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
@@ -2485,11 +2487,11 @@ var APacketReader: TDataPacketReader;
 
 begin
   if GetRegisterDatapacketReader(AStream, format, APacketReaderReg) then
-    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
+    APacketReader := APacketReaderReg.ReaderClass.Create(Self, AStream)
   else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
     begin
     AStream.Seek(0, soFromBeginning);
-    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
+    APacketReader := TFpcBinaryDatapacketReader.Create(Self, AStream)
     end
   else
     DatabaseError(SStreamNotRecognised);
@@ -2761,7 +2763,7 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
     FFilterBuffer:=AUpdBuffer.OldValuesBuffer;
     // OldValuesBuffer is nil if the record is either inserted or inserted and then deleted
     if assigned(FFilterBuffer) then
-      FDatasetReader.StoreRecord(Self,AThisRowState,FCurrentUpdateBuffer);
+      FDatasetReader.StoreRecord(AThisRowState,FCurrentUpdateBuffer);
   end;
 
   procedure HandleUpdateBuffersFromRecord(AFirstCall : boolean;ARecBookmark : TBufBookmark; var ARowState: TRowState);
@@ -2798,7 +2800,7 @@ begin
   try
     //  CheckActive;
     ABookMark:=@ATBookmark;
-    FDatasetReader.StoreFieldDefs(FieldDefs,FAutoIncValue);
+    FDatasetReader.StoreFieldDefs(FAutoIncValue);
 
     StoreDSState:=SetTempState(dsFilter);
     ScrollResult:=FCurrentIndex.ScrollFirst;
@@ -2809,9 +2811,9 @@ begin
       HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
       FFilterBuffer:=FCurrentIndex.CurrentBuffer;
       if RowState=[] then
-        FDatasetReader.StoreRecord(Self,[])
+        FDatasetReader.StoreRecord([])
       else
-        FDatasetReader.StoreRecord(Self,RowState,FCurrentUpdateBuffer);
+        FDatasetReader.StoreRecord(RowState,FCurrentUpdateBuffer);
 
       ScrollResult:=FCurrentIndex.ScrollForward;
       if ScrollResult<>grOK then
@@ -2850,9 +2852,9 @@ var APacketReaderReg : TDatapacketReaderRegistration;
 begin
   CheckBiDirectional;
   if GetRegisterDatapacketReader(Nil,format,APacketReaderReg) then
-    APacketWriter := APacketReaderReg.ReaderClass.create(AStream)
+    APacketWriter := APacketReaderReg.ReaderClass.Create(Self, AStream)
   else if Format = dfBinary then
-    APacketWriter := TFpcBinaryDatapacketReader.create(AStream)
+    APacketWriter := TFpcBinaryDatapacketReader.Create(Self, AStream)
   else
     DatabaseError(SNoReaderClassRegistered);
   try
@@ -2932,7 +2934,7 @@ procedure TCustomBufDataset.IntLoadFielddefsFromFile;
 
 begin
   FieldDefs.Clear;
-  FDatasetReader.LoadFielddefs(FieldDefs, FAutoIncValue);
+  FDatasetReader.LoadFieldDefs(FAutoIncValue);
   if DefaultFields then
     CreateFields
   else
@@ -2965,7 +2967,7 @@ begin
       FFilterBuffer:=IntAllocRecordBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
-      FDatasetReader.RestoreRecord(self);
+      FDatasetReader.RestoreRecord;
 
       FDatasetReader.GotoNextRecord;
       if not FDatasetReader.GetCurrentRecord then
@@ -2980,7 +2982,7 @@ begin
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
       fillchar(FFilterBuffer^,FNullmaskSize,0);
 
-      FDatasetReader.RestoreRecord(self);
+      FDatasetReader.RestoreRecord;
       FIndexes[0].AddRecord;
       inc(FBRecordCount);
 
@@ -2998,7 +3000,7 @@ begin
       fillchar(FFilterBuffer^,FNullmaskSize,0);
 
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := FFilterBuffer;
-      FDatasetReader.RestoreRecord(self);
+      FDatasetReader.RestoreRecord;
 
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukDelete;
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
@@ -3020,7 +3022,7 @@ begin
       FFilterBuffer:=FIndexes[0].SpareBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
 
-      FDatasetReader.RestoreRecord(self);
+      FDatasetReader.RestoreRecord;
 
       if rsvInserted in ARowState then
         begin
@@ -3496,6 +3498,7 @@ begin
   //  inherited EndUpdate;
 end;
 
+
 { TDataPacketReader }
 
 class function TDataPacketReader.RowStateToByte(const ARowState: TRowState
@@ -3519,32 +3522,33 @@ begin
   if (AByte and 8)=8 then Result := Result+[rsvUpdated];
 end;
 
-class procedure TDataPacketReader.RestoreBlobField(ADataset: TCustomBufDataset; AField: TField; ASource: pointer; ASize: integer);
+procedure TDataPacketReader.RestoreBlobField(AField: TField; ASource: pointer; ASize: integer);
 var
   ABufBlobField: TBufBlobField;
 begin
-  ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
+  ABufBlobField.BlobBuffer:=FDataSet.GetNewBlobBuffer;
   ABufBlobField.BlobBuffer^.Size:=ASize;
   ReAllocMem(ABufBlobField.BlobBuffer^.Buffer, ASize);
   move(ASource^, ABufBlobField.BlobBuffer^.Buffer^, ASize);
   AField.SetData(@ABufBlobField);
 end;
 
-constructor TDataPacketReader.create(AStream: TStream);
+constructor TDataPacketReader.Create(ADataSet: TCustomBufDataset; AStream: TStream);
 begin
+  FDataSet := ADataSet;
   FStream := AStream;
 end;
 
 
 { TFpcBinaryDatapacketReader }
 
-constructor TFpcBinaryDatapacketReader.Create(AStream: TStream);
+constructor TFpcBinaryDatapacketReader.Create(ADataSet: TCustomBufDataset; AStream: TStream);
 begin
   inherited;
   FVersion := 20; // default version 2.0
 end;
 
-procedure TFpcBinaryDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
+procedure TFpcBinaryDatapacketReader.LoadFieldDefs(var AnAutoIncValue: integer);
 
 var FldCount : word;
     i        : integer;
@@ -3565,8 +3569,8 @@ begin
 
   // Read FieldDefs
   FldCount := Stream.ReadWord;
-  AFieldDefs.Clear;
-  for i := 0 to FldCount - 1 do with TFieldDef.Create(AFieldDefs) do
+  DataSet.FieldDefs.Clear;
+  for i := 0 to FldCount - 1 do with TFieldDef.Create(DataSet.FieldDefs) do
     begin
     Name := Stream.ReadAnsiString;
     Displayname := Stream.ReadAnsiString;
@@ -3583,14 +3587,14 @@ begin
   SetLength(FNullBitmap, FNullBitmapSize);
 end;
 
-procedure TFpcBinaryDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
+procedure TFpcBinaryDatapacketReader.StoreFieldDefs(AnAutoIncValue: integer);
 var i : integer;
 begin
   Stream.Write(FpcBinaryIdent2[1], length(FpcBinaryIdent2));
   Stream.WriteByte(FVersion);
 
-  Stream.WriteWord(AFieldDefs.Count);
-  for i := 0 to AFieldDefs.Count -1 do with AFieldDefs[i] do
+  Stream.WriteWord(DataSet.FieldDefs.Count);
+  for i := 0 to DataSet.FieldDefs.Count - 1 do with DataSet.FieldDefs[i] do
     begin
     Stream.WriteAnsiString(Name);
     Stream.WriteAnsiString(DisplayName);
@@ -3605,7 +3609,7 @@ begin
   i := AnAutoIncValue;
   Stream.WriteBuffer(i,sizeof(i));
 
-  FNullBitmapSize := (AFieldDefs.Count + 7) div 8;
+  FNullBitmapSize := (DataSet.FieldDefs.Count + 7) div 8;
   SetLength(FNullBitmap, FNullBitmapSize);
 end;
 
@@ -3636,14 +3640,14 @@ begin
   //  Do Nothing
 end;
 
-procedure TFpcBinaryDatapacketReader.RestoreRecord(ADataset: TCustomBufDataset);
+procedure TFpcBinaryDatapacketReader.RestoreRecord;
 var
   AField: TField;
   i: integer;
   L: cardinal;
   B: TBytes;
 begin
-  with ADataset do
+  with DataSet do
     case FVersion of
       10:
         Stream.ReadBuffer(GetCurrentBuffer^, FRecordSize);  // Ugly because private members of ADataset are used...
@@ -3670,7 +3674,7 @@ begin
             if L > 0 then
               Stream.ReadBuffer(B[0], L);
             if AField.DataType in BlobFieldTypes then
-              RestoreBlobField(ADataset, AField, @B[0], L)
+              RestoreBlobField(AField, @B[0], L)
             else
               AField.SetData(@B[0], False);  // set it to the FilterBuffer
             end;
@@ -3679,8 +3683,7 @@ begin
     end;
 end;
 
-procedure TFpcBinaryDatapacketReader.StoreRecord(ADataset: TCustomBufDataset;
-  ARowState: TRowState; AUpdOrder : integer);
+procedure TFpcBinaryDatapacketReader.StoreRecord(ARowState: TRowState; AUpdOrder : integer);
 var
   AField: TField;
   i: integer;
@@ -3694,7 +3697,7 @@ begin
     Stream.WriteBuffer(AUpdOrder,sizeof(integer));
 
   // Record data
-  with ADataset do
+  with DataSet do
     case FVersion of
       10:
         Stream.WriteBuffer(GetCurrentBuffer^, FRecordSize); // Old 1.0 version
