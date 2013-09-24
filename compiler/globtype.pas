@@ -400,7 +400,8 @@ interface
          app_tool,      { tool application, (MPW tool for MacOS, MacOS only) }
          app_arm7,      { for Nintendo DS target }
          app_arm9,      { for Nintendo DS target }
-         app_bundle     { dynamically loadable bundle, Darwin only }
+         app_bundle,    { dynamically loadable bundle, Darwin only }
+         app_com        { DOS .COM file }
        );
 
        { interface types }
@@ -682,7 +683,6 @@ interface
 
     type
       tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
-      tmsdostargetformat = (msdos_exe, msdos_com);
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

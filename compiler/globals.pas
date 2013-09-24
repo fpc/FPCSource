@@ -156,7 +156,6 @@ interface
 
 {$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
-         msdostargetformat : tmsdostargetformat;
 {$endif defined(i8086)}
 
 {$if defined(ARM)}
@@ -488,7 +487,6 @@ interface
         disabledircache : false;
 {$if defined(i8086)}
         x86memorymodel : mm_small;
-        msdostargetformat : msdos_exe;
 {$endif defined(i8086)}
 {$if defined(ARM)}
         instructionset : is_arm;

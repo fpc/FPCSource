@@ -268,12 +268,10 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  case current_settings.msdostargetformat of
-    msdos_exe: LinkRes.Add('format dos');
-    msdos_com: LinkRes.Add('format dos com');
-    else
-      InternalError(2013092101);
-  end;
+  if apptype=app_com then
+    LinkRes.Add('format dos com')
+  else
+    LinkRes.Add('format dos');
   LinkRes.Add('option dosseg');
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 

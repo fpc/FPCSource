@@ -633,10 +633,25 @@ implementation
 
     procedure SetAppType(NewAppType:tapptype);
       begin
-        if apptype=app_cui then
+{$ifdef i8086}
+        if (target_info.system=system_i8086_msdos) and (apptype<>NewAppType) then
+          begin
+            if NewAppType=app_com then
+              begin
+                targetinfos[system_i8086_msdos]^.exeext:='.com';
+                target_info.exeext:='.com';
+              end
+            else
+              begin
+                targetinfos[system_i8086_msdos]^.exeext:='.exe';
+                target_info.exeext:='.exe';
+              end;
+          end;
+{$endif i8086}
+        if apptype in [app_cui,app_com] then
           undef_system_macro('CONSOLE');
         apptype:=NewAppType;
-        if apptype=app_cui then
+        if apptype in [app_cui,app_com] then
           def_system_macro('CONSOLE');
       end;
 {*****************************************************************************
