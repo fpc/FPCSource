@@ -1583,14 +1583,13 @@ begin
     begin
       inc(code);
       if Length(s) >= code then
-        if s[code]='+' then
-          inc(code)
-        else
-          if s[code]='-' then
-           begin
-             esign:=-1;
-             inc(code);
-           end;
+        case s[code] of
+          '+': inc(code);
+          '-': begin
+                 esign:=-1;
+                 inc(code);
+               end;
+        end;
       expstart:=code;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
@@ -1605,17 +1604,13 @@ begin
     exit;
 
 { adjust exponent based on decimal point }
-  if esign>0 then
+  dec(exponent,decpoint*esign);
+  if (exponent<0) then
     begin
-      dec(exponent,decpoint);
-      if (exponent<0) then
-        begin
-          esign:=-1;
-          exponent:=-exponent;
-        end
-    end
-  else
-    inc(exponent,decpoint);
+      esign:=-1;
+      exponent:=-exponent;
+    end;
+
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
   fpc_Val_Real_ShortStr:=hd*sign;
