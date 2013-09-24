@@ -570,8 +570,7 @@ implementation
           end;
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
-        if not(target_info.system in systems_managed_vm) then
-          loadtype('methodpointer',methodpointertype);
+        loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
         set_default_int_types;
         set_current_module(oldcurrentmodule);
