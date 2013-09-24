@@ -500,6 +500,7 @@ type
     procedure SetBufUniDirectional(const AValue: boolean);
     procedure InitDefaultIndexes;
   protected
+    function GetNewBlobBuffer : PBlobBuffer;
     function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
     procedure UpdateIndexDefs; override;
@@ -565,7 +566,6 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
-    function GetNewBlobBuffer : PBlobBuffer;
 
     procedure SetDatasetPacket(AReader : TDataPacketReader);
     procedure GetDatasetPacket(AWriter : TDataPacketReader);
