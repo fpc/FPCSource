@@ -4,6 +4,7 @@
 
 {$IFDEF FPC}
   {$asmmode intel}
+  {$goto on}
 
   { this test only applies to memory models with far code }
   {$ifdef FPC_MM_MEDIUM}
