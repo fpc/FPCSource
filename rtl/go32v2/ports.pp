@@ -60,14 +60,14 @@ asm
         movw    p,%dx
         movb    data,%al
         outb    %al,%dx
-end ['EAX','EDX'];
+end;
 
 
 function tport.readport(p : word) : byte;assembler;
 asm
         movw    p,%dx
         inb     %dx,%al
-end ['EAX','EDX'];
+end;
 
 
 procedure tportw.writeport(p : word;data : word);assembler;
@@ -75,14 +75,14 @@ asm
         movw    p,%dx
         movw    data,%ax
         outw    %ax,%dx
-end ['EAX','EDX'];
+end;
 
 
 function tportw.readport(p : word) : word;assembler;
 asm
         movw    p,%dx
         inw     %dx,%ax
-end ['EAX','EDX'];
+end;
 
 
 procedure tportl.writeport(p : word;data : longint);assembler;
@@ -90,13 +90,13 @@ asm
         movw    p,%dx
         movl    data,%eax
         outl    %eax,%dx
-end ['EAX','EDX'];
+end;
 
 
 function tportl.readport(p : word) : longint;assembler;
 asm
         movw    p,%dx
         inl     %dx,%eax
-end ['EAX','EDX'];
+end;
 
 end.

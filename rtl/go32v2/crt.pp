@@ -376,7 +376,7 @@ asm
         cmpl    %fs:(%edi),%ebx
         je      .LDelayLoop1
 .LDelayLoop2:
-end ['EAX'];
+end;
 
 
 procedure initdelay;assembler;
@@ -404,7 +404,7 @@ asm
         movl    %eax,DelayCnt
         popl %edi
         popl %ebx
-end ['EAX','ECX','EDX'];
+end;
 
 
 procedure Delay(MS: Word);assembler;
@@ -423,7 +423,7 @@ asm
 .LDelay2:
         popl %edi
         popl %ebx
-end ['EAX','ECX','EDX'];
+end;
 
 
 procedure sound(hz : word);
