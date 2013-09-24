@@ -1356,12 +1356,15 @@ end;
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   valmaxexpnorm=4932;
+  mantissabits=64;
 {$else}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
   valmaxexpnorm=308;
+  mantissabits=53;
 {$else}
 {$ifdef FPC_HAS_TYPE_SINGLE}
   valmaxexpnorm=38;
+  mantissabits=24;
 {$else}
 {$error Unknown floating point precision }
 {$endif}
@@ -1537,6 +1540,10 @@ var
   exponent,
   expstart,
   decpoint : SizeInt;
+  nint,
+  nlz,
+  explimit,
+  explastdigit: SizeInt;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;
@@ -1544,6 +1551,8 @@ begin
   decpoint:=0;
   esign:=1;
   hd:=0.0;
+  nlz:=0;
+  nint:=0;
   sign:=1;
   while (code<=length(s)) and (s[code] in [' ',#9]) do
     inc(code);
@@ -1555,12 +1564,30 @@ begin
              inc(code);
            end;
     end;
+  { leading zeroes do not influence result, skip all but one of them }
+  expstart:=code;
+  while (code<Length(s)) and (s[code]='0') do
+    inc(code);
+  if (code>expstart) then
+    dec(code);
   expstart:=code;
   while (Code<=Length(s)) do
     begin
       case s[code] of
-        '0'..'9':
-          hd:=hd*10+(ord(s[code])-ord('0'));
+        '0':
+          begin
+            if (hd=0) then
+              inc(nlz,ord(decpoint<>0))
+            else
+              inc(nint,ord(decpoint=0));
+            hd:=hd*10;
+          end;
+        '1'..'9':
+          begin
+            if (decpoint=0) then
+              inc(nint);
+            hd:=hd*10+(ord(s[code])-ord('0'));
+          end;
         '.':
           if decpoint=0 then
             decpoint:=code
@@ -1591,9 +1618,27 @@ begin
                end;
         end;
       expstart:=code;
+      { Limit the exponent, accounting for digits in integer part of mantissa
+        and leading zeros in fractional part, e.g 100.0e306 = 1.0e308, etc. }
+      if (esign<0) then
+        explimit:=valmaxexpnorm+mantissabits-1+nint
+      else if (nint>0) then
+        explimit:=valmaxexpnorm+1-nint
+      else
+        explimit:=valmaxexpnorm+1+nlz;
+      explastdigit:=(explimit mod 10)+ord('0');
+      explimit:=explimit div 10;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
-          exponent:=exponent*10+(ord(s[code])-ord('0'));
+          if (exponent>explimit) or
+            ((exponent=explimit) and (ord(s[code])>explastdigit)) then
+            begin
+              { ignore exponent overflow for zero mantissa }
+              if hd<>0.0 then
+                exit;
+            end
+          else
+            exponent:=exponent*10+(ord(s[code])-ord('0'));
           inc(code);
         end;
       if code=expstart then
