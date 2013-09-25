@@ -40,6 +40,7 @@ type
     constructor Create(ACode: TSocketErrorType; const MsgArgs: array of const);
   end;
 
+  TAcceptErrorAction = (aeaRaise,aeaIgnore,aeaStop);
   { TSocketStream }
 
   TSocketStream = class(THandleStream)
@@ -70,11 +71,13 @@ type
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
   TConnectQuery = Procedure (Sender : TObject; ASocket : Longint; Var Allow : Boolean) of Object;
+  TOnAcceptError = Procedure (Sender : TObject; ASocket : Longint; E : Exception; Var ErrorAction : TAcceptErrorAction) of Object;
 
   { TSocketServer }
 
   TSocketServer = Class(TObject)
   Private
+    FOnAcceptError: TOnAcceptError;
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
     FSocket : longint;
@@ -100,7 +103,9 @@ type
     Function  Accept: Longint;Virtual;Abstract;
     Function  SockToStream (ASocket : Longint) : TSocketStream;Virtual;Abstract;
     Procedure Close; Virtual;
+    Procedure Abort;
     function GetConnection: TSocketStream;
+    Function HandleAcceptError(E : ESocketError) : TAcceptErrorAction;
   Public
     Constructor Create(ASocket : Longint);
     Destructor Destroy; Override;
@@ -108,7 +113,7 @@ type
     function  GetSockopt(ALevel,AOptName : cint; var optval; Var optlen : tsocklen): Boolean;
     function  SetSockopt(ALevel,AOptName : cint; var optval; optlen : tsocklen): Boolean;
     Procedure StartAccepting;
-    Procedure StopAccepting;
+    Procedure StopAccepting(DoAbort : Boolean = False);
     Procedure SetNonBlocking;
     Property Bound : Boolean Read FBound;
     // Maximium number of connections in total. *Not* the simultaneous connection count. -1 keeps accepting.
@@ -116,6 +121,7 @@ type
     Property QueueSize : Longint Read FQueueSize Write FQueueSize default 5;
     Property OnConnect : TConnectEvent Read FOnConnect Write FOnConnect;
     Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery;
+    Property OnAcceptError : TOnAcceptError Read FOnAcceptError Write FOnAcceptError;
     Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;
     Property NonBlocking : Boolean Read FNonBlocking;
     Property Socket : Longint Read FSocket;
@@ -353,6 +359,22 @@ begin
   FSocket:=-1;
 end;
 
+procedure TSocketServer.Abort;
+var
+  ASocket: longint;
+begin
+{$if defined(unix)}
+  fpShutdown(FSocket,SHUT_RDWR);
+{$elseif defined(mswindows)}
+  CloseSocket(FSocket);
+{$else}
+  {$WARNING Method Abort is not tested on this platform!}
+  ASocket:=FSocket;
+  fpShutdown(ASocket,SHUT_RDWR);
+  CloseSocket(ASocket);
+{$endif}
+end;
+
 Procedure TSocketServer.Listen;
 
 begin
@@ -378,6 +400,7 @@ Function TSocketServer.GetConnection : TSocketStream;
 
 var
   NewSocket : longint;
+  r,w,e : pfdset;
 
 begin
   Result:=Nil;
@@ -389,6 +412,16 @@ begin
     else
       CloseSocket(NewSocket);
     end
+end;
+
+function TSocketServer.HandleAcceptError(E: ESocketError): TAcceptErrorAction;
+begin
+  if FAccepting then
+    Result:=aeaRaise
+  else
+    Result:=aeaStop;
+  if Assigned(FOnAcceptError) then
+    FOnAcceptError(Self,FSocket,E,Result);
 end;
 
 Procedure TSocketServer.StartAccepting;
@@ -416,17 +449,23 @@ begin
           If E.Code=seAcceptWouldBlock then
             DoOnIdle
           else
-            Raise;
+            Case HandleAcceptError(E) of
+              aeaIgnore : ;
+              aeaStop : FAccepting:=False;
+              aeaRaise : Raise;
+            end;
           end;
        end;
     Until (Stream<>Nil) or (Not NonBlocking);
   Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
 end;
 
-Procedure TSocketServer.StopAccepting;
+procedure TSocketServer.StopAccepting(DoAbort: Boolean = False);
 
 begin
   FAccepting:=False;
+  If DoAbort then
+    Abort;
 end;
 
 Procedure TSocketServer.DoOnIdle;
@@ -599,7 +638,10 @@ begin
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
 {$endif}
-      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
+     if Not FAccepting then
+        Result:=-1
+     else
+        Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError])
 end;
 
 { ---------------------------------------------------------------------
