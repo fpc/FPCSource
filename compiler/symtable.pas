@@ -1320,7 +1320,7 @@ implementation
 
     function tabstractrecordsymtable.iscurrentunit: boolean;
       begin
-        Result := Assigned(current_module) and (current_module.moduleid=moduleid);
+        Result:=assigned(current_module)and(current_module.moduleid=moduleid);
       end;
 
 {****************************************************************************
@@ -1814,7 +1814,7 @@ implementation
 
     function tspecializesymtable.iscurrentunit: boolean;
       begin
-        Result := true;
+        Result:=true;
       end;
 
 
@@ -2335,9 +2335,9 @@ implementation
 
     function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
       var
-        hashedid   : THashedIDString;
-        contextstructdef : tabstractrecorddef;
-        stackitem  : psymtablestackitem;
+        hashedid: THashedIDString;
+        contextstructdef: tabstractrecorddef;
+        stackitem: psymtablestackitem;
       begin
         result:=false;
         hashedid.id:=s;
@@ -2363,7 +2363,16 @@ implementation
               (srsymtable.defowner.typ=undefineddef)) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
-                if assigned(srsym) then
+                { First check if it is a unit/namespace symbol.
+                  They are visible only if they are from the current unit or
+                  unit of generic of currently processed specialization. }
+                if assigned(srsym) and
+                   (
+                     not(srsym.typ in [unitsym,namespacesym]) or
+                     srsymtable.iscurrentunit or
+                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
+                   ) and
+                   (not (ssf_search_option in flags) or (option in srsym.symoptions))then
                   begin
                     { use the class from withsymtable only when it is
                       defined in this unit }
@@ -2375,9 +2384,8 @@ implementation
                       contextstructdef:=tabstractrecorddef(srsymtable.defowner)
                     else
                       contextstructdef:=current_structdef;
-                    if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                       is_visible_for_object(srsym,contextstructdef) and
-                       (not (ssf_search_option in flags) or (option in srsym.symoptions)) then
+                    if not(srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                       is_visible_for_object(srsym,contextstructdef) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
@@ -2444,7 +2452,11 @@ implementation
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
-                   (not(srsym.typ in [unitsym,namespacesym]) or srsymtable.iscurrentunit) and
+                   (
+                     not(srsym.typ in [unitsym,namespacesym]) or
+                     srsymtable.iscurrentunit or
+                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
+                   ) and
                    not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
                    (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,current_structdef)) then
                   begin
