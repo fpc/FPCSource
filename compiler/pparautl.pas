@@ -265,15 +265,18 @@ implementation
            { insert the name of the procedure as alias for the function result,
              we can't use realname because that will not work for compilerprocs
              as the name is lowercase and unreachable from the code }
-           if assigned(pd.resultname) then
-             hs:=pd.resultname^
-           else
-             hs:=pd.procsym.name;
-           sl:=tpropaccesslist.create;
-           sl.addsym(sl_load,pd.funcretsym);
-           aliasvs:=tabsolutevarsym.create_ref(hs,pd.returndef,sl);
-           include(aliasvs.varoptions,vo_is_funcret);
-           tlocalsymtable(pd.localst).insert(aliasvs);
+           if (pd.proctypeoption<>potype_operator) or assigned(pd.resultname) then
+             begin
+               if assigned(pd.resultname) then
+                 hs:=pd.resultname^
+               else
+                 hs:=pd.procsym.name;
+               sl:=tpropaccesslist.create;
+               sl.addsym(sl_load,pd.funcretsym);
+               aliasvs:=tabsolutevarsym.create_ref(hs,pd.returndef,sl);
+               include(aliasvs.varoptions,vo_is_funcret);
+               tlocalsymtable(pd.localst).insert(aliasvs);
+             end;
 
            { insert result also if support is on }
            if (m_result in current_settings.modeswitches) then
