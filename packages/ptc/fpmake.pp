@@ -164,6 +164,7 @@ begin
       AddInclude('win32modesetteri.inc', [win32, win64]);
       AddInclude('win32openglwindowd.inc', [win32, win64]);
       AddInclude('win32openglwindowi.inc', [win32, win64]);
+      AddUnit('p_ddraw', [win32, win64]);
       AddInclude('includes.inc', [go32v2]);
       AddInclude('kbd.inc', [go32v2]);
       AddInclude('kbdd.inc', [go32v2]);
