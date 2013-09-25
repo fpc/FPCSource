@@ -106,7 +106,7 @@ Type
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
   protected
-    procedure Terminate;
+    procedure Terminate; virtual;
     Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
