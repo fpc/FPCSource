@@ -274,6 +274,7 @@ type
   end;
 
   TDOMNodeClass = class of TDOMNode;
+  TDOMElementClass = class of TDOMElement;
 
   { The following class is an implementation specific extension, it is just an
     extended implementation of TDOMNode, the generic DOM::Node interface
@@ -499,7 +500,9 @@ type
 
     // DOM level 2 methods
     function ImportNode(ImportedNode: TDOMNode; Deep: Boolean): TDOMNode;
-    function CreateElementNS(const nsURI, QualifiedName: DOMString): TDOMElement;
+    function CreateElementNS(const nsURI, QualifiedName: DOMString): TDOMElement; overload;
+    function CreateElementNS(const nsURI, QualifiedName: DOMString;
+      AClass: TDOMElementClass): TDOMElement; overload;
     function CreateAttributeNS(const nsURI, QualifiedName: DOMString): TDOMAttr;
     function GetElementsByTagNameNS(const nsURI, alocalName: DOMString): TDOMNodeList;
     function GetElementById(const ElementID: DOMString): TDOMElement;
@@ -2572,6 +2575,12 @@ end;
 
 function TDOMDocument.CreateElementNS(const nsURI,
   QualifiedName: DOMString): TDOMElement;
+begin
+     result:=CreateElementNS(nsURI, QualifiedName, TDOMElement);
+end;
+
+function TDOMDocument.CreateElementNS(const nsURI, QualifiedName: DOMString;
+  AClass: TDOMElementClass): TDOMElement; overload;
 var
   PrefIdx: Integer;
   nsidx: PHashItem;
@@ -2579,7 +2588,7 @@ begin
   PrefIdx := ValidateQName(nsURI, QualifiedName, nsidx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
-  TDOMNode(Result) := Alloc(TDOMElement);
+  TDOMNode(Result) := Alloc(AClass);
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(QualifiedName), Length(QualifiedName));
   Result.FNSI.NSIndex := Word(IndexOfNS(nsURI, True));
