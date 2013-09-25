@@ -5474,6 +5474,7 @@ implementation
         tprocvardef(result).savesize:=savesize;
 
         { create paralist copy }
+        calcparas;
         tprocvardef(result).paras:=tparalist.create(false);
         tprocvardef(result).paras.count:=paras.count;
         for j:=0 to paras.count-1 do
