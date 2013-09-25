@@ -1630,6 +1630,10 @@ begin
       explimit:=explimit div 10;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
+          { Check commented out: since this code is used by compiler, it would error out
+            e.g. if compiling '1e3000' for non-x86 target. OTOH silently treating it
+            as infinity isn't a good option either. }
+          (*
           if (exponent>explimit) or
             ((exponent=explimit) and (ord(s[code])>explastdigit)) then
             begin
@@ -1637,7 +1641,7 @@ begin
               if hd<>0.0 then
                 exit;
             end
-          else
+          else *)
             exponent:=exponent*10+(ord(s[code])-ord('0'));
           inc(code);
         end;
