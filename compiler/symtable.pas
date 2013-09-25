@@ -143,6 +143,7 @@ interface
        public
           constructor create(const n : string;id:word);
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          function findnamespace(const n:string):TSymEntry;virtual;
           function iscurrentunit:boolean;override;
           procedure insertunit(sym:TSymEntry);
        end;
@@ -160,7 +161,8 @@ interface
           constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          function findnamespace(const n:string):TSymEntry;override;
        end;
 
        tspecializesymtable = class(tglobalsymtable)
@@ -1698,6 +1700,13 @@ implementation
           end;
       end;
 
+    function tabstractuniTSymtable.findnamespace(const n:string):TSymEntry;
+      begin
+        result:=find(n);
+        if assigned(result)and(result.typ<>namespacesym)then
+          result:=nil;
+      end;
+
     function tabstractuniTSymtable.iscurrentunit:boolean;
       begin
         result:=assigned(current_module) and
@@ -1724,8 +1733,8 @@ implementation
             else
               ns:=ns+'.'+copy(n,1,p-1);
             system.delete(n,1,p);
-            oldsym:=Find(upper(ns));
-            if not Assigned(oldsym) or (oldsym.typ<>namespacesym) then
+            oldsym:=findnamespace(upper(ns));
+            if not assigned(oldsym) then
               insert(tnamespacesym.create(ns));
             p:=pos('.',n);
           end;
@@ -1768,6 +1777,15 @@ implementation
            assigned(current_module.globalsymtable) then
           result:=tglobalsymtable(current_module.globalsymtable).checkduplicate(hashedid,sym);
       end;
+
+    function tstaticsymtable.findnamespace(const n:string):TSymEntry;
+      begin
+        result:=inherited findnamespace(n);
+        if not assigned(result) and
+           (current_module.localsymtable=self) and
+           assigned(current_module.globalsymtable) then
+          result:=tglobalsymtable(current_module.globalsymtable).findnamespace(n);
+     end;
 
 
 {****************************************************************************
