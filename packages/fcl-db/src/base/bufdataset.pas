@@ -349,13 +349,14 @@ type
 
   TDatapacketReaderClass = class of TDatapacketReader;
   TDataPacketReader = class(TObject)
-    FStream : TStream;
     FDataSet: TCustomBufDataset;
+    FStream : TStream;
   protected
     class function RowStateToByte(const ARowState : TRowState) : byte;
     class function ByteToRowState(const AByte : Byte) : TRowState;
     procedure RestoreBlobField(AField: TField; ASource: pointer; ASize: integer);
     property DataSet: TCustomBufDataset read FDataSet;
+    property Stream: TStream read FStream;
   public
     constructor Create(ADataSet: TCustomBufDataset; AStream : TStream); virtual;
     // Load a dataset from stream:
@@ -381,7 +382,6 @@ type
     procedure FinalizeStoreRecords; virtual; abstract;
     // Checks if the provided stream is of the right format for this class
     class function RecognizeStream(AStream : TStream) : boolean; virtual; abstract;
-    property Stream: TStream read FStream;
   end;
 
   { TFpcBinaryDatapacketReader }
