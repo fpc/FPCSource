@@ -198,8 +198,8 @@ type
     ai_socktype: cInt;  {* SOCK_xxx *}
     ai_protocol: cInt;  {* 0 or IPPROTO_xxx for IPv4 and IPv6 *}
     ai_addrlen: TSocklen;  {* length of ai_addr *}
-    ai_canonname: PChar;   {* canonical name for hostname *}
     ai_addr: psockaddr;	   {* binary address *}
+    ai_canonname: PChar;   {* canonical name for hostname *}
     ai_next: PAddrInfo;	   {* next structure in linked list *}
   end;
   TAddrInfo = addrinfo;
