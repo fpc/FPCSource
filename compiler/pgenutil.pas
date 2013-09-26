@@ -545,20 +545,11 @@ uses
                   end;
           end
         else
-          { search for a potential suffix }
-          for i:=length(genname) downto 1 do
-            if genname[i]='$' then
-              begin
-                { if the part right of the $ is a number we assume that the left
-                  part is the name of the generic, otherwise we assume that the
-                  complete name is the name of the generic }
-                countstr:=copy(genname,i+1,length(genname)-i);
-                gencount:=0;
-                val(countstr,gencount,errval);
-                if errval=0 then
-                  genname:=copy(genname,1,i-1);
-                break;
-              end;
+          begin
+            split_generic_name(genname,ugenname,gencount);
+            if genname<>ugenname then
+              genname:=ugenname;
+          end;
 
         { search a generic with the given count of params }
         countstr:='';
@@ -630,18 +621,17 @@ uses
         generictypelist:=tfpobjectlist.create(false);
 
         { build the list containing the types for the generic params }
-        gencount:=0;
-        for i:=0 to st.SymList.Count-1 do
+        if not assigned(genericdef.genericparas) then
+          internalerror(2013092601);
+        if genericdeflist.count<>genericdef.genericparas.count then
+          internalerror(2013092603);
+        for i:=0 to genericdef.genericparas.Count-1 do
           begin
-            srsym:=tsym(st.SymList[i]);
-            if sp_generic_para in srsym.symoptions then
-              begin
-                if gencount=genericdeflist.Count then
-                  internalerror(2011042702);
-                generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[gencount]));
-                generictypelist.add(generictype);
-                inc(gencount);
-              end;
+            srsym:=tsym(genericdef.genericparas[i]);
+            if not (sp_generic_para in srsym.symoptions) then
+              internalerror(2013092602);
+            generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[i]));
+            generictypelist.add(generictype);
           end;
 
         { Special case if we are referencing the current defined object }
@@ -1118,7 +1108,7 @@ uses
               countstr:=copy(name,i+1,length(name)-i);
               val(countstr,count,code);
               if code<>0 then
-                internalerror(2013091605);
+                break;
               exit;
             end;
         nongeneric:=name;
