@@ -400,7 +400,6 @@ Function TSocketServer.GetConnection : TSocketStream;
 
 var
   NewSocket : longint;
-  r,w,e : pfdset;
 
 begin
   Result:=Nil;
