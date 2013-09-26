@@ -237,6 +237,8 @@ type
     procedure ShowStatistics;
     procedure ForEachCall(proc2call:TListCallback;arg:pointer);
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+    procedure WhileEachCall(proc2call:TListCallback;arg:pointer);
+    procedure WhileEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -309,6 +311,8 @@ type
     procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -1661,6 +1665,38 @@ begin
 end;
 
 
+procedure TFPHashList.WhileEachCall(proc2call:TListCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  i:=0;
+  while i<count do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+      inc(i);
+    end;
+end;
+
+
+procedure TFPHashList.WhileEachCall(proc2call:TListStaticCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  i:=0;
+  while i<count do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+      inc(i);
+    end;
+end;
+
+
 {*****************************************************************************
                                TFPHashObject
 *****************************************************************************}
@@ -1912,6 +1948,18 @@ end;
 procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
+
+procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FHashList.WhileEachCall(TListCallBack(proc2call),arg);
+end;
+
+
+procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FHashList.WhileEachCall(TListStaticCallBack(proc2call),arg);
 end;
 
 

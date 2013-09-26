@@ -2343,9 +2343,9 @@ implementation
     procedure generate_specialization_procs;
       begin
         if assigned(current_module.globalsymtable) then
-          current_module.globalsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
+          current_module.globalsymtable.SymList.WhileEachCall(@specialize_objectdefs,nil);
         if assigned(current_module.localsymtable) then
-          current_module.localsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
+          current_module.localsymtable.SymList.WhileEachCall(@specialize_objectdefs,nil);
       end;
 
 end.
