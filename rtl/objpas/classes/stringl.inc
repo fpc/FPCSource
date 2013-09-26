@@ -1298,6 +1298,12 @@ Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
   end;
 
 
+function TStringList.CompareStrings(const s1,s2 : string) : Integer;
+begin
+  Result := DoCompareText(s1, s2);
+end;
+
+
 Function TStringList.Find(const S: string; Out Index: Integer): Boolean;
 
 var

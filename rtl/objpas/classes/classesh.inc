@@ -749,6 +749,7 @@ type
     procedure InsertItem(Index: Integer; const S: string); virtual;
     procedure InsertItem(Index: Integer; const S: string; O: TObject); virtual;
     Function DoCompareText(const s1,s2 : string) : PtrInt; override;
+    function CompareStrings(const s1,s2 : string) : Integer; virtual;
 
   public
     destructor Destroy; override;
