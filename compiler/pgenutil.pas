@@ -430,7 +430,7 @@ uses
             if not errorrecovery and
                 (not assigned(tt) or (tt.typ=undefineddef)) then
               begin
-                if (symname='') and (df_generic in genericdef.defoptions) then
+                if (symname='') and genericdef.is_generic then
                   { this happens in non-Delphi modes }
                   tt:=genericdef
                 else

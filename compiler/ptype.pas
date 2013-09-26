@@ -455,6 +455,7 @@ implementation
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
             generate_specialization(def,stoParseClassParent in options,'');
+            parse_nested_types(def,stoIsForwardDef in options,nil);
           end
         else
           begin
