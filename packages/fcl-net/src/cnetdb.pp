@@ -191,6 +191,16 @@ type
   PProtoEnt = ^TProtoEnt;
   PPProtoEnt = ^PProtoEnt;
 
+{$if defined(LINUX) or defined(OPENBSD)}
+{$define FIRST_ADDR_THEN_CANONNAME}
+{$endif}
+{$if defined(FREEBSD) or defined(NETBSD)}
+{$define FIRST_CANONNAME_THEN_ADDR}
+{$endif}
+{$if not defined(FIRST_CANONNAME_THEN_ADDR) and not defined(FIRST_ADDR_THEN_CANONNAME)}
+{$error fatal 'Please consult the netdh.h file for your system to determine the order of ai_addr and ai_canonname'}
+{$endif} 
+
   PAddrInfo = ^addrinfo;
   addrinfo = record
     ai_flags: cInt;     {* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST *}
@@ -198,8 +208,14 @@ type
     ai_socktype: cInt;  {* SOCK_xxx *}
     ai_protocol: cInt;  {* 0 or IPPROTO_xxx for IPv4 and IPv6 *}
     ai_addrlen: TSocklen;  {* length of ai_addr *}
+{$ifdef FIRST_CANONNAME_THEN_ADDR}
+    ai_canonname: PChar;   {* canonical name for hostname *}
+    ai_addr: psockaddr;	   {* binary address *}
+{$endif}
+{$ifdef FIRST_ADDR_THEN_CANONNAME}
     ai_addr: psockaddr;	   {* binary address *}
     ai_canonname: PChar;   {* canonical name for hostname *}
+{$endif}
     ai_next: PAddrInfo;	   {* next structure in linked list *}
   end;
   TAddrInfo = addrinfo;
