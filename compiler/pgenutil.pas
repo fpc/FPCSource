@@ -43,6 +43,7 @@ uses
     function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
     function resolve_generic_dummysym(const name:tidstring):tsym;
+    function could_be_generic(const name:tidstring):boolean;inline;
 
     type
       tspecializationstate = record
@@ -1136,6 +1137,12 @@ uses
           result:=nil;
       end;
 
+
+    function could_be_generic(const name:tidstring):boolean;
+      begin
+        result:=(name<>'') and
+                  (current_module.genericdummysyms.findindexof(name)>=0);
+      end;
 
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var

@@ -2825,12 +2825,15 @@ implementation
          hdef       : tdef;
          filepos    : tfileposinfo;
          callflags  : tcallnodeflags;
+         idstr      : tidstring;
+         dopostfix,
          again,
          updatefpos,
          nodechanged  : boolean;
       begin
         { can't keep a copy of p1 and compare pointers afterwards, because
           p1 may be freed and reallocated in the same place!  }
+        dopostfix:=true;
         updatefpos:=false;
         p1:=nil;
         filepos:=current_tokenpos;
@@ -2857,7 +2860,27 @@ implementation
               filepos:=current_tokenpos;
             end;
            { handle post fix operators }
-           updatefpos:=postfixoperators(p1,again,getaddr);
+           if (m_delphi in current_settings.modeswitches) and
+               (block_type=bt_body) and
+               (token in [_LT,_LSHARPBRACKET]) then
+             begin
+               if p1.nodetype=typen then
+                 idstr:=ttypenode(p1).typesym.name
+               else
+                 if (p1.nodetype=loadvmtaddrn) and
+                     (tloadvmtaddrnode(p1).left.nodetype=typen) then
+                   idstr:=ttypenode(tloadvmtaddrnode(p1).left).typesym.name
+                 else
+                   if (p1.nodetype=loadn) then
+                     idstr:=tloadnode(p1).symtableentry.name
+                   else
+                     idstr:='';
+               { if this is the case then the postfix handling is done in
+                 sub_expr if necessary }
+               dopostfix:=not could_be_generic(idstr);
+             end;
+           if dopostfix then
+             updatefpos:=postfixoperators(p1,again,getaddr);
          end
         else
          begin
@@ -3327,8 +3350,8 @@ implementation
            updatefpos:=true;
          end;
 
-        { get the resultdef for the node }
-        if (not assigned(p1.resultdef)) then
+        { get the resultdef for the node if nothing stops us }
+        if (not assigned(p1.resultdef)) and dopostfix then
           begin
             do_typecheckpass_changed(p1,nodechanged);
             updatefpos:=updatefpos or nodechanged;
@@ -3516,9 +3539,13 @@ implementation
                      begin
                        { this is a normal "<" comparison }
 
-                       { potential generic types that are followed by a "<" }
+                       { potential generic types that are followed by a "<": }
 
-                       { a) are not checked whether they are an undefined def,
+                       { a) might not have their resultdef set }
+                       if not assigned(p1.resultdef) then
+                         do_typecheckpass(p1);
+
+                       { b) are not checked whether they are an undefined def,
                             but not a generic parameter }
                        if (p1.nodetype=typen) and
                            (ttypenode(p1).typedef.typ=undefineddef) and
@@ -3530,7 +3557,7 @@ implementation
                            p1:=cerrornode.create;
                          end;
 
-                       { b) don't have their hints checked }
+                       { c) don't have their hints checked }
                        if istypenode(p1) then
                          begin
                            gendef:=gettypedef(p1);
