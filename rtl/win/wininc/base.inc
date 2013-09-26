@@ -333,6 +333,21 @@
 
      _SID_NAME_USE = SID_NAME_USE;
 
+     TOKEN_TYPE = (
+       TokenPrimary = 1,
+       TokenImpersonation
+     );
+     _TOKEN_TYPE = TOKEN_TYPE;
+     TTokenType = TOKEN_TYPE;
+
+     TOKEN_ELEVATION_TYPE = (
+       TokenElevationTypeDefault = 1,
+       TokenElevationTypeFull,
+       TokenElevationTypeLimited
+     );
+     _TOKEN_ELEVATION_TYPE = TOKEN_ELEVATION_TYPE;
+     TTokenElevationType = TOKEN_ELEVATION_TYPE;
+
      TOKEN_INFORMATION_CLASS = (
        TokenUser = 1,
        TokenGroups,
@@ -364,14 +379,15 @@
        TokenLogonSid,
        MaxTokenInfoClass  // MaxTokenInfoClass should always be the last enum
      );
-
      _TOKEN_INFORMATION_CLASS = TOKEN_INFORMATION_CLASS;
      TTokenInformationClass   = TOKEN_INFORMATION_CLASS;
 
-     TOKEN_TYPE = (TokenPrimary := 1,TokenImpersonation
-       );
-
-     tagTOKEN_TYPE = TOKEN_TYPE;
+     _TOKEN_ELEVATION = record
+       TokenIsElevated: DWORD;
+     end;
+     TOKEN_ELEVATION = _TOKEN_ELEVATION;
+     TTokenElevation = _TOKEN_ELEVATION;
+     PTokenElevation = ^TTokenElevation;
 
     _FINDEX_INFO_LEVELS = (FindExInfoStandard,FindExInfoBasic,FindExInfoMaxInfoLevel);
     _FINDEX_SEARCH_OPS  = (FindExSearchNameMatch, FindExSearchLimitToDirectories,
