@@ -24,7 +24,7 @@ uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type
   TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
-  TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
+  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat);
   TConnOptions= set of TConnOption;
   TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
   TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
@@ -976,7 +976,7 @@ end;
 
 procedure TSQLConnection.DoInternalConnect;
 begin
-  if (DatabaseName = '') then
+  if (DatabaseName = '') and not(sqSupportEmptyDatabaseName in FConnOptions) then
     DatabaseError(SErrNoDatabaseName,self);
 end;
 
