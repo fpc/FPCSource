@@ -1075,6 +1075,22 @@ type
               result:=texprvalue.create_error;
             end;
         end;
+        _OP_XOR:
+        begin
+          if isBoolean then
+            if v.isBoolean then
+              result:=texprvalue.create_bool(asBool xor v.asBool)
+            else
+              begin
+                v.error('Boolean','XOR');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','XOR');
+              result:=texprvalue.create_error;
+            end;
+        end;
         _OP_AND:
         begin
           if isBoolean then
@@ -1273,7 +1289,7 @@ type
     end;
 
   const
-    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR,_OP_IN,_OP_AND,_OP_OR];
+    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR,_OP_IN,_OP_AND,_OP_OR,_OP_XOR];
 
     function preproc_comp_expr:texprvalue;
 
