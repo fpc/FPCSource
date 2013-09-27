@@ -94,24 +94,22 @@ procedure FillChar(var x;count:longint;value:byte); assembler;
      move.b value, d0      { fill data                     }
      tst.l d1              { anything to fill at all?      }
      beq    @LMEMSET5
+{$ifdef CPUM68K_HAS_DBRA}
      cmpi.l #65535, d1     { check, if this is a word move }
      ble    @LMEMSET3      { use fast dbra mode            }
+{$endif CPUM68K_HAS_DBRA}
      bra @LMEMSET2
    @LMEMSET1:
      move.b d0,(a0)+
    @LMEMSET2:
      subq.l #1,d1
-     cmp.l #-1,d1
-     bne  @LMEMSET1
+     bpl @LMEMSET1
      bra @LMEMSET5        { finished slow mode , exit     }
 
+{$ifdef CPUM68K_HAS_DBRA}
    @LMEMSET4:             { fast loop mode section 68010+ }
      move.b d0,(a0)+
    @LMEMSET3:
-{$ifndef CPUM68K_HAS_DBRA}
-     sub.l #1,d1
-     bmi @LMEMSET4
-{$else CPUM68K_HAS_DBRA}
      dbra d1,@LMEMSET4
 {$endif CPUM68K_HAS_DBRA}
 
@@ -157,7 +155,7 @@ asm
 @LMSTRCOPY55:
 {$ifndef CPUM68K_HAS_DBRA}
    sub.l #1,d1
-   bmi @LMSTRCOPY56
+   bpl @LMSTRCOPY56
 {$else CPUM68K_HAS_DBRA}
    dbra  d1,@LMSTRCOPY56
 {$endif CPUM68K_HAS_DBRA}
@@ -197,7 +195,7 @@ procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 @ALoop:
 {$ifndef CPUM68K_HAS_DBRA}
       sub.l   #1,d6
-      bmi     @Loop
+      bpl     @Loop
 {$else CPUM68K_HAS_DBRA}
       dbra    d6,@Loop
 {$endif CPUM68K_HAS_DBRA}
