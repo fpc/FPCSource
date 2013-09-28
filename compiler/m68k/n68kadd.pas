@@ -483,82 +483,57 @@ implementation
 
     procedure t68kaddnode.second_cmpsmallset;
      var
-       leftreg,
-       rightreg : tregister;
+       tmpreg : tregister;
      begin
        pass_left_right;
 
        location_reset(location,LOC_FLAGS,OS_NO);
 
+       if (not(nf_swapped in flags) and
+           (nodetype = lten)) or
+          ((nf_swapped in flags) and
+           (nodetype = gten)) then
+         swapleftright;
+
+       { Try to keep right as a constant }
+       if right.location.loc<>LOC_CONSTANT then
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
        case nodetype of
-          equaln,
-          unequaln :
-            begin
-              {emit_compare(true);}
-            end;
-          lten,gten:
-            begin
-              if (not(nf_swapped in flags) and
-                  (nodetype = lten)) or
-                 ((nf_swapped in flags) and
-                  (nodetype = gten)) then
-                swapleftright;
-              // now we have to check whether left >= right
-
-              // first load right into a register
-              case right.location.loc of
-                LOC_CONSTANT:
-                  begin
-                    rightreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
-                      aword(right.location.value),rightreg);
-                  end;
-                LOC_REFERENCE:
-                  begin
-                    rightreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,right.location.reference,rightreg);
-                  end;
-                LOC_REGISTER:
-                  begin
-                    rightreg:=right.location.register;
-                  end;
-                else
-                  internalerror(2012102001);
-              end;
-
-              // now process left
-              case left.location.loc of
-                LOC_CONSTANT:
-                  begin
-                    leftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,
-                      not(left.location.value),rightreg,leftreg);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,leftreg));
-                    // the two instructions above should be folded together by
-                    // the peepholeoptimizer
-                  end;
-                LOC_REFERENCE:
-                  begin
-                    leftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,leftreg);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,
-                      rightreg,leftreg));
-                  end;
-                LOC_REGISTER:
-                  begin
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,
-                      rightreg,left.location.register));
-                  end;
-                else
-                  internalerror(2012102002);
-              end;
-              location.resflags := getresflags(true);
-            end;
-          else
-            internalerror(2002072701);
-        end;
-
-
+         equaln,
+         unequaln:
+           begin
+             if right.location.loc=LOC_CONSTANT then
+               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.value,left.location.register))
+             else
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register,left.location.register));
+             if nodetype=equaln then
+               location.resflags:=F_E
+             else
+               location.resflags:=F_NE;
+           end;
+         lten,
+         gten:
+           begin
+             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             if right.location.loc=LOC_CONSTANT then
+               begin
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,right.location.value,tmpreg));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
+               end
+             else
+               begin
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,right.location.register,tmpreg));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
+               end;
+             location.resflags:=F_E;
+           end;
+         else
+           internalerror(2013092701);
+       end;
      end;
 
 
