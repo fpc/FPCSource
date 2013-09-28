@@ -2233,9 +2233,8 @@ unit cgx86;
               end;
 
             getcpuregister(list,REGCX);
-{$if defined(i8086) or defined(i386)}
-           list.concat(Taicpu.op_none(A_CLD,S_NO));
-{$endif i8086 or i386}
+            if current_settings.enablecld then
+              list.concat(Taicpu.op_none(A_CLD,S_NO));
             if (cs_opt_size in current_settings.optimizerswitches) and
                (len>sizeof(aint)+(sizeof(aint) div 2)) then
               begin
