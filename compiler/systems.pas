@@ -142,7 +142,9 @@ interface
             tf_no_backquote_support,
             { do not generate an object file when smartlinking is turned on,
               this is usefull for architectures which require a small code footprint }
-            tf_no_objectfiles_when_smartlinking
+            tf_no_objectfiles_when_smartlinking,
+            { indicates that the default value of the ts_cld target switch is 'on' for this target }
+            tf_cld
        );
 
        psysteminfo = ^tsysteminfo;

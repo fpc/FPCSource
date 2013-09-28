@@ -38,7 +38,8 @@ Type
     LogoWritten,
     FPUSetExplicitly,
     CPUSetExplicitly,
-    OptCPUSetExplicitly: boolean;
+    OptCPUSetExplicitly,
+    CLDSetExplicitly: boolean;
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
@@ -1011,6 +1012,8 @@ begin
                          include(init_settings.moduleswitches,cs_create_smart);
                     'T' :
                       begin
+                        if Pos('CLD',Upper(copy(more,j+1,length(more))))>0 then  // Ugly. Is there a better way?
+                          CLDSetExplicitly:=true;
                         if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
                           IllegalPara(opt);
                         break;
@@ -2715,6 +2718,7 @@ begin
   FPUSetExplicitly:=false;
   CPUSetExplicitly:=false;
   OptCPUSetExplicitly:=false;
+  CLDSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
   ParaIncludeCfgPath:=TSearchPathList.Create;
@@ -3475,6 +3479,9 @@ if (target_info.abi = abi_eabihf) then
     mm_huge:    def_system_macro('FPC_MM_HUGE');
   end;
 {$endif}
+  if not option.CLDSetExplicitly and (tf_cld in target_info.flags) then
+    if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
+      InternalError(2013092801);
 
 
   { Section smartlinking conflicts with import sections on Windows }
