@@ -79,8 +79,8 @@ Type
 var
   coption : TOptionClass;
 
+function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
 procedure read_arguments(cmd:TCmdStr);
-
 
 implementation
 
@@ -148,6 +148,95 @@ begin
   undef_system_macro('FPC_LINK_DYNAMIC');
   init_settings.globalswitches:=init_settings.globalswitches+[cs_link_static];
   init_settings.globalswitches:=init_settings.globalswitches-[cs_link_shared,cs_link_smart];
+end;
+
+
+function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
+var
+  tok,
+  value : string;
+  setstr: string[2];
+  equalspos: longint;
+  doset,
+  gotvalue,
+  found : boolean;
+  opt   : ttargetswitch;
+begin
+  result:=true;
+  repeat
+    tok:=GetToken(s,',');
+    if tok='' then
+     break;
+    setstr:=upper(copy(tok,length(tok),1));
+    if setstr='-' then
+      begin
+        setlength(tok,length(tok)-1);
+        doset:=false;
+      end
+    else
+      doset:=true;
+    { value specified? }
+    gotvalue:=false;
+    equalspos:=pos('=',tok);
+    if equalspos<>0 then
+      begin
+        value:=copy(tok,equalspos+1,length(tok));
+        delete(tok,equalspos,length(tok));
+        gotvalue:=true;
+      end;
+    found:=false;
+    uppervar(tok);
+    for opt:=low(ttargetswitch) to high(ttargetswitch) do
+      begin
+        if TargetSwitchStr[opt].name=tok then
+          begin
+            found:=true;
+            break;
+          end;
+      end;
+    if found then
+      begin
+        if not global and
+           TargetSwitchStr[opt].isglobal then
+          result:=false
+        else if not TargetSwitchStr[opt].hasvalue then
+          begin
+            if gotvalue then
+              result:=false;
+            if (TargetSwitchStr[opt].define<>'') and (doset xor (opt in a)) then
+              if doset then
+                def_system_macro(TargetSwitchStr[opt].define)
+              else
+                undef_system_macro(TargetSwitchStr[opt].define);
+            if doset then
+              include(a,opt)
+            else
+              exclude(a,opt)
+          end
+        else
+          begin
+            if not gotvalue or
+               not doset then
+              result:=false
+            else
+              begin
+                case opt of
+                  ts_auto_getter_prefix:
+                    prop_auto_getter_prefix:=value;
+                  ts_auto_setter_predix:
+                    prop_auto_setter_prefix:=value;
+                  else
+                    begin
+                      writeln('Internalerror 2012053001');
+                      halt(1);
+                    end;
+                end;
+              end;
+          end;
+      end
+    else
+      result:=false;
+  until false;
 end;
 
 {****************************************************************************

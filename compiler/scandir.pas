@@ -52,7 +52,7 @@ unit scandir;
     uses
       SysUtils,
       cutils,cfileutl,
-      globals,systems,widestr,cpuinfo,
+      globals,systems,options,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
