@@ -567,7 +567,8 @@ implementation
       windirs,
 {$endif VER2_4}
 {$endif}
-      comphook;
+      comphook,
+      symtable;
 
 {****************************************************************************
                                  TLinkStrMap
@@ -1443,6 +1444,11 @@ implementation
                 begin
                   if gotvalue then
                     result:=false;
+                  if (TargetSwitchStr[opt].define<>'') and (doset xor (opt in a)) then
+                    if doset then
+                      def_system_macro(TargetSwitchStr[opt].define)
+                    else
+                      undef_system_macro(TargetSwitchStr[opt].define);
                   if doset then
                     include(a,opt)
                   else

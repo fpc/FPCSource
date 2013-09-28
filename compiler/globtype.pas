@@ -298,6 +298,7 @@ interface
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
+          define: string[15];
        end;
 
     const
@@ -316,16 +317,16 @@ interface
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
-         (name: '';                    hasvalue: false; isglobal: true ),
-         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ),
-         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ),
-         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ),
-         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
-         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
-         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ),
-         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ),
-         (name: 'INITLOCALS';          hasvalue: false; isglobal: true ),
-         (name: 'CLD';                 hasvalue: false; isglobal: true )
+         (name: '';                    hasvalue: false; isglobal: true ; define: ''),
+         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ; define: ''),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ; define: ''),
+         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ; define: ''),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false; define: ''),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false; define: ''),
+         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ; define: ''),
+         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
+         (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
+         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD')
        );
 
        { switches being applied to all CPUs at the given level }
