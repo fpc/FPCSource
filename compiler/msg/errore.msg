@@ -3427,6 +3427,9 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
 **2Ct_Stack checking (for testing only, see manual)
+8*2CT<x>_Target-specific code generation options
+3*2CT<x>_Target-specific code generation options
+4*2CT<x>_Target-specific code generation options
 p*2CT<x>_Target-specific code generation options
 P*2CT<x>_Target-specific code generation options
 J*2CT<x>_Target-specific code generation options
@@ -3435,6 +3438,9 @@ p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTautogetterprefix=X_  Automatically create getters for properties with prefix X (empty string disables)
 J*3CTautosetterprefix=X_  Automatically create setters for properties with prefix X (empty string disables)
+8*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
+3*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
+4*3CTcld_                 Emit a CLD instruction before using the x86 string instructions
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
 J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
