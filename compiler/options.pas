@@ -3475,10 +3475,6 @@ if (target_info.abi = abi_eabihf) then
     mm_huge:    def_system_macro('FPC_MM_HUGE');
   end;
 {$endif}
-{$if defined(x86)}
-  if current_settings.enablecld then
-    def_system_macro('FPC_ENABLED_CLD');
-{$endif}
 
 
   { Section smartlinking conflicts with import sections on Windows }

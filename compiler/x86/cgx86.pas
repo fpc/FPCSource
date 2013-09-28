@@ -2233,7 +2233,7 @@ unit cgx86;
               end;
 
             getcpuregister(list,REGCX);
-            if current_settings.enablecld then
+            if ts_cld in current_settings.targetswitches then
               list.concat(Taicpu.op_none(A_CLD,S_NO));
             if (cs_opt_size in current_settings.optimizerswitches) and
                (len>sizeof(aint)+(sizeof(aint) div 2)) then

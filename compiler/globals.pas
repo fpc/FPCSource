@@ -154,12 +154,6 @@ interface
 
          disabledircache : boolean;
 
-{$if defined(x86)}
-         { setting this to true causes the compiler to emit a CLD instruction
-           before using the x86 string instructions. }
-         enablecld       : boolean;
-{$endif defined(x86)}
-
 {$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
 {$endif defined(i8086)}
@@ -491,13 +485,6 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
-{$if defined(i8086)}
-        enablecld      : true;
-{$elseif defined(i386)}
-        enablecld      : true;
-{$elseif defined(x86_64)}
-        enablecld      : false;
-{$endif}
 {$if defined(i8086)}
         x86memorymodel : mm_small;
 {$endif defined(i8086)}

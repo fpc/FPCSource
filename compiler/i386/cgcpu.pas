@@ -485,7 +485,7 @@ unit cgcpu;
             else
               list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
           end;
-        if current_settings.enablecld then
+        if ts_cld in current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of

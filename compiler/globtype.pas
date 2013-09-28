@@ -239,7 +239,9 @@ interface
          ts_lowercase_proc_start,
          { initialise local variables on the JVM target so you won't get
            accidental uses of uninitialised values }
-         ts_init_locals
+         ts_init_locals,
+         { emit a CLD instruction before using the x86 string instructions }
+         ts_cld
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -322,7 +324,8 @@ interface
          (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
          (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ),
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ),
-         (name: 'INITLOCALS';          hasvalue: false; isglobal: true )
+         (name: 'INITLOCALS';          hasvalue: false; isglobal: true ),
+         (name: 'CLD';                 hasvalue: false; isglobal: true )
        );
 
        { switches being applied to all CPUs at the given level }
