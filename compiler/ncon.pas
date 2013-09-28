@@ -206,7 +206,7 @@ implementation
     uses
       cutils,
       verbose,systems,sysutils,
-      defutil,procinfo,
+      defcmp,defutil,procinfo,
       cpubase,cgbase,
       nld;
 
@@ -707,7 +707,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value = tordconstnode(p).value);
+          (value = tordconstnode(p).value) and
+          equal_defs(typedef,tordconstnode(p).typedef);
       end;
 
 
@@ -1052,7 +1053,7 @@ implementation
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
               cp1:=tstringdef(def).encoding;
-              if (cp1=CP_NONE) or (cp1=0) then
+              if (cp1=globals.CP_NONE) or (cp1=0) then
                 cp1:=current_settings.sourcecodepage;
               if (cp1=CP_UTF8) then
                 begin
@@ -1094,7 +1095,7 @@ implementation
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then
                     changecodepage(value_str,len,cp2,value_str,cp1)
-                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) then
+                  else if (cp1 <> globals.CP_NONE) and (cp2 <> globals.CP_NONE) then
                     begin
                       { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
                       if (cp2=CP_UTF8) then
