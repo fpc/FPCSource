@@ -1480,7 +1480,9 @@ unit cgcpu;
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
 
-          list.concat(taicpu.op_reg(A_EXTB,S_L,hreg));
+          { Scc stores a complete byte of 1s, but the compiler expects only one
+            bit set, so ensure this is the case }
+          list.concat(taicpu.op_const_reg(A_AND,S_L,1,hreg));
 
           if hreg<>reg then
             begin
