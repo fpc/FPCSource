@@ -53,6 +53,8 @@ interface
         procedure WriteOper_jmp(const o:toper);
        protected
         fskipPopcountSuffix: boolean;
+        { http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56656 }
+        fNoInterUnitMovQ: boolean;
        public
         procedure WriteInstruction(hp: tai);override;
      end;
@@ -90,6 +92,8 @@ interface
         InstrWriter := Tx86InstrWriter.create(self);
         { Apple's assembler does not support a size suffix for popcount }
         Tx86InstrWriter(InstrWriter).fskipPopcountSuffix := true;
+        { Apple's assembler is broken regarding some movq suffix handling }
+        Tx86InstrWriter(InstrWriter).fNoInterUnitMovQ := true;
       end;
 
 {****************************************************************************
@@ -293,6 +297,23 @@ interface
                end;
            end;
 {$endif x86_64}
+        { see fNoInterUnitMovQ declaration comment }
+        if fNoInterUnitMovQ then
+          begin
+            if ((op=A_MOVQ) or
+                (op=A_VMOVQ)) and
+               (((taicpu(hp).oper[0]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[0]^.reg)=R_INTREGISTER)) or
+                ((taicpu(hp).oper[1]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[1]^.reg)=R_INTREGISTER))) then
+              begin
+                if op=A_MOVQ then
+                  op:=A_MOVD
+                else
+                  op:=A_VMOVD;
+                taicpu(hp).opcode:=op;
+              end;
+          end;
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
@@ -401,7 +422,7 @@ interface
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                                  system_x86_64_win64,system_x86_64_embedded,
                                  system_x86_64_openbsd,system_x86_64_netbsd];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -414,7 +435,7 @@ interface
             asmbin : 'gas';
             asmcmd : '--64 -o $OBJ $ASM';
             supported_targets : [system_x86_64_solaris];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -429,7 +450,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch x86_64';
             supported_targets : [system_x86_64_darwin];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -445,8 +466,8 @@ interface
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
-                                system_i386_nativent];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+                                system_i386_nativent,system_i386_android];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -460,7 +481,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
-            flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -474,7 +495,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -488,8 +509,9 @@ interface
             asmcmd : '--32 -o $OBJ $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
-                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,
+                                system_x86_6432_linux,system_i386_android];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';

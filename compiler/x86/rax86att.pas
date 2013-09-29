@@ -334,6 +334,7 @@ Implementation
         relsym: string;
         asmsymtyp: tasmsymtype;
         l: aint;
+        sym: tasmsymbol;
       begin
         case actasmtoken of
           AS_AT:
@@ -352,7 +353,27 @@ Implementation
 {$ifdef i386}
                   if actasmpattern='GOT' then
 {$endif i386}
+{$ifdef i8086}
+                  if actasmpattern='GOT' then
+{$endif i8086}
                     begin
+                      case oper.opr.typ of
+                        OPR_SYMBOL:
+                          begin
+                            sym:=oper.opr.symbol;
+                            if oper.opr.symofs<>0 then
+                              Message(asmr_e_invalid_reference_syntax);
+                            oper.opr.typ:=OPR_REFERENCE;
+                            fillchar(oper.opr.ref,sizeof(oper.opr.ref),0);
+                            oper.opr.ref.symbol:=sym;
+                          end;
+                        OPR_REFERENCE:
+                          begin
+                            { ok }
+                          end;
+                        else
+                          Message(asmr_e_invalid_reference_syntax)
+                      end;
                       oper.opr.ref.refaddr:=addr_pic;
                       consume(AS_ID);
                     end
@@ -882,8 +903,11 @@ Implementation
                 begin
                   actopcode:=tasmop(PtrUInt(iasmops.Find(copy(s,1,len))));
 
-                  if (actopcode = A_NONE) and
-                     (upper(s) = 'MOVSD') then actopcode := A_MOVSD;
+                  { movsd needs special handling because it has two namings in at&t syntax (movsl for string handling and
+                    movsd for the sse instruction) while only one in intel syntax (movsd, both string and sse)
+                    this cannot be expressed by the instruction table format so we have to hack around this here }
+                  if (actopcode = A_NONE) and (upper(s) = 'MOVSD') then
+                    actopcode := A_MOVSD;
 
                   { two-letter suffix is allowed by just a few instructions (movsx,movzx),
                     and it is always required whenever allowed }

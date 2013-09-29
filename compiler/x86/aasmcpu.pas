@@ -181,11 +181,13 @@ interface
       OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
-{$ifdef x86_64}
+{$if defined(x86_64)}
       instabentries = {$i x8664nop.inc}
-{$else x86_64}
+{$elseif defined(i386)}
       instabentries = {$i i386nop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      instabentries = {$i i8086nop.inc}
+{$endif}
       maxinfolen    = 8;
       MaxInsChanges = 3; { Max things a instruction can change }
 
@@ -244,11 +246,13 @@ interface
 
 
       InsProp : array[tasmop] of TInsProp =
-{$ifdef x86_64}
+{$if defined(x86_64)}
         {$i x8664pro.inc}
-{$else x86_64}
+{$elseif defined(i386)}
         {$i i386prop.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+        {$i i8086prop.inc}
+{$endif}
 
     type
       TOperandOrder = (op_intel,op_att);
@@ -292,7 +296,7 @@ interface
          constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
          constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;_op3 : tregister);
          constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference;_op3 : tregister);
-         constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; const _op3 : treference);
+         constructor op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
          constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
 
          { this is for Jmp instructions }
@@ -306,7 +310,21 @@ interface
          procedure changeopsize(siz:topsize);
 
          function  GetString:string;
-         procedure CheckNonCommutativeOpcodes;
+
+         { This is a workaround for the GAS non commutative fpu instruction braindamage.
+           Early versions of the UnixWare assembler had a bug where some fpu instructions
+           were reversed and GAS still keeps this "feature" for compatibility.
+           for details: http://sourceware.org/binutils/docs/as/i386_002dBugs.html#i386_002dBugs
+                        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=372528
+                        http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax#Caveats
+
+           Since FPC is "GAS centric" due to its history it generates instructions with the same operand order so
+           when generating output for other assemblers, the opcodes must be fixed before writing them.
+           This function returns the fixed opcodes. Changing the opcodes permanently is no good idea
+           because in case of smartlinking assembler is generated twice so at the second run wrong
+           assembler is generated.
+           }
+         function FixNonCommutativeOpcodes: tasmop;
       private
          FOperandOrder : TOperandOrder;
          procedure init(_size : topsize); { this need to be called by all constructor }
@@ -357,7 +375,8 @@ implementation
        systems,
        procinfo,
        itcpugas,
-       symsym;
+       symsym,
+       cpuinfo;
 
 {*****************************************************************************
                               Instruction table
@@ -409,6 +428,8 @@ implementation
        IF_SSE42  = $00200000;
        IF_AVX    = $00200000;
        IF_SANDYBRIDGE = $00200000;
+       IF_BMI1 = $00200000;
+       IF_BMI2 = $00200000;
 
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
@@ -438,16 +459,18 @@ implementation
        PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
 
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
-{$else x86_64}
+{$elseif defined(i386)}
        InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+       InsTab:array[0..instabentries-1] of TInsEntry={$i i8086tab.inc}
+{$endif}
      var
        InsTabCache : PInsTabCache;
        InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
      const
-{$ifdef x86_64}
+{$if defined(x86_64)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -485,7 +508,7 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r8664ot.inc}
       );
-{$else x86_64}
+{$elseif defined(i386)}
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
@@ -523,7 +546,45 @@ implementation
       reg_ot_table : array[tregisterindex] of longint = (
         {$i r386ot.inc}
       );
-{$endif x86_64}
+{$elseif defined(i8086)}
+       { Intel style operands ! }
+       opsize_2_type:array[0..2,topsize] of longint=(
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         ),
+         (OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS16,OT_BITS32,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
+          OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
+          OT_BITS128,
+          OT_BITS256
+         )
+      );
+
+      reg_ot_table : array[tregisterindex] of longint = (
+        {$i r8086ot.inc}
+      );
+{$endif}
 
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
     begin
@@ -755,14 +816,14 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
+    constructor taicpu.op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
          ops:=3;
-         loadreg(0,_op1);
+         loadref(0,_op1);
          loadreg(1,_op2);
-         loadref(2,_op3);
+         loadreg(2,_op3);
       end;
 
 
@@ -961,8 +1022,10 @@ implementation
       end;
 
 
-    procedure taicpu.CheckNonCommutativeOpcodes;
+    function taicpu.FixNonCommutativeOpcodes: tasmop;
       begin
+        result:=opcode;
+
         { we need ATT order }
         SetOperandOrder(op_att);
 
@@ -981,21 +1044,21 @@ implementation
            (ops=0) then
           begin
             if opcode=A_FSUBR then
-              opcode:=A_FSUB
+              result:=A_FSUB
             else if opcode=A_FSUB then
-              opcode:=A_FSUBR
+              result:=A_FSUBR
             else if opcode=A_FDIVR then
-              opcode:=A_FDIV
+              result:=A_FDIV
             else if opcode=A_FDIV then
-              opcode:=A_FDIVR
+              result:=A_FDIVR
             else if opcode=A_FSUBRP then
-              opcode:=A_FSUBP
+              result:=A_FSUBP
             else if opcode=A_FSUBP then
-              opcode:=A_FSUBRP
+              result:=A_FSUBRP
             else if opcode=A_FDIVRP then
-              opcode:=A_FDIVP
+              result:=A_FDIVP
             else if opcode=A_FDIVP then
-              opcode:=A_FDIVRP;
+              result:=A_FDIVRP;
           end;
         if (
             (ops=1) and
@@ -1005,13 +1068,13 @@ implementation
            ) then
          begin
            if opcode=A_FSUBRP then
-             opcode:=A_FSUBP
+             result:=A_FSUBP
            else if opcode=A_FSUBP then
-             opcode:=A_FSUBRP
+             result:=A_FSUBRP
            else if opcode=A_FDIVRP then
-             opcode:=A_FDIVP
+             result:=A_FDIVP
            else if opcode=A_FDIVP then
-             opcode:=A_FDIVRP;
+             result:=A_FDIVRP;
          end;
       end;
 
@@ -1492,15 +1555,19 @@ implementation
 
     function regval(r:Tregister):byte;
       const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r8664op.inc}
         );
-    {$else x86_64}
+    {$elseif defined(i386)}
         opcode_table:array[tregisterindex] of tregisterindex = (
           {$i r386op.inc}
         );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+        opcode_table:array[tregisterindex] of tregisterindex = (
+          {$i r8086op.inc}
+        );
+    {$endif}
       var
         regidx : tregisterindex;
       begin
@@ -2039,7 +2106,7 @@ implementation
             else
               rex:=rex and $F7;
           end;
-        if not(exists_vex) then 
+        if not(exists_vex) then
         begin
           if rex<>0 then
             Inc(len);
@@ -2473,8 +2540,11 @@ implementation
             24,25,26 :     // 030..032
               begin
                 getvalsym(c-24);
+{$ifndef i8086}
+                { currval is an aint so this cannot happen on i8086 and causes only a warning }
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
+{$endif i8086}
                 if assigned(currsym) then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
@@ -2807,7 +2877,9 @@ implementation
                  (oper[0]^.reg=oper[1]^.reg)
                 ) or
                 (((opcode=A_MOVSS) or (opcode=A_MOVSD) or (opcode=A_MOVQ) or
-                  (opcode=A_MOVAPS) or (OPCODE=A_MOVAPD)) and
+                  (opcode=A_MOVAPS) or (OPCODE=A_MOVAPD) or
+                  (opcode=A_VMOVSS) or (opcode=A_VMOVSD) or (opcode=A_VMOVQ) or
+                  (opcode=A_VMOVAPS) or (OPCODE=A_VMOVAPD)) and
                  (regtype = R_MMREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
@@ -2862,8 +2934,11 @@ implementation
       begin
         { the information in the instruction table is made for the string copy
           operation MOVSD so hack here (FK)
+
+          VMOVSS and VMOVSD has two and three operand flavours, this cannot modelled by x86ins.dat
+          so fix it here (FK)
         }
-        if (opcode=A_MOVSD) and (ops=2) then
+        if ((opcode=A_MOVSD) or (opcode=A_VMOVSS) or (opcode=A_VMOVSD)) and (ops=2) then
           begin
             case opnr of
               0:
@@ -2880,23 +2955,44 @@ implementation
 
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+      var
+        tmpref: treference;
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            { we don't need special code here for 32 bit loads on x86_64, since
-              those will automatically zero-extend the upper 32 bits. }
-            result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),ref,r);
-          R_MMREGISTER :
-            case getsubreg(r) of
-              R_SUBMMD:
-                result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
-              R_SUBMMS:
-                result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
-              R_SUBMMWHOLE:
-                result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
-              else
-                internalerror(200506043);
+            begin
+              tmpref:=ref;
+              if getsubreg(r)=R_SUBH then
+                inc(tmpref.offset);
+              { we don't need special code here for 32 bit loads on x86_64, since
+                those will automatically zero-extend the upper 32 bits. }
+              result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),tmpref,r);
             end;
+          R_MMREGISTER :
+            if current_settings.fputype in fpu_avx_instructionsets then
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),ref,r);
+                R_SUBMMS:
+                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),ref,r);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,ref,r);
+                else
+                  internalerror(200506043);
+              end
+            else
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
+                R_SUBMMS:
+                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
+                else
+                  internalerror(200506043);
+              end;
           else
             internalerror(200401041);
         end;
@@ -2906,10 +3002,14 @@ implementation
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       var
         size: topsize;
+        tmpref: treference;
       begin
         case getregtype(r) of
           R_INTREGISTER :
             begin
+              tmpref:=ref;
+              if getsubreg(r)=R_SUBH then
+                inc(tmpref.offset);
               size:=reg2opsize(r);
 {$ifdef x86_64}
               { even if it's a 32 bit reg, we still have to spill 64 bits
@@ -2920,19 +3020,33 @@ implementation
                   r:=newreg(getregtype(r),getsupreg(r),R_SUBWHOLE);
                 end;
 {$endif x86_64}
-              result:=taicpu.op_reg_ref(A_MOV,size,r,ref);
+              result:=taicpu.op_reg_ref(A_MOV,size,r,tmpref);
             end;
           R_MMREGISTER :
-            case getsubreg(r) of
-              R_SUBMMD:
-                result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
-              R_SUBMMS:
-                result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
-              R_SUBMMWHOLE:
-                result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
-              else
-                internalerror(200506042);
-            end;
+            if current_settings.fputype in fpu_avx_instructionsets then
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,ref);
+                R_SUBMMS:
+                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,ref);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,ref);
+                else
+                  internalerror(200506042);
+              end
+            else
+              case getsubreg(r) of
+                R_SUBMMD:
+                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
+                R_SUBMMS:
+                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
+                R_SUBQ,
+                R_SUBMMWHOLE:
+                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
+                else
+                  internalerror(200506042);
+              end;
           else
             internalerror(200401041);
         end;
@@ -2975,19 +3089,11 @@ implementation
       actRegTypes  : int64;
       actRegMemTypes: int64;
       NewRegSize: int64;
-      NewMemSize: int64;
-      NewConstSize: int64;
-      RegSize: int64;
-      MemSize: int64;
-      ConstSize: int64;
       RegMMXSizeMask: int64;
       RegXMMSizeMask: int64;
       RegYMMSizeMask: int64;
 
       bitcount: integer;
-      IsRegSizeMemSize: boolean;
-      ExistsRegMem: boolean;
-      s: string;
 
       function bitcnt(aValue: int64): integer;
       var
@@ -3020,10 +3126,6 @@ implementation
           InsTabMemRefSizeInfoCache^[AsmOp].ConstSize    := csiUnkown;
           InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := false;
 
-          RegSize := 0;
-          IsRegSizeMemSize := true;
-          ExistsRegMem     := false;
-
           insentry:=@instab[i];
           RegMMXSizeMask := 0;
           RegXMMSizeMask := 0;
@@ -3041,12 +3143,9 @@ implementation
             actMemSize       := 0;
             actMemCount      := 0;
             actRegMemTypes   := 0;
-            NewMemSize       := 0;
 
             actConstSize     := 0;
             actConstCount    := 0;
-            NewConstSize     := 0;
-
 
             if asmop = a_movups then
             begin

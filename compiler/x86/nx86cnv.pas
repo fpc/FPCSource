@@ -63,7 +63,7 @@ implementation
       symconst,symdef,
       cgbase,cga,procinfo,pass_1,pass_2,
       ncon,ncal,ncnv,
-      cpubase,
+      cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
 
@@ -89,6 +89,7 @@ implementation
         hreg2,
         hregister : tregister;
         href      : treference;
+        i         : integer;
 {$endif not cpu64bitalu}
         resflags  : tresflags;
         hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
@@ -130,13 +131,16 @@ implementation
             LOC_REFERENCE :
               begin
 {$ifndef cpu64bitalu}
-                if left.location.size in [OS_64,OS_S64] then
+                if left.location.size in [OS_64,OS_S64{$ifdef cpu16bitalu},OS_32,OS_S32{$endif}] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
+                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hregister);
                    href:=left.location.reference;
-                   inc(href.offset,4);
-                   cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
+                   for i:=2 to tcgsize2size[left.location.size] div tcgsize2size[OS_INT] do
+                     begin
+                       inc(href.offset,tcgsize2size[OS_INT]);
+                       cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,href,hregister);
+                     end;
                  end
                 else
 {$endif not cpu64bitalu}
@@ -151,7 +155,7 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-{$ifndef cpu64bitalu}
+{$if defined(cpu32bitalu)}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -159,7 +163,20 @@ implementation
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                  end
                 else
-{$endif not cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                if left.location.size in [OS_64,OS_S64] then
+                 begin
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.register64.reglo,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reglo),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register64.reghi,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reghi),hregister);
+                 end
+                else
+                  if left.location.size in [OS_32,OS_S32] then
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,GetNextReg(left.location.register))
+                else
+{$endif}
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
@@ -241,7 +258,13 @@ implementation
          op: tasmop;
          opsize: topsize;
          signtested : boolean;
+         use_bt: boolean;  { true = use BT (386+), false = use TEST (286-) }
       begin
+{$ifdef i8086}
+        use_bt:=current_settings.cputype>=cpu_386;
+{$else i8086}
+        use_bt:=true;
+{$endif i8086}
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         if use_vectorfpu(resultdef) and
@@ -253,14 +276,25 @@ implementation
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-            case location.size of
-              OS_F32:
-                op:=A_CVTSI2SS;
-              OS_F64:
-                op:=A_CVTSI2SD;
-              else
-                internalerror(2007120902);
-            end;
+            if UseAVX then
+              case location.size of
+                OS_F32:
+                  op:=A_VCVTSI2SS;
+                OS_F64:
+                  op:=A_VCVTSI2SD;
+                else
+                  internalerror(2007120902);
+              end
+            else
+              case location.size of
+                OS_F32:
+                  op:=A_CVTSI2SS;
+                OS_F64:
+                  op:=A_CVTSI2SD;
+                else
+                  internalerror(2007120902);
+              end;
+
             { don't use left.location.size, because that one may be OS_32/OS_64
               if the lower bound of the orddef >= 0
             }
@@ -278,11 +312,19 @@ implementation
                 begin
                   href:=left.location.reference;
                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,opsize,href,location.register));
+                  if UseAVX then
+                    { VCVTSI2.. requires a second source operand to copy bits 64..127 }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(op,opsize,href,location.register,location.register))
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,opsize,href,location.register));
                 end;
               LOC_REGISTER,
               LOC_CREGISTER:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
+                if UseAVX then
+                    { VCVTSI2.. requires a second source operand to copy bits 64..127 }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,opsize,left.location.register,location.register,location.register))
+                else
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
             end;
           end
         else
@@ -290,11 +332,24 @@ implementation
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
               begin
-    {$ifdef cpu64bitalu}
-                emit_const_reg(A_BT,S_Q,63,left.location.register);
-    {$else cpu64bitalu}
-                emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
-    {$endif cpu64bitalu}
+                if use_bt then
+                  begin
+    {$if defined(cpu64bitalu)}
+                    emit_const_reg(A_BT,S_Q,63,left.location.register);
+    {$elseif defined(cpu32bitalu)}
+                    emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
+    {$elseif defined(cpu16bitalu)}
+                    emit_const_reg(A_BT,S_W,15,GetNextReg(left.location.register64.reghi));
+    {$endif}
+                  end
+                else
+                  begin
+    {$ifdef i8086}
+                    emit_const_reg(A_TEST,S_W,aint($8000),GetNextReg(left.location.register64.reghi));
+    {$else i8086}
+                    internalerror(2013052510);
+    {$endif i8086}
+                  end;
                 signtested:=true;
               end
             else
@@ -341,13 +396,37 @@ implementation
     
                    if not(signtested) then
                      begin
-                       inc(leftref.offset,4);
-                       emit_const_ref(A_BT,S_L,31,leftref);
-                       dec(leftref.offset,4);
+                       if use_bt then
+                         begin
+           {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+                           inc(leftref.offset,4);
+                           emit_const_ref(A_BT,S_L,31,leftref);
+                           dec(leftref.offset,4);
+           {$elseif defined(cpu16bitalu)}
+                           inc(leftref.offset,6);
+                           emit_const_ref(A_BT,S_W,15,leftref);
+                           dec(leftref.offset,6);
+           {$endif}
+                         end
+                       else
+                         begin
+           {$ifdef i8086}
+                           { reading a byte, instead of word is faster on a true }
+                           { 8088, because of the 8-bit data bus }
+                           inc(leftref.offset,7);
+                           emit_const_ref(A_TEST,S_B,aint($80),leftref);
+                           dec(leftref.offset,7);
+           {$else i8086}
+                           internalerror(2013052511);
+           {$endif i8086}
+                         end;
                      end;
     
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,leftref));
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   if use_bt then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2)
+                   else
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }

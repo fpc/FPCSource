@@ -28,6 +28,7 @@ interface
 { $define AnsiStrRef}
 
     uses
+      symdef,
       ncgcal;
 
     type
@@ -37,6 +38,7 @@ interface
        tx86callnode = class(tcgcallnode)
         protected
          procedure do_release_unused_return_value;override;
+         procedure set_result_location(realresdef: tstoreddef);override;
        end;
 
 
@@ -44,7 +46,7 @@ implementation
 
     uses
       cgobj,
-      cgbase,cpubase,cgx86,cga;
+      cgbase,cgutils,cpubase,cgx86,cga;
 
 
 {*****************************************************************************
@@ -64,6 +66,19 @@ implementation
             inherited do_release_unused_return_value;
         end;
       end;
+
+
+  procedure tx86callnode.set_result_location(realresdef: tstoreddef);
+    begin
+      if (retloc.location^.loc=LOC_FPUREGISTER) then
+        begin
+          tcgx86(cg).inc_fpu_stack;
+          location_reset(location,LOC_FPUREGISTER,retloc.location^.size);
+          location.register:=retloc.location^.register;
+        end
+      else
+        inherited set_result_location(realresdef);
+    end;
 
 
 end.

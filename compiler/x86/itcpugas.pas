@@ -32,15 +32,17 @@ interface
       TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM);
 
     const
-{$ifdef x86_64}
-      {x86att.inc contains the name for each x86-64 mnemonic}
+      { include mnemonic strings }
+{$if defined(x86_64)}
       gas_op2str:op2strtable={$i x8664att.inc}
       gas_needsuffix:array[tasmop] of TAttSuffix={$i x8664ats.inc}
-{$else x86_64}
-      {x86att.inc contains the name for each i386 mnemonic}
+{$elseif defined(i386)}
       gas_op2str:op2strtable={$i i386att.inc}
       gas_needsuffix:array[tasmop] of TAttSuffix={$i i386atts.inc}
-{$endif x86_64}
+{$elseif defined(i8086)}
+      gas_op2str:op2strtable={$i i8086att.inc}
+      gas_needsuffix:array[tasmop] of TAttSuffix={$i i8086atts.inc}
+{$endif}
 
 {$ifdef x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -78,7 +80,7 @@ interface
        '','','',
        't',
         'x',
-        'y'   
+        'y'
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
      att_sizesuffixstr : array[0..11] of string[2] = (
@@ -106,7 +108,7 @@ implementation
       cutils,verbose;
 
     const
-    {$ifdef x86_64}
+    {$if defined(x86_64)}
       att_regname_table : array[tregisterindex] of string[7] = (
         {r8664att.inc contains the AT&T name of each register.}
         {$i r8664att.inc}
@@ -117,7 +119,7 @@ implementation
          ATT name.}
         {$i r8664ari.inc}
       );
-    {$else x86_64}
+    {$elseif defined(i386)}
       att_regname_table : array[tregisterindex] of string[7] = (
         {r386att.inc contains the AT&T name of each register.}
         {$i r386att.inc}
@@ -128,7 +130,18 @@ implementation
          ATT name.}
         {$i r386ari.inc}
       );
-    {$endif x86_64}
+    {$elseif defined(i8086)}
+      att_regname_table : array[tregisterindex] of string[7] = (
+        {r8086att.inc contains the AT&T name of each register.}
+        {$i r8086att.inc}
+      );
+
+      att_regname_index : array[tregisterindex] of tregisterindex = (
+        {r8086ari.inc contains an index which sorts att_regname_table by
+         ATT name.}
+        {$i r8086ari.inc}
+      );
+    {$endif}
 
     function findreg_by_attname(const s:string):byte;
       var

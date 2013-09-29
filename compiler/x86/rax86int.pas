@@ -51,6 +51,7 @@ Unit Rax86int;
          actasmtoken : tasmtoken;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
+         inexpression : boolean;
          constructor create;override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
@@ -80,13 +81,13 @@ Unit Rax86int;
        cutils,
        { global }
        globals,verbose,
-       systems,
+       systems,cpuinfo,
        { aasm }
        aasmtai,aasmdata,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
-       scanner,
+       scanner,pbase,
        { register allocator }
        rabase,rautils,itx86int,
        { codegen }
@@ -128,9 +129,6 @@ Unit Rax86int;
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor','wrt','..gotpcrel'
       );
-
-    var
-      inexpression   : boolean;
 
     constructor tx86intreader.create;
       var
@@ -2130,6 +2128,17 @@ Unit Rax86int;
         if (instr.ops=1) and
            (instr.operands[1].typesize<>0) then
           instr.operands[1].setsize(instr.operands[1].typesize,false);
+{$ifdef i8086}
+        { convert 'call symbol' to 'call far symbol' for memory models with far code }
+        for i:=1 to operandnum do
+          with instr.operands[i].opr do
+            if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
+              if current_settings.x86memorymodel in x86_far_code_models then
+                begin
+                  instr.operands[i].InitRef;
+                  ref.refaddr:=addr_far;
+                end;
+{$endif i8086}
       end;
 
 
@@ -2222,7 +2231,8 @@ Unit Rax86int;
       { setup label linked list }
       LocalLabelList:=TLocalLabelList.Create;
       { we might need to know which parameters are passed in registers }
-      current_procinfo.generate_parameter_info;
+      if not parse_generic then
+        current_procinfo.generate_parameter_info;
       { start tokenizer }
       c:=current_scanner.asmgetcharstart;
       gettoken;

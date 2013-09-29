@@ -60,10 +60,12 @@ interface
 
           procedure second_prefetch;override;
 
+{$ifndef i8086}
           procedure second_abs_long;override;
+{$endif not i8086}
           procedure second_popcnt;override;
        private
-          procedure load_fpu_location;
+          procedure load_fpu_location(lnode: tnode);
        end;
 
 implementation
@@ -129,12 +131,28 @@ implementation
 
      function tx86inlinenode.first_cos_real : tnode;
       begin
+{$ifdef i8086}
+        { FCOS is 387+ }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         expectloc:=LOC_FPUREGISTER;
         first_cos_real := nil;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
       begin
+{$ifdef i8086}
+        { FSIN is 387+ }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         expectloc:=LOC_FPUREGISTER;
         first_sin_real := nil;
       end;
@@ -196,28 +214,28 @@ implementation
        end;
 
      { load the FPU into the an fpu register }
-     procedure tx86inlinenode.load_fpu_location;
+     procedure tx86inlinenode.load_fpu_location(lnode: tnode);
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
-         secondpass(left);
-         case left.location.loc of
+         secondpass(lnode);
+         case lnode.location.loc of
            LOC_FPUREGISTER:
              ;
            LOC_CFPUREGISTER:
              begin
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,
-                 left.location.size,left.location.register,location.register);
+               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,lnode.location.size,
+                 lnode.location.size,lnode.location.register,location.register);
              end;
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  left.location.size,left.location.size,
-                  left.location.reference,location.register);
+                  lnode.location.size,lnode.location.size,
+                  lnode.location.reference,location.register);
              end;
            LOC_MMREGISTER,LOC_CMMREGISTER:
              begin
-               location:=left.location;
+               location:=lnode.location;
                location_force_fpureg(current_asmdata.CurrAsmList,location,false);
              end;
            else
@@ -228,7 +246,7 @@ implementation
 
      procedure tx86inlinenode.second_arctan_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLD1,S_NO);
          emit_none(A_FPATAN,S_NO);
        end;
@@ -241,7 +259,7 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
@@ -256,7 +274,7 @@ implementation
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FABS,S_NO);
            end;
        end;
@@ -268,22 +286,32 @@ implementation
          if use_vectorfpu(left.resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
-             case left.location.size of
-               OS_F32:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
-               OS_F64:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
-               else
-                 internalerror(2007031402);
-             end;
+             if UseAVX then
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031402);
+               end
+             else
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031402);
+               end;
            end
          else
 {$endif x86_64}
           begin
-            load_fpu_location;
+            load_fpu_location(left);
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
@@ -302,24 +330,34 @@ implementation
            not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              location_reset(location,LOC_REGISTER,OS_S64);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
-             case left.location.size of
-               OS_F32:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
-               OS_F64:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
-               else
-                 internalerror(2007031401);
-             end;
+             if UseAVX then
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031401);
+               end
+             else
+               case left.location.size of
+                 OS_F32:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
+                 OS_F64:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
+                 else
+                   internalerror(2007031401);
+               end;
            end
          else
 {$endif x86_64}
           begin
             if (current_settings.fputype>=fpu_sse3) then
               begin
-                load_fpu_location;
+                load_fpu_location(left);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
@@ -332,7 +370,7 @@ implementation
                 emit_ref(A_FNSTCW,S_NO,newcw);
                 emit_ref(A_FNSTCW,S_NO,oldcw);
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
-                load_fpu_location;
+                load_fpu_location(left);
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
@@ -353,13 +391,24 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-             location:=left.location;
-             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
+             location_reset(location,LOC_MMREGISTER,left.location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             if UseAVX then
+               begin
+                 hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                 cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location.register,left.location.register,location.register,mms_movescalar);
+               end
+             else
+               begin
+                 if left.location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER] then
+                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
+                 cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,location.register,location.register,mms_movescalar);
+               end;
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
            end;
        end;
@@ -370,27 +419,38 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-             location:=left.location;
-             case tfloatdef(resultdef).floattype of
-               s32real:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
-               s64real:
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,location.register,location.register));
-               else
-                 internalerror(200510031);
-             end;
+             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+             location_reset(location,LOC_MMREGISTER,left.location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+             if UseAVX then
+               case tfloatdef(resultdef).floattype of
+                 s32real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_XMM,left.location.register,location.register,location.register));
+                 s64real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_XMM,left.location.register,location.register,location.register));
+                 else
+                   internalerror(200510031);
+               end
+             else
+               case tfloatdef(resultdef).floattype of
+                 s32real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,left.location.register,location.register));
+                 s64real:
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,left.location.register,location.register));
+                 else
+                   internalerror(200510031);
+               end;
            end
          else
            begin
-             load_fpu_location;
+             load_fpu_location(left);
              emit_none(A_FSQRT,S_NO);
            end;
        end;
 
      procedure tx86inlinenode.second_ln_real;
        begin
-         load_fpu_location;
+         load_fpu_location(left);
          emit_none(A_FLDLN2,S_NO);
          emit_none(A_FXCH,S_NO);
          emit_none(A_FYL2X,S_NO);
@@ -398,13 +458,29 @@ implementation
 
      procedure tx86inlinenode.second_cos_real;
        begin
-         load_fpu_location;
+{$ifdef i8086}
+       { FCOS is 387+ }
+       if current_settings.cputype < cpu_386 then
+         begin
+           inherited;
+           exit;
+         end;
+{$endif i8086}
+         load_fpu_location(left);
          emit_none(A_FCOS,S_NO);
        end;
 
      procedure tx86inlinenode.second_sin_real;
        begin
-         load_fpu_location;
+{$ifdef i8086}
+       { FSIN is 387+ }
+       if current_settings.cputype < cpu_386 then
+         begin
+           inherited;
+           exit;
+         end;
+{$endif i8086}
+         load_fpu_location(left);
          emit_none(A_FSIN,S_NO)
        end;
 
@@ -413,9 +489,9 @@ implementation
          ref : treference;
          r : tregister;
        begin
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
          if current_settings.cputype>=cpu_Pentium3 then
-{$endif i386}
+{$endif i386 or i8086}
            begin
              secondpass(left);
              case left.location.loc of
@@ -434,6 +510,7 @@ implementation
        end;
 
 
+{$ifndef i8086}
     procedure tx86inlinenode.second_abs_long;
       var
         hregister : tregister;
@@ -470,6 +547,7 @@ implementation
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
+{$endif not i8086}
 
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
@@ -487,6 +565,14 @@ implementation
          opsize,
          orgsize: tcgsize;
         begin
+{$ifdef i8086}
+          { BTS and BTR are 386+ }
+          if current_settings.cputype < cpu_386 then
+            begin
+              inherited;
+              exit;
+            end;
+{$endif i8086}
           if is_smallset(tcallparanode(left).resultdef) then
             begin
               opdef:=tcallparanode(left).resultdef;
@@ -572,7 +658,7 @@ implementation
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) or
            (left.location.size<>opsize) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(opsize),true);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
         location_reset(location,LOC_REGISTER,opsize);
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
