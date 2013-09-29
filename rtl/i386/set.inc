@@ -32,6 +32,9 @@ asm
         movl    %edi,saveedi
         movl    __RESULT,%edi
         movl    l,%eax
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         stosl
         xorl    %eax,%eax
         movl    $7,%ecx
@@ -54,6 +57,9 @@ asm
         movzbl  b,%edx
         xorl    %eax,%eax
         movl    $8,%ecx
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         rep
         stosl
         leal    -32(%edi),%eax
@@ -76,6 +82,9 @@ asm
         movl    __RESULT,%edi
         movzbl  b,%edx
         movl    $8,%ecx
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         rep
         movsl
         leal    -32(%edi),%eax
@@ -98,6 +107,9 @@ asm
         movl    __RESULT,%edi
         movzbl  b,%edx
         movl    $8,%ecx
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         rep
         movsl
         leal    -32(%edi),%eax
@@ -126,6 +138,9 @@ asm
         movb   %bl,saveh
         movl   $8,%ecx              // we have to copy 32 bytes
         cmpl   %eax,%ebx            // high < low?
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         rep                         // copy source to dest (it's possible to do the range
         movsl                       // setting and copying simultanuously of course, but
                                     // that would result in many more jumps and code)
@@ -205,6 +220,9 @@ asm
       movl set2,%edx
       movl __RESULT,%edi
 {$endif}
+{$ifdef FPC_ENABLED_CLD}
+      cld
+{$endif FPC_ENABLED_CLD}
       movl $8,%ecx
    .LMADDSETS1:
       lodsl
@@ -238,6 +256,9 @@ asm
       movl set2,%edx
       movl __RESULT,%edi
 {$endif}
+{$ifdef FPC_ENABLED_CLD}
+      cld
+{$endif FPC_ENABLED_CLD}
       movl $8,%ecx
   .LMMULSETS1:
       lodsl
@@ -272,6 +293,9 @@ asm
         movl set2,%ebx
       movl __RESULT,%edi
 {$endif}
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         movl $8,%ecx
     .LMSUBSETS1:
         lodsl
@@ -308,6 +332,9 @@ asm
         movl set2,%edx
       movl __RESULT,%edi
 {$endif}
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         movl $8,%ecx
     .LMSYMDIFSETS1:
         lodsl
@@ -437,6 +464,9 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
+{$ifdef FPC_ENABLED_CLD}
+      cld
+{$endif FPC_ENABLED_CLD}
   .LMADDSETSIZES1:
       lodsl
       orl (%ebx),%eax
@@ -457,6 +487,9 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
+{$ifdef FPC_ENABLED_CLD}
+         cld
+{$endif FPC_ENABLED_CLD}
      .LMMULSETSIZES1:
          lodsl
          andl (%ebx),%eax
@@ -473,6 +506,9 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
+{$ifdef FPC_ENABLED_CLD}
+         cld
+{$endif FPC_ENABLED_CLD}
      .LMSUBSETSIZES1:
          lodsl
          movl (%ebx),%edx
@@ -494,6 +530,9 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
+{$ifdef FPC_ENABLED_CLD}
+      cld
+{$endif FPC_ENABLED_CLD}
   .LMSYMDIFSETSIZE1:
       lodsl
       movl (%ebx),%edx
@@ -510,6 +549,9 @@ asm
       movl set1,%esi
       movl set2,%edi
       movl size,%ecx
+{$ifdef FPC_ENABLED_CLD}
+      cld
+{$endif FPC_ENABLED_CLD}
   .LMCOMPSETSIZES1:
       lodsl
       movl (%edi),%edx

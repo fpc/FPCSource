@@ -373,6 +373,9 @@ end; {SmallBackwardMove}
 }
 procedure Forwards_Valgrind;assembler;nostackframe;
 asm
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
   push    esi
   push    edi
   mov     esi,eax
@@ -545,6 +548,9 @@ asm
   add     eax,8
   jnz     @MMXcopyloop
   emms                   {Empty MMX State}
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
   add     ecx,ebx
   shr     ecx,2
   rep     movsd

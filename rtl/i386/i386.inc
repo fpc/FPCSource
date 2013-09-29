@@ -159,7 +159,9 @@ asm
         jb      .LBMove                 { Dest is in range of move, do backward }
 { Forward Copy }
 .LFMove:
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         cmpl    $15,%edx
         jl      .LFMove1
         movl    %edi,%ecx       { Align on 32bits }
@@ -233,7 +235,9 @@ asm
         ret
 
 .LFillFull:
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         push    %edi
         movl    %eax,%edi
         movzbl  %cl,%eax
@@ -271,7 +275,9 @@ asm
         orl     %edx,%eax
         movl    %ecx,%edx
         shrl    $1,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         rep
         stosl
         movl    %edx,%ecx
@@ -297,7 +303,9 @@ asm
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillDWordEnd
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         rep
         stosl
 .LFillDWordEnd:
@@ -453,7 +461,9 @@ asm
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lcharposnotfound
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    %ecx,%edx      // Copy for easy manipulation
         movw    %bx,%ax
         repne
@@ -486,7 +496,9 @@ asm
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lcharposnotfound
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    %ecx,%edx      // Copy for easy manipulation
         movl    %ebx,%eax
         repne
@@ -537,7 +549,9 @@ asm
 .LCmpbyteFull:
         pushl   %esi
         pushl   %edi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
@@ -610,7 +624,9 @@ asm
         pushl   %esi
         pushl   %edi
         pushl   %ebx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
@@ -698,7 +714,9 @@ asm
 .LCmpDWordFull:
         pushl   %esi
         pushl   %edi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    %eax,%edi
         movl    %edx,%esi
         xorl    %eax,%eax
@@ -777,7 +795,9 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
   {$endif FPC_PROFILE}
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    res,%edi
         movl    sstr,%esi
         movl    %edx,%ecx
@@ -824,7 +844,9 @@ begin
   {$endif FPC_PROFILE}
         pushl   %eax
         pushl   %ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    dstr,%edi
         movl    sstr,%esi
         xorl    %eax,%eax
@@ -879,7 +901,9 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    %ebx,saveebx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    right,%esi
         movl    left,%edi
         movzbl  (%esi),%eax
@@ -1049,7 +1073,9 @@ asm
         movl    %eax,%edi
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         repne
         scasb
         movl    $0xfffffffe,%eax
