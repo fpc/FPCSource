@@ -429,7 +429,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-    TMasterDataLink
+    TMasterParamsDataLink
   ---------------------------------------------------------------------}
 
 constructor TMasterParamsDataLink.Create(ADataSet: TDataSet);
@@ -448,7 +448,7 @@ begin
 end;
 
 
-Procedure TMasterParamsDataLink.SetParams(AVAlue : TParams);  
+Procedure TMasterParamsDataLink.SetParams(AValue : TParams);
 
 begin
   FParams:=AValue;

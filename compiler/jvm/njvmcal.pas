@@ -124,7 +124,7 @@ implementation
                 begin
                   parent:=tunarynode(p);
                   { skip typeconversions that don't change the node type }
-                  p:=p.actualtargetnode;
+                  p:=actualtargetnode(@p)^;
                 end;
               derefn:
                 begin
@@ -239,8 +239,8 @@ implementation
           local variables (fields, arrays etc are all initialized on creation) }
         verifyout:=
           (cs_check_var_copyout in current_settings.localswitches) and
-          ((left.actualtargetnode.nodetype<>loadn) or
-           (tloadnode(left.actualtargetnode).symtableentry.typ<>localvarsym));
+          ((actualtargetnode(@left)^.nodetype<>loadn) or
+           (tloadnode(actualtargetnode(@left)^).symtableentry.typ<>localvarsym));
 
         { in case of a non-out parameter, pass in the original value (also
           always in case of implicitpointer type, since that pointer points to
@@ -383,13 +383,17 @@ implementation
         { when calling a constructor, first create a new instance, except
           when calling it from another constructor (because then this has
           already been done before calling the current constructor) }
-        if procdefinition.typ<>procdef then
-          exit;
-        if tabstractprocdef(procdefinition).proctypeoption<>potype_constructor then
+        if procdefinition.proctypeoption<>potype_constructor then
           exit;
         if not(methodpointer.resultdef.typ in [classrefdef,recorddef]) then
           exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(tabstractprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
+        { in case of an inherited constructor call in a class, the methodpointer
+          is an objectdef rather than a classrefdef. That's not true in case
+          of records though, so we need an extra check }
+        if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+           (cnf_inherited in callnodeflags) then
+          exit;
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(procdefinition.owner.defowner).jvm_full_typename(true))));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }

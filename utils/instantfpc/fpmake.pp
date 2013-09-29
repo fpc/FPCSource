@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_instantfpc;
+procedure add_instantfpc(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -23,9 +23,7 @@ begin
     P.Description := 'A tool to execute pascal programs as unix scripts.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='instantfpc';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.Dependencies.Add('fcl-process');
@@ -42,7 +40,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_instantfpc;
+  add_instantfpc('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

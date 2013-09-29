@@ -1,8 +1,9 @@
 {      MDItem.h
-        Copyright (c) 2003-2004, Apple Computer, Inc. All rights reserved.
+        Copyright (c) 2003-2010, Apple Inc. All rights reserved.
 }
 
  { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+ { Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -79,6 +80,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -88,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -103,6 +106,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +116,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -205,7 +211,8 @@ uses MacTypes,CFBase,CFString,CFDictionary,CFArray;
         This is the type of a reference to MDItems.
 }
 type
-	MDItemRef = ^SInt32; { an opaque type }
+	MDItemRef = ^__MDItem; { an opaque type }
+	__MDItem = record end;
 
 {!
         @function MDItemGetTypeID
@@ -228,6 +235,33 @@ function MDItemGetTypeID: CFTypeID; external name '_MDItemGetTypeID';
 }
 function MDItemCreate( allocator: CFAllocatorRef; path: CFStringRef ): MDItemRef; external name '_MDItemCreate';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{!
+ @function MDItemCreateWithURL
+ Returns an metadata item for the given path.
+ @param allocator The CFAllocator which should be used to allocate
+ memory for the query and its sub-storage. This
+ parameter may be NULL in which case the current default
+ CFAllocator is used.
+ @param url A url to the file for which to create the MDItem.
+ [[Currently, the file must exist. MDItemRefs may or
+ may not be uniqued. Use CFEqual() to compare them.]]
+ @result An MDItemRef, or NULL on failure.
+ }
+function MDItemCreateWithURL( allocator: CFAllocatorRef; url: CFURLRef ): MDItemRef; external name '_MDItemCreateWithURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+
+{!
+ @function MDItemsCreateWithURLs
+ Returns metadata items for the given urls.
+ @param allocator The CFAllocator which should be used to allocate
+ memory for the array. This parameter may be NULL in which case the current default
+ CFAllocator is used.
+ @param urls A CFArray of urls to the file for which to create the MDItem.
+ @result A CFArrayRef of MDItemRefs, or NULL on failure. Missing items will have kCFNull entries in the result array.
+ }
+function MDItemsCreateWithURLs( allocator: CFAllocatorRef; urls: CFArrayRef ): CFArrayRef; external name '_MDItemsCreateWithURLs';
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {!
         @function MDItemCopyAttribute
@@ -280,6 +314,18 @@ function MDItemCopyAttributeList( item: MDItemRef; ... { CFStringRef names } ): 
 function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name '_MDItemCopyAttributeNames';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
+{!
+ @function MDItemsCopyAttributes
+ Returns metadata for the given items.
+ @param items A CFArray of MDItemRefs to items for which to fetch data
+ @param names A CFArray of attribute names for which to fetch data. 
+				The attribute names are CFStrings
+ @result A CFArrayRef, or NULL on failure. Each entry in the array is either kCFNull, 
+  if the item is not accessible, or a CFArray of attribute values. 
+  If an attribute is not available, there will be a kCFNull in its slot in the nested array.
+ }
+function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayRef; external name '_MDItemsCopyAttributes';
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { List of well-known attributes }
 
@@ -318,6 +364,10 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
    the main editor or relative importance of the editors. Type is a
    CFArray of CFStrings.
  
+   @constant kMDItemParticipants
+   The list of people who are visible in an image or movie or
+   written about in a document. Type is CFArray of CFStrings.
+
    @constant kMDItemProjects
    The list of projects etc that this file is part of. For example if
    you were working on a movie, all of the movie files could be marked
@@ -331,6 +381,9 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
 
    @constant kMDItemCopyright
    This is the copyright of the content. Type is a CFString
+   
+   @constant kMDItemDownloadedDate
+   This is the date that the file was last downloaded / received.
 
    @constant kMDItemWhereFroms
    This attribute indicates where the item was obtained from.
@@ -359,6 +412,11 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
    date, but can be independent of that. This allows tracking of the
    last time the content was modified irrespective of the last time the
    file was modified. Type is a CFDate.
+   
+   @constant kMDItemDateAdded
+   This is the date that the file was moved into the current location.
+   Not all files will have this attribute.  Not all file systems support
+   this attribute.
 
    @constant kMDItemDurationSeconds
    This is the duration, in seconds, of the content of the file (if
@@ -377,6 +435,9 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
 
    @constant kMDItemPixelWidth
    The width of the document in pixels (ie Image width or Video frame width)
+
+   @constant kMDItemPixelCount
+   The total number of pixels in the document.  Type is a CFNumber.
 
    @constant kMDItemColorSpace
    What color space model is this document following
@@ -415,8 +476,8 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
    acquired. 0 is auto white balance and 1 is manual
 
    @const kMDItemAperture
-   The aperture setting of the camera when the image was
-   acquired. This unit is the APEX value.
+   The size of the lens aperture as a log-scale APEX value
+   when the image was acquired.
 
    @const kMDItemProfileName
    Name of the color profile used for the image
@@ -483,14 +544,14 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
    value. Ordinarily it is given in the range of 00.00 to 99.99.
 
    @const kMDItemFNumber
-   FNumber expresses the diameter of the diaphragm aperture in terms
-   of the effective focal length of the lens.
+   The focal length of the lens divided by the diameter of the aperture
+   when the image was acquired.
 
    @const kMDItemExposureProgram
    The class of the program used by the camera to set exposure when
    the picture is taken (Manual, Normal, Aperture priority, ...)
 
-   const kMDItemExposureTimeString
+   @const kMDItemExposureTimeString
    The time  of the exposure.
 
    @const kMDItemHeadline
@@ -542,6 +603,9 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
  @const kMDItemImageDirection
  The direction of the item's image, in degrees from true north.
  
+ @const kMDItemNamedLocation
+ The name of the location or point of interest associated with the item.
+ The name may be user provided.
 }
 
 var kMDItemAttributeChangeDate: CFStringRef; external name '_kMDItemAttributeChangeDate'; (* attribute const *)
@@ -558,8 +622,12 @@ var kMDItemAuthors: CFStringRef; external name '_kMDItemAuthors'; (* attribute c
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                   // CFArray of CFString
 var kMDItemEditors: CFStringRef; external name '_kMDItemEditors'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)           // CFArray of CFString
+var kMDItemParticipants: CFStringRef; external name '_kMDItemParticipants'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *) // CFArray of CFString
 var kMDItemProjects: CFStringRef; external name '_kMDItemProjects'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                  // CFArray of CFString
+var kMDItemDownloadedDate: CFStringRef; external name '_kMDItemDownloadedDate'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFDate
 var kMDItemWhereFroms: CFStringRef; external name '_kMDItemWhereFroms'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                // CFArray of CFString
 var kMDItemComment: CFStringRef; external name '_kMDItemComment'; (* attribute const *)
@@ -572,6 +640,8 @@ var kMDItemContentCreationDate: CFStringRef; external name '_kMDItemContentCreat
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)       // CFDate
 var kMDItemContentModificationDate: CFStringRef; external name '_kMDItemContentModificationDate'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)   // CFDate
+var kMDItemDateAdded: CFStringRef; external name '_kMDItemDateAdded'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                 // CFDate
 var kMDItemDurationSeconds: CFStringRef; external name '_kMDItemDurationSeconds'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)           // CFNumber
 var kMDItemContactKeywords: CFStringRef; external name '_kMDItemContactKeywords'; (* attribute const *)
@@ -583,6 +653,8 @@ var kMDItemPixelHeight: CFStringRef; external name '_kMDItemPixelHeight'; (* att
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)               // CFNumber
 var kMDItemPixelWidth: CFStringRef; external name '_kMDItemPixelWidth'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                // CFNumber
+var kMDItemPixelCount: CFStringRef; external name '_kMDItemPixelCount'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *) // CFNumber
 var kMDItemColorSpace: CFStringRef; external name '_kMDItemColorSpace'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                // CFString
 var kMDItemBitsPerSample: CFStringRef; external name '_kMDItemBitsPerSample'; (* attribute const *)
@@ -618,6 +690,13 @@ var kMDItemExposureTimeSeconds: CFStringRef; external name '_kMDItemExposureTime
 var kMDItemEXIFVersion: CFStringRef; external name '_kMDItemEXIFVersion'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)               // CFString
 
+var kMDItemCameraOwner: CFStringRef; external name '_kMDItemCameraOwner'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemFocalLength35mm: CFStringRef; external name '_kMDItemFocalLength35mm'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemLensModel: CFStringRef; external name '_kMDItemLensModel'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
 var kMDItemEXIFGPSVersion: CFStringRef; external name '_kMDItemEXIFGPSVersion'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)    // CFString
 var kMDItemAltitude: CFStringRef; external name '_kMDItemAltitude'; (* attribute const *)
@@ -634,6 +713,33 @@ var kMDItemGPSTrack: CFStringRef; external name '_kMDItemGPSTrack'; (* attribute
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)          // CFNumber
 var kMDItemImageDirection: CFStringRef; external name '_kMDItemImageDirection'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)    // CFNumber
+var kMDItemNamedLocation: CFStringRef; external name '_kMDItemNamedLocation'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *) // CFString
+
+var kMDItemGPSStatus: CFStringRef; external name '_kMDItemGPSStatus'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSMeasureMode: CFStringRef; external name '_kMDItemGPSMeasureMode'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDOP: CFStringRef; external name '_kMDItemGPSDOP'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSMapDatum: CFStringRef; external name '_kMDItemGPSMapDatum'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDestLatitude: CFStringRef; external name '_kMDItemGPSDestLatitude'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDestLongitude: CFStringRef; external name '_kMDItemGPSDestLongitude'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDestBearing: CFStringRef; external name '_kMDItemGPSDestBearing'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDestDistance: CFStringRef; external name '_kMDItemGPSDestDistance'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSProcessingMethod: CFStringRef; external name '_kMDItemGPSProcessingMethod'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSAreaInformation: CFStringRef; external name '_kMDItemGPSAreaInformation'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDateStamp: CFStringRef; external name '_kMDItemGPSDateStamp'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+var kMDItemGPSDifferental: CFStringRef; external name '_kMDItemGPSDifferental'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 var kMDItemCodecs: CFStringRef; external name '_kMDItemCodecs'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)                    // CFArray of CFString
@@ -1117,7 +1223,7 @@ var kMDItemMusicalInstrumentName: CFStringRef; external name '_kMDItemMusicalIns
 var kMDItemCFBundleIdentifier: CFStringRef; external name '_kMDItemCFBundleIdentifier'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)       // CFString
 var kMDItemSupportFileType: CFStringRef; external name '_kMDItemSupportFileType'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)          // CFArray of CFStrings
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED *)          // CFArray of CFStrings
 
 {!
         @const kMDItemInformation
@@ -1149,8 +1255,26 @@ var kMDItemSupportFileType: CFStringRef; external name '_kMDItemSupportFileType'
         This attribute indicates the reciepients email addresses. (This is always the email
         address,  and not the human readable version).
 
+        @const kMDItemAuthorAddresses
+        This attribute indicates the author addresses of the document.
+ 
+        @const kMDItemRecipientAddresses
+        This attribute indicates the recipient addresses of the document. 
+ 
         @const kMDItemURL
         Url of the item
+        
+        @const kMDItemIsLikelyJunk
+        This attribute indicates if the document is likely to be considered junk.
+        
+        @const kMDItemExecutableArchitectures
+        Array of executables architectures the item contains.
+ 
+        @const kMDItemExecutablePlatform
+        Indicates platform required to execute this application.
+
+        @const kMDItemApplicationCategories
+        Array of categories the item application is a member of.
 
 }
 var kMDItemInformation: CFStringRef; external name '_kMDItemInformation'; (* attribute const *)
@@ -1171,8 +1295,33 @@ var kMDItemAuthorEmailAddresses: CFStringRef; external name '_kMDItemAuthorEmail
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)     // CFArray of CFString
 var kMDItemRecipientEmailAddresses: CFStringRef; external name '_kMDItemRecipientEmailAddresses'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)  // CFArray of CFString
+var kMDItemAuthorAddresses: CFStringRef; external name '_kMDItemAuthorAddresses'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)     // CFArray of CFString
+var kMDItemRecipientAddresses: CFStringRef; external name '_kMDItemRecipientAddresses'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)  // CFArray of CFString
 var kMDItemURL: CFStringRef; external name '_kMDItemURL'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)                      // CFString
+
+var kMDItemLabelIcon: CFStringRef; external name '_kMDItemLabelIcon'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER_BUT_DEPRECATED *)
+var kMDItemLabelID: CFStringRef; external name '_kMDItemLabelID'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER_BUT_DEPRECATED *)
+var kMDItemLabelKind: CFStringRef; external name '_kMDItemLabelKind'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER_BUT_DEPRECATED *)
+var kMDItemLabelUUID: CFStringRef; external name '_kMDItemLabelUUID'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER_BUT_DEPRECATED *)
+
+var kMDItemIsLikelyJunk: CFStringRef; external name '_kMDItemIsLikelyJunk'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFBoolean
+var kMDItemExecutableArchitectures: CFStringRef; external name '_kMDItemExecutableArchitectures'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFArray of CFString
+var kMDItemExecutablePlatform: CFStringRef; external name '_kMDItemExecutablePlatform'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFString
+var kMDItemApplicationCategories: CFStringRef; external name '_kMDItemApplicationCategories'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFArray of CFString
+
+var kMDItemIsApplicationManaged: CFStringRef; external name '_kMDItemIsApplicationManaged'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *) // CFBoolean
 
 { ================================================================ }
 

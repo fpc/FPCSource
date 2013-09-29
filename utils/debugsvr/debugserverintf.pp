@@ -113,16 +113,16 @@ var
 
 begin
   FFileName:=DebugSocket;
-  FSocket:=Socket(AF_UNIX,SOCK_STREAM,0);
+  FSocket:=FPSocket(AF_UNIX,SOCK_STREAM,0);
   If FSocket<0 Then
     Raise Exception.Create(SErrSocketFailed);
   Flags:=fpFCntl(FSOCket,F_GETFL);
   Flags:=Flags or O_NONBLOCK;
   fpFCntl(FSocket,F_SETFL,Flags);
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
-  If Not Bind(FSocket,FUnixAddr,AddrLen) then
+  If FPBind(FSocket,@FUnixAddr,AddrLen)<>0 then
      Raise Exception.CreateFmt(SErrBindFailed,[FFileName]);
-  If Not (Listen(FSocket,5)) then
+  If (fpListen(FSocket,5)<>0) then
     Raise Exception.CreateFmt(SErrListenFailed,[FSocket]);
   FClients:=TList.Create;
   Accepting:=True;
@@ -162,7 +162,7 @@ var
   Quit : Boolean;
 
 begin
-  FSocket:=Socket(AF_INET,SOCK_STREAM,0);
+  FSocket:=FPSocket(AF_INET,SOCK_STREAM,0);
   If FSocket<0 Then
     Raise Exception.Create(SErrSocketFailed);
   Flags:=fpFCntl(FSocket,F_GETFL);
@@ -172,9 +172,9 @@ begin
   Writeln('Using port : ',APort);
   FInetAddr.Port := Swap(APort);
   FInetAddr.Addr := 0;
-  If Not Bind(FSocket,FInetAddr,SizeOf(FInetAddr)) then
+  If FPBind(FSocket,@FInetAddr,SizeOf(FInetAddr))<>0 then
      Raise Exception.CreateFmt(SErrBindFailed,[FFileName]);
-  If Not (Listen(FSocket,5)) then
+  If fpListen(FSocket,5)<>0 then
     Raise Exception.CreateFmt(SErrListenFailed,[FSocket]);
 end;
 
@@ -241,7 +241,7 @@ begin
   If Accepting then
     begin
     L:=SizeOf(ClientAddr);
-    Result:=Accept(FSocket,ClientAddr,L);
+    Result:=fpAccept(FSocket,@ClientAddr,@L);
     If (Result<0) Then
       if (Errno<>ESYSEAgain) then
         Raise Exception.CreateFmt(SErrAcceptFailed,[FSocket])
@@ -280,7 +280,7 @@ end;
 Procedure CloseClientHandle(Handle : THandle);
 
 begin
-  ShutDown(Handle,2);
+  fpShutDown(Handle,2);
   FileClose(Handle);
 end;
 

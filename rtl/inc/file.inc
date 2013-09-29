@@ -18,35 +18,85 @@
 type
   UnTypedFile=File;
 
-Procedure Assign(out f:File;const Name:string);
+procedure InitFile(var f : file);
+begin
+  FillChar(f,SizeOf(FileRec),0);
+  FileRec(f).Handle:=UnusedHandle;
+  FileRec(f).mode:=fmClosed;
+end;
+
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:File;const Name: UnicodeString);
 {
   Assign Name to file f so it can be used with the file routines
 }
 Begin
-  FillChar(f,SizeOf(FileRec),0);
-  FileRec(f).Handle:=UnusedHandle;
-  FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
+  InitFile(F);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(Name);
+{$else FPC_ANSI_TEXTFILEREC}
+  FileRec(f).Name:=Name;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  FileRec(f).Name[high(FileRec(f).Name)]:=#0;
+End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:File;const Name: RawByteString);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+  InitFile(F);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { ensure the characters in the record's filename are encoded correctly }
+  FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(Name);
+{$else FPC_ANSI_TEXTFILEREC}
+  FileRec(f).Name:=Name;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  FileRec(f).Name[high(FileRec(f).Name)]:=#0;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+Procedure Assign(out f:File;const Name: ShortString);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(f,AnsiString(Name));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  InitFile(f);
+  { warning: no encoding support }
+  FileRec(f).Name:=Name;
+  { null terminate, since the name array is regularly used as p(wide)char }
+  FileRec(f).Name[high(FileRec(f).Name)]:=#0;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
 
+Procedure Assign(out f:File;const p: PAnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(f,AnsiString(p));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  { no use in making this the one that does the work, since the name field is
+    limited to 255 characters anyway }
+  Assign(f,strpas(p));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
-Procedure Assign(out f:File;p:pchar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,StrPas(p));
-end;
-
-
-Procedure Assign(out f:File;c:char);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,string(c));
-end;
-
+Procedure Assign(out f:File;const c: AnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(f,AnsiString(c));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(f,ShortString(c));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
 Procedure Rewrite(var f:File;l:Longint);[IOCheck];
 {
@@ -69,7 +119,7 @@ Begin
   else
    Begin
      { Reopen with filemode 2, to be Tp compatible (PFV) }
-     Do_Open(f,PChar(@FileRec(f).Name),$1002);
+     Do_Open(f,PFileTextRecChar(@FileRec(f).Name),$1002,false);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -95,7 +145,7 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PChar(@FileRec(f).Name),Filemode);
+     Do_Open(f,PFileTextRecChar(@FileRec(f).Name),Filemode,false);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -383,44 +433,134 @@ Begin
   If InOutRes <> 0 then
    exit;
   If FileRec(f).mode=fmClosed Then
-   Do_Erase(PChar(@FileRec(f).Name));
+   Do_Erase(PFileTextRecChar(@FileRec(f).Name),false);
 End;
 
 
-Procedure Rename(var f : File;p:pchar);[IOCheck];
+Procedure Rename(var f : File; const S : UnicodeString);[IOCheck];
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+var
+  fs: RawByteString;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 Begin
-  If InOutRes <> 0 then
-   exit;
-  If FileRec(f).mode=fmClosed Then
-   Begin
-     Do_Rename(PChar(@FileRec(f).Name),p);
-     { check error code of do_rename }
-     If InOutRes = 0 then
-        Move(p^,FileRec(f).Name,StrLen(p)+1);
-   End;
+  If (InOutRes<>0) or
+     (FileRec(f).mode<>fmClosed) then
+    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  { it's slightly faster to convert the unicodestring here to rawbytestring
+    than doing it in do_rename(), because here we still know the length }
+  fs:=ToSingleByteFileSystemEncodedFileName(s);
+  Do_Rename(PFileTextRecChar(@FileRec(f).Name),PAnsiChar(fs),false,true);
+  If InOutRes=0 then
+     FileRec(f).Name:=fs
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@FileRec(f).Name),PUnicodeChar(S),false,false);
+  If InOutRes=0 then
+{$ifdef FPC_ANSI_TEXTFILEREC}
+    FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(s);
+{$else FPC_ANSI_TEXTFILEREC}
+    FileRec(f).Name:=s
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
 
 
-Procedure Rename(var f : File;const s : string);[IOCheck];
+Procedure Rename(var f : File;const s : RawByteString);[IOCheck];
+var
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: RawByteString;
+  pdst: PAnsiChar;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: UnicodeString;
+  pdst: PUnicodeChar;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable: boolean;
+Begin
+  If (InOutRes<>0) or
+     (FileRec(f).mode<>fmClosed) then
+    exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable:=false;
+  pdst:=PAnsiChar(s);
+  if StringCodePage(s)<>DefaultFileSystemCodePage then
+    begin
+      fs:=ToSingleByteFileSystemEncodedFileName(s);
+      pdst:=PAnsiChar(fs);
+      dstchangeable:=true;
+    end
+  else
+    fs:=s;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+   { it's slightly faster to convert the rawbytestring here to unicodestring
+     than doing it in do_rename, because here we still know the length }
+   fs:=unicodestring(s);
+   pdst:=PUnicodeChar(fs);
+   dstchangeable:=true;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@FileRec(f).Name),pdst,false,dstchangeable);
+  If InOutRes=0 then
+{$if defined(FPC_ANSI_TEXTFILEREC) and not defined(FPCRTL_FILESYSTEM_SINGLE_BYTE_API)}
+    FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(fs)
+{$else FPC_ANSI_TEXTFILEREC and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+    FileRec(f).Name:=fs
+{$endif FPC_ANSI_TEXTFILEREC and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+End;
+
+
+Procedure Rename(var f : File;const s : ShortString);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(f,AnsiString(s));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
   p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(f,Pchar(@p));
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
-Procedure Rename(var f : File;c : char);[IOCheck];
-var
-  p : array[0..1] Of Char;
+Procedure Rename(var f:File;const p : PAnsiChar);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Begin
-  If InOutRes <> 0 then
-   exit;
+  Rename(f,AnsiString(p));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  len: SizeInt
+Begin
+  If InOutRes<>0 then
+    exit;
+  If FileRec(f).mode=fmClosed Then
+    Begin
+      Do_Rename(PFileTextRecChar(@FileRec(f).Name),p,false);
+      { check error code of do_rename }
+      If InOutRes=0 then
+        begin
+          len:=min(StrLen(p),high(FileRec(f).Name));
+          Move(p^,FileRec(f).Name,len);
+          FileRec(f).Name[len]:=#0;
+        end;
+    End;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+Procedure Rename(var f:File;const c : AnsiChar);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(f,AnsiString(c));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  p : array[0..1] Of AnsiChar;
+Begin
   p[0]:=c;
   p[1]:=#0;
-  Rename(f,Pchar(@p));
+  Rename(f,PAnsiChar(@p));
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 

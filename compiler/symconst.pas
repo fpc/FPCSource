@@ -66,6 +66,8 @@ const
   tkUChar    = 25;
   tkHelper   = 26;
   tkFile     = 27;
+  tkClassRef = 28;
+  tkPointer  = 29;
 
   otSByte     = 0;
   otUByte     = 1;
@@ -187,7 +189,9 @@ type
     { type is a specialization of a generic type }
     df_specialization,
     { def has been copied from another def so symtable is not owned }
-    df_copied_def
+    df_copied_def,
+    { def was created as a generic constraint and thus is only "shallow" }
+    df_genconstraint
   );
   tdefoptions=set of tdefoption;
 
@@ -201,6 +205,14 @@ type
     ds_dwarf_dbg_info_written
   );
   tdefstates=set of tdefstate;
+
+  { flags for generic type constraints }
+  tgenericconstraintflag=(gcf_none,
+    gcf_constructor,       { specialization type needs to have a constructor }
+    gcf_class,             { specialization type needs to be a class }
+    gcf_record             { specialization type needs to be a record type }
+  );
+  tgenericconstraintflags=set of tgenericconstraintflag;
 
   { tsymlist entry types }
   tsltype = (sl_none,
@@ -334,9 +346,42 @@ type
       inherited, so we explicitly have to add the constructors of the parent
       class to the child class; this influences the overload resolution logic
       though, so ignore them there) }
-    po_ignore_for_overload_resolution
+    po_ignore_for_overload_resolution,
+    { the visibility of of this procdef was raised automatically by the
+      compiler, e.g. because it was designated as a getter/setter for a property
+      with a higher visibility on the JVM target }
+    po_auto_raised_visibility,
+    { procedure is far (x86 only) }
+    po_far
   );
   tprocoptions=set of tprocoption;
+
+  { kinds of synthetic procdefs that can be generated }
+  tsynthetickind = (
+    tsk_none,
+    tsk_anon_inherited,        // anonymous inherited call
+    tsk_jvm_clone,             // Java-style clone method
+    tsk_record_deepcopy,       // deepcopy for records field by field
+    tsk_record_initialize,     // initialize for records field by field (explicit rather than via rtti)
+    tsk_empty,                 // an empty routine
+    tsk_tcinit,                // initialisation of typed constants
+    tsk_callthrough,           // call through to another routine with the same parameters/return type (its def is stored in the skpara field)
+    tsk_callthrough_nonabstract,// call through to another routine if the current class not abstract (otherwise do the same as tsk_empty)
+    tsk_jvm_enum_values,       // Java "values" class method of JLEnum descendants
+    tsk_jvm_enum_valueof,      // Java "valueOf" class method of JLEnum descendants
+    tsk_jvm_enum_classconstr,  // Java class constructor for JLEnum descendants
+    tsk_jvm_enum_jumps_constr, // Java constructor for JLEnum descendants for enums with jumps
+    tsk_jvm_enum_fpcordinal,   // Java FPCOrdinal function that returns the enum's ordinal value from an FPC POV
+    tsk_jvm_enum_fpcvalueof,   // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
+    tsk_jvm_enum_long2set,     // Java fpcLongToEnumSet function that returns an enumset corresponding to a bit pattern in a jlong
+    tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
+    tsk_jvm_enum_set2Set,      // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
+    tsk_jvm_procvar_invoke,    // Java invoke method that calls a wrapped procvar
+    tsk_jvm_procvar_intconstr, // Java procvar class constructor that accepts an interface instance for easy Java interoperation
+    tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
+    tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
+    tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
+  );
 
   { options for objects and classes }
   tobjecttyp = (odt_none,
@@ -359,7 +404,8 @@ type
   { defines the type of the extended "structure"; only used for parsing }
   thelpertype=(ht_none,
     ht_class,
-    ht_record
+    ht_record,
+    ht_type
   );
 
   { Variations in interfaces implementation }
@@ -404,14 +450,14 @@ type
   );
   tobjectoptions=set of tobjectoption;
 
-  tarraydefoption=(ado_none,
-    ado_IsConvertedPointer,
-    ado_IsDynamicArray,
-    ado_IsVariant,
-    ado_IsConstructor,
-    ado_IsArrayOfConst,
-    ado_IsConstString,
-    ado_IsBitPacked
+  tarraydefoption=(    
+    ado_IsConvertedPointer, // array created from pointer (e.g. PInteger(Ptr)[1])
+    ado_IsDynamicArray,     // dynamic array
+    ado_IsVariant,          //
+    ado_IsConstructor,      // array constructor (e.g. something = [1,2,3])
+    ado_IsArrayOfConst,     // array of const
+    ado_IsConstString,      // string constant
+    ado_IsBitPacked         // bitpacked array
   );
   tarraydefoptions=set of tarraydefoption;
 
@@ -498,7 +544,10 @@ type
   { options for symtables }
   tsymtableoption = (
     sto_has_helper,       { contains at least one helper symbol }
-    sto_has_generic       { contains at least one generic symbol }
+    sto_has_generic,      { contains at least one generic symbol }
+    sto_has_operator,     { contains at least one operator overload }
+    sto_needs_init_final  { the symtable needs initialization and/or
+                            finalization of variables/constants }
   );
   tsymtableoptions = set of tsymtableoption;
 
@@ -515,7 +564,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,namespacesym
+    macrosym,namespacesym,undefinedsym
   );
 
   { State of the variable:
@@ -602,6 +651,9 @@ type
     dbg_state_queued
   );
 
+  tx86pointertyp = (x86pt_near, x86pt_near_cs, x86pt_near_ds, x86pt_near_ss,
+    x86pt_near_es, x86pt_near_fs, x86pt_near_gs, x86pt_far, x86pt_huge);
+
 var
   clearstack_pocalls : tproccalloptions;
   cdecl_pocalls      : tproccalloptions;
@@ -624,12 +676,18 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
    }
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 {$endif}
+{$ifdef i8086}
+   { we only take this into account on i386, on other platforms we always
+     push in the same order
+   }
+   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
+{$endif}
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','namespace'
+       'macrosym','namespace','undefinedsym'
      );
 
      typName : array[tdeftyp] of string[12] = (

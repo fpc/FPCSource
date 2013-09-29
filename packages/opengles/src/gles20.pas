@@ -1365,7 +1365,7 @@ implementation
 
   function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
     begin
-      result:=GetProcAddress(ahlib,ProcName);
+      result:=dynlibs.GetProcAddress(ahlib,ProcName);
 {$ifdef EGL}
       if assigned(eglGetProcAddress) and not assigned(result) then
         result:=eglGetProcAddress(ProcName);
@@ -1465,7 +1465,7 @@ implementation
   procedure LoadEGL(lib : pchar);
     begin
       FreeEGL;
-      EGLLib:=LoadLibrary(lib);
+      EGLLib:=dynlibs.LoadLibrary(lib);
       if EGLLib=0 then
         raise Exception.Create(format('Could not load library: %s',[lib]));
 
@@ -1687,7 +1687,7 @@ implementation
   procedure LoadGLESv2(lib : pchar);
     begin
       FreeGLESv2;
-      GLESv2Lib:=LoadLibrary(lib);
+      GLESv2Lib:=dynlibs.LoadLibrary(lib);
       if GLESv2Lib=0 then
         raise Exception.Create(format('Could not load library: %s',[lib]));
 

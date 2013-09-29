@@ -47,7 +47,7 @@ procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 function GetCompiler: string;
 procedure SetCompiler(AValue : string);
-function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
+function GetCompilerParameters(const SrcFilename, OutputDirectory, OutputFilename: string): string;
 procedure Run(const Filename: string);
 
 implementation
@@ -246,6 +246,31 @@ begin
     end;
 end;
 
+procedure DeleteDirectory(Directory: string);
+var
+  FileInfo: TSearchRec;
+  aFilename: String;
+begin
+  Directory:=ExcludeTrailingPathDelimiter(Directory);
+  if not DirectoryExists(Directory) then exit;
+  if FindFirst(Directory+PathDelim+AllFilesMask,faAnyFile,FileInfo)=0 then begin
+    repeat
+      if (FileInfo.Name='.') or (FileInfo.Name='..') then continue;
+      aFilename:=Directory+PathDelim+FileInfo.Name;
+      if (FileInfo.Attr and faDirectory)>0 then
+        DeleteDirectory(aFilename)
+      else if not DeleteFile(aFilename) then begin
+        writeln('unable to delete file "'+aFilename+'"');
+        Halt(1);
+      end;
+    until FindNext(FileInfo)<>0;
+  end;
+  if not RemoveDir(Directory) then begin
+    writeln('unable to delete directory "'+Directory+'"');
+    Halt(1);
+  end;
+end;
+
 procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 var
   Compiler: String;
@@ -254,35 +279,78 @@ var
   Count: Int64;
   ss: TStringStream;
   buf : Array[1..4096] of byte;
+  pid: SizeUInt;
+  BuildDir: String;
+  BuildOutputFilename: String;
+
+  procedure CleanUp;
+  begin
+    if BuildDir<>'' then begin
+      // delete build directory
+      DeleteDirectory(BuildDir);
+    end;
+  end;
+
 begin
   Compiler:=GetCompiler;
-  CompParams:=GetCompilerParameters(CacheFilename,OutputFilename);
+  pid:=GetProcessID;
+  BuildDir:='';
+  BuildOutputFilename:=OutputFilename;
+  if pid>0 then begin
+    BuildDir:=ExtractFilePath(OutputFilename)+'__tmp'+IntToStr(pid)+PathDelim;
+    BuildOutputFilename:=BuildDir+ExtractFileName(OutputFilename);
+  end;
   //writeln('Compiler=',Compiler,' Params=',CompParams);
   if FileExists(OutputFilename) and not DeleteFile(OutputFilename) then begin
     writeln('unable to delete ',OutputFilename);
     Halt(1);
   end;
-  Proc:=TProcess.Create(nil);
-  Proc.CommandLine:=Compiler+' '+CompParams;
-{$WARNING Unconditional use of pipes breaks for targets not supporting them}
-  Proc.Options:= [poUsePipes, poStdErrToOutput];
-  Proc.ShowWindow := swoHide;
-  Proc.Execute;
-  ss:=TStringStream.Create('');
-  repeat
-    Count:=Proc.Output.Read(Buf{%H-},4096);
-    if Count>0 then
-      ss.write(buf,count);
-  until Count=0;
-  if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
-    WriteCompilerOutput(SrcFilename,CacheFilename,ss.DataString);
-    Halt(1);
+  if BuildDir<>'' then begin
+    if FileExists(BuildOutputFilename) and not DeleteFile(BuildOutputFilename)
+    then begin
+      writeln('unable to delete ',BuildOutputFilename);
+      Halt(1);
+    end;
+    if not DirectoryExists(BuildDir) and not CreateDir(BuildDir) then begin
+      writeln('unable to mkdir ',BuildDir);
+      Halt(1);
+    end;
   end;
-  ss.Free;
-  Proc.Free;
+  try
+    CompParams:=GetCompilerParameters(CacheFilename,BuildDir,BuildOutputFilename);
+    Proc:=TProcess.Create(nil);
+    Proc.CommandLine:=Compiler+' '+CompParams;
+  {$WARNING Unconditional use of pipes breaks for targets not supporting them}
+    Proc.Options:= [poUsePipes, poStdErrToOutput];
+    Proc.ShowWindow := swoHide;
+    Proc.Execute;
+    ss:=TStringStream.Create('');
+    repeat
+      Count:=Proc.Output.Read(Buf{%H-},4096);
+      if Count>0 then
+        ss.write(buf,count);
+    until Count=0;
+    if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
+      WriteCompilerOutput(SrcFilename,BuildOutputFilename,ss.DataString);
+      CleanUp;
+      Halt(1);
+    end;
+    if BuildDir<>'' then begin
+      // move from build directory to cache
+      if not RenameFile(BuildOutputFilename,OutputFilename) then begin
+        writeln('unable to move "',BuildOutputFilename,'" to "',OutputFilename,'"');
+        Halt(1);
+      end;
+    end;
+    ss.Free;
+    Proc.Free;
+  finally
+    CleanUp;
+  end;
 end;
 
-function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
+function GetCompilerParameters(const SrcFilename, OutputDirectory,
+  OutputFilename: string): string;
 { For example:
     /usr/bin/instantfpc -MObjFpc -Sh ./envvars.pas param1
   The shebang compile parameters: -MObjFpc -Sh
@@ -300,6 +368,8 @@ begin
       AddParam(P,Result);
     inc(I);
     end;
+  if OutputDirectory<>'' then
+    AddParam('-FU'+OutputDirectory,Result);
   AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
   AddParam(SrcFilename,Result);
 end;
@@ -307,8 +377,10 @@ end;
 procedure Run(const Filename: string);
 var
   p : PPChar;
+  {$IFNDEF UseFpExecV}
   i : integer;
   args : array of string;
+  {$ENDIF}
 begin
   p:=argv;
   inc(p);
@@ -318,7 +390,9 @@ begin
     end;
     inc(p);
   end;
-  {$IFNDEF UseFpExecV}
+  {$IFDEF UseFpExecV}
+    Halt(FpExecV(Filename,p));
+  {$ELSE}
     if paramcount>1 then
       begin
         setlength(args,paramcount-1);
@@ -326,8 +400,6 @@ begin
           args[i-2]:=paramstr(i);
       end;
     Halt(ExecuteProcess(Filename,args));
-  {$ELSE}
-    Halt(FpExecV(Filename,p));
   {$ENDIF}
 end;
 

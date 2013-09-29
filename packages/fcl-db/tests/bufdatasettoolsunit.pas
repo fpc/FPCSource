@@ -1,12 +1,13 @@
 unit BufDatasetToolsUnit;
 
 { Sets up bufdataset for testing.
-Tests expect Get*Dataset tho return a dataset with structure and test data, but closed.
+Tests expect Get*Dataset to return a dataset with structure and test data, but closed.
 A closed BufDataset normally has no data, so these tests won't work.
 
-To circumvent this, this unit saves the dataset contents to file and reloads them on opening using BufDataset persistence mechanism.
-
+To circumvent this, this unit saves the dataset contents to file and reloads them on opening
+using the BufDataset persistence mechanism.
 }
+
 {$mode objfpc}{$H+}
 
 interface
@@ -17,7 +18,6 @@ uses
   BufDataset;
 
 type
-{ TbufdatasetConnector }
 
   { TbufdatasetDBConnector }
 
@@ -64,7 +64,7 @@ end;
 
 procedure TbufdatasetDBConnector.CreateNDatasets;
 begin
-// All datasets are created in InternalGet*Dataset
+  // All datasets are created in InternalGet*Dataset
 end;
 
 procedure TbufdatasetDBConnector.CreateFieldDataset;
@@ -88,21 +88,25 @@ var BufDataset  : TPersistentBufDataSet;
 
 begin
   BufDataset := TPersistentBufDataSet.Create(nil);
-  BufDataset.Name := 'NDataset';
-  BufDataset.FieldDefs.Add('ID',ftInteger);
-  BufDataset.FieldDefs.Add('NAME',ftString,50);
-  BufDataset.CreateDataset;
-  BufDataset.Open;
-  for i := 1 to n do
+  with BufDataset do
     begin
-    BufDataset.Append;
-    BufDataset.FieldByName('ID').AsInteger := i;
-    BufDataset.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
-    BufDataset.Post;
+    Name := 'NDataset';
+    FieldDefs.Add('ID',ftInteger);
+    FieldDefs.Add('NAME',ftString,50);
+    CreateDataset;
+    Open;
+    for i := 1 to n do
+      begin
+      Append;
+      FieldByName('ID').AsInteger := i;
+      FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+      Post;
+      end;
+    MergeChangeLog;
+    TempFileName:=GetTempFileName;
+    FileName:=TempFileName;
+    Close; // Save data into file
     end;
-  BufDataset.TempFileName:=GetTempFileName;
-  BufDataset.FileName:=BufDataset.TempFileName;
-  BufDataset.Close; // Save data into file
   Result := BufDataset;
 end;
 
@@ -121,7 +125,6 @@ begin
   with BufDataset do
     begin
     Name := 'FieldDataset';
-    UniDirectional := FUniDirectional;
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
@@ -136,9 +139,13 @@ begin
     FieldDefs.Add('FDATETIME',ftDateTime);
     FieldDefs.Add('FBLOB',ftBlob);
     FieldDefs.Add('FMEMO',ftMemo);
-    FieldDefs.Add('FLARGEINT',ftLargeint);
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
+    FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FGUID',ftGuid,38);
     FieldDefs.Add('FFMTBCD',ftFmtBCD);
+    FieldDefs.Add('FWIDESTRING',ftWideString,10);
+    FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar,10);
+    FieldDefs.Add('FWIDEMEMO',ftWideMemo);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -148,6 +155,7 @@ begin
       FieldByName('FSTRING').AsString := testStringValues[i];
       FieldByName('FSMALLINT').AsInteger := testSmallIntValues[i];
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
+      FieldByName('FWORD').AsInteger := testWordValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
       FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
@@ -157,14 +165,22 @@ begin
       FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
       FieldByName('FBLOB').AsString := testStringValues[i];
       FieldByName('FMEMO').AsString := testStringValues[i];
-      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FGUID').AsString := GuidToString(GUID_NULL);
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
+      FieldByName('FWIDESTRING').AsString := testStringValues[i];
+      FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FWIDEMEMO').AsString := testStringValues[i];
       Post;
     end;
-    BufDataset.TempFileName:=GetTempFileName;
-    BufDataset.FileName:=BufDataset.TempFileName;
+    MergeChangeLog;
+    TempFileName:=GetTempFileName;
+    FileName:=TempFileName;
     Close; // Save data into file
+    // When data are loaded from file, bidirectional is checked
+    // so unidirectional bufdataset can't be tested here
+    UniDirectional := TestUniDirectional;
     end;
   Result := BufDataset;
 end;

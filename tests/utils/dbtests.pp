@@ -6,12 +6,7 @@ unit dbtests;
 Interface
 
 Uses
-{$ifndef ver1_0}
-  mysql4,
-{$else}
-  mysql,
-{$endif}
-  testu;
+  mysql55dyn, testu;
 
 { ---------------------------------------------------------------------
   High-level access
@@ -64,7 +59,7 @@ Uses
 
 
 Var
-  Connection : TMYSQL;
+  Connection : PMYSQL;
 
 
 Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
@@ -80,24 +75,22 @@ begin
       Val(Port,PortNb,Error);
       if Error<>0 then
         PortNb:=0;
-    end;
-{$ifdef ver1_0}
-  Result:=mysql_connect(@Connection,PChar(Host),PChar(User),PChar(Password))<>Nil;
-{$else}
-  mysql_init(@Connection);
-  Result:=mysql_real_connect(@Connection,PChar(Host),PChar(User),PChar(Password),Nil,PortNb,Nil,0)<>Nil;
-{$endif}
+    end
+  else
+    PortNB:=0;
+  Connection:=mysql_init(Nil);
+  Result:=mysql_real_connect(Connection,PChar(Host),PChar(User),PChar(Password),Nil,PortNb,Nil,CLIENT_MULTI_RESULTS)<>Nil;
   If Not Result then
     begin
-    S:=Strpas(mysql_error(@connection));
+    S:=Strpas(mysql_error(connection));
     Verbose(V_ERROR,'Failed to connect to database : '+S);
     end
   else
     begin
-    Result:=Mysql_select_db(@Connection,Pchar(DatabaseName))>=0;
+    Result:=Mysql_select_db(Connection,Pchar(DatabaseName))>=0;
     If Not result then
       begin
-      S:=StrPas(mysql_error(@connection));
+      S:=StrPas(mysql_error(connection));
       DisconnectDatabase;
       Verbose(V_Error,'Failed to select database : '+S);
       end;
@@ -107,18 +100,18 @@ end;
 Procedure DisconnectDatabase;
 
 begin
-  mysql_close(@Connection);
+  mysql_close(Connection);
 end;
 
 Function RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 
 begin
   Verbose(V_DEBUG,'Running query:'+Qry);
-  Result:=mysql_query(@Connection,PChar(qry))=0;
+  Result:=mysql_query(Connection,PChar(qry))=0;
   If Not Result then
-    Verbose(V_WARNING,'Query : '+Qry+'Failed : '+Strpas(mysql_error(@connection)))
+    Verbose(V_WARNING,'Query : '+Qry+'Failed : '+Strpas(mysql_error(connection)))
   else
-    Res:=Mysql_store_result(@connection);
+    Res:=Mysql_store_result(connection);
 end;
 
 { No warning if it fails }
@@ -126,18 +119,18 @@ Function RunSilentQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 
 begin
   Verbose(V_DEBUG,'Running silent query:'+Qry);
-  Result:=mysql_query(@Connection,PChar(qry))=0;
+  Result:=mysql_query(Connection,PChar(qry))=0;
   If Not Result then
-    Verbose(V_DEBUG,'Silent query : '+Qry+'Failed : '+Strpas(mysql_error(@connection)))
+    Verbose(V_DEBUG,'Silent query : '+Qry+'Failed : '+Strpas(mysql_error(connection)))
   else
-    Res:=Mysql_store_result(@connection);
+    Res:=Mysql_store_result(connection);
 end;
 
 
 Function GetResultField (Res : TQueryResult; Id : Integer) : String;
 
 Var
-  Row : TMYSQL_ROW;
+  Row : PPchar;
 
 begin
   if Res=Nil then
@@ -265,7 +258,7 @@ Var
 
 begin
   If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]),Res) then
-    Result:=mysql_insert_id(@connection)
+    Result:=mysql_insert_id(connection)
   else
     Result:=-1;
 end;
@@ -444,7 +437,7 @@ begin
   Qry:=Format(SInsertRes,
               [TestID,RunID,B[OK],B[Skipped],TestRes,EscapeSQL(Log)]);
   If RunSilentQuery(Qry,Res) then
-    Result:=mysql_insert_id(@connection)
+    Result:=mysql_insert_id(connection)
   else
     begin
       Qry:=format(SSelectId,[TestId,RunId]);
@@ -486,4 +479,6 @@ begin
   Result:=RunQuery(Format(SDeleteRun,[ID]),Res);
 end;
 
+begin
+  initialisemysql;
 end.

@@ -11,14 +11,16 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
 #      beos \
       errors dos dl objects \
       sysconst sysutils \
-      types charset ucomplex typinfo classes fgl math varutils \
+      types charset cpall ucomplex typinfo classes fgl math varutils \
       cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
       rtlconsts syscall unix unixutil strutils termio initc \
       cmem crt video mouse keyboard \
       dateutils fmtbcd sockets dynlibs cwstring cthreads convutils stdconvs \
-      fpintres clocale
+      fpintres clocale unixcp
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils stdconvs
-implicitunits=exeinfo
+implicitunits=exeinfo \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
 
 [require]
 nortl=y
@@ -136,6 +138,9 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
 
 linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/unixcp.pp
+
 #
 # TP7 Compatible RTL Units
 #
@@ -237,6 +242,9 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 

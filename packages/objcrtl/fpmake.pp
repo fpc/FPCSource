@@ -12,7 +12,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('objcrtl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='objcrtl';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=[darwin,iphonesim];

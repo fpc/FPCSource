@@ -68,7 +68,7 @@ begin
      Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
    If not Assigned(FObservers) then
      FObservers:=TFPList.Create;
-   FObservers.Add(AObserver);
+   FObservers.Add(I);
 end;
 
 procedure TPersistent.FPODetachObserver(AObserver: TObject);
@@ -80,7 +80,7 @@ begin
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If Assigned(FObservers) then
     begin
-    FObservers.Remove(AObserver);
+    FObservers.Remove(I);
     If (FObservers.Count=0) then
       FreeAndNil(FObservers);
     end;
@@ -89,7 +89,6 @@ end;
 procedure TPersistent.FPONotifyObservers(ASender: TObject;
   AOperation: TFPObservedOperation; Data : Pointer);
 Var
-  O : TObject;
   I : Integer;
   Obs : IFPObserver;
 
@@ -97,9 +96,8 @@ begin
   If Assigned(FObservers) then
     For I:=FObservers.Count-1 downto 0 do
       begin
-      O:=TObject(FObservers[i]);
-      If O.GetInterface(SGUIDObserver,Obs) then
-        Obs.FPOObservedChanged(Self,AOperation,Data);
+      Obs:=IFPObserver(FObservers[i]);
+      Obs.FPOObservedChanged(Self,AOperation,Data);
       end;
 end;
 

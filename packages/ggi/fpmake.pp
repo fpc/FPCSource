@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('ggi');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ggi';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: ?, header: Sebastian Guenther';

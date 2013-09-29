@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fftw');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fftw';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

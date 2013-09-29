@@ -1,19 +1,17 @@
 {
-     File:       LaunchServices/LSInfo.h
+     File:       LSInfo.h
  
      Contains:   Public interfaces for LaunchServices.framework
  
-     Version:    LaunchServices-360.3~1
- 
-     Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
+     Copyright:  Copyright 2001-2009 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://www.freepascal.org/bugs.html
- 
 }
 {	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -90,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -315,7 +318,7 @@ const
  *    Non-Carbon CFM:   not available
  }
 function LSInit( inFlags: LSInitializeFlags ): OSStatus; external name '_LSInit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -330,7 +333,7 @@ function LSInit( inFlags: LSInitializeFlags ): OSStatus; external name '_LSInit'
  *    Non-Carbon CFM:   not available
  }
 function LSTerm: OSStatus; external name '_LSTerm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -363,7 +366,7 @@ function LSTerm: OSStatus; external name '_LSTerm';
  *    Non-Carbon CFM:   not available
  }
 function LSCopyItemInfoForRef( const (*var*) inItemRef: FSRef; inWhichInfo: LSRequestedInfo; var outItemInfo: LSItemInfoRecord ): OSStatus; external name '_LSCopyItemInfoForRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -395,7 +398,7 @@ function LSCopyItemInfoForRef( const (*var*) inItemRef: FSRef; inWhichInfo: LSRe
  *    Non-Carbon CFM:   not available
  }
 function LSCopyItemInfoForURL( inURL: CFURLRef; inWhichInfo: LSRequestedInfo; var outItemInfo: LSItemInfoRecord ): OSStatus; external name '_LSCopyItemInfoForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -431,7 +434,7 @@ function LSCopyItemInfoForURL( inURL: CFURLRef; inWhichInfo: LSRequestedInfo; va
  *    Non-Carbon CFM:   not available
  }
 function LSGetExtensionInfo( inNameLen: UniCharCount; {const} inNameBuffer: {variable-size-array} UniCharPtr; var outExtStartIndex: UniCharCount ): OSStatus; external name '_LSGetExtensionInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -462,7 +465,7 @@ function LSGetExtensionInfo( inNameLen: UniCharCount; {const} inNameBuffer: {var
  *    Non-Carbon CFM:   not available
  }
 function LSCopyDisplayNameForRef( const (*var*) inRef: FSRef; var outDisplayName: CFStringRef ): OSStatus; external name '_LSCopyDisplayNameForRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -493,7 +496,7 @@ function LSCopyDisplayNameForRef( const (*var*) inRef: FSRef; var outDisplayName
  *    Non-Carbon CFM:   not available
  }
 function LSCopyDisplayNameForURL( inURL: CFURLRef; var outDisplayName: CFStringRef ): OSStatus; external name '_LSCopyDisplayNameForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -525,7 +528,7 @@ function LSCopyDisplayNameForURL( inURL: CFURLRef; var outDisplayName: CFStringR
  *    Non-Carbon CFM:   not available
  }
 function LSSetExtensionHiddenForRef( const (*var*) inRef: FSRef; inHide: Boolean ): OSStatus; external name '_LSSetExtensionHiddenForRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -557,7 +560,7 @@ function LSSetExtensionHiddenForRef( const (*var*) inRef: FSRef; inHide: Boolean
  *    Non-Carbon CFM:   not available
  }
 function LSSetExtensionHiddenForURL( inURL: CFURLRef; inHide: Boolean ): OSStatus; external name '_LSSetExtensionHiddenForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -588,7 +591,7 @@ function LSSetExtensionHiddenForURL( inURL: CFURLRef; inHide: Boolean ): OSStatu
  *    Non-Carbon CFM:   not available
  }
 function LSCopyKindStringForRef( const (*var*) inFSRef: FSRef; var outKindString: CFStringRef ): OSStatus; external name '_LSCopyKindStringForRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -619,7 +622,7 @@ function LSCopyKindStringForRef( const (*var*) inFSRef: FSRef; var outKindString
  *    Non-Carbon CFM:   not available
  }
 function LSCopyKindStringForURL( inURL: CFURLRef; var outKindString: CFStringRef ): OSStatus; external name '_LSCopyKindStringForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -667,7 +670,7 @@ function LSCopyKindStringForURL( inURL: CFURLRef; var outKindString: CFStringRef
  *    Non-Carbon CFM:   not available
  }
 function LSCopyKindStringForTypeInfo( inType: OSType; inCreator: OSType; inExtension: CFStringRef { can be NULL }; var outKindString: CFStringRef ): OSStatus; external name '_LSCopyKindStringForTypeInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
 
 {
@@ -698,7 +701,7 @@ function LSCopyKindStringForTypeInfo( inType: OSType; inCreator: OSType; inExten
  *    Non-Carbon CFM:   not available
  }
 function LSCopyKindStringForMIMEType( inMIMEType: CFStringRef; var outKindString: CFStringRef ): OSStatus; external name '_LSCopyKindStringForMIMEType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
 
 {
@@ -742,7 +745,7 @@ function LSCopyKindStringForMIMEType( inMIMEType: CFStringRef; var outKindString
  *    Non-Carbon CFM:   not available
  }
 function LSGetApplicationForItem( const (*var*) inItemRef: FSRef; inRoleMask: LSRolesMask; outAppRef: FSRefPtr { can be NULL }; outAppURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSGetApplicationForItem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -794,7 +797,7 @@ function LSGetApplicationForItem( const (*var*) inItemRef: FSRef; inRoleMask: LS
  *    Non-Carbon CFM:   not available
  }
 function LSGetApplicationForInfo( inType: OSType; inCreator: OSType; inExtension: CFStringRef { can be NULL }; inRoleMask: LSRolesMask; outAppRef: FSRefPtr { can be NULL }; outAppURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSGetApplicationForInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -833,7 +836,7 @@ function LSGetApplicationForInfo( inType: OSType; inCreator: OSType; inExtension
  *    Non-Carbon CFM:   not available
  }
 function LSCopyApplicationForMIMEType( inMIMEType: CFStringRef; inRoleMask: LSRolesMask; var outAppURL: CFURLRef ): OSStatus; external name '_LSCopyApplicationForMIMEType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
 
 {
@@ -877,7 +880,7 @@ function LSCopyApplicationForMIMEType( inMIMEType: CFStringRef; inRoleMask: LSRo
  *    Non-Carbon CFM:   not available
  }
 function LSGetApplicationForURL( inURL: CFURLRef; inRoleMask: LSRolesMask; outAppRef: FSRefPtr { can be NULL }; outAppURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSGetApplicationForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -923,7 +926,7 @@ function LSGetApplicationForURL( inURL: CFURLRef; inRoleMask: LSRolesMask; outAp
  *    Non-Carbon CFM:   not available
  }
 function LSFindApplicationForInfo( inCreator: OSType; inBundleID: CFStringRef { can be NULL }; inName: CFStringRef { can be NULL }; outAppRef: FSRefPtr { can be NULL }; outAppURL: CFURLRefPtr { can be NULL } ): OSStatus; external name '_LSFindApplicationForInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -965,7 +968,7 @@ function LSFindApplicationForInfo( inCreator: OSType; inBundleID: CFStringRef { 
  *    Non-Carbon CFM:   not available
  }
 function LSCanRefAcceptItem( const (*var*) inItemFSRef: FSRef; const (*var*) inTargetRef: FSRef; inRoleMask: LSRolesMask; inFlags: LSAcceptanceFlags; var outAcceptsItem: Boolean ): OSStatus; external name '_LSCanRefAcceptItem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1007,7 +1010,7 @@ function LSCanRefAcceptItem( const (*var*) inItemFSRef: FSRef; const (*var*) inT
  *    Non-Carbon CFM:   not available
  }
 function LSCanURLAcceptURL( inItemURL: CFURLRef; inTargetURL: CFURLRef; inRoleMask: LSRolesMask; inFlags: LSAcceptanceFlags; var outAcceptsItem: Boolean ): OSStatus; external name '_LSCanURLAcceptURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1044,7 +1047,7 @@ function LSCanURLAcceptURL( inItemURL: CFURLRef; inTargetURL: CFURLRef; inRoleMa
  *    Non-Carbon CFM:   not available
  }
 function LSRegisterURL( inURL: CFURLRef; inUpdate: Boolean ): OSStatus; external name '_LSRegisterURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 {
@@ -1081,7 +1084,7 @@ function LSRegisterURL( inURL: CFURLRef; inUpdate: Boolean ): OSStatus; external
  *    Non-Carbon CFM:   not available
  }
 function LSRegisterFSRef( const (*var*) inRef: FSRef; inUpdate: Boolean ): OSStatus; external name '_LSRegisterFSRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 {
@@ -1121,7 +1124,7 @@ function LSRegisterFSRef( const (*var*) inRef: FSRef; inUpdate: Boolean ): OSSta
  *    Non-Carbon CFM:   not available
  }
 function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask ): CFArrayRef; external name '_LSCopyApplicationURLsForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 { ================================================================================== }
@@ -1203,7 +1206,7 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
  *    Non-Carbon CFM:   not available
  }
 var kLSItemContentType: CFStringRef; external name '_kLSItemContentType'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemFileType
  *  
@@ -1213,7 +1216,7 @@ var kLSItemContentType: CFStringRef; external name '_kLSItemContentType'; (* att
  *    Non-Carbon CFM:   not available
  }
 var kLSItemFileType: CFStringRef; external name '_kLSItemFileType'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemFileCreator
  *  
@@ -1223,7 +1226,7 @@ var kLSItemFileType: CFStringRef; external name '_kLSItemFileType'; (* attribute
  *    Non-Carbon CFM:   not available
  }
 var kLSItemFileCreator: CFStringRef; external name '_kLSItemFileCreator'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemExtension
  *  
@@ -1233,7 +1236,7 @@ var kLSItemFileCreator: CFStringRef; external name '_kLSItemFileCreator'; (* att
  *    Non-Carbon CFM:   not available
  }
 var kLSItemExtension: CFStringRef; external name '_kLSItemExtension'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemDisplayName
  *  
@@ -1243,7 +1246,7 @@ var kLSItemExtension: CFStringRef; external name '_kLSItemExtension'; (* attribu
  *    Non-Carbon CFM:   not available
  }
 var kLSItemDisplayName: CFStringRef; external name '_kLSItemDisplayName'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemDisplayKind
  *  
@@ -1253,7 +1256,7 @@ var kLSItemDisplayName: CFStringRef; external name '_kLSItemDisplayName'; (* att
  *    Non-Carbon CFM:   not available
  }
 var kLSItemDisplayKind: CFStringRef; external name '_kLSItemDisplayKind'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemRoleHandlerDisplayName
  *  
@@ -1263,7 +1266,7 @@ var kLSItemDisplayKind: CFStringRef; external name '_kLSItemDisplayKind'; (* att
  *    Non-Carbon CFM:   not available
  }
 var kLSItemRoleHandlerDisplayName: CFStringRef; external name '_kLSItemRoleHandlerDisplayName'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemIsInvisible
  *  
@@ -1273,7 +1276,7 @@ var kLSItemRoleHandlerDisplayName: CFStringRef; external name '_kLSItemRoleHandl
  *    Non-Carbon CFM:   not available
  }
 var kLSItemIsInvisible: CFStringRef; external name '_kLSItemIsInvisible'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemExtensionIsHidden
  *  
@@ -1283,7 +1286,7 @@ var kLSItemIsInvisible: CFStringRef; external name '_kLSItemIsInvisible'; (* att
  *    Non-Carbon CFM:   not available
  }
 var kLSItemExtensionIsHidden: CFStringRef; external name '_kLSItemExtensionIsHidden'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemQuarantineProperties
  *  
@@ -1293,7 +1296,7 @@ var kLSItemExtensionIsHidden: CFStringRef; external name '_kLSItemExtensionIsHid
  *    Non-Carbon CFM:   not available
  }
 var kLSItemQuarantineProperties: CFStringRef; external name '_kLSItemQuarantineProperties'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  LSCopyItemAttribute()
  *  
@@ -1331,7 +1334,7 @@ var kLSItemQuarantineProperties: CFStringRef; external name '_kLSItemQuarantineP
  *    Non-Carbon CFM:   not available
  }
 function LSCopyItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask; inAttributeName: CFStringRef; var outValue: CFTypeRef ): OSStatus; external name '_LSCopyItemAttribute';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1374,7 +1377,7 @@ function LSCopyItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask;
  *    Non-Carbon CFM:   not available
  }
 function LSCopyItemAttributes( const (*var*) inItem: FSRef; inRoles: LSRolesMask; inAttributeNames: CFArrayRef; var outValues: CFDictionaryRef ): OSStatus; external name '_LSCopyItemAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1413,7 +1416,7 @@ function LSCopyItemAttributes( const (*var*) inItem: FSRef; inRoles: LSRolesMask
  *    Non-Carbon CFM:   not available
  }
 function LSSetItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask; inAttributeName: CFStringRef; inValue: CFTypeRef { can be NULL } ): OSStatus; external name '_LSSetItemAttribute';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 { ================================================================================== }
@@ -1440,7 +1443,7 @@ function LSSetItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask; 
  *    Non-Carbon CFM:   not available
  }
 function LSCopyDefaultRoleHandlerForContentType( inContentType: CFStringRef; inRole: LSRolesMask ): CFStringRef; external name '_LSCopyDefaultRoleHandlerForContentType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1465,7 +1468,7 @@ function LSCopyDefaultRoleHandlerForContentType( inContentType: CFStringRef; inR
  *    Non-Carbon CFM:   not available
  }
 function LSCopyAllRoleHandlersForContentType( inContentType: CFStringRef; inRole: LSRolesMask ): CFArrayRef; external name '_LSCopyAllRoleHandlersForContentType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1488,7 +1491,7 @@ function LSCopyAllRoleHandlersForContentType( inContentType: CFStringRef; inRole
  *    Non-Carbon CFM:   not available
  }
 function LSSetDefaultRoleHandlerForContentType( inContentType: CFStringRef; inRole: LSRolesMask; inHandlerBundleID: CFStringRef ): OSStatus; external name '_LSSetDefaultRoleHandlerForContentType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1526,7 +1529,7 @@ const
  *    Non-Carbon CFM:   not available
  }
 function LSGetHandlerOptionsForContentType( inContentType: CFStringRef ): LSHandlerOptions; external name '_LSGetHandlerOptionsForContentType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1546,7 +1549,7 @@ function LSGetHandlerOptionsForContentType( inContentType: CFStringRef ): LSHand
  *    Non-Carbon CFM:   not available
  }
 function LSSetHandlerOptionsForContentType( inContentType: CFStringRef; inOptions: LSHandlerOptions ): OSStatus; external name '_LSSetHandlerOptionsForContentType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1568,7 +1571,7 @@ function LSSetHandlerOptionsForContentType( inContentType: CFStringRef; inOption
  *    Non-Carbon CFM:   not available
  }
 function LSCopyDefaultHandlerForURLScheme( inURLScheme: CFStringRef ): CFStringRef; external name '_LSCopyDefaultHandlerForURLScheme';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1592,7 +1595,7 @@ function LSCopyDefaultHandlerForURLScheme( inURLScheme: CFStringRef ): CFStringR
  *    Non-Carbon CFM:   not available
  }
 function LSCopyAllHandlersForURLScheme( inURLScheme: CFStringRef ): CFArrayRef; external name '_LSCopyAllHandlersForURLScheme';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1614,7 +1617,7 @@ function LSCopyAllHandlersForURLScheme( inURLScheme: CFStringRef ): CFArrayRef; 
  *    Non-Carbon CFM:   not available
  }
 function LSSetDefaultHandlerForURLScheme( inURLScheme: CFStringRef; inHandlerBundleID: CFStringRef ): OSStatus; external name '_LSSetDefaultHandlerForURLScheme';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {$endc} {TARGET_OS_MAC}

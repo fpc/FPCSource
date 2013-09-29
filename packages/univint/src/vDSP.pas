@@ -3,9 +3,9 @@
  
      Contains:   AltiVec DSP Interfaces
  
-     Version:    vecLib-268.0
+     Version:    vecLib-380.6
  
-     Copyright:  © 2000-2009 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2000-2012 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -179,8 +185,6 @@ uses MacTypes;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {  For documentation on vDSP, see _vDSP Library_ at
     http://developer.apple.com/documentation/Performance/index-date.html or
     search for "vDSP Library" at http://developer.apple.com.
@@ -195,9 +199,9 @@ uses MacTypes;
 	vDSP_Version1 is a minor version number.
 }
 const
-	vDSP_Version0 = 268;
+	vDSP_Version0 = 380;
 const
-	vDSP_Version1 = 0;
+	vDSP_Version1 = 6;
 
 
 type
@@ -276,7 +280,7 @@ const
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 function vDSP_create_fftsetup( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadix ): FFTSetup; external name '_vDSP_create_fftsetup';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -288,7 +292,7 @@ function vDSP_create_fftsetup( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadix
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_destroy_fftsetup( __vDSP_setup: FFTSetup ); external name '_vDSP_destroy_fftsetup';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -300,7 +304,7 @@ procedure vDSP_destroy_fftsetup( __vDSP_setup: FFTSetup ); external name '_vDSP_
  *    Non-Carbon CFM:   not available
  }
 function vDSP_create_fftsetupD( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadix ): FFTSetupD; external name '_vDSP_create_fftsetupD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -312,7 +316,7 @@ function vDSP_create_fftsetupD( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadi
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_destroy_fftsetupD( __vDSP_setup: FFTSetupD ); external name '_vDSP_destroy_fftsetupD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  ctoz and ctozD convert a complex array to a complex-split array.
@@ -327,7 +331,7 @@ procedure vDSP_destroy_fftsetupD( __vDSP_setup: FFTSetupD ); external name '_vDS
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_ctoz( {const} __vDSP_C: {variable-size-array} DSPComplexPtr; __vDSP_strideC: vDSP_Stride; __vDSP_Z: DSPSplitComplexPtr; __vDSP_strideZ: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_ctoz';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -339,7 +343,7 @@ procedure vDSP_ctoz( {const} __vDSP_C: {variable-size-array} DSPComplexPtr; __vD
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_ztoc( const __vDSP_Z: DSPSplitComplexPtr; __vDSP_strideZ: vDSP_Stride; __vDSP_C: {variable-size-array} DSPComplexPtr; __vDSP_strideC: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_ztoc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -351,7 +355,7 @@ procedure vDSP_ztoc( const __vDSP_Z: DSPSplitComplexPtr; __vDSP_strideZ: vDSP_St
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_ctozD( {const} __vDSP_C: {variable-size-array} DSPDoubleComplexPtr; __vDSP_strideC: vDSP_Stride; __vDSP_Z: DSPDoubleSplitComplexPtr; __vDSP_strideZ: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_ctozD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -363,7 +367,7 @@ procedure vDSP_ctozD( {const} __vDSP_C: {variable-size-array} DSPDoubleComplexPt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_ztocD( const __vDSP_Z: DSPDoubleSplitComplexPtr; __vDSP_strideZ: vDSP_Stride; __vDSP_C: {variable-size-array} DSPDoubleComplexPtr; __vDSP_strideC: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_ztocD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place complex Discrete Fourier Transform routines.
@@ -382,7 +386,7 @@ procedure vDSP_ztocD( const __vDSP_Z: DSPDoubleSplitComplexPtr; __vDSP_strideZ: 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -394,7 +398,7 @@ procedure vDSP_fft_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPt
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zipt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -406,7 +410,7 @@ procedure vDSP_fft_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zipD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -418,7 +422,7 @@ procedure vDSP_fft_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitC
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_ziptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place complex Discrete Fourier Transform routines.
@@ -437,7 +441,7 @@ procedure vDSP_fft_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -449,7 +453,7 @@ procedure vDSP_fft_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPt
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zopt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -461,7 +465,7 @@ procedure vDSP_fft_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zopD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -473,7 +477,7 @@ procedure vDSP_fft_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitC
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zoptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place real-to-complex Discrete Fourier Transform routines.
@@ -492,7 +496,7 @@ procedure vDSP_fft_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zrip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -504,7 +508,7 @@ procedure vDSP_fft_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexP
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -516,7 +520,7 @@ procedure vDSP_fft_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zripD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft_zripD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -528,7 +532,7 @@ procedure vDSP_fft_zripD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zriptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_stride: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft_zriptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place real-to-complex Discrete Fourier Transform routines.
@@ -547,7 +551,7 @@ procedure vDSP_fft_zriptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpli
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zrop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -559,7 +563,7 @@ procedure vDSP_fft_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft_zropt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -571,7 +575,7 @@ procedure vDSP_fft_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft_zropD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -583,7 +587,7 @@ procedure vDSP_fft_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft_zroptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place two-dimensional complex Discrete Fourier Transform routines.
@@ -602,7 +606,7 @@ procedure vDSP_fft_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_zip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -614,7 +618,7 @@ procedure vDSP_fft2d_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplex
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_zipt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -626,7 +630,7 @@ procedure vDSP_fft2d_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComple
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_zipD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -638,7 +642,7 @@ procedure vDSP_fft2d_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_ziptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place two-dimensional complex Discrete Fourier Transform routines.
@@ -657,7 +661,7 @@ procedure vDSP_fft2d_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpl
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -669,7 +673,7 @@ procedure vDSP_fft2d_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zopt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -681,7 +685,7 @@ procedure vDSP_fft2d_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zopD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -693,7 +697,7 @@ procedure vDSP_fft2d_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zoptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place two-dimensional real-to-complex Discrete Fourier Transform
@@ -713,7 +717,7 @@ procedure vDSP_fft2d_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_zrip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -725,7 +729,7 @@ procedure vDSP_fft2d_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComple
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_direction: FFTDirection ); external name '_vDSP_fft2d_zript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -737,7 +741,7 @@ procedure vDSP_fft2d_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitCompl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zripD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -749,7 +753,7 @@ procedure vDSP_fft2d_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_strideInRow: vDSP_Stride; __vDSP_strideInCol: vDSP_Stride; __vDSP_bufferTemp: DSPDoubleSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zriptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place two-dimensional real-to-complex Discrete Fourier Transform
@@ -769,7 +773,7 @@ procedure vDSP_fft2d_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSp
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zrop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -781,7 +785,7 @@ procedure vDSP_fft2d_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_fft2d_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStrideInRow: vDSP_Stride; __vDSP_signalStrideInCol: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResultInRow: vDSP_Stride; __vDSP_strideResultInCol: vDSP_Stride; __vDSP_bufferTemp: DSPSplitComplexPtr; __vDSP_log2nInCol: vDSP_Length; __vDSP_log2nInRow: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zropt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 {
@@ -793,7 +797,7 @@ procedure vDSP_fft2d_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitCompl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zropD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_Kr: vDSP_Stride; __vDSP_Kc: vDSP_Stride; __vDSP_ioData2: DSPDoubleSplitComplexPtr; __vDSP_Ir: vDSP_Stride; __vDSP_Ic: vDSP_Stride; __vDSP_log2nc: vDSP_Length; __vDSP_log2nr: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zropD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -805,7 +809,7 @@ procedure vDSP_fft2d_zropD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft2d_zroptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_Kr: vDSP_Stride; __vDSP_Kc: vDSP_Stride; __vDSP_ioData2: DSPDoubleSplitComplexPtr; __vDSP_Ir: vDSP_Stride; __vDSP_Ic: vDSP_Stride; __vDSP_temp: DSPDoubleSplitComplexPtr; __vDSP_log2nc: vDSP_Length; __vDSP_log2nr: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft2d_zroptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place multiple complex Discrete Fourier Transform routines.
@@ -824,7 +828,7 @@ procedure vDSP_fft2d_zroptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSp
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -836,7 +840,7 @@ procedure vDSP_fftm_zip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zipt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_temp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zipt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -848,7 +852,7 @@ procedure vDSP_fftm_zipt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zipD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zipD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -860,7 +864,7 @@ procedure vDSP_fftm_zipD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_ziptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_temp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_ziptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place multiple complex Discrete Fourier Transform routines.
@@ -879,7 +883,7 @@ procedure vDSP_fftm_ziptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -891,7 +895,7 @@ procedure vDSP_fftm_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_temp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zopt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -903,7 +907,7 @@ procedure vDSP_fftm_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zopD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -915,7 +919,7 @@ procedure vDSP_fftm_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_temp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zoptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  In-place multiple real-to-complex Discrete Fourier Transform routines.
@@ -934,7 +938,7 @@ procedure vDSP_fftm_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zrip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zrip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -946,7 +950,7 @@ procedure vDSP_fftm_zrip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zript( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_temp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -958,7 +962,7 @@ procedure vDSP_fftm_zript( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zripD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -970,7 +974,7 @@ procedure vDSP_fftm_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_temp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zriptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Out-of-place multiple real-to-complex Discrete Fourier Transform routines.
@@ -989,7 +993,7 @@ procedure vDSP_fftm_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zrop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1001,7 +1005,7 @@ procedure vDSP_fftm_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_temp: DSPSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zropt';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1013,7 +1017,7 @@ procedure vDSP_fftm_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zropD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1025,7 +1029,7 @@ procedure vDSP_fftm_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fftm_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_fftStride: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_rfftStride: vDSP_Stride; __vDSP_temp: DSPDoubleSplitComplexPtr; __vDSP_log2n: vDSP_Length; __vDSP_numFFT: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fftm_zroptD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {  Non-power-of-two out-of-place complex Discrete Fourier Transform routines.
@@ -1044,7 +1048,7 @@ procedure vDSP_fftm_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft3_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft3_zop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1056,7 +1060,7 @@ procedure vDSP_fft3_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft5_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_resultStride: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft5_zop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1068,7 +1072,7 @@ procedure vDSP_fft5_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft3_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_ioData2: DSPDoubleSplitComplexPtr; __vDSP_L: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft3_zopD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 {
@@ -1080,7 +1084,7 @@ procedure vDSP_fft3_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_fft5_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_ioData2: DSPDoubleSplitComplexPtr; __vDSP_L: vDSP_Stride; __vDSP_log2n: vDSP_Length; __vDSP_flag: FFTDirection ); external name '_vDSP_fft5_zopD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Convolution (or correlation), single-precision.}
@@ -1093,7 +1097,7 @@ procedure vDSP_fft5_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_conv( {const} __vDSP_signal: {variable-size-array} Float32Ptr; __vDSP_signalStride: vDSP_Stride; {const} __vDSP_filter: {variable-size-array} Float32Ptr; __vDSP_strideFilter: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_lenResult: vDSP_Length; __vDSP_lenFilter: vDSP_Length ); external name '_vDSP_conv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Convolution (or correlation), double-precision.}
@@ -1106,7 +1110,7 @@ procedure vDSP_conv( {const} __vDSP_signal: {variable-size-array} Float32Ptr; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_convD( {const} __vDSP_signal: {variable-size-array} Float64Ptr; __vDSP_signalStride: vDSP_Stride; {const} __vDSP_filter: {variable-size-array} Float64Ptr; __vDSP_strideFilter: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_lenResult: vDSP_Length; __vDSP_lenFilter: vDSP_Length ); external name '_vDSP_convD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { 3*3 filter convolution, single-precision.}
@@ -1119,7 +1123,7 @@ procedure vDSP_convD( {const} __vDSP_signal: {variable-size-array} Float64Ptr; _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_f3x3( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP_cols: vDSP_Length; __vDSP_filter: Float32Ptr; __vDSP_result: Float32Ptr ); external name '_vDSP_f3x3';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { 3*3 filter convolution, double-precision.}
@@ -1132,7 +1136,7 @@ procedure vDSP_f3x3( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_f3x3D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDSP_cols: vDSP_Length; __vDSP_filter: Float64Ptr; __vDSP_result: Float64Ptr ); external name '_vDSP_f3x3D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { 5*5 filter convolution, single-precision.}
@@ -1145,7 +1149,7 @@ procedure vDSP_f3x3D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_f5x5( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP_cols: vDSP_Length; __vDSP_filter: Float32Ptr; __vDSP_result: Float32Ptr ); external name '_vDSP_f5x5';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { 5*5 filter convolution, double-precision.}
@@ -1158,7 +1162,7 @@ procedure vDSP_f5x5( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_f5x5D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDSP_cols: vDSP_Length; __vDSP_filter: Float64Ptr; __vDSP_result: Float64Ptr ); external name '_vDSP_f5x5D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { General two-dimensional (image) convolution, single-precision.}
@@ -1171,7 +1175,7 @@ procedure vDSP_f5x5D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_imgfir( __vDSP_signal: Float32Ptr; __vDSP_numRow: vDSP_Length; __vDSP_numCol: vDSP_Length; __vDSP_filter: Float32Ptr; __vDSP_result: Float32Ptr; __vDSP_fnumRow: vDSP_Length; __vDSP_fnumCol: vDSP_Length ); external name '_vDSP_imgfir';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { General two-dimensional (image) convolution, double-precision.}
@@ -1184,7 +1188,7 @@ procedure vDSP_imgfir( __vDSP_signal: Float32Ptr; __vDSP_numRow: vDSP_Length; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_imgfirD( __vDSP_signal: Float64Ptr; __vDSP_numRow: vDSP_Length; __vDSP_numCol: vDSP_Length; __vDSP_filter: Float64Ptr; __vDSP_result: Float64Ptr; __vDSP_fnumRow: vDSP_Length; __vDSP_fnumCol: vDSP_Length ); external name '_vDSP_imgfirD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Matrix transpose, single-precision.}
@@ -1197,7 +1201,7 @@ procedure vDSP_imgfirD( __vDSP_signal: Float64Ptr; __vDSP_numRow: vDSP_Length; _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mtrans( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_c: Float32Ptr; __vDSP_cStride: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_mtrans';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Matrix transpose, double-precision.}
@@ -1210,7 +1214,7 @@ procedure vDSP_mtrans( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mtransD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_c: Float64Ptr; __vDSP_cStride: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_mtransD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Matrix multiply, single-precision.}
@@ -1223,7 +1227,7 @@ procedure vDSP_mtransD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mmul( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_b: Float32Ptr; __vDSP_bStride: vDSP_Stride; __vDSP_c: Float32Ptr; __vDSP_cStride: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_mmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Matrix multiply, double-precision.}
@@ -1236,7 +1240,7 @@ procedure vDSP_mmul( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_b
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mmulD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_b: Float64Ptr; __vDSP_bStride: vDSP_Stride; __vDSP_c: Float64Ptr; __vDSP_cStride: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_mmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply and add, single-precision.}
@@ -1249,7 +1253,7 @@ procedure vDSP_mmulD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmma( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply and add, double-precision.}
@@ -1262,7 +1266,7 @@ procedure vDSP_zmma( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmmaD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPDoubleSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPDoubleSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPDoubleSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply and subtract, single-precision.}
@@ -1275,7 +1279,7 @@ procedure vDSP_zmmaD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmms( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmms';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply and subtract, double-precision.}
@@ -1288,7 +1292,7 @@ procedure vDSP_zmms( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmmsD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPDoubleSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPDoubleSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPDoubleSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmmsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix subtract and multiply, single-precision.}
@@ -1301,7 +1305,7 @@ procedure vDSP_zmmsD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmsm( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmsm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix subtract and multiply, double-precision.}
@@ -1314,7 +1318,7 @@ procedure vDSP_zmsm( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmsmD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPDoubleSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPDoubleSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_d: DSPDoubleSplitComplexPtr; __vDSP_l: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmsmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply, single-precision.}
@@ -1327,7 +1331,7 @@ procedure vDSP_zmsmD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmmul( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split matrix multiply, double-precision.}
@@ -1340,7 +1344,7 @@ procedure vDSP_zmmul( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zmmulD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP_b: DSPDoubleSplitComplexPtr; __vDSP_j: vDSP_Stride; __vDSP_c: DSPDoubleSplitComplexPtr; __vDSP_k: vDSP_Stride; __vDSP_M: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_zmmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector add, single-precision.}
@@ -1353,7 +1357,7 @@ procedure vDSP_zmmulD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vadd( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vadd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector add, double-precision.}
@@ -1366,7 +1370,7 @@ procedure vDSP_vadd( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vaddD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vaddD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector subtract, single-precision.}
@@ -1379,7 +1383,7 @@ procedure vDSP_vaddD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vsub( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsub';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector subtract, double-precision.}
@@ -1392,7 +1396,7 @@ procedure vDSP_vsub( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsubD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsubD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector multiply, single-precision.}
@@ -1405,7 +1409,7 @@ procedure vDSP_vsubD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector multiply, double-precision.}
@@ -1418,7 +1422,7 @@ procedure vDSP_vmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply, single-precision.}
@@ -1431,7 +1435,7 @@ procedure vDSP_vmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vsmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; const __vDSP_input2: Float32Ptr; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply, double-precision.}
@@ -1444,7 +1448,7 @@ procedure vDSP_vsmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; const __vDSP_input2: Float64Ptr; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector square, single-precision.}
@@ -1457,7 +1461,7 @@ procedure vDSP_vsmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vsq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __vDSP_strideInput: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsq';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector square, double-precision.}
@@ -1470,7 +1474,7 @@ procedure vDSP_vsq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __vDSP_strideInput: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vsqD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector signed square, single-precision.}
@@ -1483,7 +1487,7 @@ procedure vDSP_vsqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __v
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vssq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __vDSP_strideInput: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vssq';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector signed square, double-precision.}
@@ -1496,8 +1500,19 @@ procedure vDSP_vssq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vssqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __vDSP_strideInput: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vssqD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
+{ Euclidean distance square, single-precision.}
+{
+ *  vDSP_distancesq()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in vecLib.framework
+ *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
+ *    Non-Carbon CFM:   in vecLib 1.0 and later
+ }
+procedure vDSP_distancesq( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride;  __vDSP_result:  {variable-size-array} Float32Ptr; __vDSP_size: vDSP_Length ); external name '_vDSP_distancesq';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_5_0) *)
 
 { Dot product, single-precision.}
 {
@@ -1509,7 +1524,7 @@ procedure vDSP_vssqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_dotpr( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: Float32Ptr; __vDSP_size: vDSP_Length ); external name '_vDSP_dotpr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Dot product, double-precision.}
@@ -1522,7 +1537,7 @@ procedure vDSP_dotpr( {const} __vDSP_input1: {variable-size-array} Float32Ptr; _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_dotprD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: Float64Ptr; __vDSP_size: vDSP_Length ); external name '_vDSP_dotprD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector add and multiply, single-precision.}
@@ -1535,7 +1550,7 @@ procedure vDSP_dotprD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_vam( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; {const} __vDSP_input3: {variable-size-array} Float32Ptr; __vDSP_stride3: vDSP_Stride; __vDSP_result: {variable-size-array} Float32Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vam';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Vector add and multiply, double-precision.}
@@ -1548,7 +1563,7 @@ procedure vDSP_vam( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vamD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; {const} __vDSP_input3: {variable-size-array} Float64Ptr; __vDSP_stride3: vDSP_Stride; __vDSP_result: {variable-size-array} Float64Ptr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_vamD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split convolution, single-precision.}
@@ -1561,7 +1576,7 @@ procedure vDSP_vamD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zconv( __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_filter: DSPSplitComplexPtr; __vDSP_strideFilter: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_lenResult: vDSP_Length; __vDSP_lenFilter: vDSP_Length ); external name '_vDSP_zconv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split convolution, double-precision.}
@@ -1574,7 +1589,7 @@ procedure vDSP_zconv( __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zconvD( __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStride: vDSP_Stride; __vDSP_filter: DSPDoubleSplitComplexPtr; __vDSP_strideFilter: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_lenResult: vDSP_Length; __vDSP_lenFilter: vDSP_Length ); external name '_vDSP_zconvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split vector add, single-precision.}
@@ -1587,7 +1602,7 @@ procedure vDSP_zconvD( __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStr
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvadd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split vector add, double-precision.}
@@ -1600,7 +1615,7 @@ procedure vDSP_zvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_St
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvaddD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split vector subtract, single-precision.}
@@ -1613,7 +1628,7 @@ procedure vDSP_zvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvsub';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split vector subtract, double-precision.}
@@ -1626,7 +1641,7 @@ procedure vDSP_zvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_St
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvsubD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply, single-precision.}
@@ -1639,7 +1654,7 @@ procedure vDSP_zvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zvmul( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; const __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; const __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length; __vDSP_conjugate: SInt32 ); external name '_vDSP_zvmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply, double-precision.}
@@ -1652,7 +1667,7 @@ procedure vDSP_zvmul( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length; __vDSP_conjugate: SInt32 ); external name '_vDSP_zvmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split dot product, single-precision.}
@@ -1665,7 +1680,7 @@ procedure vDSP_zvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zdotpr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split dot product, double-precision.}
@@ -1678,7 +1693,7 @@ procedure vDSP_zdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zdotprD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split inner (conjugate) dot product, single-precision.}
@@ -1691,7 +1706,7 @@ procedure vDSP_zdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zidotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zidotpr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split inner (conjugate) dot product, double-precision.}
@@ -1704,7 +1719,7 @@ procedure vDSP_zidotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zidotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zidotprD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Dot product of complex-split with real, single-precision.}
@@ -1717,7 +1732,7 @@ procedure vDSP_zidotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zrdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zrdotpr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Dot product of complex-split with real, double-precision.}
@@ -1730,7 +1745,7 @@ procedure vDSP_zrdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_size: vDSP_Length ); external name '_vDSP_zrdotprD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Complex-split conjugate multiply and add, single-precision.}
@@ -1743,7 +1758,7 @@ procedure vDSP_zrdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zvcma( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; const __vDSP_input2: DSPSplitComplexPtr; __vDSP_stride2: vDSP_Stride; const __vDSP_input3: DSPSplitComplexPtr; __vDSP_stride3: vDSP_Stride; const __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvcma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Complex-split conjugate multiply and add, double-precision.}
@@ -1756,7 +1771,7 @@ procedure vDSP_zvcma( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvcmaD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; __vDSP_input2: DSPDoubleSplitComplexPtr; __vDSP_stride2: vDSP_Stride; __vDSP_input3: DSPDoubleSplitComplexPtr; __vDSP_stride3: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zvcmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Add complex-split and real, single-precision.}
@@ -1769,7 +1784,7 @@ procedure vDSP_zvcmaD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zrvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvadd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Add complex-split and real, double-precision.}
@@ -1782,7 +1797,7 @@ procedure vDSP_zrvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvaddD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Subtract real from complex-split, single-precision.}
@@ -1795,7 +1810,7 @@ procedure vDSP_zrvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zrvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvsub';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Subtract real from complex-split, double-precision.}
@@ -1808,7 +1823,7 @@ procedure vDSP_zrvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvsubD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Multiply complex-split and real, single-precision.}
@@ -1821,7 +1836,7 @@ procedure vDSP_zrvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
  *    Non-Carbon CFM:   in vecLib 1.0 and later
  }
 procedure vDSP_zrvmul( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float32Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_4_0) *)
 
 
 { Multiply complex-split and real, double-precision.}
@@ -1834,7 +1849,7 @@ procedure vDSP_zrvmul( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: vDSP_Stride; {const} __vDSP_input2: {variable-size-array} Float64Ptr; __vDSP_stride2: vDSP_Stride; __vDSP_result: DSPDoubleSplitComplexPtr; __vDSP_strideResult: vDSP_Stride; __vDSP_size: vDSP_Length ); external name '_vDSP_zrvmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_4_0) *)
 
 
 { Vector convert double-precision to single-precision.}
@@ -1847,7 +1862,7 @@ procedure vDSP_zrvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdpsp( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdpsp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert single-precision to double-precision.}
@@ -1860,7 +1875,7 @@ procedure vDSP_vdpsp( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vspdp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vspdp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector absolute value, integer.}
@@ -1873,7 +1888,7 @@ procedure vDSP_vspdp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vabsi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vabsi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector (bit-wise) equivalence (not (A xor B)), integer.}
@@ -1886,7 +1901,7 @@ procedure vDSP_vabsi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_veqvi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_veqvi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector divide, integer.}
@@ -1899,7 +1914,7 @@ procedure vDSP_veqvi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdivi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector fill, integer.}
@@ -1912,7 +1927,7 @@ procedure vDSP_vdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfilli( __vDSP_A: SInt32Ptr; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfilli';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar add, integer.}
@@ -1925,7 +1940,7 @@ procedure vDSP_vfilli( __vDSP_A: SInt32Ptr; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsaddi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt32Ptr; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsaddi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar divide, integer.}
@@ -1938,7 +1953,7 @@ procedure vDSP_vsaddi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SIn
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt32Ptr; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsdivi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split accumulating autospectrum, single-precision.}
@@ -1951,7 +1966,7 @@ procedure vDSP_vsdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SIn
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zaspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_zaspec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split accumulating autospectrum, double-precision.}
@@ -1964,7 +1979,7 @@ procedure vDSP_zaspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: Float32Ptr; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zaspecD( var A: DSPDoubleSplitComplex; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_zaspecD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Blackman window, single-precision.}
@@ -1977,7 +1992,7 @@ procedure vDSP_zaspecD( var A: DSPDoubleSplitComplex; __vDSP_C: Float64Ptr; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_blkman_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_blkman_window';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Blackman window, double-precision.}
@@ -1990,7 +2005,7 @@ procedure vDSP_blkman_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_blkman_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_blkman_windowD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split coherence function, single-precision.}
@@ -2003,7 +2018,7 @@ procedure vDSP_blkman_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zcoher( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: DSPSplitComplexPtr; __vDSP_D: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_zcoher';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split coherence function, double-precision.}
@@ -2016,7 +2031,7 @@ procedure vDSP_zcoher( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: DSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zcoherD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_D: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_zcoherD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split anti-aliasing down-sample with real filter, single-precision.}
@@ -2029,7 +2044,7 @@ procedure vDSP_zcoherD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: DS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrdesamp( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: DSPSplitComplexPtr; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_zrdesamp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split anti-aliasing down-sample with real filter, double-precision.}
@@ -2042,7 +2057,7 @@ procedure vDSP_zrdesamp( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrdesampD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_zrdesampD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector complex-split divide by real, single-precision.}
@@ -2055,7 +2070,7 @@ procedure vDSP_zrdesampD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zrvdiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector complex-split divide by real, double-precision.}
@@ -2068,7 +2083,7 @@ procedure vDSP_zrvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zrvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zrvdivD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Transfer function (B/A), single-precision.}
@@ -2081,7 +2096,7 @@ procedure vDSP_zrvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_ztrans( __vDSP_A: Float32Ptr; __vDSP_B: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPtr; __vDSP_N: vDSP_Length ); external name '_vDSP_ztrans';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Transfer function (B/A), double-precision.}
@@ -2094,7 +2109,7 @@ procedure vDSP_ztrans( __vDSP_A: Float32Ptr; __vDSP_B: DSPSplitComplexPtr; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_ztransD( __vDSP_A: Float64Ptr; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_N: vDSP_Length ); external name '_vDSP_ztransD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector divide, single-precision.}
@@ -2107,7 +2122,7 @@ procedure vDSP_ztransD( __vDSP_A: Float64Ptr; __vDSP_B: DSPDoubleSplitComplexPtr
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPSplitComplexPtr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvdiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector divide, double-precision.}
@@ -2120,7 +2135,7 @@ procedure vDSP_zvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvdivD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split accumulating cross-spectrum, single-precision.}
@@ -2133,7 +2148,7 @@ procedure vDSP_zvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zcspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_B: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPtr; __vDSP_N: vDSP_Length ); external name '_vDSP_zcspec';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split accumulating cross-spectrum, double-precision.}
@@ -2146,7 +2161,7 @@ procedure vDSP_zcspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_B: DSPSplitComplexPt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zcspecD( var A: DSPDoubleSplitComplex; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_N: vDSP_Length ); external name '_vDSP_zcspecD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector absolute value, single-precision.}
@@ -2159,7 +2174,7 @@ procedure vDSP_zcspecD( var A: DSPDoubleSplitComplex; __vDSP_B: DSPDoubleSplitCo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvabs( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvabs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector absolute value, double-precision.}
@@ -2172,7 +2187,7 @@ procedure vDSP_zvabs( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvabsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvabsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector conjugate and multiply, single-precision.}
@@ -2185,7 +2200,7 @@ procedure vDSP_zvabsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvcmul( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPSplitComplexPtr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvcmul';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector conjugate and multiply, double-precision.}
@@ -2198,7 +2213,7 @@ procedure vDSP_zvcmul( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvcmulD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_J: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvcmulD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector conjugate, single-precision.}
@@ -2211,7 +2226,7 @@ procedure vDSP_zvcmulD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvconj( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvconj';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector conjugate, double-precision.}
@@ -2224,7 +2239,7 @@ procedure vDSP_zvconj( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvconjD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvconjD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply with scalar, single-precision.}
@@ -2237,7 +2252,7 @@ procedure vDSP_zvconjD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvzsml( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvzsml';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply with scalar, double-precision.}
@@ -2250,7 +2265,7 @@ procedure vDSP_zvzsml( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvzsmlD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvzsmlD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector fill, single-precision.}
@@ -2263,7 +2278,7 @@ procedure vDSP_zvzsmlD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvfill( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvfill';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector fill, double-precision.}
@@ -2276,7 +2291,7 @@ procedure vDSP_zvfill( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvfillD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvfillD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector magnitudes squared, single-precision.}
@@ -2289,7 +2304,7 @@ procedure vDSP_zvfillD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmags( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmags';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector magnitudes squared, double-precision.}
@@ -2302,7 +2317,7 @@ procedure vDSP_zvmags( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmagsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmagsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector magnitudes square and add, single-precision.}
@@ -2315,7 +2330,7 @@ procedure vDSP_zvmagsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmgsa( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmgsa';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector magnitudes square and add, double-precision.}
@@ -2328,7 +2343,7 @@ procedure vDSP_zvmgsa( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmgsaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmgsaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector move, single-precision.}
@@ -2341,7 +2356,7 @@ procedure vDSP_zvmgsaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmov( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmov';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector move, double-precision.}
@@ -2354,7 +2369,7 @@ procedure vDSP_zvmov( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvmovD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvmovD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector negate, single-precision.}
@@ -2367,7 +2382,7 @@ procedure vDSP_zvmovD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvneg( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvneg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector negate, double-precision.}
@@ -2380,7 +2395,7 @@ procedure vDSP_zvneg( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvnegD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvnegD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector phase, single-precision.}
@@ -2393,7 +2408,7 @@ procedure vDSP_zvnegD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvphas( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvphas';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector phase, double-precision.}
@@ -2406,7 +2421,7 @@ procedure vDSP_zvphas( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvphasD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvphasD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply by scalar and add, single-precision.}
@@ -2419,7 +2434,7 @@ procedure vDSP_zvphasD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvsma( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_D: DSPSplitComplexPtr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvsma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Complex-split vector multiply by scalar and add, double-precision.}
@@ -2432,7 +2447,7 @@ procedure vDSP_zvsma( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_zvsmaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDSP_B: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleSplitComplexPtr; __vDSP_K: vDSP_Stride; __vDSP_D: DSPDoubleSplitComplexPtr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_zvsmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Difference equation, 2 poles, 2 zeros, single-precision.}
@@ -2445,7 +2460,7 @@ procedure vDSP_zvsmaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_deq22( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_deq22';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Difference equation, 2 poles, 2 zeros, double-precision.}
@@ -2458,7 +2473,7 @@ procedure vDSP_deq22( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_deq22D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_deq22D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convolution with decimation (desampling), single-precision.}
@@ -2471,7 +2486,7 @@ procedure vDSP_deq22D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_desamp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_desamp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convolution with decimation (desampling), double-precision.}
@@ -2484,7 +2499,7 @@ procedure vDSP_desamp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_desampD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_desampD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Hamming window, single-precision.}
@@ -2497,7 +2512,7 @@ procedure vDSP_desampD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_hamm_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_hamm_window';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Hamming window, double-precision.}
@@ -2510,7 +2525,7 @@ procedure vDSP_hamm_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_hamm_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_hamm_windowD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Hanning window, single-precision.}
@@ -2523,7 +2538,7 @@ procedure vDSP_hamm_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_hann_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_hann_window';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Create Hanning window, double-precision.}
@@ -2536,7 +2551,7 @@ procedure vDSP_hann_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_hann_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_FLAG: SInt32 ); external name '_vDSP_hann_windowD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum magnitude of vector, single-precision.}
@@ -2549,7 +2564,7 @@ procedure vDSP_hann_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxmgv( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_maxmgv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum magnitude of vector, double-precision.}
@@ -2562,7 +2577,7 @@ procedure vDSP_maxmgv( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxmgvD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_maxmgvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum magnitude of vector, with index, single-precision.}
@@ -2575,7 +2590,7 @@ procedure vDSP_maxmgvD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_maxmgvi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum magnitude of vector, with index, double-precision.}
@@ -2588,7 +2603,7 @@ procedure vDSP_maxmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_maxmgviD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum value of vector, single-precision.}
@@ -2601,7 +2616,7 @@ procedure vDSP_maxmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_maxv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum value of vector, double-precision.}
@@ -2614,7 +2629,7 @@ procedure vDSP_maxv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_maxvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum value of vector, with index, single-precision.}
@@ -2627,7 +2642,7 @@ procedure vDSP_maxvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_maxvi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Maximum value of vector, with index, double-precision.}
@@ -2640,7 +2655,7 @@ procedure vDSP_maxvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_maxviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_maxviD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean magnitude of vector, single-precision.}
@@ -2653,7 +2668,7 @@ procedure vDSP_maxviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_meamgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_meamgv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean magnitude of vector, double-precision.}
@@ -2666,7 +2681,7 @@ procedure vDSP_meamgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_meamgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_meamgvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean of vector, single-precision.}
@@ -2679,7 +2694,7 @@ procedure vDSP_meamgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_meanv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_meanv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean of vector, double-precision.}
@@ -2692,7 +2707,7 @@ procedure vDSP_meanv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_meanvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_meanvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean square of vector, single-precision.}
@@ -2705,7 +2720,7 @@ procedure vDSP_meanvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_measqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_measqv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean square of vector, double-precision.}
@@ -2718,7 +2733,7 @@ procedure vDSP_measqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_measqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_measqvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum magnitude of vector, single-precision.}
@@ -2731,7 +2746,7 @@ procedure vDSP_measqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minmgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_minmgv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum magnitude of vector, double-precision.}
@@ -2744,7 +2759,7 @@ procedure vDSP_minmgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minmgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_minmgvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum magnitude of vector, with index, single-precision.}
@@ -2757,7 +2772,7 @@ procedure vDSP_minmgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_minmgvi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum magnitude of vector, with index, double-precision.}
@@ -2770,7 +2785,7 @@ procedure vDSP_minmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_minmgviD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum value of vector, single-precision.}
@@ -2783,7 +2798,7 @@ procedure vDSP_minmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_minv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum value of vector, double-precision.}
@@ -2796,7 +2811,7 @@ procedure vDSP_minv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_minvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum value of vector, with index, single-precision.}
@@ -2809,7 +2824,7 @@ procedure vDSP_minvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_minvi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Minimum value of vector, with index, double-precision.}
@@ -2822,7 +2837,7 @@ procedure vDSP_minvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_minviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_minviD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Matrix move, single-precision.}
@@ -2835,7 +2850,7 @@ procedure vDSP_minviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mmov( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_NC: vDSP_Length; __vDSP_NR: vDSP_Length; __vDSP_TCA: vDSP_Length; __vDSP_TCC: vDSP_Length ); external name '_vDSP_mmov';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Matrix move, double-precision.}
@@ -2848,7 +2863,7 @@ procedure vDSP_mmov( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_NC: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mmovD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_NC: vDSP_Length; __vDSP_NR: vDSP_Length; __vDSP_TCA: vDSP_Length; __vDSP_TCC: vDSP_Length ); external name '_vDSP_mmovD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean of signed squares of vector, single-precision.}
@@ -2861,7 +2876,7 @@ procedure vDSP_mmovD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_NC: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mvessq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_mvessq';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Mean of signed squares of vector, double-precision.}
@@ -2874,7 +2889,7 @@ procedure vDSP_mvessq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_mvessqD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_mvessqD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Find zero crossing, single-precision.}
@@ -2887,7 +2902,7 @@ procedure vDSP_mvessqD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_nzcros( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: vDSP_Length; var __vDSP_C: vDSP_Length; var __vDSP_D: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_nzcros';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Find zero crossing, double-precision.}
@@ -2900,7 +2915,7 @@ procedure vDSP_nzcros( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_nzcrosD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: vDSP_Length; var __vDSP_C: vDSP_Length; var __vDSP_D: vDSP_Length; __vDSP_N: vDSP_Length ); external name '_vDSP_nzcrosD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convert rectangular to polar, single-precision.}
@@ -2913,7 +2928,7 @@ procedure vDSP_nzcrosD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_polar( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_polar';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convert rectangular to polar, double-precision.}
@@ -2926,7 +2941,7 @@ procedure vDSP_polar( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_polarD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_polarD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convert polar to rectangular, single-precision.}
@@ -2939,7 +2954,7 @@ procedure vDSP_polarD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_rect( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_rect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Convert polar to rectangular, double-precision.}
@@ -2952,7 +2967,7 @@ procedure vDSP_rect( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_rectD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_rectD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Root-mean-square of vector, single-precision.}
@@ -2965,7 +2980,7 @@ procedure vDSP_rectD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_rmsqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_rmsqv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Root-mean-square of vector, double-precision.}
@@ -2978,7 +2993,7 @@ procedure vDSP_rmsqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_rmsqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_rmsqvD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Scalar-vector divide, single-precision.}
@@ -2991,7 +3006,7 @@ procedure vDSP_rmsqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svdiv( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_svdiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Scalar-vector divide, double-precision.}
@@ -3004,7 +3019,7 @@ procedure vDSP_svdiv( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svdivD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_svdivD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements, single-precision.}
@@ -3017,7 +3032,7 @@ procedure vDSP_svdivD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_sve( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_sve';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements, double-precision.}
@@ -3030,7 +3045,7 @@ procedure vDSP_sve( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_sveD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_sveD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements magnitudes, single-precision.}
@@ -3043,7 +3058,7 @@ procedure vDSP_sveD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svemg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svemg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements' magnitudes, double-precision.}
@@ -3056,7 +3071,7 @@ procedure vDSP_svemg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svemgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svemgD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements' squares, single-precision.}
@@ -3069,7 +3084,7 @@ procedure vDSP_svemgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svesq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svesq';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements' squares, double-precision.}
@@ -3082,8 +3097,44 @@ procedure vDSP_svesq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svesqD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svesqD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
+{$ifc TARGET_OS_MAC}
+{ Sum of vector elements and sum of vector elements' squares,
+ * single-precision.
+ *
+ * vDSP_sve_svesq()
+ }
+procedure vDSP_sve_svesq( {const} __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; var __vDSP_Sum: Float32; var __vDSP_SumOfSquares: Float32; __vDSP_N: vDSP_Length ); external name '_vDSP_sve_svesq';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+
+{ Sum of vector elements and sum of vector elements' squares,
+ * double-precision.
+ *
+ * vDSP_sve_svesqD()
+ }
+procedure vDSP_sve_svesqD( {const} __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; var __vDSP_Sum: Float64; var __vDSP_SumOfSquares: Float64; __vDSP_N: vDSP_Length ); external name '_vDSP_sve_svesqD';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+
+{ Normalize elements to zero mean and unit standard deviation,
+ * single-precision.
+ *
+ * vDSP_normalize()
+ }
+procedure vDSP_normalize( {const} __vDSP_A: Float32Ptr; __vDSP_IA: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_IC: vDSP_Stride; var __vDSP_Mean: Float32; var __vDSP_StandardDeviation: Float32; __vDSP_N: vDSP_Length ); external name '_vDSP_normalize';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+
+
+{ Normalize elements to zero mean and unit standard deviation,
+ * double-precision.
+ *
+ * vDSP_normalize()
+ }
+procedure vDSP_normalizeD( {const} __vDSP_A: Float64Ptr; __vDSP_IA: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_IC: vDSP_Stride; var __vDSP_Mean: Float64; var __vDSP_StandardDeviation: Float64; __vDSP_N: vDSP_Length ); external name '_vDSP_normalizeD';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
+{$endc} { TARGET_OS_MAC }
 
 { Sum of vector elements' signed squares, single-precision.}
 {
@@ -3095,7 +3146,7 @@ procedure vDSP_svesqD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Sum of vector elements' signed squares, double-precision.}
@@ -3108,7 +3159,7 @@ procedure vDSP_svs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_svsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_svsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add, add, and multiply, single-precision.}
@@ -3121,7 +3172,7 @@ procedure vDSP_svsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vaam( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vaam';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add, add, and multiply, double-precision.}
@@ -3134,7 +3185,7 @@ procedure vDSP_vaam( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vaamD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vaamD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector absolute value, single-precision.}
@@ -3147,7 +3198,7 @@ procedure vDSP_vaamD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vabs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector absolute value, double-precision.}
@@ -3160,7 +3211,7 @@ procedure vDSP_vabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vabsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add, subtract, and multiply, single-precision.}
@@ -3173,7 +3224,7 @@ procedure vDSP_vabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vasbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vasbm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add, subtract, and multiply, double-precision.}
@@ -3186,7 +3237,7 @@ procedure vDSP_vasbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vasbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vasbmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add and scalar multiply, single-precision.}
@@ -3199,7 +3250,7 @@ procedure vDSP_vasbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vasm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vasm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector add and scalar multiply, double-precision.}
@@ -3212,7 +3263,7 @@ procedure vDSP_vasm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vasmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vasmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector linear average, single-precision.}
@@ -3225,7 +3276,7 @@ procedure vDSP_vasmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vavlin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vavlin';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector linear average, double-precision.}
@@ -3238,7 +3289,7 @@ procedure vDSP_vavlin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vavlinD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vavlinD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clip, single-precision.}
@@ -3251,7 +3302,7 @@ procedure vDSP_vavlinD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vclip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clip, double-precision.}
@@ -3264,7 +3315,7 @@ procedure vDSP_vclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vclipD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clip and count, single-precision.}
@@ -3277,7 +3328,7 @@ procedure vDSP_vclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclipc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length; var __vDSP_NLOW: vDSP_Length; var __vDSP_NHI: vDSP_Length ); external name '_vDSP_vclipc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clip and count, double-precision.}
@@ -3290,7 +3341,7 @@ procedure vDSP_vclipc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclipcD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length; var __vDSP_NLOW: vDSP_Length; var __vDSP_NHI: vDSP_Length ); external name '_vDSP_vclipcD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clear, single-precision.}
@@ -3303,7 +3354,7 @@ procedure vDSP_vclipcD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclr( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vclr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector clear, double-precision.}
@@ -3316,7 +3367,7 @@ procedure vDSP_vclr( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vclrD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vclrD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector compress, single-precision.}
@@ -3329,7 +3380,7 @@ procedure vDSP_vclrD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vcmprs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vcmprs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector compress, double-precision.}
@@ -3342,7 +3393,7 @@ procedure vDSP_vcmprs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vcmprsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vcmprsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to decibels, power, or amplitude, single-precision.}
@@ -3355,7 +3406,7 @@ procedure vDSP_vcmprsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdbcon( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_F: UInt32 ); external name '_vDSP_vdbcon';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to decibels, power, or amplitude, double-precision.}
@@ -3368,7 +3419,7 @@ procedure vDSP_vdbcon( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdbconD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_F: UInt32 ); external name '_vDSP_vdbconD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector distance, single-precision.}
@@ -3381,7 +3432,7 @@ procedure vDSP_vdbconD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdist( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdist';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector distance, double-precision.}
@@ -3394,7 +3445,7 @@ procedure vDSP_vdist( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdistD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdistD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector divide, single-precision.}
@@ -3407,7 +3458,7 @@ procedure vDSP_vdistD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector divide, double-precision.}
@@ -3420,7 +3471,7 @@ procedure vDSP_vdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vdivD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector envelope, single-precision.}
@@ -3433,7 +3484,7 @@ procedure vDSP_vdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_venvlp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_venvlp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector envelope, double-precision.}
@@ -3446,7 +3497,7 @@ procedure vDSP_venvlp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_venvlpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_venvlpD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector fill, single-precision.}
@@ -3459,7 +3510,7 @@ procedure vDSP_venvlpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfill( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfill';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector fill, double-precision.}
@@ -3472,7 +3523,7 @@ procedure vDSP_vfill( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfillD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfillD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 8-bit integer, round toward zero, single-precision.}
@@ -3485,7 +3536,7 @@ procedure vDSP_vfillD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 8-bit integer, round toward zero, double-precision.}
@@ -3498,7 +3549,7 @@ procedure vDSP_vfix8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SIn
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 16-bit integer, round toward zero, single-precision.}
@@ -3511,7 +3562,7 @@ procedure vDSP_vfix8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 16-bit integer, round toward zero, double-precision.}
@@ -3524,7 +3575,7 @@ procedure vDSP_vfix16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 32-bit integer, round toward zero, single-precision.}
@@ -3537,7 +3588,7 @@ procedure vDSP_vfix16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 32-bit integer, round toward zero, double-precision.}
@@ -3550,7 +3601,7 @@ procedure vDSP_vfix32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfix32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfix32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 8-bit integer, round to nearest, single-precision.}
@@ -3563,7 +3614,7 @@ procedure vDSP_vfix32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 8-bit integer, round to nearest, double-precision.}
@@ -3576,7 +3627,7 @@ procedure vDSP_vfixr8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 16-bit integer, round to nearest, single-precision.}
@@ -3589,7 +3640,7 @@ procedure vDSP_vfixr8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 16-bit integer, round to nearest, double-precision.}
@@ -3602,7 +3653,7 @@ procedure vDSP_vfixr16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 32-bit integer, round to nearest, single-precision.}
@@ -3615,7 +3666,7 @@ procedure vDSP_vfixr16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to 32-bit integer, round to nearest, double-precision.}
@@ -3628,7 +3679,7 @@ procedure vDSP_vfixr32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixr32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixr32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 8-bit integer, toward zero, single-precision.}
@@ -3641,7 +3692,7 @@ procedure vDSP_vfixr32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 8-bit integer, toward zero, double-precision.}
@@ -3654,7 +3705,7 @@ procedure vDSP_vfixu8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UI
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 16-bit integer, toward zero, single-precision.}
@@ -3667,7 +3718,7 @@ procedure vDSP_vfixu8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 16-bit integer, toward zero, double-precision.}
@@ -3680,7 +3731,7 @@ procedure vDSP_vfixu16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 32-bit integer, toward zero, single-precision.}
@@ -3693,7 +3744,7 @@ procedure vDSP_vfixu16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 32-bit integer, toward zero, double-precision.}
@@ -3706,7 +3757,7 @@ procedure vDSP_vfixu32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixu32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixu32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 8-bit integer, to nearest, single-precision.}
@@ -3719,7 +3770,7 @@ procedure vDSP_vfixu32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 8-bit integer, to nearest, double-precision.}
@@ -3732,7 +3783,7 @@ procedure vDSP_vfixru8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt8Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 16-bit integer, to nearest, single-precision.}
@@ -3745,7 +3796,7 @@ procedure vDSP_vfixru8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 16-bit integer, to nearest, double-precision.}
@@ -3758,7 +3809,7 @@ procedure vDSP_vfixru16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt16Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 32-bit integer, to nearest, single-precision.}
@@ -3771,7 +3822,7 @@ procedure vDSP_vfixru16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C:
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert to unsigned 32-bit integer, to nearest, double-precision.}
@@ -3784,7 +3835,7 @@ procedure vDSP_vfixru32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfixru32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UInt32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfixru32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 8-bit integer, single-precision.}
@@ -3797,7 +3848,7 @@ procedure vDSP_vfixru32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C:
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt8( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 8-bit integer, double-precision.}
@@ -3810,7 +3861,7 @@ procedure vDSP_vflt8( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; 
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt8D( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 16-bit integer, single-precision.}
@@ -3823,7 +3874,7 @@ procedure vDSP_vflt8D( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr;
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt16( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 16-bit integer, double-precision.}
@@ -3836,7 +3887,7 @@ procedure vDSP_vflt16( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Pt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt16D( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 32-bit integer, single-precision.}
@@ -3849,7 +3900,7 @@ procedure vDSP_vflt16D( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float64P
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt32( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 32-bit integer, double-precision.}
@@ -3862,7 +3913,7 @@ procedure vDSP_vflt32( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vflt32D( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 8-bit integer, single-precision.}
@@ -3875,7 +3926,7 @@ procedure vDSP_vflt32D( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu8( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 8-bit integer, double-precision.}
@@ -3888,7 +3939,7 @@ procedure vDSP_vfltu8( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr;
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu8D( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu8D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 16-bit integer, single-precision.}
@@ -3901,7 +3952,7 @@ procedure vDSP_vfltu8D( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu16( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 16-bit integer, double-precision.}
@@ -3914,7 +3965,7 @@ procedure vDSP_vfltu16( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Pt
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu16D( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu16D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 32-bit integer, single-precision.}
@@ -3927,7 +3978,7 @@ procedure vDSP_vfltu16D( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64P
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu32( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector convert from 32-bit integer, double-precision.}
@@ -3940,7 +3991,7 @@ procedure vDSP_vfltu32( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfltu32D( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfltu32D';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector fraction part (subtract integer toward zero), single-precision.}
@@ -3953,7 +4004,7 @@ procedure vDSP_vfltu32D( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfrac( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfrac';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector fraction part (subtract integer toward zero), double-precision.}
@@ -3966,7 +4017,7 @@ procedure vDSP_vfrac( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vfracD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vfracD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector gather, single-precision.}
@@ -3979,7 +4030,7 @@ procedure vDSP_vfracD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgathr( __vDSP_A: Float32Ptr; var __vDSP_B: vDSP_Length; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgathr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector gather, double-precision.}
@@ -3992,7 +4043,7 @@ procedure vDSP_vgathr( __vDSP_A: Float32Ptr; var __vDSP_B: vDSP_Length; __vDSP_J
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgathrD( __vDSP_A: Float64Ptr; var __vDSP_B: vDSP_Length; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgathrD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector gather, absolute pointers, single-precision.}
@@ -4005,7 +4056,7 @@ procedure vDSP_vgathrD( __vDSP_A: Float64Ptr; var __vDSP_B: vDSP_Length; __vDSP_
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgathra( var A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgathra';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector gather, absolute pointers, double-precision.}
@@ -4018,7 +4069,7 @@ procedure vDSP_vgathra( var A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgathraD( var A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgathraD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector generate tapered ramp, single-precision.}
@@ -4031,7 +4082,7 @@ procedure vDSP_vgathraD( var A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgen( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgen';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector generate tapered ramp, double-precision.}
@@ -4044,7 +4095,7 @@ procedure vDSP_vgen( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Float
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgenD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vgenD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector generate by extrapolation and interpolation, single-precision.}
@@ -4057,7 +4108,7 @@ procedure vDSP_vgenD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgenp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vgenp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector generate by extrapolation and interpolation, double-precision.}
@@ -4070,7 +4121,7 @@ procedure vDSP_vgenp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vgenpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vgenpD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector inverted clip, single-precision.}
@@ -4083,7 +4134,7 @@ procedure vDSP_vgenpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_viclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_viclip';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector inverted clip, double-precision.}
@@ -4096,7 +4147,7 @@ procedure vDSP_viclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_viclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_viclipD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector index (C[i] = A[truncate[B[i]]), single-precision.}
@@ -4109,7 +4160,7 @@ procedure vDSP_viclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vindex( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vindex';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector index (C[i] = A[truncate[B[i]]), double-precision.}
@@ -4122,7 +4173,7 @@ procedure vDSP_vindex( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vindexD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vindexD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector interpolation between vectors, single-precision.}
@@ -4135,7 +4186,7 @@ procedure vDSP_vindexD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vintb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vintb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector interpolation between vectors, double-precision.}
@@ -4148,7 +4199,7 @@ procedure vDSP_vintb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vintbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vintbD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector test limit, single-precision.}
@@ -4161,7 +4212,7 @@ procedure vDSP_vintbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vlim( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vlim';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector test limit, double-precision.}
@@ -4174,7 +4225,7 @@ procedure vDSP_vlim( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vlimD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vlimD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector linear interpolation, single-precision.}
@@ -4187,7 +4238,7 @@ procedure vDSP_vlimD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vlint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vlint';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector linear interpolation, double-precision.}
@@ -4200,7 +4251,7 @@ procedure vDSP_vlint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vlintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vlintD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and add, single-precision.}
@@ -4213,7 +4264,7 @@ procedure vDSP_vlintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and add, double-precision.}
@@ -4226,7 +4277,7 @@ procedure vDSP_vma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector maxima, single-precision.}
@@ -4239,7 +4290,7 @@ procedure vDSP_vmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmax( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmax';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector maxima, double-precision.}
@@ -4252,7 +4303,7 @@ procedure vDSP_vmax( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmaxD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmaxD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector maximum magnitude, single-precision.}
@@ -4265,7 +4316,7 @@ procedure vDSP_vmaxD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmaxmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmaxmg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector maximum magnitude, double-precision.}
@@ -4278,7 +4329,7 @@ procedure vDSP_vmaxmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmaxmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmaxmgD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector minima, single-precision.}
@@ -4291,7 +4342,7 @@ procedure vDSP_vmaxmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmin';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector minima, double-precision.}
@@ -4304,7 +4355,7 @@ procedure vDSP_vmin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vminD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vminD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector minimum magnitude, single-precision.}
@@ -4317,7 +4368,7 @@ procedure vDSP_vminD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vminmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vminmg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector minimum magnitude, double-precision.}
@@ -4330,7 +4381,7 @@ procedure vDSP_vminmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vminmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vminmgD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply, multiply, and add, single-precision.}
@@ -4343,7 +4394,7 @@ procedure vDSP_vminmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply, multiply, and add, double-precision.}
@@ -4356,7 +4407,7 @@ procedure vDSP_vmma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply, multiply, and subtract, single-precision.}
@@ -4369,7 +4420,7 @@ procedure vDSP_vmmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmmsb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply, multiply, and subtract, double-precision.}
@@ -4382,7 +4433,7 @@ procedure vDSP_vmmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmmsbD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and scalar add, single-precision.}
@@ -4395,7 +4446,7 @@ procedure vDSP_vmmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmsa';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and scalar add, double-precision.}
@@ -4408,7 +4459,7 @@ procedure vDSP_vmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmsaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and subtract, single-precision.}
@@ -4421,7 +4472,7 @@ procedure vDSP_vmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmsb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector multiply and subtract, double-precision.}
@@ -4434,7 +4485,7 @@ procedure vDSP_vmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vmsbD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector negative absolute value, single-precision.}
@@ -4447,7 +4498,7 @@ procedure vDSP_vmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vnabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vnabs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector negative absolute value, double-precision.}
@@ -4460,7 +4511,7 @@ procedure vDSP_vnabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vnabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vnabsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector negate, single-precision.}
@@ -4473,7 +4524,7 @@ procedure vDSP_vnabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vneg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vneg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector negate, double-precision.}
@@ -4486,7 +4537,7 @@ procedure vDSP_vneg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vnegD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vnegD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector polynomial, single-precision.}
@@ -4499,7 +4550,7 @@ procedure vDSP_vnegD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vpoly( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_vpoly';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector polynomial, single-precision.}
@@ -4512,7 +4563,7 @@ procedure vDSP_vpoly( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vpolyD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_vpolyD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector Pythagoras, single-precision.}
@@ -4525,7 +4576,7 @@ procedure vDSP_vpolyD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vpythg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vpythg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector Pythagoras, double-precision.}
@@ -4538,7 +4589,7 @@ procedure vDSP_vpythg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vpythgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vpythgD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector quadratic interpolation, single-precision.}
@@ -4551,7 +4602,7 @@ procedure vDSP_vpythgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vqint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vqint';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector quadratic interpolation, double-precision.}
@@ -4564,7 +4615,7 @@ procedure vDSP_vqint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vqintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_M: vDSP_Length ); external name '_vDSP_vqintD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector build ramp, single-precision.}
@@ -4577,7 +4628,7 @@ procedure vDSP_vqintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vramp( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vramp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector build ramp, double-precision.}
@@ -4590,7 +4641,7 @@ procedure vDSP_vramp( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vrampD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector running sum integration, single-precision.}
@@ -4603,7 +4654,7 @@ procedure vDSP_vrampD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vrsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrsum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector running sum integration, double-precision.}
@@ -4616,7 +4667,7 @@ procedure vDSP_vrsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vrsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrsumD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector reverse order, in-place, single-precision.}
@@ -4629,7 +4680,7 @@ procedure vDSP_vrsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vrvrs( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrvrs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector reverse order, in-place, double-precision.}
@@ -4642,7 +4693,7 @@ procedure vDSP_vrvrs( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDS
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vrvrsD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrvrsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar add, single-precision.}
@@ -4655,7 +4706,7 @@ procedure vDSP_vrvrsD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vD
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsadd( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsadd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar add, double-precision.}
@@ -4668,7 +4719,7 @@ procedure vDSP_vsadd( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsaddD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsaddD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract and multiply, single-precision.}
@@ -4681,7 +4732,7 @@ procedure vDSP_vsaddD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract and multiply, double-precision.}
@@ -4694,7 +4745,7 @@ procedure vDSP_vsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract, subtract, and multiply, single-precision.}
@@ -4707,7 +4758,7 @@ procedure vDSP_vsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float32Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbsbm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract, subtract, and multiply, double-precision.}
@@ -4720,7 +4771,7 @@ procedure vDSP_vsbsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_E: Float64Ptr; __vDSP_M: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbsbmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract and scalar multiply, single-precision.}
@@ -4733,7 +4784,7 @@ procedure vDSP_vsbsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbsm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbsm';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector subtract and scalar multiply, double-precision.}
@@ -4746,7 +4797,7 @@ procedure vDSP_vsbsm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsbsmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsbsmD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar divide, single-precision.}
@@ -4759,7 +4810,7 @@ procedure vDSP_vsbsmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsdiv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar divide, double-precision.}
@@ -4772,7 +4823,7 @@ procedure vDSP_vsdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsdivD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector Simpson integration, single-precision.}
@@ -4785,7 +4836,7 @@ procedure vDSP_vsdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsimps( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsimps';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector Simpson integration, double-precision.}
@@ -4798,7 +4849,7 @@ procedure vDSP_vsimps( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsimpsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsimpsD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply and vector add, single-precision.}
@@ -4811,7 +4862,7 @@ procedure vDSP_vsimpsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsma( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; const __vDSP_B: Float32Ptr; const __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsma';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply and vector add, double-precision.}
@@ -4824,7 +4875,7 @@ procedure vDSP_vsma( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; const __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmaD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; const __vDSP_B: Float64Ptr; const __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsmaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply and scalar add, single-precision.}
@@ -4837,7 +4888,7 @@ procedure vDSP_vsmaD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; const _
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsmsa';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector-scalar multiply and scalar add, double-precision.}
@@ -4850,7 +4901,7 @@ procedure vDSP_vsmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsmsaD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector scalar multiply and vector subtract, single-precision.}
@@ -4863,7 +4914,7 @@ procedure vDSP_vsmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsmsb';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector scalar multiply and vector subtract, double-precision.}
@@ -4876,7 +4927,7 @@ procedure vDSP_vsmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vsmsbD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sort, in-place, single-precision.}
@@ -4889,7 +4940,7 @@ procedure vDSP_vsmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsort( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG: SInt32 ); external name '_vDSP_vsort';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sort, in-place, double-precision.}
@@ -4902,7 +4953,7 @@ procedure vDSP_vsort( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG:
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsortD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG: SInt32 ); external name '_vDSP_vsortD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sort, in-place, integer, single-precision.}
@@ -4915,7 +4966,7 @@ procedure vDSP_vsortD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsorti( __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; var __vDSP_List_addr: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_OFLAG: SInt32 ); external name '_vDSP_vsorti';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sort, in-place, integer, double-precision.}
@@ -4928,7 +4979,7 @@ procedure vDSP_vsorti( __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; var __v
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vsortiD( __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; var __vDSP_List_addr: vDSP_Length; __vDSP_N: vDSP_Length; __vDSP_OFLAG: SInt32 ); external name '_vDSP_vsortiD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector swap, single-precision.}
@@ -4941,7 +4992,7 @@ procedure vDSP_vsortiD( __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; var __
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vswap( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vswap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector swap, double-precision.}
@@ -4954,7 +5005,7 @@ procedure vDSP_vswap( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vswapD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vswapD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sliding window sum, single-precision.}
@@ -4967,7 +5018,7 @@ procedure vDSP_vswapD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vswsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_vswsum';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector sliding window sum, double-precision.}
@@ -4980,7 +5031,7 @@ procedure vDSP_vswsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vswsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length; __vDSP_P: vDSP_Length ); external name '_vDSP_vswsumD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector table lookup and interpolation, single-precision.}
@@ -4993,7 +5044,7 @@ procedure vDSP_vswsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtabi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: Float32Ptr; __vDSP_S2: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_M: vDSP_Length; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtabi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector table lookup and interpolation, double-precision.}
@@ -5006,7 +5057,7 @@ procedure vDSP_vtabi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtabiD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: Float64Ptr; __vDSP_S2: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_M: vDSP_Length; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtabiD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold, single-precision.}
@@ -5019,7 +5070,7 @@ procedure vDSP_vtabiD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthr( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold, double-precision.}
@@ -5032,7 +5083,7 @@ procedure vDSP_vthr( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthrD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthrD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold with zero fill, single-precision.}
@@ -5045,7 +5096,7 @@ procedure vDSP_vthrD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthres( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthres';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold with zero fill, double-precision.}
@@ -5058,7 +5109,7 @@ procedure vDSP_vthres( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthresD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthresD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold with signed constant, single-precision.}
@@ -5071,7 +5122,7 @@ procedure vDSP_vthresD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthrsc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_D: Float32Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthrsc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector threshold with signed constant, double-precision.}
@@ -5084,7 +5135,7 @@ procedure vDSP_vthrsc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vthrscD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_D: Float64Ptr; __vDSP_L: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vthrscD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector tapered merge, single-precision.}
@@ -5097,7 +5148,7 @@ procedure vDSP_vthrscD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtmerg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtmerg';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector tapered merge, double-precision.}
@@ -5110,7 +5161,7 @@ procedure vDSP_vtmerg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtmergD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_J: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtmergD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector trapezoidal integration, single-precision.}
@@ -5123,7 +5174,7 @@ procedure vDSP_vtmergD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtrapz( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtrapz';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Vector trapezoidal integration, double-precision.}
@@ -5136,7 +5187,7 @@ procedure vDSP_vtrapz( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_vtrapzD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vtrapzD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Wiener Levinson, single-precision.}
@@ -5149,7 +5200,7 @@ procedure vDSP_vtrapzD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_wiener( __vDSP_L: vDSP_Length; __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_F: Float32Ptr; __vDSP_P: Float32Ptr; __vDSP_IFLG: SInt32; var __vDSP_IERR: SInt32 ); external name '_vDSP_wiener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
 { Wiener Levinson, double-precision.}
@@ -5162,8 +5213,1504 @@ procedure vDSP_wiener( __vDSP_L: vDSP_Length; __vDSP_A: Float32Ptr; __vDSP_C: Fl
  *    Non-Carbon CFM:   not available
  }
 procedure vDSP_wienerD( __vDSP_L: vDSP_Length; __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_F: Float64Ptr; __vDSP_P: Float64Ptr; __vDSP_IFLG: SInt32; var __vDSP_IERR: SInt32 ); external name '_vDSP_wienerD';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
+
+{	vDSP_FFT16_copv and vDSP_FFT32_copv perform 16- and 32-element FFTs on
+	interleaved complex unit-stride vector-block-aligned data.
+
+	Parameters:
+
+		float *Output
+
+			Pointer to space for output data (interleaved complex).  This
+			address must be vector-block aligned.
+
+		const float *Input
+
+			Pointer to input data (interleaved complex).  This address must be
+			vector-block aligned.
+
+		FFT_Direction Direction
+
+			Transform direction, FFT_FORWARD or FFT_INVERSE.
+
+	These routines calculate:
+
+		For 0 <= k < N,
+
+			H[k] = sum(1**(S * j*k/N) * h[j], 0 <= j < N),
+
+	where:
+
+		N is 16 or 32, as specified by the routine name,
+
+		h[j] is Input[2*j+0] + i * Input[2*j+1] at routine entry,
+
+		H[j] is Output[2*j+0] + i * Output[2*j+1] at routine exit,
+
+		S is -1 if Direction is FFT_FORWARD and +1 if Direction is FFT_INVERSE,
+		and
+
+		1**x is e**(2*pi*i*x).
+
+	Input and Output may be equal but may not otherwise overlap.
+}
+procedure vDSP_FFT16_copv( __vDSP_Output: Float32Ptr; {const} __vDSP_Input: Float32Ptr; __vDSP_Direction: FFTDirection ); external name '_vDSP_FFT16_copv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+procedure vDSP_FFT32_copv( __vDSP_Output: Float32Ptr; {const} __vDSP_Input: Float32Ptr; __vDSP_Direction: FFTDirection ); external name '_vDSP_FFT32_copv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_FFT16_zopv and vDSP_FFT32_zopv perform 16- and 32-element FFTs on
+	separated complex unit-stride vector-block-aligned data.
+
+	Parameters:
+
+		float *Or, float *Oi
+
+			Pointers to space for real and imaginary output data.  These
+			addresses must be vector-block aligned.
+
+		const float *Ir, *Ii
+
+			Pointers to real and imaginary input data.  These addresses must be
+			vector-block aligned.
+
+		FFT_Direction Direction
+
+			Transform direction, FFT_FORWARD or FFT_INVERSE.
+
+	These routines calculate:
+
+		For 0 <= k < N,
+
+			H[k] = sum(1**(S * j*k/N) * h[j], 0 <= j < N),
+
+	where:
+
+		N is 16 or 32, as specified by the routine name,
+
+		h[j] is Ir[j] + i * Ii[j] at routine entry,
+
+		H[j] is Or[j] + i * Oi[j] at routine exit,
+
+		S is -1 if Direction is FFT_FORWARD and +1 if Direction is FFT_INVERSE,
+		and
+
+		1**x is e**(2*pi*i*x).
+
+	Or may equal Ir or Ii, and Oi may equal Ii or Ir, but the ararys may not
+	otherwise overlap.
+}
+procedure vDSP_FFT16_zopv( __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr; {const} __vDSP_Ir: Float32Ptr; {const} __vDSP_Ii: Float32Ptr; __vDSP_Direction: FFTDirection ); external name '_vDSP_FFT16_zopv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+procedure vDSP_FFT32_zopv( __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr; {const} __vDSP_Ir: Float32Ptr; {const} __vDSP_Ii: Float32Ptr; __vDSP_Direction: FFTDirection ); external name '_vDSP_FFT32_zopv';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	How to use the Discrete Fourier Transform (DFT) interface.
+
+	There are three steps to performing a DFT:
+
+		Call a setup routine (e.g., vDSP_DFT_zop_CreateSetup) to get a setup
+		object.
+
+			This is a preparation step to be done when a program is starting or
+			is starting some new phase (e.g., when a communication channel is
+			opened).  It should never be done during real-time processing.  The
+			setup routine is slow and is called only once to prepare data that
+			can be used many times.
+
+		Call an execution routine (e.g., vDSP_DFT_Execute) to perform a DFT,
+		and pass it the setup object.
+
+			The execution routine is fast (for selected cases) and is generally
+			called many times.
+
+		Call a destroy routine (e.g., vDSP_DFT_DestroySetup) to release the
+		memory held by the setup object.
+
+			This is done when a program is ending or is ending some phase.
+			After calling a destroy routine, the setup data is no longer valid
+			and should not be used.
+
+	Discussion:
+
+		The current sequences of setup, execution, destroy routines are:
+
+			vDSP_DFT_zop_CreateSetup, vDSP_DFT_Execute, vDSP_DFT_DestroySetup;
+
+			vDSP_DFT_zrop_CreateSetup, vDSP_DFT_Execute, vDSP_DFT_DestroySetup;
+		
+			vDSP_DFT_CreateSetup, vDSP_DFT_zop, vDSP_DFT_DestroySetup.
+
+		Sharing DFT setups:
+
+			Any setup returned by a DFT setup routine may be passed as input to
+			any DFT setup routine, in the parameter named Previous.  (This
+			allows the setups to share data, avoiding unnecessary duplication
+			of some setup data.)  Setup routines may be executed in any order.
+			Passing any setup of a group of setups sharing data will result in
+			a new setup sharing data with all of the group.
+
+			When calling an execution routine, each setup can be used only with
+			its intended execution routine.  Thus the setup returned by
+			vDSP_DFT_CreateSetup can only be used with vDSP_DFT_zop and not
+			with vDSP_DFT_Execute.
+
+			vDSP_DFT_DestroySetup is used to destroy any DFT setup.
+
+		History:
+
+			vDSP_DFT_CreateSetup and vDSP_DFT_zop are the original vDSP DFT
+			routines.  vDSP_DFT_zop_CreateSetup, vDSP_DFT_zrop_CreateSetup, and
+			vDSP_DFT_Execute are newer, more specialized DFT routines.  These
+			newer routines do not have stride parameters (stride is one) and
+			incorporate the direction parameter into the setup.  This reduces
+			the number of arguments passed to the execution routine, which
+			receives only the setup and four address parameters.  Additionally,
+			the complex-to-complex DFT (zop) and real-to-complex DFT (zrop) use
+			the same execution routine (the setup indicates which function to
+			perform).
+
+			We recommend you use vDSP_DFT_zop_CreateSetup,
+			vDPS_DFT_zrop_CreateSetup, and vDSP_DFT_Execute, and that you not
+			use vDSP_DFT_CreateSetup and vDSP_DFT_zop.
+
+	Multithreading:
+
+		Never call a setup or destroy routine in a thread when any DFT routine
+		(setup, execution, or destroy) that shares setup data may be
+		executing.  (This applies not just to multiple threads but also to
+		calling DFT routines in signal handlers.)
+
+		Multiple DFT execution routines may be called simultaneously.  (Their
+		access to the setup data is read-only.)
+
+		If you need to call setup and/or destroy routines while other DFT
+		routines might be executing, you can either use Grand Central Dispatch
+		or locks (costs time) to avoid simultaneous execution or you can create
+		separate setup objects for them (costs memory).
+}
+
+
+{	A vDSP_DFT_Setup object is a pointer to a structure whose definition is
+	unpublished.
+}
+type
+	vDSP_DFT_Setup = ^vDSP_DFT_SetupStruct;
+	vDSP_DFT_SetupStruct = record end;
+
+
+// DFT direction may be specified as vDSP_DFT_FORWARD or vDSP_DFT_INVERSE.
+const
+  vDSP_DFT_FORWARD = 1;
+  vDSP_DFT_INVERSE = -1;
+type
+	vDSP_DFT_Direction = UInt32;
+
+
+{	vDSP_DFT_CreateSetup is a DFT setup routine.  It creates a setup object
+	for use with the vDSP_DFT_zop execution routine.  We recommend you use
+	vDSP_DFT_zop_CreateSetup instead of this routine.
+
+	Parameters:
+
+		vDSP_DFT_Setup Previous
+
+			Previous is either zero or a previous DFT setup.  If a previous
+			setup is passed, the new setup will share data with the previous
+			setup, if feasible (and with any other setups the previous setup
+			shares with).  If zero is passed, the routine will allocate and
+			initialize new memory.
+
+		vDSP_Length Length
+
+			Length is the number of complex elements to be transformed.
+
+	Return value:
+
+		Zero is returned if memory is unavailable.
+
+	The returned setup object may be used only with vDSP_DFT_zop for the length
+	given during setup.  Unlike previous vDSP FFT routines, the setup may not
+	be used to execute transforms with shorter lengths.
+
+	Do not call this routine while any DFT routine sharing setup data might be
+	executing.
+}
+function vDSP_DFT_CreateSetup( __vDSP_Previous: vDSP_DFT_Setup; __vDSP_Length: vDSP_Length ): vDSP_DFT_Setup; external name '_vDSP_DFT_CreateSetup';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_DFT_zop_CreateSetup is a DFT setup routine.  It creates a setup object
+	for use with the vDSP_DFT_Execute execution routine, to perform a
+	complex-to-complex DFT.
+
+	Parameters:
+
+		vDSP_DFT_Setup Previous
+
+			Previous is either zero or a previous DFT setup.  If a previous
+			setup is passed, the new setup will share data with the previous
+			setup, if feasible (and with any other setups the previous setup
+			shares with).  If zero is passed, the routine will allocate and
+			initialize new memory.
+
+		vDSP_Length Length
+
+			Length is the number of complex elements to be transformed.
+
+		vDSP_DFT_Direction Direction
+
+			Transform direction, vDSP_DFT_FORWARD or vDSP_DFT_INVERSE.
+
+	Return value:
+
+		Zero is returned if memory is unavailable or if there is no
+		implementation for the requested case.  Currently, the implemented
+		cases are:
+
+			Length = f * 2**n, where f is 3, 5, or 15 and 3 <= n.
+
+		Additionally, only cases where the array addresses (passed to
+		vDSP_DFT_Execute) are 16-byte aligned are optimized.
+
+	Function:
+
+		When vDSP_DFT_Execute is called with a setup returned from this
+		routine, it calculates:
+
+			For 0 <= k < N,
+
+				H[k] = sum(1**(S * j*k/N) * h[j], 0 <= j < N),
+
+		where:
+
+			N is the length given in the setup;
+
+			h is the array of complex numbers specified by Ir and Ii when
+			vDSP_DFT_Execute is called:
+
+				for 0 <= j < N,
+					h[j] = Ir[j] + i * Ii[j];
+
+			H is the array of complex numbers specified by Or and Oi when
+			vDSP_DFT_Execute returns:
+
+				for 0 <= k < N,
+					H[k] = Or[k] + i * Oi[k];
+
+			S is -1 if Direction is vDSP_DFT_FORWARD and +1 if Direction is
+			vDSP_DFT_INVERSE; and
+
+			1**x is e**(2*pi*i*x).
+
+	Performance:
+
+		Performance is good for these cases:
+
+			All addresses are 16-byte aligned, and the length is f * 2**n,
+			where f is 3, 5, or 15 and 3 <= n.
+
+		Performance is extremely slow for all other cases.
+
+	In-Place Operation:
+
+		For the cases with good performance as described above, Or may equal Ir
+		and Oi may equal Ii (in the call to vDSP_DFT_Execute).  Otherwise, no
+		overlap of Or, Oi, Ir, and Ii is supported.
+
+	The returned setup object may be used only with vDSP_DFT_Execute for the
+	length given during setup.  Unlike previous vDSP FFT routines, the setup
+	may not be used to execute transforms with shorter lengths.
+
+	Do not call this routine while any DFT routine sharing setup data might be
+	executing.
+}
+function vDSP_DFT_zop_CreateSetup( __vDSP_Previous: vDSP_DFT_Setup; __vDSP_Length: vDSP_Length; __vDSP_Direction: vDSP_DFT_Direction ): vDSP_DFT_Setup; external name '_vDSP_DFT_zop_CreateSetup';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)
+
+
+{	vDSP_DFT_zrop_CreateSetup is a DFT setup routine.  It creates a setup
+	object for use with the vDSP_DFT_Execute execution routine, to perform a
+	real-to-complex DFT or a complex-to-real DFT.
+
+	Parameters:
+
+		vDSP_DFT_Setup Previous
+
+			Previous is either zero or a previous DFT setup.  If a previous
+			setup is passed, the new setup will share data with the previous
+			setup, if feasible (and with any other setups the previous setup
+			shares with).  If zero is passed, the routine will allocate and
+			initialize new memory.
+
+		vDSP_Length Length
+
+			Length is the number of real elements to be transformed (in a a
+			forward, real-to-complex transform) or produced (in a reverse,
+			complex-to-real transform).  Length must be even.
+
+		vDSP_DFT_Direction Direction
+
+			Transform direction, vDSP_DFT_FORWARD or vDSP_DFT_INVERSE.
+
+	Return value:
+
+		Zero is returned if memory is unavailable or if there is no
+		implementation for the requested case.  Currently, the implemented
+		cases are:
+
+			Length = f * 2**n, where f is 3, 5, or 15 and 4 <= n.
+
+		Additionally, only cases where the array addresses (passed to
+		vDSP_DFT_Execute) are 16-byte aligned are optimized.
+
+	Function:
+
+		When vDSP_DFT_Execute is called with a setup returned from this
+		routine, it calculates:
+
+			For 0 <= k < N,
+
+				H[k] = C * sum(1**(S * j*k/N) * h[j], 0 <= j < N),
+
+		where:
+
+			N is the Length given in the setup;
+
+			h is the array of numbers specified by Ir and Ii when
+			vDSP_DFT_Execute is called (see "Data Layout" below);
+
+			H is the array of numbers specified by Or and Oi when
+			vDSP_DFT_Execute returns (see "Data Layout" below);
+
+			C is 2 if Direction is vDSP_DFT_FORWARD and 1 if Direction is
+			vDSP_DFT_INVERSE;
+
+			S is -1 if Direction is vDSP_DFT_FORWARD and +1 if Direction is
+			vDSP_DFT_INVERSE; and
+
+			1**x is e**(2*pi*i*x).
+
+		Data Layout:
+
+			If Direction is vDSP_DFT_FORWARD, then:
+
+				h is an array of real numbers, with its even-index elements
+				stored in Ir and its odd-index elements stored in Ii:
+
+					For 0 <= j < N/2,
+						h[2*j+0] = Ir[j], and
+						h[2*j+1] = Ii[j].
+
+				H is an array of complex numbers, stored in Or and Oi:
+
+					H[0  ] = Or[0].  (H[0  ] is pure real.)
+					H[N/2] = Oi[0].  (H[N/2] is pure real.)
+					For 1 < k < N/2,
+						H[k] = Or[k] + i * Oi[k].
+
+				For N/2 < k < N, H[k] is not explicitly stored in memory but is
+				known because it necessarily equals the conjugate of H[N-k],
+				which is stored as described above.
+
+			If Direction is vDSP_DFT_Inverse, then the layouts of the input and
+			output arrays are swapped.  Ir and Ii describe an input array with
+			complex elements laid out as described above for Or and Oi.  When
+			vDSP_DFT_Execute returns, Or and Oi contain a pure real array, with
+			its even-index elements stored in Or and its odd-index elements in
+			Oi.
+
+	Performance:
+
+		Performance is good for these cases:
+
+			All addresses are 16-byte aligned, and the length is f * 2**n,
+			where f is 3, 5, or 15 and 4 <= n.
+
+		Performance is extremely slow for all other cases.
+
+	In-Place Operation:
+
+		For the cases with good performance as described above, Or may equal Ir
+		and Oi may equal Ii (in the call to vDSP_DFT_Execute).  Otherwise, no
+		overlap of Or, Oi, Ir, and Ii is supported.
+
+	The returned setup object may be used only with vDSP_DFT_Execute for the
+	length given during setup.  Unlike previous vDSP FFT routines, the setup
+	may not be used to execute transforms with shorter lengths.
+
+	Do not call this routine while any DFT routine sharing setup data might be
+	executing.
+}
+function vDSP_DFT_zrop_CreateSetup( __vDSP_Previous: vDSP_DFT_Setup; __vDSP_Length: vDSP_Length; __vDSP_Direction: vDSP_DFT_Direction ): vDSP_DFT_Setup; external name '_vDSP_DFT_zrop_CreateSetup';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)
+
+
+{	vDSP_DFT_DestroySetup is a DFT destroy routine.  It releases the memory
+	used by a setup object.
+
+	Parameters:
+
+		vDSP_DFT_Setup Setup
+
+			Setup is the setup object to be released.  The object may have
+			been previously allocated with any DFT setup routine, such as
+			vDSP_DFT_zop_CreateSetup or vDSP_DFT_zrop_CreateSetup.
+
+	Destroying a setup with shared data is safe; it will release only memory
+	not needed by other undestroyed setups.  Memory (and the data it contains)
+	is freed only when all setup objects using it have been destroyed.
+
+	Do not call this routine while any DFT routine sharing setup data might be
+	executing.
+}
+procedure vDSP_DFT_DestroySetup( __vDSP_Setup: vDSP_DFT_Setup ); external name '_vDSP_DFT_DestroySetup';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_DFT_zop is a DFT execution routine.  It performs a DFT, with the aid
+	of previously created setup data.
+
+	Parameters:
+
+		vDSP_DFT_Setup Setup
+
+			A setup object returned by a previous call to
+			vDSP_DFT_zop_CreateSetup.
+
+		const float *Ir
+		const float *Ii
+
+			Pointers to real and imaginary components of input data.
+
+		vDSP_Stride Is
+
+			The number of physical elements from one logical input element to
+			the next.
+
+		float *Or
+		float *Oi
+
+			Pointers to space for real and imaginary components of output
+			data.
+
+			The input and output arrays may not overlap except as specified
+			in "In-Place Operation", below.
+
+		vDSP_Stride Os
+
+			The number of physical elements from one logical output element to
+			the next.
+
+		vDSP_DFT_Direction Direction
+
+			Transform direction, vDSP_DFT_FORWARD or vDSP_DFT_INVERSE.
+
+	Observe there is no separate length parameter.  The length is passed via
+	the setup object.
+
+	Performance:
+
+		Performance is good for these cases:
+
+			All addresses are 16-byte aligned, all strides are one, and the
+			length is f * 2**n, where f is 3, 5, or 15 and 3 <= n.
+
+		Performance is extremely slow for all other cases.
+
+	In-Place Operation:
+
+		For the cases with good performance as described above, Or may equal Ir
+		and Oi may equal Ii.  Otherwise, no overlap of Or, Oi, Ir, and Ii is
+		supported.
+
+	This routine calculates:
+
+		For 0 <= k < N,
+
+			H[k] = sum(1**(S * j*k/N) * h[j], 0 <= j < N),
+
+	where:
+
+		N is the length given in the setup,
+
+		h is the array of complex numbers specified by Ir, Ii, and Is at
+		routine entry:
+
+			h[j] = Ir[j*Is] + i * Ii[j*Is],
+			for 0 <= j < N,
+
+		H is the array of complex numbers stored as specified by Or, Oi, and Os
+		at routine exit:
+
+			H[k] = Or[k*Os] + i * Oi[k*Os],
+			for 0 <= k < N,
+
+		S is -1 if Direction is vDSP_DFT_FORWARD and +1 if Direction is
+		vDSP_DFT_INVERSE, and
+
+		1**x is e**(2*pi*i*x).
+
+	Do not call this routine while any DFT setup or destroy routine sharing
+	setup data might be executing.
+}
+procedure vDSP_DFT_zop( {const} __vDSP_Setup: vDSP_DFT_Setup; {const} __vDSP_Ir: Float32Ptr; {const} __vDSP_Ii: Float32Ptr; __vDSP_Is: vDSP_Stride; __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr; __vDSP_Os: vDSP_Stride; __vDSP_Direction: vDSP_DFT_Direction ); external name '_vDSP_DFT_zop';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_DFT_Execute is a DFT execution routine.  It performs a DFT, with the
+	aid of previously created setup data.
+
+	Parameters:
+
+		vDSP_DFT_Setup Setup
+
+			A setup object returned by a previous call to
+			vDSP_DFT_zop_CreateSetup or vDSP_DFT_zrop_CreateSetup.
+
+		const float *Ir
+		const float *Ii
+
+			Pointers to input data.
+
+		float *Or
+		float *Oi
+
+			Pointers to output data.
+
+			The input and output arrays may not overlap except as specified
+			in "In-Place Operation", below.
+
+	Performance and In-Place Operation:
+
+		See notes for the setup routine for the operation being executed.
+
+	Function:
+
+		The function performed by this routine is determined by the setup
+		passed to it.  The documentation for the routine used to create the
+		setup describes the function.
+
+		Note that different numbers of elements are required when this routine
+		is called, depending on the setup used:
+
+			When the setup is from vDSP_zop_CreateSetup, each array (Ir, Ii,
+			Or, and Oi) must have Length elements.
+
+			When the setup is from vDSP_zrop_CreateSetup, each array (Ir, Ii,
+			Or, and Oi) must have Length/2 elements.
+
+	Do not call this routine while any DFT setup or destroy routine sharing
+	setup data might be executing.
+}
+procedure vDSP_DFT_Execute( {const} __vDSP_Setup: vDSP_DFT_Setup; {const} __vDSP_Ir: Float32Ptr; {const} __vDSP_Ii: Float32Ptr; __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr ); external name '_vDSP_DFT_Execute';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)
+
+
+{	vDSP_dotpr2, vector single-precision stereo dot product.
+
+	Function:
+
+		This routine calculates the dot product of A0 with B and the dot
+		product of A1 with B.  This is functionally equivalent to calculating
+		two dot products but might execute faster.
+
+		In pseudocode, the operation is:
+
+			sum0 = 0;
+			sum1 = 0;
+			for (i = 0; i < Length; ++i)
+			(
+				sum0 += A0[i*A0Stride] * B[i*BStride];
+				sum1 += A1[i*A1Stride] * B[i*BStride];
+			)
+			*C0 = sum0;
+			*C1 = sum1;
+
+	Input:
+
+		const float *A0, vDSP_Stride A0Stride.
+
+			Starting address and stride for input vector A0.
+
+		const float *A1, vDSP_Stride A1Stride.
+
+			Starting address and stride for input vector A1.
+
+		const float *B,  vDSP_Stride BStride.
+
+			Starting address and stride for input vector B.
+
+		float *C0.
+
+			Address for dot product of A0 and B.
+
+		float *C1.
+
+			Address for dot product of A1 and B.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to *C0 and *C1.
+}
+procedure vDSP_dotpr2( {const} __vDSP_A0: Float32Ptr; __vDSP_A0Stride: vDSP_Stride; {const} __vDSP_A1: Float32Ptr; __vDSP_A1Stride: vDSP_Stride; {const} __vDSP_B: Float32Ptr; __vDSP_BStride: vDSP_Stride; __vDSP_C0: Float32Ptr; __vDSP_C1: Float32Ptr; __vDSP_Length: vDSP_Length ); external name '_vDSP_dotpr2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_dotpr_s1_15, vector integer 1.15 format dot product.
+
+	Function:
+
+		This routine calculates the dot product of A with B.
+
+		In pseudocode, the operation is:
+
+			sum = 0;
+			for (i = 0; i < N; ++i)
+			(
+				sum0 += A[i*AStride] * B[i*BStride];
+			)
+			*C = sum;
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *A, vDSP_Stride AStride.
+
+			Starting address and stride for input vector A.
+
+		const short int *B,  vDSP_Stride BStride.
+
+			Starting address and stride for input vector B.
+
+		short int *C.
+
+			Address for dot product of A and B.
+
+		vDSP_Length N.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The result is written to *C.
+}
+procedure vDSP_dotpr_s1_15( {const} __vDSP_A: SInt16Ptr; __vDSP_AStride: vDSP_Stride; {const} __vDSP_B: SInt16Ptr; __vDSP_BStride: vDSP_Stride; __vDSP_C: SInt16Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_dotpr_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_dotpr2_s1_15, vector integer 1.15 format stereo dot product.
+
+	Function:
+
+		This routine calculates the dot product of A0 with B and the dot
+		product of A1 with B.  This is functionally equivalent to calculating
+		two dot products but might execute faster.
+
+		In pseudocode, the operation is:
+
+			sum0 = 0;
+			sum1 = 0;
+			for (i = 0; i < N; ++i)
+			(
+				sum0 += A0[i*A0Stride] * B[i*BStride];
+				sum1 += A1[i*A1Stride] * B[i*BStride];
+			)
+			*C0 = sum0;
+			*C1 = sum1;
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *A0, vDSP_Stride A0Stride.
+
+			Starting address and stride for input vector A0.
+
+		const short int *A1, vDSP_Stride A1Stride.
+
+			Starting address and stride for input vector A1.
+
+		const short int *B,  vDSP_Stride BStride.
+
+			Starting address and stride for input vector B.
+
+		short int *C0.
+
+			Address for dot product of A0 and B.
+
+		short int *C1.
+
+			Address for dot product of A1 and B.
+
+		vDSP_Length N.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to *C0 and *C1.
+}
+procedure vDSP_dotpr2_s1_15( {const} __vDSP_A0: SInt16Ptr; __vDSP_A0Stride: vDSP_Stride; {const} __vDSP_A1: SInt16Ptr; __vDSP_A1Stride: vDSP_Stride; {const} __vDSP_B: SInt16Ptr; __vDSP_BStride: vDSP_Stride; __vDSP_C0: SInt16Ptr; __vDSP_C1: SInt16Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_dotpr2_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_dotpr_s8_24, vector integer 8.24 format dot product.
+
+	Function:
+
+		This routine calculates the dot product of A with B.
+
+		In pseudocode, the operation is:
+
+			sum = 0;
+			for (i = 0; i < N; ++i)
+			(
+				sum0 += A[i*AStride] * B[i*BStride];
+			)
+			*C = sum;
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *A, vDSP_Stride AStride.
+
+			Starting address and stride for input vector A.
+
+		const int *B,  vDSP_Stride BStride.
+
+			Starting address and stride for input vector B.
+
+		int *C.
+
+			Address for dot product of A and B.
+
+		vDSP_Length N.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The result is written to *C.
+}
+procedure vDSP_dotpr_s8_24( {const} __vDSP_A: SInt32Ptr; __vDSP_AStride: vDSP_Stride; {const} __vDSP_B: SInt32Ptr; __vDSP_BStride: vDSP_Stride; __vDSP_C: SInt32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_dotpr_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_dotpr2_s8_24, vector integer 8.24 format stereo dot product.
+
+	Function:
+
+		This routine calculates the dot product of A0 with B and the dot
+		product of A1 with B.  This is functionally equivalent to calculating
+		two dot products but might execute faster.
+
+		In pseudocode, the operation is:
+
+			sum0 = 0;
+			sum1 = 0;
+			for (i = 0; i < N; ++i)
+			(
+				sum0 += A0[i*A0Stride] * B[i*BStride];
+				sum1 += A1[i*A1Stride] * B[i*BStride];
+			)
+			*C0 = sum0;
+			*C1 = sum1;
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *A0, vDSP_Stride A0Stride.
+
+			Starting address and stride for input vector A0.
+
+		const int *A1, vDSP_Stride A1Stride.
+
+			Starting address and stride for input vector A1.
+
+		const int *B,  vDSP_Stride BStride.
+
+			Starting address and stride for input vector B.
+
+		int *C0.
+
+			Address for dot product of A0 and B.
+
+		int *C1.
+
+			Address for dot product of A1 and B.
+
+		vDSP_Length N.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to *C0 and *C1.
+}
+procedure vDSP_dotpr2_s8_24( {const} __vDSP_A0: SInt32Ptr; __vDSP_A0Stride: vDSP_Stride; {const} __vDSP_A1: SInt32Ptr; __vDSP_A1Stride: vDSP_Stride; {const} __vDSP_B: SInt32Ptr; __vDSP_BStride: vDSP_Stride; __vDSP_C0: SInt32Ptr; __vDSP_C1: SInt32Ptr; __vDSP_N: vDSP_Length ); external name '_vDSP_dotpr2_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul, vector single-precision vramp and multiply.
+
+	This routine puts into O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp
+	in a consecutive call.  To continue the ramp smoothly, the new value of
+	*Step includes rounding errors accumulated during the routine rather than
+	being calculated directly as *Start + N * *Step.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] = *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	Input:
+
+		const float *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		float *Start.
+
+			Starting value for the ramp.
+
+		const float *Step.
+
+			Value of the step for the ramp.
+
+		float *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmul( {const} __vDSP_I: Float32Ptr; __vDSP_IS: vDSP_Stride; {var} __vDSP_Start: Float32Ptr; {const} __vDSP_Step: Float32Ptr; __vDSP_O: Float32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd, vector single-precision vramp, multiply and add.
+
+	This routine adds to O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp in a
+	consecutive call.  To continue the ramp smoothly, the new value of *Step
+	includes rounding errors accumulated during the routine rather than being
+	calculated directly as *Start + N * *Step.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] += *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	Input:
+
+		const float *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		float *Start.
+
+			Starting value for the ramp.
+
+		const float *Step.
+
+			Value of the step for the ramp.
+
+		float *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are added to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmuladd( {const} __vDSP_I: Float32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: Float32Ptr; {const} __vDSP_Step: Float32Ptr; __vDSP_O: Float32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul2, stereo vector single-precision vramp and multiply.
+
+	This routine:
+
+		Puts into O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Puts into O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.  To continue
+	the ramp smoothly, the new value of *Step includes rounding errors
+	accumulated during the routine rather than being calculated directly as
+	*Start + N * *Step.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] = *Start * I0[i*IS];
+			O1[i*OS] = *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	Input:
+
+		const float *I0, const float *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		float *Start.
+
+			Starting value for the ramp.
+
+		const float *Step.
+
+			Value of the step for the ramp.
+
+		float *O0, float *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmul2( {const} __vDSP_I0: Float32Ptr; {const} __vDSP_I1: Float32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: Float32Ptr; {const} __vDSP_Step: Float32Ptr; __vDSP_O0: Float32Ptr; __vDSP_O1: Float32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd2, stereo vector single-precision vramp, multiply and add.
+
+	This routine:
+
+		Adds to O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Adds to O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.  To continue
+	the ramp smoothly, the new value of *Step includes rounding errors
+	accumulated during the routine rather than being calculated directly as
+	*Start + N * *Step.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] += *Start * I0[i*IS];
+			O1[i*OS] += *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	Input:
+
+		const float *I0, const float *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		float *Start.
+
+			Starting value for the ramp.
+
+		const float *Step.
+
+			Value of the step for the ramp.
+
+		float *O0, float *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmuladd2( {const} __vDSP_I0: Float32Ptr; {const} __vDSP_I1: Float32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: Float32Ptr; {const} __vDSP_Step: Float32Ptr; __vDSP_O0: Float32Ptr; __vDSP_O1: Float32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd2';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul_s1_15, vector integer 1.15 format vramp and multiply.
+
+	This routine puts into O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp
+	in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] = *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		short int *Start.
+
+			Starting value for the ramp.
+
+		const short int *Step.
+
+			Value of the step for the ramp.
+
+		short int *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmul_s1_15( {const} __vDSP_I: SInt16Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt16Ptr; {const} __vDSP_Step: SInt16Ptr; __vDSP_O: SInt16Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd_s1_15, vector integer 1.15 format vramp, multiply and add.
+
+	This routine adds to O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp in a
+	consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] += *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		short int *Start.
+
+			Starting value for the ramp.
+
+		const short int *Step.
+
+			Value of the step for the ramp.
+
+		short int *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are added to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmuladd_s1_15( {const} __vDSP_I: SInt16Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt16Ptr; {const} __vDSP_Step: SInt16Ptr; __vDSP_O: SInt16Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul2_s1_15, stereo vector integer 1.15 format vramp and multiply.
+
+	This routine:
+
+		Puts into O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Puts into O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] = *Start * I0[i*IS];
+			O1[i*OS] = *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *I0, const short int *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		short int *Start.
+
+			Starting value for the ramp.
+
+		const short int *Step.
+
+			Value of the step for the ramp.
+
+		short int *O0, short int *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+
+}
+procedure vDSP_vrampmul2_s1_15( {const} __vDSP_I0: SInt16Ptr; {const} __vDSP_I1: SInt16Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt16Ptr; {const} __vDSP_Step: SInt16Ptr; __vDSP_O0: SInt16Ptr; __vDSP_O1: SInt16Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul2_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd2_s1_15, stereo vector integer 1.15 format vramp, multiply
+	and add.
+
+	This routine:
+
+		Adds to O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Adds to O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] += *Start * I0[i*IS];
+			O1[i*OS] += *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with one sign bit and 15
+	fraction bits.  Where the value of the short int is normally x, it is
+	x/32768 for the purposes of this routine.
+
+	Input:
+
+		const short int *I0, const short int *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		short int *Start.
+
+			Starting value for the ramp.
+
+		const short int *Step.
+
+			Value of the step for the ramp.
+
+		short int *O0, short int *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are added to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+
+}
+procedure vDSP_vrampmuladd2_s1_15( {const} __vDSP_I0: SInt16Ptr; {const} __vDSP_I1: SInt16Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt16Ptr; {const} __vDSP_Step: SInt16Ptr; __vDSP_O0: SInt16Ptr; __vDSP_O1: SInt16Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd2_s1_15';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul_s8_24, vector integer 8.24 format vramp and multiply.
+
+	This routine puts into O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp
+	in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] = *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		int *Start.
+
+			Starting value for the ramp.
+
+		const int *Step.
+
+			Value of the step for the ramp.
+
+		int *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmul_s8_24( {const} __vDSP_I: SInt32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt32Ptr; {const} __vDSP_Step: SInt32Ptr; __vDSP_O: SInt32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd_s8_24, vector integer 8.24 format vramp, multiply and add.
+
+	This routine adds to O the product of I and a ramp function with initial
+	value *Start and slope *Step.  *Start is updated to continue the ramp in a
+	consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O[i*OS] += *Start * I[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *I, vDSP_Stride IS.
+
+			Starting address and stride for the input vector.
+
+		int *Start.
+
+			Starting value for the ramp.
+
+		const int *Step.
+
+			Value of the step for the ramp.
+
+		int *O, vDSP_Stride *OS.
+
+			Starting address and stride for the output vector.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are added to O.
+
+		On return, *Start contains initial *Start + N * *Step.
+}
+procedure vDSP_vrampmuladd_s8_24( {const} __vDSP_I: SInt32Ptr; __vDSP_IS: vDSP_Stride; var __vDSP_Start: SInt32; {const} __vDSP_Step: SInt32Ptr; __vDSP_O: SInt32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmul2_s8_24, stereo vector integer 8.24 format vramp and multiply.
+
+	This routine:
+
+		Puts into O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Puts into O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] = *Start * I0[i*IS];
+			O1[i*OS] = *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *I0, const int *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		int *Start.
+
+			Starting value for the ramp.
+
+		const int *Step.
+
+			Value of the step for the ramp.
+
+		int *O0, int *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+
+}
+procedure vDSP_vrampmul2_s8_24( {const} __vDSP_I0: SInt32Ptr; {const} __vDSP_I1: SInt32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt32Ptr; {const} __vDSP_Step: SInt32Ptr; __vDSP_O0: SInt32Ptr; __vDSP_O1: SInt32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmul2_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
+
+
+{	vDSP_vrampmuladd2_s8_24, stereo vector integer 8.24 format vramp, multiply
+	and add.
+
+	This routine:
+
+		Adds to O0 the product of I0 and a ramp function with initial value
+		*Start and slope *Step.
+
+		Adds to O1 the product of I1 and a ramp function with initial value
+		*Start and slope *Step.
+
+	*Start is updated to continue the ramp in a consecutive call.
+
+	This routine calculates:
+
+		for (i = 0; i < N; ++i)
+		(
+			O0[i*OS] += *Start * I0[i*IS];
+			O1[i*OS] += *Start * I1[i*IS];
+			*Start += *Step;
+		)
+
+	The elements are fixed-point numbers, each with eight integer bits
+	(including sign) and 24 fraction bits.  Where the value of the int is
+	normally x, it is x/16777216 for the purposes of this routine.
+
+	Input:
+
+		const int *I0, const int *I1, vDSP_Stride IS.
+
+			Starting addresses of both inputs and stride for the input vectors.
+
+		int *Start.
+
+			Starting value for the ramp.
+
+		const int *Step.
+
+			Value of the step for the ramp.
+
+		int *O0, int *O1, vDSP_Stride *OS.
+
+			Starting addresses of both outputs and stride for the output vectors.
+
+		vDSP_Length Length.
+
+			Number of elements in each vector.
+
+	Output:
+
+		The results are written to O0 and O1.
+
+		On return, *Start contains initial *Start + N * *Step.
+
+}
+procedure vDSP_vrampmuladd2_s8_24( {const} __vDSP_I0: SInt32Ptr; {const} __vDSP_I1: SInt32Ptr; __vDSP_IS: vDSP_Stride; __vDSP_Start: SInt32Ptr; {const} __vDSP_Step: SInt32Ptr; __vDSP_O0: SInt32Ptr; __vDSP_O1: SInt32Ptr; __vDSP_OS: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vrampmuladd2_s8_24';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_4_0) *)
 
 {$ifc undefined USE_NONE_APPLE_STANDARD_DATATYPES}
 {$setc USE_NON_APPLE_STANDARD_DATATYPES := 1}
@@ -5186,8 +6733,6 @@ type
 	DOUBLE_COMPLEX_SPLIT = DSPDoubleSplitComplex;
 {$endc} {USE_NON_APPLE_STANDARD_DATATYPES}
 
-
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

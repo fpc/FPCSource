@@ -30,8 +30,8 @@ TYPE
     DirP  : Pdirent;          { used for opendir }
     EntryP: Pdirent;          { and readdir }
     Magic : longint;          { to avoid abends with uninitialized TSearchRec }
-    _mask : string;           { search mask i.e. *.* }
-    _dir  : string;           { directory where to search }
+    _mask : RawByteString;    { search mask i.e. *.* }
+    _dir  : RawByteString;    { directory where to search }
     _attr : longint;          { specified attribute }
     fname : string;           { full pathname of found file }
   END;
@@ -79,6 +79,14 @@ implementation
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -87,35 +95,39 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
-BEGIN
+    SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NWOpenFlags:=0;
   Case (Mode and 3) of
     0 : NWOpenFlags:=NWOpenFlags or O_RDONLY;
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := Fpopen (pchar(FileName),NWOpenFlags);
+  FileOpen := Fpopen (pchar(SystemFileName),NWOpenFlags);
 
   //!! We need to set locking based on Mode !!
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : RawByteString) : THandle;
+var SystemFileName: RawByteString;
 begin
-  FileCreate:=Fpopen(Pchar(FileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=Fpopen(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
   if FileCreate >= 0 then
     FileSetAttr (Filename, 0);  // dont know why but open always sets ReadOnly flag
 end;
 
-Function FileCreate (Const FileName : String; rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; rights:longint) : THandle;
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; rights : longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode:longint; rights : longint) : THandle;
 begin
   FileCreate:=FileCreate (FileName);
 end;
@@ -187,11 +199,13 @@ begin
   FileUnlock := -1;
 end;
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var Info : TStat;
     TM  : TTM;
+    SystemFileName: RawByteString;
 begin
-  If Fpstat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     exit(-1)
   else
     begin
@@ -202,10 +216,12 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 VAR Info : TStat;
+    SystemFileName: RawByteString;
 begin
-  FileExists:=(Fpstat(pchar(filename),Info) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists:=(Fpstat(pchar(SystemFileName),Info) = 0);
 end;
 
 
@@ -219,10 +235,10 @@ end;
 
 
 {returns true if attributes match}
-function find_setfields (var f : TsearchRec; var AttrsOk : boolean) : longint;
+function find_setfields (var f : TsearchRec; var AttrsOk : boolean; var Name : RawByteString) : longint;
 var
   StatBuf : TStat;
-  fname   : string;
+  fname   : RawByteString;
 begin
   result := 0;
   with F do
@@ -231,7 +247,8 @@ begin
     begin
       attr := (Pdirent(FindData.EntryP)^.d_mode shr 16) and $ffff;
       size := Pdirent(FindData.EntryP)^.d_size;
-      name := strpas (Pdirent(FindData.EntryP)^.d_name);
+      name := Pdirent(FindData.EntryP)^.d_name;
+      SetCodePage(name, DefaultFileSystemCodePage, False);
       fname := FindData._dir + name;
       if Fpstat (pchar(fname),StatBuf) = 0 then
         time := UnixToWinAge (StatBuf.st_mtim.tv_sec)
@@ -247,14 +264,15 @@ begin
       AttrsOk := true;
     end else
     begin
-      FillChar (f,sizeof(f),0);
+      name :='';
       result := 18;
     end;
   end;
 end;
 
-function findfirst(const path : string;attr : longint; out Rslt : TsearchRec) : longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 var
+  SystemEncodedPath: RawByteString;
   path0 : string;
   p     : longint;
 begin
@@ -263,17 +281,18 @@ begin
     result := 18;
     exit;
   end;
+  SystemEncodedPath := ToSingleByteEncodedFileName(Path);
   Rslt.FindData._attr := attr;
-  p := length (path);
-  while (p > 0) and (not (path[p] in AllowDirectorySeparators)) do
+  p := length (SystemEncodedPath);
+  while (p > 0) and (not (SystemEncodedPath[p] in AllowDirectorySeparators)) do
     dec (p);
   if p > 0 then
   begin
-    Rslt.FindData._mask := copy (path,p+1,255);
-    Rslt.FindData._dir := copy (path,1,p);
+    Rslt.FindData._mask := copy (SystemEncodedPath,p+1,high (longint));
+    Rslt.FindData._dir := copy (SystemEncodedPath,1,p);
   end else
   begin
-    Rslt.FindData._mask := path;
+    Rslt.FindData._mask := SystemEncodedPath;
     Rslt.FindData._dir := GetCurrentDir;
     if (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '/') and
        (Rslt.FindData._dir[length(Rslt.FindData._dir)] <> '\') then
@@ -292,7 +311,7 @@ begin
 end;
 
 
-function findnext(var Rslt : TsearchRec) : longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var attrsOk : boolean;
 begin
   if Rslt.FindData.Magic <> $AD02 then
@@ -306,7 +325,7 @@ begin
     if Rslt.FindData.EntryP = nil then
       result := 18
     else
-    result := find_setfields (Rslt,attrsOk);
+    result := find_setfields (Rslt,attrsOk,Name);
     if (result = 0) and (attrsOk) then
     begin
       if Rslt.FindData._mask = #0 then exit;
@@ -317,12 +336,12 @@ begin
 end;
 
 
-Procedure FindClose(Var f: TSearchRec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-  if F.FindData.Magic <> $AD02 then exit;
+  if FindData.Magic <> $AD02 then exit;
   doserror:=0;
-  closedir (Pdirent(f.FindData.DirP));
-  FillChar (f,sizeof(f),0);
+  closedir (Pdirent(FindData.DirP));
+  FillChar (FindData,sizeof(FindData),0);
 end;
 
 
@@ -352,22 +371,26 @@ Begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Var Info : TStat;
+    SystemFileName: RawByteString;
 begin
-  If Fpstat (pchar(FileName),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   StatBuf : TStat;
   newMode : longint;
+  SystemFileName: RawByteString;
 begin
-  if Fpstat (pchar(Filename),StatBuf) = 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if Fpstat (pchar(SystemFilename),StatBuf) = 0 then
   begin
     {what should i do here ?
      only support sysutils-standard attributes or also support the extensions defined
@@ -383,7 +406,7 @@ begin
       newmode := StatBuf.st_mode and ($ffff0000-M_A_RDONLY-M_A_HIDDEN- M_A_SYSTEM-M_A_SUBDIR-M_A_ARCH);
       newmode := newmode or (attr shl 16) or M_A_BITS_SIGNIFICANT;
     end;
-    if Fpchmod (pchar(Filename),newMode) < 0 then
+    if Fpchmod (pchar(SystemFilename),newMode) < 0 then
       result := ___errno^ else
       result := 0;
   end else
@@ -391,17 +414,22 @@ begin
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result:= (libc.UnLink (pchar(FileName)) = 0);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result:= (libc.UnLink (pchar(SystemFileName)) = 0);
 end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile:=(libc.rename(pchar(OldName),pchar(NewName)) = 0);
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile:=(libc.rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
 end;
 
 
@@ -473,37 +501,13 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
+function DirectoryExists (const Directory: RawByteString): boolean;
+var
+  Info : TStat;
+  SystemFileName: RawByteString;
 begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  Libc.FpChDir(pchar(NewDir));
-  result := (___errno^ = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  Libc.FpMkDir(pchar(NewDir),0);
-  result := (___errno^ = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  libc.FpRmDir(pchar(Dir));
-  result := (___errno^ = 0);
-end;
-
-
-function DirectoryExists (const Directory: string): boolean;
-var Info : TStat;
-begin
-  If Fpstat (pchar(Directory),Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  If Fpstat (pchar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_mode and M_A_SUBDIR) <> 0);
@@ -584,7 +588,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(libc.getenv(PChar(EnvVar)));
+  Result:=libc.getenv(PChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -593,7 +597,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);

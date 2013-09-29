@@ -165,6 +165,9 @@ TFPCustomHTTPClient:
   other HTTP methods as well. It works using the ssockets unit of FPC, so no
   third-party package to handle the socket communication is needed.
 
+  The class contains class methods, which allow to execute get/post methods in a really
+  simple, one-command way.
+
 A demo application for this class exists.
 
 fphttpserver:

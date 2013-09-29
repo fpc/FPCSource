@@ -592,6 +592,6 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_powerpc_wii_info,TLinkerWii);
+  RegisterLinker(ld_wii,TLinkerWii);
   RegisterTarget(system_powerpc_wii_info);
 end.

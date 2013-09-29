@@ -76,6 +76,7 @@ var
   end;
 
 
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
@@ -94,12 +95,13 @@ function get_frame:pointer;assembler;nostackframe;
     // lw $2,0($sp)
     move $2,$30
   end;
+{$endif INTERNAL_BACKTRACE}
 
 
 { Try to find previous $fp,$ra register pair
   reset both to nil if failure }
 {$define FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 const
   instr_size = 4;
   MAX_INSTRUCTIONS = 64000;
@@ -542,52 +544,97 @@ end;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-  {$warning FIXME: This implementation of InterLockedDecrement in not yet ThreadSafe }
-  lw  $v0,($a0)
-  addi $v1,$v0,-1
-  sw  $v1,($a0)
+  sync
+.L1:
+  ll    $v0,($a0)
+  addiu $v1,$v0,-1
+  move  $v0,$v1        // must return value after decrement
+  sc    $v1,($a0)
+  beq   $v1,$0,.L1
+  nop
+  sync
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-  {$warning FIXME: This implementation of InterLockedIncrement in not yet ThreadSafe }
-  lw  $v0,($a0)
-  addi $v1,$v0,1
-  sw  $v1,($a0)
+  sync
+.L1:
+  ll    $v0,($a0)
+  addiu $v1,$v0,1
+  move  $v0,$v1         // must return value after increment
+  sc    $v1,($a0)
+  beq   $v1,$0,.L1
+  nop
+  sync
 end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-  {$warning FIXME: This implementation of InterLockedExchange in not yet ThreadSafe }
-  lw  $v0,($a0)
-  sw  $a1,($a0)
+  sync
+.L1:
+  ll    $v0,($a0)
+  move  $v1,$a1
+  sc    $v1,($a0)
+  beq   $v1,$0,.L1
+  nop
+  sync
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-  {$warning FIXME: This implementation of InterLockedExchangeAdd in not yet ThreadSafe }
-  lw  $v0,($a0)
-  add $a1,$v0,$a1
-  sw  $a1,($a0)
+  sync
+.L1:
+  ll    $v0,($a0)
+  addu  $v1,$v0,$a1
+  sc    $v1,($a0)
+  beq   $v1,$0,.L1
+  nop
+  sync
 end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
-  {$warning FIXME: This implementation of InterLockedCompareAdd in not yet ThreadSafe }
-  { put old value of Target into $v0, result register }
-  lw  $v0,($a0)
-  { copy to t0 register }
-  move  $t0,$v0
-  move $v1,$a2
-  xor  $t0,$t0,$v1
-  beq  $t0,$zero,.L1
-  b    .L2
+  sync
 .L1:
-  {store NewValue (in $a1) into Target in ($(a0)) }
-  sw    $a1,($a0)
+  ll    $v0,($a0)
+  bne   $v0,$a2,.L2
+  nop
+  move  $v1,$a1
+  sc    $v1,($a0)
+  beq   $v1,$0,.L1
+  nop
+  sync
 .L2:
 end;
 
+
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+{$ifdef ENDIAN_BIG}
+{$define FPC_SYSTEM_HAS_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+asm
+{ $a0=high(AValue) $a1=low(AValue), result: $v0:$v1 }
+    andi   $a2,$a2,63
+    sltiu  $t0,$a2,32
+    beq    $t0,$0,.L1
+    nop
+
+    srlv   $v1,$a1,$a2
+    srav   $v0,$a0,$a2
+    beq    $a2,$0,.Lexit
+    nop
+    subu   $t0,$0,$a2
+    sllv   $t0,$a0,$t0
+    or     $v1,$v1,$t0
+    b      .Lexit
+    nop
+.L1:
+    sra    $v0,$a0,31
+    srav   $v1,$a0,$a2
+.Lexit:
+end;
+{$endif ENDIAN_BIG}
+{$endif FPC_SYSTEM_HAS_SAR_QWORD}

@@ -386,13 +386,6 @@
     flags   : if_fpa
   ),
   (
-    opcode  : A_MCR;
-    ops     : 2;
-    optypes : (ot_reg32,ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #208#193#1#19#72;
-    flags   : if_arm7
-  ),
-  (
     opcode  : A_MLA;
     ops     : 4;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_reg32);

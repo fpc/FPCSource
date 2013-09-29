@@ -137,7 +137,7 @@ implementation
             Concat('  OBJSECTION .dtors');
             Concat('  SYMBOL djgpp_last_dtor');
             Concat('  SYMBOL __environ');
-            Concat('  PROVIDE _environ');
+            Concat('  SYMBOL _environ');
             Concat('  LONG 0');
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
@@ -189,7 +189,7 @@ procedure TExternalLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $RES';
+     ExeCmd[1]:='ld $OPT $RES';
    end;
 end;
 
@@ -309,11 +309,14 @@ begin
   ScriptRes.Add('      *(.dtors)');
   ScriptRes.Add('      djgpp_last_dtor = . ;');
   ScriptRes.Add('      __environ = . ;');
-  ScriptRes.Add('      PROVIDE(_environ = .);');
+  ScriptRes.Add('      _environ = .;');
   ScriptRes.Add('      LONG(0)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.data)');
   ScriptRes.Add('      *(.data.*)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.fpc*)');
+  ScriptRes.Add('      . = ALIGN(0x20);');
   ScriptRes.Add('      *(.gcc_exc)');
   ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
   ScriptRes.Add('      *(.eh_fram*)');
@@ -386,6 +389,7 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -507,7 +511,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_go32v2_info,TExternalLinkerGo32v2);
-  RegisterInternalLinker(system_i386_go32v2_info,TInternalLinkerGo32v2);
+  RegisterLinker(ld_go32v2,TExternalLinkerGo32v2);
+  RegisterLinker(ld_int_go32v2,TInternalLinkerGo32v2);
   RegisterTarget(system_i386_go32v2_info);
 end.

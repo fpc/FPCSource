@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('xforms');
 {$ifdef ALLPACKAGES}
-    P.Directory:='xforms';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

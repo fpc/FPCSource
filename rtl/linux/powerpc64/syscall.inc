@@ -18,6 +18,11 @@
 {$ENDIF SYS_LINUX}
 
 
+{ This variable is needed in syscall.inc assembler code }
+var
+  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
+{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
+
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}

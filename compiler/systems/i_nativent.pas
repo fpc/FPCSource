@@ -42,7 +42,7 @@ unit i_nativent;
                             tf_dwarf_only_local_labels];
             cpu          : cpu_i386;
             unit_env     : 'NTUNITS';
-            extradefines : 'NATIVENT,UNICODE';
+            extradefines : 'NATIVENT,FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
@@ -68,8 +68,8 @@ unit i_nativent;
             dirsep       : '\';
             assem        : as_i386_pecoff;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_int_nativent;
+            linkextern   : ld_none;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
             dbg          : dbg_stabs;
@@ -99,9 +99,9 @@ unit i_nativent;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef NATIVENT}
     set_source_info(system_i386_nativent_info);
   {$endif NATIVENT}
-{$endif CPU86}
+{$endif CPUI386}
 end.

@@ -510,9 +510,8 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$90A;
   If VidSeg=$b800 then
-    regs.realecx:=$90A
+    regs.realecx:=$0607
   else
     regs.realecx:=$b0d;
   realintr($10,regs);
@@ -524,7 +523,7 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$ffff;
+  regs.realecx:=$2000;
   realintr($10,regs);
 end;
 
@@ -534,7 +533,7 @@ var
   regs : trealregs;
 begin
   regs.realeax:=$0100;
-  regs.realecx:=$10A;
+  regs.realecx:=$0007;
   realintr($10,regs);
 end;
 
@@ -581,7 +580,7 @@ begin
 end;
 
 
-Function CrtWrite(var f : textrec):integer;
+Procedure CrtWrite(var f : textrec);
 var
   i : longint;
 begin
@@ -590,11 +589,10 @@ begin
    WriteChar(f.buffer[i]);
   SetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;
-  CrtWrite:=0;
 end;
 
 
-Function CrtRead(Var F: TextRec): Integer;
+Procedure CrtRead(Var F: TextRec);
 
   procedure BackSpace;
   begin
@@ -677,24 +675,21 @@ Begin
   until false;
   f.bufpos:=0;
   SetScreenCursor(CurrX,CurrY);
-  CrtRead:=0;
 End;
 
 
-Function CrtReturn(Var F: TextRec): Integer;
+Procedure CrtReturn(Var F: TextRec);
 Begin
-  CrtReturn:=0;
 end;
 
 
-Function CrtClose(Var F: TextRec): Integer;
+Procedure CrtClose(Var F: TextRec);
 Begin
   F.Mode:=fmClosed;
-  CrtClose:=0;
 End;
 
 
-Function CrtOpen(Var F: TextRec): Integer;
+Procedure CrtOpen(Var F: TextRec);
 Begin
   If F.Mode=fmOutput Then
    begin
@@ -708,7 +703,6 @@ Begin
      TextRec(F).FlushFunc:=@CrtReturn;
    end;
   TextRec(F).CloseFunc:=@CrtClose;
-  CrtOpen:=0;
 End;
 
 

@@ -6,6 +6,7 @@
  }
 
  { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+ { Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -82,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -91,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -106,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -125,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -197,10 +203,14 @@ uses MacTypes,CFBase,CFString,CFUUID,CFDictionary,CFPlugIn,CFPlugInCOM,MDItem;
 
         @constant kMDExporterInterfaceID Exporters can optionaly also implement this
         Interface - B41C6074-7DFB-4057-969D-31C8E861A8D4
+
+        @constant kMDImporterURLInterfaceID Importers can optionaly also implement this
+        Interface - B41C6074-7DFB-4057-969D-31C8E861A8D4
 }
 function kMDImporterTypeID: CFUUIDRef; inline;
 function kMDImporterInterfaceID: CFUUIDRef; inline; 
 function kMDExporterInterfaceID: CFUUIDRef; inline;
+function kMDImporterURLInterfaceID: CFUUIDRef; inline;
 
 {!
         @typedef MDImporterInterfaceStruct
@@ -280,6 +290,13 @@ function kMDExporterInterfaceID: CFUUIDRef; inline;
 begin
 	kMDExporterInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault,$B4,$1C,$60,$74,$7D,$FB,$40,$57,$96,$9D,$31,$C8,$E8,$61,$A8,$D4)
 end;
+
+function kMDImporterURLInterfaceID: CFUUIDRef; inline;
+begin
+	kMDImporterURLInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault,$13,$F6,$0F,$02,$36,$22,$4F,$35,$98,$91,$EC,$10,$E6,$CD,$08,$F8)
+end;
+
+
 
 {$endc} {TARGET_OS_MAC}
 

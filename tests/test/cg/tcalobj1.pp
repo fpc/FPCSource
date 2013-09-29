@@ -20,9 +20,16 @@
 program tcalobj1;
 {$R+}
 
+{$ifdef cpu68k}
+  {$define cpusmall}
+{$endif}
+{$ifdef cpu8086}
+  {$define cpusmall}
+{$endif}
+
  const
  { should be defined depending on CPU target }
- {$ifdef cpu68k}
+ {$ifdef cpusmall}
    BIG_INDEX = 8000;
    SMALL_INDEX  = 13;
  {$else}

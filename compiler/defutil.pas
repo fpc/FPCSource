@@ -110,6 +110,9 @@ interface
     {# Returns whether def is reference counted }
     function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { # Returns whether def is needs to load RTTI for reference counting }
+    function is_rtti_managed_type(def: tdef) : boolean;
+
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
 {*****************************************************************************
@@ -189,6 +192,9 @@ interface
     {# true if p is an unicode string def }
     function is_unicodestring(p : tdef) : boolean;
 
+    {# true if p is an unicode/wide/ansistring string def }
+    function is_dynamicstring(p : tdef) : boolean;
+
     {# returns true if p is a wide or unicode string type }
     function is_wide_or_unicode_string(p : tdef) : boolean;
 
@@ -222,14 +228,47 @@ interface
     {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
     function is_real(def : tdef) : boolean;
 
+    { true, if def is a 8 bit int type }
+    function is_8bitint(def : tdef) : boolean;
+
+    { true, if def is a 8 bit ordinal type }
+    function is_8bit(def : tdef) : boolean;
+
+    { true, if def is a 16 bit int type }
+    function is_16bitint(def : tdef) : boolean;
+
+    { true, if def is a 16 bit ordinal type }
+    function is_16bit(def : tdef) : boolean;
+
     {# Returns true, if def is a 32 bit integer type }
     function is_32bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 32 bit ordinal type }
+    function is_32bit(def : tdef) : boolean;
 
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
     {# Returns true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
+
+    { true, if def is an int type, larger than the processor's native int size }
+    function is_oversizedint(def : tdef) : boolean;
+
+    { true, if def is an ordinal type, larger than the processor's native int size }
+    function is_oversizedord(def : tdef) : boolean;
+
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def : tdef) : boolean;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def : tdef) : boolean;
+
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def : tdef) : boolean;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def : tdef) : boolean;
 
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
@@ -257,6 +296,13 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
+    { #Return an orddef (integer) correspondig to a tcgsize }
+    function cgsize_orddef(size: tcgsize): torddef;
+
+    {# Same as def_cgsize, except that it will interpret certain arrays as
+       vectors and return OS_M* sizes for them }
+    function def_cgmmsize(def: tdef): tcgsize;
+
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
@@ -282,10 +328,18 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
+{$ifdef i8086}
+    {# Returns true if p is a far pointer def }
+    function is_farpointer(p : tdef) : boolean;
+
+    {# Returns true if p is a huge pointer def }
+    function is_hugepointer(p : tdef) : boolean;
+{$endif i8086}
+
 implementation
 
     uses
-       verbose;
+       verbose,cutils;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -356,8 +410,10 @@ implementation
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          range_to_basetype:=u32bit
+        else if (l>=low(int64)) and (h<=high(int64)) then
+         range_to_basetype:=s64bit
         else
-         range_to_basetype:=s64bit;
+         range_to_basetype:=u64bit;
       end;
 
 
@@ -578,6 +634,19 @@ implementation
       end;
 
 
+    function is_rtti_managed_type(def: tdef): boolean;
+      begin
+        result:=def.needs_inittable and not (
+          is_interfacecom_or_dispinterface(def) or
+          (def.typ=variantdef) or
+          (
+            (def.typ=stringdef) and
+            (tstringdef(def).stringtype in [st_ansistring,st_widestring,st_unicodestring])
+          )
+        );
+      end;
+
+
     { true, if p points to an open array def }
     function is_open_string(p : tdef) : boolean;
       begin
@@ -674,6 +743,13 @@ implementation
       begin
          is_widestring:=(p.typ=stringdef) and
                         (tstringdef(p).stringtype=st_widestring);
+      end;
+
+
+    function is_dynamicstring(p: tdef): boolean;
+      begin
+         is_dynamicstring:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype in [st_ansistring,st_widestring,st_unicodestring]);
       end;
 
 
@@ -778,12 +854,41 @@ implementation
       end;
 
 
+    { true, if def is a 8 bit int type }
+    function is_8bitint(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit])
+      end;
+
+    { true, if def is a 8 bit ordinal type }
+    function is_8bit(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool8,bool8bit,uchar])
+      end;
+
+    { true, if def is a 16 bit int type }
+    function is_16bitint(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u16bit,s16bit])
+      end;
+
+    { true, if def is a 16 bit ordinal type }
+    function is_16bit(def : tdef) : boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u16bit,s16bit,pasbool16,bool16bit,uwidechar])
+      end;
+
     { true, if def is a 32 bit int type }
     function is_32bitint(def : tdef) : boolean;
       begin
          result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit])
       end;
 
+    { true, if def is a 32 bit ordinal type }
+    function is_32bit(def: tdef): boolean;
+      begin
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit,pasbool32,bool32bit])
+      end;
 
     { true, if def is a 64 bit int type }
     function is_64bitint(def : tdef) : boolean;
@@ -798,6 +903,75 @@ implementation
          is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
       end;
 
+
+    { true, if def is an int type, larger than the processor's native int size }
+    function is_oversizedint(def : tdef) : boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_64bitint(def) or is_32bitint(def) or is_16bitint(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_64bitint(def) or is_32bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
+{$endif}
+      end;
+
+    { true, if def is an ordinal type, larger than the processor's native int size }
+    function is_oversizedord(def : tdef) : boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_64bit(def) or is_32bit(def) or is_16bit(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_64bit(def) or is_32bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_64bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=false;
+{$endif}
+      end;
+
+
+    { true, if def is an int type, equal in size to the processor's native int size }
+    function is_nativeint(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bitint(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bitint(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bitint(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bitint(def);
+{$endif}
+      end;
+
+    { true, if def is an ordinal type, equal in size to the processor's native int size }
+    function is_nativeord(def: tdef): boolean;
+      begin
+{$if defined(cpu8bitalu)}
+         result:=is_8bit(def);
+{$elseif defined(cpu16bitalu)}
+         result:=is_16bit(def);
+{$elseif defined(cpu32bitaddr)}
+         result:=is_32bit(def);
+{$elseif defined(cpu64bitaddr)}
+         result:=is_64bit(def);
+{$endif}
+      end;
+
+    { true, if def is an unsigned int type, equal in size to the processor's native int size }
+    function is_nativeuint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [u64bit,u32bit,u16bit,u8bit]);
+      end;
+
+    { true, if def is a signed int type, equal in size to the processor's native int size }
+    function is_nativesint(def: tdef): boolean;
+      begin
+         result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [s64bit,s32bit,s16bit,s8bit]);
+      end;
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
@@ -1027,21 +1201,27 @@ implementation
                 result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef:
-            result := OS_ADDR;
-          procvardef:
+          pointerdef,
+          formaldef:
             begin
-              if not tprocvardef(def).is_addressonly then
-                {$if sizeof(pint) = 4}
-                  result:=OS_64
-                {$else} {$if sizeof(pint) = 8}
-                  result:=OS_128
-                {$else}
-                  internalerror(200707141)
-                {$endif} {$endif}
+{$ifdef x86}
+              if (def.typ=pointerdef) and
+                 (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+                begin
+                  {$if defined(i8086)}
+                    result := OS_32;
+                  {$elseif defined(i386)}
+                    internalerror(2013052201);  { there's no OS_48 }
+                  {$elseif defined(x86_64)}
+                    internalerror(2013052202);  { there's no OS_80 }
+                  {$endif}
+                end
               else
-                result:=OS_ADDR;
+{$endif x86}
+                result := OS_ADDR;
             end;
+          procvardef:
+            result:=int_cgsize(def.size);
           stringdef :
             begin
               if is_ansistring(def) or is_wide_or_unicode_string(def) then
@@ -1083,6 +1263,60 @@ implementation
         end;
       end;
 
+    function cgsize_orddef(size: tcgsize): torddef;
+      begin
+        case size of
+          OS_8:
+            result:=torddef(u8inttype);
+          OS_S8:
+            result:=torddef(s8inttype);
+          OS_16:
+            result:=torddef(u16inttype);
+          OS_S16:
+            result:=torddef(s16inttype);
+          OS_32:
+            result:=torddef(u32inttype);
+          OS_S32:
+            result:=torddef(s32inttype);
+          OS_64:
+            result:=torddef(u64inttype);
+          OS_S64:
+            result:=torddef(s64inttype);
+          else
+            internalerror(2012050401);
+        end;
+      end;
+
+    function def_cgmmsize(def: tdef): tcgsize;
+      begin
+        case def.typ of
+          arraydef:
+            begin
+              if tarraydef(def).elementdef.typ in [orddef,floatdef] then
+                begin
+                  { this is not correct, OS_MX normally mean that the vector
+                    contains elements of size X. However, vectors themselves
+                    can also have different sizes (e.g. a vector of 2 singles on
+                    SSE) and the total size is currently more important }
+                  case def.size of
+                    1: result:=OS_M8;
+                    2: result:=OS_M16;
+                    4: result:=OS_M32;
+                    8: result:=OS_M64;
+                    16: result:=OS_M128;
+                    32: result:=OS_M256;
+                    else
+                      internalerror(2013060103);
+                  end;
+                end
+              else
+                result:=def_cgsize(def);
+            end
+          else
+            result:=def_cgsize(def);
+        end;
+      end;
+
     { In Windows 95 era, ordinals were restricted to [u8bit,s32bit,s16bit,bool16bit]
       As of today, both signed and unsigned types from 8 to 64 bits are supported. }
     function is_automatable(p : tdef) : boolean;
@@ -1107,7 +1341,13 @@ implementation
     {# returns true, if the type passed is a varset }
     function is_smallset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$if defined(cpu8bitalu)}
+          result:=(p.typ=setdef) and (p.size = 1)
+        {$elseif defined(cpu16bitalu)}
+          result:=(p.typ=setdef) and (p.size in [1,2])
+        {$else}
+          result:=(p.typ=setdef) and (p.size in [1,2,4])
+        {$endif}
       end;
 
 
@@ -1123,12 +1363,8 @@ implementation
       var
         llow, lhigh: tconstexprint;
       begin
-        llow:=rd.low;
-        if llow<ld.low then
-          llow:=ld.low;
-        lhigh:=rd.high;
-        if lhigh<ld.high then
-          lhigh:=ld.high;
+        llow:=min(ld.low,rd.low);
+        lhigh:=max(ld.high,rd.high);
         case range_to_basetype(llow,lhigh) of
           s8bit:
             result:=torddef(s8inttype);
@@ -1200,5 +1436,19 @@ implementation
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
       end;
+
+{$ifdef i8086}
+    { true if p is a far pointer def }
+    function is_farpointer(p : tdef) : boolean;
+      begin
+        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_far);
+      end;
+
+    { true if p is a huge pointer def }
+    function is_hugepointer(p : tdef) : boolean;
+      begin
+        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_huge);
+      end;
+{$endif i8086}
 
 end.

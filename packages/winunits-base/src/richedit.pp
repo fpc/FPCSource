@@ -4,6 +4,10 @@ unit richedit;
 {$mode objfpc}
 {$calling stdcall}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 uses Messages, Windows;

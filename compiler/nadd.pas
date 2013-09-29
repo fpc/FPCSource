@@ -38,6 +38,7 @@ interface
        public
           resultrealdef : tdef;
           constructor create(tt : tnodetype;l,r : tnode);override;
+          constructor create_internal(tt:tnodetype;l,r:tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -150,6 +151,13 @@ implementation
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
+      end;
+
+
+    constructor taddnode.create_internal(tt:tnodetype;l,r:tnode);
+      begin
+        create(tt,l,r);
+        include(flags,nf_internal);
       end;
 
 
@@ -748,7 +756,7 @@ implementation
              case nodetype of
                 addn :
                   begin
-                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
                     typecheckpass(t);
                     tstringconstnode(t).changestringtype(resultdef);
                   end;
@@ -1009,9 +1017,15 @@ implementation
          if codegenerror then
            exit;
 
-         { tp procvar support }
-         maybe_call_procvar(left,true);
-         maybe_call_procvar(right,true);
+         { tp procvar support. Omit for converted assigned() nodes }
+         if not (nf_load_procvar in flags) then
+           begin
+             maybe_call_procvar(left,true);
+             maybe_call_procvar(right,true);
+           end
+         else
+           if not (nodetype in [equaln,unequaln]) then
+             InternalError(2013091601);
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
@@ -1040,7 +1054,6 @@ implementation
              exit;
            end;
 
-
          { Kylix allows enum+ordconstn in an enum type declaration, we need to do
            the conversion here before the constant folding }
          if (m_delphi in current_settings.modeswitches) and
@@ -1068,12 +1081,12 @@ implementation
           operation on a float and int are also handled }
 {$ifdef x86}
         { use extended as default real type only when the x87 fpu is used }
-  {$ifdef i386}
+  {$if defined(i386) or defined(i8086)}
         if not(current_settings.fputype=fpu_x87) then
           resultrealdef:=s64floattype
         else
           resultrealdef:=pbestrealtype^;
-  {$endif i386}
+  {$endif i386 or i8086}
   {$ifdef x86_64}
         { x86-64 has no x87 only mode, so use always double as default }
         resultrealdef:=s64floattype;
@@ -1417,22 +1430,27 @@ implementation
                   if (torddef(rd).ordtype<>u64bit) then
                    inserttypeconv(right,u64inttype);
                end
-             { 64 bit cpus do calculations always in 64 bit }
-{$ifndef cpu64bitaddr}
-             { is there a cardinal? }
-             else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
+             { is there a larger int? }
+             else if is_oversizedint(rd) or is_oversizedint(ld) then
                begin
-                 { convert positive constants to u32bit }
-                 if (torddef(ld).ordtype<>u32bit) and
+                 nd:=get_common_intdef(torddef(ld),torddef(rd),false);
+                 inserttypeconv(right,nd);
+                 inserttypeconv(left,nd);
+               end
+             { is there a native unsigned int? }
+             else if is_nativeuint(rd) or is_nativeuint(ld) then
+               begin
+                 { convert positive constants to uinttype }
+                 if (not is_nativeuint(ld)) and
                     is_constintnode(left) and
                     (tordconstnode(left).value >= 0) then
-                   inserttypeconv(left,u32inttype);
-                 if (torddef(rd).ordtype<>u32bit) and
+                   inserttypeconv(left,uinttype);
+                 if (not is_nativeuint(rd)) and
                     is_constintnode(right) and
                     (tordconstnode(right).value >= 0) then
-                   inserttypeconv(right,u32inttype);
+                   inserttypeconv(right,uinttype);
                  { when one of the operand is signed or the operation is subn then perform
-                   the operation in 64bit, can't use rd/ld here because there
+                   the operation in a larger signed type, can't use rd/ld here because there
                    could be already typeconvs inserted.
                    This is compatible with the code below for other unsigned types (PFV) }
                  if is_signed(left.resultdef) or
@@ -1442,7 +1460,7 @@ implementation
                      if nodetype<>subn then
                        CGMessage(type_h_mixed_signed_unsigned);
                      { mark as internal in case added for a subn, so }
-                     { ttypeconvnode.simplify can remove the 64 bit  }
+                     { ttypeconvnode.simplify can remove the larger  }
                      { typecast again if semantically correct. Even  }
                      { if we could detect that here already, we      }
                      { mustn't do it here because that would change  }
@@ -1452,18 +1470,19 @@ implementation
                          not is_signed(right.resultdef)) or
                         (nodetype in [orn,xorn]) then
                        include(flags,nf_internal);
-                     inserttypeconv(left,s64inttype);
-                     inserttypeconv(right,s64inttype);
+                     { get next larger signed int type }
+                     nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
+                     inserttypeconv(left,nd);
+                     inserttypeconv(right,nd);
                    end
                  else
                    begin
-                     if (torddef(left.resultdef).ordtype<>u32bit) then
-                       inserttypeconv(left,u32inttype);
-                     if (torddef(right.resultdef).ordtype<>u32bit) then
-                       inserttypeconv(right,u32inttype);
+                     if not is_nativeuint(left.resultdef) then
+                       inserttypeconv(left,uinttype);
+                     if not is_nativeuint(right.resultdef) then
+                       inserttypeconv(right,uinttype);
                    end;
                end
-{$endif cpu64bitaddr}
              { generic ord conversion is sinttype }
              else
                begin
@@ -1474,15 +1493,8 @@ implementation
                     is_signed(rd) or
                     (nodetype=subn) then
                    begin
-{$ifdef cpunodefaultint}
-                     { for small cpus we use the smallest common type }
-                     nd:=get_common_intdef(torddef(ld),torddef(rd),false);
-                     inserttypeconv(right,nd);
-                     inserttypeconv(left,nd);
-{$else cpunodefaultint}
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
-{$endif cpunodefaultint}
                    end
                  else
                    begin
@@ -1569,7 +1581,7 @@ implementation
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow),max(lhigh,rhigh));
+                    nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
                     inserttypeconv(left,nd);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd)
@@ -1620,17 +1632,28 @@ implementation
                     { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
                     { optimized away, since the result already was a voidpointer, so   }
                     { use a charpointer instead (JM)                                   }
-{$ifndef jvm}
-                    inserttypeconv_internal(left,charpointertype);
-                    inserttypeconv_internal(right,charpointertype);
-{$else jvm}
+{$if defined(jvm)}
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
+{$elseif defined(i8086)}
+                    { we don't have a charfarpointertype yet, so for far pointers we use bytefarpointertype }
+                    if is_farpointer(left.resultdef) then
+                      inserttypeconv_internal(left,bytefarpointertype)
+                    else
+                      inserttypeconv_internal(left,charpointertype);
+                    if is_farpointer(right.resultdef) then
+                      inserttypeconv_internal(right,bytefarpointertype)
+                    else
+                      inserttypeconv_internal(right,charpointertype);
+{$else}
+                    inserttypeconv_internal(left,charpointertype);
+                    inserttypeconv_internal(right,charpointertype);
 {$endif jvm}
                  end;
                ltn,lten,gtn,gten:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) or
+                       (nf_internal in flags) then
                      begin
                        if is_voidpointer(right.resultdef) then
                         inserttypeconv(right,left.resultdef)
@@ -2162,7 +2185,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),
@@ -2200,7 +2225,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),
@@ -2608,7 +2635,11 @@ implementation
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
-        if not (cs_fp_emulation in current_settings.moduleswitches) then
+        if not ((cs_fp_emulation in current_settings.moduleswitches)
+{$ifdef cpufpemu}
+                or (current_settings.fputype=fpu_soft)
+{$endif cpufpemu}
+                ) then
           exit;
 
         if not(target_info.system in systems_wince) then
@@ -2768,12 +2799,9 @@ implementation
          if nodetype=slashn then
            begin
 {$ifdef cpufpemu}
-             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
-               begin
-                 result:=first_addfloat;
-                 if assigned(result) then
-                   exit;
-               end;
+             result:=first_addfloat;
+             if assigned(result) then
+               exit;
 {$endif cpufpemu}
              expectloc:=LOC_FPUREGISTER;
            end
@@ -2847,14 +2875,18 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
+{$ifdef cpu16bitalu}
+                    expectloc:=LOC_JUMP;
+{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
+{$endif cpu16bitalu}
                end
 {$endif cpuneedsmulhelper}
              { generic s32bit conversion }
              else
                begin
 {$ifdef cpuneedsmulhelper}
-                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit]) then
+                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit{$ifdef cpu16bitalu},u16bit,s16bit{$endif}]) then
                    begin
                      result := nil;
 
@@ -2883,8 +2915,12 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
+{$ifdef cpu16bitalu}
+                    expectloc:=LOC_JUMP;
+{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
-               end;
+{$endif cpu16bitalu}
+              end;
            end
 
          { left side a setdef, must be before string processing,
@@ -2984,12 +3020,9 @@ implementation
          else if (rd.typ=floatdef) or (ld.typ=floatdef) then
             begin
 {$ifdef cpufpemu}
-             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
-               begin
-                 result:=first_addfloat;
-                 if assigned(result) then
-                   exit;
-               end;
+             result:=first_addfloat;
+             if assigned(result) then
+               exit;
 {$endif cpufpemu}
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
                 expectloc:=LOC_FPUREGISTER

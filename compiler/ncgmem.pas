@@ -81,12 +81,13 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
-      pass_1,nld,ncon,nadd,nutils,
+      pass_1,nld,ncon,nadd,ncnv,nutils,
       cgutils,cgobj,hlcgobj,
-      tgobj,ncgutil,objcgutl
+      tgobj,ncgutil,objcgutl,
+      defcmp
       ;
 
 
@@ -215,14 +216,41 @@ implementation
     procedure tcgderefnode.pass_generate_code;
       var
         paraloc1 : tcgpara;
+        pd : tprocdef;
+        sym : tsym;
+        st : tsymtable;
+        hp : pnode;
+        hp2 : tnode;
+        extraoffset : tcgint;
       begin
-         secondpass(left);
          { assume natural alignment, except for packed records }
          if not(resultdef.typ in [recorddef,objectdef]) or
             (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+
+         { can we fold an add/sub node into the offset of the deref node? }
+         extraoffset:=0;
+         hp:=actualtargetnode(@left);
+         if (hp^.nodetype=subn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=-tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).right) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).right).value);
+             replacenode(hp^,taddnode(hp^).left);
+           end
+         else if (hp^.nodetype=addn) and is_constintnode(taddnode(hp^).left) then
+           begin
+             extraoffset:=tcgint(tordconstnode(taddnode(hp^).left).value);
+             replacenode(hp^,taddnode(hp^).right);
+           end;
+
+         secondpass(left);
+
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          case left.location.loc of
@@ -254,22 +282,29 @@ implementation
             else
               internalerror(200507031);
          end;
+         location.reference.offset:=location.reference.offset+extraoffset;
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
-            not(tpointerdef(left.resultdef).is_far) and
+{$ifdef x86}
+            (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+{$endif x86}
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
           begin
+            if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+               (sym.typ<>procsym) then
+              internalerror(2012010601);
+            pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
-            paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-            cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.getintparaloc(pd,1,paraloc1);
+            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
-            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+            hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+            hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
 
@@ -282,9 +317,12 @@ implementation
       var
         sym: tasmsymbol;
         paraloc1 : tcgpara;
-        hreg  : tregister;
         tmpref: treference;
         sref: tsubsetreference;
+        offsetcorrection : aint;
+        pd : tprocdef;
+        srym : tsym;
+        st : tsymtable;
       begin
          secondpass(left);
          if codegenerror then
@@ -314,7 +352,12 @@ implementation
                           location.reference.base := left.location.register;
                       end;
                     LOC_CREFERENCE,
-                    LOC_REFERENCE:
+                    LOC_REFERENCE,
+                    { tricky type casting of parameters can cause these locations, see tb0592.pp on x86_64-linux }
+                    LOC_SUBSETREG,
+                    LOC_CSUBSETREG,
+                    LOC_SUBSETREF,
+                    LOC_CSUBSETREF:
                       begin
                          location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
@@ -332,12 +375,16 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-                    cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',srym,st) or
+                       (srym.typ<>procsym) then
+                      internalerror(2012010602);
+                    pd:=tprocdef(tprocsym(srym).ProcdefList[0]);
+                    paramanager.getintparaloc(pd,1,paraloc1);
+                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                    hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+                    hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                   end;
                end
              else
@@ -360,13 +407,19 @@ implementation
                LOC_MMREGISTER,
                LOC_FPUREGISTER:
                  begin
-                   // in case the result is not something that can be put
-                   // into an integer register (e.g.
-                   // function_returning_record().non_regable_field, or
-                   // a function returning a value > sizeof(intreg))
-                   // -> force to memory
+                   { in case the result is not something that can be put
+                     into an integer register (e.g.
+                     function_returning_record().non_regable_field, or
+                     a function returning a value > sizeof(intreg))
+                     -> force to memory
+                   }
+
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
+                      { if the field spans multiple registers, we must force the record into
+                        memory as well }
+                      ((left.location.size in [OS_PAIR,OS_SPAIR]) and
+                       (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
@@ -376,23 +429,41 @@ implementation
                        else
                          location.loc := LOC_CSUBSETREG;
                        location.size:=def_cgsize(resultdef);
-                       location.sreg.subsetreg := left.location.register;
-                       location.sreg.subsetregsize := left.location.size;
+
+                       offsetcorrection:=0;
+                       if (left.location.size in [OS_PAIR,OS_SPAIR]) then
+                         begin
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             begin
+                               location.sreg.subsetreg := left.location.registerhi;
+                               offsetcorrection:=sizeof(aword)*8;
+                             end
+                           else
+                             location.sreg.subsetreg := left.location.register;
+
+                           location.sreg.subsetregsize := OS_INT;
+                         end
+                       else
+                         begin
+                           location.sreg.subsetreg := left.location.register;
+                           location.sreg.subsetregsize := left.location.size;
+                         end;
+
                        if not is_packed_record_or_object(left.resultdef) then
                          begin
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8+offsetcorrection
                            else
-                             location.sreg.startbit := (vs.fieldoffset * 8);
+                             location.sreg.startbit := (vs.fieldoffset * 8)-offsetcorrection;
                            location.sreg.bitlen := tcgsize2size[location.size] * 8;
                          end
                        else
                          begin
                            location.sreg.bitlen := resultdef.packedbitsize;
                            if (target_info.endian = ENDIAN_BIG) then
-                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset+offsetcorrection
                            else
-                             location.sreg.startbit := vs.fieldoffset;
+                             location.sreg.startbit := vs.fieldoffset-offsetcorrection;
                          end;
                      end;
                  end;
@@ -631,6 +702,7 @@ implementation
          neglabel : tasmlabel;
          hreg : tregister;
          paraloc1,paraloc2 : tcgpara;
+         pd : tprocdef;
        begin
          { omit range checking when this is an array access to a pointer which has been
            typecasted from an array }
@@ -674,10 +746,19 @@ implementation
          else
           if is_dynamic_array(left.resultdef) then
             begin
-               paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-               paramanager.getintparaloc(pocall_default,2,search_system_type('TDYNARRAYINDEX').typedef,paraloc2);
-               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+               pd:=search_system_proc('fpc_dynarray_rangecheck');
+               paramanager.getintparaloc(pd,1,paraloc1);
+               paramanager.getintparaloc(pd,2,paraloc2);
+               if pd.is_pushleftright then
+                 begin
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                 end
+               else
+                 begin
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                 end;
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -695,6 +776,8 @@ implementation
       var
         paraloc1,
         paraloc2: tcgpara;
+        helpername: TIDString;
+        pd: tprocdef;
       begin
         paraloc1.init;
         paraloc2.init;
@@ -704,15 +787,25 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,ptrsinttype,paraloc2);
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
-              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+              helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
+              pd:=search_system_proc(helpername);
+              paramanager.getintparaloc(pd,1,paraloc1);
+              paramanager.getintparaloc(pd,2,paraloc2);
+              if pd.is_pushleftright then
+                begin
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                end
+              else
+                begin
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                end;
 
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
+              cg.a_call_name(current_asmdata.CurrAsmList,helpername,false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end;
 
@@ -736,7 +829,7 @@ implementation
       var
          offsetdec,
          extraoffset : aint;
-         t        : tnode;
+         rightp      : pnode;
          otl,ofl  : tasmlabel;
          newsize  : tcgsize;
          mulsize,
@@ -792,13 +885,15 @@ implementation
                   internalerror(2002032218);
               end;
 
-              { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resultdef) then
                 offsetdec:=1
               else
                 offsetdec:=2;
               location.reference.alignment:=offsetdec;
-              dec(location.reference.offset,offsetdec);
+
+              { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
+              if not(cs_zerobasedstrings in current_settings.localswitches) then
+                dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
            begin
@@ -826,6 +921,8 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
+                LOC_CREGISTER,
+                LOC_CMMREGISTER,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
@@ -912,34 +1009,26 @@ implementation
                  not is_packed_array(left.resultdef) then
                 begin
                    extraoffset:=0;
-                   if (right.nodetype=addn) then
+                   rightp:=actualtargetnode(@right);
+                   if rightp^.nodetype=addn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end
-                        else if taddnode(right).left.nodetype=ordconstn then
+                        else if taddnode(rightp^).left.nodetype=ordconstn then
                           begin
-                             extraoffset:=tordconstnode(taddnode(right).left).value.svalue;
-                             t:=taddnode(right).right;
-                             taddnode(right).right:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=tordconstnode(taddnode(rightp^).left).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).right);
                           end;
                      end
-                   else if (right.nodetype=subn) then
+                   else if rightp^.nodetype=subn then
                      begin
-                        if taddnode(right).right.nodetype=ordconstn then
+                        if taddnode(rightp^).right.nodetype=ordconstn then
                           begin
-                             extraoffset:=-tordconstnode(taddnode(right).right).value.svalue;
-                             t:=taddnode(right).left;
-                             taddnode(right).left:=nil;
-                             right.free;
-                             right:=t;
+                            extraoffset:=-tordconstnode(taddnode(rightp^).right).value.svalue;
+                            replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
                    inc(location.reference.offset,

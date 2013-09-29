@@ -33,7 +33,7 @@
 {$ifdef  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
-    function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; compilerproc;
+    function fpc_shl_qword(value : qword;shift : sizeint) : qword; [public,alias: 'FPC_SHL_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -53,7 +53,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
-   function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
+   function fpc_shr_qword(value : qword;shift : sizeint) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -73,7 +73,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
-    function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; compilerproc;
+    function fpc_shl_int64(value : int64;shift : sizeint) : int64; [public,alias: 'FPC_SHL_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -93,7 +93,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
-    function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
+    function fpc_shr_int64(value : int64;shift : sizeint) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
       begin
         shift:=shift and 63;
         if shift=0 then
@@ -115,35 +115,6 @@
 {$endif FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
 
-    function count_leading_zeros(q : qword) : longint;
-
-      var
-         r,i : longint;
-
-      begin
-         r:=0;
-         for i:=0 to 31 do
-           begin
-              if (tqwordrec(q).high and (dword($80000000) shr i))<>0 then
-                begin
-                   count_leading_zeros:=r;
-                   exit;
-                end;
-              inc(r);
-           end;
-         for i:=0 to 31 do
-           begin
-              if (tqwordrec(q).low and (dword($80000000) shr i))<>0 then
-                begin
-                   count_leading_zeros:=r;
-                   exit;
-                end;
-              inc(r);
-           end;
-         count_leading_zeros:=r;
-      end;
-
-
 {$ifndef FPC_SYSTEM_HAS_DIV_QWORD}
     function fpc_div_qword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
 
@@ -154,24 +125,26 @@
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-         lzz:=count_leading_zeros(z);
-         lzn:=count_leading_zeros(n);
-         { if the denominator contains less zeros }
-         { then the numerator                     }
-         { the d is greater than the n            }
-         if lzn<lzz then
+         if z=0 then
            exit;
-         shift:=lzn-lzz;
+         lzz:=BsrQWord(z);
+         lzn:=BsrQWord(n);
+         { if the denominator contains less zeros }
+         { than the numerator                     }
+         { then d is greater than the n           }
+         if lzn>lzz then
+           exit;
+         shift:=lzz-lzn;
          n:=n shl shift;
-         repeat
-           if z>=n then
-             begin
-                z:=z-n;
-                fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
-             end;
-           dec(shift);
-           n:=n shr 1;
-         until shift<0;
+         for shift:=shift downto 0 do
+           begin
+             if z>=n then
+               begin
+                  z:=z-n;
+                  fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
+               end;
+             n:=n shr 1;
+           end;
       end;
 {$endif FPC_SYSTEM_HAS_DIV_QWORD}
 
@@ -186,24 +159,26 @@
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
-         lzz:=count_leading_zeros(z);
-         lzn:=count_leading_zeros(n);
+         if z=0 then
+           exit;
+         lzz:=BsrQword(z);
+         lzn:=BsrQword(n);
          { if the denominator contains less zeros }
          { then the numerator                     }
          { the d is greater than the n            }
-         if lzn<lzz then
+         if lzn>lzz then
            begin
               fpc_mod_qword:=z;
               exit;
            end;
-         shift:=lzn-lzz;
+         shift:=lzz-lzn;
          n:=n shl shift;
-         repeat
-           if z>=n then
-             z:=z-n;
-           dec(shift);
-           n:=n shr 1;
-         until shift<0;
+         for shift:=shift downto 0 do
+           begin
+             if z>=n then
+               z:=z-n;
+             n:=n shr 1;
+           end;
          fpc_mod_qword:=z;
       end;
 {$endif FPC_SYSTEM_HAS_MOD_QWORD}

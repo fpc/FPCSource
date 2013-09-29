@@ -241,7 +241,7 @@ begin
 
   for aMachine:=low(TMachineType) to high(TMachineType) do
   begin
-    if Machines[aMachine].name=tmp then
+    if (Machines[aMachine].name=tmp) or (Machines[aMachine].alias = tmp) then
     begin
       fTarget.machine:=aMachine;
       fTarget.submachine:=GetDefaultSubMachineForMachine(fTarget.machine);

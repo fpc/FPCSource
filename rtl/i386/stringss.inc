@@ -23,7 +23,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
 
         movl    %eax,%edi          // load destination address
         movl    %edx,%esi          // Load Source adress

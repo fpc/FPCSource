@@ -145,7 +145,7 @@ begin
   Writeln('Expanded ../dos/./../././dos.pp : ',FExpand('../dos/./../././dos.pp'));
 
   test:='../;/usr/;/usr/bin/;/usr/bin;/bin/;';
-{$else not linux }
+{$else not unix }
   test:='\usr\local\bin\ppc.so';
   writeln('FSplit(',test,')');
   FSplit(test,dir,name,ext);
@@ -165,7 +165,7 @@ begin
   Writeln('Expanded ..\dos\.\..\.\.\dos.pp : ',FExpand('..\dos\.\..\.\.\dos.pp'));
 
   test:='..\;\usr\;\usr\bin\;\usr\bin;\bin\;';
-{$endif not linux}
+{$endif not unix}
   test:=test+getenv('PATH');
 {$ifdef NOEXESUFFIX}
   Writeln('FSearch ls: ',FSearch('ls',test));

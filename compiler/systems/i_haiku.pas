@@ -65,8 +65,8 @@ unit i_haiku;
             dirsep       : '/';
             assem        : as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_haiku;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -106,9 +106,9 @@ unit i_haiku;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef haiku}
     set_source_info(system_i386_haiku_info);
   {$endif haiku}
-{$endif cpu86}
+{$endif cpui386}
 end.

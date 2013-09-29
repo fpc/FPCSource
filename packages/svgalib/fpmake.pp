@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('svgalib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='svgalib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd];

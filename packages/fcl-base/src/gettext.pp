@@ -331,30 +331,39 @@ procedure TranslateResourceStrings(const AFilename: String);
 var
   mo: TMOFile;
   lang, FallbackLang: String;
+  fn: String;
 begin
   GetLanguageIDs(Lang, FallbackLang);
-  try
-    mo := TMOFile.Create(Format(AFilename, [FallbackLang]));
-    try
-      TranslateResourceStrings(mo);
-    finally
-      mo.Free;
-    end;
-  except
-    on e: Exception do;
-  end;
+  fn:=Format(AFilename, [FallbackLang]);
 
-  lang := Copy(lang, 1, 5);
-  try
-    mo := TMOFile.Create(Format(AFilename, [lang]));
-    try
-      TranslateResourceStrings(mo);
-    finally
-      mo.Free;
+  if fileexists(fn) then
+    begin
+      try
+        mo := TMOFile.Create(fn);
+        try
+          TranslateResourceStrings(mo);
+        finally
+          mo.Free;
+        end;
+      except
+        on e: Exception do;
+      end;
     end;
-  except
-    on e: Exception do;
-  end;
+  lang := Copy(lang, 1, 5);
+  fn:=Format(AFilename, [lang]);
+  if fileexists(fn) then
+    begin
+      try
+        mo := TMOFile.Create(Format(AFilename, [lang]));
+        try
+          TranslateResourceStrings(mo);
+        finally
+          mo.Free;
+        end;
+      except
+        on e: Exception do;
+      end;
+    end;
 end;
 
 

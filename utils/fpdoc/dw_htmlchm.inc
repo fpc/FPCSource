@@ -175,6 +175,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      If not assigned(AModule.InterfaceSection) Then
+         Continue;
       ObjUnitItem := ObjByUnitItem.Children.NewItem;
       ObjUnitItem.Text := AModule.Name;
       RoutinesUnitItem := RoutinesByUnitItem.Children.NewItem;
@@ -292,6 +294,8 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      if not assigned(AModule.InterfaceSection) then
+        continue;
       ParentItem := Index.Items.NewItem;
       ParentItem.Text := AModule.Name;
       ParentItem.Local := FixHTMLpath(Allocator.GetFilename(AModule, 0));
@@ -341,7 +345,7 @@ begin
       begin
         ParentElement := TPasProcedureType(AModule.InterfaceSection.Functions[j]);
         TmpItem := Index.Items.NewItem;
-        TmpItem.Text := ParentElement.Name + ' ' + TPasFunction(ParentElement).ElementTypeName;
+        TmpItem.Text := ParentElement.Name + ' ' + ParentElement.ElementTypeName;
         TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // consts

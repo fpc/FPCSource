@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fprcp;
+procedure add_fprcp(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -25,9 +25,7 @@ begin
                      'in resource script.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fprcp';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     T:=P.Targets.AddProgram('fprcp.pp');
@@ -43,7 +41,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fprcp;
+  add_fprcp('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

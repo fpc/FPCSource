@@ -258,7 +258,7 @@ begin
 end;
 
 
-function StabBackTraceStr(addr:Pointer):shortstring;
+function StabBackTraceStr(addr:CodePointer):shortstring;
 var
   func,
   source : string;

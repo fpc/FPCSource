@@ -19,6 +19,7 @@
 
 program dotest;
 uses
+  sysutils,
   dos,
 {$ifdef macos}
   macutils,
@@ -33,6 +34,9 @@ uses
   {$define LIMIT83FS}
 {$endif}
 {$ifdef os2}
+  {$define LIMIT83FS}
+{$endif}
+{$ifdef msdos}
   {$define LIMIT83FS}
 {$endif}
 
@@ -54,6 +58,8 @@ const
 {$endif MACOS}
 {$endif UNIX}
   ExeExt : string = '';
+  DllExt : string = '.so';
+  DllPrefix: string = 'lib';
   DefaultTimeout=60;
 
 var
@@ -92,6 +98,7 @@ const
   ExtraCompilerOpts : string = '';
   DelExecutable : TDelExecutables = [];
   RemoteAddr : string = '';
+  RemotePathPrefix : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
   RemoteRshParas : string = '';
@@ -100,7 +107,7 @@ const
   RemoteShellNeedsExport : boolean = false;
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
-  rquote : char = '''';
+  rquote : string = '''';
   UseTimeout : boolean = false;
   emulatorname : string = '';
   TargetCanCompileLibraries : boolean = true;
@@ -321,6 +328,23 @@ begin
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
 
+type
+  TCharSet = set of char;
+
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
+var
+  i : longint;
+  p: PChar;
+begin
+  p:=PChar(s);
+  i:=0;
+  while (p^ <> #0) and not (p^ in Delims) do begin
+    Inc(p);
+    Inc(i);
+  end;
+  GetToken:=Copy(s,1,i);
+  Delete(s,1,i+1);
+end;
 
 procedure mkdirtree(const s:string);
 var
@@ -452,18 +476,6 @@ end;
 
 
 function GetCompilerInfo(c:tcompinfo):boolean;
-
-  function GetToken(var s:string):string;
-  var
-    i : longint;
-  begin
-    i:=pos(' ',s);
-    if i=0 then
-     i:=length(s)+1;
-    GetToken:=Copy(s,1,i-1);
-    Delete(s,1,i);
-  end;
-
 var
   t  : text;
   hs : string;
@@ -610,10 +622,9 @@ end;
 procedure SetTargetDirectoriesStyle;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   TargetHasDosStyleDirectories :=
     (LTarget='emx') or
@@ -643,26 +654,37 @@ begin
     (LTarget='solaris') or
     (LTarget='iphonesim') or
     (LTarget='darwin') or
-    (LTarget='aix');
+    (LTarget='aix') or
+    (LTarget='android');
 
   { Set ExeExt for CompilerTarget.
-    This list has been set up 2011-06 using the information in
+    This list has been set up 2013-01 using the information in
     compiler/system/i_XXX.pas units.
     We should update this list when adding new targets PM }
-  if (TargetHasDosStyleDirectories) then
-    ExeExt:='.exe'
+  if (TargetHasDosStyleDirectories) or (LTarget='wince') then
+    begin
+      ExeExt:='.exe';
+      DllExt:='.dll';
+      DllPrefix:='';
+    end
   else if LTarget='atari' then
-    ExeExt:='.tpp'
+    begin
+      ExeExt:='.tpp';
+      DllExt:='.dll';
+      DllPrefix:='';
+    end
   else if LTarget='gba' then
     ExeExt:='.gba'
   else if LTarget='nds' then
     ExeExt:='.bin'
   else if (LTarget='netware') or (LTarget='netwlibc') then
-    ExeExt:='.nlm'
+    begin
+      ExeExt:='.nlm';
+      DllExt:='.nlm';
+      DllPrefix:='';
+    end
   else if LTarget='wii' then
-    ExeExt:='.dol'
-  else if LTarget='wince' then
-    ExeExt:='.exe';
+    ExeExt:='.dol';
 end;
 
 {$ifndef LIMIT83FS}
@@ -672,13 +694,13 @@ end;
 procedure SetUseOSOnly;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   UseOSOnly:= (LTarget='emx') or
               (LTarget='go32v2') or
+              (LTarget='msdos') or
               (LTarget='os2');
 end;
 {$endif not LIMIT83FS}
@@ -686,10 +708,9 @@ end;
 procedure SetTargetCanCompileLibraries;
 var
   LTarget : string;
-  res : boolean;
 begin
   { Call this first to ensure that CompilerTarget is not empty }
-  res:=GetCompilerTarget;
+  GetCompilerTarget;
   LTarget := CompilerTarget;
   { Feel free to add other targets here }
   if (LTarget='go32v2') then
@@ -1176,7 +1197,7 @@ function MaybeCopyFiles(const FileToCopy : string) : boolean;
 var
   TestRemoteExe,
   pref     : string;
-  LocalFile, RemoteFile: string;
+  LocalFile, RemoteFile, s: string;
   LocalPath: string;
   i       : integer;
   execres : boolean;
@@ -1231,13 +1252,22 @@ begin
       exit(true);
     end;
   execres:=true;
+  { Check if library should be deleted. Do not copy to remote target in such case. }
+  if (deAfter in DelExecutable) and (Config.DelFiles <> '') then
+    if SplitFileName(FileToCopy) = DllPrefix + Trim(Config.DelFiles) + DllExt then
+      exit;
   { We don't want to create subdirs, remove paths from the test }
   TestRemoteExe:=RemotePath+'/'+SplitFileName(FileToCopy);
   if deBefore in DelExecutable then
-    ExecuteRemote(rshprog,RemoteRshParas+' rm -f '+TestRemoteExe,
-                  StartTicks,EndTicks);
+    begin
+      s:=RemoteRshParas+' rm ';
+      if rshprog <> 'adb' then
+        s:=s+'-f ';
+      ExecuteRemote(rshprog,s+TestRemoteExe,
+                    StartTicks,EndTicks);
+    end;
   execres:=ExecuteRemote(rcpprog,RemotePara+' '+FileToCopy+' '+
-                         RemoteAddr+':'+TestRemoteExe,StartTicks,EndTicks);
+                         RemotePathPrefix+TestRemoteExe,StartTicks,EndTicks);
   if not execres then
   begin
     Verbose(V_normal, 'Could not copy executable '+FileToCopy);
@@ -1259,7 +1289,7 @@ begin
         else
           pref:='';
         execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+
-                               RemoteAddr+':'+RemoteFile,StartTicks,EndTicks);
+                               RemotePathPrefix+RemoteFile,StartTicks,EndTicks);
         if not execres then
         begin
           Verbose(V_normal, 'Could not copy required file '+LocalFile);
@@ -1280,7 +1310,7 @@ const
   CurrDir = '';
 {$endif}
 var
-  OldDir, s,
+  OldDir, s, ss,
   execcmd,
   FullExeLogFile,
   TestRemoteExe,
@@ -1322,7 +1352,7 @@ begin
         execcmd:=RemoteRshParas;
       execcmd:=execcmd+' '+rquote+
          'chmod 755 '+TestRemoteExe+
-          ' ; cd '+RemotePath+' ; ';
+          ' && cd '+RemotePath+' && { ';
       { Using -rpath . at compile time does not seem
         to work for programs copied over to remote machine,
         at least not for FreeBSD.
@@ -1352,15 +1382,38 @@ begin
         execcmd:=execcmd+' ./'+SplitFileName(TestRemoteExe)
       else
         execcmd:=execcmd+' '+TestRemoteExe;
-      execcmd:=execcmd+' ; echo "TestExitCode: $?"';
+      execcmd:=execcmd+' ; echo TestExitCode: $?';
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
-        execcmd:=execcmd+' ; rm -f '+SplitFileName(TestRemoteExe);
-      execcmd:=execcmd+rquote;
+        begin
+          execcmd:=execcmd+' ; rm ';
+          if rshprog <> 'adb' then
+            execcmd:=execcmd+'-f ';
+          execcmd:=execcmd+SplitFileName(TestRemoteExe);
+        end;
+      execcmd:=execcmd+'; }'+rquote;
       execres:=ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
       { Check for TestExitCode error in output, sets ExecuteResult }
       if not CheckTestExitCode(EXELogFile) then
         Verbose(V_Debug,'Failed to check exit code for '+execcmd);
+      if (deAfter in DelExecutable) and ( (Config.DelFiles <> '') or (Config.Files <> '')) then
+        begin
+          ss:=Trim(Config.DelFiles + ' ' + Config.Files);
+          execcmd:=RemoteRshParas+' ' + rquote + 'cd ' + RemotePath + ' && { ';
+          while ss <> '' do
+            begin
+              s:=Trim(GetToken(ss, [' ',',',';']));
+              if s = '' then
+                break;
+              if ExtractFileExt(s) = '' then
+                // If file has no extension, treat it as exe or shared lib
+                execcmd:=execcmd + 'rm ' + s + ExeExt + '; rm ' + DllPrefix + s + DllExt
+              else
+                execcmd:=execcmd + 'rm ' + s;
+              execcmd:=execcmd + '; ';
+            end;
+          ExecuteRemote(rshprog,execcmd+'}'+rquote,StartTicks,EndTicks);
+        end;
     end
   else
     begin
@@ -1463,6 +1516,11 @@ var
 begin
   if RemoteAddr='' then
     exit;
+  if rshprog = 'adb' then
+    begin
+      RemoteShellNeedsExport:=true;
+      exit;
+    end;
   ExeLogFile:='__remote.tmp';
   ExecuteRemote(rshprog,RemoteRshParas+
                 ' "echo SHELL=${SHELL}"',StartTicks,EndTicks);
@@ -1493,6 +1551,7 @@ procedure getargs;
     writeln('Options can be:');
     writeln('  !ENV_NAME     parse environment variable ENV_NAME for options');
     writeln('  -A            include ALL tests');
+    writeln('  -ADB          use ADB to run tests');
     writeln('  -B            delete executable before remote upload');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -D            display execution time');
@@ -1527,12 +1586,21 @@ procedure getargs;
     delete(para,1,2);
     case ch of
      'A' :
-       begin
-         DoGraph:=true;
-         DoInteractive:=true;
-         DoKnown:=true;
-         DoAll:=true;
-       end;
+       if UpperCase(para) = 'DB' then
+         begin
+           rshprog:='adb';
+           rcpprog:='adb';
+           rquote:='"';
+           if RemoteAddr = '' then
+             RemoteAddr:='1'; // fake remote addr (default device will be used)
+         end
+       else
+         begin
+           DoGraph:=true;
+           DoInteractive:=true;
+           DoKnown:=true;
+           DoAll:=true;
+         end;
 
      'B' : Include(DelExecutable,deBefore);
 
@@ -1672,7 +1740,21 @@ begin
   if (rshprog='plink') and (pos('-load',RemotePara)>0) then
     RemoteRshParas:=RemotePara
   else
-    RemoteRshParas:=RemotePara+' '+RemoteAddr;
+    if rshprog='adb' then
+      begin
+        if RemoteAddr <> '1' then
+          RemotePara:=Trim('-s ' + RemoteAddr + ' ' + RemotePara);
+        RemoteRshParas:=Trim(RemotePara + ' shell');
+      end
+    else
+      RemoteRshParas:=RemotePara+' '+RemoteAddr;
+  if rcpprog = 'adb' then
+    begin
+      RemotePathPrefix:='';
+      RemotePara:=Trim(RemotePara + ' push');
+    end
+  else
+    RemotePathPrefix:=RemoteAddr + ':';
 end;
 
 

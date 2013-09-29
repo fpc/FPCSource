@@ -22,7 +22,8 @@
  *
  * cssmtype.h -- Common Security Services Manager Common Data Types
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -98,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -107,6 +109,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +125,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -141,6 +146,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -265,6 +271,7 @@ type
 		Length: CSSM_SIZE; { in bytes }
 		Data: UInt8Ptr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_GUID_PTR = ^cssm_guid;
@@ -275,6 +282,7 @@ type
 		Data3: UInt16;
 		Data4: array [0..8-1] of UInt8;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_BITMASK = UInt32;
@@ -305,6 +313,7 @@ type
 		Major: UInt32;
 		Minor: UInt32;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_SERVICE_MASK = UInt32;
@@ -329,6 +338,7 @@ type
 		SubserviceId: UInt32;
 		SubserviceType: CSSM_SERVICE_TYPE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_MODULE_EVENT = UInt32;
@@ -382,6 +392,7 @@ type
 		AddressType: CSSM_NET_ADDRESS_TYPE;
 		Address: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_NET_PROTOCOL = UInt32;
@@ -410,6 +421,7 @@ type
 		Callback: CSSM_CALLBACK;
 		CallerCtx: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_WORDID_TYPE = SInt32;
@@ -578,6 +590,7 @@ type
 		Head: CSSM_LIST_ELEMENT_PTR;	{ head of the list }
 		Tail: CSSM_LIST_ELEMENT_PTR;	{ tail of the list }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
   __embedded_cssm_list_element = record
     case Integer of
@@ -604,6 +617,7 @@ type
 		AuthorizationTag: CSSM_LIST;	{ authorization field }
 		ValidityPeriod: CSSM_LIST;	{ validity information (dates) }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TUPLEGROUP_PTR = ^cssm_tuplegroup;
@@ -612,6 +626,7 @@ type
 		NumberOfTuples: UInt32;
 		Tuples: CSSM_TUPLE_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_SAMPLE_TYPE = CSSM_WORDID_TYPE;
@@ -634,6 +649,7 @@ type
 		TypedSample: CSSM_LIST;
 		Verifier: {const} CSSM_SUBSERVICE_UIDPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_SAMPLEGROUP_PTR = ^cssm_samplegroup;
@@ -642,6 +658,7 @@ type
 		NumberOfSamples: UInt32;
 		Samples: {const} CSSM_SAMPLEPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_MALLOC = function( size: CSSM_SIZE; allocref: UnivPtr ): UnivPtr;
@@ -665,6 +682,7 @@ type
 		calloc_func: CSSM_CALLOC;
 		AllocRef: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_API_MEMORY_FUNCS = CSSM_MEMORY_FUNCS;
@@ -725,6 +743,7 @@ type
 		CertEncoding: CSSM_CERT_ENCODING;	{ encoding for this packed cert }
 		CertBlob: CSSM_DATA;					{ packed cert }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CERT_PARSE_FORMAT = UInt32;
@@ -756,6 +775,7 @@ type
     { struct of ParsedCert }
 		ParsedCert: UnivPtr; { parsed cert (to be typecast) }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CERT_PAIR_PTR = ^cssm_cert_pair;
@@ -764,6 +784,7 @@ type
 		EncodedCert: CSSM_ENCODED_CERT; { an encoded certificate blob }
 		ParsedCert: CSSM_PARSED_CERT; { equivalent parsed certificate }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CERTGROUP_TYPE = UInt32;
@@ -805,6 +826,7 @@ type
 		CLHandle: CSSM_CL_HANDLE;
 		Certs: CSSM_CERTGROUP;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACCESS_CREDENTIALS_PTR = ^cssm_access_credentials;
@@ -816,6 +838,7 @@ type
 		Callback: CSSM_CHALLENGE_CALLBACK;
 		CallerCtx: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_SUBJECT_TYPE = SInt32;
@@ -872,6 +895,7 @@ type
 		NumberOfAuthTags: UInt32;
 		AuthTags: CSSM_ACL_AUTHORIZATION_TAGPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_VALIDITY_PERIOD_PTR = ^cssm_acl_validity_period;
@@ -880,6 +904,7 @@ type
 		StartDate: CSSM_DATA;
 		EndDate: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_ENTRY_PROTOTYPE_PTR = ^cssm_acl_entry_prototype;
@@ -891,6 +916,7 @@ type
 		TimeRange: CSSM_ACL_VALIDITY_PERIOD;
 		EntryTag: CSSM_STRING;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_OWNER_PROTOTYPE_PTR = ^cssm_acl_owner_prototype;
@@ -899,6 +925,7 @@ type
 		TypedSubject: CSSM_LIST;
 		Delegate: CSSM_BOOL;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_SUBJECT_CALLBACK = function( const (*var*) SubjectRequest: CSSM_LIST; SubjectResponse: CSSM_LIST_PTR; CallerContext: UnivPtr; const (*var*) MemFuncs: CSSM_MEMORY_FUNCS ): CSSM_RETURN;
@@ -911,6 +938,7 @@ type
 		Callback: CSSM_ACL_SUBJECT_CALLBACK;
 		CallerContext: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_RESOURCE_CONTROL_CONTEXT_PTR = ^cssm_resource_control_context;
@@ -919,6 +947,7 @@ type
 		AccessCred: CSSM_ACCESS_CREDENTIALS_PTR;
 		InitialAclEntry: CSSM_ACL_ENTRY_INPUT;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_HANDLE = CSSM_HANDLE;
@@ -930,6 +959,7 @@ type
 		EntryPublicInfo: CSSM_ACL_ENTRY_PROTOTYPE;
 		EntryHandle: CSSM_ACL_HANDLE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_ACL_EDIT_MODE = UInt32;
@@ -946,6 +976,7 @@ type
 		OldEntryHandle: CSSM_ACL_HANDLE;
 		NewEntry: {const} CSSM_ACL_ENTRY_INPUTPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {$ifc defined(WIN32)}
 type
@@ -965,6 +996,7 @@ type
 		Name: CSSM_STRING;
 		Address: CSSM_PROC_ADDR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Data Types for Cryptographic Services  }
@@ -977,6 +1009,7 @@ type
 		Month: array [0..2-1] of UInt8;
 		Day: array [0..2-1] of UInt8;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_RANGE_PTR = ^cssm_range;
@@ -985,6 +1018,7 @@ type
 		Min: UInt32; { inclusive minimum value }
 		Max: UInt32; { inclusive maximum value }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_QUERY_SIZE_DATA_PTR = ^cssm_query_size_data;
@@ -993,6 +1027,7 @@ type
 		SizeInputBlock: UInt32; { size of input data block }
 		SizeOutputBlock: UInt32; { size of resulting output data block }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_HEADERVERSION = UInt32;
@@ -1006,6 +1041,7 @@ type
 		LogicalKeySizeInBits: UInt32; { Logical key size in bits }
 		EffectiveKeySizeInBits: UInt32; { Effective key size in bits }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KEYBLOB_TYPE = UInt32;
@@ -1276,6 +1312,7 @@ type
 		WrapMode: CSSM_ENCRYPT_MODE; { if alg supports multiple wrapping modes }
 		Reserved: UInt32;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KEY_PTR = ^cssm_key;
@@ -1284,6 +1321,7 @@ type
 		KeyHeader: CSSM_KEYHEADER; { Fixed length key header }
 		KeyData: CSSM_DATA; { Variable length key data }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_WRAP_KEY = CSSM_KEY;
@@ -1305,6 +1343,7 @@ type
 		DLHandle: CSSM_DL_HANDLE;
 		DBHandle: CSSM_DB_HANDLE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CONTEXT_TYPE = UInt32;
@@ -1443,6 +1482,7 @@ type
 		WorkFactor: UInt32;
 		Reserved: UInt32;	{ reserved for future use }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_SC_FLAGS = UInt32;
@@ -1501,6 +1541,7 @@ type
 		PSource: CSSM_PKCS_OAEP_PSOURCE;
 		PSourceParams: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CSP_OPERATIONAL_STATISTICS_PTR = ^cssm_csp_operational_statistics;
@@ -1518,6 +1559,7 @@ type
 		TokenTotalPrivateMem: UInt32;
 		TokenFreePrivateMem: UInt32;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { Indicates that the statistical value can not be revealed or is not
    relevant for a CSP }
@@ -1531,6 +1573,7 @@ type
 		Passphrase: CSSM_DATA;
 		InitVector: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_PKCS5_PBKDF2_PRF = UInt32;
@@ -1544,6 +1587,7 @@ type
 		Passphrase: CSSM_DATA;
 		PseudoRandomFunction: CSSM_PKCS5_PBKDF2_PRF;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KEA_DERIVE_PARAMS_PTR = ^cssm_kea_derive_params;
@@ -1552,6 +1596,7 @@ type
 		Rb: CSSM_DATA;
 		Yb: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Data Types for Trust Policy Services  }
@@ -1563,6 +1608,7 @@ type
 		AuthorityCert: CSSM_DATAPtr;
 		AuthorityLocation: CSSM_NET_ADDRESS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_AUTHORITY_REQUEST_TYPE = UInt32;
@@ -1594,6 +1640,7 @@ type
 		FieldOid: CSSM_OID;
 		FieldValue: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { TP Again. }
 type
@@ -1604,6 +1651,7 @@ type
 		PolicyIds: CSSM_FIELD_PTR;
 		PolicyControl: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_SERVICES = UInt32;
@@ -1639,6 +1687,7 @@ type
 		NumHandles: UInt32;
 		DLDBHandle: CSSM_DL_DB_HANDLE_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { TP Again. }
 type
@@ -1654,6 +1703,7 @@ type
 		DBList: CSSM_DL_DB_LIST_PTR;
 		CallerCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CRL_PARSE_FORMAT = UInt32;
@@ -1706,6 +1756,7 @@ type
 		CrlEncoding: CSSM_CRL_ENCODING; { encoding for this packed CRL }
 		CrlBlob: CSSM_DATA; { packed CRL }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 { TP Again. }
 type
@@ -1717,6 +1768,7 @@ type
     { struct of ParsedCrl }
 		ParsedCrl: UnivPtr; { parsed CRL (to be typecast) }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CRL_PAIR_PTR = ^cssm_crl_pair;
@@ -1725,6 +1777,7 @@ type
 		EncodedCrl: CSSM_ENCODED_CRL; { an encoded CRL blob }
 		ParsedCrl: CSSM_PARSED_CRL; { equivalent parsed CRL }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CRLGROUP_TYPE = UInt32;
@@ -1761,6 +1814,7 @@ type
 		NumberOfFields: SInt32;		{ number of fields in the array }
 		Fields: CSSM_FIELD_PTR;	{ array of fields }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_EVIDENCE_FORM = UInt32;
@@ -1783,6 +1837,7 @@ type
 		EvidenceForm: CSSM_EVIDENCE_FORM;
 		Evidence: UnivPtr; { Evidence content }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_VERIFY_CONTEXT_PTR = ^cssm_tp_verify_context;
@@ -1793,6 +1848,7 @@ type
 		Crls: CSSM_CRLGROUP;
 		Cred: CSSM_TP_CALLERAUTH_CONTEXT_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_VERIFY_CONTEXT_RESULT_PTR = ^cssm_tp_verify_context_result;
@@ -1801,6 +1857,7 @@ type
 		NumberOfEvidences: UInt32;
 		Evidence: CSSM_EVIDENCE_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_REQUEST_SET_PTR = ^cssm_tp_request_set;
@@ -1809,6 +1866,7 @@ type
 		NumberOfRequests: UInt32;
 		Requests: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_RESULT_SET_PTR = ^cssm_tp_result_set;
@@ -1817,6 +1875,7 @@ type
 		NumberOfResults: UInt32;
 		Results: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CONFIRM_STATUS = UInt32;
@@ -1839,6 +1898,7 @@ type
 		NumberOfResponses: UInt32;
 		Responses: CSSM_TP_CONFIRM_STATUS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CSSM_ESTIMATED_TIME_UNKNOWN = -1;
@@ -1860,6 +1920,7 @@ type
 		ServiceControls: CSSM_FIELD_PTR;
 		UserCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTISSUE_STATUS = UInt32;
@@ -1893,6 +1954,7 @@ type
 		CertGroup: CSSM_CERTGROUP_PTR;
 		PerformedServiceRequests: CSSM_TP_SERVICES;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTCHANGE_ACTION = UInt32;
@@ -1957,6 +2019,7 @@ type
 		StartTime: CSSM_TIMESTRING;
 		CallerCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTCHANGE_STATUS = UInt32;
@@ -1988,6 +2051,7 @@ type
 		ActionStatus: CSSM_TP_CERTCHANGE_STATUS;
 		RevokeInfo: CSSM_FIELD;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTVERIFY_INPUT_PTR = ^cssm_tp_certverify_input;
@@ -1997,6 +2061,7 @@ type
 		Cert: CSSM_DATA_PTR;
 		VerifyContext: CSSM_TP_VERIFY_CONTEXT_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTVERIFY_STATUS = UInt32;
@@ -2027,6 +2092,7 @@ type
 		NumberOfEvidence: UInt32;
 		Evidence: CSSM_EVIDENCE_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTNOTARIZE_INPUT_PTR = ^cssm_tp_certnotarize_input;
@@ -2042,6 +2108,7 @@ type
 		ServiceControls: CSSM_FIELD_PTR;
 		UserCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTNOTARIZE_STATUS = UInt32;
@@ -2075,6 +2142,7 @@ type
 		NotarizedCertGroup: CSSM_CERTGROUP_PTR;
 		PerformedServiceRequests: CSSM_TP_SERVICES;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTRECLAIM_INPUT_PTR = ^cssm_tp_certreclaim_input;
@@ -2085,6 +2153,7 @@ type
 		SelectionFields: CSSM_FIELD_PTR;
 		UserCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CERTRECLAIM_STATUS = UInt32;
@@ -2115,6 +2184,7 @@ type
 		ReclaimedCertGroup: CSSM_CERTGROUP_PTR;
 		KeyCacheHandle: CSSM_LONG_HANDLE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CRLISSUE_INPUT_PTR = ^cssm_tp_crlissue_input;
@@ -2126,6 +2196,7 @@ type
 		PolicyIdentifier: CSSM_FIELD_PTR;
 		CallerCredentials: CSSM_ACCESS_CREDENTIALS_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_CRLISSUE_STATUS = UInt32;
@@ -2169,6 +2240,7 @@ type
 		Crl: CSSM_ENCODED_CRL_PTR;
 		CrlNextTime: CSSM_TIMESTRING;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_TP_FORM_TYPE = UInt32;
@@ -2221,6 +2293,7 @@ type
 		BundleType: CSSM_CERT_BUNDLE_TYPE;
 		BundleEncoding: CSSM_CERT_BUNDLE_ENCODING;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_CERT_BUNDLE_PTR = ^cssm_cert_bundle;
@@ -2229,6 +2302,7 @@ type
 		BundleHeader: CSSM_CERT_BUNDLE_HEADER;
 		Bundle: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CSSM_FIELDVALUE_COMPLEX_DATA_TYPE = $FFFFFFFF;
@@ -2282,6 +2356,7 @@ type
 		NumberOfValues: UInt32;
 		Value: CSSM_DATA_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_RECORDTYPE = UInt32;
@@ -2327,6 +2402,7 @@ type
 		NumberOfAttributes: UInt32;
 		AttributeInfo: CSSM_DB_ATTRIBUTE_INFO_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_RECORD_ATTRIBUTE_DATA_PTR = ^cssm_db_record_attribute_data;
@@ -2337,6 +2413,7 @@ type
 		NumberOfAttributes: UInt32;
 		AttributeData: CSSM_DB_ATTRIBUTE_DATA_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_PARSING_MODULE_INFO_PTR = ^cssm_db_parsing_module_info;
@@ -2345,6 +2422,7 @@ type
 		RecordType: CSSM_DB_RECORDTYPE;
 		ModuleSubserviceUid: CSSM_SUBSERVICE_UID;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_INDEX_TYPE = UInt32;
@@ -2367,6 +2445,7 @@ type
 		IndexedDataLocation: CSSM_DB_INDEXED_DATA_LOCATION;
 		Info: CSSM_DB_ATTRIBUTE_INFO;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_UNIQUE_RECORD_PTR = ^cssm_db_unique_record;
@@ -2375,6 +2454,7 @@ type
 		RecordLocator: CSSM_DB_INDEX_INFO;
 		RecordIdentifier: CSSM_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_RECORD_INDEX_INFO_PTR = ^cssm_db_record_index_info;
@@ -2384,6 +2464,7 @@ type
 		NumberOfIndexes: UInt32;
 		IndexInfo: CSSM_DB_INDEX_INFO_PTR;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_ACCESS_TYPE = UInt32;
@@ -2418,6 +2499,7 @@ type
 		AccessPath: CStringPtr; { URL, dir path, etc. }
 		Reserved: UnivPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_OPERATOR = UInt32;
@@ -2448,6 +2530,7 @@ type
 		DbOperator: CSSM_DB_OPERATOR;
 		Attribute: CSSM_DB_ATTRIBUTE_DATA;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CSSM_QUERY_TIMELIMIT_NONE = 0;
@@ -2462,6 +2545,7 @@ type
 		TimeLimit: UInt32; { in seconds }
 		SizeLimit: UInt32; { max. number of records to return }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_QUERY_FLAGS = UInt32;
@@ -2479,6 +2563,7 @@ type
 		QueryLimits: CSSM_QUERY_LIMITS;
 		QueryFlags: CSSM_QUERY_FLAGS;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DLTYPE = UInt32;
@@ -2506,6 +2591,7 @@ type
 	cssm_dl_pkcs11_attributes = record
 		DeviceAccessFlags: UInt32;
   end;
+  (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 const
 	CSSM_DB_DATASTORES_UNKNOWN = $FFFFFFFF;
@@ -2517,6 +2603,7 @@ type
 		NumStrings: UInt32;
 		String_: CStringPtrPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_RETRIEVAL_MODES = UInt32;
@@ -2533,6 +2620,7 @@ type
 		AttributeNameID: CSSM_OID;
 		DataType: CSSM_DB_ATTRIBUTE_FORMAT;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_DB_SCHEMA_INDEX_INFO_PTR = ^cssm_db_schema_index_info;
@@ -2543,6 +2631,7 @@ type
 		IndexType: CSSM_DB_INDEX_TYPE;
 		IndexedDataLocation: CSSM_DB_INDEXED_DATA_LOCATION;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

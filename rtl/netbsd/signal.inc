@@ -165,7 +165,7 @@ struct sigcontext {
 	sigset_t sc_mask;		/* signal mask to restore (new style) */
 };
 *)
-{$ifdef i386}
+{$ifdef CPUi386}
      SigContextRec = record
        sc_gs        : longint;   { machine state (struct trapframe): }
        sc_fs        : longint;
@@ -249,7 +249,7 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
 	greg(rsp, RSP, 24)	\
 	greg(ss,  SS,  25)
 *)
-{$ifdef X86_64}
+{$ifdef CPUX86_64}
         SigContextRec = record
 	sc_args : array[0..6] of clong;
 	sc_rdi : clong;

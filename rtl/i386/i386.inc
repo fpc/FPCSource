@@ -50,9 +50,9 @@ function cpuid_support : boolean;assembler;
 
 {$asmmode ATT}
 
-function sse_support : boolean;
+procedure check_sse_support;
   var
-     _edx : longint;
+    _ecx,_edx : longint;
   begin
     if cpuid_support then
      begin
@@ -61,13 +61,20 @@ function sse_support : boolean;
           movl $1,%eax
           cpuid
           movl %edx,_edx
+          movl %ecx,_ecx
           popl %ebx
         end;
-        sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
+        has_sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
+        has_sse2_support:=((_edx and $4000000)<>0) and os_supports_sse;
+        has_sse3_support:=((_ecx and $200)<>0) and os_supports_sse;
      end
     else
-     { a cpu with without cpuid instruction supports never sse }
-     sse_support:=false;
+      begin
+        { a cpu with without cpuid instruction supports never sse }
+        has_sse_support:=false;
+        has_sse2_support:=false;
+        has_sse3_support:=false;
+      end;
   end;
 
 
@@ -1424,7 +1431,8 @@ Procedure SysResetFPU;
 procedure fpc_cpucodeinit;
   begin
     os_supports_sse:=true;
-    os_supports_sse:=sse_support;
+    check_sse_support;
+    os_supports_sse:=has_sse_support;
     if os_supports_sse then
       begin
         sse_check:=true;
@@ -1437,6 +1445,11 @@ procedure fpc_cpucodeinit;
         sse_check:=false;
       end;
     has_sse_support:=os_supports_sse;
+    if not(has_sse_support) then
+      begin
+        has_sse2_support:=false;
+        has_sse3_support:=false;
+      end;
     { don't let libraries influence the FPU cw set by the host program }
     if has_sse_support and
        IsLibrary then
@@ -1590,3 +1603,25 @@ asm
 .L2:
 end;
 {$endif FPC_SYSTEM_HAS_BSR_QWORD}
+
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+{$define FPC_SYSTEM_HAS_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+asm
+        movb   %al,%cl
+        movl   8(%esp),%edx
+        movl   4(%esp),%eax
+        andb   $63,%cl
+        cmpb   $32,%cl
+        jnb    .L1
+        shrdl  %cl,%edx,%eax
+        sarl   %cl,%edx
+        jmp    .Lexit
+.L1:
+        movl   %edx,%eax
+        sarl   $31,%edx
+        andb   $31,%cl
+        sarl   %cl,%eax
+.Lexit:
+end;
+{$endif FPC_SYSTEM_HAS_SAR_QWORD}

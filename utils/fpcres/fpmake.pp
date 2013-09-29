@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fpcres;
+procedure add_fpcres(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -23,33 +23,43 @@ begin
     P.Description := 'Free Pascal Resource Converter.';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fpcres';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix];
 
     P.Dependencies.Add('fcl-res');
+    P.Dependencies.Add('paszlib');
 
     T:=P.Targets.AddProgram('fpcres.pas');
+
     T.Dependencies.AddUnit('closablefilestream');
     T.Dependencies.AddUnit('msghandler');
     T.Dependencies.AddUnit('paramparser');
     T.Dependencies.AddUnit('sourcehandler');
     T.Dependencies.AddUnit('target');
 
+    T:=P.Targets.AddProgram('fpcjres.pas');
+
+    T.Dependencies.AddUnit('closablefilestream');
+    T.Dependencies.AddUnit('msghandler');
+    T.Dependencies.AddUnit('paramparser');
+    T.Dependencies.AddUnit('sourcehandler');
+    T.Dependencies.AddUnit('target');
+    T.Dependencies.AddUnit('jarsourcehandler');
+
     P.Targets.AddUnit('closablefilestream.pas').install:=false;
     P.Targets.AddUnit('msghandler.pas').install:=false;
     P.Targets.AddUnit('paramparser.pas').install:=false;
     P.Targets.AddUnit('sourcehandler.pas').install:=false;
     P.Targets.AddUnit('target.pas').install:=false;
+    P.Targets.AddUnit('jarsourcehandler.pas').install:=false;
     end;
 end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpcres;
+  add_fpcres('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

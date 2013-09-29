@@ -32,8 +32,15 @@ program tcalvar6;
 
 { On linux/i386 and linux/x86-64 afecall is the same as cdecl, so it does not       }
 { support all parameter types.                                      }
-{$if (defined(linux) and (defined(cpui386) or defined(cpux86_64)))}
+{$if ((defined(linux) or defined(android)) and (defined(cpui386) or defined(cpux86_64)))}
   {$define safecall_is_cdecl}
+{$endif}
+
+{$ifdef cpu68k}
+  {$define cpusmall}
+{$endif}
+{$ifdef cpu8086}
+  {$define cpusmall}
 {$endif}
 
  { REAL should map to single or double }
@@ -45,7 +52,7 @@ program tcalvar6;
  const
 { should be defined depending on CPU target }
 {$ifdef fpc}
-  {$ifdef cpu68k}
+  {$ifdef cpusmall}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
   {$else}

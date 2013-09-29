@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('lua');
 {$ifdef ALLPACKAGES}
-    P.Directory:='lua';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

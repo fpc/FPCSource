@@ -10,7 +10,7 @@ type
       TFoo3 = record
       private
         b, c: integer;
-      protected
+      strict private
         a: integer;
       public
         function GetFoo2: integer;

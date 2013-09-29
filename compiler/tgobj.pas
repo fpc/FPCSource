@@ -59,8 +59,8 @@ unit tgobj;
        protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint; virtual;
-          procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
+          procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; out ref: treference); virtual;
+          procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);virtual;
           procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
        public
           { contains all temps }
@@ -107,7 +107,7 @@ unit tgobj;
 
              @param(ref reference to verify)
           }
-          function istemp(const ref : treference) : boolean;
+          function istemp(const ref : treference) : boolean; virtual;
           {# Frees a reference @var(ref) which was allocated in the volatile temporary memory space.
              The freed space can later be reallocated and reused. If this reference
              is not in the temporary memory, it is simply not freed.
@@ -236,7 +236,7 @@ implementation
       end;
 
 
-    function ttgobj.AllocTemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
+    procedure ttgobj.alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef; out ref: treference);
       var
          tl,htl,
          bestslot,bestprev,
@@ -247,7 +247,6 @@ implementation
          fitatbegin,
          fitatend : boolean;
       begin
-         AllocTemp:=0;
          bestprev:=nil;
          bestslot:=nil;
          tl:=nil;
@@ -430,7 +429,7 @@ implementation
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
-         AllocTemp:=tl^.pos;
+         reference_reset_base(ref,current_procinfo.framepointer,tl^.pos,alignment);
       end;
 
 
@@ -485,7 +484,10 @@ implementation
                      hp:=hprev;
                    end
                   else
-                   hprevfree^.nextfree:=hp;
+                   begin
+                     hp^.nextfree:=hprevfree^.nextfree;
+                     hprevfree^.nextfree:=hp;
+                   end;
                 end
                else
                 begin
@@ -543,12 +545,7 @@ implementation
         varalign : shortint;
       begin
         varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        { can't use reference_reset_base, because that will let tgobj depend
-          on cgobj (PFV) }
-        fillchar(ref,sizeof(ref),0);
-        ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,varalign,temptype,def);
-        ref.alignment:=varalign;
+        alloctemp(list,size,varalign,temptype,def,ref);
       end;
 
 
@@ -684,12 +681,7 @@ implementation
     procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
       begin
         alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        { can't use reference_reset_base, because that will let tgobj depend
-          on cgobj (PFV) }
-        fillchar(ref,sizeof(ref),0);
-        ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,alignment,tt_persistent,nil);
-        ref.alignment:=alignment;
+        alloctemp(list,size,alignment,tt_persistent,nil,ref);
       end;
 
 

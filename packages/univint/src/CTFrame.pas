@@ -2,10 +2,11 @@
  *	CTFrame.h
  *	CoreText
  *
- *	Copyright (c) 2003-2008 Apple Inc. All rights reserved.
+ *	Copyright (c) 2003-2012 Apple Inc. All rights reserved.
  *
  }
-{       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,8 +177,6 @@ uses MacTypes,CFArray,CFDictionary,CFBase,CFNumber,CFString,CGContext,CGGeometry
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
  
@@ -190,7 +194,8 @@ uses MacTypes,CFArray,CFDictionary,CFBase,CFNumber,CFString,CGContext,CGGeometry
 { --------------------------------------------------------------------------- }
 
 type
-	CTFrameRef = ^SInt32; { an opaque type }
+	CTFrameRef = ^__CTFrame; { an opaque type }
+	__CTFrame = record end;
 
 
 {!
@@ -199,7 +204,7 @@ type
 }
 
 function CTFrameGetTypeID: CFTypeID; external name '_CTFrameGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -243,8 +248,86 @@ type
 }
 
 var kCTFrameProgressionAttributeName: CFStringRef; external name '_kCTFrameProgressionAttributeName'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
+{!
+	@enum		CTFramePathFillRule
+	@abstract	These constants specify fill rule used by the frame.
+ 
+	@discussion When a path intersects with itself, the client should specify which rule to use for deciding the 
+				area of the path.
+ 
+	@constant	kCTFramePathFillEvenOdd
+				Text is filled in the area that would be painted if the path were given to CGContextEOFillPath.
+
+	@constant	kCTFramePathFillWindingNumber
+				Text is fill in the area that would be painted if the path were given to CGContextFillPath.
+ 
+ 
+ }
+
+const
+	kCTFramePathFillEvenOdd = 0;
+	kCTFramePathFillWindingNumber = 1;
+type
+	CTFramePathFillRule = UInt32;
+
+
+{!
+	@const		kCTFramePathFillRuleAttributeName
+	@abstract	Specifies fill rule for a frame if this attribute is used at top level of frameAttributes dictionary, or specify
+				fill rule for a clipping path if used in a dictionary contained in an array specified by kCTFrameClippingPathsAttributeName.
+				
+	@discussion Value must be a CFNumberRef containing kCTFramePathFillEvenOdd or kCTFramePathFillWindingNumber.
+				Default is kCTFramePathFillEvenOdd.
+
+	@seealso	CTFramesetterCreateFrame
+ }
+
+var kCTFramePathFillRuleAttributeName: CFStringRef; external name '_kCTFramePathFillRuleAttributeName'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_4_2) *)
+
+{!
+	@const		kCTFramePathWidthAttributeName
+	@abstract	Specifies frame width if this attribute is used at top level of frameAttributes dictionary, or specify
+				clipping path width if used in a dictionary contained in an array specified by kCTFrameClippingPathsAttributeName.
+
+	@discussion Value must be a CFNumberRef specifying frame width.
+				Default is zero.
+
+	@seealso	CTFramesetterCreateFrame
+ }
+
+var kCTFramePathWidthAttributeName: CFStringRef; external name '_kCTFramePathWidthAttributeName'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_4_2) *)
+
+	
+{!
+	@const		kCTFrameClippingPathsAttributeName
+	@abstract	Specifies array of paths to clip frame.
+	
+	@discussion Value must be a CFArrayRef containing CFDictionaryRefs or CGPathRef.  (CGPathRef is allowed on 10.8 or later.)
+				Each dictionary should have a kCTFramePathClippingPathAttributeName key-value pair, and can have a kCTFramePathFillRuleAttributeName key-value pair 
+				and kCTFramePathFillRuleAttributeName key-value pair as optional parameters.  In case of CGPathRef, default fill rule (kCTFramePathFillEvenOdd) and width (0.0) are used.
+
+	@seealso	CTFramesetterCreateFrame
+}
+
+var kCTFrameClippingPathsAttributeName: CFStringRef; external name '_kCTFrameClippingPathsAttributeName'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_4_3) *)
+
+{!
+	@const		kCTFramePathClippingPathAttributeName
+	@abstract	Specifies clipping path.  This attribute is valid in a dictionary contained in an array specified by kCTFrameClippingPathsAttributeName.
+				On 10.8 or later, This attribute is also valid in frameAttributes dictionary passed to CTFramesetterCreateFrame.
+
+	@discussion Value must be a CGPathRef specifying a clipping pat.
+
+	@seealso	kCTFrameClippingPathsAttributeName
+ }
+
+var kCTFramePathClippingPathAttributeName: CFStringRef; external name '_kCTFramePathClippingPathAttributeName'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_4_3) *)
 
 { --------------------------------------------------------------------------- }
 { Frame Accessors }
@@ -265,7 +348,7 @@ var kCTFrameProgressionAttributeName: CFStringRef; external name '_kCTFrameProgr
 }
 
 function CTFrameGetStringRange( frame: CTFrameRef ): CFRange; external name '_CTFrameGetStringRange';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -288,7 +371,7 @@ function CTFrameGetStringRange( frame: CTFrameRef ): CFRange; external name '_CT
 }
 
 function CTFrameGetVisibleStringRange( frame: CTFrameRef ): CFRange; external name '_CTFrameGetVisibleStringRange';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -300,7 +383,7 @@ function CTFrameGetVisibleStringRange( frame: CTFrameRef ): CFRange; external na
 }
 
 function CTFrameGetPath( frame: CTFrameRef ): CGPathRef; external name '_CTFrameGetPath';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -322,7 +405,7 @@ function CTFrameGetPath( frame: CTFrameRef ): CGPathRef; external name '_CTFrame
 }
 
 function CTFrameGetFrameAttributes( frame: CTFrameRef ): CFDictionaryRef; external name '_CTFrameGetFrameAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -344,7 +427,7 @@ function CTFrameGetFrameAttributes( frame: CTFrameRef ): CFDictionaryRef; extern
 }
 
 function CTFrameGetLines( frame: CTFrameRef ): CFArrayRef; external name '_CTFrameGetLines';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -379,7 +462,7 @@ function CTFrameGetLines( frame: CTFrameRef ): CFArrayRef; external name '_CTFra
 }
 
 procedure CTFrameGetLineOrigins( frame: CTFrameRef; range: CFRange; origins: {variable-size-array} CGPointPtr ); external name '_CTFrameGetLineOrigins';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -401,9 +484,8 @@ procedure CTFrameGetLineOrigins( frame: CTFrameRef; range: CFRange; origins: {va
 }
 
 procedure CTFrameDraw( frame: CTFrameRef; context: CGContextRef ); external name '_CTFrameDraw';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

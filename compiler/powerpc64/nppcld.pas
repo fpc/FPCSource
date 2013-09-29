@@ -31,7 +31,6 @@ uses
 type
   tppcloadnode = class(tcgloadnode)
     procedure pass_generate_code override;
-    procedure generate_picvaraccess; override;
   end;
 
 implementation
@@ -51,10 +50,6 @@ begin
   inherited pass_generate_code;
 end;
 
-procedure tppcloadnode.generate_picvaraccess;
-begin
-  internalerror(200402291);
-end;
 
 begin
   cloadnode := tppcloadnode;

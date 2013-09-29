@@ -222,7 +222,8 @@ unit optdfa;
               begin
                 { last node, not exit or raise node and function? }
                 if assigned(resultnode) and
-                  not(node.nodetype in [raisen,exitn]) then
+                  not(node.nodetype=exitn) and
+                  not((node.nodetype=calln) and (cnf_call_never_returns in tcallnode(node).callnodeflags)) then
                   begin
                     { if yes, result lifes }
                     DFASetDiff(l,resultnode.optinfo^.life,n.optinfo^.def);
@@ -496,24 +497,6 @@ unit optdfa;
                             changed:=true;
                           end;
                       end;
-                  end;
-              end;
-
-            raisen:
-              begin
-                if not(assigned(node.optinfo^.life)) then
-                  begin
-                    dfainfo.use:=@node.optinfo^.use;
-                    dfainfo.def:=@node.optinfo^.def;
-                    dfainfo.map:=map;
-                    foreachnodestatic(pm_postprocess,traisenode(node).left,@AddDefUse,@dfainfo);
-                    foreachnodestatic(pm_postprocess,traisenode(node).right,@AddDefUse,@dfainfo);
-                    foreachnodestatic(pm_postprocess,traisenode(node).third,@AddDefUse,@dfainfo);
-                    { update node }
-                    l:=node.optinfo^.life;
-                    DFASetIncludeSet(l,node.optinfo^.use);
-                    UpdateLifeInfo(node,l);
-                    printdfainfo(output,node);
                   end;
               end;
 

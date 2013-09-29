@@ -52,6 +52,10 @@
 
 unit cpl;
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 uses Windows;

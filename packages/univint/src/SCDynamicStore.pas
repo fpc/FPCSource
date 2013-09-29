@@ -1,5 +1,5 @@
 {
- * Copyright (c) 2000, 2001, 2003-2005, 2008, 2009 Apple Inc. All rights reserved.
+ * Copyright (c) 2000, 2001, 2003-2005, 2008-2010 Apple Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  * 
@@ -20,8 +20,9 @@
  * 
  * @APPLE_LICENSE_HEADER_END@
  }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -97,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -106,6 +108,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +124,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -130,6 +134,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -140,6 +145,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -215,7 +221,8 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFRunLoop,CFPropertyList,CFDictionary;
 		with the system configuration daemon.
  }
 type
-	SCDynamicStoreRef = ^SInt32; { an opaque type }
+	SCDynamicStoreRef = ^__SCDynamicStore; { an opaque type }
+	__SCDynamicStore = record end;
 
 {!
 	@typedef SCDynamicStoreContext
@@ -251,6 +258,17 @@ type
 		changes to the dynamic store is delivered.
 	@param store The dynamic store session.
 	@param changedKeys The list of changed keys.
+
+		The list includes any specific SCDynamicStore keys that
+		changed (add, update, remove, notify) since the last call
+		to SCDynamicStoreSetNotificationKeys or since the last
+		notification callback. The list also includes any specific
+		keys matching one of the pattern string(s) that changed.
+
+		An empty list indicates that the SCDynamicStore server
+		restarted and that any assumptions based on prior content
+		of the SCDynamicStore should be disgarded.
+
 	@param info A C pointer to a user-specified block of data.
  }
 type
@@ -358,7 +376,6 @@ var kSCDynamicStoreUseSessionKeys: CFStringRef; external name '_kSCDynamicStoreU
 function SCDynamicStoreCreateRunLoopSource( allocator: CFAllocatorRef; store: SCDynamicStoreRef; order: CFIndex ): CFRunLoopSourceRef; external name '_SCDynamicStoreCreateRunLoopSource';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_1,__IPHONE_NA) *)
 
-{$ifc not TARGET_OS_IPHONE}
 {!
 	@function SCDynamicStoreSetDispatchQueue
 	@discussion Initiates notifications for the Notification
@@ -371,7 +388,6 @@ function SCDynamicStoreCreateRunLoopSource( allocator: CFAllocatorRef; store: SC
  }
 function SCDynamicStoreSetDispatchQueue( store: SCDynamicStoreRef; queue: dispatch_queue_t ): Boolean; external name '_SCDynamicStoreSetDispatchQueue';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_NA) *)
-{$endc} {not TARGET_OS_IPHONE}
 
 {!
 	@function SCDynamicStoreCopyKeyList

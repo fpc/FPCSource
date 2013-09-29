@@ -3,9 +3,7 @@
  
      Contains:   Types & prototypes for locale functions
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1998-2008 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1998-2012 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -191,7 +195,8 @@ uses MacTypes;
 }
 
 type
-	LocaleRef = ^SInt32; { an opaque type }
+	LocaleRef = ^OpaqueLocaleRef; { an opaque type }
+	OpaqueLocaleRef = record end;
 	LocalePartMask = UInt32;
 const
 { bit set requests the following:}
@@ -239,7 +244,7 @@ const
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleRefFromLangOrRegionCode( lang: LangCode; region: RegionCode; var locale: LocaleRef ): OSStatus; external name '_LocaleRefFromLangOrRegionCode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -251,7 +256,7 @@ function LocaleRefFromLangOrRegionCode( lang: LangCode; region: RegionCode; var 
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleRefFromLocaleString( localeString: ConstCStringPtr; var locale: LocaleRef ): OSStatus; external name '_LocaleRefFromLocaleString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -263,7 +268,7 @@ function LocaleRefFromLocaleString( localeString: ConstCStringPtr; var locale: L
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleRefGetPartString( locale: LocaleRef; partMask: LocalePartMask; maxStringLen: ByteCount; partString: CStringPtr ): OSStatus; external name '_LocaleRefGetPartString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -302,71 +307,108 @@ function LocaleRefGetPartString( locale: LocaleRef; partMask: LocalePartMask; ma
  *    Non-Carbon CFM:   in LocalesLib 9.0 and later
  }
 function LocaleStringToLangAndRegionCodes( localeString: ConstCStringPtr; var lang: LangCode; var region: RegionCode ): OSStatus; external name '_LocaleStringToLangAndRegionCodes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { Enumerate locales for a LocaleOperationClass }
 
 {
- *  LocaleOperationCountLocales()
+ *  LocaleOperationCountLocales()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFLocaleCopyAvailableLocaleIdentifiers instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFLocaleCopyAvailableLocaleIdentifiers instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleOperationCountLocales( opClass: LocaleOperationClass; var localeCount: ItemCount ): OSStatus; external name '_LocaleOperationCountLocales';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  LocaleOperationGetLocales()
+ *  LocaleOperationGetLocales()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFXxxxx instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFLocaleCopyAvailableLocaleIdentifiers instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleOperationGetLocales( opClass: LocaleOperationClass; maxLocaleCount: ItemCount; var actualLocaleCount: ItemCount; localeVariantList: {variable-size-array} LocaleAndVariantPtr ): OSStatus; external name '_LocaleOperationGetLocales';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Get names for a locale (or a region's language)}
 
 {
- *  LocaleGetName()
+ *  LocaleGetName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFLocaleCopyDisplayNameForPropertyValue instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFLocaleCopyDisplayNameForPropertyValue instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleGetName( locale: LocaleRef; opVariant: LocaleOperationVariant; nameMask: LocaleNameMask; displayLocale: LocaleRef; maxNameLen: UniCharCount; var actualNameLen: UniCharCount; displayName: {variable-size-array} UniCharPtr ): OSStatus; external name '_LocaleGetName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  LocaleCountNames()
+ *  LocaleCountNames()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFLocaleCopyAvailableLocaleIdentifiers instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFLocaleCopyAvailableLocaleIdentifiers instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleCountNames( locale: LocaleRef; opVariant: LocaleOperationVariant; nameMask: LocaleNameMask; var nameCount: ItemCount ): OSStatus; external name '_LocaleCountNames';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
- *  LocaleGetIndName()
+ *  LocaleGetIndName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFLocaleCopyAvailableLocaleIdentifiers and
+ *    CFLocaleCopyDisplayNameForPropertyValue instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFLocaleCopyAvailableLocaleIdentifiers and
+ *    CFLocaleCopyDisplayNameForPropertyValue instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleGetIndName( locale: LocaleRef; opVariant: LocaleOperationVariant; nameMask: LocaleNameMask; nameIndex: ItemCount; maxNameLen: UniCharCount; var actualNameLen: UniCharCount; displayName: {variable-size-array} UniCharPtr; var displayLocale: LocaleRef ): OSStatus; external name '_LocaleGetIndName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc TARGET_CPU_64}
@@ -388,7 +430,7 @@ function LocaleGetIndName( locale: LocaleRef; opVariant: LocaleOperationVariant;
  *    Non-Carbon CFM:   in LocalesLib 9.0 and later
  }
 function LocaleGetRegionLanguageName( region: RegionCode; var languageName: Str255 ): OSStatus; external name '_LocaleGetRegionLanguageName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Get names for a LocaleOperationClass}
@@ -404,7 +446,7 @@ function LocaleGetRegionLanguageName( region: RegionCode; var languageName: Str2
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleOperationGetName( opClass: LocaleOperationClass; displayLocale: LocaleRef; maxNameLen: UniCharCount; var actualNameLen: UniCharCount; displayName: {variable-size-array} UniCharPtr ): OSStatus; external name '_LocaleOperationGetName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -416,7 +458,7 @@ function LocaleOperationGetName( opClass: LocaleOperationClass; displayLocale: L
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleOperationCountNames( opClass: LocaleOperationClass; var nameCount: ItemCount ): OSStatus; external name '_LocaleOperationCountNames';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -428,7 +470,8 @@ function LocaleOperationCountNames( opClass: LocaleOperationClass; var nameCount
  *    Non-Carbon CFM:   in LocalesLib 8.6 and later
  }
 function LocaleOperationGetIndName( opClass: LocaleOperationClass; nameIndex: ItemCount; maxNameLen: UniCharCount; var actualNameLen: UniCharCount; displayName: {variable-size-array} UniCharPtr; var displayLocale: LocaleRef ): OSStatus; external name '_LocaleOperationGetIndName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
+
 
 
 {$endc} {TARGET_OS_MAC}

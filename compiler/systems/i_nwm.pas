@@ -63,8 +63,8 @@ unit i_nwm;
             dirsep       : '/';
             assem        : as_i386_nlmcoff; // as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_int_netware;
+            linkextern   : ld_netware;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -94,9 +94,9 @@ unit i_nwm;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef netware}
     set_source_info(system_i386_netware_info);
   {$endif netware}
-{$endif CPU86}
+{$endif CPUI386}
 end.

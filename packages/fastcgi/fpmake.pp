@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fastcgi');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fastcgi';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

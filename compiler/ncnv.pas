@@ -48,7 +48,6 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
-          function actualtargetnode: tnode;override;
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -1049,7 +1048,7 @@ implementation
                    begin
                      pchtemp:=concatansistrings(tstringconstnode(left).value_str,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
                      left.free;
-                     left:=cstringconstnode.createpchar(pchtemp,arrsize);
+                     left:=cstringconstnode.createpchar(pchtemp,arrsize,nil);
                      typecheckpass(left);
                    end;
                  exit;
@@ -1118,8 +1117,24 @@ implementation
                       if (current_settings.sourcecodepage<>CP_UTF8) then
                         begin
                           if tordconstnode(left).value.uvalue>127 then
-                            Message(type_w_unicode_data_loss);
-                          hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                            begin
+                              Message(type_w_unicode_data_loss);
+                              // compiler has different codepage than a system running an application
+                              // to prevent wrong codepage and data loss we are converting unicode char
+                              // using a helper routine. This is not delphi compatible behavior.
+                              // Delphi converts UniocodeChar to ansistring at the compile time
+                              // old behavior:
+                              // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              para:=ccallparanode.create(left,nil);
+                              if tstringdef(resultdef).stringtype=st_ansistring then
+                                para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+                              result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
+                                para,resultdef);
+                              left:=nil;
+                              exit;
+                            end
+                          else
+                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                         end
                       else
                         begin
@@ -1146,57 +1161,35 @@ implementation
               (torddef(left.resultdef).ordtype=uwidechar) or
               (target_info.system in systems_managed_vm) then
              begin
-               if (tstringdef(resultdef).stringtype<>st_shortstring) then
+               { parameter }
+               para:=ccallparanode.create(left,nil);
+               { encoding required? }
+               if tstringdef(resultdef).stringtype=st_ansistring then
+                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+
+               { create the procname }
+               if torddef(left.resultdef).ordtype<>uwidechar then
                  begin
-                   { parameter }
-                   para:=ccallparanode.create(left,nil);
-                   { encoding required? }
-                   if tstringdef(resultdef).stringtype=st_ansistring then
-                     para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
-
-                   { create the procname }
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     begin
-                       procname:='fpc_char_to_';
-                       if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
-                     end
-                   else
-                     begin
-                       procname:='fpc_uchar_to_';
-                       if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                     end;
-                   procname:=procname+tstringdef(resultdef).stringtypname;
-
-                   { and finally the call }
-                   result:=ccallnode.createinternres(procname,para,resultdef);
+                   procname:='fpc_char_to_';
+                   if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
                  end
                else
                  begin
-                   if nf_explicit in flags then
-                     Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                   else
-                     Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                   newblock:=internalstatements(newstat);
-                   restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
-                   addstatement(newstat,restemp);
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname := 'fpc_char_to_shortstr'
-                   else
-                     procname := 'fpc_uchar_to_shortstr';
-                   addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-                     ctemprefnode.create(restemp),nil))));
-                   addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-                   addstatement(newstat,ctemprefnode.create(restemp));
-                   result:=newblock;
+                   procname:='fpc_uchar_to_';
+                   if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                  end;
+               procname:=procname+tstringdef(resultdef).stringtypname;
+
+               { and finally the call }
+               result:=ccallnode.createinternres(procname,para,resultdef);
                left := nil;
              end
            else
@@ -1465,10 +1458,10 @@ implementation
 
       begin
          result:=nil;
-         if is_pwidechar(resultdef) then
-           inserttypeconv(left,cunicodestringtype)
-         else
-           inserttypeconv(left,cshortstringtype);
+         { handle any constants via cunicodestringtype because the compiler
+           cannot convert arbitrary unicodechar constants at compile time to
+           a shortstring (since it doesn't know the code page to use) }
+         inserttypeconv(left,cunicodestringtype);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for futher conversion }
@@ -1996,7 +1989,6 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
-        nestinglevel : byte;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2085,15 +2077,6 @@ implementation
          r.obj:=self;
          if assigned(r.proc) then
           result:=tprocedureofobject(r)();
-      end;
-
-
-    function ttypeconvnode.actualtargetnode: tnode;
-      begin
-        result:=self;
-        while (result.nodetype=typeconvn) and
-              ttypeconvnode(result).retains_value_location do
-          result:=ttypeconvnode(result).left;
       end;
 
 
@@ -2268,8 +2251,13 @@ implementation
                   { Handle explicit type conversions }
                   if nf_explicit in flags then
                    begin
-                     { do common tc_equal cast }
-                     convtype:=tc_equal;
+                     { do common tc_equal cast, except when dealing with proc -> procvar
+                       (may have to get rid of method pointer) }
+                     if (left.resultdef.typ<>procdef) or
+                        (resultdef.typ<>procvardef) then
+                       convtype:=tc_equal
+                     else
+                       convtype:=tc_proc_2_procvar;
 
                      { ordinal constants can be resized to 1,2,4,8 bytes }
                      if (left.nodetype=ordconstn) then
@@ -2838,6 +2826,8 @@ implementation
 
       begin
          first_char_to_string:=nil;
+         if tstringdef(resultdef).stringtype=st_shortstring then
+           inc(current_procinfo.estimatedtempsize,256);
          expectloc:=LOC_REFERENCE;
       end;
 
@@ -3066,7 +3056,7 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resultdef.size > sizeof(aint) then
            begin
-             result := ctypeconvnode.create_internal(left,s32inttype);
+             result := ctypeconvnode.create_internal(left,sinttype);
              result := ctypeconvnode.create(result,resultdef);
              left := nil;
              firstpass(result);
@@ -3577,11 +3567,11 @@ implementation
           are smaller than an entire register }
         if result and
            { don't try to check the size of an open array }
-           is_open_array(resultdef) or
-           (resultdef.size<left.resultdef.size) or
-           ((resultdef.size=left.resultdef.size) and
-            (left.resultdef.size<sizeof(aint)) and
-            (is_signed(resultdef) xor is_signed(left.resultdef))) then
+           (is_open_array(resultdef) or
+            (resultdef.size<left.resultdef.size) or
+            ((resultdef.size=left.resultdef.size) and
+             (left.resultdef.size<sizeof(aint)) and
+             (is_signed(resultdef) xor is_signed(left.resultdef)))) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 

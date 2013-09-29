@@ -1551,7 +1551,7 @@ end;
 
 function TMdx4Tag.GetHeaderPageNo: Integer;
 begin
-  Result := SwapIntLE(PMdx4Tag(Tag)^.HeaderPageNo);
+  Result := SwapIntLE(Unaligned(PMdx4Tag(Tag)^.HeaderPageNo));
 end;
 
 function TMdx4Tag.GetTagName: string;
@@ -1591,7 +1591,7 @@ end;
 
 procedure TMdx4Tag.SetHeaderPageNo(NewPageNo: Integer);
 begin
-  PMdx4Tag(Tag)^.HeaderPageNo := SwapIntLE(NewPageNo);
+  Unaligned(PMdx4Tag(Tag)^.HeaderPageNo) := SwapIntLE(NewPageNo);
 end;
 
 procedure TMdx4Tag.SetTagName(NewName: string);
@@ -1636,7 +1636,7 @@ end;
 
 function TMdx7Tag.GetHeaderPageNo: Integer;
 begin
-  Result := SwapIntLE(PMdx7Tag(Tag)^.HeaderPageNo);
+  Result := SwapIntLE(Unaligned(PMdx7Tag(Tag)^.HeaderPageNo));
 end;
 
 function TMdx7Tag.GetTagName: string;
@@ -1676,7 +1676,7 @@ end;
 
 procedure TMdx7Tag.SetHeaderPageNo(NewPageNo: Integer);
 begin
-  PMdx7Tag(Tag)^.HeaderPageNo := SwapIntLE(NewPageNo);
+  Unaligned(PMdx7Tag(Tag)^.HeaderPageNo) := SwapIntLE(NewPageNo);
 end;
 
 procedure TMdx7Tag.SetTagName(NewName: string);

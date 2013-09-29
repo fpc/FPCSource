@@ -82,6 +82,7 @@ interface
 
     { tries to simplify the given node after inlining }
     procedure doinlinesimplify(var n : tnode);
+
     { creates an ordinal constant, optionally based on the result from a
       simplify operation: normally the type is the smallest integer type
       that can hold the value, but when inlining the "def" will be used instead,
@@ -94,7 +95,6 @@ interface
       containing no code }
     function has_no_code(n : tnode) : boolean;
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -118,6 +118,22 @@ interface
     { count the number of nodes in the node tree,
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
+
+    { returns true, if the value described by node is constant/immutable, this approximation is safe
+      if no dirty tricks like buffer overflows or pointer magic are used }
+    function is_const(node : tnode) : boolean;
+
+    { returns a pointer to the real node a node refers to,
+      skipping (absolute) equal type conversions. Returning
+      a pointer allows the caller to move/remove/replace this
+      node
+    }
+    function actualtargetnode(n : pnode) : pnode;
+
+    { moves src into dest, before doing so, right is set to nil and dest is freed.
+      Because dest and src are var parameters, this can be done inline in an existing
+      node tree }
+    procedure replacenode(var dest,src : tnode);
 
 implementation
 
@@ -590,11 +606,19 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
+              labeln,
               blockn,
               callparan:
                 p := tunarynode(p).left;
               notn,
               derefn :
+                begin
+                  inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
+              addrn:
                 begin
                   inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
@@ -649,6 +673,16 @@ implementation
 {$endif ARM}
                   exit;
                 end;
+              exitn:
+                begin
+                  inc(result,2);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p:=texitnode(p).left;
+                end;
               tempcreaten,
               tempdeleten,
               pointerconstn,
@@ -684,6 +718,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
+                    in_aligned_x,
                     in_unaligned_x,
                     in_prefetch_var:
                       begin
@@ -886,25 +921,6 @@ implementation
       end;
 
 
-    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
-    var
-      hpropsym : tpropertysym;
-    begin
-      result:=false;
-      { find property in the overridden list }
-      hpropsym:=propsym;
-      repeat
-        propaccesslist:=hpropsym.propaccesslist[pap];
-        if not propaccesslist.empty then
-          begin
-            result:=true;
-            exit;
-          end;
-        hpropsym:=hpropsym.overriddenpropsym;
-      until not assigned(hpropsym);
-    end;
-
-
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
       var
         plist : ppropaccesslistitem;
@@ -1026,7 +1042,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,[ssf_search_helper])
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then
@@ -1048,7 +1064,8 @@ implementation
               { only orddefs and enumdefs are actually bitpacked. Don't consider
                 e.g. an access to a 3-byte record as "bitpacked", since it
                 isn't }
-              (tvecnode(n).left.resultdef.typ in [orddef,enumdef]) and
+              (tvecnode(n).left.resultdef.typ = arraydef) and
+              (tarraydef(tvecnode(n).left.resultdef).elementdef.typ in [orddef,enumdef]) and
               not(tarraydef(tvecnode(n).left.resultdef).elepackedbitsize in [8,16,32,64]);
           subscriptn:
             result:=
@@ -1137,13 +1154,43 @@ implementation
       end;
 
 
-    { rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
       begin
         nodecount:=0;
         foreachnodestatic(node,@donodecount,nil);
         result:=nodecount;
       end;
+
+
+    function is_const(node : tnode) : boolean;
+      begin
+        result:=(node.nodetype=temprefn) and (ti_const in ttemprefnode(node).tempinfo^.flags)
+      end;
+
+
+    function actualtargetnode(n : pnode) : pnode;
+      begin
+        result:=n;
+        case n^.nodetype of
+          typeconvn:
+            if ttypeconvnode(n^).retains_value_location then
+              result:=actualtargetnode(@ttypeconvnode(n^).left);
+        end;
+      end;
+
+
+    procedure replacenode(var dest,src : tnode);
+      var
+        t : tnode;
+      begin
+        t:=src;
+        { set src nil before free'ing dest because
+          src could be part of dest }
+        src:=nil;
+        dest.Free;
+        dest:=t;
+      end;
+
 
 
 end.

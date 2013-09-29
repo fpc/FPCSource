@@ -5,9 +5,9 @@
  *  Copyright 2004 Apple Computer, Inc. All rights reserved.
  *
  }
- {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
- {	 Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
- 
+{  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -83,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -92,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -107,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -116,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -126,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -173,8 +178,6 @@ uses MacTypes, CFBase, CFDictionary, CVBase, CVPixelBuffer, CVReturns;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 
@@ -187,19 +190,20 @@ uses MacTypes, CFBase, CFDictionary, CVBase, CVPixelBuffer, CVReturns;
 
 
 type
-	CVPixelBufferPoolRef = ^SInt32; { an opaque type }
+	CVPixelBufferPoolRef = ^__CVPixelBufferPool; { an opaque type }
+	__CVPixelBufferPool = record end;
 
 // By default, buffers will age out after one second.   If required, setting an age of zero will disable
 // the age-out mechanism completely.
 
 var kCVPixelBufferPoolMinimumBufferCountKey: CFStringRef; external name '_kCVPixelBufferPoolMinimumBufferCountKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 var kCVPixelBufferPoolMaximumBufferAgeKey: CFStringRef; external name '_kCVPixelBufferPoolMaximumBufferAgeKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 
 function CVPixelBufferPoolGetTypeID: CFTypeID; external name '_CVPixelBufferPoolGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVPixelBufferPoolRetain
@@ -209,7 +213,7 @@ function CVPixelBufferPoolGetTypeID: CFTypeID; external name '_CVPixelBufferPool
     @result     A CVPixelBufferPoolRef object that is the same as the passed in buffer.
 }
 function CVPixelBufferPoolRetain( pixelBufferPool: CVPixelBufferPoolRef ): CVPixelBufferPoolRef; external name '_CVPixelBufferPoolRetain';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) // NULL-safe
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *) // NULL-safe
 
 {!
     @function   CVPixelBufferPoolRelease
@@ -218,7 +222,7 @@ function CVPixelBufferPoolRetain( pixelBufferPool: CVPixelBufferPoolRef ): CVPix
     @param      buffer A CVPixelBufferPoolRef object that you want to release.
 }
 procedure CVPixelBufferPoolRelease( pixelBufferPool: CVPixelBufferPoolRef ); external name '_CVPixelBufferPoolRelease';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) // NULL-safe
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *) // NULL-safe
 
 {!
     @function   CVPixelBufferPoolCreate
@@ -229,7 +233,7 @@ procedure CVPixelBufferPoolRelease( pixelBufferPool: CVPixelBufferPoolRef ); ext
     @result     Returns kCVReturnSuccess on success
 }
 function CVPixelBufferPoolCreate( allocator: CFAllocatorRef; poolAttributes: CFDictionaryRef; pixelBufferAttributes: CFDictionaryRef; var poolOut: CVPixelBufferPoolRef ): CVReturn; external name '_CVPixelBufferPoolCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVPixelBufferPoolGetAttributes
@@ -238,7 +242,7 @@ function CVPixelBufferPoolCreate( allocator: CFAllocatorRef; poolAttributes: CFD
     @result     Returns the pool attributes dictionary, or NULL on failure.
 }
 function CVPixelBufferPoolGetAttributes( pool: CVPixelBufferPoolRef ): CFDictionaryRef; external name '_CVPixelBufferPoolGetAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVPixelBufferPoolGetPixelBufferAttributes
@@ -249,7 +253,7 @@ function CVPixelBufferPoolGetAttributes( pool: CVPixelBufferPoolRef ): CFDiction
     @result     Returns the pixel buffer attributes dictionary, or NULL on failure.
 }
 function CVPixelBufferPoolGetPixelBufferAttributes( pool: CVPixelBufferPoolRef ): CFDictionaryRef; external name '_CVPixelBufferPoolGetPixelBufferAttributes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 {!
     @function   CVPixelBufferPoolCreatePixelBuffer
@@ -261,9 +265,39 @@ function CVPixelBufferPoolGetPixelBufferAttributes( pool: CVPixelBufferPoolRef )
     @result     Returns kCVReturnSuccess on success
 }
 function CVPixelBufferPoolCreatePixelBuffer( allocator: CFAllocatorRef; pixelBufferPool: CVPixelBufferPoolRef; var pixelBufferOut: CVPixelBufferRef ): CVReturn; external name '_CVPixelBufferPoolCreatePixelBuffer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{$endc} {TARGET_OS_MAC}
+
+{
+    @function   CVPixelBufferPoolCreatePixelBufferWithAuxAttributes
+    @abstract   Creates a new PixelBuffer object from the pool.
+    @discussion This function creates a new CVPixelBuffer using the pixel buffer attributes specified during pool creation and the attributes specified in the auxAttributes parameter.
+    @param      allocator The CFAllocatorRef to use for creating the pixel buffer.  May be NULL.
+    @param      pixelBufferPool      The CVPixelBufferPool that should create the new CVPixelBuffer.
+    @param      auxAttributes	Attributes describing this specific allocation request.  May be NULL.
+    @param      pixelBufferOut   The newly created pixel buffer will be placed here
+    @result     Returns kCVReturnSuccess on success
+}
+function CVPixelBufferPoolCreatePixelBufferWithAuxAttributes( allocator: CFAllocatorRef; pixelBufferPool: CVPixelBufferPoolRef; auxAttributes: CFDictionaryRef; var pixelBufferOut: CVPixelBufferRef ): CVReturn; external name '_CVPixelBufferPoolCreatePixelBufferWithAuxAttributes';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_4_0) *)
+
+// Key for the auxiliary attributes dictionary passed to CVPixelBufferPoolCreatePixelBufferWithAuxAttributes().
+
+// When set, indicates that a new pixel buffer should not be allocated if
+// the pool already has this many or more pixel buffers allocated.
+// This does not prevent already-allocated buffers from being recycled.
+// If this key causes CVPixelBufferPoolCreatePixelBufferWithAuxAttributes to fail,
+// it will return kCVReturnWouldExceedAllocationThreshold.
+var kCVPixelBufferPoolAllocationThresholdKey: CFStringRef; external name '_kCVPixelBufferPoolAllocationThresholdKey'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_4_0) *) // CFNumberRef -- for use only in auxAttributes
+
+// kCVPixelBufferPoolFreeBufferNotification is posted if a buffer becomes available after
+// CVPixelBufferPoolCreatePixelBufferWithAuxAttributes has failed due to kCVPixelBufferPoolAllocationThresholdKey.
+// This notification will not be posted by the pool if kCVPixelBufferPoolAllocationThresholdKey 
+// has never been passed to CVPixelBufferPoolCreatePixelBufferWithAuxAttributes.
+var kCVPixelBufferPoolFreeBufferNotification: CFStringRef; external name '_kCVPixelBufferPoolFreeBufferNotification'; (* attribute const *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_4_0) *)
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

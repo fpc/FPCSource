@@ -15,20 +15,33 @@ uses
 {$EndIf}
 
 type
+  TPQCursor = Class;
+
+  { TPQTrans }
+
   TPQTrans = Class(TSQLHandle)
-    protected
+  protected
     PGConn        : PPGConn;
-    ErrorOccured  : boolean;
+    FList : TThreadList;
+    Procedure RegisterCursor(S : TPQCursor);
+    Procedure UnRegisterCursor(S : TPQCursor);
+  Public
+    Constructor Create;
+    Destructor Destroy; override;
   end;
 
+  { TPQCursor }
+
   TPQCursor = Class(TSQLCursor)
-    protected
+  protected
     Statement    : string;
     StmtName     : string;
     tr           : TPQTrans;
     res          : PPGresult;
     CurTuple     : integer;
     FieldBinding : array of integer;
+   Public
+    Destructor Destroy; override;
   end;
 
   EPQDatabaseError = class(EDatabaseError)
@@ -41,19 +54,31 @@ type
       STATEMENT_POSITION:string;
   end;
 
+  TPQTranConnection = class
+  protected
+    FPGConn        : PPGConn;
+    FTranActive    : boolean
+  end;
+
   { TPQConnection }
 
   TPQConnection = class (TSQLConnection)
   private
-    FCursorCount         : word;
+    FConnectionPool      : TThreadList;
+    FCursorCount         : dword;
     FConnectString       : string;
-    FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    procedure CheckResultError(res: PPGresult; conn:PPGconn; ErrMsg: string);
-    function GetPQDatabaseError(res : PPGresult;ErrMsg: string):EPQDatabaseError;
+    FVerboseErrors       : Boolean;
+    procedure CheckConnectionStatus(var conn: PPGconn);
+    procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
+    // Add connection to pool.
+    procedure AddConnection(T: TPQTranConnection);
+    // Release connection in pool.
+    procedure ReleaseConnection(Conn: PPGConn; DoClear : Boolean);
+
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
@@ -80,6 +105,8 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
+    destructor destroy; override;
+    function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
   published
@@ -88,6 +115,7 @@ type
     property LoginPrompt;
     property Params;
     property OnLogin;
+    Property VerboseErrors : Boolean Read FVerboseErrors Write FVerboseErrors default true;
   end;
 
   { TPQConnectionDef }
@@ -99,6 +127,7 @@ type
     Class Function DefaultLibraryName : String; override;
     Class Function LoadFunction : TLibraryLoadFunction; override;
     Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName: string; override;
   end;
 
 implementation
@@ -115,6 +144,7 @@ ResourceString
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
   SErrPrepareFailed = 'Preparation of query failed.';
+  SErrUnPrepareFailed = 'Unpreparation of query failed.';
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
@@ -142,13 +172,70 @@ const Oid_Bool     = 16;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
+{ TPQTrans }
+
+procedure TPQTrans.RegisterCursor(S: TPQCursor);
+begin
+  FList.Add(S);
+  S.tr:=Self;
+end;
+
+procedure TPQTrans.UnRegisterCursor(S: TPQCursor);
+begin
+  S.tr:=Nil;
+  FList.Remove(S);
+end;
+
+constructor TPQTrans.Create;
+begin
+  Flist:=TThreadList.Create;
+  FList.Duplicates:=dupIgnore;
+end;
+
+destructor TPQTrans.Destroy;
+
+Var
+  L : TList;
+  I : integer;
+
+begin
+  L:=Flist.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      TPQCursor(L[i]).tr:=Nil;
+  finally
+    Flist.UnlockList;
+  end;
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+{ TPQCursor }
+
+destructor TPQCursor.Destroy;
+begin
+  if Assigned(tr) then
+    Tr.UnRegisterCursor(Self);
+  inherited Destroy;
+end;
+
 
 constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash];
   FieldNameQuoteChars:=DoubleQuotes;
+  VerboseErrors:=True;
+  FConnectionPool:=TThreadlist.Create;
+end;
+
+destructor TPQConnection.destroy;
+begin
+  // We must disconnect here. If it is done in inherited, then connection pool is gone.
+  Connected:=False;
+  FreeAndNil(FConnectionPool);
+  inherited destroy;
 end;
 
 procedure TPQConnection.CreateDB;
@@ -163,11 +250,10 @@ begin
   ExecuteDirectPG('DROP DATABASE ' +DatabaseName);
 end;
 
-procedure TPQConnection.ExecuteDirectPG(const query : string);
+procedure TPQConnection.ExecuteDirectPG(const Query: String);
 
 var ASQLDatabaseHandle    : PPGConn;
     res                   : PPGresult;
-    msg                   : String;
 
 begin
   CheckDisConnected;
@@ -184,12 +270,7 @@ begin
 
   ASQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
 
-  if (PQstatus(ASQLDatabaseHandle) = CONNECTION_BAD) then
-    begin
-    msg := PQerrorMessage(ASQLDatabaseHandle);
-    PQFinish(ASQLDatabaseHandle);
-    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + Msg + ')',self);
-    end;
+  CheckConnectionStatus(ASQLDatabaseHandle);
 
   res := PQexec(ASQLDatabaseHandle,pchar(query));
 
@@ -202,6 +283,39 @@ begin
 {$EndIf}
 end;
 
+procedure TPQConnection.AddConnection(T: TPQTranConnection);
+
+begin
+  FConnectionPool.Add(T);
+end;
+
+procedure TPQConnection.ReleaseConnection(Conn: PPGConn; DoClear: Boolean);
+
+Var
+  I : Integer;
+  L : TList;
+  T : TPQTranConnection;
+
+begin
+  L:=FConnectionPool.LockList;
+  // make connection available in pool
+  try
+    for i:=0 to L.Count-1 do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if (T.FPGConn=Conn) then
+        begin
+        T.FTranActive:=false;
+        if DoClear then
+          T.FPGConn:=Nil;
+        break;
+        end;
+      end
+  finally
+    FConnectionPool.UnlockList;
+  end;
+end;
+
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
@@ -212,17 +326,27 @@ function TPQConnection.RollBack(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
+  L   : TList;
+
 begin
   result := false;
-
   tr := trans as TPQTrans;
-
+  L:=tr.FList.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      begin
+      UnprepareStatement(TPQCursor(L[i]));
+      TPQCursor(L[i]).tr:=Nil;
+      end;
+    L.Clear;
+  finally
+    tr.flist.UnlockList;
+  end;
   res := PQexec(tr.PGConn, 'ROLLBACK');
-
   CheckResultError(res,tr.PGConn,SErrRollbackFailed);
-
   PQclear(res);
-  PQFinish(tr.PGConn);
+  ReleaseConnection(tr.PGCOnn,false);
   result := true;
 end;
 
@@ -230,16 +354,15 @@ function TPQConnection.Commit(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
 begin
   result := false;
-
   tr := trans as TPQTrans;
-
   res := PQexec(tr.PGConn, 'COMMIT');
   CheckResultError(res,tr.PGConn,SErrCommitFailed);
-
   PQclear(res);
-  PQFinish(tr.PGConn);
+  //make connection available in pool
+  ReleaseConnection(tr.PGConn,false);
   result := true;
 end;
 
@@ -247,30 +370,56 @@ function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) 
 var
   res : PPGresult;
   tr  : TPQTrans;
+  i   : Integer;
+  t : TPQTranConnection;
+  L : TList;
 begin
+  result:=false;
   tr := trans as TPQTrans;
 
-  tr.PGConn := PQconnectdb(pchar(FConnectString));
-
-  if (PQstatus(tr.PGConn) = CONNECTION_BAD) then
+  //find an unused connection in the pool
+  i:=0;
+  t:=Nil;
+  L:=FConnectionPool.LockList;
+  try
+    while (I<L.Count-1) do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if (T.FPGConn=nil) or not T.FTranActive then
+        break
+      else
+        T:=Nil;
+      i:=i+1;
+      end;
+    // set to active now, so when we exit critical section,
+    // it will be marked active and will not be found.
+    if Assigned(T) then
+      T.FTranActive:=true;
+  finally
+    FConnectionPool.UnLockList;
+  end;
+  if (T=Nil) then
     begin
-    result := false;
-    PQFinish(tr.PGConn);
-    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-    end
+    T:=TPQTranConnection.Create;
+    T.FTranActive:=True;
+    AddConnection(T);
+    end;
+  if (T.FPGConn<>nil) then
+    tr.PGConn:=T.FPGConn
   else
     begin
-    tr.ErrorOccured := False;
-
+    tr.PGConn := PQconnectdb(pchar(FConnectString));
+    T.FPGConn:=tr.PGConn;
+    CheckConnectionStatus(tr.PGConn);
     if CharSet <> '' then
       PQsetClientEncoding(tr.PGConn, pchar(CharSet));
-
-    res := PQexec(tr.PGConn, 'BEGIN');
-    CheckResultError(res,tr.PGConn,sErrTransactionFailed);
-
-    PQclear(res);
-    result := true;
     end;
+
+  res := PQexec(tr.PGConn, 'BEGIN');
+  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+
+  PQclear(res);
+  result := true;
 end;
 
 procedure TPQConnection.RollBackRetaining(trans : TSQLHandle);
@@ -307,15 +456,16 @@ end;
 
 
 procedure TPQConnection.DoInternalConnect;
-
-var msg : string;
+var
+  ASQLDatabaseHandle   : PPGConn;
+  T : TPQTranConnection;
 
 begin
 {$IfDef LinkDynamically}
   InitialisePostgres3;
 {$EndIf}
 
-  inherited dointernalconnect;
+  inherited DoInternalConnect;
 
   FConnectString := '';
   if (UserName <> '') then FConnectString := FConnectString + ' user=''' + UserName + '''';
@@ -324,79 +474,122 @@ begin
   if (DatabaseName <> '') then FConnectString := FConnectString + ' dbname=''' + DatabaseName + '''';
   if (Params.Text <> '') then FConnectString := FConnectString + ' '+Params.Text;
 
-  FSQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
+  ASQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
+  try
+    CheckConnectionStatus(ASQLDatabaseHandle);
+  except
+    DoInternalDisconnect;
+    raise;
+  end;
 
-  if (PQstatus(FSQLDatabaseHandle) = CONNECTION_BAD) then
-    begin
-    msg := PQerrorMessage(FSQLDatabaseHandle);
-    dointernaldisconnect;
-    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + msg + ')',self);
-    end;
-// This does only work for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
+  // This only works for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
   if PQparameterStatus<>nil then
-    FIntegerDatetimes := pqparameterstatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
+    FIntegerDateTimes := PQparameterStatus(ASQLDatabaseHandle,'integer_datetimes') = 'on';
+  T:=TPQTranConnection.Create;
+  T.FPGConn:=ASQLDatabaseHandle;
+  T.FTranActive:=false;
+  AddConnection(T);
 end;
 
 procedure TPQConnection.DoInternalDisconnect;
+var
+  i:integer;
+  L : TList;
+  T : TPQTranConnection;
+
 begin
-  PQfinish(FSQLDatabaseHandle);
+  Inherited;
+  L:=FConnectionPool.LockList;
+  try
+    for i:=0 to L.Count-1 do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if assigned(T.FPGConn) then
+        PQfinish(T.FPGConn);
+      T.Free;
+      end;
+    L.Clear;
+  finally
+    FConnectionPool.UnLockList;
+  end;
 {$IfDef LinkDynamically}
   ReleasePostgres3;
 {$EndIf}
-
 end;
 
-procedure TPQConnection.CheckResultError(res: PPGresult; conn: PPGconn;
-  ErrMsg: string);
-var
-  E: EPQDatabaseError;
-
+procedure TPQConnection.CheckConnectionStatus(var conn: PPGconn);
+var sErr: string;
+    i: integer;
 begin
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+  if (PQstatus(conn) = CONNECTION_BAD) then
     begin
-    E:=GetPQDatabaseError(res,ErrMsg);
-    pqclear(res);
-    if assigned(conn) then
-      PQFinish(conn);
-    raise E;
+    sErr := PQerrorMessage(conn);
+    //make connection available in pool
+    ReleaseConnection(Conn,True);
+    PQfinish(conn);
+    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + sErr + ')', Self);
     end;
 end;
 
-function TPQConnection.GetPQDatabaseError(res: PPGresult; ErrMsg: string
-  ): EPQDatabaseError;
+procedure TPQConnection.CheckResultError(var res: PPGresult; conn: PPGconn;
+  ErrMsg: string);
+
+  Procedure MaybeAdd(Var S : String; Prefix,Msg : String);
+
+  begin
+    if (Msg='') then
+      exit;
+    S:=S+LineEnding+Prefix+': '+Msg;
+  end;
+
 var
-  serr:string;
   E: EPQDatabaseError;
+  sErr: string;
   CompName: string;
-  SEVERITY:string;
+  SEVERITY: string;
   SQLSTATE: string;
-  MESSAGE_PRIMARY:string;
-  MESSAGE_DETAIL:string;
-  MESSAGE_HINT:string;
-  STATEMENT_POSITION:string;
+  MESSAGE_PRIMARY: string;
+  MESSAGE_DETAIL: string;
+  MESSAGE_HINT: string;
+  STATEMENT_POSITION: string;
+  i:Integer;
 begin
-  SEVERITY:=PQresultErrorField(res,ord('S'));
-  SQLSTATE:=PQresultErrorField(res,ord('C'));
-  MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
-  MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
-  MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
-  STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
-  serr:=PQresultErrorMessage(res)+LineEnding+
-    'Severity: '+ SEVERITY +LineEnding+
-    'SQL State: '+ SQLSTATE +LineEnding+
-    'Primary Error: '+ MESSAGE_PRIMARY +LineEnding+
-    'Error Detail: '+ MESSAGE_DETAIL +LineEnding+
-    'Hint: '+ MESSAGE_HINT +LineEnding+
-    'Character: '+ STATEMENT_POSITION +LineEnding;
-  if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
-  E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName,ErrMsg, serr]);
-  E.SEVERITY:=SEVERITY;
-  E.SQLSTATE:=SQLSTATE;
-  E.MESSAGE_PRIMARY:=MESSAGE_PRIMARY;
-  E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
-  E.MESSAGE_HINT:=MESSAGE_HINT;
-  E.STATEMENT_POSITION:=STATEMENT_POSITION;
-  result:=E;
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    SEVERITY:=PQresultErrorField(res,ord('S'));
+    SQLSTATE:=PQresultErrorField(res,ord('C'));
+    MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
+    MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
+    MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
+    STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
+    sErr:=PQresultErrorMessage(res);
+    if VerboseErrors then
+      begin
+      MaybeAdd(sErr,'Severity',SEVERITY);
+      MaybeAdd(sErr,'SQL State',SQLSTATE);
+      MaybeAdd(sErr,'Primary Error',MESSAGE_PRIMARY);
+      MaybeAdd(sErr,'Error Detail',MESSAGE_DETAIL);
+      MaybeAdd(sErr,'Hint',MESSAGE_HINT);
+      MaybeAdd(sErr,'Character',STATEMENT_POSITION);
+      end;
+    if (Self.Name='') then CompName := Self.ClassName else CompName := Self.Name;
+    E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName, ErrMsg, sErr]);
+    E.SEVERITY:=SEVERITY;
+    E.SQLSTATE:=SQLSTATE;
+    E.MESSAGE_PRIMARY:=MESSAGE_PRIMARY;
+    E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
+    E.MESSAGE_HINT:=MESSAGE_HINT;
+    E.STATEMENT_POSITION:=STATEMENT_POSITION;
+
+    PQclear(res);
+    res:=nil;
+    if assigned(conn) then
+      begin
+      PQFinish(conn);
+      ReleaseConnection(Conn,True);
+      end;
+    raise E;
+    end;
 end;
 
 function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
@@ -417,7 +610,7 @@ begin
                                else
                                  size := (li-VARHDRSZ) and $FFFF;
                                end;
-                             if size > dsMaxStringSize then size := dsMaxStringSize;
+                             if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftstring;
     Oid_text               : Result := ftMemo;
@@ -472,19 +665,18 @@ begin
   end;
 end;
 
-Function TPQConnection.AllocateCursorHandle : TSQLCursor;
+function TPQConnection.AllocateCursorHandle: TSQLCursor;
 
 begin
   result := TPQCursor.create;
 end;
 
-Procedure TPQConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
-
+procedure TPQConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   FreeAndNil(cursor);
 end;
 
-Function TPQConnection.AllocateTransactionHandle : TSQLHandle;
+function TPQConnection.AllocateTransactionHandle: TSQLHandle;
 
 begin
   result := TPQTrans.create;
@@ -495,7 +687,7 @@ procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
-      'text',     // ftString
+      'text',      // ftString
       'smallint',  // ftSmallint
       'int',       // ftInteger
       'int',       // ftWord
@@ -549,28 +741,37 @@ begin
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
       begin
       StmtName := 'prepst'+inttostr(FCursorCount);
-      inc(FCursorCount);
-      tr := TPQTrans(aTransaction.Handle);
+      InterlockedIncrement(FCursorCount);
+      TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
+
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
       s := 'prepare '+StmtName+' ';
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         s := s + '(';
-        for i := 0 to AParams.count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
-          s := s + TypeStrings[AParams[i].DataType] + ','
-        else
-          begin
-          if AParams[i].DataType = ftUnknown then 
-            DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
-          else 
-            DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
-          end;
+        for i := 0 to AParams.Count-1 do
+          if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+            s := s + TypeStrings[AParams[i].DataType] + ','
+          else
+            begin
+            if AParams[i].DataType = ftUnknown then
+              begin
+              if AParams[i].IsNull then
+                s:=s+' unknown ,'
+              else
+                DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+              end
+            else
+              DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+            end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      res := pqexec(tr.PGConn,pchar(s));
+      if LogEvent(detPrepare) then
+        Log(detPrepare,S);
+      res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
       // override the statement type derrived by parsing the query.
@@ -584,31 +785,27 @@ begin
       FPrepared := True;
       end
     else
-      statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
     end;
 end;
 
 procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
-var
-  E: EPQDatabaseError;
-
 begin
-  with (cursor as TPQCursor) do if FPrepared then
+  with (cursor as TPQCursor) do
     begin
-    if not tr.ErrorOccured then
+    PQclear(res);
+    res:=nil;
+    if FPrepared then
       begin
-      PQclear(res);
-      res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+      if PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR then
         begin
-          E:=GetPQDatabaseError(res,SErrPrepareFailed);
-          pqclear(res);
-          raise E;
-        end
-      else
-        pqclear(res);
+        res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
+        CheckResultError(res,nil,SErrUnPrepareFailed);
+        PQclear(res);
+        res:=nil;
+        end;
+      FPrepared := False;
       end;
-    FPrepared := False;
     end;
 end;
 
@@ -621,21 +818,20 @@ var ar  : array of pchar;
     ParamNames,
     ParamValues : array of string;
     cash: int64;
-    E: EPQDatabaseError;
 
 begin
   with cursor as TPQCursor do
     begin
+    PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
-      pqclear(res);
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
-        l:=Aparams.count;
+        l:=AParams.Count;
         setlength(ar,l);
         setlength(lengths,l);
         setlength(formats,l);
-        for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
+        for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
             ftDateTime:
@@ -667,8 +863,8 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar(StmtName),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
-        for i := 0 to AParams.count -1 do
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
+        for i := 0 to AParams.Count -1 do
           FreeMem(ar[i]);
         end
       else
@@ -676,39 +872,39 @@ begin
       end
     else
       begin
-      tr := TPQTrans(aTransaction.Handle);
+      // Registercursor sets tr
+      TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
 
-      if Assigned(AParams) and (AParams.count > 0) then
+      if Assigned(AParams) and (AParams.Count > 0) then
         begin
         setlength(ParamNames,AParams.Count);
         setlength(ParamValues,AParams.Count);
-        for i := 0 to AParams.count -1 do
+        for i := 0 to AParams.Count -1 do
           begin
-          ParamNames[AParams.count-i-1] := '$'+inttostr(AParams[i].index+1);
-          ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
+          ParamNames[AParams.Count-i-1] := '$'+inttostr(AParams[i].index+1);
+          ParamValues[AParams.Count-i-1] := GetAsSQLText(AParams[i]);
           end;
-        s := stringsreplace(statement,ParamNames,ParamValues,[rfReplaceAll]);
+        s := stringsreplace(Statement,ParamNames,ParamValues,[rfReplaceAll]);
         end
       else
         s := Statement;
-      res := pqexec(tr.PGConn,pchar(s));
-      if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+      res := PQexec(tr.PGConn,pchar(s));
+      if (PQresultStatus(res) in [PGRES_COMMAND_OK]) then
         begin
-          pqclear(res); 
-          res:=nil;
+        PQclear(res);
+        res:=nil;
         end;
       end;
+
     if assigned(res) and not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
-      E:=GetPQDatabaseError(res,SErrExecuteFailed);
-      pqclear(res);
-
-      tr.ErrorOccured := True;
-// Don't perform the rollback, only make it possible to do a rollback.
-// The other databases also don't do this.
-//      atransaction.Rollback;
-      raise E;
+      // Don't perform the rollback, only make it possible to do a rollback.
+      // The other databases also don't do this.
+      //atransaction.Rollback;
+      CheckResultError(res,nil,SErrExecuteFailed);
       end;
+
+    FSelectable := assigned(res) and (PQresultStatus(res)=PGRES_TUPLES_OK);
     end;
 end;
 
@@ -736,8 +932,41 @@ begin
 end;
 
 function TPQConnection.GetHandle: pointer;
+var
+  i:integer;
+  L : TList;
+  T : TPQTranConnection;
+
 begin
-  Result := FSQLDatabaseHandle;
+  result:=nil;
+  if not Connected then
+    exit;
+  //Get any handle that is (still) connected
+  L:=FConnectionPool.LockList;
+  try
+    I:=L.Count-1;
+    While (I>=0) and (Result=Nil) do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if assigned(T.FPGConn) and (PQstatus(T.FPGConn)<>CONNECTION_BAD) then
+        Result:=T.FPGConn;
+      Dec(I);
+      end;
+  finally
+    FConnectionPool.UnLockList;
+  end;
+  if Result<>Nil then
+     exit;
+  //Nothing connected!! Reconnect
+  // T is element 0 after loop
+  if assigned(T.FPGConn) then
+    PQreset(T.FPGConn)
+  else
+    T.FPGConn := PQconnectdb(pchar(FConnectString));
+  CheckConnectionStatus(T.FPGConn);
+  if CharSet <> '' then
+    PQsetClientEncoding(T.FPGConn, pchar(CharSet));
+  result:=T.FPGConn;
 end;
 
 function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
@@ -778,7 +1007,7 @@ type TNumericRecord = record
      end;
 
 var
-  x,i,j         : integer;
+  x,i           : integer;
   s             : string;
   li            : Longint;
   CurrBuff      : pchar;
@@ -812,18 +1041,22 @@ begin
       result := true;
 
       case FieldDef.DataType of
-        ftInteger, ftSmallint, ftLargeInt, ftFloat :
-          begin
-          i := PQfsize(res, x);
-          case i of               // postgres returns big-endian numbers
-            sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
-            sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
-            sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^);
-          else
-            for j := 1 to i do
-              pchar(Buffer)[j-1] := CurrBuff[i-j];
+        ftInteger, ftSmallint, ftLargeInt :
+          case PQfsize(res, x) of  // postgres returns big-endian numbers
+            sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^); // INT8
+            sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^); // INT4
+            sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^); // INT2
           end; {case}
-          end;
+        ftFloat :
+          case PQfsize(res, x) of  // postgres returns big-endian numbers
+            sizeof(int64) :  // FLOAT8
+              pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
+            sizeof(integer) :  // FLOAT4
+              begin
+              li := BEtoN(pinteger(CurrBuff)^);
+              pdouble(buffer)^ := psingle(@li)^
+              end;
+          end; {case}
         ftString, ftFixedChar :
           begin
           case PQftype(res, x) of
@@ -848,7 +1081,7 @@ begin
             else
             begin
               li := pqgetlength(res,curtuple,x);
-              if li > dsMaxStringSize then li := dsMaxStringSize;
+              if li > FieldDef.Size then li := FieldDef.Size;
               Move(CurrBuff^, Buffer^, li);
             end;
           end;
@@ -864,7 +1097,7 @@ begin
         ftDateTime, ftTime :
           begin
           dbl := pointer(buffer);
-          if FIntegerDatetimes then
+          if FIntegerDateTimes then
             dbl^ := BEtoN(pint64(CurrBuff)^) / 1000000
           else
             pint64(dbl)^ := BEtoN(pint64(CurrBuff)^);
@@ -940,10 +1173,16 @@ end;
 procedure TPQConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
 var qry : TSQLQuery;
+    relname : string;
 
 begin
   if not assigned(Transaction) then
     DatabaseError(SErrConnTransactionnSet);
+
+  if (length(TableName)>2) and (TableName[1]='"') and (TableName[length(TableName)]='"') then
+    relname := QuotedStr(AnsiDequotedStr(TableName, '"'))
+  else
+    relname := 'lower(' + QuotedStr(TableName) + ')';  // unquoted names are stored lower case in PostgreSQL which is incompatible with the SQL standard
 
   qry := tsqlquery.Create(nil);
   qry.transaction := Transaction;
@@ -971,7 +1210,7 @@ begin
               '(ia.attrelid = i.indexrelid) and '+
               '(ic.oid = i.indexrelid) and '+
               '(ta.attnum = i.indkey[ia.attnum-1]) and '+
-              '(upper(tc.relname)=''' +  UpperCase(TableName) +''') '+
+              '(tc.relname = ' + relname + ') '+
             'order by '+
               'ic.relname;');
     open;
@@ -999,53 +1238,54 @@ function TPQConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
 var s : string;
 
 begin
+  // select * from information_schema.tables with 
+  // where table_schema [not] in ('pg_catalog','information_schema') may be better.
+  // But the following should work:
   case SchemaType of
     stTables     : s := 'select '+
-                          'relfilenode              as recno, '+
-                          '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
-                          'relname                  as table_name, '+
-                          '0                        as table_type '+
-                        'from '+
-                          'pg_class '+
-                        'where '+
-                          '(relowner > 1) and relkind=''r''' +
+                          'relfilenode        as recno, '+
+                          'current_database() as catalog_name, '+
+                          'nspname            as schema_name, '+
+                          'relname            as table_name, '+
+                          '0                  as table_type '+
+                        'from pg_class c '+
+                          'left join pg_namespace n on c.relnamespace=n.oid '+
+                        'where (relkind=''r'') and not (nspname in (''pg_catalog'',''information_schema''))' +
                         'order by relname';
 
     stSysTables  : s := 'select '+
-                          'relfilenode              as recno, '+
-                          '''' + DatabaseName + ''' as catalog_name, '+
-                          '''''                     as schema_name, '+
-                          'relname                  as table_name, '+
-                          '0                        as table_type '+
-                        'from '+
-                          'pg_class '+
-                        'where '+
-                          'relkind=''r''' +
+                          'relfilenode        as recno, '+
+                          'current_database() as catalog_name, '+
+                          'nspname            as schema_name, '+
+                          'relname            as table_name, '+
+                          '0                  as table_type '+
+                        'from pg_class c '+
+                          'left join pg_namespace n on c.relnamespace=n.oid '+
+                        'where (relkind=''r'') and nspname in ((''pg_catalog'',''information_schema'')) ' + // only system tables
                         'order by relname';
     stColumns    : s := 'select '+
-                          'a.attnum                 as recno, '+
-                          '''''                     as catalog_name, '+
-                          '''''                     as schema_name, '+
-                          'c.relname                as table_name, '+
-                          'a.attname                as column_name, '+
-                          '0                        as column_position, '+
-                          '0                        as column_type, '+
-                          '0                        as column_datatype, '+
-                          '''''                     as column_typename, '+
-                          '0                        as column_subtype, '+
-                          '0                        as column_precision, '+
-                          '0                        as column_scale, '+
-                          'a.atttypmod              as column_length, '+
-                          'not a.attnotnull         as column_nullable '+
-                        'from '+
-                          ' pg_class c, pg_attribute a '+
-                        'WHERE '+
-                        // This can lead to problems when case-sensitive tablenames are used.
-                          '(c.oid=a.attrelid) and (a.attnum>0) and (not a.attisdropped) and (upper(c.relname)=''' + Uppercase(SchemaObjectName) + ''') ' +
+                          'a.attnum           as recno, '+
+                          'current_database() as catalog_name, '+
+                          'nspname            as schema_name, '+
+                          'c.relname          as table_name, '+
+                          'a.attname          as column_name, '+
+                          '0                  as column_position, '+
+                          '0                  as column_type, '+
+                          '0                  as column_datatype, '+
+                          '''''               as column_typename, '+
+                          '0                  as column_subtype, '+
+                          '0                  as column_precision, '+
+                          '0                  as column_scale, '+
+                          'a.atttypmod        as column_length, '+
+                          'not a.attnotnull   as column_nullable '+
+                        'from pg_class c '+
+                          'join pg_attribute a on c.oid=a.attrelid '+
+                          'left join pg_namespace n on c.relnamespace=n.oid '+
+                          // This can lead to problems when case-sensitive tablenames are used.
+                        'where (a.attnum>0) and (not a.attisdropped) and (upper(c.relname)=''' + Uppercase(SchemaObjectName) + ''') '+
                         'order by a.attname';
   else
-    DatabaseError(SMetadataUnavailable)
+    s := inherited;
   end; {case}
   result := s;
 end;
@@ -1074,11 +1314,38 @@ begin
     Result := -1;
 end;
 
+function TPQConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
+begin
+  Result:='';
+  try
+    {$IFDEF LinkDynamically}
+    InitialisePostgres3;
+    {$ENDIF}
+    case InfoType of
+      citServerType:
+        Result:=TPQConnectionDef.TypeName;
+      citServerVersion,
+      citServerVersionString:
+        if Connected then
+          Result:=format('%6.6d', [PQserverVersion(GetHandle)]);
+      citClientName:
+        Result:=TPQConnectionDef.LoadedLibraryName;
+    else
+      Result:=inherited GetConnectionInfo(InfoType);
+    end;
+  finally
+    {$IFDEF LinkDynamically}
+    ReleasePostgres3;
+    {$ENDIF}
+  end;
+end;
+
+
 { TPQConnectionDef }
 
 class function TPQConnectionDef.TypeName: String;
 begin
-  Result:='PostGreSQL';
+  Result:='PostgreSQL';
 end;
 
 class function TPQConnectionDef.ConnectionClass: TSQLConnectionClass;
@@ -1088,7 +1355,7 @@ end;
 
 class function TPQConnectionDef.Description: String;
 begin
-  Result:='Connect to a PostGreSQL database directly via the client library';
+  Result:='Connect to a PostgreSQL database directly via the client library';
 end;
 
 class function TPQConnectionDef.DefaultLibraryName: String;
@@ -1096,7 +1363,7 @@ begin
   {$IfDef LinkDynamically}
   Result:=pqlib;
   {$else}
-  result:='';
+  Result:='';
   {$endif}
 end;
 
@@ -1105,7 +1372,7 @@ begin
   {$IfDef LinkDynamically}
   Result:=@InitialisePostgres3;
   {$else}
-  result:=Nil;
+  Result:=Nil;
   {$endif}
 end;
 
@@ -1114,7 +1381,16 @@ begin
   {$IfDef LinkDynamically}
   Result:=@ReleasePostgres3;
   {$else}
-  result:=Nil;
+  Result:=Nil;
+  {$endif}
+end;
+
+class function TPQConnectionDef.LoadedLibraryName: string;
+begin
+  {$IfDef LinkDynamically}
+  Result:=Postgres3LoadedLibrary;
+  {$else}
+  Result:='';
   {$endif}
 end;
 

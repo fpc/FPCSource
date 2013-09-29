@@ -221,6 +221,17 @@ CONST
     O_APPEND    =     8;        { Writes append to the file.        }
     O_NONBLOCK  =     4;        { Non-blocking I/O.                 }
 
+{$ifdef freebsd}
+    { Other }
+    O_SHLOCK    =   $10;        { Open with shared file lock }
+    O_EXLOCK    =   $20;        { Open with exclusive file lock }
+    O_ASYNC     =   $40;        { Signal pgrp when data ready }
+    O_FSYNC     =   $80;        { Synchronous writes }
+    O_SYNC      =   $80;        { POSIX synonym for O_FSYNC }
+    O_NOFOLLOW  =  $100;        { Don't follow symlinks }
+    O_DIRECT    =$10000;        { Attempt to bypass buffer cache }
+{$endif}
+
     { mode_t possible values                                 }
     S_IRUSR =  %0100000000;     { Read permission for owner   }
     S_IWUSR =  %0010000000;     { Write permission for owner  }

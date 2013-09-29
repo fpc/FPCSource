@@ -20,7 +20,7 @@ procedure run;
 var
   Cy, Step: double;
   x, y, bits,bit: Longint;
-  function CalculatePoint(Cx, Cy: double): boolean; nostackframe; inline;
+  function CalculatePoint(Cx, Cy: double): boolean; inline;
   const
     Limit = 4;
   var

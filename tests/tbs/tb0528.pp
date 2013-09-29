@@ -1,8 +1,9 @@
 {%CPU=x86_64,powerpc64}
-{%skiptarget=darwin,aix}
+{%skiptarget=darwin,aix,win64}
 
 { darwin limits statically declared data structures to 32 bit for efficiency reasons }
 { the aix assembler cannot deal with the way we declare these arrays in assembler code }
+{ win64 limits executable image size, as well as sizes of its individual sections, to 32 bit }
 
 program tb0528;
 

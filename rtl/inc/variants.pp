@@ -81,6 +81,7 @@ function VarIsOrdinal(const V: Variant): Boolean; inline;
 function VarIsFloat(const V: Variant): Boolean; inline;
 function VarIsNumeric(const V: Variant): Boolean; inline;
 function VarIsStr(const V: Variant): Boolean;
+function VarIsBool(const V: Variant): Boolean; inline;
 
 function VarToStr(const V: Variant): string;
 function VarToStrDef(const V: Variant; const ADefault: string): string;
@@ -2972,6 +2973,11 @@ begin
   end;
 end;
 
+function VarIsBool(const V: Variant): Boolean;
+begin
+  Result := (TVarData(V).vType and varTypeMask) = varboolean;
+end;
+
 
 function VarToStr(const V: Variant): string;
 
@@ -4402,7 +4408,7 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
 
         if ((PropInfo^.PropProcs shr 6) and 1)=0 then
@@ -4429,7 +4435,7 @@ begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
 
 	      if ((PropInfo^.PropProcs shr 6) and 1)=0 then

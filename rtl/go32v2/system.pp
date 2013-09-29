@@ -160,6 +160,7 @@ implementation
 
 
 var
+  c_environ : ppchar;external name '__environ';
   _args : ppchar;external name '_args';
   __stubinfo : p_stub_info;external name '__stubinfo';
   ___dos_argv0 : pchar;external name '___dos_argv0';
@@ -477,6 +478,7 @@ begin
     end;
   envp := sysgetmem((env_count+1) * sizeof(pchar));
   if (envp = nil) then HandleError (203);
+  c_environ:=envp;
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do

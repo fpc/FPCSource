@@ -35,7 +35,7 @@ unit i_emx;
              resbin : '';
              rescmd : '';
              rcbin  : 'wrc';
-             rccmd  : '-r -zm -q -bt=os2 -fo=$RES $RC';
+             rccmd  : '-r -zm -q -bt=os2 -dFPC -fo=$RES $RC';
              resourcefileclass : nil;
              resflags : [res_single_file];
           );
@@ -74,8 +74,8 @@ unit i_emx;
             dirsep       : '\';
             assem        : as_i386_as_aout;
             assemextern  : as_i386_as_aout;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_emx;
             ar           : ar_gnu_ar;
             res          : res_watcom_wrc_os2;
             dbg          : dbg_stabs;
@@ -106,7 +106,7 @@ unit i_emx;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef EMX}
     {$IFNDEF VER1_0}
       set_source_info(system_i386_emx_info);
@@ -115,5 +115,5 @@ initialization
         source_info.scriptext := '.bat';
     {$ENDIF VER1_0}
   {$endif EMX}
-{$endif CPU86}
+{$endif CPUI386}
 end.

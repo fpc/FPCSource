@@ -63,8 +63,8 @@ unit i_go32v2;
             dirsep       : '\';
             assem        : as_i386_coff;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_int_go32v2;
+            linkextern   : ld_go32v2;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -94,9 +94,9 @@ unit i_go32v2;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef go32v2}
     set_source_info(system_i386_go32v2_info);
   {$endif go32v2}
-{$endif cpu86}
+{$endif cpui386}
 end.

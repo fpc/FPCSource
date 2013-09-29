@@ -127,7 +127,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symtable,symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
@@ -179,20 +179,20 @@ implementation
       begin
         secondpass(left);
         location_reset(location,LOC_REGISTER,left.location.size);
-        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
           left.location,joinreg64(location.register64.reglo,location.register64.reghi));
         { there's only overflow in case left was low(int64) -> -left = left }
         if (cs_check_overflow in current_settings.localswitches) then
           begin
-            tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
+            tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,
               aint($80000000),location.register64.reghi,tr);
-            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
-            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,tr,hl);
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_32,OC_NE,0,tr,hl);
             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
@@ -236,21 +236,27 @@ implementation
         opsize: tdef;
       begin
         secondpass(left);
-        { load left operator in a register }
-        location_copy(location,left.location);
+
+{$ifdef cpunodefaultint}
+        opsize:=left.resultdef;
+{$else cpunodefaultint}
         { in case of a 32 bit system that can natively execute 64 bit operations }
         if (left.resultdef.size<=sinttype.size) then
           opsize:=sinttype
         else
-          opsize:=s64inttype;
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
-        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
+          opsize:={$ifdef cpu16bitalu}s32inttype{$else}s64inttype{$endif};
+{$endif cpunodefaultint}
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(opsize));
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,left.location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,low(aint),location.register,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,torddef(opsize).low.svalue,location.register,hl);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',nil);
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -300,6 +306,7 @@ implementation
          paraloc1 : tcgpara;
          opsize : tcgsize;
          opdef : tdef;
+         pd: tprocdef;
       begin
          secondpass(left);
          if codegenerror then
@@ -380,7 +387,8 @@ implementation
                   current_asmdata.getjumplabel(hl);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1.init;
-                  paramanager.getintparaloc(pocall_default,1,s32inttype,paraloc1);
+                  pd:=search_system_proc('fpc_handleerror');
+                  paramanager.getintparaloc(pd,1,paraloc1);
                   cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
@@ -431,14 +439,34 @@ implementation
          { load left operators in a register }
          if is_signed(left.resultdef) then
            begin
-             opsize:=OS_SINT;
-             opdef:=ossinttype
+             {$ifdef cpu16bitalu}
+               if left.resultdef.size > 2 then
+                 begin
+                   opsize:=OS_S32;
+                   opdef:=s32inttype;
+                 end
+               else
+             {$endif cpu16bitalu}
+                 begin
+                   opsize:=OS_SINT;
+                   opdef:=ossinttype
+                 end;
            end
          else
            begin
-             opsize:=OS_INT;
-             opdef:=osuinttype;
-           end;
+             {$ifdef cpu16bitalu}
+               if left.resultdef.size > 2 then
+                 begin
+                   opsize:=OS_32;
+                   opdef:=u32inttype;
+                 end
+               else
+             {$endif cpu16bitalu}
+                 begin
+                   opsize:=OS_INT;
+                   opdef:=osuinttype;
+                 end;
+             end;
 {$endif cpunodefaultint}
 
          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
@@ -498,8 +526,11 @@ implementation
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        location_copy(location,left.location);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
@@ -509,10 +540,12 @@ implementation
     procedure tcgnotnode.second_integer;
       begin
         secondpass(left);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        location_copy(location,left.location);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { perform the NOT operation }
-        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,location.register,location.register);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
       end;
 
 

@@ -339,9 +339,9 @@ begin
           FLocalRepository:=AValue;
           UpdateLocalRepositoryOption;
         end;
-    4 : FBuildDir:=FixPath(AValue);
-    5 : FArchivesDir:=FixPath(AValue);
-    6 : FCompilerConfigDir:=FixPath(AValue);
+    4 : FBuildDir:=FixPath(AValue, True);
+    5 : FArchivesDir:=FixPath(AValue, True);
+    6 : FCompilerConfigDir:=FixPath(AValue, True);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
     10 : FDownloader:=AValue;
@@ -459,9 +459,9 @@ begin
         FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
         UpdateLocalRepositoryOption;
-        FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
-        FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir));
-        FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir));
+        FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir), True);
+        FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir), True);
+        FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir), True);
         FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         FDownloader:=ReadString(SDefaults,KeyDownloader,FDownloader);
@@ -552,8 +552,8 @@ begin
     3 : Result:=FCompilerVersion;
     4 : Result:=FOptionParser.ParseString(FGlobalInstallDir);
     5 : Result:=FOptionParser.ParseString(FLocalInstallDir);
-    6 : Result:=FixPath(FOptionParser.ParseString(FGlobalPrefix));
-    7 : Result:=FixPath(FOptionParser.ParseString(FLocalPrefix));
+    6 : Result:=FixPath(FOptionParser.ParseString(FGlobalPrefix), True);
+    7 : Result:=FixPath(FOptionParser.ParseString(FLocalPrefix), True);
     else
       Error('Unknown option');
   end;
@@ -581,8 +581,8 @@ begin
           FCompilerVersion:=AValue;
           FOptionParser.Values['CompilerVersion'] := FCompilerVersion;
         end;
-    4 : FGlobalInstallDir:=FixPath(AValue);
-    5 : FLocalInstallDir:=FixPath(AValue);
+    4 : FGlobalInstallDir:=FixPath(AValue, True);
+    5 : FLocalInstallDir:=FixPath(AValue, True);
     6 : begin
           FGlobalPrefix:=AValue;
           FOptionParser.Values['GlobalPrefix'] := GlobalPrefix;
@@ -714,7 +714,7 @@ begin
       log(llDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
 
-  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
   if fpcdir<>'' then
     begin
     {$ifndef Unix}
@@ -745,8 +745,8 @@ begin
           end;
         GlobalPrefix:=ReadString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
         LocalPrefix:=ReadString(SDefaults,KeyLocalPrefix,FLocalPrefix);
-        FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir));
-        FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir));
+        FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir), True);
+        FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir), True);
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
         FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
         FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));

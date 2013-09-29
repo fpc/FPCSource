@@ -852,7 +852,8 @@ implementation
            right:=nil;
            exit;
          end
-        else if not(target_info.system in systems_garbage_collected_managed_types) then
+        else if not(target_info.system in systems_garbage_collected_managed_types) and
+          not(is_const(left)) then
           begin
             { call helpers for pointer-sized managed types }
             if is_widestring(left.resultdef) then
@@ -1331,6 +1332,9 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_CREFERENCE;
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
 
 

@@ -30,10 +30,10 @@
 {$inline on}
 {$define SYSTEMINLINE}
 
-{ don't use FPU registervariables on the i386 }
-{$ifdef CPUI386}
+{ don't use FPU registervariables on the i386 and i8086 }
+{$if defined(CPUI386) or defined(CPUI8086)}
   {$maxfpuregisters 0}
-{$endif CPUI386}
+{$endif CPUI386 or CPUI8086}
 
 { the assembler helpers need this}
 {$ifdef CPUPOWERPC}
@@ -84,6 +84,17 @@
                          Global Types and Constants
 ****************************************************************************}
 
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_OEMCP   = 1;     // default to OEM (console) code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
 Type
   { The compiler has all integer types defined internally. Here
     we define only aliases }
@@ -112,7 +123,48 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
+
+  {$ifndef VER2_6}
+  FarPointer = NearFsPointer;
+  {$endif}
 {$endif CPUI386}
+
+{$ifdef CPUI8086}
+  {$define CPU16}
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
+
+  {$if defined(FPC_MM_TINY)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_SMALL)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_MEDIUM)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_COMPACT)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_LARGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_HUGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_HUGE}
+  {$else}
+    {$fatal No memory model defined}
+  {$endif}
+{$endif CPUI8086}
 
 {$ifdef CPUX86_64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -137,12 +189,15 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$ifndef VER2_6}
+  FarPointer = Pointer;
+  {$endif}
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
 
-  {$ifdef CPUCOLDFIRE}
+  {$ifdef FPUSOFT}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
     {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
@@ -272,6 +327,11 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
+  CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -281,19 +341,41 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
+  CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU32}
 
 {$ifdef CPU16}
   SizeInt = Integer;
   SizeUInt = Word;
-  PtrInt = Integer;
-  PtrUInt = Word;
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    PtrInt = Longint;
+    PtrUInt = DWord;
+  {$else}
+    PtrInt = Integer;
+    PtrUInt = Word;
+  {$endif}
+  {$if defined(FPC_X86_CODE_FAR)}
+    CodePointer = FarPointer;
+    CodePtrInt = Longint;
+    CodePtrUInt = DWord;
+  {$elseif defined(FPC_X86_CODE_NEAR)}
+    CodePointer = NearPointer;
+    CodePtrInt = Integer;
+    CodePtrUInt = Word;
+  {$else}
+    CodePointer = Pointer;
+    CodePtrInt = PtrInt;
+    CodePtrUInt = PtrUInt;
+  {$endif}
   ValSInt = Integer;
   ValUInt = Word;
+  NativeInt  = Integer;
+  NativeUint = Word;
 {$endif CPU16}
-
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -309,17 +391,6 @@ Type
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
-{ some values which are used in RTL for TSystemCodePage type }
-const
-  CP_ACP     = 0;     // default to ANSI code page
-  CP_UTF16   = 1200;  // utf-16
-  CP_UTF16BE = 1201;  // unicodeFFFE
-  CP_UTF7    = 65000; // utf-7
-  CP_UTF8    = 65001; // utf-8
-  CP_ASCII   = 20127; // us-ascii
-  CP_NONE    = $FFFF; // rawbytestring encoding
-
-type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -391,9 +462,23 @@ type
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
+  PCodePointer        = ^CodePointer;
+  PPCodePointer       = ^PCodePointer;
+
   PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
+
+  PNativeInt 	      = PPtrInt;
+  PNativeUInt	      = PPtrUint;
+  pInt8   	      = PShortInt;
+  pInt16  	      = PSmallint;
+  pInt32  	      = PLongint;
+  PIntPtr 	      = PPtrInt;
+  pUInt8  	      = PByte;
+  pUInt16 	      = PWord;
+  pUInt32 	      = PDWord;
+  PUintPtr	      = PPtrUInt;
 
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
@@ -420,18 +505,39 @@ type
 
   TSystemCodePage     = Word;
 
-  { Needed for fpc_get_output }
-  PText               = ^Text;
+{$ifdef VER2_6}
+  { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
+  {$define FPC_ANSI_TEXTFILEREC}
+{$endif}
+  TFileTextRecChar    = {$ifdef FPC_ANSI_TEXTFILEREC}AnsiChar{$else}UnicodeChar{$endif};
+  PFileTextRecChar    = ^TFileTextRecChar;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 { procedure type }
   TProcedure  = Procedure;
 
-{ platform dependent types }
+{ platform-dependent types }
 {$i sysosh.inc}
 
+{ platform-dependent defines }
+{$i rtldefs.inc}
+
+{*****************************************************************************
+                   TextRec/FileRec exported to allow compiler to take size
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$i textrec.inc}
+
+
 type
+  { Needed for fpc_get_output }
+  PText               = ^Text;
+
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
@@ -488,8 +594,20 @@ const
   Test8087 : byte = 3;
   { will be detected at startup }
   has_sse_support : boolean = false;
+  has_sse2_support : boolean = false;
+  has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
+{$ifdef cpui8086}
+  { will be detected at startup }
+  { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
+  Test8086 : byte = 0; public name '__Test8086';
+  { Always 387 or newer. Emulated if needed. }
+  Test8087 : byte = 3;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
+{$endif cpui8086}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
@@ -499,8 +617,8 @@ const
   Max_Frame_Dump : Word = 8;
 
 { Exit Procedure handling consts and types  }
-  ExitProc : pointer = nil;
-  Erroraddr: pointer = nil;
+  ExitProc : codepointer = nil;
+  Erroraddr: codepointer = nil;
   Errorcode: Word    = 0;
 
 { file input modes }
@@ -520,7 +638,7 @@ const
   ThreadingAlreadyUsed : boolean = FALSE;
   { Indicates if there was an error }
   StackError : boolean = FALSE;
-  InitProc : Pointer = nil;
+  InitProc : CodePointer = nil;
   { compatibility }
   ModuleIsLib : Boolean = FALSE;
   ModuleIsPackage : Boolean = FALSE;
@@ -539,11 +657,16 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-  { Threading support }
-  fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
+  { the code page to use when sending paths/file names to OS file system API
+    calls using single byte strings, and to interpret the results gotten back
+    from such API calls }
+  DefaultFileSystemCodePage,
+  { the code page to use to return file names from single byte file system calls
+    in the RTL that return ansistrings (by default, same as a above) }
+  DefaultRTLFileSystemCodePage,
   UTF8CompareLocale : TSystemCodePage;
 
 
@@ -778,10 +901,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$ifdef FPC_HAS_INTERNAL_SAR}
 
-{$if defined(cpux86_64) or defined(cpui386)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
 {$define FPC_HAS_INTERNAL_SAR_BYTE}
 {$define FPC_HAS_INTERNAL_SAR_WORD}
-{$endif defined(cpux86_64) or defined(cpui386)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
 { $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
@@ -824,7 +947,7 @@ function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
-{$if defined(cpui386) or defined(cpux86_64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
 {$define FPC_HAS_INTERNAL_BSF_BYTE}
 {$define FPC_HAS_INTERNAL_BSF_WORD}
 {$define FPC_HAS_INTERNAL_BSF_DWORD}
@@ -971,6 +1094,8 @@ function StringElementSize(const S : RawByteString): Word; overload;
 function StringRefCount(const S : RawByteString): SizeInt; overload;
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
 procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteFileSystemCodePage(CodePage: TSystemCodePage);
+procedure SetMultiByteRTLFileSystemCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -991,9 +1116,20 @@ procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign(out f:File;const Name:string);
-Procedure Assign(out f:File;p:pchar);
-Procedure Assign(out f:File;c:char);
+Procedure Assign(out f:File;const Name: ShortString);
+Procedure Assign(out f:File;const p: PAnsiChar);
+Procedure Assign(out f:File;const c: AnsiChar);
+Procedure Rename(var f:File;const s : ShortString);
+Procedure Rename(var f:File;const p : PAnsiChar);
+Procedure Rename(var f:File;const c : AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:File;const Name: UnicodeString);
+Procedure Rename(var f:File;const s : UnicodeString);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:File;const Name: RawByteString);
+Procedure Rename(var f:File;const s : RawByteString);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -1016,9 +1152,6 @@ Function  FileSize(var f:File):Int64;
 Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
-Procedure Rename(var f:File;const s:string);
-Procedure Rename(var f:File;p:pchar);
-Procedure Rename(var f:File;c:char);
 Procedure Truncate (var F:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1028,9 +1161,15 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign(out f:TypedFile;const Name:string);
-Procedure Assign(out f:TypedFile;p:pchar);
-Procedure Assign(out f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;const Name:shortstring);
+Procedure Assign(out f:TypedFile;const p:PAnsiChar);
+Procedure Assign(out f:TypedFile;const c:AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out f:TypedFile;const Name:unicodestring);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out f:TypedFile;const Name:rawbytestring);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -1040,18 +1179,26 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-Procedure Assign(out t:Text;const s:string);
-Procedure Assign(out t:Text;p:pchar);
-Procedure Assign(out t:Text;c:char);
+Procedure Assign(out t:Text;const s:shortstring);
+Procedure Rename(var t:Text;const s:shortstring);
+Procedure Assign(out t:Text;const p:PAnsiChar);
+Procedure Rename(var t:Text;const p:PAnsiChar);
+Procedure Assign(out t:Text;const c:AnsiChar);
+Procedure Rename(var t:Text;const c:AnsiChar);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out t:Text;const s:unicodestring);
+Procedure Rename(var t:Text;const s:unicodestring);
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Rename(var t:Text;const s:rawbytestring);
+Procedure Assign(out t:Text;const s:rawbytestring);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
 Procedure Append(var t:Text);
 Procedure Flush(var t:Text);
 Procedure Erase(var t:Text);
-Procedure Rename(var t:Text;const s:string);
-Procedure Rename(var t:Text;p:pchar);
-Procedure Rename(var t:Text;c:char);
 Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(var t:Text):Boolean;
@@ -1071,18 +1218,28 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
                             Directory Management
 ****************************************************************************}
 
-
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:string); overload;
-Procedure mkdir(const s:string); overload;
-Procedure rmdir(const s:string); overload;
-// the pchar versions are exported via alias for use in objpas
-
-Procedure getdir(drivenr:byte;var dir:shortstring);
+Procedure chdir(const s:shortstring); overload;
+Procedure mkdir(const s:shortstring); overload;
+Procedure rmdir(const s:shortstring); overload;
+Procedure getdir(drivenr:byte;var dir:shortstring);overload;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure getdir(drivenr:byte;var dir:ansistring);
+Procedure chdir(const s:rawbytestring); overload;
+Procedure mkdir(const s:rawbytestring); overload;
+Procedure rmdir(const s:rawbytestring); overload;
+// defaultrtlfilesystemcodepage is returned here
+Procedure getdir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure chdir(const s:unicodestring); overload;
+Procedure mkdir(const s:unicodestring); overload;
+Procedure rmdir(const s:unicodestring); overload;
+Procedure getdir(drivenr:byte;var dir: unicodestring);overload;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
+
+
 
 {*****************************************************************************
                              Miscellaneous
@@ -1101,11 +1258,11 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
-Function Get_pc_addr : Pointer;
+Function Get_pc_addr : CodePointer;
 
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
+function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 
 Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
@@ -1187,7 +1344,7 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
+Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
@@ -1229,7 +1386,8 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
-Function  SysBackTraceStr(Addr:Pointer): ShortString;
+procedure EmptyMethod;external name 'FPC_EMPTYMETHOD';
+Function  SysBackTraceStr(Addr:CodePointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 (* Supposed to return address of previous CtrlBreakHandler *)
 (* (may be nil), returned value of pointer (-1) means that *)
@@ -1238,8 +1396,8 @@ function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 
 { Error handlers }
 Type
-  TBackTraceStrFunc = Function (Addr: Pointer): ShortString;
-  TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
+  TBackTraceStrFunc = Function (Addr: CodePointer): ShortString;
+  TErrorProc = Procedure (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
   TSafeCallErrorProc = Procedure(error : HResult;addr : pointer);

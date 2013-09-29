@@ -1,8 +1,9 @@
 {	CFPropertyList.h
-	Copyright (c) 1998-2009, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,7 +177,7 @@ uses MacTypes,CFBase,CFData,CFError,CFString,CFStream;
 
 
 type
-	CFPropertyListMutabilityOptions = UNSIGNEDLONG;
+	CFPropertyListMutabilityOptions = CFOptionFlags;
 const
 	kCFPropertyListImmutable = 0;
 	kCFPropertyListMutableContainers = 1;
@@ -184,8 +190,8 @@ const
 	and errorString is non-NULL, a human-readable description of the failure
 	is returned in errorString. It is the caller's responsibility to release
 	either the returned object or the error string, whichever is applicable.
-
-  This function is obsolete and will be deprecated soon. See CFPropertyListCreateWithData() for a replacement.
+ 
+        This function is obsolete and will be deprecated soon. See CFPropertyListCreateWithData() for a replacement.
 }
 function CFPropertyListCreateFromXMLData( allocator: CFAllocatorRef; xmlData: CFDataRef; mutabilityOption: CFOptionFlags; errorString: CFStringRefPtr ): CFPropertyListRef; external name '_CFPropertyListCreateFromXMLData';
 
@@ -198,8 +204,8 @@ function CFPropertyListCreateFromXMLData( allocator: CFAllocatorRef; xmlData: CF
 	appropriate for writing out to an XML file. Note that a data, not a
 	string, is returned because the bytes contain in them a description
 	of the string encoding used.
-
-  This function is obsolete and will be deprecated soon. See CFPropertyListCreateData() for a replacement.
+ 
+        This function is obsolete and will be deprecated soon. See CFPropertyListCreateData() for a replacement.
 }
 function CFPropertyListCreateXMLData( allocator: CFAllocatorRef; propertyList: CFPropertyListRef ): CFDataRef; external name '_CFPropertyListCreateXMLData';
 
@@ -214,7 +220,7 @@ function CFPropertyListCreateDeepCopy( allocator: CFAllocatorRef; propertyList: 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 
 type
-	CFPropertyListFormat = SIGNEDLONG;
+	CFPropertyListFormat = CFIndex;
 	CFPropertyListFormatPtr = ^CFPropertyListFormat;
 
 const
@@ -236,10 +242,11 @@ function CFPropertyListIsValid( plist: CFPropertyListRef; format: CFPropertyList
  * reading stream to end wherever the writing ended, so that the
  * end of the plist data can be identified. Returns the number of bytes
  * written, or 0 on error. Error messages are not currently localized, but
- * may be in the future, so they are not suitable for comparison.
+ * may be in the future, so they are not suitable for comparison. 
  *
  * This function is obsolete and will be deprecated soon. See CFPropertyListWrite() for a replacement. }
 function CFPropertyListWriteToStream( propertyList: CFPropertyListRef; stream: CFWriteStreamRef; format: CFPropertyListFormat; var errorString: CFStringRef ): CFIndex; external name '_CFPropertyListWriteToStream';
+
 
 { Same as current function CFPropertyListCreateFromXMLData()
  * but takes a stream instead of data, and works on any plist file format.
@@ -249,7 +256,7 @@ function CFPropertyListWriteToStream( propertyList: CFPropertyListRef; stream: C
  * of the stream, which is expected to be the end of the plist, or up to the
  * number of bytes given by the length parameter if it is not 0. Error messages
  * are not currently localized, but may be in the future, so they are not
- * suitable for comparison.
+ * suitable for comparison. 
  *
  * This function is obsolete and will be deprecated soon. See CFPropertyListCreateWithStream() for a replacement. }
 function CFPropertyListCreateFromStream( allocator: CFAllocatorRef; stream: CFReadStreamRef; streamLength: CFIndex; mutabilityOption: CFOptionFlags; var format: CFPropertyListFormat; var errorString: CFStringRef ): CFPropertyListRef; external name '_CFPropertyListCreateFromStream';
@@ -267,22 +274,28 @@ const
 { Create a property list with a CFData input. If the format parameter is non-NULL, it will be set to the format of the data after parsing is complete. The options parameter is used to specify CFPropertyListMutabilityOptions. If an error occurs while parsing the data, the return value will be NULL. Additionally, if an error occurs and the error parameter is non-NULL, the error parameter will be set to a CFError describing the problem, which the caller must release. If the parse succeeds, the returned value is a reference to the new property list. It is the responsibility of the caller to release this value.
  }
 function CFPropertyListCreateWithData( allocator: CFAllocatorRef; data: CFDataRef; options: CFOptionFlags; format: CFPropertyListFormatPtr { can be NULL };  error: CFErrorRefPtr { can be NULL } ): CFPropertyListRef; external name '_CFPropertyListCreateWithData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
+{ Apple sets TARGET_OS_MAC to true for TARGET_IPHONE_SIMULATOR, but since we use unified
+  headers for Mac OS X and iPhoneSimulator, that would result in many problems -> specify
+  it explicitly }
+{$ifc TARGET_OS_MAC or TARGET_OS_WIN32 or TARGET_OS_EMBEDDED or TARGET_IPHONE_SIMULATOR}
 { Create and return a property list with a CFReadStream input. TIf the format parameter is non-NULL, it will be set to the format of the data after parsing is complete. The options parameter is used to specify CFPropertyListMutabilityOptions. The streamLength parameter specifies the number of bytes to read from the stream. Set streamLength to 0 to read until the end of the stream is detected. If an error occurs while parsing the data, the return value will be NULL. Additionally, if an error occurs and the error parameter is non-NULL, the error parameter will be set to a CFError describing the problem, which the caller must release. If the parse succeeds, the returned value is a reference to the new property list. It is the responsibility of the caller to release this value.
  }
 function CFPropertyListCreateWithStream( allocator: CFAllocatorRef; stream: CFReadStreamRef; streamLength: CFIndex; options: CFOptionFlags;  format: CFPropertyListFormatPtr { can be NULL }; error: CFErrorRefPtr { can be NULL } ): CFPropertyListRef; external name '_CFPropertyListCreateWithStream';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 { Write the bytes of a serialized property list out to a stream. The stream must be opened and configured. The format of the property list can be chosen with the format parameter. The options parameter is currently unused and should be set to 0. The return value is the number of bytes written or 0 in the case of an error. If an error occurs and the error parameter is non-NULL, the error parameter will be set to a CFError describing the problem, which the caller must release.
  }
 function CFPropertyListWrite( propertyList: CFPropertyListRef; stream: CFWriteStreamRef; format: CFPropertyListFormat; options: CFOptionFlags; error: CFErrorRefPtr { can be NULL } ): CFIndex; external name '_CFPropertyListWrite';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
+
+{$endc} {TARGET_OS_MAC or TARGET_OS_WIN32 or TARGET_OS_EMBEDDED or TARGET_IPHONE_SIMULATOR}
 
 { Create a CFData with the bytes of a serialized property list. The format of the property list can be chosen with the format parameter. The options parameter is currently unused and should be set to 0. If an error occurs while parsing the data, the return value will be NULL. Additionally, if an error occurs and the error parameter is non-NULL, the error parameter will be set to a CFError describing the problem, which the caller must release. If the conversion succeeds, the returned value is a reference to the created data. It is the responsibility of the caller to release this value.
  }
 function CFPropertyListCreateData( allocator: CFAllocatorRef; propertyList: CFPropertyListRef; format: CFPropertyListFormat; options: CFOptionFlags; error: CFErrorRefPtr { can be NULL } ): CFDataRef; external name '_CFPropertyListCreateData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_6, 4_0) *)
 
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

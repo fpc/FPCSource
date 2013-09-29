@@ -31,8 +31,12 @@ uses
   emu387,
 {$endif GO32V2}
 {$ifdef WATCOM}
-    emu387,
+  emu387,
 {$endif WATCOM}
+{$if defined(unix) and (FPC_FULLVERSION>20700)}
+  { system code page stuff for unix }
+  unixcp,
+{$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,
 {$ELSE}
@@ -58,6 +62,9 @@ uses
 {$ifdef amiga}
   ,i_amiga
 {$endif amiga}
+{$ifdef android}
+  ,i_android
+{$endif android}
 {$ifdef atari}
   ,i_atari
 {$endif atari}
@@ -170,6 +177,10 @@ procedure InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
+{$if defined(unix) and (FPC_FULLVERSION>20700)}
+  { Set default code page for ansistrings on unix-like systems }
+  DefaultSystemCodePage:=GetSystemCodePage;
+{$endif}
 { inits which need to be done before the arguments are parsed }
   InitSystems;
   { fileutils depends on source_info so it must be after systems }
@@ -260,6 +271,8 @@ begin
           totaltime:=getrealtime-starttime;
           if totaltime<0 then
             totaltime:=totaltime+3600.0*24.0;
+          if round(frac(totaltime)*10) >= 10 then
+            totaltime:=trunc(totaltime) + 1;
           timestr:=tostr(trunc(totaltime))+'.'+tostr(round(frac(totaltime)*10));
           if status.codesize<>aword(-1) then
             linkstr:=', '+tostr(status.codesize)+' ' +strpas(MessagePChar(general_text_bytes_code))+', '+tostr(status.datasize)+' '+strpas(MessagePChar(general_text_bytes_data))

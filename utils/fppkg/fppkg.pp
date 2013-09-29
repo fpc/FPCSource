@@ -20,7 +20,7 @@ uses
   pkgfpmake, pkgcommands,
   fpmkunit
   // Downloaders
-{$if defined(unix) or defined(windows)}
+{$if (defined(unix) and not defined(android)) or defined(windows)}
   ,pkgwget
   ,pkglnet
 {$endif}

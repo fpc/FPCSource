@@ -1,4 +1,5 @@
 { %needlibrary }
+{ %delfiles=tw6822a }
 
 program loader;
 {$mode objfpc}{$H+}

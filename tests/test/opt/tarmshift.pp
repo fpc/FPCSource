@@ -1,4 +1,3 @@
-{ %norun }
 { %opt=-O2 }
 var
   i : longint;

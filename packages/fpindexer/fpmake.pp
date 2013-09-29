@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fpindexer;
+procedure add_fpindexer(const ADirectory: string);
 Const
   SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
   SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,win32,wince,aix];
@@ -17,9 +17,7 @@ begin
   With Installer do
     begin
       P:=AddPackage('fpindexer');
-{$ifdef ALLPACKAGES}
-      P.Directory:='fpindexer';
-{$endif ALLPACKAGES}
+      P.Directory:=ADirectory;
       P.Version:='2.7.1';
       P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince,aix];
       P.Dependencies.Add('fcl-base');
@@ -71,7 +69,7 @@ end;
     
 {$ifndef ALLPACKAGES}
 begin
-  add_fpindexer;
+  add_fpindexer('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

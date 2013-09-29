@@ -1,8 +1,10 @@
 { Test for resources support. }
 
-{%TARGET=win32,win64,wince,linux,freebsd,darwin,netbsd,openbsd,solaris,haiku,aix}
+{%TARGET=win32,win64,wince,linux,freebsd,darwin,netbsd,openbsd,solaris,haiku,aix,android}
 
 {$mode objfpc}
+
+uses sysutils;
 
 {$R tres1.res}
 

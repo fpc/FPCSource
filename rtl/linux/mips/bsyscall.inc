@@ -24,12 +24,25 @@ Function fppipe(var fildes : tfildes):cint;assembler;
   * argument.  Historically that used to be expensive in Linux.  These days
   * the performance advantage is negligible.
 }
+var
+  tmp: pointer;
 asm
-  li $v0,syscall_nr_pipe
+  sw   $a0,tmp             { if $a0 is preserved in syscall then this is not needed }
+  li   $v0,syscall_nr_pipe
   syscall
+  nop
+  beq  $a3,$0,.L1
+  nop
+  move $a0,$v0
+  jal  fpseterrno
+  nop
+  b    .L2
+  li   $v0,-1              { in delay slot }
+.L1:
   { the two files descriptors are now in v0 and v1 registers 
     copying them back into fildes variable }
-  lw $t1,fildes
-  sw $v0,($t1)
-  sw $v1,4($t1)
+  lw   $t1,tmp
+  sw   $v0,($t1)
+  sw   $v1,4($t1)
+.L2:
 end;

@@ -78,6 +78,9 @@ implementation
 
     procedure tjvmmoddivnode.pass_generate_code;
       var
+        tmpreg: tregister;
+        lab: tasmlabel;
+        ovloc: tlocation;
         op: topcg;
         isu32int: boolean;
       begin
@@ -89,7 +92,6 @@ implementation
 
         if nodetype=divn then
           begin
-            { TODO: overflow checking in case of high(longint) or high(int64) div -1 }
             thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
             if is_signed(resultdef) then
               op:=OP_IDIV
@@ -141,6 +143,24 @@ implementation
               thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,s64inttype,u32inttype,false);
           end;
          thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+         if (cs_check_overflow in current_settings.localswitches) and
+            is_signed(resultdef) then
+           begin
+             { the JVM raises an exception for integer div-iby-zero -> only
+               overflow in case left is low(inttype) and right is -1 ->
+               check by adding high(inttype) to left and and'ing with right
+               -> result is -1 only in case above conditions are fulfilled)
+             }
+             tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,torddef(resultdef).high,right.location.register,tmpreg);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+             hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
+             current_asmdata.getjumplabel(lab);
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
+             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',nil);
+             hlcg.a_label(current_asmdata.CurrAsmList,lab);
+           end;
       end;
 
 

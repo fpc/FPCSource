@@ -1,4 +1,5 @@
 { %NEEDLIBRARY }
+{ %delfiles=tweaklib1 }
 
 {$ifdef mswindows}
  {$define supported}

@@ -19,22 +19,22 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+procedure do_mkdir(const s: rawbytestring);
 begin
 
 end;
 
-procedure rmdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+procedure do_rmdir(const s: rawbytestring);
 begin
 
 end;
 
-procedure chdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+procedure do_chdir(const s: rawbytestring);
 begin
 
 end;
 
-procedure GetDir(DriveNr: byte; var Dir: ShortString);
+procedure do_GetDir(DriveNr: byte; var Dir: RawByteString);
 begin
 
 end;

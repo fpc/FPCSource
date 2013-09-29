@@ -20,10 +20,10 @@ begin
     P.Email := '';
     P.Description := 'A free library for decoding ATSC A/52 streams.';
     P.NeedLibC:= true;
-    P.OSes := [linux.win32];
+    P.OSes := [linux,win32];
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='a52';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

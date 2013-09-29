@@ -136,6 +136,7 @@ begin
   { b INTERNALERROR sometimes fails ... Don't know why. PM 2010-08-28 }
   Writeln(fpcgdbini,'info fun INTERNALERROR');
   Writeln(fpcgdbini,'b INTERNALERROR');
+  Writeln(fpcgdbini,'b GENERATEERROR');
   Writeln(fpcgdbini,'b HANDLEERRORADDRFRAME');
   { This one will fail unless sysutils unit is also loaded }
   Writeln(fpcgdbini,'b RUNERRORTOEXCEPT');

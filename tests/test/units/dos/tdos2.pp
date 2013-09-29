@@ -247,7 +247,8 @@ Begin
  WriteLn('----------------------------------------------------------------------');
 {$ifndef beos}
 {$ifndef linux}
- {This should be disabled under BeOS : maybe this is a BeOS bug (or a feature ?) 
+{$ifndef android}
+ {This should be disabled under BeOS : maybe this is a BeOS bug (or a feature ?)
   in stime function.
   When you set 36 hours, the time AND the date are changed
   It seems it is a valid value under BeOS, but you have jump in the future :
@@ -259,6 +260,7 @@ Begin
   }
  SetTime(36,Minute,Second,Sec100);
  CheckDosError(0);
+{$endif}
 {$endif}
 {$endif}
  GetTime(Hour1,Minute1,Second1,Sec1001);

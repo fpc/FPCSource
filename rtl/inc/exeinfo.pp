@@ -71,11 +71,11 @@ uses
 
   var
     Tmm: TMemoryBasicInformation;
-{$ifdef wince}
+{$ifdef FPC_OS_UNICODE}
     TST: array[0..Max_Path] of WideChar;
-{$else wince}
+{$else}
     TST: array[0..Max_Path] of Char;
-{$endif wince}
+{$endif FPC_OS_UNICODE}
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
       baseaddr:=nil;
@@ -86,11 +86,11 @@ uses
           baseaddr:=Tmm.AllocationBase;
           TST[0]:= #0;
           GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
-{$ifdef wince}
+{$ifdef FPC_OS_UNICODE}
           filename:= String(PWideChar(@TST));
-{$else wince}
+{$else}
           filename:= String(PChar(@TST));
-{$endif wince}
+{$endif FPC_OS_UNICODE}
         end;
     end;
 
@@ -109,7 +109,7 @@ uses
                              Executable Loaders
 ****************************************************************************}
 
-{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos)}
+{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android)}
   {$ifdef cpu64}
     {$define ELF64}
   {$else}
@@ -379,7 +379,17 @@ begin
      if asecname=secname then
        begin
          secofs:=cardinal(sechdr.datapos) + E.ImgOffset;
+{$ifdef GO32V2}
          seclen:=sechdr.datalen;
+{$else GO32V2}
+         { In PECOFF, datalen includes file padding up to the next section.
+           vsize is the actual payload size if it does not exceed datalen,
+           otherwise it is .bss (or alike) section that we should ignore.  }
+         if sechdr.vsize<=sechdr.datalen then
+           seclen:=sechdr.vsize
+         else
+           exit;
+{$endif GO32V2}
          FindSectionCoff:=true;
          exit;
        end;

@@ -48,14 +48,14 @@ type
     FLastChange    : integer;
   public
     destructor destroy; override;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
-    procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure StoreFieldDefs(AnAutoIncValue : integer); override;
+    procedure StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
+    procedure LoadFieldDefs(var AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure RestoreRecord(ADataset : TCustomBufDataset); override;
+    procedure RestoreRecord; override;
     procedure GotoNextRecord; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
@@ -65,7 +65,7 @@ implementation
 uses xmlwrite, xmlread, base64;
 
 const
-  XMLFieldtypenames : Array [TFieldType] of String[15] =
+  XMLFieldtypenames : Array [TFieldType] of String[16] =
     (
       'Unknown',
       'string',
@@ -90,8 +90,8 @@ const
       'bin.hex:Ole',
       'bin.hex:Graphics',
       '',
-      'string',
-      'string',
+      'string',             // ftFixedChar
+      'string.uni',         // ftWideString
       'i8',
       '',
       '',
@@ -102,11 +102,11 @@ const
       '',
       '',
       '',
+      'string:Guid',        // ftGuid
       '',
-      '',
-      'fixedFMT',
-      '',
-      ''
+      'fixedFMT',           // ftFmtBCD
+      'string.uni',         // ftFixedWideChar
+      'bin.hex:WideText'    // ftWideMemo
     );
 
 resourcestring
@@ -123,7 +123,7 @@ begin
   inherited destroy;
 end;
 
-procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
+procedure TXMLDatapacketReader.LoadFieldDefs(var AnAutoIncValue: integer);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
   var AnAttr : TDomNode;
@@ -157,7 +157,7 @@ begin
     AFieldNode := item[i];
     if AFieldNode.CompareName('FIELD')=0 then
       begin
-      AFieldDef := TFieldDef.create(AFieldDefs);
+      AFieldDef := TFieldDef.Create(DataSet.FieldDefs);
       AFieldDef.DisplayName:=GetNodeAttribute(AFieldNode,'fieldname');
       AFieldDef.Name:=GetNodeAttribute(AFieldNode,'attrname');
       AFieldDef.Size:=StrToIntDef(GetNodeAttribute(AFieldNode,'width'),0);
@@ -189,7 +189,7 @@ begin
   FRecordNode := nil;
 end;
 
-procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
+procedure TXMLDatapacketReader.StoreFieldDefs(AnAutoIncValue: integer);
 
 var i,p         : integer;
     AFieldNode  : TDOMElement;
@@ -203,7 +203,7 @@ begin
   MetaDataNode := XMLDocument.CreateElement('METADATA');
   FieldsNode := XMLDocument.CreateElement('FIELDS');
 
-  for i := 0 to AFieldDefs.Count -1 do with AFieldDefs[i] do
+  for i := 0 to DataSet.FieldDefs.Count - 1 do with DataSet.FieldDefs[i] do
     begin
     AFieldNode := XMLDocument.CreateElement('FIELD');
     if Name <> '' then AFieldNode.SetAttribute('fieldname',Name);
@@ -335,52 +335,57 @@ begin
     end;
 end;
 
-procedure TXMLDatapacketReader.RestoreRecord(ADataset : TCustomBufDataset);
+procedure TXMLDatapacketReader.RestoreRecord;
 var FieldNr      : integer;
     AFieldNode   : TDomNode;
     ABufBlobField: TBufBlobField;
     AField: TField;
     s: string;
+    ws: widestring;
 begin
-  with ADataset do for FieldNr:=0 to FieldDefs.Count-1 do
+  with DataSet do for FieldNr:=0 to FieldDefs.Count-1 do
     begin
+    AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
     AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
     if assigned(AFieldNode) then
       begin
-       s := AFieldNode.NodeValue;
-       AField := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
-       if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
-         s := DecodeStringBase64(s);
-       if FieldDefs[FieldNr].DataType in [ftBlob, ftMemo] then
-        begin
-        ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
-        AField.SetData(@ABufBlobField);
-        ABufBlobField.BlobBuffer^.Size:=length(s);
-        ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
-        move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
-        end
-      else
-        AField.AsString := s;  // set it to the filterbuffer
+      s := AFieldNode.NodeValue;
+      if (FieldDefs[FieldNr].DataType in [ftBlob, ftBytes, ftVarBytes]) and (s <> '') then
+        s := DecodeStringBase64(s);
+      case FieldDefs[FieldNr].DataType of
+        ftBlob, ftMemo:
+          RestoreBlobField(AField, @s[1], length(s));
+        ftWideMemo:
+          begin
+          ws := s;
+          RestoreBlobField(AField, @ws[1], length(ws)*sizeof(WideChar));
+          end
+        else;
+          AField.AsString := s;  // set it to the filterbuffer
+      end;
       end
+    else
+      AField.SetData(nil);
     end;
 end;
 
-procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
+procedure TXMLDatapacketReader.StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
     AFieldDef: TFieldDef;
-    s: string;
+    AField: TField;
     ARecordNode : TDOMElement;
 begin
   inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
-  for FieldNr := 0 to ADataset.FieldDefs.Count-1 do
+  with DataSet do for FieldNr := 0 to FieldDefs.Count-1 do
     begin
-    AFieldDef := ADataset.FieldDefs[FieldNr];
-    s := ADataset.Fields.FieldByNumber(AFieldDef.FieldNo).AsString;
-    if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
-      ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(s))
-    else
-      ARecordNode.SetAttribute(AFieldDef.Name, s);
+    AFieldDef := FieldDefs[FieldNr];
+    AField := Fields.FieldByNumber(AFieldDef.FieldNo);
+    if not AField.IsNull then
+      if AFieldDef.DataType in [ftBlob, ftBytes, ftVarBytes] then
+        ARecordNode.SetAttribute(AFieldDef.Name, EncodeStringBase64(AField.AsString))
+      else
+        ARecordNode.SetAttribute(AFieldDef.Name, AField.AsString);
     end;
   if ARowState<>[] then
     begin

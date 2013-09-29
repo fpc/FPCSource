@@ -125,6 +125,7 @@ begin
   basiceventdestroy(event);
 {$else}
   help:=thelper.create(o_waittimeoutabandon);
+  sleep(100); // make sure that thread has been started
   basiceventdestroy(event);
   help.waitfor;
   help.free;

@@ -22,7 +22,8 @@
  *
  * cssmkrapi.h -- Application Programmers Interface for Key Recovery Modules
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -98,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -107,6 +109,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +125,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -141,6 +146,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -219,6 +225,7 @@ type
 		KRSPFlags: UInt32; { flag values to be interpreted by KRSP }
 		KRSPExtensions: CSSM_DATA_PTR; { reserved for extensions specific to KRSPs }
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KR_WRAPPEDPRODUCT_INFO_PTR = ^CSSM_KR_WRAPPEDPRODUCT_INFO;
@@ -231,6 +238,7 @@ type
 		ProductVendor: CSSM_STRING;
 		ProductFlags: UInt32;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KRSUBSERVICE_PTR = ^cssm_krsubservice;
@@ -283,6 +291,7 @@ type
 		PolicyFlags: CSSM_KR_POLICY_FLAGS;
 		AlgClass: CSSM_CONTEXT_TYPE;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 type
 	CSSM_KR_POLICY_INFO_PTR = ^cssm_kr_policy_info;
@@ -292,54 +301,70 @@ type
 		numberOfEntries: UInt32;
 		policyEntry: CSSM_KR_POLICY_LIST_ITEMPtr;
 	end;
+	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Key Recovery Module Mangement Operations }
 
 function CSSM_KR_SetEnterpriseRecoveryPolicy( const (*var*) RecoveryPolicyFileName: CSSM_DATA; const (*var*) OldPassPhrase: CSSM_ACCESS_CREDENTIALS; const (*var*) NewPassPhrase: CSSM_ACCESS_CREDENTIALS ): CSSM_RETURN; external name '_CSSM_KR_SetEnterpriseRecoveryPolicy';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Key Recovery Context Operations }
 
 function CSSM_KR_CreateRecoveryRegistrationContext( KRSPHandle: CSSM_KRSP_HANDLE; var NewContext: CSSM_CC_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_CreateRecoveryRegistrationContext';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_CreateRecoveryEnablementContext( KRSPHandle: CSSM_KRSP_HANDLE; const (*var*) LocalProfile: CSSM_KR_PROFILE; const (*var*) RemoteProfile: CSSM_KR_PROFILE; var NewContext: CSSM_CC_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_CreateRecoveryEnablementContext';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_CreateRecoveryRequestContext( KRSPHandle: CSSM_KRSP_HANDLE; const (*var*) LocalProfile: CSSM_KR_PROFILE; var NewContext: CSSM_CC_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_CreateRecoveryRequestContext';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_GetPolicyInfo( CCHandle: CSSM_CC_HANDLE; var EncryptionProhibited: CSSM_KR_POLICY_FLAGS; var WorkFactor: UInt32 ): CSSM_RETURN; external name '_CSSM_KR_GetPolicyInfo';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Key Recovery Registration Operations }
 
 function CSSM_KR_RegistrationRequest( RecoveryRegistrationContext: CSSM_CC_HANDLE; const (*var*) KRInData: CSSM_DATA; const (*var*) AccessCredentials: CSSM_ACCESS_CREDENTIALS; KRFlags: CSSM_KR_POLICY_FLAGS; var EstimatedTime: SInt32; ReferenceHandle: CSSM_HANDLE_PTR ): CSSM_RETURN; external name '_CSSM_KR_RegistrationRequest';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_RegistrationRetrieve( KRSPHandle: CSSM_KRSP_HANDLE; ReferenceHandle: CSSM_HANDLE; const (*var*) AccessCredentials: CSSM_ACCESS_CREDENTIALS; var EstimatedTime: SInt32; KRProfile: CSSM_KR_PROFILE_PTR ): CSSM_RETURN; external name '_CSSM_KR_RegistrationRetrieve';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Key Recovery Enablement Operations }
 
 function CSSM_KR_GenerateRecoveryFields( KeyRecoveryContext: CSSM_CC_HANDLE; CCHandle: CSSM_CC_HANDLE; const (*var*) KRSPOptions: CSSM_DATA; KRFlags: CSSM_KR_POLICY_FLAGS; KRFields: CSSM_DATA_PTR; var NewCCHandle: CSSM_CC_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_GenerateRecoveryFields';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_ProcessRecoveryFields( KeyRecoveryContext: CSSM_CC_HANDLE; CryptoContext: CSSM_CC_HANDLE; const (*var*) KRSPOptions: CSSM_DATA; KRFlags: CSSM_KR_POLICY_FLAGS; const (*var*) KRFields: CSSM_DATA; var NewCryptoContext: CSSM_CC_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_ProcessRecoveryFields';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Key Recovery Request Operations }
 
 function CSSM_KR_RecoveryRequest( RecoveryRequestContext: CSSM_CC_HANDLE; const (*var*) KRInData: CSSM_DATA; const (*var*) AccessCredentials: CSSM_ACCESS_CREDENTIALS; var EstimatedTime: SInt32; ReferenceHandle: CSSM_HANDLE_PTR ): CSSM_RETURN; external name '_CSSM_KR_RecoveryRequest';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_RecoveryRetrieve( KRSPHandle: CSSM_KRSP_HANDLE; ReferenceHandle: CSSM_HANDLE; const (*var*) AccessCredentials: CSSM_ACCESS_CREDENTIALS; var EstimatedTime: SInt32; CacheHandle: CSSM_HANDLE_PTR; var NumberOfRecoveredKeys: UInt32 ): CSSM_RETURN; external name '_CSSM_KR_RecoveryRetrieve';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_GetRecoveredObject( KRSPHandle: CSSM_KRSP_HANDLE; CacheHandle: CSSM_HANDLE; IndexInResults: UInt32; CSPHandle: CSSM_CSP_HANDLE; const (*var*) CredAndAclEntry: CSSM_RESOURCE_CONTROL_CONTEXT; Flags: UInt32; RecoveredKey: CSSM_KEY_PTR; OtherInfo: CSSM_DATA_PTR ): CSSM_RETURN; external name '_CSSM_KR_GetRecoveredObject';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_RecoveryRequestAbort( KRSPHandle: CSSM_KRSP_HANDLE; CacheHandle: CSSM_HANDLE ): CSSM_RETURN; external name '_CSSM_KR_RecoveryRequestAbort';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 function CSSM_KR_QueryPolicyInfo( KRSPHandle: CSSM_KRSP_HANDLE; AlgorithmID: CSSM_ALGORITHMS; Mode: CSSM_ENCRYPT_MODE; Class: CSSM_CONTEXT_TYPE; var PolicyInfoData: CSSM_KR_POLICY_INFO_PTR ): CSSM_RETURN; external name '_CSSM_KR_QueryPolicyInfo';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
 { Extensibility Functions }
 
 function CSSM_KR_PassThrough( KRSPHandle: CSSM_KRSP_HANDLE; KeyRecoveryContext: CSSM_CC_HANDLE; CryptoContext: CSSM_CC_HANDLE; PassThroughId: UInt32; InputParams: {const} UnivPtr; OutputParams: UnivPtrPtr ): CSSM_RETURN; external name '_CSSM_KR_PassThrough';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

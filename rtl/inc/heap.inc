@@ -22,17 +22,17 @@
 const
   MemoryManager: TMemoryManager = (
     NeedLock: false;  // Obsolete
-    GetMem: @SysGetMem;
-    FreeMem: @SysFreeMem;
-    FreeMemSize: @SysFreeMemSize;
-    AllocMem: @SysAllocMem;
-    ReAllocMem: @SysReAllocMem;
-    MemSize: @SysMemSize;
+    GetMem: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetMem{$else}nil{$endif};
+    FreeMem: {$ifndef FPC_NO_DEFAULT_HEAP}@SysFreeMem{$else}nil{$endif};
+    FreeMemSize: {$ifndef FPC_NO_DEFAULT_HEAP}@SysFreeMemSize{$else}nil{$endif};
+    AllocMem: {$ifndef FPC_NO_DEFAULT_HEAP}@SysAllocMem{$else}nil{$endif};
+    ReAllocMem: {$ifndef FPC_NO_DEFAULT_HEAP}@SysReAllocMem{$else}nil{$endif};
+    MemSize: {$ifndef FPC_NO_DEFAULT_HEAP}@SysMemSize{$else}nil{$endif};
     InitThread: nil;
     DoneThread: nil;
     RelocateHeap: nil;
-    GetHeapStatus: @SysGetHeapStatus;
-    GetFPCHeapStatus: @SysGetFPCHeapStatus;
+    GetHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetHeapStatus{$else}nil{$endif};
+    GetFPCHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetFPCHeapStatus{$else}nil{$endif};
   );
 {$else}
 {$ifndef FPC_IN_HEAPMGR}
@@ -1571,6 +1571,9 @@ var
   i : longint;
 {$endif}
 begin
+  { Do not try to do anything if the heap manager already reported an error }
+  if (errorcode=203) or (errorcode=204) then
+    exit;
   loc_freelists := @freelists;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then

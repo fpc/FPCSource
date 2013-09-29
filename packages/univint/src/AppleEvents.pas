@@ -3,7 +3,7 @@
  
      Contains:   AppleEvent Package Interfaces.
  
-     Version:    AppleEvents-496~1
+    
  
      Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
  
@@ -14,6 +14,7 @@
  
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -241,6 +247,14 @@ const
 	kAELocalProcess = 3;
 	kAERemoteProcess = 4;
 
+	
+{ if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1080 }
+const
+	errAETargetAddressNotPermitted = -1742;	{ Mac OS X 10.8 and later, the target of an AppleEvent is not accessible to this process, perhaps due to sandboxing }
+	errAEEventNotPermitted = -1743;			{ Mac OS X 10.8 and later, the target of the AppleEvent does not allow this sender to execute this event }
+{ endif }
+	
+	
 {*************************************************************************
   These calls are used to set up and modify the event dispatch table.
 *************************************************************************}
@@ -256,7 +270,7 @@ const
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AEInstallEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; handlerRefcon: SRefCon; isSysHandler: Boolean ): OSErr; external name '_AEInstallEventHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {
@@ -271,7 +285,7 @@ function AEInstallEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEE
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AERemoveEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AERemoveEventHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {
@@ -286,7 +300,7 @@ function AERemoveEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEv
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AEGetEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; var handler: AEEventHandlerUPP; var handlerRefcon: SRefCon; isSysHandler: Boolean ): OSErr; external name '_AEGetEventHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {*************************************************************************
@@ -305,7 +319,7 @@ function AEGetEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEvent
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AEInstallSpecialHandler( functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AEInstallSpecialHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {
@@ -320,7 +334,7 @@ function AEInstallSpecialHandler( functionClass: AEKeyword; handler: AEEventHand
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AERemoveSpecialHandler( functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AERemoveSpecialHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {
@@ -335,7 +349,7 @@ function AERemoveSpecialHandler( functionClass: AEKeyword; handler: AEEventHandl
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AEGetSpecialHandler( functionClass: AEKeyword; var handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AEGetSpecialHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {*************************************************************************
@@ -356,7 +370,7 @@ function AEGetSpecialHandler( functionClass: AEKeyword; var handler: AEEventHand
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function AEManagerInfo( keyWord: AEKeyword; var result: SIGNEDLONG ): OSErr; external name '_AEManagerInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
 
 {
@@ -393,7 +407,7 @@ function AEManagerInfo( keyWord: AEKeyword; var result: SIGNEDLONG ): OSErr; ext
  *    Non-Carbon CFM:   not available
  }
 var kAERemoteProcessURLKey: CFStringRef; external name '_kAERemoteProcessURLKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessNameKey
  *  
@@ -407,7 +421,7 @@ var kAERemoteProcessURLKey: CFStringRef; external name '_kAERemoteProcessURLKey'
  *    Non-Carbon CFM:   not available
  }
 var kAERemoteProcessNameKey: CFStringRef; external name '_kAERemoteProcessNameKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessUserIDKey
  *  
@@ -421,7 +435,7 @@ var kAERemoteProcessNameKey: CFStringRef; external name '_kAERemoteProcessNameKe
  *    Non-Carbon CFM:   not available
  }
 var kAERemoteProcessUserIDKey: CFStringRef; external name '_kAERemoteProcessUserIDKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessProcessIDKey
  *  
@@ -435,7 +449,7 @@ var kAERemoteProcessUserIDKey: CFStringRef; external name '_kAERemoteProcessUser
  *    Non-Carbon CFM:   not available
  }
 var kAERemoteProcessProcessIDKey: CFStringRef; external name '_kAERemoteProcessProcessIDKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 
 {
  *  AERemoteProcessResolverContext
@@ -519,7 +533,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function AECreateRemoteProcessResolver( allocator: CFAllocatorRef; url: CFURLRef ): AERemoteProcessResolverRef; external name '_AECreateRemoteProcessResolver';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 
 
 {
@@ -544,7 +558,7 @@ function AECreateRemoteProcessResolver( allocator: CFAllocatorRef; url: CFURLRef
  *    Non-Carbon CFM:   not available
  }
 procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); external name '_AEDisposeRemoteProcessResolver';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 
 
 {
@@ -585,7 +599,7 @@ procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); ext
  *    Non-Carbon CFM:   not available
  }
 function AERemoteProcessResolverGetProcesses( ref: AERemoteProcessResolverRef; var outError: CFStreamError ): CFArrayRef; external name '_AERemoteProcessResolverGetProcesses';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 
 
 {
@@ -638,7 +652,8 @@ type
  *    Non-Carbon CFM:   not available
  }
 procedure AERemoteProcessResolverScheduleWithRunLoop( ref: AERemoteProcessResolverRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef; callback: AERemoteProcessResolverCallback; {const} ctx: AERemoteProcessResolverContextPtr { can be NULL } ); external name '_AERemoteProcessResolverScheduleWithRunLoop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
+
 
 
 {$endc} {TARGET_OS_MAC}

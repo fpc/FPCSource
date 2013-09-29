@@ -52,6 +52,9 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
+
+       { tprocinfo }
+
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
@@ -112,6 +115,9 @@ unit procinfo;
           { label to leave the sub routine }
           CurrExitLabel : tasmlabel;
 
+          { label for nested exits }
+          nestedexitlabel : tlabelsym;
+
           { The code for the routine itself, excluding entry and
             exit code. This is a linked list of tai classes.
           }
@@ -121,6 +127,10 @@ unit procinfo;
 
           { max. of space need for parameters }
           maxpushedparasize : aint;
+
+          { some architectures need to know a stack size before the first compilation pass
+            estimatedtempsize contains an estimated value how big temps will get }
+          estimatedtempsize : longint;
 
           { is this a constructor that calls another constructor on itself
             (either inherited, or another constructor of the same class)?
@@ -158,6 +168,7 @@ unit procinfo;
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
+          function get_normal_proc: tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
@@ -259,6 +270,13 @@ implementation
     function tprocinfo.has_nestedprocs: boolean;
       begin
         result:=assigned(nestedprocs) and (nestedprocs.count>0);
+      end;
+
+    function tprocinfo.get_normal_proc: tprocinfo;
+      begin
+        result:=self;
+        while assigned(result.parent)and(result.procdef.parast.symtablelevel>normal_function_level) do
+          result:=result.parent;
       end;
 
     procedure tprocinfo.save_jump_labels(out saved: tsavedlabels);

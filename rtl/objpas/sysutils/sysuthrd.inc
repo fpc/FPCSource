@@ -11,7 +11,7 @@
 
  **********************************************************************}
 
-
+{$ifdef FPC_HAS_FEATURE_THREADING}
 constructor TSimpleRWSync.Create;
 begin
   System.InitCriticalSection(Crit);
@@ -164,3 +164,5 @@ begin
      (System.InterLockedExchangeAdd(fwritelocked,0)<>0) then
     RTLEventSetEvent(fwaitingwriterlock);
 end;
+{$endif FPC_HAS_FEATURE_THREADING}
+

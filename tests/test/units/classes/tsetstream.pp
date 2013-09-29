@@ -2,7 +2,7 @@ program storedfalse;
 {$ifdef FPC}{$mode objfpc}{$h+}{$INTERFACES CORBA}{$endif}
 {$ifdef mswindows}{$apptype console}{$endif}
 uses
- {$ifdef FPC}{$ifdef linux}cthreads,{$endif}{$endif}
+ {$ifdef FPC}{$ifdef unix}cthreads,{$endif}{$endif}
  sysutils,classes;
 
 type

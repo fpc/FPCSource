@@ -24,7 +24,7 @@ Resourcestring
   SErrFailedToCreateWindow = 'Failed to create message window %s';
 
 var
-  MsgWindowClass: TWndClass = (
+  MsgWindowClass: TWndClassA = (
     style: 0;
     lpfnWndProc: Nil;
     cbClsExtra: 0;
@@ -90,18 +90,18 @@ end;
 function TWinMsgServerComm.AllocateHWnd(const aWindowName: String): HWND;
 
 var
-  cls: TWndClass;
+  cls: TWndClassA;
   isreg : Boolean;
 
 begin
   Pointer(MsgWindowClass.lpfnWndProc):=@MsgWndProc;
   MsgWindowClass.hInstance := HInstance;
   MsgWindowClass.lpszClassName:=MsgWndClassName;
-  isreg:=GetClassInfo(HInstance,MsgWndClassName,cls);
+  isreg:=GetClassInfoA(HInstance,MsgWndClassName,cls);
   if not isreg then
-    if (Windows.RegisterClass(MsgWindowClass)=0) then
+    if (Windows.RegisterClassA(MsgWindowClass)=0) then
       Owner.DoError(SErrFailedToRegisterWindowClass,[]);
-  Result:=CreateWindowEx(WS_EX_TOOLWINDOW, MsgWndClassName,
+  Result:=CreateWindowExA(WS_EX_TOOLWINDOW, MsgWndClassName,
     PChar(aWindowName), WS_POPUP {!0}, 0, 0, 0, 0, 0, 0, HInstance, nil);
   if (Result=0) then
     Owner.DoError(SErrFailedToCreateWindow,[aWindowName]);
@@ -221,7 +221,7 @@ end;
 
 procedure TWinMsgClientComm.Connect;
 begin
-  FHWND:=FindWindow(MsgWndClassName,PChar(FWindowName));
+  FHWND:=FindWindowA(MsgWndClassName,PChar(FWindowName));
   If (FHWND=0) then
     Owner.DoError(SErrServerNotActive,[Owner.ServerID]);
 end;
@@ -265,7 +265,7 @@ end;
 
 function TWinMsgClientComm.ServerRunning: Boolean;
 begin
-  Result:=FindWindow(MsgWndClassName,PChar(FWindowName))<>0;
+  Result:=FindWindowA(MsgWndClassName,PChar(FWindowName))<>0;
 end;
 
 { ---------------------------------------------------------------------

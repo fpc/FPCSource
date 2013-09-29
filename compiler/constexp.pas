@@ -26,13 +26,6 @@ unit constexp;
 
 interface
 
-{ bootstrapping with 2.0.x }
-{$ifdef VER2_0}
-  {$Q-}
-  {$R-}
-{$endif}
-
-
 type  Tconstexprint=record
         overflow:boolean;
         case signed:boolean of
@@ -41,8 +34,6 @@ type  Tconstexprint=record
           true:
             (svalue:int64);
       end;
-
-      Tconststring = type pchar;
 
       errorproc=procedure (i:longint);
 
@@ -198,6 +189,10 @@ try_qword:
   result.overflow:=true;
 end;
 
+{ workaround for 2.6.x bug }
+{$ifdef VER2_6}
+    {$push} {$Q-}
+{$endif VER2_6}
 function sub_from(const a:Tconstexprint;b:qword):Tconstexprint;
 
 const abs_low_int64=qword(9223372036854775808);   {abs(low(int64)) -> overflow error}
@@ -240,6 +235,10 @@ try_qword:
 ov:
   result.overflow:=true;
 end;
+{ workaround for 2.6.x bug }
+{$ifdef VER2_6}
+    {$pop}
+{$endif VER2_6}
 
 operator + (const a,b:Tconstexprint):Tconstexprint;
 

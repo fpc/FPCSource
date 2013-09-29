@@ -138,7 +138,7 @@ unit cgppc;
     uses
        {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
-       symconst,symsym,fmodule,
+       symconst,symsym,symtable,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
 { We know that macos_direct_globals is a const boolean
@@ -320,13 +320,13 @@ unit cgppc;
         else
           stubalign:=16;
         new_section(current_asmdata.asmlists[al_imports],sec_stub,'',stubalign);
-        result := current_asmdata.RefAsmSymbol(stubname);
+        result := current_asmdata.DefineAsmSymbol(stubname,AB_LOCAL,AT_FUNCTION);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
           current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
+        l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA);
         reference_reset_symbol(href,l1,0,sizeof(pint));
         href.refaddr := addr_higha;
         if (cs_create_pic in current_settings.moduleswitches) then
@@ -653,11 +653,13 @@ unit cgppc;
   procedure tcgppcgen.g_profilecode(list: TAsmList);
     var
       paraloc1 : tcgpara;
+      pd : tprocdef;
     begin
       if (target_info.system in [system_powerpc_darwin]) then
         begin
+          pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(pocall_cdecl,1,voidpointertype,paraloc1);
+          paramanager.getintparaloc(pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;

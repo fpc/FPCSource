@@ -15,8 +15,8 @@ Type
   private
     FContent: String;
     FDescriptions: TStrings;
-    FIMports: TStrings;
-    FinPuts: TStrings;
+    FImports: TStrings;
+    FInputs: TStrings;
     FName: String;
     FOutput: String;
   Public

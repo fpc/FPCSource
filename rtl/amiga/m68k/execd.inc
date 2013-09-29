@@ -5,7 +5,7 @@
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
 
     Free Pascal conversion
-    Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
+    Copyright (c) 2004-2012 Karoly Balogh
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,11 +18,6 @@
 
 {include emuld.inc}
 {$include utild1.inc}
-
-{$WARNING Ugly hack, remove this ASAP!}
-type
-  PInterface = Pointer;
-
 
 { * exec node definitions (V50)
   *********************************************************************

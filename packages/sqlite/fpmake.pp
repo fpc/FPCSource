@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('sqlite');
 {$ifdef ALLPACKAGES}
-    P.Directory:='sqlite';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];

@@ -1058,8 +1058,8 @@ sym_e_invalid_call_tvarsymmangledname=05011_E_Invalid call to tvarsym.manglednam
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
-sym_f_type_must_be_rec_or_class=05012_F_record or class type expected
-% The variable or expression isn't of the type \var{record} or \var{class}.
+sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
+% The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Instances of classes or objects with an abstract method are not allowed
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.

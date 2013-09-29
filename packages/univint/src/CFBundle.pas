@@ -1,8 +1,9 @@
 {	CFBundle.h
-	Copyright (c) 1999-2009, Apple Inc. All rights reserved.
+	Copyright (c) 1999-2012, Apple Inc.  All rights reserved.
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,9 +177,10 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFError,CFString,CFURL;
 
 
 type
-	CFBundleRef = ^SInt32; { an opaque type }
+	CFBundleRef = ^__CFBundle; { an opaque type }
+	__CFBundle = record end;
 	CFBundleRefPtr = ^CFBundleRef;
-	CFPlugInRef = ^SInt32; { an opaque type }
+	CFPlugInRef = ^__CFBundle; { an opaque type }
 	CFPlugInRefPtr = ^CFPlugInRef;
 
 { ===================== Standard Info.plist keys ===================== }
@@ -184,7 +191,9 @@ var kCFBundleExecutableKey: CFStringRef; external name '_kCFBundleExecutableKey'
 var kCFBundleIdentifierKey: CFStringRef; external name '_kCFBundleIdentifierKey'; (* attribute const *)
     { The bundle identifier (for CFBundleGetBundleWithIdentifier()) }
 var kCFBundleVersionKey: CFStringRef; external name '_kCFBundleVersionKey'; (* attribute const *)
-    { The version number of the bundle.  For Mac OS 9 style version numbers (for example "2.5.3d5"), clients can use CFBundleGetVersionNumber() instead of accessing this key directly since that function will properly convert the version string into its compact integer representation. }
+    { The version number of the bundle.  For Mac OS 9 style version numbers (for example "2.5.3d5"), }
+    { clients can use CFBundleGetVersionNumber() instead of accessing this key directly since that }
+    { function will properly convert the version string into its compact integer representation. }
 var kCFBundleDevelopmentRegionKey: CFStringRef; external name '_kCFBundleDevelopmentRegionKey'; (* attribute const *)
     { The name of the development language of the bundle. }
 var kCFBundleNameKey: CFStringRef; external name '_kCFBundleNameKey'; (* attribute const *)
@@ -301,7 +310,7 @@ function CFBundleCopyPreferredLocalizationsFromArray( locArray: CFArrayRef ): CF
     { of them that CFBundle would use in the current application context. }
     { To determine the localizations that would be used for a particular }
     { bundle in the current application context, apply this function to the }
-    { result of CFBundleCopyBundleLocalizations.  }
+    { result of CFBundleCopyBundleLocalizations().  }
 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 function CFBundleCopyLocalizationsForPreferences( locArray: CFArrayRef; prefArray: CFArrayRef ): CFArrayRef; external name '_CFBundleCopyLocalizationsForPreferences';
@@ -309,10 +318,10 @@ function CFBundleCopyLocalizationsForPreferences( locArray: CFArrayRef; prefArra
     { them that CFBundle would use, without reference to the current application }
     { context, if the user's preferred localizations were given by prefArray. }
     { If prefArray is NULL, the current user's actual preferred localizations will }
-    { be used. This is not the same as CFBundleCopyPreferredLocalizationsFromArray, }
+    { be used. This is not the same as CFBundleCopyPreferredLocalizationsFromArray(), }
     { because that function takes the current application context into account. }
     { To determine the localizations that another application would use, apply }
-    { this function to the result of CFBundleCopyBundleLocalizations.  }
+    { this function to the result of CFBundleCopyBundleLocalizations().  }
 {#endif}
 
 function CFBundleCopyResourceURLForLocalization( bundle: CFBundleRef; resourceName: CFStringRef; resourceType: CFStringRef; subDirName: CFStringRef; localizationName: CFStringRef ): CFURLRef; external name '_CFBundleCopyResourceURLForLocalization';
@@ -329,13 +338,13 @@ function CFBundleCopyResourceURLsOfTypeForLocalization( bundle: CFBundleRef; res
 { This API is provided to enable developers to retrieve bundle-related }
 { information about an application that may be bundled or unbundled.   }
 function CFBundleCopyInfoDictionaryForURL( url: CFURLRef ): CFDictionaryRef; external name '_CFBundleCopyInfoDictionaryForURL';
-    { For a directory URL, this is equivalent to CFBundleCopyInfoDictionaryInDirectory. }
+    { For a directory URL, this is equivalent to CFBundleCopyInfoDictionaryInDirectory(). }
     { For a plain file URL representing an unbundled executable, this will attempt to read }
     { an info dictionary from the (__TEXT, __info_plist) section, if it is a Mach-o file, }
     { or from a 'plst' resource.  }
 
 function CFBundleCopyLocalizationsForURL( url: CFURLRef ): CFArrayRef; external name '_CFBundleCopyLocalizationsForURL';
-    { For a directory URL, this is equivalent to calling CFBundleCopyBundleLocalizations }
+    { For a directory URL, this is equivalent to calling CFBundleCopyBundleLocalizations() }
     { on the corresponding bundle.  For a plain file URL representing an unbundled executable, }
     { this will attempt to determine its localizations using the CFBundleLocalizations and }
     { CFBundleDevelopmentRegion keys in the dictionary returned by CFBundleCopyInfoDictionaryForURL,}
@@ -343,7 +352,7 @@ function CFBundleCopyLocalizationsForURL( url: CFURLRef ): CFArrayRef; external 
 {#endif}
 
 function CFBundleCopyExecutableArchitecturesForURL( url: CFURLRef ): CFArrayRef; external name '_CFBundleCopyExecutableArchitecturesForURL';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
     { For a directory URL, this is equivalent to calling CFBundleCopyExecutableArchitectures() }
     { on the corresponding bundle.  For a plain file URL representing an unbundled executable, }
     { this will return the architectures it provides, if it is a Mach-o file, or NULL otherwise. }
@@ -367,14 +376,14 @@ const
 {#endif} { MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED }
 
 function CFBundleCopyExecutableArchitectures( bundle: CFBundleRef ): CFArrayRef; external name '_CFBundleCopyExecutableArchitectures';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
     { If the bundle's executable exists and is a Mach-o file, this function will return an array }
     { of CFNumbers whose values are integers representing the architectures the file provides. }
     { The values currently in use are those listed in the enum above, but others may be added }
     { in the future.  If the executable is not a Mach-o file, this function returns NULL. }
 
 function CFBundlePreflightExecutable( bundle: CFBundleRef; var error: CFErrorRef ): Boolean; external name '_CFBundlePreflightExecutable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
     { This function will return true if the bundle is loaded, or if the bundle appears to be }
     { loadable upon inspection.  This does not mean that the bundle is definitively loadable, }
     { since it may fail to load due to link errors or other problems not readily detectable. }
@@ -382,7 +391,7 @@ function CFBundlePreflightExecutable( bundle: CFBundleRef; var error: CFErrorRef
     { It is the responsibility of the caller to release the CFError. }
 
 function CFBundleLoadExecutableAndReturnError( bundle: CFBundleRef; var error: CFErrorRef ): Boolean; external name '_CFBundleLoadExecutableAndReturnError';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
     { If the bundle is already loaded, this function will return true.  Otherwise, it will attempt }
     { to load the bundle, and it will return true if that attempt succeeds.  If the bundle fails }
     { to load, this function will return false, and it will return a CFError by reference.  }

@@ -33,8 +33,8 @@ Type
   Private
     FWebHandler: TFPHTTPServerHandler;
   protected
-    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
-    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
+    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); override;
+    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); override;
     Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
   end;
@@ -44,10 +44,8 @@ Type
   { TFPHTTPServerHandler }
 
   TFPHTTPServerHandler = class(TWebHandler)
-    procedure HTTPHandleRequest(Sender: TObject;
-      var ARequest: TFPHTTPConnectionRequest;
-      var AResponse: TFPHTTPConnectionResponse);
   Private
+    FOnRequestError: TRequestErrorHandler;
     FServer: TEmbeddedHTTPServer;
     function GetAllowConnect: TConnectQuery;
     function GetPort: Word;
@@ -57,7 +55,11 @@ Type
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    function GetLookupHostNames : Boolean;
+    Procedure SetLookupHostnames(Avalue : Boolean);
   protected
+    procedure HTTPHandleRequest(Sender: TObject; var ARequest: TFPHTTPConnectionRequest; var AResponse: TFPHTTPConnectionResponse); virtual;
+    procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     Procedure InitRequest(ARequest : TRequest); override;
     Procedure InitResponse(AResponse : TResponse); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -65,6 +67,7 @@ Type
     Property HTTPServer : TEmbeddedHttpServer Read FServer;
   Public
     Procedure Run; override;
+    Procedure Terminate; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // Port to listen on.
@@ -75,12 +78,18 @@ Type
     Property OnAllowConnect : TConnectQuery Read GetAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
     property Threaded : Boolean read GetThreaded Write SetThreaded;
+    // Handle On Request error. If not set, error is logged.
+    Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Should addresses be matched to hostnames ? (expensive)
+    Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
   end;
 
   { TCustomHTTPApplication }
 
   TCustomHTTPApplication = Class(TCustomWebApplication)
   private
+    function GetLookupHostNames : Boolean;
+    Procedure SetLookupHostnames(Avalue : Boolean);
     function GetAllowConnect: TConnectQuery;
     function GetPort: Word;
     function GetQueueSize: Word;
@@ -100,16 +109,10 @@ Type
     Property OnAllowConnect : TConnectQuery Read GetAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
     property Threaded : Boolean read GetThreaded Write SetThreaded;
+    // Should addresses be matched to hostnames ? (expensive)
+    Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
   end;
 
-ResourceString
-  SNoInputHandle    = 'Failed to open input-handle passed from server. Socket Error: %d';
-  SNoSocket         = 'Failed to open socket. Socket Error: %d';
-  SBindFailed       = 'Failed to bind to port %d. Socket Error: %d';
-  SListenFailed     = 'Failed to listen to port %d. Socket Error: %d';
-  SErrReadingSocket = 'Failed to read data from socket. Error: %d';
-  SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
-  SErrWritingSocket = 'Failed to write data to socket. Error: %d';
 
 Implementation
 
@@ -132,6 +135,18 @@ uses
 {$endif}
 
 { TCustomHTTPApplication }
+
+function TCustomHTTPApplication.GetLookupHostNames : Boolean;
+
+begin
+  Result:=HTTPHandler.LookupHostNames;
+end;
+
+Procedure TCustomHTTPApplication.SetLookupHostnames(Avalue : Boolean);
+
+begin
+  HTTPHandler.LookupHostNames:=AValue;
+end;
 
 function TCustomHTTPApplication.GetAllowConnect: TConnectQuery;
 begin
@@ -185,18 +200,44 @@ end;
 
 { TFPHTTPServerHandler }
 
+procedure TFPHTTPServerHandler.HandleRequestError(Sender: TObject; E: Exception
+  );
+begin
+  Try
+    If Assigned(FOnRequestError) then
+      FOnRequestError(Sender,E)
+    else
+      Log(etError,Format('Error (%s) handling request : %s',[E.ClassName,E.Message]));
+  except
+    // Do not let errors escape
+  end;
+end;
+
 procedure TFPHTTPServerHandler.HTTPHandleRequest(Sender: TObject;
   var ARequest: TFPHTTPConnectionRequest;
   var AResponse: TFPHTTPConnectionResponse);
 begin
   // Exceptions are handled by (Do)HandleRequest. It also frees the response/request
-  DoHandleRequest(ARequest,AResponse);
-  ARequest:=Nil;
-  AResponse:=Nil;
-  If Terminated then
-    FServer.Active:=False;
+  try
+    DoHandleRequest(ARequest,AResponse);
+  finally  
+    ARequest:=Nil;
+    AResponse:=Nil;
+  end;    
   if Assigned(OnIdle) then
     OnIdle(Self);
+end;
+
+function TFPHTTPServerHandler.GetLookupHostNames : Boolean;
+
+begin
+  Result:=FServer.LookupHostNames;
+end;
+
+Procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue : Boolean);
+
+begin
+  FServer.LookupHostNames:=AValue;
 end;
 
 function TFPHTTPServerHandler.GetAllowConnect: TConnectQuery;
@@ -267,18 +308,29 @@ begin
   Fserver.Active:=True;
 end;
 
+procedure TFPHTTPServerHandler.Terminate;
+begin
+  Inherited;
+  if Assigned(FServer) then
+    Fserver.Active:=False;
+end;
+
 constructor TFPHTTPServerHandler.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FServer:=CreateServer;
   FServer.FWebHandler:=Self;
   FServer.OnRequest:=@HTTPHandleRequest;
+  Fserver.OnRequestError:=@HandleRequestError;
 end;
 
 destructor TFPHTTPServerHandler.Destroy;
 begin
-  FServer.Active:=False;
-  FreeAndNil(FServer);
+  if Assigned(FServer) then
+    begin
+    FServer.Active:=False;
+    FreeAndNil(FServer);
+    end;
   inherited Destroy;
 
 end;

@@ -1,3 +1,4 @@
+{ %target=win32,win64 }
 { %needlibrary }
 { %norun }
 { %neededafter }

@@ -251,8 +251,8 @@ function GetTabbedTextExtentA(hDC:HDC; lpString:LPCSTR; nCount:longint; nTabPosi
 function SetPropA(hWnd:HWND; lpString:LPCSTR; hData:HANDLE):WINBOOL; external 'user32' name 'SetPropA';
 function GetPropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32' name 'GetPropA';
 function RemovePropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32' name 'RemovePropA';
-function EnumPropsExA(hWnd:HWND; lpEnumFunc:PROPENUMPROCEX; lParam:LPARAM):longint; external 'user32' name 'EnumPropsExA';
-function EnumPropsA(hWnd:HWND; lpEnumFunc:PROPENUMPROC):longint; external 'user32' name 'EnumPropsA';
+function EnumPropsExA(hWnd:HWND; lpEnumFunc:PROPENUMPROCEXA; lParam:LPARAM):longint; external 'user32' name 'EnumPropsExA';
+function EnumPropsA(hWnd:HWND; lpEnumFunc:PROPENUMPROCA):longint; external 'user32' name 'EnumPropsA';
 function SetWindowTextA(hWnd:HWND; lpString:LPCSTR):WINBOOL; external 'user32' name 'SetWindowTextA';
 function GetWindowTextA(hWnd:HWND; lpString:LPSTR; nMaxCount:longint):longint; external 'user32' name 'GetWindowTextA';
 function GetWindowTextLengthA(hWnd:HWND):longint; external 'user32' name 'GetWindowTextLengthA';
@@ -340,7 +340,7 @@ function GetLogColorSpaceA(_para1:HCOLORSPACE; _para2:LPLOGCOLORSPACE; _para3:DW
 function GetICMProfileA(_para1:HDC; _para2:DWORD; _para3:LPSTR):WINBOOL; external 'gdi32' name 'GetICMProfileA';
 function SetICMProfileA(_para1:HDC; _para2:LPSTR):WINBOOL; external 'gdi32' name 'SetICMProfileA';
 function UpdateICMRegKeyA(_para1:DWORD; _para2:DWORD; _para3:LPSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyA';
-function EnumICMProfilesA(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesA';
+function EnumICMProfilesA(_para1:HDC; _para2:ICMENUMPROCA; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesA';
 {
 function PropertySheetA(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 function ImageList_LoadImageA(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageA';
@@ -408,14 +408,14 @@ function GetTimeFormatA(Locale:LCID; dwFlags:DWORD; lpTime:LPSYSTEMTIME; lpForma
 function GetDateFormatA(Locale:LCID; dwFlags:DWORD; lpDate:LPSYSTEMTIME; lpFormat:LPCSTR; lpDateStr:LPSTR;cchDate:longint):longint; external 'kernel32' name 'GetDateFormatA';
 function GetNumberFormatA(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; lpFormat:PNUMBERFMT; lpNumberStr:LPSTR;cchNumber:longint):longint; external 'kernel32' name 'GetNumberFormatA';
 function GetCurrencyFormatA(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; lpFormat:PCURRENCYFMT; lpCurrencyStr:LPSTR;cchCurrency:longint):longint; external 'kernel32' name 'GetCurrencyFormatA';
-function EnumCalendarInfoA(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external 'kernel32' name 'EnumCalendarInfoA';
-function EnumTimeFormatsA(lpTimeFmtEnumProc:TIMEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumTimeFormatsA';
-function EnumDateFormatsA(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumDateFormatsA';
+function EnumCalendarInfoA(lpCalInfoEnumProc:CALINFO_ENUMPROCA; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external 'kernel32' name 'EnumCalendarInfoA';
+function EnumTimeFormatsA(lpTimeFmtEnumProc:TIMEFMT_ENUMPROCA; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumTimeFormatsA';
+function EnumDateFormatsA(lpDateFmtEnumProc:DATEFMT_ENUMPROCA; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumDateFormatsA';
 function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32' name 'GetStringTypeExA';
 function GetStringTypeA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32' name 'GetStringTypeA';
 function FoldStringA(dwMapFlags:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpDestStr:LPSTR; cchDest:longint):longint; external 'kernel32' name 'FoldStringA';
-function EnumSystemLocalesA(lpLocaleEnumProc:LOCALE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemLocalesA';
-function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemCodePagesA';
+function EnumSystemLocalesA(lpLocaleEnumProc:LOCALE_ENUMPROCA; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemLocalesA';
+function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROCA; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemCodePagesA';
 function PeekConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUTRECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
 function ReadConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUTRECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
 function WriteConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUTRECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';

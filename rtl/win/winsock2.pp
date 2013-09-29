@@ -14,6 +14,10 @@ unit WinSock2;
 {$smartlink on}
 {$endif}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 Uses Windows;
@@ -77,15 +81,15 @@ const
   IOC_IN       = $80000000;
   IOC_INOUT    = (IOC_IN or IOC_OUT);
 
-  FIONREAD     = IOC_OUT or { get # bytes to read }
+  FIONREAD     = ULONG(IOC_OUT or { get # bytes to read }
     ((Longint(SizeOf(Longint)) and IOCPARM_MASK) shl 16) or
-    (Longint(Byte('f')) shl 8) or 127;
-  FIONBIO      = IOC_IN or { set/clear non-blocking i/o }
+    (Longint(Byte('f')) shl 8) or 127);
+  FIONBIO      = ULONG(IOC_IN or { set/clear non-blocking i/o }
     ((Longint(SizeOf(Longint)) and IOCPARM_MASK) shl 16) or
-    (Longint(Byte('f')) shl 8) or 126;
-  FIOASYNC     = IOC_IN or { set/clear async i/o }
+    (Longint(Byte('f')) shl 8) or 126);
+  FIOASYNC     = ULONG(IOC_IN or { set/clear async i/o }
     ((Longint(SizeOf(Longint)) and IOCPARM_MASK) shl 16) or
-    (Longint(Byte('f')) shl 8) or 125;
+    (Longint(Byte('f')) shl 8) or 125);
 
 type
   PHostEnt = ^THostEnt;

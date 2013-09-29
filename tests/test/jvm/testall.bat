@@ -1,3 +1,5 @@
+del /s /q org
+
 ppcjvm -O2 -g unsupported
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g testintf
@@ -247,4 +249,34 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B tw22807
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw22807
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B ttincdec.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa ttincdec
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B -CTautogetterprefix=Get tprop3.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B -CTautogetterprefix=Get tprop4.pp
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tprop4
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tw24089
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tw24089
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B  -CTautosetterprefix=Set ujsetter
+if %errorlevel% neq 0 exit /b %errorlevel%
+javac -encoding utf-8 -cp ..\..\..\rtl\units\jvm-java;. tjsetter.java
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tjsetter
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B -Sa tlowercaseproc
+if %errorlevel% neq 0 exit /b %errorlevel%
+javac -encoding utf-8 -cp ..\..\..\rtl\units\jvm-java;. tjavalowercaseproc.java
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tjavalowercaseproc
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B  -CTinitlocals tinitvar
+if %errorlevel% neq 0 exit /b %errorlevel%
+javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.test.tinitvar.tinitvar
 if %errorlevel% neq 0 exit /b %errorlevel%

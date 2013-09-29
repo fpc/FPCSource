@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('ldap');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ldap';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Library: Howard Chu, Pierangelo Masarati and Kurt Zeilenga, header: Ivo Steinmann';

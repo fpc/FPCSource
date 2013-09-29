@@ -55,8 +55,8 @@ end;
 {$ifdef CPUMIPS}
 {$define SUPPORTED}
 asm
-  lw $t1,x
-  lw $t2,y
+  move $t1,x
+  move $t2,y
 end;
 {$endif CPUMIPS}
 {$ifndef SUPPORTED}

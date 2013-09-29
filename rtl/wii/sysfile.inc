@@ -29,14 +29,14 @@ begin
   //_fclose (_PFILE(pointer(handle))^);
 end;
 
-procedure do_erase(p: pchar);
+procedure do_erase(p: pchar; pchangeable: boolean);
 begin
   if FileIODevice.FileIO.DoErase <> nil then
     FileIODevice.FileIO.DoErase(p);
 //  _unlink(p);
 end;
 
-procedure do_rename(p1, p2: pchar);
+procedure do_rename(p1, p2: pchar; p1changeable, p2changeable: boolean);
 begin
 //  _rename(p1, p2);
   if FileIODevice.FileIO.DoRename <> nil then
@@ -93,7 +93,7 @@ begin
     FileIODevice.FileIO.DoTruncate(handle, pos);
 end;
 
-procedure do_open(var f; p: pchar; flags: longint);
+procedure do_open(var f; p: pchar; flags: longint; pchangeable: boolean);
 begin
 (*
 { close first if opened }

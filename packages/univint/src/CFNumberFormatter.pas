@@ -1,10 +1,11 @@
 {	CFNumberFormatter.h
-	Copyright (c) 2003-2009, Apple Inc. All rights reserved.
+	Copyright (c) 2003-2012, Apple Inc. All rights reserved.
 }
 {   Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
 {   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -80,6 +81,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -89,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -104,6 +107,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +117,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -176,7 +182,8 @@ uses MacTypes,CFBase,CFNumber,CFLocale;
 
 
 type
-	CFNumberFormatterRef = ^SInt32; { an opaque type }
+	CFNumberFormatterRef = ^__CFNumberFormatter; { an opaque type }
+	__CFNumberFormatter = record end;
 
 // CFNumberFormatters are not thread-safe.  Do not use one from multiple threads!
 
@@ -185,7 +192,7 @@ function CFNumberFormatterGetTypeID: CFTypeID; external name '_CFNumberFormatter
 
 // number format styles
 type
-	CFNumberFormatterStyle = SIGNEDLONG;
+	CFNumberFormatterStyle = CFIndex;
 const
 	kCFNumberFormatterNoStyle = 0;
 	kCFNumberFormatterDecimalStyle = 1;
@@ -215,7 +222,7 @@ procedure CFNumberFormatterSetFormat( formatter: CFNumberFormatterRef; formatStr
 	// Set the format description string of the number formatter.  This
 	// overrides the style settings.  The format of the format string
 	// is as defined by the ICU library, and is similar to that found
-	// in Microsoft Excel and NSNumberFormatter (and Java I believe).
+	// in Microsoft Excel and NSNumberFormatter.
 	// The number formatter starts with a default format string defined
 	// by the style argument with which it was created.
 
@@ -230,7 +237,7 @@ function CFNumberFormatterCreateStringWithValue( allocator: CFAllocatorRef; form
 
 
 type
-	CFNumberFormatterOptionFlags = UNSIGNEDLONG;
+	CFNumberFormatterOptionFlags = CFOptionFlags;
 const
 	kCFNumberFormatterParseIntegersOnly = 1;	{ only parse integers }
 
@@ -325,18 +332,18 @@ var kCFNumberFormatterPerMillSymbol: CFStringRef; external name '_kCFNumberForma
 var kCFNumberFormatterInternationalCurrencySymbol: CFStringRef; external name '_kCFNumberFormatterInternationalCurrencySymbol'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) // CFString
 var kCFNumberFormatterCurrencyGroupingSeparator: CFStringRef; external name '_kCFNumberFormatterCurrencyGroupingSeparator'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // CFString
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *) // CFString
 var kCFNumberFormatterIsLenient: CFStringRef; external name '_kCFNumberFormatterIsLenient'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)		// CFBoolean
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)		// CFBoolean
 var kCFNumberFormatterUseSignificantDigits: CFStringRef; external name '_kCFNumberFormatterUseSignificantDigits'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)	// CFBoolean
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)	// CFBoolean
 var kCFNumberFormatterMinSignificantDigits: CFStringRef; external name '_kCFNumberFormatterMinSignificantDigits'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)	// CFNumber
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)	// CFNumber
 var kCFNumberFormatterMaxSignificantDigits: CFStringRef; external name '_kCFNumberFormatterMaxSignificantDigits'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)	// CFNumber
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)	// CFNumber
 
 type
-	CFNumberFormatterRoundingMode = SIGNEDLONG;
+	CFNumberFormatterRoundingMode = CFIndex;
 const
 	kCFNumberFormatterRoundCeiling = 0;
 	kCFNumberFormatterRoundFloor = 1;
@@ -347,7 +354,7 @@ const
 	kCFNumberFormatterRoundHalfUp = 6;
 
 type
-	CFNumberFormatterPadPosition = SIGNEDLONG;
+	CFNumberFormatterPadPosition = CFIndex;
 const
 	kCFNumberFormatterPadBeforePrefix = 0;
 	kCFNumberFormatterPadAfterPrefix = 1;

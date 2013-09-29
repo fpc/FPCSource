@@ -707,6 +707,19 @@ begin
 end;
 
 
+{$DEFINE HAS_GETCPUCOUNT}
+function GetCPUCount: LongWord;
+const
+  svNumProcessors = 26;
+var
+  ProcNum: cardinal;
+begin
+  GetCPUCount := 1;
+  if DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
+                                                     SizeOf (ProcNum)) = 0 then
+   GetCPUCount := ProcNum;
+end;
+
 
 var
   OS2ThreadManager: TThreadManager;

@@ -1,6 +1,4 @@
-{ %FAIL }
-
-{ for now constructors are forbidden in record helpers }
+{ constructors in record helpers }
 program trhlp12;
 
 {$ifdef fpc}

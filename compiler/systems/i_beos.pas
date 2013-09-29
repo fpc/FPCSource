@@ -64,8 +64,8 @@ unit i_beos;
             dirsep       : '/';
             assem        : as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_beos;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -105,11 +105,11 @@ unit i_beos;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef beos}
     {$ifndef haiku}
       set_source_info(system_i386_beos_info);
     {$endif haiku}
   {$endif beos}
-{$endif cpu86}
+{$endif cpui386}
 end.

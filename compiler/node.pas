@@ -196,6 +196,14 @@ interface
           'objcselectorn',
           'objcprotocoln');
 
+      { a set containing all const nodes }
+      nodetype_const = [ordconstn,
+                        pointerconstn,
+                        stringconstn,
+                        dataconstn,
+                        guidconstn,
+                        realconstn];
+
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflag = (
@@ -243,6 +251,7 @@ interface
 
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
          { second one also for subtractions of u32-u32 implicitly upcasted to s64 }
+         { last one also used on addnode to inhibit procvar calling }
          nf_explicit,
          nf_internal,  { no warnings/hints generated }
          nf_load_procvar,
@@ -358,10 +367,6 @@ interface
 
          { does the real copying of a node }
          function dogetcopy : tnode;virtual;
-
-         { returns the real loadn/temprefn a node refers to,
-           skipping (absolute) equal type conversions        }
-         function actualtargetnode: tnode;virtual;
 
          procedure insertintolist(l : tnodelist);virtual;
          { writes a node for debugging purpose, shouldn't be called }
@@ -855,12 +860,12 @@ implementation
           if i in flags then
             begin
               if not(first) then
-                write(',')
+                write(t,',')
               else
                 first:=false;
-              write(i);
+              write(t, i);
             end;
-        write(']');
+        write(t,']');
       end;
 
 
@@ -944,12 +949,6 @@ implementation
       end;
 
 
-    function tnode.actualtargetnode: tnode;
-      begin
-        result:=self;
-      end;
-
-
     procedure tnode.insertintolist(l : tnodelist);
       begin
       end;
@@ -959,7 +958,10 @@ implementation
     function tnode.allocoptinfo : poptinfo;inline;
       begin
         if not(assigned(optinfo)) then
-          new(optinfo);
+          begin
+            new(optinfo);
+            fillchar(optinfo^,sizeof(optinfo^),0);
+          end;
         result:=optinfo;
       end;
 
@@ -1307,8 +1309,8 @@ implementation
 
 begin
 {$push}{$warnings off}
-  { taitype should fit into a 4 byte set for speed reasons }
-  if ord(high(tnodeflags))>31 then
+  { tvaroption should fit into a 4 byte set for speed reasons }
+  if ord(high(tvaroption))>31 then
     internalerror(201110301);
 {$pop}
 end.

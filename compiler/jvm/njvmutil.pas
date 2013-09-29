@@ -26,9 +26,9 @@ unit njvmutil;
 interface
 
   uses
-    node,
+    node,nbas,
     ngenutil,
-    symtype,symconst,symsym;
+    symtype,symconst,symsym,symdef;
 
 
   type
@@ -38,6 +38,11 @@ interface
       class function force_init: boolean; override;
       class procedure insertbssdata(sym: tstaticvarsym); override;
       class function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
+
+      class function check_insert_trashing(pd: tprocdef): boolean; override;
+      class function  trashable_sym(p: tsym): boolean; override;
+      class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
+
       class procedure InsertInitFinalTable; override;
       class procedure InsertThreadvarTablesTable; override;
       class procedure InsertThreadvars; override;
@@ -56,8 +61,8 @@ implementation
     uses
       verbose,cutils,globtype,globals,constexp,fmodule,
       aasmdata,aasmtai,cpubase,aasmcpu,
-      symdef,symbase,symtable,defutil,jvmdef,
-      nbas,ncnv,ncon,ninl,ncal,nld,nmem,
+      symbase,symtable,defutil,jvmdef,
+      ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
       pass_1;
 
@@ -300,6 +305,73 @@ implementation
         result:=inherited create_main_procdef(name, potype, ps);
     end;
 
+
+  class function tjvmnodeutils.check_insert_trashing(pd: tprocdef): boolean;
+    begin
+      { initialise locals with 0 }
+      if ts_init_locals in current_settings.targetswitches then
+        localvartrashing:=high(trashintvalues);
+      result:=inherited;
+    end;
+
+
+  class function tjvmnodeutils.trashable_sym(p: tsym): boolean;
+    begin
+      result:=
+        inherited and
+        not jvmimplicitpointertype(tabstractnormalvarsym(p).vardef);
+    end;
+
+
+  class procedure tjvmnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
+    var
+      enumdef: tenumdef;
+      trashintval: int64;
+      trashenumval: longint;
+      trashable: boolean;
+    begin
+      trashable:=trashable_sym(p);
+      trashintval:=trashintvalues[localvartrashing];
+      { widechar is a separate type in the JVM, can't cast left hand to integer
+        like in common code }
+      if trashable and
+         is_widechar(tabstractvarsym(p).vardef) then
+        trash_small(stat,trashn,
+          cordconstnode.create(word(trashintval),tabstractvarsym(p).vardef,false))
+      { enums are class instances in the JVM -> create a valid instance }
+      else if trashable and
+         is_enum(tabstractvarsym(p).vardef) then
+        begin
+          enumdef:=tenumdef(tabstractvarsym(p).vardef);
+          trashenumval:=longint(trashintval);
+          if not assigned(enumdef.int2enumsym(trashenumval)) then
+            trashintval:=longint(enumdef.min);
+          trash_small(stat,trashn,
+            cordconstnode.create(trashintval,enumdef,false))
+        end
+      { can't init pointers with arbitrary values; procvardef and objectdef are
+        always pointer-sized here because tjvmnodeutils.trashablesym returns
+        false for jvm implicit pointer types }
+      else if trashable and
+         (tabstractvarsym(p).vardef.typ in [pointerdef,classrefdef,objectdef,procvardef]) then
+        trash_small(stat,trashn,cnilnode.create)
+      else if trashable and
+         is_real(tabstractvarsym(p).vardef) then
+        trash_small(stat,trashn,crealconstnode.create(trashintval,tabstractvarsym(p).vardef))
+      { don't use inherited routines because it typecasts left to the target
+        type, and that doesn't always work in the JVM }
+      else if trashable and
+         (is_integer(tabstractvarsym(p).vardef) or
+          is_cbool(tabstractvarsym(p).vardef) or
+          is_anychar(tabstractvarsym(p).vardef) or
+          is_currency(tabstractvarsym(p).vardef)) then
+        trash_small(stat,trashn,cordconstnode.create(trashintval,tabstractvarsym(p).vardef,false))
+      else if trashable and
+         is_pasbool(tabstractvarsym(p).vardef) then
+        trash_small(stat,trashn,cordconstnode.create(trashintval and 1,tabstractvarsym(p).vardef,false))
+      else
+        inherited;
+    end;
 
   class procedure tjvmnodeutils.InsertInitFinalTable;
     var

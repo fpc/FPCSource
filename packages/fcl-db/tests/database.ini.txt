@@ -138,6 +138,11 @@ name=pubs
 ; user and password blank
 user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=mssqlserver:1433
+; You can also specify the instance after a backslash, e.g.
+; hostname=127.0.0.1\SQLEXPRESS
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; Sybase ASE database
@@ -145,16 +150,51 @@ hostname=127.0.0.1
 connector=sql
 connectorparams=sybase
 name=testdb
-usser=sa
+user=sa
 password=
+; You can specify the port after a colon, e.g.
+; hostname=bigbadserver:5000
+; See mssqlconn documentation
 hostname=127.0.0.1
 
 ; TDBf: DBase/FoxPro database:
 [dbf]
 connector=dbf
+; Connectorparams specifies table level/compatibility level:
+; 3=DBase III
+; 4=DBase IV
+; 7=Visual DBase 7 for Windows
+; 25=FoxPro
+; 30=Visual FoxPro
+connectorparams=4
 
-; Give here the path where the *.dbf file can be generated
-name=/tmp
+; TDBf: DBase/FoxPro database:
+[dbase3]
+connector=dbf
+connectorparams=3
+
+; TDBf: DBase/FoxPro database:
+[dbase4]
+connector=dbf
+connectorparams=4
+
+; TDBf: DBase/FoxPro database:
+[dbase7]
+connector=dbf
+; 7=Visual DBase 7 for Windows
+connectorparams=7
+
+; TDBf: DBase/FoxPro database:
+[foxpro]
+connector=dbf
+; 25=FoxPro
+connectorparams=25
+
+; TDBf: DBase/FoxPro database:
+[visualfoxpro]
+connector=dbf
+; 30=Visual FoxPro
+connectorparams=25
 
 ; MemDS in memory dataset:
 [memds]

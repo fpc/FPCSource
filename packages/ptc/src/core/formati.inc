@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ type
   private
     FFormat: THermesFormat;
     function GetHermesFormat: PHermesFormat;
-    function Equals(AFormat: IPTCFormat): Boolean;
+    function Equals(AFormat: IPTCFormat): Boolean; reintroduce;
     function GetR: Uint32;
     function GetG: Uint32;
     function GetB: Uint32;

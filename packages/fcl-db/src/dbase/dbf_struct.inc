@@ -19,20 +19,23 @@ type
   PDbfHdr = ^rDbfHdr;
   rDbfHdr = packed record
     VerDBF      : Byte;     // 0
-    Year        : Byte;     // 1
-    Month       : Byte;     // 2
-    Day         : Byte;     // 3
-    RecordCount : Integer;  // 4-7
+    Year        : Byte;     // 1 year last updated
+    Month       : Byte;     // 2 month last updated
+    Day         : Byte;     // 3 day last updated
+    RecordCount : Integer;  // 4-7 number of records in file
     FullHdrSize : Word;     // 8-9
-    RecordSize  : Word;     // 10-11
+    RecordSize  : Word;     // 10-11 sum of all field sizes, including delete flag
     Dummy1      : Word;     // 12-13
     IncTrans    : Byte;     // 14
-    Encrypt     : Byte;     // 15
+    Encrypt     : Byte;     // 15 DBase encryption flag
     MultiUse    : Integer;  // 16-19
     LastUserID  : Integer;  // 20-23
     Dummy2      : array[24..27] of Byte;
-    MDXFlag     : Byte;     // 28
-    Language    : Byte;     // 29
+    // $01: mdx (or cdx for VFP) index file present
+    // $02: (Visual FoxPro): associated memo file?
+    // $04: (Visual FoxPro): is this a dbc/database container
+    MDXFlag     : Byte;     // 28 Flags:
+    Language    : Byte;     // 29 code page mark
     Dummy3      : Word;     // 30-31
   end;
 //====================================================================
@@ -46,15 +49,35 @@ type
     Dummy               : array[64..67] of Byte;
   end;
 //====================================================================
+// DBase III,IV,FoxPro,VisualFoxPro field description
   PFieldDescIII = ^rFieldDescIII;
   rFieldDescIII = packed record
-    FieldName       : array[0..10] of Char;
-    FieldType       : Char;     // 11
-    FieldOffset     : Integer;  // 12..15   only applicable to foxpro databases
-    FieldSize       : Byte;     // 16
-    FieldPrecision  : Byte;     // 17
-    FoxProFlags	    : Byte;	// 18
-    Dummy2          : array[19..31] of Byte;
+    FieldName         : array[0..10] of Char;
+    FieldType         : Char;    // 11
+    // FieldOffset: (V)FoxPro only: displacement of field in record
+    // DBase III uses it for address in memory
+    FieldOffset       : Integer; // 12..15
+    FieldSize         : Byte;    // 16
+    FieldPrecision    : Byte;    // 17, also known as decimal count
+    // $01: system solumn (not user-visible)
+    // $02: column can store null values
+    // $04: binary column, e.g. don't interpret codepage (char/memo fields)
+    // $0C: column is autoincrementing (only integer fields)
+    VisualFoxProFlags : Byte;    // 18 Field Flags; flags can be combined
+    // (!!not the next value for a new record!!); the next is calculated by
+    // adding AutoIncrementStep first.
+    // Value covers bytes 19..22 (so no WorkAreaID,Reserved1 for VFP)
+    AutoIncrementNext : Byte;    // 19 VFP only: autoincrement value
+    // WorkAreaID only for DBase III, is always $01
+    WorkAreaID        : Byte;    // 20
+    Reserved1         : array[21..22] of Byte;
+    AutoIncrementStep : Byte;    // 23 VFP only: step value for autoincrement
+    Reserved2         : array[24..30] of Byte;
+    // DBase IV:
+    // $00: no key for this field;
+    // $01: key exists for this field in MDX index file
+    // todo: implement this??
+    MDXIndexField     : Byte;    //31
   end;
 //====================================================================
 // OH 2000-11-15 dBase7 support. Header Update (add fields like Next AutoInc Value)

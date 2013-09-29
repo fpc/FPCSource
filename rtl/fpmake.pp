@@ -77,7 +77,6 @@ begin
           AddInclude('int64.inc');
           AddInclude('astrings.inc');
           AddInclude('wstrings.inc');
-          AddInclude('wustrings.inc');
           AddInclude('aliases.inc');
           AddInclude('dynarr.inc');
           AddInclude('objpas.inc');
@@ -206,7 +205,7 @@ begin
       T.Dependencies.AddUnit('baseunix',AllUnixOSes);
     T:=P.Targets.AddUnit('unix/dl.pp',AllUnixOSes);
       T.Dependencies.AddUnit('system');
-    T:=P.Targets.AddUnit('unix/ipc.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('unix/ipc.pp',AllUnixOSes - [Android]);
       With T.Dependencies do
         begin
           AddUnit('baseunix');

@@ -30,7 +30,8 @@ abitag:
 	.long 4
 	.long 1
 	.byte	 0x46,0x72,0x65,0x65,0x42,0x53,0x44,0x0
-	.long 470000
+	.long	900044
+
 .globl __progname
 	.section	.rodata
 .LC0:

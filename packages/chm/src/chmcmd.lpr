@@ -12,7 +12,7 @@
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 {
   See the file COPYING, included in this distribution,
@@ -25,7 +25,7 @@ program chmcmd;
 uses
   Classes, Sysutils, chmfilewriter, GetOpts;
 
-Const 
+Const
   CHMCMDVersion = '2.6.0';
 
 Procedure Usage;
@@ -129,7 +129,7 @@ begin
        except
          on e:exception do
            begin
-             Writeln('This HHP CHM project seems corrupt, please check it ',name);
+             Writeln('This HHP CHM project seems corrupt, please check it ',name,' (', e.message,')');
              halt(1);
            end;
        end;

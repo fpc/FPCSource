@@ -16,6 +16,7 @@
 
 {$mode objfpc}
 {$h+}
+{$linklib pthread}
 
 program digest;
 

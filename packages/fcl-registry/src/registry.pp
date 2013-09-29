@@ -17,8 +17,7 @@ Uses
     SysUtils,
     inifiles;
 
-  {$I regdef.inc}
-
+{$I regdef.inc}
 
 type
   ERegistryException = class(Exception);
@@ -46,9 +45,7 @@ type
   TRegistry = class(TObject)
   private
     FStringSizeIncludesNull : Boolean;
-{$ifdef XMLREG}
     FSysData : Pointer;
-{$endif XMLREG}
     fAccess: LongWord;
     fCurrentKey: HKEY;
     fRootKey: HKEY;

@@ -63,8 +63,8 @@ unit i_wdosx;
             dirsep       : '\';
             assem        : as_i386_pecoffwdosx;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_wdosx;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
             dbg          : dbg_stabs;
@@ -94,11 +94,11 @@ unit i_wdosx;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef WIN32}
     {$ifdef WDOSX}
       set_source_info(system_i386_wdosx_info);
     {$endif WDOSX}
   {$endif WIN32}
-{$endif CPU86}
+{$endif CPUI386}
 end.

@@ -1,0 +1,39 @@
+#
+#   Makefile.fpc for Free Pascal Message Compiler
+#
+
+[target]
+programs=fpmc
+programs_linux=fpmcgtk
+programs_win32=$(FPMCGTK)
+rsts=frmabout frmmain frmoptions msgcomp
+
+[clean]
+units=frmmain msgcomp frmabout frmoptions
+
+[require]
+packages=fcl-base fpgtk
+
+[compiler]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[prerules]
+ifeq ($(OS_TARGET),win32)
+GTKDLL:=$(strip $(wildcard $(addsuffix /libgtk-0.dll,$(SEARCHPATH))))
+ifneq ($(GTKDLL),)
+FPMCGTK=fpmcgtk
+else
+$(warning GTK DLLs not found, skipping build of fpmcgtk)
+endif
+endif
+
+[rules]
+.NOTPARALLEL:
+fpmc$(EXEEXT): msgcomp.pp fpmc.pp
+
+fpmcgtk$(EXEEXT): msgcomp.pp fpmcgtk.pp $(wildcard frm*.pp)

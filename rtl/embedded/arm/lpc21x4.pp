@@ -419,10 +419,12 @@ unit lpc21x4;
 
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
-    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
-      asm
-      .Lhalt:
-        b .Lhalt
+    procedure _FPC_haltproc; public name '_haltproc';
+      label
+        Lhalt;
+      begin
+      Lhalt:
+        goto Lhalt;
       end;
 
     var

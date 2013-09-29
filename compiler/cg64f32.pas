@@ -122,8 +122,8 @@ unit cg64f32;
 
     procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
       var
-        paraloclo,
-        paralochi : pcgparalocation;
+        paraloclo,paraloclo2,
+        paralochi,paralochi2 : pcgparalocation;
       begin
         if not(cgpara.size in [OS_64,OS_S64]) then
           internalerror(200408231);
@@ -143,51 +143,110 @@ unit cg64f32;
         cgparalo.intsize:=4;
         cgparalo.alignment:=cgpara.alignment;
         paraloclo:=cgparalo.add_location;
-        { 2 parameter fields? }
-        if assigned(cgpara.location^.next) then
-          begin
-            { Order for multiple locations is always
-                paraloc^ -> high
-                paraloc^.next -> low }
-            if (target_info.endian=ENDIAN_BIG) then
-              begin
-                { paraloc^ -> high
+        case cgpara.locations_count of
+          4:
+            begin
+              { 4 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
                   paraloc^.next -> low }
-                move(cgpara.location^,paralochi^,sizeof(paralochi^));
-                move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
-              end
-            else
-              begin
-                { paraloc^ -> low
-                  paraloc^.next -> high }
-                move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
-                move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
-              end;
-          end
-        else
-          begin
-            { single parameter, this can only be in memory }
-            if cgpara.location^.loc<>LOC_REFERENCE then
-              internalerror(200408282);
-            move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
-            move(cgpara.location^,paralochi^,sizeof(paralochi^));
-            { for big endian low is at +4, for little endian high }
-            if target_info.endian = endian_big then
-              begin
-                inc(cgparalo.location^.reference.offset,4);
-                cgparalo.alignment:=newalignment(cgparalo.alignment,4);
-              end
-            else
-              begin
-                inc(cgparahi.location^.reference.offset,4);
-                cgparahi.alignment:=newalignment(cgparahi.alignment,4);
-              end;
-          end;
-        { fix size }
-        paraloclo^.size:=cgparalo.size;
-        paraloclo^.next:=nil;
-        paralochi^.size:=cgparahi.size;
-        paralochi^.next:=nil;
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { paraloc^ -> high }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next,paralochi2^,sizeof(paralochi2^));
+
+                  { paraloc^.next^.next^ -> low }
+                  move(cgpara.location^.next^.next^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo2^,sizeof(paraloclo2^));
+                end
+              else
+                begin
+                  { paraloc^ -> low }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^,paraloclo2^,sizeof(paraloclo2^));
+
+                  { paraloc^.next^.next -> high }
+                  move(cgpara.location^.next^.next^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next^.next^.next^,paralochi2^,sizeof(paralochi2^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=OS_16;
+              paraloclo2^.size:=OS_16;
+              paraloclo2^.next:=nil;
+              paralochi^.size:=OS_16;
+              paralochi2^.size:=OS_16;
+              paralochi2^.next:=nil;
+              if cgpara.size=OS_S64 then
+                if target_info.endian=ENDIAN_BIG then
+                  paralochi^.size:=OS_S16
+                else
+                  paraloclo2^.size:=OS_S16;
+            end;
+          2:
+            begin
+              { 2 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
+                  paraloc^.next -> low }
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { paraloc^ -> high
+                    paraloc^.next -> low }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  move(cgpara.location^.next^,paraloclo^,sizeof(paraloclo^));
+                end
+              else
+                begin
+                  { paraloc^ -> low
+                    paraloc^.next -> high }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  move(cgpara.location^.next^,paralochi^,sizeof(paralochi^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=cgparalo.size;
+              paraloclo^.next:=nil;
+              paralochi^.size:=cgparahi.size;
+              paralochi^.next:=nil;
+            end;
+          1:
+            begin
+              { single parameter, this can only be in memory }
+              if cgpara.location^.loc<>LOC_REFERENCE then
+                internalerror(200408282);
+              move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+              move(cgpara.location^,paralochi^,sizeof(paralochi^));
+              { for big endian low is at +4, for little endian high }
+              if target_info.endian = endian_big then
+                begin
+                  inc(cgparalo.location^.reference.offset,4);
+                  cgparalo.alignment:=newalignment(cgparalo.alignment,4);
+                end
+              else
+                begin
+                  inc(cgparahi.location^.reference.offset,4);
+                  cgparahi.alignment:=newalignment(cgparahi.alignment,4);
+                end;
+
+              { fix size }
+              paraloclo^.size:=cgparalo.size;
+              paraloclo^.next:=nil;
+              paralochi^.size:=cgparahi.size;
+              paralochi^.next:=nil;
+            end;
+          else
+            internalerror(2013051901);
+        end;
       end;
 
 
@@ -219,10 +278,10 @@ unit cg64f32;
       begin
         if target_info.endian = endian_big then
           swap64(value);
-        cg.a_load_const_ref(list,OS_32,aint(lo(value)),ref);
+        cg.a_load_const_ref(list,OS_32,longint(lo(value)),ref);
         tmpref := ref;
         inc(tmpref.offset,4);
-        cg.a_load_const_ref(list,OS_32,aint(hi(value)),tmpref);
+        cg.a_load_const_ref(list,OS_32,longint(hi(value)),tmpref);
       end;
 
 
@@ -271,8 +330,8 @@ unit cg64f32;
     procedure tcg64f32.a_load64_const_reg(list : TAsmList;value : int64;reg : tregister64);
 
       begin
-        cg.a_load_const_reg(list,OS_32,aint(lo(value)),reg.reglo);
-        cg.a_load_const_reg(list,OS_32,aint(hi(value)),reg.reghi);
+        cg.a_load_const_reg(list,OS_32,longint(lo(value)),reg.reglo);
+        cg.a_load_const_reg(list,OS_32,longint(hi(value)),reg.reghi);
       end;
 
 
@@ -359,9 +418,9 @@ unit cg64f32;
           swap64(a);
         tmpsref := sref;
         tmpsref.bitlen := 32;
-        hlcg.a_load_const_subsetref(list,u32inttype,aint(lo(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,longint(lo(a)),tmpsref);
         inc(tmpsref.ref.offset,4);
-        hlcg.a_load_const_subsetref(list,u32inttype,aint(hi(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,longint(hi(a)),tmpsref);
       end;
 
 
@@ -537,7 +596,7 @@ unit cg64f32;
           LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reglo,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,aint(lo(l.value64)),reg);
+            cg.a_load_const_reg(list,OS_32,longint(lo(l.value64)),reg);
           else
             internalerror(200203244);
         end;
@@ -554,7 +613,7 @@ unit cg64f32;
           LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reghi,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,aint(hi(l.value64)),reg);
+            cg.a_load_const_reg(list,OS_32,longint(hi(l.value64)),reg);
           else
             internalerror(200203244);
         end;
@@ -645,10 +704,20 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
-        cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+        if target_info.endian=endian_big then
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+            cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
+          end
+        else
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
+            cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;
@@ -661,10 +730,20 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_const_cgpara(list,OS_32,aint(hi(value)),tmplochi);
-        cg.a_load_const_cgpara(list,OS_32,aint(lo(value)),tmploclo);
+        if target_info.endian=endian_big then
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            cg.a_load_const_cgpara(list,OS_32,longint(lo(value)),tmploclo);
+            cg.a_load_const_cgpara(list,OS_32,longint(hi(value)),tmplochi);
+          end
+        else
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            cg.a_load_const_cgpara(list,OS_32,longint(hi(value)),tmplochi);
+            cg.a_load_const_cgpara(list,OS_32,longint(lo(value)),tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;
@@ -681,13 +760,21 @@ unit cg64f32;
         tmprefhi:=r;
         tmpreflo:=r;
         if target_info.endian=endian_big then
-          inc(tmpreflo.offset,4)
+          begin
+            { Keep this order of first lo before hi to have
+              the correct push order for m68k }
+            inc(tmpreflo.offset,4);
+            cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+            cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
+          end
         else
-          inc(tmprefhi.offset,4);
-        { Keep this order of first hi before lo to have
-          the correct push order for i386 }
-        cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
-        cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+          begin
+            { Keep this order of first hi before lo to have
+              the correct push order for i386 }
+            inc(tmprefhi.offset,4);
+            cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
+            cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
+          end;
         tmploclo.done;
         tmplochi.done;
       end;

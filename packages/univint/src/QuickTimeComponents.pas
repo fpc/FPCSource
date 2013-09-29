@@ -3,9 +3,9 @@
  
      Contains:   QuickTime Interfaces.
  
-     Version:    QuickTime 7.6.3
+     Version:    QuickTime 7.7.1
  
-     Copyright:  © 1990-2008 by Apple Inc., all rights reserved
+     Copyright:  © 1990-2012 by Apple Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -2465,10 +2471,8 @@ type
 		flags: UInt32;                  { flags for whole list }
 		count: UInt32;                  { number of elements in presetsArray }
 		reserved: UInt32;
-		presetsArray: array [0..0] of QTPresetInfo;			{  info about each preset  }
+		presetsArray: array [0..0] of QTPresetInfo;        { info about each preset  }
 	end;
-
-
 const
 	kQTMovieExportSourceInfoResourceType = FourCharCode('src#');
 	kQTMovieExportSourceInfoIsMediaType = 1 shl 0;
@@ -3693,6 +3697,9 @@ function DataCodecDecompressPartial( dc: DataCodecComponent; var next_in: UnivPt
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
 function DataCodecCompressPartial(dc: DataCodecComponent; var next_in: UnivPtr; var avail_in: UNSIGNEDLONG; var total_in: UNSIGNEDLONG; var next_out: UnivPtr; var avail_out: UNSIGNEDLONG; var total_out: UNSIGNEDLONG; tryToFinish: boolean; var didFinish: boolean): ComponentResult; external name '_DataCodecCompressPartial';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 type
 	DataHCompletionProcPtr = procedure( request: Ptr; refcon: SIGNEDLONG; err: OSErr );
 	DataHCompletionUPP = DataHCompletionProcPtr;
@@ -7114,7 +7121,7 @@ const
 type
 	SeqGrabChannelInfoEnum = UNSIGNEDLONG;
 	SGOutputRecord = record
-		data: array [0..0] of SInt32;
+		data: array [0..0] of SIGNEDLONG;
 	end;
 	SGOutputRecordPtr = ^SGOutputRecord;
 type

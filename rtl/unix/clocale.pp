@@ -88,8 +88,14 @@ Const
  _NL_MONETARY_CRNCYSTR = (__INT_CURR_SYMBOL)+15;
  {$endif}
 
-
+{$ifdef netbsd}
+  { NetBSD has a new setlocale function defined in /usr/include/locale.h
+    that should be used }
+function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale_mb_len_max_32';
+{$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
+{$endif}
+
 function nl_langinfo(__item: cint):Pchar;cdecl;external clib name 'nl_langinfo';
 
 procedure GetFormatSettings(out fmts: TFormatSettings);

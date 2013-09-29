@@ -121,9 +121,11 @@ interface
           value_str : pchar;
           len     : longint;
           lab_str : tasmlabel;
+          astringdef : tdef;
+          astringdefderef : tderef;
           cst_type : tconststringtype;
           constructor createstr(const s : string);virtual;
-          constructor createpchar(s : pchar;l : longint);virtual;
+          constructor createpchar(s: pchar; l: longint; def: tdef);virtual;
           constructor createunistr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -168,6 +170,7 @@ interface
 
        tguidconstnode = class(tnode)
           value : tguid;
+          lab_set : tasmsymbol;
           constructor create(const g:tguid);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -203,7 +206,7 @@ implementation
     uses
       cutils,
       verbose,systems,sysutils,
-      defutil,procinfo,
+      defcmp,defutil,procinfo,
       cpubase,cgbase,
       nld;
 
@@ -308,7 +311,7 @@ implementation
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
-              p1:=cstringconstnode.createpchar(pc,len);
+              p1:=cstringconstnode.createpchar(pc,len,p.constdef);
             end;
           constwstring :
             p1:=cstringconstnode.createunistr(pcompilerwidestring(p.value.valueptr));
@@ -572,6 +575,7 @@ implementation
          n : trealconstnode;
       begin
          n:=trealconstnode(inherited dogetcopy);
+         n.typedef:=typedef;
          n.value_real:=value_real;
          n.value_currency:=value_currency;
          n.lab_real:=lab_real;
@@ -596,10 +600,23 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value_real = trealconstnode(p).value_real) and
-          { floating point compares for non-numbers give strange results usually }
-          is_number_float(value_real) and
-          is_number_float(trealconstnode(p).value_real);
+          { this should be always true }
+          (trealconstnode(p).typedef.typ=floatdef) and (typedef.typ=floatdef) and
+          (tfloatdef(typedef).floattype = tfloatdef(trealconstnode(p).typedef).floattype) and
+          (
+           (
+            (tfloatdef(typedef).floattype=s64currency) and
+            (value_currency=trealconstnode(p).value_currency)
+           )
+           or
+           (
+            (tfloatdef(typedef).floattype<>s64currency) and
+            (value_real = trealconstnode(p).value_real) and
+            { floating point compares for non-numbers give strange results usually }
+            is_number_float(value_real) and
+            is_number_float(trealconstnode(p).value_real)
+           )
+          );
       end;
 
 
@@ -690,7 +707,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value = tordconstnode(p).value);
+          (value = tordconstnode(p).value) and
+          equal_defs(typedef,tordconstnode(p).typedef);
       end;
 
 
@@ -709,6 +727,11 @@ implementation
 
       begin
          inherited create(pointerconstn);
+{$ifdef i8086}
+         { truncate near pointers }
+         if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+           v := Word(v);
+{$endif i8086}
          value:=v;
          typedef:=def;
       end;
@@ -807,12 +830,19 @@ implementation
       end;
 
 
-    constructor tstringconstnode.createpchar(s : pchar;l : longint);
+    constructor tstringconstnode.createpchar(s: pchar; l: longint; def: tdef);
       begin
          inherited create(stringconstn);
          len:=l;
          value_str:=s;
-         cst_type:=cst_conststring;
+         if assigned(def) and
+            is_ansistring(def) then
+           begin
+             cst_type:=cst_ansistring;
+             astringdef:=def;
+           end
+         else
+           cst_type:=cst_conststring;
          lab_str:=nil;
       end;
 
@@ -860,6 +890,8 @@ implementation
             value_str[len]:=#0;
           end;
         lab_str:=tasmlabel(ppufile.getasmsymbol);
+        if cst_type=cst_ansistring then
+          ppufile.getderef(astringdefderef);
       end;
 
 
@@ -873,18 +905,24 @@ implementation
         else
           ppufile.putdata(value_str^,len);
         ppufile.putasmsymbol(lab_str);
+        if cst_type=cst_ansistring then
+          ppufile.putderef(astringdefderef);
       end;
 
 
     procedure tstringconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
+        if cst_type=cst_ansistring then
+          astringdefderef.build(astringdef);
       end;
 
 
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
+        if cst_type=cst_ansistring then
+          astringdef:=tdef(astringdefderef.resolve);
       end;
 
 
@@ -905,6 +943,7 @@ implementation
            end
          else
            n.value_str:=getpcharcopy;
+         n.astringdef:=astringdef;
          dogetcopy:=n;
       end;
 
@@ -928,7 +967,10 @@ implementation
           cst_shortstring :
             resultdef:=cshortstringtype;
           cst_ansistring :
-            resultdef:=getansistringdef;
+            if not assigned(astringdef) then
+              resultdef:=getansistringdef
+            else
+              resultdef:=astringdef;
           cst_unicodestring :
             resultdef:=cunicodestringtype;
           cst_widestring :
@@ -1011,7 +1053,7 @@ implementation
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
               cp1:=tstringdef(def).encoding;
-              if (cp1=CP_NONE) or (cp1=0) then
+              if (cp1=globals.CP_NONE) or (cp1=0) then
                 cp1:=current_settings.sourcecodepage;
               if (cp1=CP_UTF8) then
                 begin
@@ -1053,7 +1095,7 @@ implementation
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then
                     changecodepage(value_str,len,cp2,value_str,cp1)
-                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) then
+                  else if (cp1 <> globals.CP_NONE) and (cp2 <> globals.CP_NONE) then
                     begin
                       { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
                       if (cp2=CP_UTF8) then
@@ -1130,6 +1172,7 @@ implementation
            value_set:=nil;
       end;
 
+
     destructor tsetconstnode.destroy;
       begin
         if assigned(value_set) then
@@ -1199,12 +1242,9 @@ implementation
       end;
 
 
-
     function tsetconstnode.dogetcopy : tnode;
-
       var
          n : tsetconstnode;
-
       begin
          n:=tsetconstnode(inherited dogetcopy);
          if assigned(value_set) then
@@ -1219,11 +1259,13 @@ implementation
          dogetcopy:=n;
       end;
 
+
     function tsetconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=typedef;
       end;
+
 
     function tsetconstnode.pass_1 : tnode;
       begin
@@ -1293,15 +1335,15 @@ implementation
 
 
     function tguidconstnode.dogetcopy : tnode;
-
       var
          n : tguidconstnode;
-
       begin
          n:=tguidconstnode(inherited dogetcopy);
          n.value:=value;
+         n.lab_set:=lab_set;
          dogetcopy:=n;
       end;
+
 
     function tguidconstnode.pass_typecheck:tnode;
       begin
@@ -1309,11 +1351,16 @@ implementation
         resultdef:=rec_tguid;
       end;
 
+
     function tguidconstnode.pass_1 : tnode;
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
+        if (cs_create_pic in current_settings.moduleswitches) and
+          (tf_pic_uses_got in target_info.flags) then
+          include(current_procinfo.flags,pi_needs_got);
       end;
+
 
     function tguidconstnode.docompare(p: tnode): boolean;
       begin

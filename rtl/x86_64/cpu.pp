@@ -133,7 +133,7 @@ unit cpu;
         // older FPCs don't know the xgetbv opcode
         .byte 0x0f,0x01,0xd0
         andl $0xffffffff,%eax
-        shll $32,%rdx
+        shlq $32,%rdx
         orq %rdx,%rax
       end;
 

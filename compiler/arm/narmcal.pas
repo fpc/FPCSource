@@ -26,7 +26,7 @@ unit narmcal;
 interface
 
     uses
-      symdef,node,ncal,ncgcal;
+      symdef,ncal,ncgcal;
 
     type
        tarmcallnode = class(tcgcallnode)
@@ -38,10 +38,8 @@ implementation
   uses
     verbose,globtype,globals,aasmdata,
     symconst,
-    cgbase,
-    cpubase,cpuinfo,
-    ncgutil,
-    paramgr,
+    cgbase,cgutils,cpuinfo,
+    ncgutil,tgobj,
     systems;
 
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
@@ -49,7 +47,7 @@ implementation
       if (realresdef.typ=floatdef) and 
          (target_info.abi <> abi_eabihf) and
          ((cs_fp_emulation in current_settings.moduleswitches) or
-          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16])) then
+          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16])) then
         begin
           { keep the fpu values in integer registers for now, the code
             generator will move them to memory or an mmregister when necessary
@@ -65,6 +63,13 @@ implementation
             else
               internalerror(2010053008);
           end
+        end
+      else if (resultdef.typ=floatdef) and
+         (location.loc=LOC_REGISTER) and
+         (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+        begin
+          location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment);
+          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
         end
       else
         inherited;

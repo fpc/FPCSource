@@ -483,7 +483,7 @@ begin
    AppTypeStr := '-f'
   else AppTypeStr := '-w';
   if not (Current_module.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst
+   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst + ' '
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
@@ -542,7 +542,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_emx_info,TLinkerEMX);
+  RegisterLinker(ld_emx,TLinkerEMX);
   RegisterImport(system_i386_emx,TImportLibEMX);
   RegisterRes(res_wrc_os2_info,TResourceFile);
   RegisterTarget(system_i386_emx_info);

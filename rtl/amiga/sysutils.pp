@@ -1,10 +1,10 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004-2006 by Karoly Balogh
+    Copyright (c) 2004-2013 by Karoly Balogh
 
-    Sysutils unit for MorphOS
+    Sysutils unit for AmigaOS & clones
 
-    Based on Amiga version by Carl Eric Codere, and other
+    Based on Amiga 1.x version by Carl Eric Codere, and other
     parts of the RTL
 
     See the file COPYING.FPC, included in this distribution,
@@ -24,6 +24,14 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+
+{$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -55,6 +63,7 @@ uses dos,sysconst;
 
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
+function PathConv(path: RawByteString): shortstring; external name 'PATHCONVRBS';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
 function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
 function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
@@ -104,14 +113,14 @@ end;
 
 (****** non portable routines ******)
 
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 var
+  SystemFileName: RawByteString;
   dosResult: LongInt;
-  tmpStr   : array[0..255] of char;
 begin
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   {$WARNING FIX ME! To do: FileOpen Access Modes}
-  tmpStr:=PathConv(FileName)+#0;
-  dosResult:=Open(@tmpStr,MODE_OLDFILE);
+  dosResult:=Open(PChar(SystemFileName),MODE_OLDFILE);
   if dosResult=0 then
     dosResult:=-1
   else
@@ -134,13 +143,13 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
 var
+  SystemFileName: RawByteString;
   dosResult: LongInt;
-  tmpStr   : array[0..255] of char;
 begin
- tmpStr:=PathConv(FileName)+#0;
- dosResult:=Open(@tmpStr,MODE_NEWFILE);
+ SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+ dosResult:=Open(PChar(FileName),MODE_NEWFILE);
  if dosResult=0 then
    dosResult:=-1
  else
@@ -150,13 +159,13 @@ begin
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
-function FileCreate(const FileName: string; ShareMode: integer; Rights : Integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : Integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
@@ -229,33 +238,33 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
 var
-  tmpStr: array[0..255] of char;
+  SystemFileName: RawByteString;
 begin
-  tmpStr:=PathConv(FileName)+#0;
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
 
-  DeleteFile:=dosDeleteFile(@tmpStr);
+  DeleteFile:=dosDeleteFile(PChar(SystemFileName));
 end;
 
 
 function RenameFile(const OldName, NewName: string): Boolean;
 var
-  tmpOldName, tmpNewName: array[0..255] of char;
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  tmpOldName:=PathConv(OldName)+#0;
-  tmpNewName:=PathConv(NewName)+#0;
+  OldSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(OldName));
+  NewSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(NewName));
 
-  RenameFile:=dosRename(tmpOldName, tmpNewName);
+  RenameFile:=dosRename(PChar(OldSystemFileName), PChar(NewSystemFileName));
 end;
 
 
 (****** end of non portable routines ******)
 
 
-function FileAge (const FileName : String): Longint;
+function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpName: String;
+  tmpName: RawByteString;
   tmpLock: Longint;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -263,7 +272,7 @@ var
 
 begin
   validFile:=false;
-  tmpName := PathConv(FileName);
+  tmpName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   tmpLock := dosLock(tmpName, SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
@@ -282,16 +291,15 @@ begin
 end;
 
 
-function FileExists (const FileName : String) : Boolean;
+function FileExists (const FileName : RawByteString) : Boolean;
 var
-  tmpName: String;
   tmpLock: LongInt;
   tmpFIB : PFileInfoBlock;
-
+  SystemFileName: RawByteString;
 begin
   result:=false;
-  tmpName := PathConv(FileName);
-  tmpLock := dosLock(tmpName, SHARED_LOCK);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := dosLock(PChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -303,15 +311,15 @@ begin
 end;
 
 
-function FindFirst(const Path: String; Attr : Longint; out Rslt: TSearchRec): Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 var
-  tmpStr: array[0..255] of Char;
+  tmpStr: RawByteString;
   Anchor: PAnchorPath;
   tmpDateTime: TDateTime;
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
-  tmpStr:=PathConv(path)+#0;
+  tmpStr:=PathConv(ToSingleByteEncodedFileName(path));
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
@@ -320,11 +328,12 @@ begin
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
 
-  if MatchFirst(@tmpStr,Anchor)<>0 then exit;
+  if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
   Rslt.FindHandle := longint(Anchor);
 
   with Anchor^.ap_Info do begin
-    Rslt.Name := StrPas(fib_FileName);
+    Name := fib_FileName;
+    SetCodePage(Name,DefaultFileSystemCodePage,false);
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
@@ -342,7 +351,7 @@ begin
 end;
 
 
-function FindNext (var Rslt : TSearchRec): Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 var
   Anchor: PAnchorPath;
   validDate: boolean;
@@ -354,7 +363,8 @@ begin
   if MatchNext(Anchor) <> 0 then exit;
 
   with Anchor^.ap_Info do begin
-    Rslt.Name := StrPas(fib_FileName);
+    Name := fib_FileName;
+    SetCodePage(Name,DefaultFileSystemCodePage,false);
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
     if not validDate then exit;
@@ -370,20 +380,21 @@ begin
 end;
 
 
-procedure FindClose(var f: TSearchRec);
+Procedure InternalFindClose(var Handle: THandle);
 var
   Anchor: PAnchorPath;
 begin
-  Anchor:=PAnchorPath(f.FindHandle);
+  Anchor:=PAnchorPath(Handle);
   if not assigned(Anchor) then exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
+  Handle:=THandle(nil);
 end;
 
 
 (****** end of non portable routines ******)
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
  F: file;
  attr: word;
@@ -397,7 +408,7 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
  F: file;
 begin
@@ -459,44 +470,18 @@ Begin
   DiskSize := dos.DiskSize(Drive);
 End;
 
-function GetCurrentDir : String;
-begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  ChDir(NewDir);
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  MkDir(NewDir);
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  RmDir(Dir);
-  result := (IOResult = 0);
-end;
-
-
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawBytetring): Boolean;
 var
   tmpStr : String;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
+  SystemFileName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(Directory);
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
 
-  tmpLock:=dosLock(tmpStr,SHARED_LOCK);
+  tmpLock:=dosLock(PChar(SystemFileName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
@@ -514,8 +499,9 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
+// TODO
 end;
 
 
@@ -567,6 +553,11 @@ begin
 {  Result:=StrError(ErrorCode);}
 end;
 
+function GetLastOSError: Integer;
+begin
+    result:=-1;
+end;
+
 {****************************************************************************
                               OS utility functions
 ****************************************************************************}
@@ -583,7 +574,7 @@ begin
   Result:=Dos.envCount;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
@@ -625,6 +616,12 @@ begin
    else
     CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+procedure Sleep(Milliseconds: cardinal);
+begin
+  // Amiga dos.library Delay() has precision of 1/50 seconds
+  Delay(Milliseconds div 20);
 end;
 
 

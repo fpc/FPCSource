@@ -3,9 +3,9 @@
  
      Contains:   QuickTime Interfaces.
  
-     Version:    QuickTime 7.6.3
+     Version:    QuickTime 7.7.1
  
-     Copyright:  © 1990-2008 by Apple Inc., all rights reserved
+     Copyright:  © 1990-2012 by Apple Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -205,7 +211,6 @@ const
 	kaiInstGMQualityType = FourCharCode('qual');
 	kaiLibraryInfoType = FourCharCode('linf');
 	kaiLibraryDescType = FourCharCode('ldsc');
-
 
 type
 	InstLibDescRecPtr = ^InstLibDescRec;
@@ -564,9 +569,9 @@ type
 		outputCount: UNSIGNEDLONG;            { number of audio outputs (usually two) }
 		latency: UNSIGNEDLONG;                { response time in µSec }
 
-		controllers: array [0..3] of UNSIGNEDLONG;					{  array of 128 bits  }
-		gmInstruments: array [0..3] of UNSIGNEDLONG;					{  array of 128 bits  }
-		gmDrums: array [0..3] of UNSIGNEDLONG;					{  array of 128 bits  }
+		controllers: array [0..4-1] of UNSIGNEDLONG;         { array of 128 bits }
+		gmInstruments: array [0..4-1] of UNSIGNEDLONG;       { array of 128 bits }
+		gmDrums: array [0..4-1] of UNSIGNEDLONG;             { array of 128 bits }
 	end;
 const
 	kVoiceCountDynamic = -1;    { constant to use to specify dynamic voicing }
@@ -642,7 +647,7 @@ type
 	GCInstrumentData = record
 		tone: ToneDescription;
 		knobCount: SIGNEDLONG;
-		knob: array [0..0] of SInt32;
+		knob: array [0..1-1] of SIGNEDLONG;
 	end;
 	GCInstrumentDataPtr = ^GCInstrumentData;
 type
@@ -776,7 +781,6 @@ type
 		midiChannel: SIGNEDLONG;            { 1-16 if in use }
 		id: GCInstrumentData;                     { ToneDescription & knoblist, uncertain length }
 	end;
-
 {
  * Calls specific to the GenericMusicComponent
  }

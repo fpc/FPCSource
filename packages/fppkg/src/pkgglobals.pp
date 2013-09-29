@@ -36,7 +36,7 @@ Const
   CurrentDirPackageName='<currentdir>';
 
   // Dependencies for compiling the fpmkunit unit
-  FPMKUnitDepDefaultCount=4;
+  FPMKUnitDepDefaultCount=5;
   FPMKUnitDepsDefaults : array[0..FPMKUnitDepDefaultCount-1] of TFPMKUnitDep = (
     (package: 'hash';
      reqver : '2.2.2';
@@ -47,6 +47,9 @@ Const
     (package: 'fcl-process';
      reqver : '2.2.2';
      undef  : 'NO_UNIT_PROCESS'),
+   (package: 'libtar';
+    reqver : '2.7.1';
+    undef  : ''),
     (package: 'fpmkunit';
      reqver : '2.2.2-1';
      undef  : '')
@@ -75,7 +78,7 @@ Procedure Error(Const Msg : String);
 
 // Utils
 function maybequoted(const s:string):string;
-Function FixPath(const S : String) : string;
+Function FixPath(const S : String) : string; inline; deprecated 'Use fpmkunit.FixPath instead';
 Function DirectoryExistsLog(const ADir:string):Boolean;
 Function FileExistsLog(const AFileName:string):Boolean;
 procedure BackupFile(const AFileName: String);
@@ -243,10 +246,7 @@ end;
 
 Function FixPath(const S : String) : string;
 begin
-  If (S<>'') then
-    Result:=IncludeTrailingPathDelimiter(S)
-  else
-    Result:='';
+  Result:=fpmkunit.FixPath(S, True);
 end;
 
 

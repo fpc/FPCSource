@@ -103,10 +103,10 @@ end;
 
 {  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
 
-function StrBufSize(Str: PChar): SizeUInt;
+function StrBufSize(Str: PChar): Cardinal;
 begin
   if Str <> Nil then
-   result := SizeUInt(pointer(Str - SizeOf(SizeUInt))^)-sizeof(SizeUInt)
+   result := cardinal(pointer(Str - SizeOf(cardinal))^)-sizeof(cardinal)
   else
    result := 0;
 end ;

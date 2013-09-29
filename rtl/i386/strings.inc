@@ -91,7 +91,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    dest,%esi
         movl    source,%edi
         movl    $0xffffffff,%ecx
@@ -132,7 +134,9 @@ asm
         movl    %edi,savedest
         orl     %ecx,%ecx
         jz      .LSTRLCOPY2
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
 .LSTRLCOPY1:
         lodsb
         stosb
@@ -159,7 +163,9 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         movl    p,%edi
         xorl    %eax,%eax
         orl     %edi,%edi
@@ -189,7 +195,9 @@ asm
         movl    %edx,saveedx
         movl    str2,%edi
         movl    $0xffffffff,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         xorl    %eax,%eax
         repne
         scasb
@@ -221,7 +229,9 @@ asm
         movl    %ecx,saveecx
         movl    str2,%edi
         movl    $0xffffffff,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         xorl    %eax,%eax
         repne
         scasb
@@ -256,7 +266,9 @@ asm
         movl    %edx,saveedx
         movl    str2,%edi
         movl    $0xffffffff,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         xorl    %eax,%eax
         repne
         scasb
@@ -304,7 +316,9 @@ asm
         movl    %ecx,saveecx
         movl    str2,%edi
         movl    $0xffffffff,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         xorl    %eax,%eax
         repne
         scasb
@@ -483,7 +497,9 @@ asm
         orl     %edi,%edi
         jz      .LSTRRSCAN
         movl    $0xffffffff,%ecx
+{$ifdef FPC_ENABLED_CLD}
         cld
+{$endif FPC_ENABLED_CLD}
         xorb    %al,%al
         repne
         scasb
@@ -518,6 +534,9 @@ asm
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrUpperNil
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         movl    %esi,%edi
 .LSTRUPPER1:
         lodsb
@@ -550,6 +569,9 @@ asm
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrLowerNil
+{$ifdef FPC_ENABLED_CLD}
+        cld
+{$endif FPC_ENABLED_CLD}
         movl    %esi,%edi
 .LSTRLOWER1:
         lodsb

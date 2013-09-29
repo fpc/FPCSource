@@ -1,4 +1,5 @@
 { %norun }
+{ %delfiles=tb0582 }
 library liba;
 
 function A : integer;

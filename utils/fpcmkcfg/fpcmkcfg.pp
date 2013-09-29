@@ -17,13 +17,13 @@
 program fpcmkcfg;
 
 uses
+  fpmkunit,
   SysUtils,
   Classes,
 {$ifdef unix}
   baseunix,
 {$endif}
-  fpTemplate,
-  process;
+  fpTemplate;
 
 {
   The inc files must be built from a template with the data2inc
@@ -168,128 +168,55 @@ end;
 
 function GetDefaultGCCDir: string;
 
-var GccExecutable: string;
+  var
+    OS: TOS;
+    CPU: TCPU;
+    s: string;
 
-  function GetGccExecutable: string;
+  procedure AddConditionalLinkerPath(const aCpuType: string; const ACPU: TCPU; var ConfigFileOption: string);
+  var
+    path: string;
+    ErrS: string;
   begin
-    if GccExecutable='' then
+    path := GetDefaultLibGCCDir(ACPU, OS, ErrS);
+    if ErrS<>'' then
+      Writeln(StdErr, ErrS);
+    if path <> '' then
       begin
-      GccExecutable := ExeSearch('gcc'+ExeExt,GetEnvironmentVariable('PATH'));
-      if GccExecutable='' then
-        begin
-        Writeln(StdErr,SWarngccNotFound);
-        GccExecutable:='-';
-        end;
+      if ConfigFileOption<>'' then ConfigFileOption:=ConfigFileOption+LineEnding;
+      ConfigFileOption := ConfigFileOption + '#ifdef ' + ACpuType + LineEnding + '-Fl' + Path + LineEnding + '#endif';
       end;
-    if GccExecutable = '-' then
-      result := ''
-    else
-      result := GccExecutable;
-  end;
-
-  function ExecuteProc(const CommandLine: string; ReadStdErr: boolean) : string;
-
-  const BufSize=2048;
-
-  var S: TProcess;
-      buf: array[0..BufSize-1] of byte;
-      count: integer;
-
-  begin
-    result := '';
-    S:=TProcess.Create(Nil);
-    try
-      S.Commandline:=CommandLine;
-      S.Options:=[poUsePipes,poWaitOnExit];
-      try
-        S.execute;
-        Count:=s.output.read(buf,BufSize);
-        if (count=0) and ReadStdErr then
-          Count:=s.Stderr.read(buf,BufSize);
-        setlength(result,count);
-        move(buf[0],result[1],count);
-      except
-        Writeln(StdErr,Format(SWarnCouldNotExecute,[CommandLine]));
-      end;
-    finally
-      S.Free;
-    end;
-  end;
-
-  function Get4thWord(const AString: string): string;
-  var p: pchar;
-      spacecount: integer;
-      StartWord: pchar;
-  begin
-    if length(AString)>6 then
-      begin
-      p := @AString[1];
-      spacecount:=0;
-      StartWord:=nil;
-      while (not (p^ in [#0,#10,#13])) and ((p^<>' ') or (StartWord=nil)) do
-        begin
-        if p^=' ' then
-          begin
-          inc(spacecount);
-          if spacecount=3 then StartWord:=p+1;
-          end;
-        inc(p);
-        end;
-      if StartWord<>nil then
-        begin
-        SetLength(result,p-StartWord);
-        move(StartWord^,result[1],p-StartWord);
-        end
-      else
-        result := '';
-      end;
-  end;
-
-  function GetGccDirArch(const ACpuType, GCCParams: string) : string;
-  var ExecResult: string;
-      libgccFilename: string;
-      gccDir: string;
-  begin
-    if FileExists(GetGccExecutable) then
-      begin
-      ExecResult:=ExecuteProc(GetGccExecutable+' -v '+GCCParams, True);
-      libgccFilename:=Get4thWord(ExecResult);
-      if libgccFilename='' then
-        libgccFilename:=ExecuteProc(GetGccExecutable+' --print-libgcc-file-name '+GCCParams, False);
-      gccDir := ExtractFileDir(libgccFilename);
-      end
-    else
-      gccDir := '';
-
-    if gccDir='' then
-      result := ''
-    else if ACpuType = '' then
-      result := '-Fl'+gccDir
-    else
-      result := '#ifdef ' + ACpuType + LineEnding + '-Fl' + gccDir + LineEnding + '#endif';
   end;
 
 begin
+  CPU := StringToCPU(BuildTarget);
+  OS := StringToOS(BuildOSTarget);
   result := '';
-  GccExecutable:='';
-  if sametext(BuildOSTarget,'Freebsd') or sametext(BuildOSTarget,'Openbsd') then
-    result := '-Fl/usr/local/lib'
-  else if sametext(BuildOSTarget,'Netbsd') then
-    result := '-Fl/usr/pkg/lib'
-  else if sametext(BuildOSTarget,'Linux') then
-    begin
-    if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
-      result := GetGccDirArch('cpui386','-m32') + LineEnding +
-                GetGccDirArch('cpux86_64','-m64')
-    else if (BuildTarget = 'powerpc') or (BuildTarget = 'powerpc64') then
-      result := GetGccDirArch('cpupowerpc','-m32') + LineEnding +
-                GetGccDirArch('cpupowerpc64','-m64')
-    end
-  else if sametext(BuildOSTarget,'Darwin') then
-    result := GetGccDirArch('cpupowerpc','-arch ppc') + LineEnding +
-              GetGccDirArch('cpupowerpc64','-arch ppc64') + LineEnding +
-              GetGccDirArch('cpui386','-arch i386') + LineEnding +
-              GetGccDirArch('cpux86_64','-arch x86_64');
+
+  case OS of
+    freebsd, openbsd, netbsd :
+      result := '-Fl'+GetDefaultLibGCCDir(CPU, OS, S);
+    linux :
+       begin
+       if CPU in [i386, x86_64] then
+         begin
+         AddConditionalLinkerPath('cpui386', i386, result);
+         AddConditionalLinkerPath('cpux86_64', x86_64, result);
+         end
+       else if CPU in [powerpc, powerpc64] then
+         begin
+         AddConditionalLinkerPath('cpupowerpc', powerpc, result);
+         AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
+         end
+       end;
+    darwin :
+       begin
+       AddConditionalLinkerPath('cpui386', i386, result);
+       AddConditionalLinkerPath('cpux86_64', x86_64, result);
+       AddConditionalLinkerPath('cpupowerpc', powerpc, result);
+       AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
+       end
+  end; {case}
 end;
 
 

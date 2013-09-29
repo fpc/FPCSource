@@ -5,7 +5,8 @@
 //  Copyright (c) 2004-2007 Apple Inc. All rights reserved.
 //
 //------------------------------------------------------------------------------------------------------------------------------
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -818,7 +824,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAImportImage( var pb: ICAImportImagePB; completion: ICACompletion ): ICAError; external name '_ICAImportImage';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //--------------------------------------------------------------------------------------------------------- ICAShowDeviceBrowser
 {!
@@ -837,7 +843,7 @@ function ICAImportImage( var pb: ICAImportImagePB; completion: ICACompletion ): 
         Returns an error code defined in ICAApplication.h
 }
 function ICAShowDeviceBrowser( options: CFDictionaryRef ): ICAError; external name '_ICAShowDeviceBrowser';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //---------------------------------------------------------------------------------------------- ICARegisterForEventNotification
 // Function prototype for an Image Capture notification callback proc
@@ -1126,7 +1132,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICARegisterForEventNotification( var params: ICARegisterForEventNotificationPB; completionProc: ICACompletion ): ICAError; external name '_ICARegisterForEventNotification';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //---------------------------------------------------------------------------------------------------------- ICASendNotification
 // This parameter block is used with 'ICDSendNotification' and 'ICDSendNotificationAndWaitForReply' APIs defined
@@ -1141,7 +1147,9 @@ type
 	end;
 
 function ICASendNotification( var pb: ICASendNotificationPB ): ICAError; external name '_ICASendNotification';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 function ICASendNotificationAndWaitForReply( var pb: ICASendNotificationPB ): ICAError; external name '_ICASendNotificationAndWaitForReply';
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 //#pragma mark -
 //#pragma mark Object related APIs
@@ -1197,7 +1205,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAGetDeviceList( var pb: ICAGetDeviceListPB; completion: ICACompletion ): ICAError; external name '_ICAGetDeviceList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 //---------------------------------------------------------------------------------------------- ICACopyObjectPropertyDictionary
 {!
@@ -1258,7 +1266,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICACopyObjectPropertyDictionary( var pb: ICACopyObjectPropertyDictionaryPB; completion: ICACompletion ): ICAError; external name '_ICACopyObjectPropertyDictionary';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------- ICACopyObjectThumbnail
 {!
@@ -1339,7 +1347,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICACopyObjectThumbnail( var pb: ICACopyObjectThumbnailPB; completion: ICACompletion ): ICAError; external name '_ICACopyObjectThumbnail';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------------ ICACopyObjectData
 {!
@@ -1381,7 +1389,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICACopyObjectData( var params: ICACopyObjectDataPB; completionProc: ICACompletion ): ICAError; external name '_ICACopyObjectData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //--------------------------------------------------------------------------------------------------------- ICAObjectSendMessage
 {!
@@ -1474,7 +1482,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAObjectSendMessage( var pb: ICAObjectSendMessagePB; completion: ICACompletion ): ICAError; external name '_ICAObjectSendMessage';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 //-------------------------------------------------------------------------------------------------------------- ICADownloadFile
 {!
@@ -1583,7 +1591,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICADownloadFile( var pb: ICADownloadFilePB; completion: ICACompletion ): ICAError; external name '_ICADownloadFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //---------------------------------------------------------------------------------------------------------------- ICAUploadFile
 {!
@@ -1661,7 +1669,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAUploadFile( var pb: ICAUploadFilePB; completion: ICACompletion ): ICAError; external name '_ICAUploadFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //#pragma mark -
 //#pragma mark Device related APIs
@@ -1713,7 +1721,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICALoadDeviceModule( var pb: ICALoadDeviceModulePB; completion: ICACompletion ): ICAError; external name '_ICALoadDeviceModule';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //--------------------------------------------------------------------------------------------------------- ICAUnloadDeviceModule
 {!
@@ -1744,7 +1752,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAUnloadDeviceModule( var pb: ICAUnloadDeviceModulePB; completion: ICACompletion ): ICAError; external name '_ICAUnloadDeviceModule';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //--------------------------------------------------------------------------------------------------------------- ICAOpenSession
 {!
@@ -1778,7 +1786,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAOpenSession( var pb: ICAOpenSessionPB; completion: ICACompletion ): ICAError; external name '_ICAOpenSession';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //-------------------------------------------------------------------------------------------------------------- ICACloseSession
 {!
@@ -1809,7 +1817,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICACloseSession( var pb: ICACloseSessionPB; completion: ICACompletion ): ICAError; external name '_ICACloseSession';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //-------------------------------------------------------------------------------------------------------- ICAScannerOpenSession
 {!
@@ -1843,7 +1851,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerOpenSession( var pb: ICAScannerOpenSessionPB; completion: ICACompletion ): ICAError; external name '_ICAScannerOpenSession';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------- ICAScannerCloseSession
 {!
@@ -1874,7 +1882,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerCloseSession( var pb: ICAScannerCloseSessionPB; completion: ICACompletion ): ICAError; external name '_ICAScannerCloseSession';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //--------------------------------------------------------------------------------------------------------- ICAScannerInitialize
 {!
@@ -1905,7 +1913,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerInitialize( var pb: ICAScannerInitializePB; completion: ICACompletion ): ICAError; external name '_ICAScannerInitialize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------ ICAScannerGetParameters
 {!
@@ -1939,7 +1947,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerGetParameters( var pb: ICAScannerGetParametersPB; completion: ICACompletion ): ICAError; external name '_ICAScannerGetParameters';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------ ICAScannerSetParameters
 {!
@@ -1973,7 +1981,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerSetParameters( var pb: ICAScannerSetParametersPB; completion: ICACompletion ): ICAError; external name '_ICAScannerSetParameters';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------------- ICAScannerStatus
 {!
@@ -2007,7 +2015,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerStatus( var pb: ICAScannerStatusPB; completion: ICACompletion ): ICAError; external name '_ICAScannerStatus';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //-------------------------------------------------------------------------------------------------------------- ICAScannerStart
 {!
@@ -2038,7 +2046,7 @@ type
         Returns an error code defined in ICAApplication.h
 }
 function ICAScannerStart( var pb: ICAScannerStartPB; completion: ICACompletion ): ICAError; external name '_ICAScannerStart';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 //------------------------------------------------------------------------------------------------------------------------------
 

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('winunits-base');
 {$ifdef ALLPACKAGES}
-    P.Directory:='winunits-base';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes:=[win32,win64];

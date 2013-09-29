@@ -1,19 +1,18 @@
 {
      File:       OSServices/IconStorage.h
- 
+
      Contains:   Services to load and share icon family data.
- 
-     Version:    OSServices-352~2
- 
-     Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved.
- 
+
+     Copyright:  (c) 2000-2011 Apple Inc. All rights reserved.
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://www.freepascal.org/bugs.html
- 
+
 }
 {       Initial Pascal Translation:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -196,6 +200,7 @@ const
 const
 	kIconServices256PixelDataARGB = FourCharCode('ic08'); { non-premultiplied 256x256 ARGB bitmap}
 	kIconServices512PixelDataARGB = FourCharCode('ic09'); { non-premultiplied 512x512 ARGB bitmap}
+	kIconServices1024PixelDataARGB = FourCharCode('ic10'); { non-premultiplied 1024x1024 ARGB bitmap}
 	kThumbnail32BitData = FourCharCode('it32');
 	kThumbnail8BitMask = FourCharCode('t8mk');
 
@@ -236,7 +241,7 @@ const
 	mini8BitData = kMini8BitData;
 
 {
-    IconFamily 'icns' resources contain an entire IconFamily (all sizes and depths).  
+    IconFamily 'icns' resources contain an entire IconFamily (all sizes and depths).
    For custom icons, icns IconFamily resources of the custom icon resource ID are fetched first before
    the classic custom icons (individual 'ics#, ICN#, etc) are fetched.  If the fetch of the icns resource
    succeeds then the icns is looked at exclusively for the icon data.

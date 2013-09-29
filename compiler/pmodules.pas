@@ -46,7 +46,7 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,
        cpuinfo;
 
 
@@ -99,7 +99,8 @@ implementation
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
-        GenerateAsm(false);
+        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in target_info.flags) then
+          GenerateAsm(false);
 
         { Also create a smartlinked version ? }
         if create_smartlink_library then
@@ -280,8 +281,8 @@ implementation
          begin
            systemunit:=tglobalsymtable(current_module.localsymtable);
            { create system defines }
-           create_intern_symbols;
            create_intern_types;
+           create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
            generrorsym.owner:=systemunit;
@@ -395,7 +396,7 @@ implementation
       end;
 
 
-    procedure loadunits;
+    procedure loadunits(preservest:tsymtable);
       var
          s,sorg  : ansistring;
          fn      : string;
@@ -423,12 +424,13 @@ implementation
               try_to_consume(_OP_IN) then
              fn:=FixFileName(get_stringconst);
            { Give a warning if lineinfo is loaded }
-           if s='LINEINFO' then begin
-            Message(parser_w_no_lineinfo_use_switch);
-            if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
-              s := 'LNFODWRF';
-            sorg := s;
-           end;
+           if s='LINEINFO' then
+             begin
+               Message(parser_w_no_lineinfo_use_switch);
+               if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
+                s := 'LNFODWRF';
+              sorg := s;
+             end;
            { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
@@ -483,7 +485,7 @@ implementation
                tppumodule(pu.u).loadppu;
                { is our module compiled? then we can stop }
                if current_module.state=ms_compiled then
-                exit;
+                 exit;
                { add this unit to the dependencies }
                pu.u.adddependency(current_module);
                { save crc values }
@@ -493,7 +495,10 @@ implementation
                { connect unitsym to the module }
                pu.unitsym.module:=pu.u;
                { add to symtable stack }
-               symtablestack.push(pu.u.globalsymtable);
+               if assigned(preservest) then
+                 symtablestack.pushafter(pu.u.globalsymtable,preservest)
+               else
+                 symtablestack.push(pu.u.globalsymtable);
                if (m_mac in current_settings.modeswitches) and
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
@@ -502,8 +507,6 @@ implementation
              end;
             pu:=tused_unit(pu.next);
           end;
-
-         consume(_SEMICOLON);
       end;
 
 
@@ -536,13 +539,6 @@ implementation
                   end;
               end;
           end;
-      end;
-
-
-    procedure parse_implementation_uses;
-      begin
-         if token=_USES then
-           loadunits;
       end;
 
 
@@ -743,6 +739,7 @@ type
          i,j : longint;
          finishstate:pfinishstate;
          globalstate:pglobalstate;
+         consume_semicolon_after_uses:boolean;
       begin
          result:=true;
 
@@ -843,11 +840,14 @@ type
          if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
            begin
-             loadunits;
+             loadunits(nil);
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
                exit;
-           end;
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { move the global symtable from the temporary local to global }
          current_module.globalsymtable:=current_module.localsymtable;
@@ -856,6 +856,11 @@ type
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          { create whole program optimisation information (may already be
            updated in the interface, e.g., in case of classrefdef typed
@@ -870,7 +875,6 @@ type
          addmoduleclass;
 {$endif}
          read_interface_declarations;
-         symtablestack.pop(current_module.globalsymtable);
 
          { Export macros defined in the interface for macpas. The macros
            are put in the globalmacrosymtable that will only be used by other
@@ -886,6 +890,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            symtablestack.pop(current_module.globalsymtable);
             exit;
           end;
 
@@ -920,16 +925,22 @@ type
              consume(_IMPLEMENTATION);
              Message1(unit_u_loading_implementation_units,current_module.modulename^);
              { Read the implementation units }
-             parse_implementation_uses;
+             if token=_USES then
+               begin
+                 loadunits(current_module.globalsymtable);
+                 consume(_SEMICOLON);
+               end;
            end;
 
          if current_module.state=ms_compiled then
-           exit;
+           begin
+             symtablestack.pop(current_module.globalsymtable);
+             exit;
+           end;
 
          { All units are read, now give them a number }
          current_module.updatemaps;
 
-         symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
 
          if not current_module.interface_only then
@@ -1011,7 +1022,7 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        i,idx : longint;
+        i : longint;
         ag : boolean;
         finishstate : tfinishstate;
         globalstate : tglobalstate;
@@ -1149,10 +1160,6 @@ type
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
-
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable,true);
@@ -1889,6 +1896,7 @@ type
          force_init_final : boolean;
          resources_used : boolean;
          program_name : ansistring;
+         consume_semicolon_after_uses : boolean;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2004,10 +2012,20 @@ type
 
          {Load the units used by the program we compile.}
          if token=_USES then
-           loadunits;
+           begin
+             loadunits(nil);
+             consume_semicolon_after_uses:=true;
+           end
+         else
+           consume_semicolon_after_uses:=false;
 
          { All units are read, now give them a number }
          current_module.updatemaps;
+
+         { consume the semicolon after maps have been updated else conditional compiling expressions
+           might cause internal errors, see tw8611 }
+         if consume_semicolon_after_uses then
+           consume(_SEMICOLON);
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
@@ -2190,9 +2208,6 @@ type
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
 
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
-
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
@@ -2224,11 +2239,6 @@ type
          cnodeutils.InsertWideInitsTablesTable;
          cnodeutils.InsertResStrTablesTable;
          cnodeutils.InsertMemorySizes;
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-         if target_info.system in systems_interrupt_table then
-           InsertInterruptTable;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
          { Insert symbol to resource info }
          cnodeutils.InsertResourceInfo(resources_used);

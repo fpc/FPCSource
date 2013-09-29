@@ -1,0 +1,85 @@
+#
+#   Makefile.fpc for FPCMake
+#
+
+[target]
+programs=fpcmake
+rsts=fpcmmain
+
+[clean]
+units=fpcmmain fpcmdic fpcmwr fpcmpkg
+
+[require]
+packages=fcl-base
+tools=data2inc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[prerules]
+BS_UNITDIR=$(BASEDIR)/units/$(SOURCESUFFIX)
+
+# Check if revision.inc is present
+REVINC:=$(wildcard revision.inc)
+ifneq ($(REVINC),)
+# File revision.inc is present
+# Use it to compile fpcmmain.pp unit
+override FPCOPT+=-dREVINC
+endif
+REVINC_FILES=$(wildcard fpcm*.pp fpcmake.ini Makefile.fpc)
+
+SVN:=$(firstword $(wildcard $(addsuffix /svn$(SRCEXEEXT),$(SEARCHPATH))))
+SVNLOG:=svninfo.log
+# This one can be overriden on command line for debugging purposes
+GETREVEXE:=./getrev$(EXEEXT)
+
+[rules]
+.NOTPARALLEL:
+ifneq ($(DATA2INC),)
+fpcmake.inc: fpcmake.ini
+        $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
+endif
+
+
+ifdef inUnix
+EnableRevIncRule=1
+endif
+ifdef inCygWin
+EnableRevIncRule=1
+endif
+
+ifneq (,$(SVN))
+# revision.inc rule
+revision.inc : $(REVINC_FILES)
+	-$(SVN) info $(REVINC_FILES) > $(SVNLOG)
+	$(MAKE) getrev$(EXEEXT)
+	$(GETREVEXE) $(SVNLOG)
+	-$(DEL) getrev$(EXEEXT)
+endif
+
+.PHONY : revision
+
+# Use -B option to force
+# regeneration of revision.inc
+revision :
+	$(MAKE) -B revision.inc
+
+
+fpcmwr$(PPUEXT): fpcmake.inc
+
+fpcmmain$(PPUEXT): $(REVINC)
+
+fpcmake$(EXEEXT): $(wildcard fpcm*.pp) fpcmake.inc $(REVINC)
+
+fpcmake$(EXEEXT): fpcmwr$(PPUEXT) fpcmmain$(PPUEXT)
+
+# Cygwin doesn't like c:/path/
+ifndef inCygWin
+$(BS_UNITDIR):
+        $(MKDIRTREE) $(BS_UNITDIR)
+bootstrap: $(BS_UNITDIR) fpcmake.inc
+        $(FPCFPMAKE) fpcmake.pp $(FPMAKE_SKIP_CONFIG) -Fu$(UNITDIR_FPMAKE_RTL) -FU$(BS_UNITDIR) $(OPT)
+endif

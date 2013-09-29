@@ -20,7 +20,8 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301, USA.
 
 
  ****************************************************************************
@@ -63,4 +64,4 @@ function sys_statvfs(const path: pchar; var buf : statvfs_t): cint; cdecl; exter
  Revision 1.1.2.1  2001/12/20 02:55:01  carl
  + QNX versions (still untested)
 
-} 
+}

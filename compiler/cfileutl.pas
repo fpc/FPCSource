@@ -142,12 +142,16 @@ interface
 
 {$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
-{$WARNING TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
+{$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
 {$ELSE}
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
 {$ENDIF}
 
+{$if FPC_FULLVERSION < 20701}
+type
+  TRawByteSearchRec = TSearchRec;
+{$endif}
 
 
 implementation
@@ -269,7 +273,7 @@ end;
 
     procedure TCachedDirectory.Reload;
       var
-        dir   : TSearchRec;
+        dir   : TRawByteSearchRec;
         entry : PCachedDirectoryEntry;
       begin
         FreeDirectoryEntries;
@@ -299,8 +303,8 @@ end;
                     DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
             until findnext(dir) <> 0;
+            findclose(dir);
           end;
-        findclose(dir);
       end;
 
 
@@ -708,6 +712,8 @@ end;
         P: PChar;
       begin
         Result := s;
+        { make result unique since we're going to change it via a pchar }
+        uniquestring(result);
         L := Length(Result);
         if L=0 then
           exit;
@@ -1120,8 +1126,8 @@ end;
                         end;
                     end;
                 until findnext(dir) <> 0;
+                FindClose(dir);
               end;
-            FindClose(dir);
 {$endif usedircache}
             if not subdirfound then
               WarnNonExistingPath(currpath);
@@ -1201,6 +1207,14 @@ end;
        StartPos, EndPos, L: LongInt;
      begin
        Result:=False;
+
+       if (path_absolute(f)) then
+         begin
+           Result:=FileExistsNonCase('',f, allowcache, foundfile);
+           if Result then
+             Exit;
+         end;
+
        StartPos := 1;
        L := Length(Path);
        repeat

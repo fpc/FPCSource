@@ -1,7 +1,7 @@
 
 The demo directories demonstrate the use of the TFPWebDataProvider
 components, using ExtJS. It demonstrates the use of JSON and XML
-communitation between a ExtJS Datastore and the webdataprovider.
+communication between an ExtJS Datastore and the webdataprovider.
 
 ExtJS must be installed, it can be downloaded for free from
 http://www.extjs.com/

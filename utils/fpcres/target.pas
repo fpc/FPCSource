@@ -46,6 +46,7 @@ type
   TMachineInfo = record
     name : string;
     formats : TObjFormats;
+    alias : string;
   end;
   
   TFormatInfo = record
@@ -80,7 +81,7 @@ var
     (name : 'sparc';        formats : [ofElf]),                   //mtsparc
     (name : 'alpha';        formats : [ofElf]),                   //mtalpha
     (name : 'ia64';         formats : [ofElf]),                   //mtia64
-    (name : 'mips';         formats : [ofElf]),                   //mtmips
+    (name : 'mips';         formats : [ofElf]; alias : 'mipseb'), //mtmips
     (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian

@@ -22,6 +22,10 @@
 {$calling stdcall}
 {$mode objfpc}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 Unit ShellApi;
 
 //+-------------------------------------------------------------------------
@@ -1847,7 +1851,7 @@ Function SHInvokePrinterCommand(HWND: hwnd; uAction:UINT; lpBuf1: LPCWSTR; lpBuf
     //      S_OK
     //
 
-function SHLoadNonloadedIconOverlayIdentifiers:HResult; external shell32 name 'SHInvokePrinterCommandW';
+function SHLoadNonloadedIconOverlayIdentifiers:HResult; external shell32 name 'SHLoadNonloadedIconOverlayIdentifiers';
 
     //
     // The SHIsFileAvailableOffline API determines whether a file

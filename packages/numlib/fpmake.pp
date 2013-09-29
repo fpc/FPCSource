@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('numlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='numlib';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

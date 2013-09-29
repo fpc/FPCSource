@@ -105,9 +105,12 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
       itcpugas,
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
+{$ifdef m68k}
+      cpuinfo,aasmcpu,
+{$endif m68k}
       cpubase;
 
     const
@@ -636,15 +639,45 @@ implementation
         end;
 
 
-      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
+{$ifdef m68k}
+          instr : string;
+{$endif}
         begin
           last_align:=alignment;
           if alignment>1 then
             begin
               if not(target_info.system in (systems_darwin+systems_aix)) then
                 begin
+{$ifdef m68k}
+                  if assigned(lasthp) and
+                      (
+                        (lasthp.typ=ait_instruction) and
+                        (taicpu(lasthp).opcode<>A_JMP)
+                      ) or
+                      (
+                        (lasthp.typ=ait_label)
+                      ) then
+                    begin
+                      if ispowerof2(alignment,i) then
+                        begin
+                          { the Coldfire manual suggests the TBF instruction for
+                            alignments, but somehow QEMU does not interpret that
+                            correctly... }
+                          {if current_settings.cputype in cpu_coldfire then
+                            instr:='0x51fc'
+                          else}
+                            instr:='0x4e71';
+                          AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
+                        end
+                      else
+                        internalerror(2012102101);
+                    end
+                  else
+                    begin
+{$endif m68k}
                   AsmWrite(#9'.balign '+tostr(alignment));
                   if use_op then
                     AsmWrite(','+tostr(fillop))
@@ -653,6 +686,9 @@ implementation
                   else if LastSecType=sec_code then
                     AsmWrite(',0x90');
 {$endif x86}
+{$ifdef m68k}
+                    end;
+{$endif m68k}
                 end
               else
                 begin
@@ -668,6 +704,7 @@ implementation
 
     var
       ch       : char;
+      lasthp,
       hp       : tai;
       constdef : taiconst_type;
       s,t      : string;
@@ -695,6 +732,7 @@ implementation
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
                  and (p=current_asmdata.asmlists[al_procedures]));
+      lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -743,7 +781,7 @@ implementation
 
            ait_align :
              begin
-               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align);
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align,lasthp);
              end;
 
            ait_section :
@@ -857,7 +895,7 @@ implementation
                            else
                              asmwriteln(Tai_datablock(hp).sym.name);
                          end;
-                       if (target_info.system <> system_arm_linux) then
+                       if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
                          sepChar := '@'
                        else
                          sepChar := '%';
@@ -918,6 +956,11 @@ implementation
                       AsmLn;
                     end;
 {$endif cpu64bitaddr}
+                 aitconst_got:
+                   begin
+                     AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
+                     Asmln;
+                   end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
 {$ifdef cpu64bitaddr}
@@ -1258,7 +1301,7 @@ implementation
                  end
                else
                  begin
-                   if (target_info.system <> system_arm_linux) then
+                   if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
                      sepChar := '@'
                    else
                      sepChar := '#';
@@ -1286,24 +1329,20 @@ implementation
              begin
                AsmWriteLn(#9'.thumb_func');
              end;
+           ait_thumb_set:
+             begin
+               AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);
+             end;
 {$endif arm}
-           ait_ent:
+           ait_set:
              begin
-               AsmWrite(#9'.ent'#9);
-			   if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent(hp).Name))
-               else
-                 AsmWriteLn(tai_ent(hp).Name);
+               AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
              end;
-           ait_ent_end:
+           ait_weak:
              begin
-               AsmWrite(#9'.end'#9);
-			   if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent_end(hp).Name))
-               else
-  			     AsmWriteLn(tai_ent_end(hp).Name);
+               AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
              end;
-            ait_symbol_end :
+           ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
                 begin
@@ -1388,7 +1427,7 @@ implementation
 
            ait_seh_directive :
              begin
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
                AsmWrite(sehdirectivestr[tai_seh_directive(hp).kind]);
                case tai_seh_directive(hp).datatype of
                  sd_none:;
@@ -1409,7 +1448,7 @@ implementation
                      tostr(tai_seh_directive(hp).data.offset));
                end;
                AsmLn;
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
              end;
            ait_varloc:
              begin
@@ -1424,6 +1463,7 @@ implementation
            else
              internalerror(2006012201);
          end;
+         lasthp:=hp;
          hp:=tai(hp.next);
        end;
     end;
@@ -1642,7 +1682,7 @@ implementation
         AsmWriteLn(#9'.subsections_via_symbols');
 
       { "no executable stack" marker for Linux }
-      if (target_info.system in systems_linux) and
+      if (target_info.system in (systems_linux + systems_android)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');

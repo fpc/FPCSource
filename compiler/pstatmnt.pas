@@ -53,7 +53,7 @@ implementation
        nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,
+       pbase,ptype,pexpr,
        { codegen }
        procinfo,cgbase,
        { assembler reader }
@@ -534,7 +534,6 @@ implementation
          hp,
          refnode  : tnode;
          hdef : tdef;
-         extendeddef : tabstractrecorddef;
          helperdef : tobjectdef;
          hasimplicitderef : boolean;
          withsymtablelist : TFPObjectList;
@@ -579,7 +578,8 @@ implementation
            to call it in case it returns a record/object/... }
          maybe_call_procvar(p,false);
 
-         if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) then
+         if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) or
+           ((p.resultdef.typ=undefineddef) and (df_generic in current_procinfo.procdef.defoptions)) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -633,8 +633,17 @@ implementation
                     typecheckpass(p);
                   end;
                 { several object types have implicit dereferencing }
-                hasimplicitderef:=is_implicit_pointer_object_type(p.resultdef) or
-                                  (p.resultdef.typ = classrefdef);
+                { is_implicit_pointer_object_type() returns true for records
+                  on the JVM target because they are implemented as classes
+                  there, but we definitely have to take their address here
+                  since otherwise a deep copy is made and changes are made to
+                  this copy rather than to the original one }
+                hasimplicitderef:=
+                  (is_implicit_pointer_object_type(p.resultdef) or
+                   (p.resultdef.typ=classrefdef)) and
+                  not((target_info.system in systems_jvm) and
+                      ((p.resultdef.typ=recorddef) or
+                       is_object(p.resultdef)));
                 if hasimplicitderef then
                   hdef:=p.resultdef
                 else
@@ -660,21 +669,15 @@ implementation
                     valuenode));
                 typecheckpass(refnode);
               end;
-
-            { do we have a helper for this type? }
-            if p.resultdef.typ=classrefdef then
-              extendeddef:=tobjectdef(tclassrefdef(p.resultdef).pointeddef)
-            else
-              extendeddef:=tabstractrecorddef(p.resultdef);
-            search_last_objectpascal_helper(extendeddef,current_structdef,helperdef);
             { Note: the symtable of the helper is pushed after the following
                     "case", the symtables of the helper's parents are passed in
                     the "case" branches }
-
             withsymtablelist:=TFPObjectList.create(true);
             case p.resultdef.typ of
               objectdef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(p.resultdef),tobjectdef(p.resultdef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -687,6 +690,8 @@ implementation
                  end;
               classrefdef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tobjectdef(tclassrefdef(p.resultdef).pointeddef),current_structdef,helperdef);
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).childof);
                    { push symtables of all parents of the helper in reverse order }
@@ -699,11 +704,23 @@ implementation
                 end;
               recorddef :
                 begin
+                   { do we have a helper for this type? }
+                   search_last_objectpascal_helper(tabstractrecorddef(p.resultdef),current_structdef,helperdef);
                    { push symtables of all parents of the helper in reverse order }
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);
                    { push record symtable }
                    st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);
+                   symtablestack.push(st);
+                   withsymtablelist.add(st);
+                end;
+              undefineddef :
+                begin
+                   if not(df_generic in current_procinfo.procdef.defoptions) then
+                     internalerror(2012122802);
+                   helperdef:=nil;
+                   { push record symtable }
+                   st:=twithsymtable.create(p.resultdef,nil,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -752,7 +769,7 @@ implementation
          else
           begin
             p.free;
-            Message(parser_e_false_with_expr);
+            Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             { try to recover from error }
             if try_to_consume(_COMMA) then
              begin
@@ -808,6 +825,18 @@ implementation
 
 
     function try_statement : tnode;
+
+      procedure check_type_valid(var def: tdef);
+        begin
+           if not (is_class(def) or is_javaclass(def) or
+              { skip showing error message the second time }
+              (def.typ=errordef)) then
+             begin
+               Message1(type_e_class_type_expected,def.typename);
+               def:=generrordef;
+             end;
+        end;
+
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
@@ -883,22 +912,9 @@ implementation
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
                             begin
-                               consume_sym(srsym,srsymtable);
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 begin
-                                    ot:=ttypesym(srsym).typedef;
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
-                                 end
-                               else
-                                 begin
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrordef,[]);
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
-                                 end;
+                              single_type(ot,[]);
+                              check_type_valid(ot);
+                              sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
                             begin
@@ -916,19 +932,19 @@ implementation
                                  consume(t);
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 ot:=ttypesym(srsym).typedef
+                               if (srsym.typ=typesym) then
+                                 begin
+                                   ot:=ttypesym(srsym).typedef;
+                                   parse_nested_types(ot,false,nil);
+                                   check_type_valid(ot);
+                                 end
                                else
                                  begin
-                                    ot:=generrordef;
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
+                                   Message(type_e_type_id_expected);
+                                   ot:=generrordef;
                                  end;
-                               { create dummy symbol so we don't need a special
+
+                                 { create dummy symbol so we don't need a special
                                  case in ncgflw, and so that we always know the
                                  type }
                                sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
@@ -1170,7 +1186,11 @@ implementation
                 code:=cnodeutils.call_fail_node;
              end;
            _ASM :
-             code:=_asm_statement;
+             begin
+               if parse_generic then
+                 Message(parser_e_no_assembler_in_generic);
+               code:=_asm_statement;
+             end;
            _EOF :
              Message(scan_f_end_of_file);
          else
@@ -1241,11 +1261,15 @@ implementation
              if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
                maybe_call_procvar(p,false);
 
-             { blockn support because a read/write is changed into a blocknode }
-             { with a separate statement for each read/write operation (JM)    }
-             { the same is true for val() if the third parameter is not 32 bit }
+             { blockn support because a read/write is changed into a blocknode
+               with a separate statement for each read/write operation (JM)
+               the same is true for val() if the third parameter is not 32 bit
+
+               goto nodes are created by the compiler for non local exit statements, so
+               include them as well
+             }
              if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
-                                   continuen,labeln,blockn,exitn]) or
+                                   continuen,labeln,blockn,exitn,goton]) or
                 ((p.nodetype=inlinen) and
                  not is_void(p.resultdef)) or
                 ((p.nodetype=calln) and
@@ -1270,8 +1294,14 @@ implementation
                     not(is_void(p.resultdef)) and
                     { can be nil in case there was an error in the expression }
                     assigned(tcallnode(p).procdefinition) and
-                    not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                        is_object(tprocdef(tcallnode(p).procdefinition).struct)) then
+                    { allow constructor calls to drop the result if they are
+                      called as instance methods instead of class methods }
+                    not(
+                      (tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                      is_class_or_object(tprocdef(tcallnode(p).procdefinition).struct) and
+                      assigned(tcallnode(p).methodpointer) and
+                      (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
+                    ) then
                    Message(parser_e_illegal_expression);
                end;
              code:=p;
@@ -1344,6 +1374,9 @@ implementation
 {$endif arm}
         srsym : tsym;
       begin
+         if parse_generic then
+           message(parser_e_no_assembler_in_generic);
+
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.returndef) then
            begin
@@ -1383,7 +1416,7 @@ implementation
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
                 not (df_generic in current_procinfo.procdef.defoptions) and
-                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
+                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
                begin
                  { Only need to set the framepointer, the locals will
                    be inserted with the correct reference in tcgasmnode.pass_generate_code }
@@ -1397,7 +1430,7 @@ implementation
         }
         if assigned(current_procinfo.procdef.funcretsym) and
             not (df_generic in current_procinfo.procdef.defoptions) and
-           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
+           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
           tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 
         { because the END is already read we need to get the

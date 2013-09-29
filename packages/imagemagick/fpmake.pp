@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('imagemagick');
 {$ifdef ALLPACKAGES}
-    P.Directory:='imagemagick';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

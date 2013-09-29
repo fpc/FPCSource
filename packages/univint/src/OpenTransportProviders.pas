@@ -1,11 +1,9 @@
 {
-     File:       OT/OpenTransportProviders.h
+     File:       OSServices/OpenTransportProviders.h
  
-     Contains:   This file contains provider-specific definitions for various built-in providers.
+     Contains:   *** DEPRECATED *** This file contains provider-specific definitions for various built-in providers.
  
-     Version:    OpenTransport-110~114
- 
-     Copyright:  © 1993-2008 by Apple Computer, Inc. and Mentat Inc., all rights reserved.
+     Copyright:  (c) 1993-2011 Apple Inc. and Mentat Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -15,6 +13,7 @@
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -90,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -467,7 +471,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 procedure OTInitInetAddress( var addr: InetAddress; port: InetPort; host: InetHost ); external name '_OTInitInetAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -479,7 +483,7 @@ procedure OTInitInetAddress( var addr: InetAddress; port: InetPort; host: InetHo
  *    Non-Carbon CFM:   not available
  }
 function OTInitDNSAddress( var addr: DNSAddress; str: CStringPtr ): OTByteCount; external name '_OTInitDNSAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -491,7 +495,7 @@ function OTInitDNSAddress( var addr: DNSAddress; str: CStringPtr ): OTByteCount;
  *    Non-Carbon CFM:   not available
  }
 function OTInetStringToHost( str: ConstCStringPtr; var host: InetHost ): OSStatus; external name '_OTInetStringToHost';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -503,7 +507,7 @@ function OTInetStringToHost( str: ConstCStringPtr; var host: InetHost ): OSStatu
  *    Non-Carbon CFM:   not available
  }
 procedure OTInetHostToString( host: InetHost; str: CStringPtr ); external name '_OTInetHostToString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -515,7 +519,7 @@ procedure OTInetHostToString( host: InetHost; str: CStringPtr ); external name '
  *    Non-Carbon CFM:   not available
  }
 function OTInetGetInterfaceInfo( var info: InetInterfaceInfo; val: SInt32 ): OSStatus; external name '_OTInetGetInterfaceInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -527,7 +531,7 @@ function OTInetGetInterfaceInfo( var info: InetInterfaceInfo; val: SInt32 ): OSS
  *    Non-Carbon CFM:   not available
  }
 function OTInetGetSecondaryAddresses( var addr: InetHost; var count: UInt32; val: SInt32 ): OSStatus; external name '_OTInetGetSecondaryAddresses';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -560,7 +564,7 @@ function OTInetGetSecondaryAddresses( var addr: InetHost; var count: UInt32; val
  *    Non-Carbon CFM:   not available
  }
 function OTOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: OTOpenFlags; var err: OSStatus; clientContext: OTClientContextPtr ): InetSvcRef; external name '_OTOpenInternetServicesInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -572,7 +576,7 @@ function OTOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: OTOpe
  *    Non-Carbon CFM:   not available
  }
 function OTAsyncOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: OTOpenFlags; upp: OTNotifyUPP; contextPtr: UnivPtr; clientContext: OTClientContextPtr ): OSStatus; external name '_OTAsyncOpenInternetServicesInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -611,7 +615,7 @@ function OTAsyncOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: 
  *    Non-Carbon CFM:   not available
  }
 function OTInetStringToAddress( ref: InetSvcRef; name: CStringPtr; var hinfo: InetHostInfo ): OSStatus; external name '_OTInetStringToAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -623,7 +627,7 @@ function OTInetStringToAddress( ref: InetSvcRef; name: CStringPtr; var hinfo: In
  *    Non-Carbon CFM:   not available
  }
 function OTInetAddressToName( ref: InetSvcRef; addr: InetHost; var name: InetDomainName ): OSStatus; external name '_OTInetAddressToName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -635,7 +639,7 @@ function OTInetAddressToName( ref: InetSvcRef; addr: InetHost; var name: InetDom
  *    Non-Carbon CFM:   not available
  }
 function OTInetSysInfo( ref: InetSvcRef; name: CStringPtr; var sysinfo: InetSysInfo ): OSStatus; external name '_OTInetSysInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -647,7 +651,7 @@ function OTInetSysInfo( ref: InetSvcRef; name: CStringPtr; var sysinfo: InetSysI
  *    Non-Carbon CFM:   not available
  }
 function OTInetMailExchange( ref: InetSvcRef; name: CStringPtr; var num: UInt16; mx: InetMailExchangePtr ): OSStatus; external name '_OTInetMailExchange';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -659,7 +663,7 @@ function OTInetMailExchange( ref: InetSvcRef; name: CStringPtr; var num: UInt16;
  *    Non-Carbon CFM:   not available
  }
 function OTInetQuery( ref: InetSvcRef; name: CStringPtr; qClass: UInt16; qType: UInt16; buf: CStringPtr; buflen: OTByteCount; var argv: UnivPtr; argvlen: OTByteCount; flags: OTFlags ): OSStatus; external name '_OTInetQuery';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -849,7 +853,7 @@ const
  *    Non-Carbon CFM:   not available
  }
 function OTAsyncOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOpenFlags; proc: OTNotifyUPP; contextPtr: UnivPtr; clientContext: OTClientContextPtr ): OSStatus; external name '_OTAsyncOpenAppleTalkServicesInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -861,7 +865,7 @@ function OTAsyncOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags:
  *    Non-Carbon CFM:   not available
  }
 function OTOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOpenFlags; var err: OSStatus; clientContext: OTClientContextPtr ): ATSvcRef; external name '_OTOpenAppleTalkServicesInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -901,7 +905,7 @@ function OTOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOp
  *    Non-Carbon CFM:   not available
  }
 function OTATalkGetMyZone( ref: ATSvcRef; var zone: TNetbuf ): OSStatus; external name '_OTATalkGetMyZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -917,7 +921,7 @@ function OTATalkGetMyZone( ref: ATSvcRef; var zone: TNetbuf ): OSStatus; externa
  *    Non-Carbon CFM:   not available
  }
 function OTATalkGetLocalZones( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; external name '_OTATalkGetLocalZones';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Get the list of all zones on the internet specified by the ATSvcRef}
@@ -930,7 +934,7 @@ function OTATalkGetLocalZones( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; ex
  *    Non-Carbon CFM:   not available
  }
 function OTATalkGetZoneList( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; external name '_OTATalkGetZoneList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Stores an AppleTalkInfo structure into the TNetbuf (see later in this file)}
@@ -943,7 +947,7 @@ function OTATalkGetZoneList( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; exte
  *    Non-Carbon CFM:   not available
  }
 function OTATalkGetInfo( ref: ATSvcRef; var info: TNetbuf ): OSStatus; external name '_OTATalkGetInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1017,7 +1021,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 procedure OTInitDDPAddress( var addr: DDPAddress; net: UInt16; node: ByteParameter; socket: ByteParameter; ddpType: ByteParameter ); external name '_OTInitDDPAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1029,7 +1033,7 @@ procedure OTInitDDPAddress( var addr: DDPAddress; net: UInt16; node: ByteParamet
  *    Non-Carbon CFM:   not available
  }
 function OTInitNBPAddress( var addr: NBPAddress; name: ConstCStringPtr ): OTByteCount; external name '_OTInitNBPAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1041,7 +1045,7 @@ function OTInitNBPAddress( var addr: NBPAddress; name: ConstCStringPtr ): OTByte
  *    Non-Carbon CFM:   not available
  }
 function OTInitDDPNBPAddress( var addr: DDPNBPAddress; name: ConstCStringPtr; net: UInt16; node: ByteParameter; socket: ByteParameter; ddpType: ByteParameter ): OTByteCount; external name '_OTInitDDPNBPAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Compare 2 DDP addresses for equality}
@@ -1054,7 +1058,7 @@ function OTInitDDPNBPAddress( var addr: DDPNBPAddress; name: ConstCStringPtr; ne
  *    Non-Carbon CFM:   not available
  }
 function OTCompareDDPAddresses( const (*var*) addr1: DDPAddress; const (*var*) addr2: DDPAddress ): Boolean; external name '_OTCompareDDPAddresses';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Init an NBPEntity to a NULL name}
@@ -1067,7 +1071,7 @@ function OTCompareDDPAddresses( const (*var*) addr1: DDPAddress; const (*var*) a
  *    Non-Carbon CFM:   not available
  }
 procedure OTInitNBPEntity( var entity: NBPEntity ); external name '_OTInitNBPEntity';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Get the length an NBPEntity would have when stored as an address}
@@ -1080,7 +1084,7 @@ procedure OTInitNBPEntity( var entity: NBPEntity ); external name '_OTInitNBPEnt
  *    Non-Carbon CFM:   not available
  }
 function OTGetNBPEntityLengthAsAddress( const (*var*) entity: NBPEntity ): OTByteCount; external name '_OTGetNBPEntityLengthAsAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Store an NBPEntity into an address buffer}
@@ -1093,7 +1097,7 @@ function OTGetNBPEntityLengthAsAddress( const (*var*) entity: NBPEntity ): OTByt
  *    Non-Carbon CFM:   not available
  }
 function OTSetAddressFromNBPEntity( nameBuf: UInt8Ptr; const (*var*) entity: NBPEntity ): OTByteCount; external name '_OTSetAddressFromNBPEntity';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Create an address buffer from a string (use -1 for len to use strlen)}
@@ -1106,7 +1110,7 @@ function OTSetAddressFromNBPEntity( nameBuf: UInt8Ptr; const (*var*) entity: NBP
  *    Non-Carbon CFM:   not available
  }
 function OTSetAddressFromNBPString( addrBuf: UInt8Ptr; name: ConstCStringPtr; len: SInt32 ): OTByteCount; external name '_OTSetAddressFromNBPString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1122,7 +1126,7 @@ function OTSetAddressFromNBPString( addrBuf: UInt8Ptr; name: ConstCStringPtr; le
  *    Non-Carbon CFM:   not available
  }
 function OTSetNBPEntityFromAddress( var entity: NBPEntity; addrBuf: UInt8Ptr; len: OTByteCount ): Boolean; external name '_OTSetNBPEntityFromAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Routines to set a piece of an NBP entity from a character string}
@@ -1135,7 +1139,7 @@ function OTSetNBPEntityFromAddress( var entity: NBPEntity; addrBuf: UInt8Ptr; le
  *    Non-Carbon CFM:   not available
  }
 function OTSetNBPName( var entity: NBPEntity; name: ConstCStringPtr ): Boolean; external name '_OTSetNBPName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1147,7 +1151,7 @@ function OTSetNBPName( var entity: NBPEntity; name: ConstCStringPtr ): Boolean; 
  *    Non-Carbon CFM:   not available
  }
 function OTSetNBPType( var entity: NBPEntity; typeVal: ConstCStringPtr ): Boolean; external name '_OTSetNBPType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1159,7 +1163,7 @@ function OTSetNBPType( var entity: NBPEntity; typeVal: ConstCStringPtr ): Boolea
  *    Non-Carbon CFM:   not available
  }
 function OTSetNBPZone( var entity: NBPEntity; zone: ConstCStringPtr ): Boolean; external name '_OTSetNBPZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Routines to extract pieces of an NBP entity}
@@ -1172,7 +1176,7 @@ function OTSetNBPZone( var entity: NBPEntity; zone: ConstCStringPtr ): Boolean; 
  *    Non-Carbon CFM:   not available
  }
 procedure OTExtractNBPName( const (*var*) entity: NBPEntity; name: CStringPtr ); external name '_OTExtractNBPName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1184,7 +1188,7 @@ procedure OTExtractNBPName( const (*var*) entity: NBPEntity; name: CStringPtr );
  *    Non-Carbon CFM:   not available
  }
 procedure OTExtractNBPType( const (*var*) entity: NBPEntity; typeVal: CStringPtr ); external name '_OTExtractNBPType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1196,7 +1200,7 @@ procedure OTExtractNBPType( const (*var*) entity: NBPEntity; typeVal: CStringPtr
  *    Non-Carbon CFM:   not available
  }
 procedure OTExtractNBPZone( const (*var*) entity: NBPEntity; zone: CStringPtr ); external name '_OTExtractNBPZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { AppleTalkInfo as used by the OTGetATalkInfo function}

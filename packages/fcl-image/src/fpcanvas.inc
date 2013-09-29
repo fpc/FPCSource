@@ -28,6 +28,7 @@ end;
 
 destructor TFPCustomCanvas.Destroy;
 begin
+  FreeAndNil(FClipRegion);
   FRemovingHelpers := True;
   // first remove all helper references
   RemoveHelpers;

@@ -13,7 +13,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +116,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +137,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -273,7 +279,7 @@ uses MacTypes,ConditionalMacros;
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-function SDOT( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32; const (*var*) Y: Float32; (*const*) var incY: SInt32 ): Float32; external name '_SDOT';
+function SDOT( (*const*) var N: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32; {const} Y: Float32Ptr; (*const*) var incY: SInt32 ): Float32; external name '_SDOT';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -285,7 +291,7 @@ function SDOT( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var 
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-function SNRM2( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32 ): Float32; external name '_SNRM2';
+function SNRM2( (*const*) var N: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32 ): Float32; external name '_SNRM2';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -297,7 +303,7 @@ function SNRM2( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-function SASUM( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32 ): Float32; external name '_SASUM';
+function SASUM( (*const*) var N: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32 ): Float32; external name '_SASUM';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -309,7 +315,7 @@ function SASUM( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-function ISAMAX( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32 ): SInt32; external name '_ISAMAX';
+function ISAMAX( (*const*) var N: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32 ): SInt32; external name '_ISAMAX';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -321,7 +327,7 @@ function ISAMAX( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) va
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SSWAP( (*const*) var N: SInt32; var X: Float32; (*const*) var incX: SInt32; var Y: Float32; (*const*) var incY: SInt32 ); external name '_SSWAP';
+procedure SSWAP( (*const*) var N: SInt32; X: Float32Ptr; (*const*) var incX: SInt32; Y: Float32Ptr; (*const*) var incY: SInt32 ); external name '_SSWAP';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -333,7 +339,7 @@ procedure SSWAP( (*const*) var N: SInt32; var X: Float32; (*const*) var incX: SI
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SCOPY( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32; var Y: Float32; (*const*) var incY: SInt32 ); external name '_SCOPY';
+procedure SCOPY( (*const*) var N: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32; Y: Float32Ptr; (*const*) var incY: SInt32 ); external name '_SCOPY';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -345,7 +351,7 @@ procedure SCOPY( (*const*) var N: SInt32; const (*var*) X: Float32; (*const*) va
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SAXPY( (*const*) var N: SInt32; const (*var*) alpha: Float32; const (*var*) X: Float32; (*const*) var incX: SInt32; var Y: Float32; (*const*) var incY: SInt32 ); external name '_SAXPY';
+procedure SAXPY( (*const*) var N: SInt32; const (*var*) alpha: Float32; {const} X: Float32Ptr; (*const*) var incX: SInt32; Y: Float32Ptr; (*const*) var incY: SInt32 ); external name '_SAXPY';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -357,7 +363,7 @@ procedure SAXPY( (*const*) var N: SInt32; const (*var*) alpha: Float32; const (*
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SROT( (*const*) var N: SInt32; var X: Float32; (*const*) var incX: SInt32; var Y: Float32; (*const*) var incY: SInt32; const (*var*) c: Float32; const (*var*) s: Float32 ); external name '_SROT';
+procedure SROT( (*const*) var N: SInt32; X: Float32Ptr; (*const*) var incX: SInt32; Y: Float32Ptr; (*const*) var incY: SInt32; const (*var*) c: Float32; const (*var*) s: Float32 ); external name '_SROT';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -369,7 +375,7 @@ procedure SROT( (*const*) var N: SInt32; var X: Float32; (*const*) var incX: SIn
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SSCAL( (*const*) var N: SInt32; const (*var*) alpha: Float32; var X: Float32; (*const*) var incX: SInt32 ); external name '_SSCAL';
+procedure SSCAL( (*const*) var N: SInt32; const (*var*) alpha: Float32; X: Float32Ptr; (*const*) var incX: SInt32 ); external name '_SSCAL';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -381,7 +387,7 @@ procedure SSCAL( (*const*) var N: SInt32; const (*var*) alpha: Float32; var X: F
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SGEMV( transA: ConstCStringPtr; (*const*) var M: SInt32; (*const*) var N: SInt32; const (*var*) alpha: Float32; const (*var*) A: Float32; (*const*) var lda: SInt32; const (*var*) X: Float32; (*const*) var incX: SInt32; const (*var*) beta: Float32; var Y: Float32; (*const*) var incY: SInt32 ); external name '_SGEMV';
+procedure SGEMV( transA: ConstCStringPtr; (*const*) var M: SInt32; (*const*) var N: SInt32; const (*var*) alpha: Float32; {const} A: Float32Ptr; (*const*) var lda: SInt32; {const} X: Float32Ptr; (*const*) var incX: SInt32; const (*var*) beta: Float32; Y: Float32Ptr; (*const*) var incY: SInt32 ); external name '_SGEMV';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -393,7 +399,7 @@ procedure SGEMV( transA: ConstCStringPtr; (*const*) var M: SInt32; (*const*) var
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
  *    Non-Carbon CFM:   in vecLib 1.0.2 and later
  }
-procedure SGEMM( transA: ConstCStringPtr; transB: ConstCStringPtr; (*const*) var M: SInt32; (*const*) var N: SInt32; (*const*) var K: SInt32; const (*var*) alpha: Float32; const (*var*) A: Float32; (*const*) var lda: SInt32; const (*var*) B: Float32; (*const*) var ldb: SInt32; const (*var*) beta: Float32; var C: Float32; (*const*) var ldc: SInt32 ); external name '_SGEMM';
+procedure SGEMM( transA: ConstCStringPtr; transB: ConstCStringPtr; (*const*) var M: SInt32; (*const*) var N: SInt32; (*const*) var K: SInt32; const (*var*) alpha: Float32; {const} A: Float32Ptr; (*const*) var lda: SInt32; {const} B: Float32Ptr; (*const*) var ldb: SInt32; const (*var*) beta: Float32; C: Float32Ptr; (*const*) var ldc: SInt32 ); external name '_SGEMM';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

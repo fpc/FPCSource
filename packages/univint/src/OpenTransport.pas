@@ -1,11 +1,9 @@
 {
-     File:       OT/OpenTransport.h
+     File:       OSServices/OpenTransport.h
  
-     Contains:   Open Transport client interface file.
+     Contains:   *** DEPRECATED *** Open Transport client interface file.
  
-     Version:    OpenTransport-110~114
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
+     Copyright:  (c) 1985-2011 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -913,7 +917,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewOTNotifyUPP( userRoutine: OTNotifyProcPtr ): OTNotifyUPP; external name '_NewOTNotifyUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  DisposeOTNotifyUPP()
@@ -924,7 +928,7 @@ function NewOTNotifyUPP( userRoutine: OTNotifyProcPtr ): OTNotifyUPP; external n
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeOTNotifyUPP( userUPP: OTNotifyUPP ); external name '_DisposeOTNotifyUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  InvokeOTNotifyUPP()
@@ -935,7 +939,8 @@ procedure DisposeOTNotifyUPP( userUPP: OTNotifyUPP ); external name '_DisposeOTN
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeOTNotifyUPP( contextPtr: UnivPtr; code: OTEventCode; result: OTResult; cookie: UnivPtr; userUPP: OTNotifyUPP ); external name '_InvokeOTNotifyUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
+
 
 { ***** Option Management Definitions *****}
 { The XTI Level number of a protocol.}
@@ -1286,7 +1291,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCreatePortRef( busType: OTBusType; devType: OTDeviceType; slot: OTSlotNumber; other: UInt16 ): OTPortRef; external name '_OTCreatePortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1298,7 +1303,7 @@ function OTCreatePortRef( busType: OTBusType; devType: OTDeviceType; slot: OTSlo
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetDeviceTypeFromPortRef( ref: OTPortRef ): OTDeviceType; external name '_OTGetDeviceTypeFromPortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1310,7 +1315,7 @@ function OTGetDeviceTypeFromPortRef( ref: OTPortRef ): OTDeviceType; external na
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetBusTypeFromPortRef( ref: OTPortRef ): UInt16; external name '_OTGetBusTypeFromPortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1322,7 +1327,7 @@ function OTGetBusTypeFromPortRef( ref: OTPortRef ): UInt16; external name '_OTGe
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetSlotFromPortRef( ref: OTPortRef; var other: UInt16 ): OTSlotNumber; external name '_OTGetSlotFromPortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1334,7 +1339,7 @@ function OTGetSlotFromPortRef( ref: OTPortRef; var other: UInt16 ): OTSlotNumber
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTSetDeviceTypeInPortRef( ref: OTPortRef; devType: OTDeviceType ): OTPortRef; external name '_OTSetDeviceTypeInPortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1346,7 +1351,7 @@ function OTSetDeviceTypeInPortRef( ref: OTPortRef; devType: OTDeviceType ): OTPo
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTSetBusTypeInPortRef( ref: OTPortRef; busType: OTBusType ): OTPortRef; external name '_OTSetBusTypeInPortRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1442,7 +1447,7 @@ type
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 function OTGetIndexedPort( var portRecord: OTPortRecord; index: OTItemCount ): Boolean; external name '_OTGetIndexedPort';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Index through the ports in the system}
@@ -1455,7 +1460,7 @@ function OTGetIndexedPort( var portRecord: OTPortRecord; index: OTItemCount ): B
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 function OTFindPort( var portRecord: OTPortRecord; portName: ConstCStringPtr ): Boolean; external name '_OTFindPort';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Find an OTPortRecord for a port using it's name}
@@ -1468,7 +1473,7 @@ function OTFindPort( var portRecord: OTPortRecord; portName: ConstCStringPtr ): 
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 function OTFindPortByRef( var portRecord: OTPortRecord; ref: OTPortRef ): Boolean; external name '_OTFindPortByRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Find an OTPortRecord for a port using it's OTPortRef}
@@ -1831,7 +1836,7 @@ const
  *    Non-Carbon CFM:   not available
  }
 function InitOpenTransportInContext( flags: OTInitializationFlags; outClientContext: OTClientContextPtrPtr { can be NULL } ): OSStatus; external name '_InitOpenTransportInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1848,7 +1853,7 @@ function InitOpenTransportInContext( flags: OTInitializationFlags; outClientCont
  *    Non-Carbon CFM:   not available
  }
 procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); external name '_CloseOpenTransportInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1918,7 +1923,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
  *    Non-Carbon CFM:   not available
  }
 function OTRegisterAsClientInContext( name: OTClientName; proc: OTNotifyUPP; clientContext: OTClientContextPtr { can be NULL } ): OSStatus; external name '_OTRegisterAsClientInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -1930,7 +1935,7 @@ function OTRegisterAsClientInContext( name: OTClientName; proc: OTNotifyUPP; cli
  *    Non-Carbon CFM:   not available
  }
 function OTUnregisterAsClientInContext( clientContext: OTClientContextPtr ): OSStatus; external name '_OTUnregisterAsClientInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2001,7 +2006,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewOTProcessUPP( userRoutine: OTProcessProcPtr ): OTProcessUPP; external name '_NewOTProcessUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  DisposeOTProcessUPP()
@@ -2012,7 +2017,7 @@ function NewOTProcessUPP( userRoutine: OTProcessProcPtr ): OTProcessUPP; externa
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeOTProcessUPP( userUPP: OTProcessUPP ); external name '_DisposeOTProcessUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  InvokeOTProcessUPP()
@@ -2023,7 +2028,8 @@ procedure DisposeOTProcessUPP( userUPP: OTProcessUPP ); external name '_DisposeO
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeOTProcessUPP( arg: UnivPtr; userUPP: OTProcessUPP ); external name '_InvokeOTProcessUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
+
 
 {$ifc NOT OTKERNEL}
 {
@@ -2041,7 +2047,7 @@ procedure InvokeOTProcessUPP( arg: UnivPtr; userUPP: OTProcessUPP ); external na
  *    Non-Carbon CFM:   not available
  }
 function OTCreateDeferredTaskInContext( upp: OTProcessUPP; arg: UnivPtr; clientContext: OTClientContextPtr { can be NULL } ): SIGNEDLONG; external name '_OTCreateDeferredTaskInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2076,7 +2082,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTScheduleDeferredTask( dtCookie: OTDeferredTaskRef ): Boolean; external name '_OTScheduleDeferredTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2101,7 +2107,7 @@ function OTScheduleDeferredTask( dtCookie: OTDeferredTaskRef ): Boolean; externa
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTDestroyDeferredTask( dtCookie: OTDeferredTaskRef ): OSStatus; external name '_OTDestroyDeferredTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2166,7 +2172,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCanMakeSyncCall: Boolean; external name '_OTCanMakeSyncCall';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2205,7 +2211,7 @@ function OTCanMakeSyncCall: Boolean; external name '_OTCanMakeSyncCall';
  *    Non-Carbon CFM:   not available
  }
 function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseProvider';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2250,7 +2256,7 @@ function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseP
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; external name '_OTIoctl';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2305,7 +2311,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSetAsynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetAsynchronous';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2317,7 +2323,7 @@ function OTSetAsynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetA
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSetSynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetSynchronous';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2329,7 +2335,7 @@ function OTSetSynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetSy
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTIsSynchronous( ref: ProviderRef ): Boolean; external name '_OTIsSynchronous';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2341,7 +2347,7 @@ function OTIsSynchronous( ref: ProviderRef ): Boolean; external name '_OTIsSynch
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSetBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetBlocking';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2353,7 +2359,7 @@ function OTSetBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetBlock
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSetNonBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetNonBlocking';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2365,7 +2371,7 @@ function OTSetNonBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetNo
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTIsBlocking( ref: ProviderRef ): Boolean; external name '_OTIsBlocking';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2377,7 +2383,7 @@ function OTIsBlocking( ref: ProviderRef ): Boolean; external name '_OTIsBlocking
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTInstallNotifier( ref: ProviderRef; proc: OTNotifyUPP; contextPtr: UnivPtr ): OSStatus; external name '_OTInstallNotifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2389,7 +2395,7 @@ function OTInstallNotifier( ref: ProviderRef; proc: OTNotifyUPP; contextPtr: Uni
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTUseSyncIdleEvents( ref: ProviderRef; useEvents: Boolean ): OSStatus; external name '_OTUseSyncIdleEvents';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2401,7 +2407,7 @@ function OTUseSyncIdleEvents( ref: ProviderRef; useEvents: Boolean ): OSStatus; 
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 procedure OTRemoveNotifier( ref: ProviderRef ); external name '_OTRemoveNotifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2413,7 +2419,7 @@ procedure OTRemoveNotifier( ref: ProviderRef ); external name '_OTRemoveNotifier
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 procedure OTLeaveNotifier( ref: ProviderRef ); external name '_OTLeaveNotifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2425,7 +2431,7 @@ procedure OTLeaveNotifier( ref: ProviderRef ); external name '_OTLeaveNotifier';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTEnterNotifier( ref: ProviderRef ): Boolean; external name '_OTEnterNotifier';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2437,7 +2443,7 @@ function OTEnterNotifier( ref: ProviderRef ): Boolean; external name '_OTEnterNo
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTAckSends( ref: ProviderRef ): OSStatus; external name '_OTAckSends';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2449,7 +2455,7 @@ function OTAckSends( ref: ProviderRef ): OSStatus; external name '_OTAckSends';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTDontAckSends( ref: ProviderRef ): OSStatus; external name '_OTDontAckSends';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2461,7 +2467,7 @@ function OTDontAckSends( ref: ProviderRef ): OSStatus; external name '_OTDontAck
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTIsAckingSends( ref: ProviderRef ): Boolean; external name '_OTIsAckingSends';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2473,7 +2479,8 @@ function OTIsAckingSends( ref: ProviderRef ): Boolean; external name '_OTIsAckin
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTCancelSynchronousCalls( ref: ProviderRef; err: OSStatus ): OSStatus; external name '_OTCancelSynchronousCalls';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
+
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2498,7 +2505,7 @@ function OTCancelSynchronousCalls( ref: ProviderRef; err: OSStatus ): OSStatus; 
  *    Non-Carbon CFM:   not available
  }
 function OTOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpenFlags; info: TEndpointInfoPtr { can be NULL }; var err: OSStatus; clientContext: OTClientContextPtr { can be NULL } ): EndpointRef; external name '_OTOpenEndpointInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2510,7 +2517,7 @@ function OTOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpenFlags
  *    Non-Carbon CFM:   not available
  }
 function OTAsyncOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpenFlags; info: TEndpointInfoPtr { can be NULL }; upp: OTNotifyUPP; contextPtr: UnivPtr; clientContext: OTClientContextPtr { can be NULL } ): OSStatus; external name '_OTAsyncOpenEndpointInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2551,7 +2558,7 @@ function OTAsyncOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpen
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTGetEndpointInfo( ref: EndpointRef; var info: TEndpointInfo ): OSStatus; external name '_OTGetEndpointInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2563,7 +2570,7 @@ function OTGetEndpointInfo( ref: EndpointRef; var info: TEndpointInfo ): OSStatu
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTGetEndpointState( ref: EndpointRef ): OTResult; external name '_OTGetEndpointState';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2575,7 +2582,7 @@ function OTGetEndpointState( ref: EndpointRef ): OTResult; external name '_OTGet
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTLook( ref: EndpointRef ): OTResult; external name '_OTLook';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2600,7 +2607,7 @@ function OTLook( ref: EndpointRef ): OTResult; external name '_OTLook';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTCountDataBytes( ref: EndpointRef; var countPtr: OTByteCount ): OTResult; external name '_OTCountDataBytes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2612,7 +2619,7 @@ function OTCountDataBytes( ref: EndpointRef; var countPtr: OTByteCount ): OTResu
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTGetProtAddress( ref: EndpointRef; boundAddr: TBindPtr { can be NULL }; peerAddr: TBindPtr { can be NULL } ): OSStatus; external name '_OTGetProtAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2624,7 +2631,7 @@ function OTGetProtAddress( ref: EndpointRef; boundAddr: TBindPtr { can be NULL }
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTResolveAddress( ref: EndpointRef; var reqAddr: TBind; var retAddr: TBind; timeOut: OTTimeout ): OSStatus; external name '_OTResolveAddress';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Allocating structures}
@@ -2650,7 +2657,7 @@ function OTResolveAddress( ref: EndpointRef; var reqAddr: TBind; var retAddr: TB
  *    Non-Carbon CFM:   not available
  }
 function OTAllocInContext( ref: EndpointRef; structType: OTStructType; fields: UInt32; var err: OSStatus; clientContext: OTClientContextPtr { can be NULL } ): UnivPtr; external name '_OTAllocInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2680,7 +2687,7 @@ function OTAllocInContext( ref: EndpointRef; structType: OTStructType; fields: U
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTFree( ptr: UnivPtr; structType: OTStructType ): OTResult; external name '_OTFree';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Option management}
@@ -2696,7 +2703,7 @@ function OTFree( ptr: UnivPtr; structType: OTStructType ): OTResult; external na
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTOptionManagement( ref: EndpointRef; var req: TOptMgmt; var ret: TOptMgmt ): OSStatus; external name '_OTOptionManagement';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { ... but then the hidden complexity emerges.}
@@ -2733,7 +2740,7 @@ function OTOptionManagement( ref: EndpointRef; var req: TOptMgmt; var ret: TOptM
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTNextOption( buffer: UInt8Ptr; buflen: UInt32; var prevOptPtr: TOptionPtr ): OSStatus; external name '_OTNextOption';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2745,7 +2752,7 @@ function OTNextOption( buffer: UInt8Ptr; buflen: UInt32; var prevOptPtr: TOption
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTFindOption( buffer: UInt8Ptr; buflen: UInt32; level: OTXTILevel; name: OTXTIName ): TOptionPtr; external name '_OTFindOption';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Bind/Unbind}
@@ -2759,7 +2766,7 @@ function OTFindOption( buffer: UInt8Ptr; buflen: UInt32; level: OTXTILevel; name
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTBind( ref: EndpointRef; reqAddr: TBindPtr { can be NULL }; retAddr: TBindPtr { can be NULL } ): OSStatus; external name '_OTBind';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2771,7 +2778,7 @@ function OTBind( ref: EndpointRef; reqAddr: TBindPtr { can be NULL }; retAddr: T
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTUnbind( ref: EndpointRef ): OSStatus; external name '_OTUnbind';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Connection creation/tear-down}
@@ -2785,7 +2792,7 @@ function OTUnbind( ref: EndpointRef ): OSStatus; external name '_OTUnbind';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTConnect( ref: EndpointRef; var sndCall: TCall; rcvCall: TCallPtr { can be NULL } ): OSStatus; external name '_OTConnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2797,7 +2804,7 @@ function OTConnect( ref: EndpointRef; var sndCall: TCall; rcvCall: TCallPtr { ca
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcvConnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OSStatus; external name '_OTRcvConnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2809,7 +2816,7 @@ function OTRcvConnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OSSta
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTListen( ref: EndpointRef; var call: TCall ): OSStatus; external name '_OTListen';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2821,7 +2828,7 @@ function OTListen( ref: EndpointRef; var call: TCall ): OSStatus; external name 
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTAccept( listener: EndpointRef; worker: EndpointRef; var call: TCall ): OSStatus; external name '_OTAccept';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2833,7 +2840,7 @@ function OTAccept( listener: EndpointRef; worker: EndpointRef; var call: TCall )
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSndDisconnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OSStatus; external name '_OTSndDisconnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2845,7 +2852,7 @@ function OTSndDisconnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OS
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSndOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_OTSndOrderlyDisconnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2857,7 +2864,7 @@ function OTSndOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_O
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcvDisconnect( ref: EndpointRef; discon: TDisconPtr { can be NULL } ): OSStatus; external name '_OTRcvDisconnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2869,7 +2876,7 @@ function OTRcvDisconnect( ref: EndpointRef; discon: TDisconPtr { can be NULL } )
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcvOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_OTRcvOrderlyDisconnect';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Connection-oriented send/receive}
@@ -2883,7 +2890,7 @@ function OTRcvOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_O
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcv( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; var flags: OTFlags ): OTResult; external name '_OTRcv';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2895,7 +2902,7 @@ function OTRcv( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; var flags: 
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSnd( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; flags: OTFlags ): OTResult; external name '_OTSnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Connectionless send/receive}
@@ -2909,7 +2916,7 @@ function OTSnd( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; flags: OTFl
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTSndUData( ref: EndpointRef; var udata: TUnitData ): OSStatus; external name '_OTSndUData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2921,7 +2928,7 @@ function OTSndUData( ref: EndpointRef; var udata: TUnitData ): OSStatus; externa
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcvUData( ref: EndpointRef; var udata: TUnitData; var flags: OTFlags ): OSStatus; external name '_OTRcvUData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -2933,7 +2940,7 @@ function OTRcvUData( ref: EndpointRef; var udata: TUnitData; var flags: OTFlags 
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSStatus; external name '_OTRcvUDErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Connection-oriented transactions}
@@ -3081,7 +3088,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
  *    Non-Carbon CFM:   not available
  }
 function OTAsyncOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; upp: OTNotifyUPP; contextPtr: UnivPtr; clientContext: OTClientContextPtr { can be NULL } ): OSStatus; external name '_OTAsyncOpenMapperInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3093,7 +3100,7 @@ function OTAsyncOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFl
  *    Non-Carbon CFM:   not available
  }
 function OTOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; var err: OSStatus; clientContext: OTClientContextPtr { can be NULL } ): MapperRef; external name '_OTOpenMapperInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3132,7 +3139,7 @@ function OTOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; 
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTRegisterName( ref: MapperRef; var req: TRegisterRequest; var reply: TRegisterReply ): OSStatus; external name '_OTRegisterName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3144,7 +3151,7 @@ function OTRegisterName( ref: MapperRef; var req: TRegisterRequest; var reply: T
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTDeleteName( ref: MapperRef; var name: TNetbuf ): OSStatus; external name '_OTDeleteName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3156,7 +3163,7 @@ function OTDeleteName( ref: MapperRef; var name: TNetbuf ): OSStatus; external n
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTDeleteNameByID( ref: MapperRef; nameID: OTNameID ): OSStatus; external name '_OTDeleteNameByID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3168,7 +3175,7 @@ function OTDeleteNameByID( ref: MapperRef; nameID: OTNameID ): OSStatus; externa
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 function OTLookupName( ref: MapperRef; var req: TLookupRequest; var reply: TLookupReply ): OSStatus; external name '_OTLookupName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Basic configuration manipulation}
@@ -3182,7 +3189,7 @@ function OTLookupName( ref: MapperRef; var req: TLookupRequest; var reply: TLook
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 function OTCreateConfiguration( path: ConstCStringPtr ): OTConfigurationRef; external name '_OTCreateConfiguration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3194,7 +3201,7 @@ function OTCreateConfiguration( path: ConstCStringPtr ): OTConfigurationRef; ext
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 function OTCloneConfiguration( cfig: OTConfigurationRef ): OTConfigurationRef; external name '_OTCloneConfiguration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3206,7 +3213,7 @@ function OTCloneConfiguration( cfig: OTConfigurationRef ): OTConfigurationRef; e
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 procedure OTDestroyConfiguration( cfig: OTConfigurationRef ); external name '_OTDestroyConfiguration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3232,7 +3239,7 @@ procedure OTDestroyConfiguration( cfig: OTConfigurationRef ); external name '_OT
  *    Non-Carbon CFM:   not available
  }
 function OTAllocMemInContext( size: OTByteCount; clientContext: OTClientContextPtr { can be NULL } ): UnivPtr; external name '_OTAllocMemInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3257,7 +3264,7 @@ function OTAllocMemInContext( size: OTByteCount; clientContext: OTClientContextP
  *    Non-Carbon CFM:   in OTClientUtilLib 1.0 and later
  }
 procedure OTFreeMem( mem: UnivPtr ); external name '_OTFreeMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3282,7 +3289,7 @@ procedure OTFreeMem( mem: UnivPtr ); external name '_OTFreeMem';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 procedure OTDelay( seconds: UInt32 ); external name '_OTDelay';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3294,7 +3301,7 @@ procedure OTDelay( seconds: UInt32 ); external name '_OTDelay';
  *    Non-Carbon CFM:   in OTClientLib 1.0 and later
  }
 procedure OTIdle; external name '_OTIdle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3322,7 +3329,7 @@ procedure OTIdle; external name '_OTIdle';
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTMemcpy( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount ); external name '_OTMemcpy';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3334,7 +3341,7 @@ procedure OTMemcpy( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount ); 
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTMemcmp( mem1: {const} UnivPtr; mem2: {const} UnivPtr; nBytes: OTByteCount ): Boolean; external name '_OTMemcmp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3346,7 +3353,7 @@ function OTMemcmp( mem1: {const} UnivPtr; mem2: {const} UnivPtr; nBytes: OTByteC
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTMemmove( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount ); external name '_OTMemmove';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3358,7 +3365,7 @@ procedure OTMemmove( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount );
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTMemzero( dest: UnivPtr; nBytes: OTByteCount ); external name '_OTMemzero';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3370,7 +3377,7 @@ procedure OTMemzero( dest: UnivPtr; nBytes: OTByteCount ); external name '_OTMem
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTMemset( dest: UnivPtr; toSet: OTUInt8Param; nBytes: OTByteCount ); external name '_OTMemset';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3382,7 +3389,7 @@ procedure OTMemset( dest: UnivPtr; toSet: OTUInt8Param; nBytes: OTByteCount ); e
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTStrLength( str: ConstCStringPtr ): OTByteCount; external name '_OTStrLength';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3394,7 +3401,7 @@ function OTStrLength( str: ConstCStringPtr ): OTByteCount; external name '_OTStr
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTStrCopy( var dest: char; src: ConstCStringPtr ); external name '_OTStrCopy';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3406,7 +3413,7 @@ procedure OTStrCopy( var dest: char; src: ConstCStringPtr ); external name '_OTS
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTStrCat( var dest: char; src: ConstCStringPtr ); external name '_OTStrCat';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3418,7 +3425,7 @@ procedure OTStrCat( var dest: char; src: ConstCStringPtr ); external name '_OTSt
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTStrEqual( src1: ConstCStringPtr; src2: ConstCStringPtr ): Boolean; external name '_OTStrEqual';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Timer Utilities}
@@ -3448,7 +3455,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTGetTimeStamp( var currentTime: OTTimeStamp ); external name '_OTGetTimeStamp';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3460,7 +3467,7 @@ procedure OTGetTimeStamp( var currentTime: OTTimeStamp ); external name '_OTGetT
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTSubtractTimeStamps( var result: OTTimeStamp; var startTime: OTTimeStamp; var endEnd: OTTimeStamp ): OTTimeStampPtr; external name '_OTSubtractTimeStamps';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3472,7 +3479,7 @@ function OTSubtractTimeStamps( var result: OTTimeStamp; var startTime: OTTimeSta
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTTimeStampInMilliseconds( var delta: OTTimeStamp ): UInt32; external name '_OTTimeStampInMilliseconds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3484,7 +3491,7 @@ function OTTimeStampInMilliseconds( var delta: OTTimeStamp ): UInt32; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTTimeStampInMicroseconds( var delta: OTTimeStamp ): UInt32; external name '_OTTimeStampInMicroseconds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3496,7 +3503,7 @@ function OTTimeStampInMicroseconds( var delta: OTTimeStamp ): UInt32; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTElapsedMilliseconds( var startTime: OTTimeStamp ): UInt32; external name '_OTElapsedMilliseconds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3508,7 +3515,7 @@ function OTElapsedMilliseconds( var startTime: OTTimeStamp ): UInt32; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTElapsedMicroseconds( var startTime: OTTimeStamp ): UInt32; external name '_OTElapsedMicroseconds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3520,7 +3527,7 @@ function OTElapsedMicroseconds( var startTime: OTTimeStamp ): UInt32; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetClockTimeInSecs: UInt32; external name '_OTGetClockTimeInSecs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { ***** OT Link Element *****}
@@ -3576,7 +3583,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTLIFOEnqueue( var list: OTLIFO; var link: OTLink ); external name '_OTLIFOEnqueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3592,7 +3599,7 @@ procedure OTLIFOEnqueue( var list: OTLIFO; var link: OTLink ); external name '_O
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTLIFODequeue( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFODequeue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3608,7 +3615,7 @@ function OTLIFODequeue( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFODeq
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTLIFOStealList( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFOStealList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3625,7 +3632,7 @@ function OTLIFOStealList( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFOS
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTReverseList( var list: OTLink ): OTLinkPtr; external name '_OTReverseList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { OTList}
@@ -3656,7 +3663,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewOTListSearchUPP( userRoutine: OTListSearchProcPtr ): OTListSearchUPP; external name '_NewOTListSearchUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  DisposeOTListSearchUPP()
@@ -3667,7 +3674,7 @@ function NewOTListSearchUPP( userRoutine: OTListSearchProcPtr ): OTListSearchUPP
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeOTListSearchUPP( userUPP: OTListSearchUPP ); external name '_DisposeOTListSearchUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 {
  *  InvokeOTListSearchUPP()
@@ -3678,7 +3685,7 @@ procedure DisposeOTListSearchUPP( userUPP: OTListSearchUPP ); external name '_Di
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeOTListSearchUPP( ref: {const} UnivPtr; var linkToCheck: OTLink; userUPP: OTListSearchUPP ): Boolean; external name '_InvokeOTListSearchUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 type
 	OTListPtr = ^OTList;
@@ -3696,7 +3703,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTAddFirst( var list: OTList; var link: OTLink ); external name '_OTAddFirst';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Add the link to the list at the end}
@@ -3709,7 +3716,7 @@ procedure OTAddFirst( var list: OTList; var link: OTLink ); external name '_OTAd
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTAddLast( var list: OTList; var link: OTLink ); external name '_OTAddLast';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Remove the first link from the list}
@@ -3722,7 +3729,7 @@ procedure OTAddLast( var list: OTList; var link: OTLink ); external name '_OTAdd
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTRemoveFirst( var list: OTList ): OTLinkPtr; external name '_OTRemoveFirst';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Remove the last link from the list}
@@ -3735,7 +3742,7 @@ function OTRemoveFirst( var list: OTList ): OTLinkPtr; external name '_OTRemoveF
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTRemoveLast( var list: OTList ): OTLinkPtr; external name '_OTRemoveLast';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Return the first link from the list}
@@ -3748,7 +3755,7 @@ function OTRemoveLast( var list: OTList ): OTLinkPtr; external name '_OTRemoveLa
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetFirst( var list: OTList ): OTLinkPtr; external name '_OTGetFirst';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Return the last link from the list}
@@ -3761,7 +3768,7 @@ function OTGetFirst( var list: OTList ): OTLinkPtr; external name '_OTGetFirst';
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetLast( var list: OTList ): OTLinkPtr; external name '_OTGetLast';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Return true if the link is present in the list}
@@ -3774,7 +3781,7 @@ function OTGetLast( var list: OTList ): OTLinkPtr; external name '_OTGetLast';
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTIsInList( var list: OTList; var link: OTLink ): Boolean; external name '_OTIsInList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3793,7 +3800,7 @@ function OTIsInList( var list: OTList; var link: OTLink ): Boolean; external nam
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTFindLink( var list: OTList; proc: OTListSearchUPP; ref: {const} UnivPtr ): OTLinkPtr; external name '_OTFindLink';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Remove the specified link from the list, returning true if it was found}
@@ -3806,7 +3813,7 @@ function OTFindLink( var list: OTList; proc: OTListSearchUPP; ref: {const} UnivP
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTRemoveLink( var list: OTList; var link: OTLink ): Boolean; external name '_OTRemoveLink';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Similar to OTFindLink, but it also removes it from the list.}
@@ -3819,7 +3826,7 @@ function OTRemoveLink( var list: OTList; var link: OTLink ): Boolean; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTFindAndRemoveLink( var list: OTList; proc: OTListSearchUPP; ref: {const} UnivPtr ): OTLinkPtr; external name '_OTFindAndRemoveLink';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Return the "index"th link in the list}
@@ -3832,7 +3839,7 @@ function OTFindAndRemoveLink( var list: OTList; proc: OTListSearchUPP; ref: {con
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTGetIndexedLink( var list: OTList; index: OTItemCount ): OTLinkPtr; external name '_OTGetIndexedLink';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { OTEnqueue/OTDequeue}
@@ -3857,7 +3864,7 @@ function OTGetIndexedLink( var list: OTList; index: OTItemCount ): OTLinkPtr; ex
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTEnqueue( var listHead: UnivPtr; objct: UnivPtr; linkOffset: OTByteCount ); external name '_OTEnqueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3873,7 +3880,7 @@ procedure OTEnqueue( var listHead: UnivPtr; objct: UnivPtr; linkOffset: OTByteCo
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTDequeue( var listHead: UnivPtr; linkOffset: OTByteCount ): UnivPtr; external name '_OTDequeue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Atomic Operations}
@@ -3900,7 +3907,7 @@ function OTDequeue( var listHead: UnivPtr; linkOffset: OTByteCount ): UnivPtr; e
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicSetBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; external name '_OTAtomicSetBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3918,7 +3925,7 @@ function OTAtomicSetBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; e
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicClearBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; external name '_OTAtomicClearBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3936,7 +3943,7 @@ function OTAtomicClearBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean;
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicTestBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; external name '_OTAtomicTestBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3954,7 +3961,7 @@ function OTAtomicTestBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; 
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCompareAndSwapPtr( oldValue: UnivPtr; newValue: UnivPtr; var dest: UnivPtr ): Boolean; external name '_OTCompareAndSwapPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3971,7 +3978,7 @@ function OTCompareAndSwapPtr( oldValue: UnivPtr; newValue: UnivPtr; var dest: Un
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCompareAndSwap32( oldValue: UInt32; newValue: UInt32; var dest: UInt32 ): Boolean; external name '_OTCompareAndSwap32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3988,7 +3995,7 @@ function OTCompareAndSwap32( oldValue: UInt32; newValue: UInt32; var dest: UInt3
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCompareAndSwap16( oldValue: UInt32; newValue: UInt32; var dest: UInt16 ): Boolean; external name '_OTCompareAndSwap16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4005,7 +4012,7 @@ function OTCompareAndSwap16( oldValue: UInt32; newValue: UInt32; var dest: UInt1
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTCompareAndSwap8( oldValue: UInt32; newValue: UInt32; var dest: UInt8 ): Boolean; external name '_OTCompareAndSwap8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4022,7 +4029,7 @@ function OTCompareAndSwap8( oldValue: UInt32; newValue: UInt32; var dest: UInt8 
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicAdd32( toAdd: SInt32; var dest: SInt32 ): SInt32; external name '_OTAtomicAdd32';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4042,7 +4049,7 @@ function OTAtomicAdd32( toAdd: SInt32; var dest: SInt32 ): SInt32; external name
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicAdd16( toAdd: SInt32; var dest: SInt16 ): SInt16; external name '_OTAtomicAdd16';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Not used frequently enough to justify inlining.}
@@ -4055,7 +4062,7 @@ function OTAtomicAdd16( toAdd: SInt32; var dest: SInt16 ): SInt16; external name
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTAtomicAdd8( toAdd: SInt32; var dest: SInt8 ): SInt8; external name '_OTAtomicAdd8';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Not used frequently enough to justify inlining.}

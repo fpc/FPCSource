@@ -102,7 +102,7 @@ type
     property Bold : boolean index 5 read GetFlags write SetFlags;
     property Italic : boolean index 6 read GetFlags write SetFlags;
     property Underline : boolean index 7 read GetFlags write SetFlags;
-    property StrikeTrough : boolean index 8 read GetFlags write SetFlags;
+    property StrikeThrough : boolean index 8 read GetFlags write SetFlags;
     property Orientation: Integer read GetOrientation write SetOrientation default 0;
         
   end;
@@ -114,6 +114,18 @@ type
                 pmMergePenNot, pmMaskPenNot, pmMergeNotPen, pmMaskNotPen, pmMerge,
                 pmNotMerge, pmMask, pmNotMask, pmXor, pmNotXor);
   TPenPattern = Longword;
+  TFPPenEndCap = (
+    pecRound,
+    pecSquare,
+    pecFlat
+  );
+  TFPPenJoinStyle = (
+    pjsRound,
+    pjsBevel,
+    pjsMiter
+  );
+
+  { TFPCustomPen }
 
   TFPCustomPen = class (TFPCanvasHelper)
   private
@@ -121,12 +133,16 @@ type
     FWidth : Integer;
     FMode : TFPPenMode;
     FPattern : longword;
+    FEndCap: TFPPenEndCap;
+    FJoinStyle: TFPPenJoinStyle;
   protected
     procedure DoCopyProps (From:TFPCanvasHelper); override;
     procedure SetMode (AValue : TFPPenMode); virtual;
     procedure SetWidth (AValue : Integer); virtual;
     procedure SetStyle (AValue : TFPPenStyle); virtual;
     procedure SetPattern (AValue : longword); virtual;
+    procedure SetEndCap(AValue: TFPPenEndCap); virtual;
+    procedure SetJoinStyle(AValue: TFPPenJoinStyle); virtual;
   public
     function CopyPen : TFPCustomPen;
     // Creates a copy of the pen with all properties the same, but not allocated
@@ -134,6 +150,8 @@ type
     property Width : Integer read FWidth write SetWidth;
     property Mode : TFPPenMode read FMode write SetMode;
     property Pattern : longword read FPattern write SetPattern;
+    property EndCap : TFPPenEndCap read FEndCap write SetEndCap;
+    property JoinStyle : TFPPenJoinStyle read FJoinStyle write SetJoinStyle;
   end;
   TFPCustomPenClass = class of TFPCustomPen;
   

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('cocoaint');
 {$ifdef ALLPACKAGES}
-    P.Directory:='cocoaint';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.CPUs:=[i386,x86_64,powerpc,powerpc64];

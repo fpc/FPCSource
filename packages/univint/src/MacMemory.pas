@@ -2,18 +2,13 @@
      File:       CarbonCore/MacMemory.h
  
      Contains:   Memory Manager Interfaces.
+                 The contents of this header file are deprecated.
+                 Use malloc, free, etc instead.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +84,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +94,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +110,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +120,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +131,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -298,7 +298,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewGrowZoneUPP( userRoutine: GrowZoneProcPtr ): GrowZoneUPP; external name '_NewGrowZoneUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  NewPurgeUPP()
@@ -309,7 +309,7 @@ function NewGrowZoneUPP( userRoutine: GrowZoneProcPtr ): GrowZoneUPP; external n
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewPurgeUPP( userRoutine: PurgeProcPtr ): PurgeUPP; external name '_NewPurgeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  NewUserFnUPP()
@@ -320,7 +320,7 @@ function NewPurgeUPP( userRoutine: PurgeProcPtr ): PurgeUPP; external name '_New
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewUserFnUPP( userRoutine: UserFnProcPtr ): UserFnUPP; external name '_NewUserFnUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeGrowZoneUPP()
@@ -331,7 +331,7 @@ function NewUserFnUPP( userRoutine: UserFnProcPtr ): UserFnUPP; external name '_
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeGrowZoneUPP( userUPP: GrowZoneUPP ); external name '_DisposeGrowZoneUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposePurgeUPP()
@@ -342,7 +342,7 @@ procedure DisposeGrowZoneUPP( userUPP: GrowZoneUPP ); external name '_DisposeGro
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposePurgeUPP( userUPP: PurgeUPP ); external name '_DisposePurgeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeUserFnUPP()
@@ -353,7 +353,7 @@ procedure DisposePurgeUPP( userUPP: PurgeUPP ); external name '_DisposePurgeUPP'
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeUserFnUPP( userUPP: UserFnUPP ); external name '_DisposeUserFnUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeGrowZoneUPP()
@@ -364,7 +364,7 @@ procedure DisposeUserFnUPP( userUPP: UserFnUPP ); external name '_DisposeUserFnU
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeGrowZoneUPP( cbNeeded: Size; userUPP: GrowZoneUPP ): SIGNEDLONG; external name '_InvokeGrowZoneUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokePurgeUPP()
@@ -375,7 +375,7 @@ function InvokeGrowZoneUPP( cbNeeded: Size; userUPP: GrowZoneUPP ): SIGNEDLONG; 
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokePurgeUPP( blockToPurge: Handle; userUPP: PurgeUPP ); external name '_InvokePurgeUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeUserFnUPP()
@@ -386,7 +386,7 @@ procedure InvokePurgeUPP( blockToPurge: Handle; userUPP: PurgeUPP ); external na
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeUserFnUPP( parameter: UnivPtr; userUPP: UserFnUPP ); external name '_InvokeUserFnUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc} {not TARGET_CPU_64}
 
@@ -434,7 +434,7 @@ procedure InvokeUserFnUPP( parameter: UnivPtr; userUPP: UserFnUPP ); external na
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function MemError: OSErr; external name '_MemError';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -485,7 +485,7 @@ function MemError: OSErr; external name '_MemError';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMemErr: SInt16; external name '_LMGetMemErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -512,7 +512,7 @@ function LMGetMemErr: SInt16; external name '_LMGetMemErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetMemErr( value: SInt16 ); external name '_LMSetMemErr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -555,7 +555,7 @@ procedure LMSetMemErr( value: SInt16 ); external name '_LMSetMemErr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewHandle( byteCount: Size ): Handle; external name '_NewHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -597,7 +597,7 @@ function NewHandle( byteCount: Size ): Handle; external name '_NewHandle';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewHandleClear( byteCount: Size ): Handle; external name '_NewHandleClear';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -636,7 +636,7 @@ function NewHandleClear( byteCount: Size ): Handle; external name '_NewHandleCle
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function RecoverHandle( p: Ptr ): Handle; external name '_RecoverHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -672,7 +672,7 @@ function RecoverHandle( p: Ptr ): Handle; external name '_RecoverHandle';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewPtr( byteCount: Size ): Ptr; external name '_NewPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -709,7 +709,7 @@ function NewPtr( byteCount: Size ): Ptr; external name '_NewPtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewPtrClear( byteCount: Size ): Ptr; external name '_NewPtrClear';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -735,7 +735,7 @@ function NewPtrClear( byteCount: Size ): Ptr; external name '_NewPtrClear';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function MaxBlock: SIGNEDLONG; external name '_MaxBlock';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -753,7 +753,7 @@ function MaxBlock: SIGNEDLONG; external name '_MaxBlock';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function StackSpace: SIGNEDLONG; external name '_StackSpace';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -780,7 +780,7 @@ function StackSpace: SIGNEDLONG; external name '_StackSpace';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewEmptyHandle: Handle; external name '_NewEmptyHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -829,7 +829,7 @@ function NewEmptyHandle: Handle; external name '_NewEmptyHandle';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HLock( h: Handle ); external name '_HLock';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -862,7 +862,7 @@ procedure HLock( h: Handle ); external name '_HLock';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HLockHi( h: Handle ); external name '_HLockHi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -894,7 +894,7 @@ procedure HLockHi( h: Handle ); external name '_HLockHi';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HUnlock( h: Handle ); external name '_HUnlock';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -936,7 +936,7 @@ procedure HUnlock( h: Handle ); external name '_HUnlock';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HPurge( h: Handle ); external name '_HPurge';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -965,7 +965,7 @@ procedure HPurge( h: Handle ); external name '_HPurge';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HNoPurge( h: Handle ); external name '_HNoPurge';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1018,7 +1018,7 @@ procedure HNoPurge( h: Handle ); external name '_HNoPurge';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TempNewHandle( logicalSize: Size; var resultCode: OSErr ): Handle; external name '_TempNewHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1048,7 +1048,7 @@ function TempNewHandle( logicalSize: Size; var resultCode: OSErr ): Handle; exte
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TempMaxMem( var grow: Size ): Size; external name '_TempMaxMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1073,7 +1073,7 @@ function TempMaxMem( var grow: Size ): Size; external name '_TempMaxMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TempFreeMem: SIGNEDLONG; external name '_TempFreeMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1097,7 +1097,7 @@ function TempFreeMem: SIGNEDLONG; external name '_TempFreeMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function CompactMem( cbNeeded: Size ): Size; external name '_CompactMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1121,7 +1121,7 @@ function CompactMem( cbNeeded: Size ): Size; external name '_CompactMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure PurgeMem( cbNeeded: Size ); external name '_PurgeMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1149,7 +1149,7 @@ procedure PurgeMem( cbNeeded: Size ); external name '_PurgeMem';
  *    FreeMem in the Turbo Pascal/Delphi/FreePascal runtime library
  }
 function MacFreeMem: SInt32; external name '_FreeMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1178,7 +1178,7 @@ function MacFreeMem: SInt32; external name '_FreeMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function MaxMem( var grow: Size ): Size; external name '_MaxMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1205,7 +1205,7 @@ function MaxMem( var grow: Size ): Size; external name '_MaxMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetGrowZone( growZone: GrowZoneUPP ); external name '_SetGrowZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1227,7 +1227,7 @@ procedure SetGrowZone( growZone: GrowZoneUPP ); external name '_SetGrowZone';
  *    Non-Carbon CFM:   not available
  }
 function GetGrowZone: GrowZoneUPP; external name '_GetGrowZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1258,7 +1258,7 @@ function GetGrowZone: GrowZoneUPP; external name '_GetGrowZone';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure MoveHHi( h: Handle ); external name '_MoveHHi';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1293,7 +1293,7 @@ procedure MoveHHi( h: Handle ); external name '_MoveHHi';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure DisposePtr( p: Ptr ); external name '_DisposePtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1326,7 +1326,7 @@ procedure DisposePtr( p: Ptr ); external name '_DisposePtr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetPtrSize( p: Ptr ): Size; external name '_GetPtrSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1341,7 +1341,7 @@ function GetPtrSize( p: Ptr ): Size; external name '_GetPtrSize';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetPtrSize( p: Ptr; newSize: Size ); external name '_SetPtrSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1381,7 +1381,7 @@ procedure SetPtrSize( p: Ptr; newSize: Size ); external name '_SetPtrSize';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure DisposeHandle( h: Handle ); external name '_DisposeHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1424,7 +1424,7 @@ procedure DisposeHandle( h: Handle ); external name '_DisposeHandle';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetHandleSize( h: Handle; newSize: Size ); external name '_SetHandleSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1457,7 +1457,7 @@ procedure SetHandleSize( h: Handle; newSize: Size ); external name '_SetHandleSi
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetHandleSize( h: Handle ): Size; external name '_GetHandleSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1499,7 +1499,7 @@ function GetHandleSize( h: Handle ): Size; external name '_GetHandleSize';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure ReallocateHandle( h: Handle; byteCount: Size ); external name '_ReallocateHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1545,7 +1545,7 @@ procedure ReallocateHandle( h: Handle; byteCount: Size ); external name '_Reallo
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure EmptyHandle( h: Handle ); external name '_EmptyHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1563,7 +1563,7 @@ procedure EmptyHandle( h: Handle ); external name '_EmptyHandle';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HSetRBit( h: Handle ); external name '_HSetRBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1581,7 +1581,7 @@ procedure HSetRBit( h: Handle ); external name '_HSetRBit';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HClrRBit( h: Handle ); external name '_HClrRBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1637,7 +1637,7 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function HGetState( h: Handle ): SInt8; external name '_HGetState';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1668,7 +1668,7 @@ function HGetState( h: Handle ): SInt8; external name '_HGetState';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure HSetState( h: Handle; flags: SInt8 ); external name '_HSetState';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {****************************************************************************
@@ -1793,7 +1793,7 @@ procedure BlockZeroUncached( destPtr: UnivPtr; byteCount: Size ); external name 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function HandToHand( var theHndl: Handle ): OSErr; external name '_HandToHand';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1828,7 +1828,7 @@ function HandToHand( var theHndl: Handle ): OSErr; external name '_HandToHand';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function PtrToXHand( srcPtr: {const} UnivPtr; dstHndl: Handle; size: SIGNEDLONG ): OSErr; external name '_PtrToXHand';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1868,7 +1868,7 @@ function PtrToXHand( srcPtr: {const} UnivPtr; dstHndl: Handle; size: SIGNEDLONG 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function PtrToHand( srcPtr: {const} UnivPtr; var dstHndl: Handle; size: SIGNEDLONG ): OSErr; external name '_PtrToHand';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1915,7 +1915,7 @@ function PtrToHand( srcPtr: {const} UnivPtr; var dstHndl: Handle; size: SIGNEDLO
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function HandAndHand( hand1: Handle; hand2: Handle ): OSErr; external name '_HandAndHand';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1955,7 +1955,7 @@ function HandAndHand( hand1: Handle; hand2: Handle ): OSErr; external name '_Han
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function PtrAndHand( ptr1: {const} UnivPtr; hand2: Handle; size: SIGNEDLONG ): OSErr; external name '_PtrAndHand';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1975,7 +1975,7 @@ function PtrAndHand( ptr1: {const} UnivPtr; hand2: Handle; size: SIGNEDLONG ): O
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure MoreMasters; external name '_MoreMasters';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1999,7 +1999,7 @@ procedure MoreMasters; external name '_MoreMasters';
  *    Non-Carbon CFM:   not available
  }
 procedure MoreMasterPointers( inCount: UInt32 ); external name '_MoreMasterPointers';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {  Temporary Memory routines renamed, but obsolete, in System 7.0 and later.  }
@@ -2019,7 +2019,7 @@ procedure MoreMasterPointers( inCount: UInt32 ); external name '_MoreMasterPoint
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure TempHLock( h: Handle; var resultCode: OSErr ); external name '_TempHLock';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2038,7 +2038,7 @@ procedure TempHLock( h: Handle; var resultCode: OSErr ); external name '_TempHLo
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure TempHUnlock( h: Handle; var resultCode: OSErr ); external name '_TempHUnlock';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2057,7 +2057,7 @@ procedure TempHUnlock( h: Handle; var resultCode: OSErr ); external name '_TempH
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure TempDisposeHandle( h: Handle; var resultCode: OSErr ); external name '_TempDisposeHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2076,7 +2076,7 @@ procedure TempDisposeHandle( h: Handle; var resultCode: OSErr ); external name '
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TempTopMem: Ptr; external name '_TempTopMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2101,7 +2101,7 @@ function TempTopMem: Ptr; external name '_TempTopMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function HoldMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_HoldMemory';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2120,7 +2120,7 @@ function HoldMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external na
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function UnholdMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_UnholdMemory';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2147,7 +2147,7 @@ function UnholdMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external 
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function MakeMemoryResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_MakeMemoryResident';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2174,7 +2174,7 @@ function MakeMemoryResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; ext
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function ReleaseMemoryData( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_ReleaseMemoryData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2201,7 +2201,7 @@ function ReleaseMemoryData( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; exte
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function MakeMemoryNonResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_MakeMemoryNonResident';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2228,7 +2228,7 @@ function MakeMemoryNonResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; 
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function FlushMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external name '_FlushMemory';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2246,7 +2246,7 @@ function FlushMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external n
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GZSaveHnd: Handle; external name '_GZSaveHnd';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2264,7 +2264,7 @@ function GZSaveHnd: Handle; external name '_GZSaveHnd';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TopMem: Ptr; external name '_TopMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2282,7 +2282,7 @@ function TopMem: Ptr; external name '_TopMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure ReserveMem( cbNeeded: Size ); external name '_ReserveMem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2310,7 +2310,7 @@ procedure ReserveMem( cbNeeded: Size ); external name '_ReserveMem';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure PurgeSpace( var total: SIGNEDLONG; var contig: SIGNEDLONG ); external name '_PurgeSpace';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2333,7 +2333,7 @@ procedure PurgeSpace( var total: SIGNEDLONG; var contig: SIGNEDLONG ); external 
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function PurgeSpaceTotal: SIGNEDLONG; external name '_PurgeSpaceTotal';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2356,7 +2356,7 @@ function PurgeSpaceTotal: SIGNEDLONG; external name '_PurgeSpaceTotal';
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function PurgeSpaceContiguous: SIGNEDLONG; external name '_PurgeSpaceContiguous';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Carbon routines to aid in debugging. }
@@ -2377,7 +2377,7 @@ function PurgeSpaceContiguous: SIGNEDLONG; external name '_PurgeSpaceContiguous'
  *    Non-Carbon CFM:   not available
  }
 function CheckAllHeaps: Boolean; external name '_CheckAllHeaps';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -2397,7 +2397,7 @@ function CheckAllHeaps: Boolean; external name '_CheckAllHeaps';
  *    Non-Carbon CFM:   not available
  }
 function IsHeapValid: Boolean; external name '_IsHeapValid';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { It is invalid to pass a NULL or an empty Handle to IsHandleValid }
@@ -2413,7 +2413,7 @@ function IsHeapValid: Boolean; external name '_IsHeapValid';
  *    Non-Carbon CFM:   not available
  }
 function IsHandleValid( h: Handle ): Boolean; external name '_IsHandleValid';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { It is invalid to pass a NULL Pointer to IsPointerValid }
@@ -2429,7 +2429,8 @@ function IsHandleValid( h: Handle ): Boolean; external name '_IsHandleValid';
  *    Non-Carbon CFM:   not available
  }
 function IsPointerValid( p: Ptr ): Boolean; external name '_IsPointerValid';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
+
 
 
 {$ifc not TARGET_CPU_64}
@@ -2448,7 +2449,7 @@ function IsPointerValid( p: Ptr ): Boolean; external name '_IsPointerValid';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysZone: THz; external name '_LMGetSysZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2466,7 +2467,7 @@ function LMGetSysZone: THz; external name '_LMGetSysZone';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetSysZone( value: THz ); external name '_LMSetSysZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2484,7 +2485,7 @@ procedure LMSetSysZone( value: THz ); external name '_LMSetSysZone';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetApplZone: THz; external name '_LMGetApplZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -2502,7 +2503,7 @@ function LMGetApplZone: THz; external name '_LMGetApplZone';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LMSetApplZone( value: THz ); external name '_LMSetApplZone';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}

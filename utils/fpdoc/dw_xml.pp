@@ -3,6 +3,8 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
     * 'XML struct' output generator
 
@@ -21,7 +23,7 @@ unit dw_XML;
 
 interface
 
-uses DOM, PasTree, dwriter, xmlWrite, SysUtils;
+uses DOM, PasTree, dGlobals, dwriter, xmlWrite, SysUtils;
 
 Type
 
@@ -93,7 +95,7 @@ var
 
 begin
   Result := TXMLDocument.Create;
-  Result.AppendChild(Result.CreateComment(' Generated using FPDoc - (c) 2000-2003 Sebastian Guenther, sg@freepascal.org '));
+  Result.AppendChild(Result.CreateComment(SDocGeneratedByComment));
   Result.AppendChild(Result.CreateElement('fp-refdoc'));
   ModuleElement := Result.CreateElement('unit');
   ModuleElement['name'] := AModule.Name;

@@ -29,16 +29,25 @@ unit cpupi;
 
     uses
        globtype,cutils,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,cgbase,
+       aasmdata;
 
     type
        tarmprocinfo = class(tcgprocinfo)
+          { for arm thumb, we need to know the stackframe size before
+            starting procedure compilation, so this contains the stack frame size, the compiler
+            should assume
+            if this size is too little the procedure must be compiled again with a larger value }
+          stackframesize,
           floatregstart : aint;
+          stackpaddingreg: TSuperRegister;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
           procedure init_framepointer; override;
+          procedure generate_parameter_info;override;
+          procedure allocate_got_register(list : TAsmList);override;
        end;
 
 
@@ -47,13 +56,16 @@ unit cpupi;
     uses
        globals,systems,
        cpubase,
-       aasmtai,aasmdata,
        tgobj,
-       symconst,symsym,paramgr,
-       cgbase,cgutils,
-       cgobj;
+       symconst,symtype,symsym,paramgr,
+       cgutils,
+       cgobj,
+       defutil;
 
     procedure tarmprocinfo.set_first_temp_offset;
+      var
+        localsize : aint;
+        i : longint;
       begin
         { We allocate enough space to save all registers because we can't determine
           the necessary space because the used registers aren't known before
@@ -85,6 +97,40 @@ unit cpupi;
           end
         else
           tg.setfirsttemp(maxpushedparasize);
+
+        { estimate stack frame size }
+        if GenerateThumbCode then
+          begin
+            stackframesize:=maxpushedparasize+32;
+            localsize:=0;
+            for i:=0 to procdef.localst.SymList.Count-1 do
+              if tsym(procdef.localst.SymList[i]).typ=localvarsym then
+                inc(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).getsize);
+            inc(stackframesize,localsize);
+
+            localsize:=0;
+            for i:=0 to procdef.parast.SymList.Count-1 do
+              if tsym(procdef.parast.SymList[i]).typ=paravarsym then
+                if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
+                  inc(localsize,256)
+                else
+                  inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+
+            inc(stackframesize,localsize);
+
+            if pi_needs_implicit_finally in flags then
+              inc(stackframesize,40);
+
+            if pi_uses_exceptions in flags then
+              inc(stackframesize,40);
+
+            if procdef.proctypeoption in [potype_constructor] then
+              inc(stackframesize,40*2);
+
+            inc(stackframesize,estimatedtempsize);
+
+            stackframesize:=Align(stackframesize,8);
+          end;
       end;
 
 
@@ -95,57 +141,85 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-        floatsavesize:=0;
-        case current_settings.fputype of
-          fpu_fpa,
-          fpu_fpa10,
-          fpu_fpa11:
-            begin
-              { save floating point registers? }
-              firstfloatreg:=RS_NO;
-              regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
-              for r:=RS_F0 to RS_F7 do
-                if r in regs then
-                  begin
-                    if firstfloatreg=RS_NO then
-                      firstfloatreg:=r;
-                    lastfloatreg:=r;
-                  end;
-              if firstfloatreg<>RS_NO then
-                floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
+        if GenerateThumbCode then
+          result:=stackframesize
+        else
+          begin
+            maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
+            floatsavesize:=0;
+            case current_settings.fputype of
+              fpu_fpa,
+              fpu_fpa10,
+              fpu_fpa11:
+                begin
+                  { save floating point registers? }
+                  firstfloatreg:=RS_NO;
+                  regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
+                  for r:=RS_F0 to RS_F7 do
+                    if r in regs then
+                      begin
+                        if firstfloatreg=RS_NO then
+                          firstfloatreg:=r;
+                        lastfloatreg:=r;
+                      end;
+                  if firstfloatreg<>RS_NO then
+                    floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
+                end;
+              fpu_vfpv2,
+              fpu_vfpv3,
+              fpu_vfpv3_d16:
+                begin
+                  floatsavesize:=0;
+                  regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  for r:=RS_D0 to RS_D31 do
+                    if r in regs then
+                      inc(floatsavesize,8);
+                end;
+              fpu_fpv4_s16:
+                begin
+                  floatsavesize:=0;
+                  regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  for r:=RS_D0 to RS_D15 do
+                    if r in regs then
+                      inc(floatsavesize,8);
+                end;
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv3_d16:
-            begin
-              floatsavesize:=0;
-              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
-              for r:=RS_D0 to RS_D31 do
-                if r in regs then
-                  inc(floatsavesize,8);
-            end;
-        end;
-        floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
-        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
-        floatregstart:=tg.direction*result+maxpushedparasize;
-        if tg.direction=1 then
-          dec(floatregstart,floatsavesize);
+            floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
+            result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
+            floatregstart:=tg.direction*result+maxpushedparasize;
+            if tg.direction=1 then
+              dec(floatregstart,floatsavesize);
+          end;
       end;
 
 
     procedure tarmprocinfo.init_framepointer;
       begin
-        if not(target_info.system in systems_darwin) then
-          begin
-            RS_FRAME_POINTER_REG:=RS_R11;
-            NR_FRAME_POINTER_REG:=NR_R11;
-          end
-        else
+        if (target_info.system in systems_darwin) or GenerateThumbCode then
           begin
             RS_FRAME_POINTER_REG:=RS_R7;
             NR_FRAME_POINTER_REG:=NR_R7;
+          end
+        else
+          begin
+            RS_FRAME_POINTER_REG:=RS_R11;
+            NR_FRAME_POINTER_REG:=NR_R11;
           end;
+      end;
+
+
+    procedure tarmprocinfo.generate_parameter_info;
+      begin
+       procdef.total_stackframe_size:=stackframesize;
+       inherited generate_parameter_info;
+      end;
+
+
+    procedure tarmprocinfo.allocate_got_register(list: TAsmList);
+      begin
+        { darwin doesn't use a got }
+        if tf_pic_uses_got in target_info.flags then
+          got := cg.getaddressregister(list);
       end;
 
 

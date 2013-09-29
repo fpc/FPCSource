@@ -181,7 +181,7 @@ begin
   Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String;
 
 var rs : string;
 
@@ -236,7 +236,7 @@ begin
   end; {case}
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String;
 
 type
   // used for ParamPart
@@ -268,7 +268,7 @@ begin
   ParamCount:=0;
   NewQueryLength:=Length(SQL);
   SetLength(ParamPart,ParamAllocStepSize);
-  SetLength(Parambinding,ParamAllocStepSize);
+  SetLength(ParamBinding,ParamAllocStepSize);
   QuestionMarkParamCount:=0; // number of ? params found in query so far
 
   ReplaceString := '$';
@@ -418,7 +418,7 @@ begin
   end
   else
     NewQuery:=SQL;
-    
+
   Result := NewQuery;
 end;
 
@@ -607,84 +607,84 @@ end;
 
 Procedure TParam.SetAsBlob(const AValue: TBlobData);
 begin
-  Value:=AValue;
   FDataType:=ftBlob;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsBoolean(AValue: Boolean);
 begin
-  Value:=AValue;
   FDataType:=ftBoolean;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
-  Value:=Avalue;
   FDataType:=ftCurrency;
+  Value:=Avalue;
 end;
 
 Procedure TParam.SetAsDate(const AValue: TDateTime);
 begin
-  Value:=Avalue;
   FDataType:=ftDate;
+  Value:=Avalue;
 end;
 
 Procedure TParam.SetAsDateTime(const AValue: TDateTime);
 begin
-  Value:=AValue;
   FDataType:=ftDateTime;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsFloat(const AValue: Double);
 begin
-  Value:=AValue;
   FDataType:=ftFloat;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsInteger(AValue: Longint);
 begin
-  Value:=AValue;
   FDataType:=ftInteger;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsLargeInt(AValue: LargeInt);
 begin
-  Value:=AValue;
   FDataType:=ftLargeint;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
-  Value:=AValue;
   FDataType:=ftMemo;
+  Value:=AValue;
 end;
 
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
-  Value:=AValue;
   FDataType:=ftSmallInt;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsString(const AValue: string);
 begin
-  Value:=AValue;
   if FDataType <> ftFixedChar then
     FDataType := ftString;
+  Value:=AValue;
 end;
 
 procedure TParam.SetAsWideString(const aValue: WideString);
 begin
-  Value := aValue;
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
+  Value := aValue;
 end;
 
 
 Procedure TParam.SetAsTime(const AValue: TDateTime);
 begin
-  Value:=AValue;
   FDataType:=ftTime;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsVariant(const AValue: Variant);
@@ -720,14 +720,14 @@ end;
 
 Procedure TParam.SetAsWord(AValue: LongInt);
 begin
-  Value:=AValue;
   FDataType:=ftWord;
+  Value:=AValue;
 end;
 
 procedure TParam.SetAsFMTBCD(const AValue: TBCD);
 begin
-  FValue:=VarFmtBCDCreate(AValue);
   FDataType:=ftFMTBcd;
+  FValue:=VarFmtBCDCreate(AValue);
 end;
 
 Procedure TParam.SetDataType(AValue: TFieldType);
@@ -1095,7 +1095,7 @@ Var
   I : Integer;
   P : TParam;
   F : TField;
-  
+
 begin
   If (ADataSet<>Nil) then
     For I:=0 to Count-1 do

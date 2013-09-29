@@ -29,26 +29,19 @@ implementation
 
   uses
     globtype,cutils,cclasses,
-    verbose,
+    verbose,elfbase,
     systems,aasmbase,ogbase,ogelf,assemble;
 
   type
-    TElfTargetx86_64=class(TElfTarget)
-      class function encodereloc(objrel:TObjRelocation):byte;override;
-      class procedure loadreloc(objrel:TObjRelocation);override;
-    end;
-
     TElfExeOutputx86_64=class(TElfExeOutput)
     private
-      function RelocName(reltyp:byte):string;
-      procedure MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
-      procedure ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-      procedure ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+      procedure MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
+      procedure MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
     protected
       procedure WriteFirstPLTEntry;override;
       procedure WritePLTEntry(exesym:TExeSymbol);override;
       procedure WriteIndirectPLTEntry(exesym:TExeSymbol);override;
-      procedure GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);override;
+      procedure GOTRelocPass1(objsec:TObjSection;var idx:longint);override;
       procedure DoRelocationFixup(objsec:TObjSection);override;
     end;
 
@@ -148,10 +141,10 @@ implementation
 
 
 {****************************************************************************
-                              TELFTargetx86_64
+                              ELF Target methods
 ****************************************************************************}
 
-  class function TElfTargetx86_64.encodereloc(objrel:TObjRelocation):byte;
+  function elf_x86_64_encodereloc(objrel:TObjRelocation):byte;
     begin
       case objrel.typ of
         RELOC_NONE :
@@ -185,16 +178,12 @@ implementation
     end;
 
 
-  class procedure TElfTargetx86_64.loadreloc(objrel:TObjRelocation);
+  procedure elf_x86_64_loadreloc(objrel:TObjRelocation);
     begin
     end;
 
 
-{****************************************************************************
-                               TELFExeOutputx86_64
-****************************************************************************}
-
-  function TElfExeOutputx86_64.RelocName(reltyp:byte):string;
+  function elf_x86_64_relocname(reltyp:byte):string;
     begin
       if reltyp<=high(relocprops) then
         result:=relocprops[reltyp].name
@@ -202,27 +191,18 @@ implementation
         result:='unknown ('+tostr(reltyp)+')';
     end;
 
+{****************************************************************************
+                               TELFExeOutputx86_64
+****************************************************************************}
 
-  procedure TElfExeOutputx86_64.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-    begin
-      { TODO: include objsec properties into message }
-      Comment(v_error,'Relocation '+RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
-    end;
-
-
-  procedure TElfExeOutputx86_64.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-    begin
-      { TODO: include objsec properties into message }
-      Comment(v_error,'Relocation truncated to fit: '+RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
-    end;
-
-
-  procedure TElfExeOutputx86_64.GOTRelocPass1(objsec:TObjSection;ObjReloc:TObjRelocation);
+  procedure TElfExeOutputx86_64.GOTRelocPass1(objsec:TObjSection;var idx:longint);
     var
       objsym:TObjSymbol;
-      sym:TExeSymbol;
+      objreloc:TObjRelocation;
       reltyp:byte;
+      externsym,fromtext:boolean;
     begin
+      objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
       if (ObjReloc.flags and rf_raw)=0 then
         reltyp:=ElfTarget.encodereloc(ObjReloc)
       else
@@ -230,28 +210,26 @@ implementation
 
       case reltyp of
         R_X86_64_PLT32,
+        R_X86_64_PLTOFF64,
         R_X86_64_GOTPLT64:
           begin
-            objsym:=ObjReloc.symbol.exesymbol.ObjSymbol;
-            objsym.refs:=objsym.refs or symref_plt;
+            if assigned(ObjReloc.symbol) and assigned(ObjReloc.symbol.exesymbol) then
+              begin
+                objsym:=ObjReloc.symbol.exesymbol.ObjSymbol;
+                objsym.refs:=objsym.refs or symref_plt;
+              end;
           end;
       end;
 
       case reltyp of
-        R_X86_64_GOT32,
-        R_X86_64_GOT64,
-        R_X86_64_GOTTPOFF,
-        R_X86_64_GOTPCREL,
-        R_X86_64_GOTPCREL64:
+        R_X86_64_GOTTPOFF:
           begin
-            sym:=ObjReloc.symbol.exesymbol;
             { TLS IE to locally defined symbol, convert into LE so GOT entry isn't needed
               (Is TLS IE allowed in shared libs at all? Yes it is, when lib is accessing
                a threadvar in main program or in other *statically* loaded lib; TLS IE access to
                own threadvars may render library not loadable dynamically) }
 (*
-            if (reltyp=R_X86_64_GOTTPOFF) and not
-              (IsSharedLibrary or (sym.dynindex>0)) then
+            if not (IsSharedLibrary or (sym.dynindex>0)) then
               begin
                 if not IsValidIEtoLE(objsec,ObjReloc) then
                   Comment(v_error,'Cannot transform TLS IE to LE');
@@ -260,37 +238,30 @@ implementation
                 exit;
               end;
 *)
-            { Although local symbols should not be accessed through GOT,
-              this isn't strictly forbidden. In this case we need to fake up
-              the exesym to store the GOT offset in it.
-              TODO: name collision; maybe use a different symbol list object? }
-            if sym=nil then
-              begin
-                sym:=TExeSymbol.Create(ExeSymbolList,objreloc.symbol.name+'*local*');
-                sym.objsymbol:=objreloc.symbol;
-                objreloc.symbol.exesymbol:=sym;
-              end;
-            if sym.GotOffset>0 then
-              exit;
-            gotobjsec.alloc(sizeof(pint));
-            sym.GotOffset:=gotobjsec.size;
-            { In shared library, every GOT entry needs a RELATIVE dynamic reloc,
-              imported/exported symbols need GLOB_DAT instead. For executables,
-              only the latter applies. }
-            if IsSharedLibrary or (sym.dynindex>0) then
-              dynrelocsec.alloc(dynrelocsec.shentsize);
+            AllocGOTSlot(objreloc.symbol);
+          end;
+
+        R_X86_64_GOT32,
+        R_X86_64_GOT64,
+        R_X86_64_GOTPCREL,
+        R_X86_64_GOTPCREL64:
+          begin
+            if AllocGOTSlot(objreloc.symbol) then
+              if IsSharedLibrary and (objreloc.symbol.exesymbol.dynindex=0) then
+                Inc(relative_reloc_count);
           end;
 
         //R_X86_64_TLSGD,
         //R_X86_64_TLSLD:  { TODO: allocate two GOT slots }
 
+        R_X86_64_TPOFF32,
         { R_X86_64_32S cannot be used in DSOs at all }
         R_X86_64_32S:
           if IsSharedLibrary then
             ReportNonDSOReloc(reltyp,objsec,objreloc);
 
         { R_X86_64_32 is processed by rtld, but binutils accept it in data sections only.
-          Relocating the against local symbols is tricky: changing into RELATIVE is not possible,
+          Relocating against local symbols is tricky: changing into RELATIVE is not possible,
           so it is changed into relocation against section symbol. This requires adding
           the appropriate section symbol to dynamic symtable. BFD also has some obscure logic
           behind, e.g. it uses .text section for symbols from .data section.
@@ -310,24 +281,51 @@ implementation
 
         R_X86_64_64:
           begin
+            fromtext:=(oso_executable in objsec.SecOptions) or
+              not (oso_write in objsec.SecOptions);
+            externsym:=assigned(objreloc.symbol) and
+              assigned(objreloc.symbol.exesymbol) and
+              (objreloc.symbol.exesymbol.dynindex<>0);
+
             if IsSharedLibrary then
               begin
-                if (oso_executable in objsec.SecOptions) or
-                  not (oso_write in objsec.SecOptions) then
+                if fromtext then
                   hastextrelocs:=True;
                 dynrelocsec.alloc(dynrelocsec.shentsize);
                 objreloc.flags:=objreloc.flags or rf_dynamic;
+                if (not externsym) then
+                  Inc(relative_reloc_count);
+              end
+            else if externsym then
+              // TODO: R_X86_64_32 and R_X86_64_32S here?
+              begin
+                objsym:=objreloc.symbol.ExeSymbol.ObjSymbol;
+                { If symbol has non-GOT references from readonly sections, then it needs a
+                  copy reloc, which eliminates any dynamic relocations to this symbol from
+                  writable sections as well. OTOH if it is referenced *only* from writable
+                  sections, then it's better not to generate a copy reloc and keep dynamic
+                  relocations. The following code is based on assumption that all readonly
+                  sections are processed before writable ones (which is true for current
+                  segment mapping).
+                  For arbitrary segment mapping, this will probably require a separate pass. }
+                if fromtext then
+                  objsym.refs:=objsym.refs or symref_from_text
+                else if (objsym.refs and symref_from_text)=0 then
+                  begin
+                    dynrelocsec.alloc(dynrelocsec.shentsize);
+                    objreloc.flags:=objreloc.flags or rf_dynamic;
+                  end;
               end;
           end;
       end;
     end;
 
 
-  procedure TElfExeOutputx86_64.MaybeWriteGOTEntry(reltyp:byte;relocval:aint;exesym:TExeSymbol);
+  procedure TElfExeOutputx86_64.MaybeWriteGOTEntry(relocval:aint;objsym:TObjSymbol);
     var
-      gotoff,dynidx,tmp:aword;
+      gotoff,tmp:aword;
     begin
-      gotoff:=exesym.gotoffset;
+      gotoff:=objsym.exesymbol.gotoffset;
       if gotoff=0 then
         InternalError(2012060902);
 
@@ -335,21 +333,45 @@ implementation
       { TODO: only data symbols must get here }
       if gotoff=gotobjsec.Data.size+sizeof(pint) then
         begin
-          dynidx:=exesym.dynindex;
           gotobjsec.write(relocval,sizeof(pint));
 
           tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
-          if (dynidx>0) then
+          if (objsym.exesymbol.dynindex>0) then
+            dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_GLOB_DAT))
+          else
+            if IsSharedLibrary then
+              WriteDynRelocEntry(tmp,R_X86_64_RELATIVE,0,relocval);
+        end;
+    end;
+
+
+  procedure TElfExeOutputx86_64.MaybeWriteTLSIEGotEntry(relocval:aint;objsym:TObjSymbol);
+    var
+      gotoff,tmp: aword;
+      objrel: TObjRelocation;
+    begin
+      gotoff:=objsym.exesymbol.gotoffset;
+      if gotoff=0 then
+        InternalError(2012060903);
+
+      if gotoff=gotobjsec.Data.size+sizeof(pint) then
+        begin
+          tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
+          if (objsym.exesymbol.dynindex>0) then
             begin
-              if (reltyp=R_X86_64_GOTTPOFF) then
-                if IsSharedLibrary then
-                  WriteDynRelocEntry(tmp,R_X86_64_TPOFF64,dynidx,0)  // probably incorrect
-                else
-              else
-                WriteDynRelocEntry(tmp,R_X86_64_GLOB_DAT,dynidx,0);
+              gotobjsec.writezeros(sizeof(pint));
+              dynreloclist.Add(TObjRelocation.CreateRaw(tmp,objsym,R_X86_64_TPOFF64));
             end
-          else if IsSharedLibrary then
-            WriteDynRelocEntry(tmp,R_X86_64_RELATIVE,0,relocval);
+          else
+            begin
+              gotobjsec.write(relocval,sizeof(pint));
+              if IsSharedLibrary then
+                begin
+                  objrel:=TObjRelocation.CreateRaw(tmp,nil,R_X86_64_TPOFF64);
+                  objrel.orgsize:=relocval;
+                  dynreloclist.Add(objrel);
+                end;
+            end;
         end;
     end;
 
@@ -362,6 +384,7 @@ implementation
       relocsec : TObjSection;
       data: TDynamicArray;
       reltyp,relsize: byte;
+      PC: aword;
     begin
       data:=objsec.data;
       for i:=0 to objsec.ObjRelocations.Count-1 do
@@ -389,7 +412,7 @@ implementation
           else
             InternalError(2012092103);
 
-          if relocs_use_addend then
+          if ElfTarget.relocs_use_addend then
             address:=objreloc.orgsize
           else
             begin
@@ -417,37 +440,60 @@ implementation
               internalerror(2012060703);
             end;
 
+          PC:=objsec.mempos+objreloc.dataoffset;
           { TODO: if relocsec=nil, relocations must be copied to .rela.dyn section }
           if (relocsec=nil) or (relocsec.used) then
             case reltyp of
               R_X86_64_PC32,
               R_X86_64_PC64:
                 begin
-                  address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                  // TODO: ld rejects PC32 relocations to dynamic symbols, they must use @PLT
+                  address:=address+relocval-PC;
                 end;
 
               R_X86_64_PLT32:
                 begin
                   { If target is in current object, treat as RELOC_RELATIVE }
-                  address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                  address:=address+relocval-PC;
+                end;
+
+              //R_X86_64_DTPOFF64 is possible in data??
+              R_X86_64_DTPOFF32:
+                begin
+                  { In executable it behaves as TPOFF32 (i.e. generates negative offset),
+                    but data expressions like ".long foo@dtpoff" resolve to positive offset }
+                  if IsSharedLibrary or not (oso_executable in objsec.SecOptions) then
+                    address:=address+relocval-tlsseg.MemPos
+                  else
+                    address:=address+relocval-(tlsseg.MemPos+tlsseg.MemSize);
                 end;
 
               R_X86_64_TPOFF32,
               R_X86_64_TPOFF64:
-                address:=relocval-(tlsseg.MemPos+tlsseg.MemSize);
+                address:=address+relocval-(tlsseg.MemPos+tlsseg.MemSize);
 
-              R_X86_64_GOTTPOFF,
-              R_X86_64_GOTPCREL,
-              R_X86_64_GOTPCREL64:
+              R_X86_64_GOTTPOFF:
                 begin
-                  if (reltyp=R_X86_64_GOTTPOFF) then
+                  if IsSharedLibrary then
+                    relocval:=relocval-tlsseg.MemPos
+                  else
                     relocval:=relocval-(tlsseg.MemPos+tlsseg.MemSize);
 
-                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol.exesymbol);
+                  MaybeWriteTLSIEGotEntry(relocval,objreloc.symbol);
 
                   { resolves to PC-relative offset to GOT slot }
                   relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint);
-                  address:=address+relocval-(objsec.mempos+objreloc.dataoffset);
+                  address:=address+relocval-PC;
+                end;
+
+              R_X86_64_GOTPCREL,
+              R_X86_64_GOTPCREL64:
+                begin
+                  MaybeWriteGOTEntry(relocval,objreloc.symbol);
+
+                  { resolves to PC-relative offset to GOT slot }
+                  relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint);
+                  address:=address+relocval-PC;
                 end;
 
               R_X86_64_32S,
@@ -463,25 +509,31 @@ implementation
                       if (objreloc.symbol=nil) or
                          (objreloc.symbol.exesymbol=nil) or
                          (objreloc.symbol.exesymbol.dynindex=0) then
-                        WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_X86_64_RELATIVE,0,address)
+                        WriteDynRelocEntry(PC,R_X86_64_RELATIVE,0,address)
                       else
-                        WriteDynRelocEntry(objreloc.dataoffset+objsec.mempos,R_X86_64_64,objreloc.symbol.exesymbol.dynindex,0);
+                        dynreloclist.add(TObjRelocation.CreateRaw(PC,objreloc.symbol,R_X86_64_64));
                     end;
                 end;
 
               R_X86_64_GOTPC32,
               R_X86_64_GOTPC64:
                 begin
-                  address:=address+gotsymbol.address-(objsec.mempos+objreloc.dataoffset);
+                  address:=address+gotsymbol.address-PC;
                 end;
 
               R_X86_64_GOT32,
               R_X86_64_GOT64:
                 begin
-                  MaybeWriteGOTEntry(reltyp,relocval,objreloc.symbol.exesymbol);
+                  MaybeWriteGOTEntry(relocval,objreloc.symbol);
 
                   relocval:=gotobjsec.mempos+objreloc.symbol.exesymbol.gotoffset-sizeof(pint)-gotsymbol.address;
                   address:=address+relocval;
+                end;
+
+              R_X86_64_GOTOFF64,
+              R_X86_64_PLTOFF64:
+                begin
+                  address:=address+relocval-gotsymbol.address;
                 end;
 
               else
@@ -548,7 +600,7 @@ implementation
       pltrelocsec.writeReloc_internal(gotpltobjsec,gotpltobjsec.size-sizeof(pint),sizeof(pint),RELOC_ABSOLUTE);
       got_offset:=(qword(exesym.dynindex) shl 32) or R_X86_64_JUMP_SLOT;
       pltrelocsec.write(got_offset,sizeof(pint));
-      if relocs_use_addend then
+      if ElfTarget.relocs_use_addend then
         pltrelocsec.writezeros(sizeof(pint));
     end;
 
@@ -586,7 +638,7 @@ implementation
       ipltrelocsec.writeReloc_internal(gotpltobjsec,gotpltobjsec.size-sizeof(pint),sizeof(pint),RELOC_ABSOLUTE);
       tmp:=R_X86_64_IRELATIVE;
       ipltrelocsec.write(tmp,sizeof(pint));
-      if relocs_use_addend then
+      if ElfTarget.relocs_use_addend then
         ipltrelocsec.writeReloc_internal(targetsym.objsection,targetsym.offset,sizeof(pint),RELOC_ABSOLUTE);
     end;
 
@@ -595,6 +647,26 @@ implementation
 *****************************************************************************}
 
   const
+    elf_target_x86_64: TElfTarget =
+      (
+        max_page_size:     $200000;
+        exe_image_base:    $400000;
+        machine_code:      EM_X86_64;
+        relocs_use_addend: true;
+        dyn_reloc_codes: (
+          R_X86_64_RELATIVE,
+          R_X86_64_GLOB_DAT,
+          R_X86_64_JUMP_SLOT,
+          R_X86_64_COPY,
+          R_X86_64_IRELATIVE
+        );
+        relocname:         @elf_x86_64_relocName;
+        encodereloc:       @elf_x86_64_encodeReloc;
+        loadreloc:         @elf_x86_64_loadReloc;
+        loadsection:       nil;
+      );
+
+
     as_x86_64_elf64_info : tasminfo =
       (
         id     : as_x86_64_elf64;
@@ -611,7 +683,7 @@ implementation
 
 initialization
   RegisterAssembler(as_x86_64_elf64_info,TElfAssembler);
-  ElfTarget:=TElfTargetx86_64;
+  ElfTarget:=elf_target_x86_64;
   ElfExeOutputClass:=TElfExeOutputx86_64;
 
 end.

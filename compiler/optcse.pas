@@ -133,7 +133,7 @@ unit optcse;
         end;
 
       var
-        i,j : longint;
+        i : longint;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -151,15 +151,19 @@ unit optcse;
           assigned(n.resultdef) and
           (
             { regable expressions }
-            (n.actualtargetnode.flags*[nf_write,nf_modify]=[]) and
+            (actualtargetnode(@n)^.flags*[nf_write,nf_modify]=[]) and
             ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
             (not(n.resultdef.typ in [arraydef,recorddef])) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
-              their complexity is probably <= 1 anyways }
-            not(n.nodetype in [temprefn,callparan]) and
+              their complexity is probably <= 1 anyways
+
+              neither add setelementn nodes because the compiler sometimes depends on the fact
+              that a certain node stays a setelementn, this does not hurt either because
+              setelementn nodes itself generate no real code (except moving data into register) }
+            not(n.nodetype in [temprefn,callparan,setelementn]) and
 
             { node worth to add?
 
@@ -174,8 +178,10 @@ unit optcse;
               load nodes are not considered if they load para or local symbols from the
               current stack frame, those are in registers anyways if possible
             }
-            (not(n.nodetype=loadn) or
-             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+            (not(actualtargetnode(@n)^.nodetype=loadn) or
+             not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
+             { apply cse on non-regable static variables }
+             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varregable=vr_none)) or
              (node_complexity(n)>1)
             ) and
 

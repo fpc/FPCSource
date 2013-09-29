@@ -29,6 +29,11 @@ interface
 { force ansistrings }
 {$H+}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -44,10 +49,12 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 var
   NDSFlags: longint;
+  SystemFileName: RawByteString;
 begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   NDSFlags := 0;
 
   case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
@@ -55,7 +62,7 @@ begin
     fmOpenWrite : NDSFlags := NDSFlags or O_WrOnly;
     fmOpenReadWrite : NDSFlags := NDSFlags or O_RdWr;
   end;
-  FileOpen := _open(pchar(FileName), NDSFlags);
+  FileOpen := _open(pchar(SystemFileName), NDSFlags);
 end;
 
 
@@ -71,19 +78,25 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
+var
+  SystemFileName: RawByteString;
 begin
-  FileCreate:=_open(pointer(FileName), O_RdWr or O_Creat or O_Trunc);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_open(pointer(SystemFileName), O_RdWr or O_Creat or O_Trunc);
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+var
+  SystemFileName: RawByteString;
 begin
-  FileCreate:=_Open(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileCreate:=_Open(pointer(SystemFileName),O_RdWr or O_Creat or O_Trunc,Rights);
 end;
 
 
-function FileCreate(const FileName: string; ShareMode : Integer; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode : Integer; Rights: integer): LongInt;
 begin
   result := FileCreate(FileName, Rights);
 end;
@@ -127,66 +140,81 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  Result := _UnLink(pointer(FileName))>= 0;
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  Result := _UnLink(pointer(SystemFileName))>= 0;
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
 begin
-  RenameFile := _Rename(pointer(OldNAme), pointer(NewName)) >= 0;
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  RenameFile := _Rename(pointer(OldSystemFileName), pointer(NewSystemFileName)) >= 0;
 end;
 
 
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 var 
   info: Stat;
+  SystemFileName: RawByteString;
 begin
-  if (_stat(pchar(FileName), Info) < 0) or S_ISDIR(info.st_mode) then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if (_stat(pchar(SystemFileName), Info) < 0) or S_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result := (info.st_mtime);
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
+var
+  SystemFileName: RawByteString;
 begin
-  FileExists := _Access(pointer(filename), F_OK) = 0;
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  FileExists := _Access(pointer(SystemFileName), F_OK) = 0;
 end;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: Pointer);
 begin
 
 end;
 
-Function FileGetAttr (Const FileName : String) : Longint;
-Var Info : TStat;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
+var
+  Info : TStat;
+  SystemFileName: RawByteString;
 begin
-  If _stat(pchar(FileName), Info) <> 0 then
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  If _stat(pchar(SystemFileName), Info) <> 0 then
     Result := -1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   result := -1;
 end;
@@ -216,31 +244,7 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
-begin
-  result := '';
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawByteString): Boolean;
 begin
   result := false;
 end;
@@ -285,7 +289,7 @@ begin
   result := -1;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
   result := '';
 end;

@@ -160,7 +160,7 @@ interface
           procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
-          procedure ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
+          procedure ifpreprocstack(atyp:preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
           procedure popreplaystack;
@@ -201,7 +201,6 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
-          function  readval_asstring:string;
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
@@ -261,6 +260,7 @@ interface
     { To be called when the language mode is finally determined }
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
+    procedure SetAppType(NewAppType:tapptype);
 
 
 implementation
@@ -345,12 +345,19 @@ implementation
                 include(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   include(init_settings.localswitches,cs_refcountedstrings);
+                if m_default_unicodestring in current_settings.modeswitches then
+                  begin
+                    def_system_macro('FPC_UNICODESTRINGS');
+                    def_system_macro('UNICODE');
+                  end;
               end
             else
               begin
                 exclude(current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
+                undef_system_macro('FPC_UNICODESTRINGS');
+                undef_system_macro('UNICODE');
               end;
           end;
 
@@ -500,15 +507,18 @@ implementation
            else
              current_settings.packenum:=4;
            if changeinit then
-             init_settings.packenum:=current_settings.packenum;
-{$ifdef i386}
-           { Default to intel assembler for delphi/tp7 on i386 }
+             begin
+               init_settings.packenum:=current_settings.packenum;
+               init_settings.setalloc:=current_settings.setalloc;
+             end;
+{$if defined(i386) or defined(i8086)}
+           { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
              current_settings.asmmode:=asmmode_i386_intel;
            if changeinit then
              init_settings.asmmode:=current_settings.asmmode;
-{$endif i386}
+{$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
            { compensate for lack of interprocedural goto support)          }
@@ -621,6 +631,29 @@ implementation
             end;
       end;
 
+    procedure SetAppType(NewAppType:tapptype);
+      begin
+{$ifdef i8086}
+        if (target_info.system=system_i8086_msdos) and (apptype<>NewAppType) then
+          begin
+            if NewAppType=app_com then
+              begin
+                targetinfos[system_i8086_msdos]^.exeext:='.com';
+                target_info.exeext:='.com';
+              end
+            else
+              begin
+                targetinfos[system_i8086_msdos]^.exeext:='.exe';
+                target_info.exeext:='.exe';
+              end;
+          end;
+{$endif i8086}
+        if apptype in [app_cui,app_com] then
+          undef_system_macro('CONSOLE');
+        apptype:=NewAppType;
+        if apptype in [app_cui,app_com] then
+          def_system_macro('CONSOLE');
+      end;
 {*****************************************************************************
                            Conditional Directives
 *****************************************************************************}
@@ -778,55 +811,643 @@ Therefor there is a parameter eval, telling whether evaluation is needed.
 In case not, the value returned can be arbitrary.
 }
 
-    type
-      {Compile time expression types}
-      TCTEType = (ctetBoolean, ctetInteger, ctetString, ctetSet);
-      TCTETypeSet = set of TCTEType;
+type
 
-    const
-      cteTypeNames : array[TCTEType] of string[10] = (
-        'BOOLEAN','INTEGER','STRING','SET');
+  { texprvalue }
 
-      {Subset of types which can be elements in sets.}
-      setelementdefs = [ctetBoolean, ctetInteger, ctetString];
+  texprvalue = class
+  private
+    { we can't use built-in defs since they
+      may be not created at the moment }
+    class var
+       sintdef,uintdef,booldef,strdef,setdef,realdef: tdef;
+    class constructor createdefs;
+    class destructor destroydefs;
+  public
+    consttyp: tconsttyp;
+    value: tconstvalue;
+    def: tdef;
+    constructor create_const(c:tconstsym);
+    constructor create_error;
+    constructor create_ord(v: Tconstexprint);
+    constructor create_int(v: int64);
+    constructor create_uint(v: qword);
+    constructor create_bool(b: boolean);
+    constructor create_str(s: string);
+    constructor create_set(ns: tnormalset);
+    constructor create_real(r: bestreal);
+    class function try_parse_number(s:string):texprvalue; static;
+    class function try_parse_real(s:string):texprvalue; static;
+    function evaluate(v:texprvalue;op:ttoken):texprvalue;
+    procedure error(expecteddef, place: string);
+    function isBoolean: Boolean;
+    function asBool: Boolean;
+    function asInt: Integer;
+    function asStr: String;
+    destructor destroy; override;
+  end;
 
+  class constructor texprvalue.createdefs;
+    begin
+      sintdef:=torddef.create(s64bit,low(int64),high(int64));
+      uintdef:=torddef.create(u64bit,low(qword),high(qword));
+      booldef:=torddef.create(pasbool8,0,1);
+      strdef:=tstringdef.createansi(0);
+      setdef:=tsetdef.create(sintdef,0,255);
+      realdef:=tfloatdef.create(s80real);
+    end;
 
-    function GetCTETypeName(t: TCTETypeSet): String;
-      var
-        i: TCTEType;
-      begin
-        result:= '';
-        for i:= Low(TCTEType) to High(TCTEType) do
-          if i in t then
-            if result = '' then
-              result:= cteTypeNames[i]
-            else
-              result:= result + ' or ' + cteTypeNames[i];
+  class destructor texprvalue.destroydefs;
+    begin
+      setdef.free;
+      sintdef.free;
+      uintdef.free;
+      booldef.free;
+      strdef.free;
+      realdef.free;
+    end;
+
+  constructor texprvalue.create_const(c: tconstsym);
+    begin
+      consttyp:=c.consttyp;
+      def:=c.constdef;
+      case consttyp of
+        conststring,
+        constresourcestring:
+          begin
+            value.len:=c.value.len;
+            getmem(value.valueptr,value.len+1);
+            move(c.value.valueptr^,value.valueptr,value.len+1);
+          end;
+        constwstring:
+          begin
+            initwidestring(value.valueptr);
+            copywidestring(c.value.valueptr,value.valueptr);
+          end;
+        constreal:
+          begin
+            new(pbestreal(value.valueptr));
+            pbestreal(value.valueptr)^:=pbestreal(c.value.valueptr)^;
+          end;
+        constset:
+          begin
+            new(pnormalset(value.valueptr));
+            pnormalset(value.valueptr)^:=pnormalset(c.value.valueptr)^;
+          end;
+        constguid:
+          begin
+            new(pguid(value.valueptr));
+            pguid(value.valueptr)^:=pguid(c.value.valueptr)^;
+          end;
+        else
+          value:=c.value;
       end;
+    end;
 
-    procedure CTEError(actType, desiredExprType: TCTETypeSet; place: String);
+  constructor texprvalue.create_error;
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constnone;
+      def:=generrordef;
+    end;
 
+  constructor texprvalue.create_ord(v: Tconstexprint);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constord;
+      value.valueord:=v;
+      if v.signed then
+        def:=sintdef
+      else
+        def:=uintdef;
+    end;
+
+  constructor texprvalue.create_int(v: int64);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constord;
+      value.valueord:=v;
+      def:=sintdef;
+    end;
+
+  constructor texprvalue.create_uint(v: qword);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constord;
+      value.valueord:=v;
+      def:=uintdef;
+    end;
+
+  constructor texprvalue.create_bool(b: boolean);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constord;
+      value.valueord:=ord(b);
+      def:=booldef;
+    end;
+
+  constructor texprvalue.create_str(s: string);
+    var
+      sp: pansichar;
+      len: integer;
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=conststring;
+      len:=length(s);
+      getmem(sp,len+1);
+      move(s[1],sp^,len+1);
+      value.valueptr:=sp;
+      value.len:=length(s);
+      def:=strdef;
+    end;
+
+  constructor texprvalue.create_set(ns: tnormalset);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constset;
+      new(pnormalset(value.valueptr));
+      pnormalset(value.valueptr)^:=ns;
+      def:=setdef;
+    end;
+
+  constructor texprvalue.create_real(r: bestreal);
+    begin
+      fillchar(value,sizeof(value),#0);
+      consttyp:=constreal;
+      new(pbestreal(value.valueptr));
+      pbestreal(value.valueptr)^:=r;
+      def:=realdef;
+    end;
+
+  class function texprvalue.try_parse_number(s:string):texprvalue;
+    var
+      ic: int64;
+      qc: qword;
+      code: integer;
+    begin
+      { try int64 }
+      val(s,ic,code);
+      if code=0 then
+        result:=texprvalue.create_int(ic)
+      else
+        begin
+          { try qword }
+          val(s,qc,code);
+          if code=0 then
+            result:=texprvalue.create_uint(qc)
+          else
+            result:=try_parse_real(s);
+        end;
+    end;
+
+  class function texprvalue.try_parse_real(s:string):texprvalue;
+    var
+      d: bestreal;
+      code: integer;
+    begin
+      val(s,d,code);
+      if code=0 then
+        result:=texprvalue.create_real(d)
+      else
+        result:=nil;
+    end;
+
+  function texprvalue.evaluate(v:texprvalue;op:ttoken):texprvalue;
+
+    function check_compatbile: boolean;
+      begin
+        result:=(
+                  (is_ordinal(v.def) or is_fpu(v.def)) and
+                  (is_ordinal(def) or is_fpu(def))
+                ) or
+                (is_string(v.def) and is_string(def));
+        if not result then
+          Message2(type_e_incompatible_types,def.typename,v.def.typename);
+      end;
+    var
+      lv,rv: tconstexprint;
+      lvd,rvd: bestreal;
+      lvs,rvs: string;
+    begin
+      case op of
+        _OP_IN:
+        begin
+          if not is_set(v.def) then
+            begin
+              v.error('Set', 'IN');
+              result:=texprvalue.create_error;
+            end
+          else
+          if not is_ordinal(def) then
+            begin
+              error('Ordinal', 'IN');
+              result:=texprvalue.create_error;
+            end
+          else
+          if value.valueord.signed then
+            result:=texprvalue.create_bool(value.valueord.svalue in pnormalset(v.value.valueptr)^)
+          else
+            result:=texprvalue.create_bool(value.valueord.uvalue in pnormalset(v.value.valueptr)^);
+        end;
+        _OP_NOT:
+        begin
+          if isBoolean then
+            result:=texprvalue.create_bool(not asBool)
+          else
+            begin
+              error('Boolean', 'NOT');
+              result:=texprvalue.create_error;
+            end;
+        end;
+        _OP_OR:
+        begin
+          if isBoolean then
+            if v.isBoolean then
+              result:=texprvalue.create_bool(asBool or v.asBool)
+            else
+              begin
+                v.error('Boolean','OR');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','OR');
+              result:=texprvalue.create_error;
+            end;
+        end;
+        _OP_XOR:
+        begin
+          if isBoolean then
+            if v.isBoolean then
+              result:=texprvalue.create_bool(asBool xor v.asBool)
+            else
+              begin
+                v.error('Boolean','XOR');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','XOR');
+              result:=texprvalue.create_error;
+            end;
+        end;
+        _OP_AND:
+        begin
+          if isBoolean then
+            if v.isBoolean then
+              result:=texprvalue.create_bool(asBool and v.asBool)
+            else
+              begin
+                v.error('Boolean','AND');
+                result:=texprvalue.create_error;
+              end
+          else
+            begin
+              error('Boolean','AND');
+              result:=texprvalue.create_error;
+            end;
+        end;
+        _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR:
+        if check_compatbile then
+          begin
+            if (is_ordinal(def) and is_ordinal(v.def)) then
+              begin
+                lv:=value.valueord;
+                rv:=v.value.valueord;
+                case op of
+                  _EQ:
+                    result:=texprvalue.create_bool(lv=rv);
+                  _NE:
+                    result:=texprvalue.create_bool(lv<>rv);
+                  _LT:
+                    result:=texprvalue.create_bool(lv<rv);
+                  _GT:
+                    result:=texprvalue.create_bool(lv>rv);
+                  _GTE:
+                    result:=texprvalue.create_bool(lv>=rv);
+                  _LTE:
+                    result:=texprvalue.create_bool(lv<=rv);
+                  _PLUS:
+                    result:=texprvalue.create_ord(lv+rv);
+                  _MINUS:
+                    result:=texprvalue.create_ord(lv-rv);
+                  _STAR:
+                    result:=texprvalue.create_ord(lv*rv);
+                  _SLASH:
+                    result:=texprvalue.create_real(lv/rv);
+                  _OP_DIV:
+                    result:=texprvalue.create_ord(lv div rv);
+                  _OP_MOD:
+                    result:=texprvalue.create_ord(lv mod rv);
+                  _OP_SHL:
+                    result:=texprvalue.create_ord(lv shl rv);
+                  _OP_SHR:
+                    result:=texprvalue.create_ord(lv shr rv);
+                end;
+              end
+            else
+            if (is_fpu(def) or is_ordinal(def)) and
+               (is_fpu(v.def) or is_ordinal(v.def)) then
+              begin
+                if is_fpu(def) then
+                  lvd:=pbestreal(value.valueptr)^
+                else
+                  lvd:=value.valueord;
+                if is_fpu(v.def) then
+                  rvd:=pbestreal(v.value.valueptr)^
+                else
+                  rvd:=v.value.valueord;
+                case op of
+                  _EQ:
+                    result:=texprvalue.create_bool(lvd=rvd);
+                  _NE:
+                    result:=texprvalue.create_bool(lvd<>rvd);
+                  _LT:
+                    result:=texprvalue.create_bool(lvd<rvd);
+                  _GT:
+                    result:=texprvalue.create_bool(lvd>rvd);
+                  _GTE:
+                    result:=texprvalue.create_bool(lvd>=rvd);
+                  _LTE:
+                    result:=texprvalue.create_bool(lvd<=rvd);
+                  _PLUS:
+                    result:=texprvalue.create_real(lvd+rvd);
+                  _MINUS:
+                    result:=texprvalue.create_real(lvd-rvd);
+                  _STAR:
+                    result:=texprvalue.create_real(lvd*rvd);
+                  _SLASH:
+                    result:=texprvalue.create_real(lvd/rvd);
+                  else
+                    begin
+                      Message(parser_e_illegal_expression);
+                      result:=texprvalue.create_error;
+                    end;
+                end;
+              end
+            else
+            begin
+              lvs:=asStr;
+              rvs:=v.asStr;
+              case op of
+                _EQ:
+                  result:=texprvalue.create_bool(lvs=rvs);
+                _NE:
+                  result:=texprvalue.create_bool(lvs<>rvs);
+                _LT:
+                  result:=texprvalue.create_bool(lvs<rvs);
+                _GT:
+                  result:=texprvalue.create_bool(lvs>rvs);
+                _GTE:
+                  result:=texprvalue.create_bool(lvs>=rvs);
+                _LTE:
+                  result:=texprvalue.create_bool(lvs<=rvs);
+                _PLUS:
+                  result:=texprvalue.create_str(lvs+rvs);
+                else
+                  begin
+                    Message(parser_e_illegal_expression);
+                    result:=texprvalue.create_error;
+                  end;
+              end;
+            end;
+          end
+        else
+          result:=texprvalue.create_error;
+      end;
+    end;
+
+  procedure texprvalue.error(expecteddef, place: string);
     begin
       Message3(scan_e_compile_time_typeerror,
-               GetCTETypeName(desiredExprType),
-               GetCTETypeName(actType),
+               expecteddef,
+               def.typename,
                place
               );
     end;
 
-    function parse_compiler_expr(var compileExprType: TCTETypeSet):string;
+  function texprvalue.isBoolean: Boolean;
+    var
+      i: integer;
+    begin
+      result:=is_boolean(def);
+      if not result and is_integer(def) then
+        begin
+          i:=asInt;
+          result:=(i=0)or(i=1);
+        end;
+    end;
 
-        function read_expr(var exprType: TCTETypeSet; eval : Boolean) : string; forward;
+  function texprvalue.asBool: Boolean;
+    begin
+      result:=value.valueord<>0;
+    end;
 
-        procedure preproc_consume(t : ttoken);
+  function texprvalue.asInt: Integer;
+    begin
+      result:=value.valueord.svalue;
+    end;
+
+  function texprvalue.asStr: String;
+    var
+      b:byte;
+    begin
+      case consttyp of
+        constord:
+          result:=tostr(value.valueord);
+        conststring,
+        constresourcestring:
+          SetString(result,pchar(value.valueptr),value.len);
+        constreal:
+          str(pbestreal(value.valueptr)^,result);
+        constset:
+          begin
+            result:=',';
+            for b:=0 to 255 do
+              if b in pconstset(value.valueptr)^ then
+                result:=result+tostr(b)+',';
+          end;
+      end;
+    end;
+
+  destructor texprvalue.destroy;
+    begin
+      case consttyp of
+        conststring,
+        constresourcestring :
+          freemem(pchar(value.valueptr),value.len+1);
+        constwstring :
+          donewidestring(pcompilerwidestring(value.valueptr));
+        constreal :
+          dispose(pbestreal(value.valueptr));
+        constset :
+          dispose(pnormalset(value.valueptr));
+        constguid :
+          dispose(pguid(value.valueptr));
+      end;
+      inherited destroy;
+    end;
+
+  const
+    preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR,_OP_IN,_OP_AND,_OP_OR,_OP_XOR];
+
+    function preproc_comp_expr:texprvalue;
+
+        function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean):texprvalue; forward;
+
+        procedure preproc_consume(t:ttoken);
         begin
           if t<>current_scanner.preproc_token then
             Message(scan_e_preproc_syntax_error);
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
-        function preproc_substitutedtoken(var macroType: TCTETypeSet; eval : Boolean): string;
-                                { Currently this parses identifiers as well as numbers.
+        function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;out tokentoconsume:ttoken):boolean;
+          var
+            hmodule: tmodule;
+            ns:ansistring;
+            nssym:tsym;
+          begin
+            result:=false;
+            tokentoconsume:=_ID;
+
+            if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
+              begin
+                if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
+                  internalerror(200501154);
+                { only allow unit.symbol access if the name was
+                  found in the current module
+                  we can use iscurrentunit because generic specializations does not
+                  change current_unit variable }
+                hmodule:=find_module_from_symtable(srsym.Owner);
+                if not Assigned(hmodule) then
+                  internalerror(201001120);
+                if hmodule.unit_index=current_filepos.moduleindex then
+                  begin
+                    preproc_consume(_POINT);
+                    current_scanner.skipspace;
+                    if srsym.typ=namespacesym then
+                      begin
+                        ns:=srsym.name;
+                        nssym:=srsym;
+                        while assigned(srsym) and (srsym.typ=namespacesym) do
+                          begin
+                            { we have a namespace. the next identifier should be either a namespace or a unit }
+                            searchsym_in_module(hmodule,ns+'.'+current_scanner.preproc_pattern,srsym,srsymtable);
+                            if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                              begin
+                                ns:=ns+'.'+current_scanner.preproc_pattern;
+                                nssym:=srsym;
+                                preproc_consume(_ID);
+                                current_scanner.skipspace;
+                                preproc_consume(_POINT);
+                                current_scanner.skipspace;
+                              end;
+                          end;
+                        { check if there is a hidden unit with this pattern in the namespace }
+                        if not assigned(srsym) and
+                           assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
+                          srsym:=tnamespacesym(nssym).unitsym;
+                        if assigned(srsym) and (srsym.typ<>unitsym) then
+                          internalerror(201108260);
+                        if not assigned(srsym) then
+                          begin
+                            result:=true;
+                            srsymtable:=nil;
+                            exit;
+                          end;
+                      end;
+                    case current_scanner.preproc_token of
+                      _ID:
+                        { system.char? (char=widechar comes from the implicit
+                          uuchar unit -> override) }
+                        if (current_scanner.preproc_pattern='CHAR') and
+                           (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                          begin
+                            if m_default_unicodestring in current_settings.modeswitches then
+                              searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
+                            else
+                              searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
+                          end
+                        else
+                          searchsym_in_module(tunitsym(srsym).module,current_scanner.preproc_pattern,srsym,srsymtable);
+                      _STRING:
+                        begin
+                          { system.string? }
+                          if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
+                            begin
+                              if cs_refcountedstrings in current_settings.localswitches then
+                                begin
+                                  if m_default_unicodestring in current_settings.modeswitches then
+                                    searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
+                                  else
+                                    searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
+                                end
+                              else
+                                searchsym_in_module(tunitsym(srsym).module,'SHORTSTRING',srsym,srsymtable);
+                              tokentoconsume:=_STRING;
+                            end;
+                        end
+                      end;
+                  end
+                else
+                  begin
+                    srsym:=nil;
+                    srsymtable:=nil;
+                  end;
+                result:=true;
+              end;
+          end;
+
+        procedure try_consume_nestedsym(var srsym:tsym;var srsymtable:TSymtable);
+          var
+            def:tdef;
+            tokentoconsume:ttoken;
+            found:boolean;
+          begin
+            found:=try_consume_unitsym(srsym,srsymtable,tokentoconsume);
+            if found then
+              begin
+                preproc_consume(tokentoconsume);
+                current_scanner.skipspace;
+              end;
+             while (current_scanner.preproc_token=_POINT) do
+               begin
+                 if assigned(srsym)and(srsym.typ=typesym) then
+                   begin
+                     def:=ttypesym(srsym).typedef;
+                     if is_class_or_object(def) or is_record(def) or is_java_class_or_interface(def) then
+                       begin
+                         preproc_consume(_POINT);
+                         current_scanner.skipspace;
+                         if def.typ=objectdef then
+                           found:=searchsym_in_class(tobjectdef(def),tobjectdef(def),current_scanner.preproc_pattern,srsym,srsymtable,[ssf_search_helper])
+                         else
+                           found:=searchsym_in_record(trecorddef(def),current_scanner.preproc_pattern,srsym,srsymtable);
+                         if not found then
+                           begin
+                             Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
+                             exit;
+                           end;
+                         preproc_consume(_ID);
+                         current_scanner.skipspace;
+                       end
+                     else
+                       begin
+                         Message(sym_e_type_must_be_rec_or_object_or_class);
+                         exit;
+                       end;
+                   end
+                 else
+                   begin
+                     Message(type_e_type_id_expected);
+                     exit;
+                   end;
+               end;
+          end;
+
+        function preproc_substitutedtoken(searchstr:string;eval:Boolean):texprvalue;
+        { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
           which then is substituted for another value (for macros
@@ -834,22 +1455,22 @@ In case not, the value returned can be arbitrary.
 
         var
           hs: string;
-          mac : tmacro;
+          mac: tmacro;
           macrocount,
-          len : integer;
-          numres : longint;
-          w: word;
+          len: integer;
         begin
-          result := current_scanner.preproc_pattern;
           if not eval then
-            exit;
+            begin
+              result:=texprvalue.create_str(searchstr);
+              exit;
+            end;
 
-          mac:= nil;
+          mac:=nil;
           { Substitue macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
-            mac:=tmacro(search_macro(result));
+            mac:=tmacro(search_macro(searchstr));
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -870,18 +1491,16 @@ In case not, the value returned can be arbitrary.
                     len:=mac.buflen;
                   hs[0]:=char(len);
                   move(mac.buftext^,hs[1],len);
-                  result:=upcase(hs);
+                  searchstr:=upcase(hs);
                   mac.is_used:=true;
                 end
               else
                 begin
-                  Message1(scan_e_error_macro_lacks_value, result);
+                  Message1(scan_e_error_macro_lacks_value,searchstr);
                   break;
                 end
             else
-              begin
-                  break;
-              end;
+              break;
 
             if mac.is_compiler_var then
               break;
@@ -889,55 +1508,44 @@ In case not, the value returned can be arbitrary.
 
           { At this point, result do contain the value. Do some decoding and
             determine the type.}
-          val(result,numres,w);
-          if (w=0) then {It is an integer}
+          result:=texprvalue.try_parse_number(searchstr);
+          if not assigned(result) then
             begin
-              if (numres = 0) or (numres = 1) then
-                macroType := [ctetInteger, ctetBoolean]
+              if assigned(mac) and (searchstr='FALSE') then
+                result:=texprvalue.create_bool(false)
+              else if assigned(mac) and (searchstr='TRUE') then
+                result:=texprvalue.create_bool(true)
+              else if (m_mac in current_settings.modeswitches) and
+                      (not assigned(mac) or not mac.defined) and
+                      (macrocount = 1) then
+                begin
+                  {Errors in mode mac is issued here. For non macpas modes there is
+                   more liberty, but the error will eventually be caught at a later stage.}
+                  Message1(scan_e_error_macro_undefined,searchstr);
+                  result:=texprvalue.create_str(searchstr); { just to have something }
+                end
               else
-                macroType := [ctetInteger];
-            end
-          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (result='FALSE') then
-            begin
-              result:= '0';
-              macroType:= [ctetBoolean];
-            end
-          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (result='TRUE') then
-            begin
-              result:= '1';
-              macroType:= [ctetBoolean];
-            end
-          else if (m_mac in current_settings.modeswitches) and
-                  (not assigned(mac) or not mac.defined) and
-                  (macrocount = 1) then
-            begin
-              {Errors in mode mac is issued here. For non macpas modes there is
-               more liberty, but the error will eventually be caught at a later stage.}
-              Message1(scan_e_error_macro_undefined, result);
-              macroType:= [ctetString]; {Just to have something}
-            end
-          else
-            macroType:= [ctetString];
+                result:=texprvalue.create_str(searchstr);
+            end;
         end;
 
-        function read_factor(var factorType: TCTETypeSet; eval : Boolean) : string;
+        function preproc_factor(eval: Boolean):texprvalue;
         var
-           hs : string;
+           hs,countstr,storedpattern: string;
            mac: tmacro;
            srsym : tsym;
            srsymtable : TSymtable;
            hdef : TDef;
            l : longint;
-           w : integer;
            hasKlammer: Boolean;
-           setElemType : TCTETypeSet;
-
+           exprvalue:texprvalue;
+           ns:tnormalset;
         begin
+          result:=nil;
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
                   begin
-                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -957,12 +1565,11 @@ In case not, the value returned can be arbitrary.
                         mac := tmacro(search_macro(hs));
                         if assigned(mac) and mac.defined then
                           begin
-                            hs := '1';
+                            result:=texprvalue.create_bool(true);
                             mac.is_used:=true;
                           end
                         else
-                          hs := '0';
-                        read_factor := hs;
+                          result:=texprvalue.create_bool(false);
                         preproc_consume(_ID);
                         current_scanner.skipspace;
                       end
@@ -978,7 +1585,6 @@ In case not, the value returned can be arbitrary.
                 else
                 if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
                   begin
-                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_ID then
@@ -987,12 +1593,11 @@ In case not, the value returned can be arbitrary.
                         mac := tmacro(search_macro(hs));
                         if assigned(mac) then
                           begin
-                            hs := '0';
+                            result:=texprvalue.create_bool(false);
                             mac.is_used:=true;
                           end
                         else
-                          hs := '1';
-                        read_factor := hs;
+                          result:=texprvalue.create_bool(true);
                         preproc_consume(_ID);
                         current_scanner.skipspace;
                       end
@@ -1002,7 +1607,6 @@ In case not, the value returned can be arbitrary.
                 else
                 if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='OPTION') then
                   begin
-                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -1023,9 +1627,9 @@ In case not, the value returned can be arbitrary.
                     else
                       begin
                         if CheckSwitch(hs[1],'+') then
-                          read_factor := '1'
+                          result:=texprvalue.create_bool(true)
                         else
-                          read_factor := '0';
+                          result:=texprvalue.create_bool(false);
                       end;
 
                     preproc_consume(_ID);
@@ -1038,7 +1642,6 @@ In case not, the value returned can be arbitrary.
                 else
                 if current_scanner.preproc_pattern='SIZEOF' then
                   begin
-                    factorType:= [ctetInteger];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -1049,27 +1652,30 @@ In case not, the value returned can be arbitrary.
                     else
                       Message(scan_e_preproc_syntax_error);
 
-                    if eval then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
-                        begin
-                          l:=0;
-                          case srsym.typ of
-                            staticvarsym,
-                            localvarsym,
-                            paravarsym :
-                              l:=tabstractvarsym(srsym).getsize;
-                            typesym:
-                              l:=ttypesym(srsym).typedef.size;
-                            else
-                              Message(scan_e_error_in_preproc_expr);
-                          end;
-                          str(l,read_factor);
-                        end
-                      else
-                        Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
-
+                    storedpattern:=current_scanner.preproc_pattern;
                     preproc_consume(_ID);
                     current_scanner.skipspace;
+
+                    if eval then
+                      if searchsym(storedpattern,srsym,srsymtable) then
+                        begin
+                          try_consume_nestedsym(srsym,srsymtable);
+                          l:=0;
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              staticvarsym,
+                              localvarsym,
+                              paravarsym :
+                                l:=tabstractvarsym(srsym).getsize;
+                              typesym:
+                                l:=ttypesym(srsym).typedef.size;
+                              else
+                                Message(scan_e_error_in_preproc_expr);
+                            end;
+                          result:=texprvalue.create_int(l);
+                        end
+                      else
+                        Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -1079,7 +1685,6 @@ In case not, the value returned can be arbitrary.
                 else
                 if current_scanner.preproc_pattern='HIGH' then
                   begin
-                    factorType:= [ctetInteger];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -1090,23 +1695,29 @@ In case not, the value returned can be arbitrary.
                     else
                       Message(scan_e_preproc_syntax_error);
 
+                    storedpattern:=current_scanner.preproc_pattern;
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+
                     if eval then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                      if searchsym(storedpattern,srsym,srsymtable) then
                         begin
+                          try_consume_nestedsym(srsym,srsymtable);
                           hdef:=nil;
                           hs:='';
                           l:=0;
-                          case srsym.typ of
-                            staticvarsym,
-                            localvarsym,
-                            paravarsym :
-                              hdef:=tabstractvarsym(srsym).vardef;
-                            typesym:
-                              hdef:=ttypesym(srsym).typedef;
-                            else
-                              Message(scan_e_error_in_preproc_expr);
-                          end;
-                          if hdef<>nil then
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              staticvarsym,
+                              localvarsym,
+                              paravarsym :
+                                hdef:=tabstractvarsym(srsym).vardef;
+                              typesym:
+                                hdef:=ttypesym(srsym).typedef;
+                              else
+                                Message(scan_e_error_in_preproc_expr);
+                            end;
+                          if assigned(hdef) then
                             begin
                               if hdef.typ=setdef then
                                 hdef:=tsetdef(hdef).elementdef;
@@ -1114,35 +1725,28 @@ In case not, the value returned can be arbitrary.
                                 orddef:
                                   with torddef(hdef).high do
                                     if signed then
-                                      str(svalue,hs)
+                                      result:=texprvalue.create_int(svalue)
                                     else
-                                      str(uvalue,hs);
+                                      result:=texprvalue.create_uint(uvalue);
                                 enumdef:
-                                  l:=tenumdef(hdef).maxval;
+                                  result:=texprvalue.create_int(tenumdef(hdef).maxval);
                                 arraydef:
                                   if is_open_array(hdef) or is_array_of_const(hdef) or is_dynamic_array(hdef) then
                                     Message(type_e_mismatch)
                                   else
-                                    l:=tarraydef(hdef).highrange;
+                                    result:=texprvalue.create_int(tarraydef(hdef).highrange);
                                 stringdef:
                                   if is_open_string(hdef) or is_ansistring(hdef) or is_wide_or_unicode_string(hdef) then
                                     Message(type_e_mismatch)
                                   else
-                                    l:=tstringdef(hdef).len;
+                                    result:=texprvalue.create_int(tstringdef(hdef).len);
                                 else
                                   Message(type_e_mismatch);
                               end;
                             end;
-                          if hs='' then
-                            str(l,read_factor)
-                          else
-                            read_factor:=hs;
                         end
                       else
-                        Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
-
-                    preproc_consume(_ID);
-                    current_scanner.skipspace;
+                        Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -1152,7 +1756,6 @@ In case not, the value returned can be arbitrary.
                 else
                 if current_scanner.preproc_pattern='DECLARED' then
                   begin
-                    factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     current_scanner.skipspace;
                     if current_scanner.preproc_token =_LKLAMMER then
@@ -1165,13 +1768,51 @@ In case not, the value returned can be arbitrary.
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := upper(current_scanner.preproc_pattern);
-                        if searchsym(hs,srsym,srsymtable) then
-                          hs := '1'
-                        else
-                          hs := '0';
-                        read_factor := hs;
                         preproc_consume(_ID);
                         current_scanner.skipspace;
+                        if current_scanner.preproc_token in [_LT,_LSHARPBRACKET] then
+                          begin
+                            l:=1;
+                            preproc_consume(current_scanner.preproc_token);
+                            current_scanner.skipspace;
+                            while current_scanner.preproc_token=_COMMA do
+                              begin
+                                inc(l);
+                                preproc_consume(_COMMA);
+                                current_scanner.skipspace;
+                              end;
+                            if not (current_scanner.preproc_token in [_GT,_RSHARPBRACKET]) then
+                              Message(scan_e_error_in_preproc_expr)
+                            else
+                              preproc_consume(current_scanner.preproc_token);
+                            str(l,countstr);
+                            hs:=hs+'$'+countstr;
+                          end
+                        else
+                          { special case: <> }
+                          if current_scanner.preproc_token=_NE then
+                            begin
+                              hs:=hs+'$1';
+                              preproc_consume(_NE);
+                            end;
+                        current_scanner.skipspace;
+                        if searchsym(hs,srsym,srsymtable) then
+                          begin
+                            { TSomeGeneric<...> also adds a TSomeGeneric symbol }
+                            if (sp_generic_dummy in srsym.symoptions) and
+                                (srsym.typ=typesym) and
+                                (
+                                  { mode delphi}
+                                  (ttypesym(srsym).typedef.typ in [undefineddef,errordef]) or
+                                  { non-delphi modes }
+                                  (df_generic in ttypesym(srsym).typedef.defoptions)
+                                ) then
+                              result:=texprvalue.create_bool(false)
+                            else
+                              result:=texprvalue.create_bool(true);
+                          end
+                        else
+                          result:=texprvalue.create_bool(false);
                       end
                     else
                       Message(scan_e_error_in_preproc_expr);
@@ -1181,335 +1822,208 @@ In case not, the value returned can be arbitrary.
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if current_scanner.preproc_pattern='NOT' then
+                if current_scanner.preproc_pattern='ORD' then
                   begin
-                    factorType:= [ctetBoolean];
-                    preproc_consume(_ID);
-                    hs:=read_factor(factorType, eval);
-                    if eval then
-                      begin
-                        if not (ctetBoolean in factorType) then
-                          CTEError(factorType, [ctetBoolean], 'NOT');
-                        val(hs,l,w);
-                        if l<>0 then
-                          read_factor:='0'
-                        else
-                          read_factor:='1';
-                      end
-                    else
-                      read_factor:='0'; {Just to have something}
-                  end
-                else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='TRUE') then
-                  begin
-                    factorType:= [ctetBoolean];
-                    preproc_consume(_ID);
-                    read_factor:='1';
-                  end
-                else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='FALSE') then
-                  begin
-                    factorType:= [ctetBoolean];
-                    preproc_consume(_ID);
-                    read_factor:='0';
-                  end
-                else
-                  begin
-                    hs:=preproc_substitutedtoken(factorType, eval);
-
-                    { Default is to return the original symbol }
-                    read_factor:=hs;
-                    if eval and ([m_delphi,m_objfpc]*current_settings.modeswitches<>[]) and (ctetString in factorType) then
-                      if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
-                        begin
-                          case srsym.typ of
-                            constsym :
-                              begin
-                                with tconstsym(srsym) do
-                                  begin
-                                    case consttyp of
-                                      constord :
-                                        begin
-                                          case constdef.typ of
-                                            orddef:
-                                              begin
-                                                if is_integer(constdef) then
-                                                  begin
-                                                    read_factor:=tostr(value.valueord);
-                                                    factorType:= [ctetInteger];
-                                                  end
-                                                else if is_boolean(constdef) then
-                                                  begin
-                                                    read_factor:=tostr(value.valueord);
-                                                    factorType:= [ctetBoolean];
-                                                  end
-                                                else if is_char(constdef) then
-                                                  begin
-                                                    read_factor:=char(qword(value.valueord));
-                                                    factorType:= [ctetString];
-                                                  end
-                                              end;
-                                            enumdef:
-                                              begin
-                                                read_factor:=tostr(value.valueord);
-                                                factorType:= [ctetInteger];
-                                              end;
-                                          end;
-                                        end;
-                                      conststring :
-                                        begin
-                                          read_factor := upper(pchar(value.valueptr));
-                                          factorType:= [ctetString];
-                                        end;
-                                      constset :
-                                        begin
-                                          hs:=',';
-                                          for l:=0 to 255 do
-                                            if l in pconstset(tconstsym(srsym).value.valueptr)^ then
-                                              hs:=hs+tostr(l)+',';
-                                          read_factor := hs;
-                                          factorType:= [ctetSet];
-                                        end;
-                                    end;
-                                  end;
-                              end;
-                            enumsym :
-                              begin
-                                read_factor:=tostr(tenumsym(srsym).value);
-                                factorType:= [ctetInteger];
-                              end;
-                          end;
-                        end;
                     preproc_consume(_ID);
                     current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_preproc_syntax_error);
+
+                    exprvalue:=preproc_factor(eval);
+                    if eval then
+                      begin
+                        if is_ordinal(exprvalue.def) then
+                          result:=texprvalue.create_int(exprvalue.asInt)
+                        else
+                          begin
+                            exprvalue.error('Ordinal','ORD');
+                            result:=texprvalue.create_int(0);
+                          end;
+                      end
+                    else
+                      result:=texprvalue.create_int(0);
+                    exprvalue.free;
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                  end
+                else
+                if current_scanner.preproc_pattern='NOT' then
+                  begin
+                    preproc_consume(_ID);
+                    exprvalue:=preproc_factor(eval);
+                    if eval then
+                      result:=exprvalue.evaluate(nil,_OP_NOT)
+                    else
+                      result:=texprvalue.create_bool(false); {Just to have something}
+                    exprvalue.free;
+                  end
+                else
+                if (current_scanner.preproc_pattern='TRUE') then
+                  begin
+                    result:=texprvalue.create_bool(true);
+                    preproc_consume(_ID);
+                  end
+                else
+                if (current_scanner.preproc_pattern='FALSE') then
+                  begin
+                    result:=texprvalue.create_bool(false);
+                    preproc_consume(_ID);
+                  end
+                else
+                  begin
+                    storedpattern:=current_scanner.preproc_pattern;
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    { first look for a macros/int/float }
+                    result:=preproc_substitutedtoken(storedpattern,eval);
+                    if eval and (result.consttyp=conststring) then
+                      if searchsym(storedpattern,srsym,srsymtable) then
+                        begin
+                          try_consume_nestedsym(srsym,srsymtable);
+                          if assigned(srsym) then
+                            case srsym.typ of
+                              constsym:
+                                begin
+                                  result.free;
+                                  result:=texprvalue.create_const(tconstsym(srsym));
+                                end;
+                              enumsym:
+                                begin
+                                  result.free;
+                                  result:=texprvalue.create_int(tenumsym(srsym).value);
+                                end;
+                            end;
+                        end;
                   end
              end
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                read_factor:=read_expr(factorType, eval);
+                result:=preproc_sub_expr(opcompare,true);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
              begin
                preproc_consume(_LECKKLAMMER);
-               read_factor := ',';
-               while current_scanner.preproc_token = _ID do
+               ns:=[];
+               while current_scanner.preproc_token in [_ID,_INTCONST] do
                begin
-                 read_factor := read_factor+read_factor(setElemType, eval)+',';
+                 exprvalue:=preproc_factor(eval);
+                 include(ns,exprvalue.asInt);
                  if current_scanner.preproc_token = _COMMA then
                    preproc_consume(_COMMA);
                end;
                // TODO Add check of setElemType
                preproc_consume(_RECKKLAMMER);
-               factorType:= [ctetSet];
+               result:=texprvalue.create_set(ns);
+             end
+           else if current_scanner.preproc_token = _INTCONST then
+             begin
+               result:=texprvalue.try_parse_number(current_scanner.preproc_pattern);
+               if not assigned(result) then
+                 begin
+                   Message(parser_e_invalid_integer);
+                   result:=texprvalue.create_int(1);
+                 end;
+               preproc_consume(_INTCONST);
+             end
+           else if current_scanner.preproc_token = _REALNUMBER then
+             begin
+               result:=texprvalue.try_parse_real(current_scanner.preproc_pattern);
+               if not assigned(result) then
+                 begin
+                   Message(parser_e_error_in_real);
+                   result:=texprvalue.create_real(1.0);
+                 end;
+               preproc_consume(_REALNUMBER);
              end
            else
              Message(scan_e_error_in_preproc_expr);
+           if not assigned(result) then
+             result:=texprvalue.create_error;
         end;
 
-        function read_term(var termType: TCTETypeSet; eval : Boolean) : string;
+        function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean): texprvalue;
         var
-           hs1,hs2 : string;
-           l1,l2 : longint;
-           w : integer;
-           termType2: TCTETypeSet;
+          hs1,hs2: texprvalue;
+          op: ttoken;
         begin
-          hs1:=read_factor(termType, eval);
-          repeat
-            if (current_scanner.preproc_token<>_ID) then
-              break;
-            if current_scanner.preproc_pattern<>'AND' then
-              break;
-
-            val(hs1,l1,w);
-            if l1=0 then
-              eval:= false; {Short circuit evaluation of OR}
-
-            if eval then
-               begin
-                {Check if first expr is boolean. Must be done here, after we know
-                 it is an AND expression.}
-                if not (ctetBoolean in termType) then
-                  CTEError(termType, [ctetBoolean], 'AND');
-                termType:= [ctetBoolean];
-              end;
-
-            preproc_consume(_ID);
-            hs2:=read_factor(termType2, eval);
-
-            if eval then
-              begin
-                if not (ctetBoolean in termType2) then
-                  CTEError(termType2, [ctetBoolean], 'AND');
-
-                val(hs2,l2,w);
-                if (l1<>0) and (l2<>0) then
-                  hs1:='1'
-                else
-                  hs1:='0';
-              end;
-           until false;
-           read_term:=hs1;
-        end;
-
-
-        function read_simple_expr(var simpleExprType: TCTETypeSet; eval : Boolean) : string;
-        var
-           hs1,hs2 : string;
-           l1,l2 : longint;
-           w : integer;
-           simpleExprType2: TCTETypeSet;
-        begin
-          hs1:=read_term(simpleExprType, eval);
-          repeat
-            if (current_scanner.preproc_token<>_ID) then
-              break;
-            if current_scanner.preproc_pattern<>'OR' then
-              break;
-
-            val(hs1,l1,w);
-            if l1<>0 then
-              eval:= false; {Short circuit evaluation of OR}
-
-            if eval then
-              begin
-                {Check if first expr is boolean. Must be done here, after we know
-                 it is an OR expression.}
-                if not (ctetBoolean in simpleExprType) then
-                  CTEError(simpleExprType, [ctetBoolean], 'OR');
-                simpleExprType:= [ctetBoolean];
-              end;
-
-            preproc_consume(_ID);
-            hs2:=read_term(simpleExprType2, eval);
-
-            if eval then
-              begin
-                if not (ctetBoolean in simpleExprType2) then
-                  CTEError(simpleExprType2, [ctetBoolean], 'OR');
-
-                val(hs2,l2,w);
-                if (l1<>0) or (l2<>0) then
-                  hs1:='1'
-                else
-                  hs1:='0';
-              end;
-          until false;
-          read_simple_expr:=hs1;
-        end;
-
-        function read_expr(var exprType: TCTETypeSet; eval : Boolean) : string;
-        var
-           hs1,hs2 : string;
-           b : boolean;
-           op : ttoken;
-           w : integer;
-           l1,l2 : longint;
-           exprType2: TCTETypeSet;
-        begin
-           hs1:=read_simple_expr(exprType, eval);
-           op:=current_scanner.preproc_token;
-           if (op = _ID) and (current_scanner.preproc_pattern = 'IN') then
-             op := _IN;
-           if not (op in [_IN,_EQ,_NE,_LT,_GT,_LTE,_GTE]) then
-             begin
-                read_expr:=hs1;
-                exit;
-             end;
-
-           if (op = _IN) then
-             preproc_consume(_ID)
+           if pred_level=highest_precedence then
+             result:=preproc_factor(eval)
            else
-             preproc_consume(op);
-           hs2:=read_simple_expr(exprType2, eval);
-
-           if eval then
+             result:=preproc_sub_expr(succ(pred_level),eval);
+          repeat
+            op:=current_scanner.preproc_token;
+            if (op in preproc_operators) and
+               (op in operator_levels[pred_level]) then
              begin
-               if op = _IN then
+               hs1:=result;
+               preproc_consume(op);
+               if (op=_OP_OR)and hs1.isBoolean and hs1.asBool then
                  begin
-                   if exprType2 <> [ctetSet] then
-                     CTEError(exprType2, [ctetSet], 'IN');
-                   if exprType = [ctetSet] then
-                     CTEError(exprType, setelementdefs, 'IN');
-
-                  if is_number(hs1) and is_number(hs2) then
-                    Message(scan_e_preproc_syntax_error)
-                  else if hs2[1] = ',' then
-                    b:=pos(','+hs1+',', hs2) > 0   { TODO For integer sets, perhaps check for numeric equivalence so that 0 = 00 }
-                  else
-                    Message(scan_e_preproc_syntax_error);
+                   { stop evaluation the rest of expression }
+                   result:=texprvalue.create_bool(true);
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(false)
+                   else
+                     hs2:=preproc_sub_expr(succ(pred_level),false);
+                 end
+               else if (op=_OP_AND)and hs1.isBoolean and not hs1.asBool then
+                 begin
+                   { stop evaluation the rest of expression }
+                   result:=texprvalue.create_bool(false);
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(false)
+                   else
+                     hs2:=preproc_sub_expr(succ(pred_level),false);
                  end
                else
                  begin
-                   if (exprType * exprType2) = [] then
-                     CTEError(exprType2, exprType, '"'+hs1+' '+tokeninfo^[op].str+' '+hs2+'"');
-
-                   if is_number(hs1) and is_number(hs2) then
-                     begin
-                       val(hs1,l1,w);
-                       val(hs2,l2,w);
-                       case op of
-                         _EQ :
-                           b:=l1=l2;
-                         _NE :
-                           b:=l1<>l2;
-                         _LT :
-                           b:=l1<l2;
-                         _GT :
-                           b:=l1>l2;
-                         _GTE :
-                           b:=l1>=l2;
-                         _LTE :
-                           b:=l1<=l2;
-                       end;
-                     end
+                   if pred_level=highest_precedence then
+                     hs2:=preproc_factor(eval)
                    else
-                     begin
-                       case op of
-                         _EQ:
-                           b:=hs1=hs2;
-                         _NE :
-                           b:=hs1<>hs2;
-                         _LT :
-                           b:=hs1<hs2;
-                         _GT :
-                            b:=hs1>hs2;
-                         _GTE :
-                            b:=hs1>=hs2;
-                         _LTE :
-                           b:=hs1<=hs2;
-                       end;
-                     end;
+                     hs2:=preproc_sub_expr(succ(pred_level),eval);
+                   if eval then
+                     result:=hs1.evaluate(hs2,op)
+                   else
+                     result:=texprvalue.create_bool(false); {Just to have something}
                  end;
-              end
+               hs1.free;
+               hs2.free;
+             end
            else
-             b:= false; {Just to have something}
-
-           if b then
-             read_expr:='1'
-           else
-             read_expr:='0';
-           exprType:= [ctetBoolean];
+             break;
+          until false;
         end;
 
      begin
-        current_scanner.skipspace;
-        { start preproc expression scanner }
-        current_scanner.preproc_token:=current_scanner.readpreproc;
-        parse_compiler_expr:=read_expr(compileExprType, true);
+       current_scanner.skipspace;
+       { start preproc expression scanner }
+       current_scanner.preproc_token:=current_scanner.readpreproc;
+       preproc_comp_expr:=preproc_sub_expr(opcompare,true);
      end;
 
-    function boolean_compile_time_expr(var valuedescr: String): Boolean;
+    function boolean_compile_time_expr(var valuedescr: string): Boolean;
       var
-        hs : string;
-        exprType: TCTETypeSet;
+        hs: texprvalue;
       begin
-        hs:=parse_compiler_expr(exprType);
-        if (exprType * [ctetBoolean]) = [] then
-          CTEError(exprType, [ctetBoolean], 'IF or ELSEIF');
-        boolean_compile_time_expr:= hs <> '0';
-        valuedescr:= hs;
+        hs:=preproc_comp_expr;
+        if hs.isBoolean then
+          result:=hs.asBool
+        else
+          begin
+            hs.error('Boolean', 'IF or ELSEIF');
+            result:=false;
+          end;
+        valuedescr:=hs.asStr;
+        hs.free;
       end;
 
     procedure dir_if;
@@ -1636,9 +2150,9 @@ In case not, the value returned can be arbitrary.
       var
         hs  : string;
         mac : tmacro;
-        exprType: TCTETypeSet;
         l : longint;
         w : integer;
+        exprvalue: texprvalue;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -1676,18 +2190,19 @@ In case not, the value returned can be arbitrary.
         if c='=' then
           begin
              current_scanner.readchar;
-             hs:= parse_compiler_expr(exprType);
-             if (exprType * [ctetBoolean, ctetInteger]) = [] then
-               CTEError(exprType, [ctetBoolean, ctetInteger], 'SETC');
+             exprvalue:=preproc_comp_expr;
+             if not is_boolean(exprvalue.def) and
+                not is_integer(exprvalue.def) then
+               exprvalue.error('Boolean, Integer', 'SETC');
+             hs:=exprvalue.asStr;
 
              if length(hs) <> 0 then
                begin
                  {If we are absolutely shure it is boolean, translate
                   to TRUE/FALSE to increase possibility to do future type check}
-                 if exprType = [ctetBoolean] then
+                 if exprvalue.isBoolean then
                    begin
-                     val(hs,l,w);
-                     if l<>0 then
+                     if exprvalue.asBool then
                        hs:='TRUE'
                      else
                        hs:='FALSE';
@@ -1704,6 +2219,7 @@ In case not, the value returned can be arbitrary.
                end
              else
                Message(scan_e_preproc_syntax_error);
+             exprvalue.free;
           end
         else
           Message(scan_e_preproc_syntax_error);
@@ -1857,7 +2373,7 @@ In case not, the value returned can be arbitrary.
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
-           if (ExtractFileExt(name)='') then
+           if (not found) and (ExtractFileExt(name)='') then
             begin
               { try default extensions .inc , .pp and .pas }
               if (not found) then
@@ -1876,6 +2392,7 @@ In case not, the value returned can be arbitrary.
                current_scanner.tempcloseinputfile;
                { load new file }
                hp:=do_openinputfile(foundfile);
+               hp.inc_path:=path;
                current_scanner.addfile(hp);
                current_module.sourcefiles.register_file(hp);
                if (not found) then
@@ -2540,7 +3057,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_LINE;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
+            tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
           end;
         if current_tokenpos.column<>last_filepos.column then
@@ -2556,7 +3073,7 @@ In case not, the value returned can be arbitrary.
             else
               begin
                 recordtokenbuf.write(s,1);
-                recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+                tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
           end;
@@ -2565,7 +3082,7 @@ In case not, the value returned can be arbitrary.
             s:=ST_FILEINDEX;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+            tokenwriteword(current_tokenpos.fileindex);
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
@@ -2577,13 +3094,15 @@ In case not, the value returned can be arbitrary.
           _CWSTRING :
             begin
               tokenwritesizeint(patternw^.len);
-              recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+              if patternw^.len>0 then
+                recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
               tokenwritesizeint(len);
-              recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
+              if len>0 then
+                recordtokenbuf.write(cstringpattern[1],len);
             end;
           _CCHAR,
           _INTCONST,
@@ -2679,7 +3198,8 @@ In case not, the value returned can be arbitrary.
               begin
                 wlen:=tokenreadsizeint;
                 setlengthwidestring(patternw,wlen);
-                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                if wlen>0 then
+                  replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
                 pattern:='';
                 cstringpattern:='';
@@ -2687,8 +3207,13 @@ In case not, the value returned can be arbitrary.
             _CSTRING:
               begin
                 wlen:=tokenreadsizeint;
-                setlength(cstringpattern,wlen);
-                replaytokenbuf.read(cstringpattern[1],wlen);
+                if wlen>0 then
+                  begin
+                    setlength(cstringpattern,wlen);
+                    replaytokenbuf.read(cstringpattern[1],wlen);
+                  end
+                else
+                  cstringpattern:='';
                 orgpattern:='';
                 pattern:='';
               end;
@@ -3062,13 +3587,13 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
+    procedure tscannerfile.ifpreprocstack(atyp:preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
       var
         condition: Boolean;
         valuedescr: String;
       begin
         if (preprocstack=nil) or preprocstack.accept then
-          condition:= compile_time_predicate(valuedescr)
+          condition:=compile_time_predicate(valuedescr)
         else
           begin
             condition:= false;
@@ -3407,13 +3932,6 @@ In case not, the value returned can be arbitrary.
         readnumber;
         val(pattern,l,w);
         readval:=l;
-      end;
-
-
-    function tscannerfile.readval_asstring:string;
-      begin
-        readnumber;
-        readval_asstring:=pattern;
       end;
 
 
@@ -4075,14 +4593,23 @@ In case not, the value returned can be arbitrary.
                              nexttoken:=_RECKKLAMMER;
                              goto exit_label;
                            end;
+                         '0'..'9' :
+                           begin
+                             { insert the number after the . }
+                             pattern:=pattern+'.';
+                             while c in ['0'..'9'] do
+                              begin
+                                pattern:=pattern+c;
+                                readchar;
+                              end;
+                           end;
+                         else
+                           begin
+                             token:=_INTCONST;
+                             nexttoken:=_POINT;
+                             goto exit_label;
+                           end;
                        end;
-                       { insert the number after the . }
-                       pattern:=pattern+'.';
-                       while c in ['0'..'9'] do
-                        begin
-                          pattern:=pattern+c;
-                          readchar;
-                        end;
                       end;
                   { E can also follow after a point is scanned }
                     if c in ['e','E'] then
@@ -4613,6 +5140,9 @@ exit_label:
 
 
     function tscannerfile.readpreproc:ttoken;
+      var
+        low,high,mid: longint;
+        optoken: ttoken;
       begin
          skipspace;
          case c of
@@ -4620,28 +5150,103 @@ exit_label:
            'A'..'Z',
            'a'..'z' :
              begin
-               current_scanner.preproc_pattern:=readid;
-               readpreproc:=_ID;
+               readstring;
+               optoken:=_ID;
+               if (pattern[1]<>'_') and (length(pattern) in [tokenlenmin..tokenlenmax]) then
+                begin
+                  low:=ord(tokenidx^[length(pattern),pattern[1]].first);
+                  high:=ord(tokenidx^[length(pattern),pattern[1]].last);
+                  while low<high do
+                   begin
+                     mid:=(high+low+1) shr 1;
+                     if pattern<tokeninfo^[ttoken(mid)].str then
+                      high:=mid-1
+                     else
+                      low:=mid;
+                   end;
+                  with tokeninfo^[ttoken(high)] do
+                    if pattern=str then
+                      begin
+                        if (keyword*current_settings.modeswitches)<>[] then
+                          if op=NOTOKEN then
+                            optoken:=ttoken(high)
+                          else
+                            optoken:=op;
+                      end;
+                  if not (optoken in preproc_operators) then
+                    optoken:=_ID;
+                end;
+               current_scanner.preproc_pattern:=pattern;
+               readpreproc:=optoken;
              end;
            '0'..'9' :
              begin
-               current_scanner.preproc_pattern:=readval_asstring;
-               { realnumber? }
-               if c='.' then
+               readnumber;
+               if (c in ['.','e','E']) then
                  begin
-                   readchar;
-                   while c in ['0'..'9'] do
+                   { first check for a . }
+                   if c='.' then
                      begin
-                       current_scanner.preproc_pattern:=current_scanner.preproc_pattern+c;
                        readchar;
+                       if c in ['0'..'9'] then
+                         begin
+                           { insert the number after the . }
+                           pattern:=pattern+'.';
+                           while c in ['0'..'9'] do
+                             begin
+                               pattern:=pattern+c;
+                               readchar;
+                             end;
+                         end
+                       else
+                         Illegal_Char(c);
                      end;
-                 end;
-               readpreproc:=_ID;
+                  { E can also follow after a point is scanned }
+                   if c in ['e','E'] then
+                     begin
+                       pattern:=pattern+'E';
+                       readchar;
+                       if c in ['-','+'] then
+                         begin
+                           pattern:=pattern+c;
+                           readchar;
+                         end;
+                       if not(c in ['0'..'9']) then
+                         Illegal_Char(c);
+                       while c in ['0'..'9'] do
+                         begin
+                           pattern:=pattern+c;
+                           readchar;
+                         end;
+                     end;
+                   readpreproc:=_REALNUMBER;
+                 end
+               else
+                 readpreproc:=_INTCONST;
+               current_scanner.preproc_pattern:=pattern;
              end;
-           '$','%','&' :
+           '$','%':
              begin
-               current_scanner.preproc_pattern:=readval_asstring;
-               readpreproc:=_ID;
+               readnumber;
+               current_scanner.preproc_pattern:=pattern;
+               readpreproc:=_INTCONST;
+             end;
+           '&' :
+             begin
+                readnumber;
+                if length(pattern)=1 then
+                  begin
+                    readstring;
+                    readpreproc:=_ID;
+                  end
+                else
+                  readpreproc:=_INTCONST;
+               current_scanner.preproc_pattern:=pattern;
+             end;
+           '.' :
+             begin
+               readchar;
+               readpreproc:=_POINT;
              end;
            ',' :
              begin

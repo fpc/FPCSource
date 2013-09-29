@@ -28,6 +28,10 @@ unit windows;
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 

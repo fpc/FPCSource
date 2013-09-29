@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2012 by the Free Pascal development team
+    Copyright (c) 2012-2013 by the Free Pascal development team
 
     Tiff reader for fpImage.
 
@@ -14,6 +14,7 @@
  **********************************************************************
 
  Working:
+   Black and white 1 bit,
    Grayscale 8,16bit (optional alpha),
    RGB 8,16bit (optional alpha),
    Orientation,
@@ -212,8 +213,8 @@ begin
   for i:=0 to SampleCnt-1 do begin
     if SampleBits[i]>64 then
       TiffError('Samples bigger than 64 bit not supported');
-    if not (SampleBits[i] in [8, 16]) then
-      TiffError('Only samples of 8 and 16 bit are supported');
+    if not (SampleBits[i] in [1, 8, 16]) then
+      TiffError('Only samples of 1, 8 and 16 bit are supported');
     inc(SampleBitsPerPixel, SampleBits[i]);
   end;
   case IFD.PhotoMetricInterpretation of
@@ -227,8 +228,8 @@ begin
           IFD.AlphaBits:=AlphaBits;
         end;
       end;
-      if not (GrayBits in [8, 16]) then
-        TiffError('gray image only supported with gray BitsPerSample 8 or 16');
+      if not (GrayBits in [1, 8, 16]) then
+        TiffError('gray image only supported with gray BitsPerSample 1, 8 or 16');
       if not (AlphaBits in [0, 8, 16]) then
         TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
     end;
@@ -358,26 +359,44 @@ end;
 
 procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
   Predictor: word; var LastValue: word; out Value: Word); inline;
+var
+  BitNumber: byte;
 begin
-  if BitCount=8 then begin
-    Value:=PCUInt8(Run)^;
-    if Predictor=2 then begin
-      // horizontal difference
-      if x>0 then
-        Value:=(Value+LastValue) and $ff;
-      LastValue:=Value;
+  case BitCount of
+  1:
+    begin
+      //Get the value of the right bit depending on x value and scale it to dword.
+      BitNumber:=7-(x mod 8); //Leftmost pixel starts with bit 7
+      Value:=$ffff*((PCUInt8(Run)^) and (1 shl BitNumber) shr BitNumber);
+      if Predictor=2 then begin
+        TiffError('predictor 2 not supported for bilevel images');
+      end;
+      if ((x+1) mod 8)=0 then
+        inc(Run); //next byte when all bits read
     end;
-    Value:=Value shl 8+Value;
-    inc(Run);
-  end else if BitCount=16 then begin
-    Value:=FixEndian(PCUInt16(Run)^);
-    if Predictor=2 then begin
-      // horizontal difference
-      if x>0 then
-        Value:=(Value+LastValue) and $ffff;
-      LastValue:=Value;
+  8:
+    begin
+      Value:=PCUInt8(Run)^;
+      if Predictor=2 then begin
+        // horizontal difference
+        if x>0 then
+          Value:=(Value+LastValue) and $ff;
+        LastValue:=Value;
+      end;
+      Value:=Value shl 8+Value;
+      inc(Run);
     end;
-    inc(Run,2);
+  16:
+    begin
+      Value:=FixEndian(PCUInt16(Run)^);
+      if Predictor=2 then begin
+        // horizontal difference
+        if x>0 then
+          Value:=(Value+LastValue) and $ffff;
+        LastValue:=Value;
+      end;
+      inc(Run,2);
+    end;
   end;
 end;
 
@@ -630,7 +649,7 @@ begin
     end;
   257:
     begin
-      // ImageLength
+      // ImageLength according to TIFF spec, here used as imageheight
       IFD.ImageHeight:=ReadEntryUnsigned;
       {$ifdef FPC_Debug_Image}
       if Debug then
@@ -822,11 +841,11 @@ begin
     end;
   273:
     begin
-      // StripOffsets
-      IFD.StripOffsets:=GetPos;
+      // StripOffsets (store offset to entity, not the actual contents of the offsets)
+      IFD.StripOffsets:=GetPos; //Store position of entity so we can look up multiple offsets later
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 273: StripOffsets=',IFD.StripOffsets);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 273: StripOffsets, offset for entry=',IFD.StripOffsets);
       {$endif}
     end;
   274:
@@ -886,11 +905,12 @@ begin
     end;
   279:
     begin
-      // StripByteCounts
+      // StripByteCounts (the number of bytes in each strip).
+      // We're storing the position of the tag, not the various bytecounts themselves
       IFD.StripByteCounts:=GetPos;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 279: StripByteCounts=',IFD.StripByteCounts);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 279: StripByteCounts, offset for entry=',IFD.StripByteCounts);
       {$endif}
     end;
   280:
@@ -914,8 +934,12 @@ begin
       // XResolution
       IFD.XResolution:=ReadEntryRational;
       {$ifdef FPC_Debug_Image}
-      if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 282: XResolution=',IFD.XResolution.Numerator,',',IFD.XResolution.Denominator);
+      try
+        if Debug then
+          writeln('TFPReaderTiff.ReadDirectoryEntry Tag 282: XResolution=',IFD.XResolution.Numerator,'/',IFD.XResolution.Denominator,'=',IFD.XResolution.Numerator/IFD.XResolution.Denominator);
+      except
+        //ignore division by 0
+      end;
       {$endif}
     end;
   283:
@@ -923,17 +947,20 @@ begin
       // YResolution
       IFD.YResolution:=ReadEntryRational;
       {$ifdef FPC_Debug_Image}
-      if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 283: YResolution=',IFD.YResolution.Numerator,',',IFD.YResolution.Denominator);
-      {$endif}
+      try
+        if Debug then
+          writeln('TFPReaderTiff.ReadDirectoryEntry Tag 283: YResolution=',IFD.YResolution.Numerator,'/',IFD.YResolution.Denominator,'=',IFD.YResolution.Numerator/IFD.YResolution.Denominator);
+      except
+        //ignore division by 0
+      end;      {$endif}
     end;
   284:
     begin
       // PlanarConfiguration
       SValue:=ReadEntrySigned;
       case SValue of
-      1: ; // chunky format
-      2: ; // planar format
+      TiffPlanarConfigurationChunky: ; // 1
+      TiffPlanarConfigurationPlanar: ; // 2
       else
         TiffError('expected PlanarConfiguration, but found '+IntToStr(SValue));
       end;
@@ -942,8 +969,8 @@ begin
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry Tag 284: PlanarConfiguration=');
         case SValue of
-        1: write('chunky format');
-        2: write('planar format');
+        TiffPlanarConfigurationChunky: write('chunky format');
+        TiffPlanarConfigurationPlanar: write('planar format');
         end;
         writeln;
       end;
@@ -1651,7 +1678,7 @@ begin
       ReadShortOrLongValues(IFD.TileByteCounts,ChunkByteCounts,CurCount);
       if CurCount<>ChunkCount then
         TiffError('number of TileByteCounts is wrong');
-    end else begin
+    end else begin //strip
       ChunkCount:=((IFD.ImageHeight-1) div IFD.RowsPerStrip)+1;
       ReadShortOrLongValues(IFD.StripOffsets,ChunkOffsets,CurCount);
       if CurCount<>ChunkCount then
@@ -1724,7 +1751,7 @@ begin
           // boundary tiles have padding
           ChunkBytesPerLine:=(SampleBitsPerPixel*IFD.TileWidth+7) div 8;
         end;
-      end else begin
+      end else begin //tctStrip
         ChunkLeft:=0;
         ChunkTop:=IFD.RowsPerStrip*ChunkIndex;
         ChunkWidth:=IFD.ImageWidth;
@@ -1774,7 +1801,7 @@ begin
         x:=sx;
         for cx:=0 to ChunkWidth-1 do begin
           case IFD.PhotoMetricInterpretation of
-          0,1:
+          0,1: // 0:bilevel grayscale 0 is white; 1:0 is black
             begin
               ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
               if IFD.PhotoMetricInterpretation=0 then

@@ -943,5 +943,11 @@
 'vxorpd',
 'vxorps',
 'vzeroall',
-'vzeroupper'
+'vzeroupper',
+'andn',
+'bextr',
+'rorx',
+'sarx',
+'shlx',
+'shrx'
 );

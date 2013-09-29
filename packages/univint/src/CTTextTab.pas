@@ -2,10 +2,11 @@
  *	CTTextTab.h
  *	CoreText
  *
- *	Copyright (c) 2004-2008 Apple Inc. All rights reserved.
+ *	Copyright (c) 2004-2012 Apple Inc. All rights reserved.
  *
  }
-{       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,8 +177,6 @@ uses MacTypes,CTParagraphStyle,CFBase,CFCharacterSet,CFDictionary;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {$ALIGN POWER}
 
 
@@ -202,7 +206,8 @@ uses MacTypes,CTParagraphStyle,CFBase,CFCharacterSet,CFDictionary;
 }
 
 type
-	CTTextTabRef = ^SInt32; { an opaque type }
+	CTTextTabRef = ^__CTTextTab; { an opaque type }
+	__CTTextTab = record end;
 
 
 {!
@@ -211,7 +216,7 @@ type
 }
 
 function CTTextTabGetTypeID: CFTypeID; external name '_CTTextTabGetTypeID';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -231,7 +236,7 @@ function CTTextTabGetTypeID: CFTypeID; external name '_CTTextTabGetTypeID';
 }
 
 var kCTTabColumnTerminatorsAttributeName: CFStringRef; external name '_kCTTabColumnTerminatorsAttributeName'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -260,7 +265,7 @@ var kCTTabColumnTerminatorsAttributeName: CFStringRef; external name '_kCTTabCol
 }
 
 function CTTextTabCreate( alignment: CTTextAlignment; location: Float64; options: CFDictionaryRef ): CTTextTabRef; external name '_CTTextTabCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 { --------------------------------------------------------------------------- }
@@ -278,7 +283,7 @@ function CTTextTabCreate( alignment: CTTextAlignment; location: Float64; options
 }
 
 function CTTextTabGetAlignment( tab: CTTextTabRef ): CTTextAlignment; external name '_CTTextTabGetAlignment';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -292,7 +297,7 @@ function CTTextTabGetAlignment( tab: CTTextTabRef ): CTTextAlignment; external n
 }
 
 function CTTextTabGetLocation( tab: CTTextTabRef ): Float64; external name '_CTTextTabGetLocation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 
 {!
@@ -307,9 +312,8 @@ function CTTextTabGetLocation( tab: CTTextTabRef ): Float64; external name '_CTT
 }
 
 function CTTextTabGetOptions( tab: CTTextTabRef ): CFDictionaryRef; external name '_CTTextTabGetOptions';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

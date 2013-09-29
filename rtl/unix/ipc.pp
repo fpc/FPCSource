@@ -210,7 +210,7 @@ Type
 {$packrecords c}
 {$endif}
 
-{$ifdef Linux}
+{$if defined(Linux)}
 {$ifdef cpux86_64}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
@@ -263,7 +263,7 @@ Type
 {$endif aix}
 
   const
-{$ifdef Linux}
+{$if defined(Linux)}
      SHM_R      = 4 shl 6;
      SHM_W      = 2 shl 6;
 {$else}
@@ -273,7 +273,7 @@ Type
 
      SHM_RDONLY = 1 shl 12;
      SHM_RND    = 2 shl 12;
-{$ifdef Linux}
+{$if defined(Linux)}
      SHM_REMAP  = 4 shl 12;
 {$endif}
 {$ifdef Darwin}
@@ -342,7 +342,7 @@ Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; {$ifdef FPC_USE_LIB
 const
   MSG_NOERROR = 1 shl 12;
 
-{$ifdef Linux}
+{$if defined(Linux)}
   MSG_EXCEPT  = 2 shl 12;
 
   MSGMNI = 128;
@@ -398,7 +398,7 @@ type
 
 type
 
-{$ifdef Linux}
+{$if defined(Linux)}
   PMSQid_ds = ^TMSQid_ds;
   TMSQid_ds = record
     msg_perm   : TIPC_perm;
@@ -528,7 +528,7 @@ Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LI
   ----------------------------------------------------------------------}
 
 const
-{$ifdef Linux}                  // renamed to many name clashes
+{$if defined(Linux)}                  // renamed to many name clashes
   SEM_UNDO = $1000;
   SEM_GETPID = 11;
   SEM_GETVAL = 12;
@@ -565,7 +565,7 @@ const
 {$endif}
 
 type
-{$ifdef Linux}
+{$if defined(Linux)}
 
 {$ifndef linux_ipc32}
  PSEMid_ds = ^TSEMid_ds;
@@ -705,7 +705,7 @@ Type
       0 : ( val : cint );
       1 : ( buf : PSEMid_ds );
       2 : ( arr : PWord );              // ^ushort
-{$ifdef linux}
+{$if defined(linux)}
       3 : ( padbuf : PSeminfo );
       4 : ( padpad : pointer );
 {$endif}
@@ -714,7 +714,7 @@ Type
 Function semget(key:Tkey; nsems:cint; semflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semget'; {$endif}
 Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semop'; {$endif}
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
-{$ifdef linux}
+{$if defined(linux)}
 Function semtimedop(semid:cint; sops: psembuf; nsops: cuint; timeOut: ptimespec): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semtimedop'; platform; {$else} platform; {$endif}
 {$endif}
 {$ifdef aix}
@@ -729,7 +729,7 @@ uses Syscall;
 {$endif ndef FPC_USE_LIBC}
 
 {$ifndef FPC_USE_LIBC}
- {$ifdef Linux}
+ {$if defined(Linux)}
   {$if defined(cpux86_64) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}

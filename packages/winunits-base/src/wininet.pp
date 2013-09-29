@@ -16,6 +16,10 @@ unit wininet;
 {$smartlink on}
 {$endif}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
+
 interface
 
 Uses Windows;
@@ -811,7 +815,7 @@ Const
      HTTP_MINOR_VERSION      = 0;
 
      HTTP_VERSIONA           = 'HTTP/1.0';
-     HTTP_VERSIONW           : widestring = 'HTTP/1.0';
+     HTTP_VERSIONW           = 'HTTP/1.0'#$0000; // force unicode url.
      {$ifdef UNICODE}
        HTTP_VERSION = HTTP_VERSIONW;
      {$ELSE}
@@ -2583,7 +2587,7 @@ Type
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
   function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
-  function FindCloseUrlCache(hEnumHandle:HANDLE):BOOL;stdcall;external WININETLIBNAME name 'FindCloseUrlCache';
+//  function FindCloseUrlCache(hEnumHandle:HANDLE):BOOL;stdcall;external WININETLIBNAME name 'FindCloseUrlCache';
   function DeleteUrlCacheEntry(lpszUrlName:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'DeleteUrlCacheEntryW';
   function InternetDial(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; lpdwConnection:PDWORD_PTR; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
 

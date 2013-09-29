@@ -317,7 +317,10 @@ unit cpubase;
     { returns the last virtual register }
     function GetLastReg(const r : TRegister) : TRegister;
 
+    { returns the register with the offset of ofs of a continuous set of register starting with r }
     function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
+    { returns the register with the offset of ofs of a continuous set of register starting with r and being continued with rhi }
+    function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
 
   implementation
 
@@ -326,7 +329,7 @@ unit cpubase;
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i ravrstd.inc}
       );
 
@@ -460,6 +463,15 @@ unit cpubase;
     function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
       begin
         result:=TRegister(longint(r)+ofs);
+      end;
+
+
+    function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
+      begin
+        if ofs>3 then
+          result:=TRegister(longint(rhi)+ofs-4)
+        else
+          result:=TRegister(longint(r)+ofs);
       end;
 
 

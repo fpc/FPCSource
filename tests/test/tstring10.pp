@@ -2,7 +2,7 @@ program punicodechartest;
 {$ifdef FPC}{$mode objfpc}{$h+}{$endif}
 {$ifdef mswindows}{$apptype console}{$endif}
 uses
- {$ifdef FPC}{$ifdef linux}cthreads,{$endif}{$endif}
+ {$ifdef FPC}{$ifdef unix}cthreads,{$endif}{$endif}
  sysutils;
 var
  astr: ansistring;

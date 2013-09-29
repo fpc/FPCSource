@@ -34,7 +34,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}{,tf_winlikewidestring},
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_smartlink_sections{,tf_winlikewidestring},
 {$ifdef segment_threadvars}
                             tf_section_threadvars,
 {$endif segment_threadvars}
@@ -69,8 +69,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -103,7 +103,7 @@ unit i_linux;
             name         : 'Linux for x64_6432';
             shortname    : 'Linux6432';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_pic_uses_got{,tf_smartlink_sections},
+                            tf_pic_uses_got,tf_smartlink_sections,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
@@ -133,8 +133,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -167,6 +167,7 @@ unit i_linux;
             name         : 'Linux for m68k';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment, { Coldfire seems to need this at least (KB) }
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
@@ -196,8 +197,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -229,7 +230,8 @@ unit i_linux;
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+            flags        : [tf_needs_symbol_size,tf_smartlink_sections,
+                            tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -259,8 +261,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -322,8 +324,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_dwarf2;
@@ -385,8 +387,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -418,7 +420,7 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
+            flags        : [tf_smartlink_sections,tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
                             tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_has_winlike_resources,tf_safecall_exceptions,tf_safecall_clearstack];
             cpu          : cpu_x86_64;
@@ -449,8 +451,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_x86_64_elf64;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_dwarf2;
@@ -515,8 +517,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -551,7 +553,8 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMHF';
@@ -580,8 +583,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -616,7 +619,8 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEL';
@@ -645,8 +649,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -681,7 +685,8 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEB';
@@ -710,8 +715,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -774,8 +779,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -842,8 +847,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -907,8 +912,8 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
@@ -938,14 +943,14 @@ unit i_linux;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef linux}
     { some FreeBSD versions define linux as well }
     {$ifndef FreeBSD}
       set_source_info(system_i386_linux_info);
     {$endif FreeBSD}
   {$endif}
-{$endif CPU86}
+{$endif CPUI386}
 {$ifdef CPU68}
   {$ifdef linux}
     set_source_info(system_m68k_linux_info);

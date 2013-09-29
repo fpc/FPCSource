@@ -230,6 +230,33 @@ var
            Message(unit_u_ppu_invalid_target,@queuecomment);
            exit;
          end;
+{$ifdef i8086}
+      { check i8086 memory model flags }
+        if ((ppufile.header.flags and uf_i8086_far_code)<>0) xor
+            (current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+           exit;
+         end;
+        if ((ppufile.header.flags and uf_i8086_far_data)<>0) xor
+            (current_settings.x86memorymodel in [mm_compact,mm_large]) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+           exit;
+         end;
+        if ((ppufile.header.flags and uf_i8086_huge_data)<>0) xor
+            (current_settings.x86memorymodel=mm_huge) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+           exit;
+         end;
+{$endif i8086}
 {$ifdef cpufpemu}
        { check if floating point emulation is on?
          fpu emulation isn't unit levelwise because it affects calling convention }
@@ -493,7 +520,7 @@ var
             hp:=sourcefiles.files;
             for i:=1 to j-1 do
               hp:=hp.ref_next;
-            ppufile.putstring(hp.name);
+            ppufile.putstring(hp.inc_path+hp.name);
             ppufile.putlongint(hp.getfiletime);
             dec(j);
          end;
@@ -711,6 +738,7 @@ var
     procedure tppumodule.readsourcefiles;
       var
         temp,hs       : string;
+        inc_path      : string;
         temp_dir      : TCmdStr;
         main_dir      : TCmdStr;
         found,
@@ -724,7 +752,8 @@ var
         main_dir:='';
         while not ppufile.endofentry do
          begin
-           hs:=ppufile.getstring;
+           hs:=SetDirSeparators(ppufile.getstring);
+           inc_path:=ExtractFilePath(hs);
            orgfiletime:=ppufile.getlongint;
            temp_dir:='';
            if sources_avail then
@@ -793,6 +822,7 @@ var
                       temp:=' not found';
                     end;
                   hp:=tdosinputfile.create(hs);
+                  hp.inc_path:=inc_path;
                   { the indexing is wrong here PM }
                   sourcefiles.register_file(hp);
                 end;
@@ -947,7 +977,6 @@ var
       var
         b : byte;
         newmodulename : string;
-        ns: string;
       begin
        { read interface part }
          repeat
@@ -1059,6 +1088,14 @@ var
           flags:=flags or uf_release;
          if assigned(localsymtable) then
            flags:=flags or uf_local_symtable;
+{$ifdef i8086}
+         if current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge] then
+           flags:=flags or uf_i8086_far_code;
+         if current_settings.x86memorymodel in [mm_compact,mm_large] then
+           flags:=flags or uf_i8086_far_data;
+         if current_settings.x86memorymodel=mm_huge then
+           flags:=flags or uf_i8086_huge_data;
+{$endif i8086}
 {$ifdef cpufpemu}
          if (cs_fp_emulation in current_settings.moduleswitches) then
            flags:=flags or uf_fpu_emulation;

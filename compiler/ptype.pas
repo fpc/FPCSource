@@ -44,13 +44,14 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    { parse nested type declaration of the def (typedef) }
+    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
+
 
     { add a definition for a method to a record/objectdef that will contain
       all code for initialising typed constants (only for targets in
@@ -79,7 +80,7 @@ implementation
        { modules }
        fmodule,
        { pass 1 }
-       node,ncgrtti,nobj,
+       node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -444,7 +445,7 @@ implementation
           begin
             if not assigned(srsym) or not (srsym.typ=typesym) then
               begin
-                Message(type_e_type_is_not_completly_defined);
+                Message1(type_e_type_is_not_completly_defined,def.typename);
                 def:=generrordef;
                 dospecialize:=false;
               end;
@@ -453,7 +454,8 @@ implementation
           begin
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
-            generate_specialization(def,stoParseClassParent in options,'',nil,'');
+            generate_specialization(def,stoParseClassParent in options,'');
+            parse_nested_types(def,stoIsForwardDef in options,nil);
           end
         else
           begin
@@ -492,8 +494,16 @@ implementation
                   )
                 then
               begin
-                Message(parser_e_no_generics_as_types);
-                def:=generrordef;
+                srsym:=resolve_generic_dummysym(srsym.name);
+                if assigned(srsym) and
+                    not (sp_generic_dummy in srsym.symoptions) and
+                    (srsym.typ=typesym) then
+                  def:=ttypesym(srsym).typedef
+                else
+                  begin
+                    Message(parser_e_no_generics_as_types);
+                    def:=generrordef;
+                  end;
               end
             else if (def.typ=undefineddef) and
                 (sp_generic_dummy in srsym.symoptions) and
@@ -503,8 +513,16 @@ implementation
               begin
                 if m_delphi in current_settings.modeswitches then
                   begin
-                    Message(parser_e_no_generics_as_types);
-                    def:=generrordef;
+                    srsym:=resolve_generic_dummysym(srsym.name);
+                    if assigned(srsym) and
+                        not (sp_generic_dummy in srsym.symoptions) and
+                        (srsym.typ=typesym) then
+                      def:=ttypesym(srsym).typedef
+                    else
+                      begin
+                        Message(parser_e_no_generics_as_types);
+                        def:=generrordef;
+                      end;
                   end
                 else
                   def:=current_genericdef;
@@ -520,6 +538,13 @@ implementation
 
 
     procedure parse_record_members;
+
+      function IsAnonOrLocal: Boolean;
+        begin
+          result:=(current_structdef.objname^='') or
+                  not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
+        end;
+
       var
         pd : tprocdef;
         oldparse_only: boolean;
@@ -544,8 +569,7 @@ implementation
                 member_blocktype:=bt_type;
 
                 { local and anonymous records can not have inner types. skip top record symtable }
-                if (current_structdef.objname^='') or
-                   not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) then
+                if IsAnonOrLocal then
                   Message(parser_e_no_types_in_local_anonymous_records);
               end;
             _VAR :
@@ -560,6 +584,10 @@ implementation
               begin
                 consume(_CONST);
                 member_blocktype:=bt_const;
+
+                { local and anonymous records can not have constants. skip top record symtable }
+                if IsAnonOrLocal then
+                  Message(parser_e_no_consts_in_local_anonymous_records);
               end;
             _ID, _CASE, _OPERATOR :
               begin
@@ -576,6 +604,7 @@ implementation
                      end;
                    _PROTECTED :
                      begin
+                       Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
                        consume(_PROTECTED);
                        current_structdef.symtable.currentvisibility:=vis_protected;
                        include(current_structdef.objectoptions,oo_has_protected);
@@ -617,6 +646,8 @@ implementation
                                 end;
                               _PROTECTED:
                                 begin
+                                  { "strict protected" is not allowed for records }
+                                  Message1(parser_e_not_allowed_in_record,tokeninfo^[_STRICT].str+' '+tokeninfo^[_PROTECTED].str);
                                   consume(_PROTECTED);
                                   current_structdef.symtable.currentvisibility:=vis_strictprotected;
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
@@ -639,7 +670,7 @@ implementation
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
-                      else
+                    else
                       begin
                         if member_blocktype=bt_general then
                           begin
@@ -648,7 +679,7 @@ implementation
                             vdoptions:=[vd_record];
                             if classfields then
                               include(vdoptions,vd_class);
-                            read_record_fields(vdoptions,nil);
+                            read_record_fields(vdoptions,nil,nil);
                           end
                         else if member_blocktype=bt_type then
                           types_dec(true)
@@ -661,6 +692,8 @@ implementation
               end;
             _PROPERTY :
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_properties_in_local_anonymous_records);
                 struct_property_dec(is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
@@ -676,19 +709,24 @@ implementation
                    not((token=_ID) and (idtoken=_OPERATOR)) then
                   Message(parser_e_procedure_or_function_expected);
 
+                if IsAnonOrLocal then
+                  Message(parser_e_no_class_in_local_anonymous_records);
+
                 is_classdef:=true;
               end;
             _PROCEDURE,
             _FUNCTION:
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 pd:=parse_record_method_dec(current_structdef,is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _CONSTRUCTOR :
               begin
-                if not is_classdef then
-                  Message(parser_e_no_constructor_in_records);
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
                   Message(parser_w_constructor_should_be_public);
 
@@ -701,7 +739,11 @@ implementation
                 if is_classdef then
                   pd:=class_constructor_head(current_structdef)
                 else
-                  pd:=constructor_head;
+                  begin
+                    pd:=constructor_head;
+                    if pd.minparacount = 0 then
+                      MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                  end;
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -709,6 +751,8 @@ implementation
               end;
             _DESTRUCTOR :
               begin
+                if IsAnonOrLocal then
+                  Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef then
                   Message(parser_e_no_destructor_in_records);
 
@@ -813,7 +857,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record],nil);
+             read_record_fields([vd_record],nil,nil);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));
@@ -842,7 +886,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -860,6 +904,9 @@ implementation
            old_block_type : tblock_type;
            dospecialize : boolean;
            newdef  : tdef;
+           sym     : tsym;
+           genstr  : string;
+           gencount : longint;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -968,7 +1015,7 @@ implementation
                        end;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,name,nil,'');
+                       generate_specialization(def,false,name);
                        { handle nested types }
                        if assigned(def) then
                          post_comp_expr_gendef(def);
@@ -1004,8 +1051,26 @@ implementation
                              )
                            then
                          begin
-                           Message(parser_e_no_generics_as_types);
-                           def:=generrordef;
+                           if assigned(def.typesym) then
+                             begin
+                               if ttypesym(def.typesym).typedef.typ<>undefineddef then
+                                 { non-Delphi modes... }
+                                 split_generic_name(def.typesym.name,genstr,gencount)
+                               else
+                                 genstr:=def.typesym.name;
+                               sym:=resolve_generic_dummysym(genstr);
+                             end
+                           else
+                             sym:=nil;
+                           if assigned(sym) and
+                               not (sp_generic_dummy in sym.symoptions) and
+                               (sym.typ=typesym) then
+                             def:=ttypesym(sym).typedef
+                           else
+                             begin
+                               Message(parser_e_no_generics_as_types);
+                               def:=generrordef;
+                             end;
                          end
                        else if is_classhelper(def) then
                          begin
@@ -1083,8 +1148,11 @@ implementation
               orddef :
                 begin
                   if torddef(def).ordtype in [uchar,
-                    u8bit,u16bit,
-                    s8bit,s16bit,s32bit,
+                    u8bit,
+                    s8bit,s16bit,
+{$if defined(cpu32bitaddr) or defined(cpu64bitaddr)}
+                    u16bit,s32bit,
+{$endif defined(cpu32bitaddr) or defined(cpu64bitaddr)}
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
@@ -1485,7 +1553,15 @@ implementation
                     (tt2.typ=undefineddef) and
                     assigned(tt2.typesym) and
                     (sp_generic_dummy in tt2.typesym.symoptions) then
-                  Message(parser_e_no_generics_as_types);
+                  begin
+                    sym:=resolve_generic_dummysym(tt2.typesym.name);
+                    if assigned(sym) and
+                        not (sp_generic_dummy in sym.symoptions) and
+                        (sym.typ=typesym) then
+                      tt2:=ttypesym(sym).typedef
+                    else
+                      Message(parser_e_no_generics_as_types);
+                  end;
                 { don't use getpointerdef() here, since this is a type
                   declaration (-> must create new typedef) }
                 def:=tpointerdef.create(tt2);
@@ -1656,7 +1732,16 @@ implementation
                     current_module.checkforwarddefs.add(def);
                 end
               else
-                expr_type;
+                if hadtypetoken and
+                    { don't allow "type helper" in mode delphi and require modeswitch class }
+                    ([m_delphi,m_class]*current_settings.modeswitches=[m_class]) and
+                    (token=_ID) and (idtoken=_HELPER) then
+                  begin
+                    consume(_HELPER);
+                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                  end
+                else
+                  expr_type;
          end;
 
          if def=nil then
@@ -1666,75 +1751,10 @@ implementation
 
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
       begin
-        read_named_type(def,nil,nil,nil,parseprocvardir);
+        read_named_type(def,nil,nil,nil,parseprocvardir,false);
       end;
 
 
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
-      var
-        i : longint;
-        def : tdef;
-        vmtwriter  : TVMTWriter;
-      begin
-{$ifdef jvm}
-        { no Delphi-style RTTI }
-        exit;
-{$endif jvm}
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            case def.typ of
-              recorddef :
-                write_persistent_type_info(trecorddef(def).symtable,is_global);
-              objectdef :
-                begin
-                  { Skip generics and forward defs }
-                  if (df_generic in def.defoptions) or
-                     (oo_is_forward in tobjectdef(def).objectoptions) then
-                    continue;
-                  write_persistent_type_info(tobjectdef(def).symtable,is_global);
-                  { Write also VMT if not done yet }
-                  if not(ds_vmt_written in def.defstates) then
-                    begin
-                      vmtwriter:=TVMTWriter.create(tobjectdef(def));
-                      if is_interface(tobjectdef(def)) then
-                        vmtwriter.writeinterfaceids;
-                      if (oo_has_vmt in tobjectdef(def).objectoptions) then
-                        vmtwriter.writevmt;
-                      vmtwriter.free;
-                      include(def.defstates,ds_vmt_written);
-                    end;
-                end;
-              procdef :
-                begin
-                  if assigned(tprocdef(def).localst) and
-                     (tprocdef(def).localst.symtabletype=localsymtable) then
-                    write_persistent_type_info(tprocdef(def).localst,false);
-                  if assigned(tprocdef(def).parast) then
-                    write_persistent_type_info(tprocdef(def).parast,false);
-                end;
-            end;
-            { generate always persistent tables for types in the interface so it can
-              be reused in other units and give always the same pointer location. }
-            { Init }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               is_managed_type(def) or
-               (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
-            { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,fullrtti);
-          end;
-      end;
 
 
     procedure add_typedconst_init_routine(def: tabstractrecorddef);

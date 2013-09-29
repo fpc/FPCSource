@@ -237,6 +237,8 @@ type
     procedure ShowStatistics;
     procedure ForEachCall(proc2call:TListCallback;arg:pointer);
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+    procedure WhileEachCall(proc2call:TListCallback;arg:pointer);
+    procedure WhileEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -273,6 +275,7 @@ type
     procedure Rename(const ANewName:TSymStr);
     property Name:TSymStr read GetName;
     property Hash:Longword read GetHash;
+    property OwnerList: TFPHashObjectList read FOwner;
   end;
 
   TFPHashObjectList = class(TObject)
@@ -308,6 +311,8 @@ type
     procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -579,10 +584,10 @@ type
       end;
 
 
-    function FPHash(const s:shortstring):LongWord;
-    function FPHash(P: PChar; Len: Integer): LongWord;
     function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
-    function FPHash(const a:ansistring):LongWord;
+    function FPHash(P: PChar; Len: Integer): LongWord; inline;
+    function FPHash(const s:shortstring):LongWord; inline;
+    function FPHash(const a:ansistring):LongWord; inline;
 
 
 implementation
@@ -742,7 +747,7 @@ end;
 
 class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 procedure TFPList.Exchange(Index1, Index2: Integer);
@@ -1137,59 +1142,38 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-    function FPHash(const s:shortstring):LongWord;
-      Var
-        p,pmax : pchar;
-      begin
-{$push}
-{$q-,r-}
-        result:=0;
-        p:=@s[1];
-        pmax:=@s[length(s)+1];
-        while (p<pmax) do
-          begin
-            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
-            inc(p);
-          end;
-{$pop}
-      end;
-
-    function FPHash(P: PChar; Len: Integer): LongWord;
-      Var
-        pmax : pchar;
-      begin
-{$push}
-{$q-,r-}
-        result:=0;
-        pmax:=p+len;
-        while (p<pmax) do
-          begin
-            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
-            inc(p);
-          end;
-{$pop}
-      end;
 
     function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
-      Var
-        pmax : pchar;
-      begin
+    Var
+      pmax : pchar;
+    begin
 {$push}
 {$q-,r-}
-        result:=Tag;
-        pmax:=p+len;
-        while (p<pmax) do
-          begin
-            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
-            inc(p);
-          end;
+      result:=Tag;
+      pmax:=p+len;
+      while (p<pmax) do
+        begin
+          {DJBHash: result:=result*33 + next_char}
+          result:=LongWord(LongInt(result shl 5) + LongInt(result)) + LongWord(P^);
+          inc(p);
+        end;
 {$pop}
-      end;
+    end;
 
-    function FPHash(const a: ansistring): LongWord;
-      begin
-         result:=fphash(pchar(a),length(a));
-      end;
+    function FPHash(P: PChar; Len: Integer): LongWord; inline;
+    begin
+      result:=fphash(P,Len, 5381);
+    end;
+
+    function FPHash(const s: shortstring): LongWord; inline;
+    begin
+      result:=fphash(pchar(@s[1]),length(s));
+    end;
+
+    function FPHash(const a: ansistring): LongWord; inline;
+    begin
+      result:=fphash(pchar(a),length(a));
+    end;
 
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
@@ -1461,7 +1445,7 @@ end;
 
 class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 function TFPHashList.Expand: TFPHashList;
@@ -1506,8 +1490,6 @@ begin
 end;
 
 function TFPHashList.InternalFind(AHash:LongWord;const AName:TSymStr;out PrevIndex:Integer):Integer;
-var
-  HashIndex : Integer;
 begin
   prefetch(AName[1]);
   Result:=FHashTable^[AHash and FCapacityMask];
@@ -1679,6 +1661,38 @@ begin
       p:=FHashList^[i].Data;
       if assigned(p) then
         proc2call(p,arg);
+    end;
+end;
+
+
+procedure TFPHashList.WhileEachCall(proc2call:TListCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  i:=0;
+  while i<count do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+      inc(i);
+    end;
+end;
+
+
+procedure TFPHashList.WhileEachCall(proc2call:TListStaticCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  i:=0;
+  while i<count do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+      inc(i);
     end;
 end;
 
@@ -1934,6 +1948,18 @@ end;
 procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
+
+procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FHashList.WhileEachCall(TListCallBack(proc2call),arg);
+end;
+
+
+procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FHashList.WhileEachCall(TListStaticCallBack(proc2call),arg);
 end;
 
 

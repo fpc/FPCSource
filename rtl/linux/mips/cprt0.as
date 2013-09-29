@@ -64,6 +64,7 @@
 		      void (*rtld_fini) (void), void *stack_end)
 */
  .text
+ .globl main
  .globl __start
  .type __start,@function
 __start:
@@ -84,7 +85,9 @@ _start:
 	/* Setup GP correctly if we're non-PIC.  */
  la $28,_gp
 
- la $4, main		/* main */
+ lui $4, %hi(main_stub)		/* main */
+ addiu $4,$4,%lo(main_stub)
+
  lw $5, 0($29)		/* argc */
  addiu $6, $29, 4	/* argv */
         /* store argc */
@@ -121,16 +124,35 @@ _start:
  jalr $t9
  .end _start
  .size _start, . - _start
-/* Crash if somehow it does return.  */
+
+        .globl  main_stub
+        .type   main_stub,@function
+main_stub:
+        lui     $v0,%hi(__fpc_ret_sp)
+        sw      $sp,%lo(__fpc_ret_sp)($v0)
+        lui     $v0,%hi(__fpc_ret_ra)
+        sw      $ra,%lo(__fpc_ret_ra)($v0)
+        lui     $v0,%hi(main)
+        addiu   $t9,$v0,%lo(main)
+        jr      $t9
+        nop
+        .size   main_stub,.-main_stub
+
+
 	.globl  _haltproc
 	.ent	_haltproc
 	.type   _haltproc,@function
 _haltproc:
-hlt: 
-	li      $v0,4001
-	syscall
- b hlt
-   .end _haltproc
+        lui     $v0,%hi(__fpc_ret_sp)
+        lw      $sp,%lo(__fpc_ret_sp)($v0)
+        lui     $v0,%hi(__fpc_ret_ra)
+        lw      $ra,%lo(__fpc_ret_ra)($v0)
+        jr      $ra
+        nop
+hlt:
+        b hlt
+        .end _haltproc
+        .size _haltproc,.-_haltproc
 
 /* Define a symbol for the first piece of initialized data.  */
  .data
@@ -142,6 +164,8 @@ __data_start:
 
         .comm __stkptr,4
         .comm __dl_fini,4
+        .comm __fpc_ret_sp,4
+        .comm __fpc_ret_ra,4
 
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4

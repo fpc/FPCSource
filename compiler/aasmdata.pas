@@ -89,7 +89,8 @@ interface
          sp_objcvartypes,
          sp_objcprotocolrefs,
          sp_varsets,
-         sp_floats
+         sp_floats,
+         sp_guids
       );
       
     const
@@ -121,6 +122,7 @@ interface
     type
       TAsmList = class(tlinkedlist)
          constructor create;
+         constructor create_without_marker;
          function  empty : boolean;
          function  getlasttaifilepos : pfileposinfo;
       end;
@@ -153,21 +155,20 @@ interface
         FConstPools    : array[TConstPoolType] of THashSet;
         function GetConstPools(APoolType: TConstPoolType): THashSet;
       public
-        name,
-        realname      : string[80];
+        name          : pshortstring;       { owned by tmodule }
         NextVTEntryNr : longint;
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
         ResStrInits   : TLinkedList;
-        constructor create(const n:string);
+        constructor create(n: pshortstring);
         destructor  destroy;override;
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
-        function  WeakRefAsmSymbol(const s : TSymStr) : TAsmSymbol;
-        function  RefAsmSymbol(const s : TSymStr) : TAsmSymbol;
+        function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
+        function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
         { create new assembler label }
         procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
@@ -287,6 +288,10 @@ implementation
         insert(tai_marker.create(mark_BlockStart));
       end;
 
+    constructor TAsmList.create_without_marker;
+      begin
+        inherited create;
+      end;
 
     function TAsmList.empty : boolean;
       begin
@@ -337,14 +342,13 @@ implementation
         Result := FConstPools[APoolType];
       end;
 
-    constructor TAsmData.create(const n:string);
+    constructor TAsmData.create(n:pshortstring);
       var
         alt : TAsmLabelType;
         hal : TAsmListType;
       begin
         inherited create;
-        realname:=n;
-        name:=upper(n);
+        name:=n;
         { symbols }
         FAsmSymbolDict:=TFPHashObjectList.create(true);
         FAltSymbolList:=TFPObjectList.Create(false);
@@ -435,22 +439,22 @@ implementation
       end;
 
 
-    function TAsmData.RefAsmSymbol(const s : TSymStr) : TAsmSymbol;
+    function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE)
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,_typ)
         { one normal reference removes the "weak" character of a symbol }
         else if (result.bind=AB_WEAK_EXTERNAL) then
           result.bind:=AB_EXTERNAL;
       end;
 
 
-    function TAsmData.WeakRefAsmSymbol(const s : TSymStr) : TAsmSymbol;
+    function TAsmData.WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,AT_NONE);
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,_typ);
       end;
 
 
@@ -482,13 +486,13 @@ implementation
 
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
-        if (target_info.system in (systems_linux + systems_bsd)) and
+        if (target_info.system in (systems_linux + systems_bsd + systems_android)) and
            { the next condition was
              (cs_create_smart in current_settings.moduleswitches) and
              but if we create_smartlink_sections, this is useless }
            (create_smartlink_library) and
            (alt = alt_dbgline) then
-          l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
+          l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt],alt)
         else
           l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
         inc(FNextLabelNr[alt]);
@@ -503,13 +507,13 @@ implementation
 
     procedure TAsmData.getglobaljumplabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_jump],alt_jump);
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt_jump],alt_jump);
         inc(FNextLabelNr[alt_jump]);
       end;
 
     procedure TAsmData.getdatalabel(out l : TAsmLabel);
       begin
-        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_data],alt_data);
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);
       end;
 

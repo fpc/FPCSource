@@ -3,6 +3,7 @@
  * All rights reserved. }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,26 +177,9 @@ uses MacTypes,CFBase,CGGeometry,CGBase,CFDictionary,CGAffineTransforms,CGColorSp
 
 
 type
-	CGContextRef = ^SInt32; { an opaque type }
+	CGContextRef = ^OpaqueCGContextRef; { an opaque type }
+	OpaqueCGContextRef = record end;
 
-
-{ Line join styles. }
-
-type
-	CGLineJoin = SInt32;
-const
-	kCGLineJoinMiter = 0;
-	kCGLineJoinRound = 1;
-	kCGLineJoinBevel = 2;
-
-{ Line cap styles. }
-
-type
-	CGLineCap = SInt32;
-const
-	kCGLineCapButt = 0;
-	kCGLineCapRound = 1;
-	kCGLineCapSquare = 2;
 
 { Drawing modes for paths. }
 
@@ -587,6 +576,7 @@ procedure CGContextStrokeEllipseInRect( context: CGContextRef; rect: CGRect ); e
 { Stroke a sequence of line segments one after another in `context'. The
    line segments are specified by `points', an array of `count' CGPoints.
    This function is equivalent to
+
      CGContextBeginPath(context);
      for (k = 0; k < count; k += 2) begin
          CGContextMoveToPoint(context, s[k].x, s[k].y);
@@ -983,11 +973,13 @@ procedure CGContextDrawPDFPage( c: CGContextRef; page: CGPDFPageRef ); external 
 
 {$ifc TARGET_OS_MAC}
 { DEPRECATED; use the CGPDFPage API instead.
- * Draw `page' in `document' in the rectangular area specified by `rect' in
- * the context `c'.  The media box of the page is scaled, if necessary, to
- * fit into `rect'. }
+
+   Draw `page' in `document' in the rectangular area specified by `rect' in
+   the context `c'. The media box of the page is scaled, if necessary, to
+   fit into `rect'. }
 
 procedure CGContextDrawPDFDocument( c: CGContextRef; rect: CGRect; document: CGPDFDocumentRef; page: SInt32 ); external name '_CGContextDrawPDFDocument';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 {$endc}
 
 {* Output page functions. *}

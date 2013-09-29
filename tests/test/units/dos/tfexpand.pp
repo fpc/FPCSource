@@ -398,18 +398,37 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  S := GetEnv ('HOME');
  { On m68k netbsd at least, HOME contains a final slash
    remove it PM }
- if S[length(S)]=DirSep then
+ if (Length (S) > 1) and (S [Length (S)] = DirSep) then
    S:=Copy(S,1,Length(S)-1);
- Check ('~', S);
- Check ('~' + DirSep + '.', S);
- if (Length (S) > 0) and (S [Length (S)] <> DirSep) then S := S + DirSep;
+ if Length (S) = 0 then
+  begin
+   Check ('~', CurDir);
+   Check ('~' + DirSep + '.', DirSep);
+  end
+ else
+  begin
+   Check ('~', S);
+   Check ('~' + DirSep + '.', S);
+  end;
+ if (Length (S) > 0) and (S [Length (S)] <> DirSep) then
+  S := S + DirSep;
  Check ('~NobodyWithThisNameShouldEverExist.test/nothing', CurDir + DirSep +
                             '~NobodyWithThisNameShouldEverExist.test/nothing');
  Check ('/tmp/~NoSuchUserAgain', '/tmp/~NoSuchUserAgain');
- Check ('~' + DirSep, S);
- Check ('~' + DirSep + '.' + DirSep, S);
- Check ('~' + DirSep + 'directory' + DirSep + 'another',
+ if Length (S) = 0 then
+  begin
+   Check ('~' + DirSep, DirSep);
+   Check ('~' + DirSep + '.' + DirSep, DirSep);
+   Check ('~' + DirSep + 'directory' + DirSep + 'another',
+                                    DirSep + 'directory' + DirSep + 'another');
+  end
+ else
+  begin
+   Check ('~' + DirSep, S);
+   Check ('~' + DirSep + '.' + DirSep, S);
+   Check ('~' + DirSep + 'directory' + DirSep + 'another',
                                          S + 'directory' + DirSep + 'another');
+  end;
 {$ELSE UNIX}
  {$IFNDEF NODRIVEC}
  Check (TestDrive + '..', TestDir + TestDir1Name);

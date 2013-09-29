@@ -434,13 +434,13 @@ end;
 
 Procedure TStrings.Error(const Msg: string; Data: Integer);
 begin
-  Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+  Raise EStringListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
 Procedure TStrings.Error(const Msg: pstring; Data: Integer);
 begin
-  Raise EStringListError.CreateFmt(Msg^,[Data]) at get_caller_addr(get_frame);
+  Raise EStringListError.CreateFmt(Msg^,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 
@@ -557,7 +557,7 @@ begin
   Result:=True;
 end;
 
-Procedure TStrings.SetTextStr(const Value: string);
+Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
@@ -566,7 +566,8 @@ Var
 begin
   Try
     beginUpdate;
-    Clear;
+    if DoClear then
+      Clear;
     P:=1;
     While GetNextLine (Value,S,P) do
       Add(S);
@@ -575,7 +576,17 @@ begin
   end;
 end;
 
+Procedure TStrings.SetTextStr(const Value: string);
 
+begin
+  DoSetTextStr(Value,True);
+end;
+
+Procedure TStrings.AddText(const S: string);
+
+begin
+  DoSetTextStr(S,False);
+end;
 
 Procedure TStrings.SetUpdateState(Updating: Boolean);
 
@@ -781,7 +792,7 @@ begin
     begin
     S:=Strings[Result];
     len:=pos(FNameValueSeparator,S)-1;
-    if (len>0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
+    if (len>=0) and (DoCompareText(Name,Copy(S,1,Len))=0) then
       exit;
     inc(result);
     end;
@@ -868,6 +879,7 @@ begin
   BeginUpdate;
   Obj:=Objects[CurIndex];
   Str:=Strings[CurIndex];
+  Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
   Delete(Curindex);
   InsertObject(NewIndex,Str,Obj);
   EndUpdate;
@@ -919,9 +931,9 @@ end;
 {*                             TStringList                                  *}
 {****************************************************************************}
 
-{$if defined(VER2_0) or not defined(FPC_TESTGENERICS)}
+{$if not defined(FPC_TESTGENERICS)}
 
-Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+Procedure TStringList.ExchangeItemsInt(Index1, Index2: Integer);
 
 Var P1,P2 : Pointer;
 
@@ -934,6 +946,11 @@ begin
   Pointer(Flist^[Index2].FObject):=P2;
 end;
 
+
+Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+begin
+  ExchangeItemsInt(Index1, Index2);
+end;
 
 
 Procedure TStringList.Grow;
@@ -952,7 +969,7 @@ begin
   SetCapacity(NC);
 end;
 
-Procedure TStringList.InternalClear;
+Procedure TStringList.InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
 
 Var
   I: Integer;
@@ -960,7 +977,7 @@ Var
 begin
   if FOwnsObjects then
     begin
-      For I:=0 to FCount-1 do
+      For I:=FromIndex to FCount-1 do
         begin
           Flist^[I].FString:='';
           freeandnil(Flist^[i].FObject);
@@ -968,21 +985,29 @@ begin
     end
   else
     begin
-      For I:=0 to FCount-1 do
+      For I:=FromIndex to FCount-1 do
         Flist^[I].FString:='';
     end;
-  FCount:=0;
-  SetCapacity(0);
+  FCount:=FromIndex;
+  if Not ClearOnly then
+    SetCapacity(0);
 end;
 
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 var
   Pivot, vL, vR: Integer;
+  ExchangeProc: procedure(Left, Right: Integer) of object;
 begin
+  //if ExchangeItems is override call that, else call (faster) ExchangeItemsInt
+  if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
+    ExchangeProc := @ExchangeItemsInt
+  else
+    ExchangeProc := @ExchangeItems;
+
   if R - L <= 1 then begin // a little bit of time saver
     if L < R then
       if CompareFn(Self, L, R) > 0 then
-        ExchangeItems(L, R);
+        ExchangeProc(L, R);
 
     Exit;
   end;
@@ -999,7 +1024,7 @@ begin
     while (vR > Pivot) and (CompareFn(Self, vR, Pivot) > 0) do
       Dec(vR);
 
-    ExchangeItems(vL, vR);
+    ExchangeProc(vL, vR);
 
     if Pivot = vL then // swap pivot if we just hit it from one side
       Pivot := vR
@@ -1016,16 +1041,7 @@ end;
 
 Procedure TStringList.InsertItem(Index: Integer; const S: string);
 begin
-  Changing;
-  If FCount=Fcapacity then Grow;
-  If Index<FCount then
-    System.Move (FList^[Index],FList^[Index+1],
-                 (FCount-Index)*SizeOf(TStringItem));
-  Pointer(Flist^[Index].Fstring):=Nil;  // Needed to initialize...
-  Flist^[Index].FString:=S;
-  Flist^[Index].Fobject:=Nil;
-  Inc(FCount);
-  Changed;
+  InsertItem(Index, S, nil);
 end;
 
 
@@ -1144,7 +1160,7 @@ end;
 Procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    MSize : Longint;
+    I,MSize : Longint;
 
 begin
   If (NewCapacity<0) then
@@ -1172,6 +1188,7 @@ begin
       FList := nil;
     end else
     begin
+      InternalClear(NewCapacity,True);
       GetMem(NewList, NewCapacity * SizeOf(TStringItem));
       System.Move(FList^, NewList^, NewCapacity * SizeOf(TStringItem));
       FreeMem(FList);
@@ -1253,20 +1270,23 @@ begin
   If (Index2<0) or (Index2>=FCount) then
     Error(SListIndexError,Index2);
   Changing;
-  ExchangeItems(Index1,Index2);
+  ExchangeItemsInt(Index1,Index2);
   changed;
 end;
 
 
 procedure TStringList.SetCaseSensitive(b : boolean);
-  begin
-        if b<>FCaseSensitive then
-          begin
-                FCaseSensitive:=b;
-            if FSorted then
-              sort;
-          end;
-  end;
+begin
+  if b=FCaseSensitive then
+    Exit;
+  FCaseSensitive:=b;
+  if FSorted then
+    begin
+    FForceSort:=True;
+    sort;
+    FForceSort:=False;
+    end;
+end;
 
 
 Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
@@ -1276,6 +1296,12 @@ Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
         else
           result:=AnsiCompareText(s1,s2);
   end;
+
+
+function TStringList.CompareStrings(const s1,s2 : string) : Integer;
+begin
+  Result := DoCompareText(s1, s2);
+end;
 
 
 Function TStringList.Find(const S: string; Out Index: Integer): Boolean;
@@ -1337,7 +1363,7 @@ end;
 Procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
-  If Not Sorted and (FCount>1) then
+  If (FForceSort or (Not Sorted)) and (FCount>1) then
     begin
     Changing;
     QuickSort(0,FCount-1, CompareFn);
@@ -1374,6 +1400,7 @@ begin
   FMap := TFPStrObjMap.Create;
   FMap.OnPtrCompare := @MapPtrCompare;
   FOnCompareText := @DefaultCompareText;
+  NameValueSeparator:='=';
   CheckSpecialChars;
 end;
 

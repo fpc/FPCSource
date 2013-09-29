@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: PUContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: PUContext);cdecl;public name '_FPC_DEFAULTSIGHANDLER';
 var
   res : word;
   addr : pointer;
@@ -70,11 +70,15 @@ begin
               UContext^.uc_mcontext.sigc_fpc_csr := UContext^.uc_mcontext.sigc_fpc_csr 
                 and not (fpu_cause_mask or fpu_flags_mask);
             end;             
-          { Change $a1, $a2, $a3 and sig_pc to HandleErrorAddrFrame parameters }
+          { Change $a0, $a1, $a2 and sig_pc to HandleErrorAddrFrame parameters }
           UContext^.uc_mcontext.sigc_regs[4]:=res;
           UContext^.uc_mcontext.sigc_regs[5]:=ptrint(addr);
           UContext^.uc_mcontext.sigc_regs[6]:=ptrint(frame);
           UContext^.uc_mcontext.sigc_pc:=ptrint(@HandleErrorAddrFrame);
+{$ifdef FPC_PIC}
+          { With PIC, we also have to set $t9 to procedure address }
+          UContext^.uc_mcontext.sigc_regs[25]:=ptrint(@HandleErrorAddrFrame);
+{$endif FPC_PIC}
           { Let the system call HandleErrorAddrFrame }
           exit;
         end

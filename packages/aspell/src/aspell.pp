@@ -279,7 +279,7 @@ uses
      * NULL and token.size will be 0  }
 
     // internal hacky version to go around a bug regarding struct results/cdecl
-    function __aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):{$IFDEF CPU64}{$IFDEF LINUX}QWord{$ELSE}AspellToken{$ENDIF}{$ELSE}AspellToken{$ENDIF};cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
+    function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):AspellToken;cdecl;external libaspell name 'aspell_document_checker_next_misspelling';
 
     { Returns the underlying filter class.  }
 
@@ -433,7 +433,6 @@ uses
     
   function aspell_init(const libn: ansistring): Boolean;
   function aspell_loaded: Boolean;
-  function aspell_document_checker_next_misspelling(ths:PAspellDocumentChecker):AspellToken;
 
 implementation
 
@@ -445,13 +444,6 @@ end;
 function aspell_loaded: Boolean;
 begin
   aspell_loaded := True;
-end;
-
-function aspell_document_checker_next_misspelling(ths: PAspellDocumentChecker
-  ): AspellToken;
-begin
-  // yup...
-  aspell_document_checker_next_misspelling := AspellToken(__aspell_document_checker_next_misspelling(ths));
 end;
 
 end.

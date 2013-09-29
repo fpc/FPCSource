@@ -86,6 +86,8 @@ Type
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
     Property LastURL : DomString Read FLastURL Write FLastURL;
+    // Overriden from fpdocwriter;
+    procedure DescrWriteText(const AText: DOMString); override;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     function InterpretOption(const Cmd, Arg: String): Boolean; override;
@@ -107,13 +109,12 @@ Type
     procedure WriteClassDecl(ClassDecl: TPasClassType);
     procedure WriteClassMethodOverview(ClassDecl: TPasClassType);
     procedure WriteClassPropertyOverview(ClassDecl: TPasClassType);
-    procedure WriteClassInterfacesOverView(ClassDecl: TPasClassType);
+    procedure WriteClassInterfacesOverview(ClassDecl: TPasClassType);
+    procedure WriteClassInheritanceOverview(ClassDecl: TPasClassType); virtual;
     procedure WriteProperty(PropDecl: TPasProperty);
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode);
     Procedure WriteTopicNode(Node : TDocNode; Level : Integer);
-    // Overriden from fpdocwriter;
-    procedure DescrWriteText(const AText: DOMString); override;
   end;
 
 implementation
@@ -415,6 +416,10 @@ begin
     ConvertNotes(ClassDecl,DocNode.Notes);
   end;
 
+  // graemeg: this must move above SeeAlso, Version and Notes written above.
+  // Write Class Hierarchy (Inheritance) Overview;
+  WriteClassInheritanceOverView(ClassDecl);
+
   // Write Interfaces Overview;
   WriteClassInterfacesOverView(ClassDecl);
   // Write method overview
@@ -517,7 +522,7 @@ begin
 end;
 
 
-procedure TLinearWriter.WriteClassInterfacesOverView(ClassDecl: TPasClassType);
+procedure TLinearWriter.WriteClassInterfacesOverview(ClassDecl: TPasClassType);
 var
   lInterface: TPasElement;
   i: Integer;
@@ -569,6 +574,12 @@ begin
   finally
     List.Free;
   end;
+end;
+
+procedure TLinearWriter.WriteClassInheritanceOverview(ClassDecl: TPasClassType);
+begin
+  { Do nothing by default. This will be implemented by descendant writers. See
+    the IPF Writer for an example. }
 end;
 
 

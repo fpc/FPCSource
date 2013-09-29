@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('nvapi');
 {$ifdef ALLPACKAGES}
-    P.Directory:='nvapi';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'NVidia, Andreas Hausladen, Dmitry "skalogryz" Boyarintsev';

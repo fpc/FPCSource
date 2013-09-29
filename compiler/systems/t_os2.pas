@@ -498,7 +498,7 @@ begin
    AppTypeStr := '-f'
   else AppTypeStr := '-w';
   if not (Current_module.ResourceFiles.Empty) then
-   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst
+   RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst + ' '
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
@@ -557,7 +557,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_os2_info,TLinkerOS2);
+  RegisterLinker(ld_os2,TLinkerOS2);
   RegisterImport(system_i386_os2,TImportLibOS2);
 {  RegisterRes(res_wrc_os2_info,TResourceFile);}
   RegisterTarget(system_i386_os2_info);

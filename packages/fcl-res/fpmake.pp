@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-res');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-res';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Giulio Bernardi';
@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Resource handling of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

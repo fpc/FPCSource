@@ -359,8 +359,9 @@ implementation
              on Exception do
                begin
                  { Increase errorcounter to prevent some
-                   checks during cleanup }
-                 inc(status.errorcount);
+                   checks during cleanup,
+                   but use GenerateError procedure for this. }
+                 GenerateError;
                  raise;
                end;
            end;

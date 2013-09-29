@@ -309,7 +309,7 @@ begin
 
   value_long_double := RESULT_LONGDOUBLE;
   test_param_longdouble(value_long_double);
-  if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
+  if Abs(RESULT_LONGDOUBLE - global_long_double) > 1E-15 then
     failed := true;
 {$endif}
 
@@ -406,7 +406,7 @@ begin
 {$ifdef test_longdouble}
   array_long_double[1] := RESULT_LONGDOUBLE;
   test_array_param_longdouble(array_long_double);
-  if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
+  if Abs(RESULT_LONGDOUBLE - global_long_double) > 1E-15 then
     failed := true;
 {$endif test_longdouble}
 
@@ -496,7 +496,7 @@ begin
   value_u8bit := RESULT_U8BIT;
   value_long_double := RESULT_LONGDOUBLE;
   test_param_mixed_long_double(value_long_double, value_u8bit);
-  if global_long_double <> value_long_double then
+  if Abs(RESULT_LONGDOUBLE - global_long_double) > 1E-15 then
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
@@ -726,7 +726,7 @@ begin
   clear_globals;
 
   value_long_double := test_function_longdouble;
-  if trunc(value_long_double) <> trunc(RESULT_LONGDOUBLE) then
+  if Abs(RESULT_LONGDOUBLE - value_long_double) > 1E-15 then
     failed := true;
 {$endif}
 

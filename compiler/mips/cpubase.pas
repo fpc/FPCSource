@@ -112,20 +112,26 @@ unit cpubase;
     type
       TAsmCond=(C_None,
         C_EQ, C_NE, C_LT, C_LE, C_GT, C_GE, C_LTU, C_LEU, C_GTU, C_GEU,
-        C_FEQ,  {Equal}
-        C_FNE, {Not Equal}
-        C_FGT,  {Greater}
-        C_FLT,  {Less}
-        C_FGE, {Greater or Equal}
-        C_FLE  {Less or Equal}
-
+        C_LTZ, C_LEZ, C_GTZ, C_GEZ,
+        C_COP1TRUE,
+        C_COP1FALSE
       );
 
     const
       cond2str : array[TAsmCond] of string[3]=('',
         'eq','ne','lt','le','gt','ge','ltu','leu','gtu','geu',
-        'feq','fne','fgt','flt','fge','fle'
+        'ltz','lez','gtz','gez',
+        'c1t','c1f'
       );
+
+    type
+      TResFlags=record
+        reg1: TRegister;
+        cond: TOpCmp;
+      case use_const: boolean of
+        False: (reg2: TRegister);
+        True: (value: aint);
+      end;
 
 {*****************************************************************************
                                  Constants
@@ -137,17 +143,6 @@ unit cpubase;
       maxintregs = 31;
       maxfpuregs = 8;
       maxaddrregs = 0;
-
-{*****************************************************************************
-                                Operand Sizes
-*****************************************************************************}
-
-    type
-      topsize = (S_NO,
-        S_B,S_W,S_L,S_BW,S_BL,S_WL,
-        S_IS,S_IL,S_IQ,
-        S_FS,S_FL,S_FX,S_D,S_Q,S_FV,S_FXX
-      );
 
 {*****************************************************************************
                                  Constants
@@ -236,6 +231,7 @@ unit cpubase;
       NR_FPU_RESULT_REG = NR_F0;
       NR_MM_RESULT_REG  = NR_NO;
 
+      NR_DEFAULTFLAGS = NR_NO;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -295,7 +291,7 @@ unit cpubase;
 
 
     const
-      std_regname_table : array[tregisterindex] of string[7] = (
+      std_regname_table : TRegNameTable = (
         {$i rmipsstd.inc}
       );
 
@@ -310,10 +306,17 @@ unit cpubase;
 
     function cgsize2subreg(regtype: tregistertype; s:tcgsize):tsubregister;
       begin
-        if s in [OS_64,OS_S64] then
-          cgsize2subreg:=R_SUBQ
+        case regtype of
+          R_FPUREGISTER:
+            if s=OS_F32 then
+              result:=R_SUBFS
+            else if s=OS_F64 then
+              result:=R_SUBFD
+            else
+              internalerror(2013021301);
         else
-          cgsize2subreg:=R_SUBWHOLE;
+          result:=R_SUBWHOLE;
+        end;
       end;
 
 
@@ -337,9 +340,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
-          To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
-        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC, A_BC1T, A_BC1F];
+        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC];
       end;
 
 
@@ -347,12 +348,9 @@ unit cpubase;
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
         C_NE, C_EQ, C_GE, C_GT, C_LE, C_LT, C_GEU, C_GTU, C_LEU, C_LTU,
-        C_FNE, 
-        C_FEQ, 
-        C_FLE, 
-        C_FGE, 
-        C_FLT, 
-        C_FGT  
+        C_GEZ, C_GTZ, C_LEZ, C_LTZ,
+        C_COP1FALSE,
+        C_COP1TRUE
         );
       begin
         result := inverse[c];

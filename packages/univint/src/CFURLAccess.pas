@@ -1,9 +1,10 @@
 {	CFURLAccess.h
-	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -79,6 +80,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -88,6 +90,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -103,6 +106,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +116,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -194,7 +200,7 @@ large files.
 
 }
 function CFURLCreateDataAndPropertiesFromResource( alloc: CFAllocatorRef; url: CFURLRef; resourceData: CFDataRefPtr; properties: CFDictionaryRefPtr; desiredProperties: CFArrayRef; var errorCode: SInt32 ): Boolean; external name '_CFURLCreateDataAndPropertiesFromResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 
 { Attempts to write the given data and properties to the given URL.
 If dataToWrite is NULL, only properties are written out (use
@@ -205,22 +211,22 @@ Returns success or failure; errorCode is set as for
 CFURLCreateDataAndPropertiesFromResource(), above.
 }
 function CFURLWriteDataAndPropertiesToResource( url: CFURLRef; dataToWrite: CFDataRef; propertiesToWrite: CFDictionaryRef; var errorCode: SInt32 ): Boolean; external name '_CFURLWriteDataAndPropertiesToResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 
 { Destroys the resource indicated by url. }
 { Returns success or failure; errorCode set as above. }
 function CFURLDestroyResource( url: CFURLRef; var errorCode: SInt32 ): Boolean; external name '_CFURLDestroyResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 
 { Convenience method which calls through to CFURLCreateDataAndPropertiesFromResource(). }
 { Returns NULL on error and sets errorCode accordingly. }
 function CFURLCreatePropertyFromResource( alloc: CFAllocatorRef; url: CFURLRef; proprty: CFStringRef; var errorCode: SInt32 ): CFTypeRef; external name '_CFURLCreatePropertyFromResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 
 
 { Common error codes (returned only by the older APIs that predate CFError) }
 type
-	CFURLError = SIGNEDLONG;
+	CFURLError = CFIndex;
 const
 	kCFURLUnknownError = -10;
 	kCFURLUnknownSchemeError = -11;
@@ -235,21 +241,21 @@ const
 { Older property keys }
 
 var kCFURLFileExists: CFStringRef; external name '_kCFURLFileExists'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLFileDirectoryContents: CFStringRef; external name '_kCFURLFileDirectoryContents'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLFileLength: CFStringRef; external name '_kCFURLFileLength'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLFileLastModificationTime: CFStringRef; external name '_kCFURLFileLastModificationTime'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLFilePOSIXMode: CFStringRef; external name '_kCFURLFilePOSIXMode'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLFileOwnerID: CFStringRef; external name '_kCFURLFileOwnerID'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLHTTPStatusCode: CFStringRef; external name '_kCFURLHTTPStatusCode'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 var kCFURLHTTPStatusLine: CFStringRef; external name '_kCFURLHTTPStatusLine'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_0, 2_0) *)
 
 { The value of kCFURLFileExists is a CFBoolean }
 { The value of kCFURLFileDirectoryContents is a CFArray containing CFURLs.  An empty array means the directory exists, but is empty }

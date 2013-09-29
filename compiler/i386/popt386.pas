@@ -41,7 +41,8 @@ uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpuinfo,cpubase,cgutils,daopt386;
+  cpuinfo,cpubase,cgutils,daopt386,
+  cgx86;
 
 
 function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
@@ -960,13 +961,13 @@ begin
                             if (base = taicpu(p).oper[1]^.reg) then
                               begin
                                 l := offset;
-                                if (l=1) then
+                                if (l=1) and UseIncDec then
                                   begin
                                     taicpu(p).opcode := A_INC;
                                     taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
                                     taicpu(p).ops := 1
                                   end
-                                else if (l=-1) then
+                                else if (l=-1) and UseIncDec then
                                   begin
                                     taicpu(p).opcode := A_DEC;
                                     taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
@@ -1304,7 +1305,16 @@ begin
                          (hp2.typ = ait_instruction) and
                          (taicpu(hp2).opcode = A_MOV) and
                          (taicpu(hp2).oper[0]^.typ = top_reg) and
-                         OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) then
+                         OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
+                         (((taicpu(hp1).ops=2) and
+                           (getsupreg(taicpu(hp2).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg))) or
+                           ((taicpu(hp1).ops=1) and
+                           (getsupreg(taicpu(hp2).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[0]^.reg)))) and
+                         { reg2 must not be used after the sequence considered, so
+                           it must be either deallocated or loaded with a new value }
+                         (GetNextInstruction(hp2,hp3) and
+                          (FindRegDealloc(getsupreg(taicpu(hp2).oper[0]^.reg),tai(hp3)) or
+                          RegLoadedWithNewValue(getsupreg(taicpu(hp2).oper[0]^.reg), false, hp3))) then
                       { change   movsX/movzX    reg/ref, reg2             }
                       {          add/sub/or/... reg3/$const, reg2         }
                       {          mov            reg2 reg/ref              }
@@ -2112,6 +2122,8 @@ begin
               end;
             case taicpu(p).opcode Of
               A_CALL:
+                { don't do this on modern CPUs, this really hurts them due to
+                  broken call/ret pairing }
                 if (current_settings.optimizecputype < cpu_Pentium2) and
                    not(cs_create_pic in current_settings.moduleswitches) and
                    GetNextInstruction(p, hp1) and

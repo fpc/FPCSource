@@ -45,6 +45,7 @@ begin
   if DateFloat<>0 then Halt(1);
 
   Db1.Free;
+  DeleteFile('testdatestr.dbf');
 end.
 
 

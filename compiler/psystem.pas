@@ -96,13 +96,16 @@ implementation
         systemunit.insert(tsyssym.create('Length',in_length_x));
         systemunit.insert(tsyssym.create('New',in_new_x));
         systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
-{$if defined(x86) or defined(arm) or defined(jvm)}
+{$ifdef SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
-{$endif defined(x86) or defined(arm) or defined(jvm)}
+{$endif SUPPORT_GET_FRAME}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
+        systemunit.insert(tsyssym.create('Aligned',in_aligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
         systemunit.insert(tsyssym.create('Default',in_default_x));
+        systemunit.insert(tconstsym.create_ord('False',constord,0,pasbool8type));
+        systemunit.insert(tconstsym.create_ord('True',constord,1,pasbool8type));
       end;
 
 
@@ -220,13 +223,15 @@ implementation
         tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
-        if target_info.system<>system_x86_64_win64 then
-          s64currencytype:=tfloatdef.create(s64currency)
-        else
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+        if target_info.system=system_x86_64_win64 then
           begin
             s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
             pbestrealtype:=@s64floattype;
-          end;
+          end
+        else
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
+          s64currencytype:=tfloatdef.create(s64currency);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
@@ -268,7 +273,22 @@ implementation
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
-        voidfarpointertype:=tpointerdef.createfar(voidtype);
+{$ifdef x86}
+        voidnearpointertype:=tpointerdef.createx86(voidtype,x86pt_near);
+        voidnearcspointertype:=tpointerdef.createx86(voidtype,x86pt_near_cs);
+        voidneardspointertype:=tpointerdef.createx86(voidtype,x86pt_near_ds);
+        voidnearsspointertype:=tpointerdef.createx86(voidtype,x86pt_near_ss);
+        voidnearespointertype:=tpointerdef.createx86(voidtype,x86pt_near_es);
+        voidnearfspointertype:=tpointerdef.createx86(voidtype,x86pt_near_fs);
+        voidneargspointertype:=tpointerdef.createx86(voidtype,x86pt_near_gs);
+  {$ifdef i8086}
+        voidfarpointertype:=tpointerdef.createx86(voidtype,x86pt_far);
+        voidhugepointertype:=tpointerdef.createx86(voidtype,x86pt_huge);
+        bytefarpointertype:=tpointerdef.createx86(u8inttype,x86pt_far);
+        wordfarpointertype:=tpointerdef.createx86(u16inttype,x86pt_far);
+        longintfarpointertype:=tpointerdef.createx86(s32inttype,x86pt_far);
+  {$endif i8086}
+{$endif x86}
         cfiletype:=tfiledef.createuntyped;
         cvarianttype:=tvariantdef.create(vt_normalvariant);
         colevarianttype:=tvariantdef.create(vt_olevariant);
@@ -297,19 +317,35 @@ implementation
             addtype('Extended',pbestrealtype^);
             { CExtended corresponds to the C version of the Extended type
               (either "long double" or "double") }
-            if tfloatdef(pbestrealtype^).floattype=s80real then
-              addtype('CExtended',sc80floattype)
+            if target_info.system in systems_android then
+              { Android has "long double"="double" even for x86 }
+              addtype('CExtended',s64floattype)
             else
-              addtype('CExtended',pbestrealtype^);
+              if tfloatdef(pbestrealtype^).floattype=s80real then
+                addtype('CExtended',sc80floattype)
+              else
+                addtype('CExtended',pbestrealtype^);
           end;
 {$ifdef x86}
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system<>system_x86_64_win64 then
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
           addtype('Comp',tfloatdef.create(s64comp));
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
 {$ifdef x86}
+        addtype('NearPointer',voidnearpointertype);
+        addtype('NearCsPointer',voidnearcspointertype);
+        addtype('NearDsPointer',voidneardspointertype);
+        addtype('NearSsPointer',voidnearsspointertype);
+        addtype('NearEsPointer',voidnearespointertype);
+        addtype('NearFsPointer',voidnearfspointertype);
+        addtype('NearGsPointer',voidneargspointertype);
+  {$ifdef i8086}
         addtype('FarPointer',voidfarpointertype);
+        addtype('HugePointer',voidhugepointertype);
+  {$endif i8086}
 {$endif x86}
         addtype('ShortString',cshortstringtype);
 {$ifdef support_longstring}
@@ -374,7 +410,22 @@ implementation
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
+{$ifdef x86}
+        addtype('$void_nearpointer',voidnearpointertype);
+        addtype('$void_nearcspointer',voidnearcspointertype);
+        addtype('$void_neardspointer',voidneardspointertype);
+        addtype('$void_nearsspointer',voidnearsspointertype);
+        addtype('$void_nearespointer',voidnearespointertype);
+        addtype('$void_nearfspointer',voidnearfspointertype);
+        addtype('$void_neargspointer',voidneargspointertype);
+  {$ifdef i8086}
         addtype('$void_farpointer',voidfarpointertype);
+        addtype('$void_hugepointer',voidhugepointertype);
+        addtype('$byte_farpointer',bytefarpointertype);
+        addtype('$word_farpointer',wordfarpointertype);
+        addtype('$longint_farpointer',longintfarpointertype);
+  {$endif i8086}
+{$endif x86}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
@@ -415,7 +466,14 @@ implementation
             addtype('$vtblarray',vmtarraytype);
             { Add a type for methodpointers }
             hrecst:=trecordsymtable.create('',1);
+{$ifdef i8086}
+            if current_settings.x86memorymodel in x86_far_code_models then
+              addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidfarpointertype,[]))
+            else
+              addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidnearpointertype,[]));
+{$else i8086}
             addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
+{$endif i8086}
             addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
             methodpointertype:=trecorddef.create('',hrecst);
             addtype('$methodpointer',methodpointertype);
@@ -440,8 +498,10 @@ implementation
       var
         oldcurrentmodule : tmodule;
       begin
+{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
           pbestrealtype:=@s64floattype;
+{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
         oldcurrentmodule:=current_module;
         set_current_module(nil);
@@ -485,7 +545,22 @@ implementation
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
+{$ifdef x86}
+        loadtype('void_nearpointer',voidnearpointertype);
+        loadtype('void_nearcspointer',voidnearcspointertype);
+        loadtype('void_neardspointer',voidneardspointertype);
+        loadtype('void_nearsspointer',voidnearsspointertype);
+        loadtype('void_nearespointer',voidnearespointertype);
+        loadtype('void_nearfspointer',voidnearfspointertype);
+        loadtype('void_neargspointer',voidneargspointertype);
+  {$ifdef i8086}
         loadtype('void_farpointer',voidfarpointertype);
+        loadtype('void_hugepointer',voidhugepointertype);
+        loadtype('byte_farpointer',bytefarpointertype);
+        loadtype('word_farpointer',wordfarpointertype);
+        loadtype('longint_farpointer',longintfarpointertype);
+  {$endif i8086}
+{$endif x86}
         loadtype('file',cfiletype);
         if not(target_info.system in systems_managed_vm) then
           begin
@@ -495,8 +570,7 @@ implementation
           end;
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
-        if not(target_info.system in systems_managed_vm) then
-          loadtype('methodpointer',methodpointertype);
+        loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
         set_default_int_types;
         set_current_module(oldcurrentmodule);
@@ -610,8 +684,6 @@ implementation
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;
-        aiclass[ait_ent]:=tai_ent;
-        aiclass[ait_ent_end]:=tai_ent_end;
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
         aiclass[ait_frame]:=tai_frame;
@@ -629,14 +701,19 @@ implementation
 {$endif SPARC}
 {$ifdef arm}
         aiclass[ait_thumb_func]:=tai_thumb_func;
+        aiclass[ait_thumb_set]:=tai_thumb_set;
 {$endif arm}
+        aiclass[ait_set]:=tai_set;
+        aiclass[ait_weak]:=tai_weak;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
         aiclass[ait_seh_directive]:=tai_seh_directive;
+{$ifdef JVM}
         aiclass[ait_jvar]:=tai_jvar;
         aiclass[ait_jcatch]:=tai_jcatch;
+{$endif JVM}
       end;
 
 end.

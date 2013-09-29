@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for fpcreslipo
+#
+
+[target]
+programs=fpcreslipo
+
+[clean]
+units=msghandler paramparser sourcehandler
+
+[require]
+packages=rtl fcl-res
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+fpcreslipo$(EXEEXT): msghandler.pp paramparser.pp sourcehandler.pp fpcreslipo.pp

@@ -40,6 +40,7 @@ const
   RTLD_LAZY         = $004;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $006;
+  RTLD_LOCAL        = 0;
   RTLD_GLOBAL       = $10000;
   RTLD_MEMBER       = $40000;
   RTLD_NEXT         = pointer(-3);
@@ -48,15 +49,28 @@ const
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $003;
+  {$ifdef DARWIN}
+  RTLD_LOCAL        = $004;
+  RTLD_GLOBAL       = $008;
+  RTLD_NOLOAD       = $010;
+  RTLD_NODELETE     = $080;
+  RTLD_FIRST        = $100;
+  RTLD_NEXT         = pointer(-1);
+  RTLD_DEFAULT      = pointer(-2);
+  RTLD_SELF         = pointer(-3);
+  RTLD_MAIN_ONLY    = pointer(-5);
+  {$else}
+  RTLD_LOCAL        = 0;
   RTLD_GLOBAL       = $100;
   RTLD_NEXT         = pointer(-1);
-{$ifdef LINUX}
+  {$ifdef LINUX}
   RTLD_DEFAULT      = nil;
-{$endif}
-{$ifdef BSD}
+  {$endif}
+  {$ifdef BSD}
   RTLD_DEFAULT      = pointer(-2);
   RTLD_MODEMASK     = RTLD_BINDING_MASK;
-{$endif}
+  {$endif}
+  {$endif}          // DARWIN
 {$endif}
 
 type
@@ -121,5 +135,7 @@ uses
 
 
 begin
+{$ifndef android}
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
+{$endif android}
 end.

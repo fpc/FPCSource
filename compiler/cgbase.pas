@@ -84,10 +84,24 @@ interface
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
+         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS}
+         {$IFDEF MIPS}
+         ,
+         addr_pic_call16,  // like addr_pic, but generates call16 reloc instead of got16
+         addr_low_pic,     // for large GOT model, generate got_hi16 and got_lo16 relocs
+         addr_high_pic,
+         addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
+         addr_high_call
          {$ENDIF}
          {$IFDEF AVR}
          ,addr_lo8
          ,addr_hi8
+         {$ENDIF}
+         {$IFDEF i8086}
+         ,addr_dgroup      // the data segment group
+         ,addr_far         // used for emitting 'call/jmp far label' instructions
+         ,addr_far_ref     // used for emitting 'call far [reference]' instructions
+         ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          );
 
@@ -286,17 +300,27 @@ interface
        tvarregable2tcgloc : array[tvarregable] of tcgloc = (LOC_VOID,
           LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER,LOC_CREGISTER);
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
        { operand size describing an unsigned value in a pair of int registers }
        OS_PAIR = OS_128;
        { operand size describing an signed value in a pair of int registers }
        OS_SPAIR = OS_S128;
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
        { operand size describing an unsigned value in a pair of int registers }
        OS_PAIR = OS_64;
        { operand size describing an signed value in a pair of int registers }
        OS_SPAIR = OS_S64;
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_32;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S32;
+{$elseif defined(cpu8bitalu)}
+       { operand size describing an unsigned value in a pair of int registers }
+       OS_PAIR = OS_16;
+       { operand size describing an signed value in a pair of int registers }
+       OS_SPAIR = OS_S16;
+{$endif}
 
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
@@ -600,6 +624,10 @@ implementation
             result:=result+'ms';
           R_SUBMMWHOLE:
             result:=result+'ma';
+          R_SUBMMX:
+            result:=result+'mx';
+          R_SUBMMY:
+            result:=result+'my';
           else
             internalerror(200308252);
         end;

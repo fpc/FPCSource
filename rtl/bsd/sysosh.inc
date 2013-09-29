@@ -26,5 +26,8 @@ type
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = {$i pmutext.inc}
 
-
+{$if defined(darwin) and defined(powerpc)}
+  { for profiling support }
+  procedure mcount(p: pointer); compilerproc; cdecl; external;
+{$endif}
 

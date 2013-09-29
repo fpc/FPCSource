@@ -18,6 +18,9 @@ function Trim(const S: unicodestring): unicodestring;
 function TrimLeft(const S: unicodestring): unicodestring;
 function TrimRight(const S: unicodestring): unicodestring;
 
+function UpperCase(const s: UnicodeString): UnicodeString; overload;
+function LowerCase(const s: UnicodeString): UnicodeString; overload;
+
 function UnicodeUpperCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UnicodeLowerCase(const s : UnicodeString) : UnicodeString;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UnicodeCompareStr(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -32,13 +35,35 @@ Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Ca
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const);
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const; Const FormatSettings: TFormatSettings);
 
+function StrMove(dest,source : PWideChar;l : SizeInt) : PWideChar; overload;
 function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
 function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
-{$IFNDEF VER2_4}
+function StrScan(P: PWideChar; C: WideChar): PWideChar; overload;
+function strnew(p : PWideChar) : PWideChar; overload;
+
+function StrPas(Str: PWideChar): UnicodeString;overload;
+
+function strecopy(dest,source : pwidechar) : pwidechar;
+function strend(p : pwidechar) : pwidechar;
+function strcat(dest,source : pwidechar) : pwidechar;
+function strcomp(str1,str2 : pwidechar) : SizeInt;
+function strlcomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+function stricomp(str1,str2 : pwidechar) : SizeInt;
+function strlcat(dest,source : pwidechar;l : SizeInt) : pwidechar;
+function strrscan(p : pwidechar;c : widechar) : pwidechar;
+function strlower(p : pwidechar) : pwidechar;
+function strupper(p : pwidechar) : pwidechar;
+function strlicomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
+function strpos(str1,str2 : pwidechar) : pwidechar;
+
+function WideStrAlloc(size: cardinal): pwidechar;
+function StrBufSize(str: pwidechar): Cardinal;
+procedure StrDispose(str: pwidechar);
+
+
 function BytesOf(const Val: UnicodeString): TBytes; overload;
 function BytesOf(const Val: WideChar): TBytes; overload;
 function StringOf(const Bytes: TBytes): UnicodeString;
-{$ENDIF VER2_4}
 function WideBytesOf(const Value: UnicodeString): TBytes;
 function WideStringOf(const Value: TBytes): UnicodeString;
 function ByteLength(const S: UnicodeString): Integer;

@@ -111,6 +111,8 @@ Type
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
   Protected
+    Function HandleActions(ARequest : TRequest): Boolean; virtual;
+    procedure DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean); virtual;
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
     Procedure DoAfterResponse(AResponse : TResponse); virtual;
     Procedure GetParam(Const ParamName : String; Out Value : String); virtual; // Called by template
@@ -360,6 +362,11 @@ begin
     FTemplate.Assign(AValue);
 end;
 
+function TCustomFPWebModule.HandleActions(ARequest: TRequest): Boolean;
+begin
+  Result:=True;
+end;
+
 procedure TCustomFPWebModule.DoBeforeRequest(ARequest : TRequest);
 begin
   If Assigned(FBeforeRequest) then
@@ -435,6 +442,13 @@ begin
 end;
 
 
+procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; Var AHandled : Boolean);
+
+begin
+  If Assigned(FOnRequest) then
+    FOnRequest(Self,ARequest,AResponse,AHandled);
+end;
+
 procedure TCustomFPWebModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
@@ -450,8 +464,7 @@ begin
   DoBeforeRequest(ARequest);
   B:=False;
   InitSession(AResponse);
-  If Assigned(FOnRequest) then
-    FOnRequest(Self,ARequest,AResponse,B);
+  DoOnRequest(ARequest,AResponse,B);
   If B then
     begin
     if not AResponse.ContentSent then
@@ -460,7 +473,7 @@ begin
   else
     if FTemplate.HasContent then
       GetTemplateContent(ARequest,AResponse)
-    else
+    else if HandleActions(ARequest) then
       begin
       Actions.HandleRequest(ARequest,AResponse,B);
       FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
@@ -468,7 +481,6 @@ begin
       If Not B then
         Raise EFPWebError.Create(SErrRequestNotHandled);
       end;
-      
   DoAfterResponse(AResponse);
   UpdateSession(AResponse);
   FRequest := Nil;

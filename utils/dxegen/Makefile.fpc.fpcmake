@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for Free Pascal Utils
+#
+
+[target]
+programs_go32v2=dxegen
+
+[clean]
+units=coff
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+dxegen$(EXEEXT): dxegen.pp coff$(PPUEXT)
+
+coff$(PPUEXT)  : coff.pp

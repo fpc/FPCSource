@@ -41,5 +41,6 @@ begin
     AssertTrue(PassException);
 
     end;
+  FreeDBConnector;
 end.
 

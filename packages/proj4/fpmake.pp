@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('proj4');
 {$ifdef ALLPACKAGES}
-    P.Directory:='proj4';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');

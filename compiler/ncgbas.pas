@@ -131,7 +131,7 @@ interface
            end;
         end;
 
-      procedure ResolveRef(var op:toper);
+      procedure ResolveRef(const filepos: tfileposinfo; var op:toper);
         var
           sym : tabstractnormalvarsym;
 {$ifdef x86}
@@ -186,7 +186,7 @@ interface
                 LOC_REGISTER :
                   begin
                     if getoffset then
-                      Message(asmr_e_invalid_reference_syntax);
+                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
                     { Subscribed access }
                     if forceref or
                        (sofs<>0) then
@@ -206,18 +206,19 @@ interface
                         op.reg:=sym.localloc.register;
                       end;
                   end;
+                LOC_FPUREGISTER,
+                LOC_MMXREGISTER,
                 LOC_MMREGISTER :
                   begin
+                    op.typ:=top_reg;
+                    op.reg:=NR_NO;
                     if getoffset then
-                      Message(asmr_e_invalid_reference_syntax);
-                    { Subscribed access }
+                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
+                    { Using an MM/FPU register in a reference is not possible }
                     if forceref or (sofs<>0) then
-                      internalerror(201001032)
+                      MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
                     else
-                      begin
-                        op.typ:=top_reg;
-                        op.reg:=sym.localloc.register;
-                      end;
+                      op.reg:=sym.localloc.register;
                   end;
                 LOC_INVALID :
                   begin
@@ -226,7 +227,7 @@ interface
                       result is returned via a complex location
                       (more than one register, ...) }
                     if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                      Message(asmr_e_complex_function_result_location)
+                      MessagePos(filepos,asmr_e_complex_function_result_location)
                     else
                       internalerror(2012082101);
                     { recover }
@@ -284,7 +285,7 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
-                          ResolveRef(taicpu(hp2).oper[i-1]^);
+                          ResolveRef(taicpu(hp2).fileinfo,taicpu(hp2).oper[i-1]^);
                           with taicpu(hp2).oper[i-1]^ do
                            begin
                              case typ of
@@ -328,7 +329,7 @@ interface
 {$endif}
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
-                         ResolveRef(taicpu(hp).oper[i-1]^);
+                         ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^);
 {$ifdef x86}
                       { can only be checked now that all local operands }
                       { have been resolved                              }
@@ -414,13 +415,11 @@ interface
         if not(ti_reference in tempinfo^.flags) then
           begin
             { get a (persistent) temp }
-            if is_managed_type(tempinfo^.typedef) then
+            if is_managed_type(tempinfo^.typedef) and
+              not(ti_const in tempinfo^.flags) then
               begin
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
                 tg.gethltemptyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
-                { the temp could have been used previously either because the memory location was reused or
-                  because we're in a loop. In case it's used as a function result, that doesn't matter
-                  because it will be finalized when assigned to. }
                 if not(ti_nofini in tempinfo^.flags) then
                   hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end

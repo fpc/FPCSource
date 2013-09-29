@@ -1,19 +1,17 @@
 {
-     File:       LaunchServices/IconsCore.h
+     File:       IconsCore.h
  
      Contains:   Icon Utilities and Icon Services Interfaces.
  
-     Version:    LaunchServices-360.3~1
- 
-     Copyright:  © 1990-2008 by Apple Computer, Inc. All rights reserved
+     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://www.freepascal.org/bugs.html
- 
 }
 {       Initial Pascal Translation:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Updated Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +87,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +97,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +113,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +123,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +134,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -274,7 +277,8 @@ const
 
 { IconRefs are 32-bit values identifying cached icon data. IconRef 0 is invalid.}
 type
-	IconRef = ^SInt32; { an opaque type }
+	IconRef = ^OpaqueIconRef; { an opaque type }
+	OpaqueIconRef = record end;
 	IconRef_fix = IconRef;	{ used as a type identifiers in records containing iconRef field }
 	IconRefPtr = ^IconRef;
 {
@@ -565,7 +569,7 @@ const
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function GetIconRefOwners( theIconRef: IconRef; var owners: UInt16 ): OSErr; external name '_GetIconRefOwners';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -585,7 +589,7 @@ function GetIconRefOwners( theIconRef: IconRef; var owners: UInt16 ): OSErr; ext
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function AcquireIconRef( theIconRef: IconRef ): OSErr; external name '_AcquireIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -609,7 +613,7 @@ function AcquireIconRef( theIconRef: IconRef ): OSErr; external name '_AcquireIc
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function ReleaseIconRef( theIconRef: IconRef ): OSErr; external name '_ReleaseIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -649,7 +653,7 @@ function ReleaseIconRef( theIconRef: IconRef ): OSErr; external name '_ReleaseIc
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function GetIconRefFromFile( const (*var*) theFile: FSSpec; var theIconRef: IconRef; var theLabel: SInt16 ): OSErr; external name '_GetIconRefFromFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}	{ not TARGET_CPU_64 }
 
@@ -678,7 +682,7 @@ function GetIconRefFromFile( const (*var*) theFile: FSSpec; var theIconRef: Icon
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function GetIconRef( vRefNum: SInt16; creator: OSType; iconType: OSType; var theIconRef: IconRef ): OSErr; external name '_GetIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -705,7 +709,7 @@ function GetIconRef( vRefNum: SInt16; creator: OSType; iconType: OSType; var the
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function GetIconRefFromFolder( vRefNum: SInt16; parentFolderID: SInt32; folderID: SInt32; attributes: SInt8; accessPrivileges: SInt8; var theIconRef: IconRef ): OSErr; external name '_GetIconRefFromFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { GetIconRefFromFileInfo}
@@ -759,7 +763,7 @@ function GetIconRefFromFolder( vRefNum: SInt16; parentFolderID: SInt32; folderID
  *    Non-Carbon CFM:   not available
  }
 function GetIconRefFromFileInfo( const (*var*) inRef: FSRef; inFileNameLength: UniCharCount; {const} inFileName: UniCharPtr { can be NULL }; inWhichInfo: FSCatalogInfoBitmap; {const} inCatalogInfo: FSCatalogInfoPtr { can be NULL }; inUsageFlags: IconServicesUsageFlags; var outIconRef: IconRef; outLabel: SInt16Ptr { can be NULL } ): OSStatus; external name '_GetIconRefFromFileInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 { GetIconRefFromTypeInfo}
@@ -807,7 +811,7 @@ function GetIconRefFromFileInfo( const (*var*) inRef: FSRef; inFileNameLength: U
  *    Non-Carbon CFM:   not available
  }
 function GetIconRefFromTypeInfo( inCreator: OSType; inType: OSType; inExtension: CFStringRef; inMIMEType: CFStringRef; inUsageFlags: IconServicesUsageFlags; var outIconRef: IconRef ): OSErr; external name '_GetIconRefFromTypeInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 { GetIconRefFromIconFamilyPtr}
@@ -840,7 +844,7 @@ function GetIconRefFromTypeInfo( inCreator: OSType; inType: OSType; inExtension:
  *    Non-Carbon CFM:   not available
  }
 function GetIconRefFromIconFamilyPtr( const (*var*) inIconFamilyPtr: IconFamilyResource; inSize: Size; var outIconRef: IconRef ): OSStatus; external name '_GetIconRefFromIconFamilyPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 { GetIconRefFromComponent}
@@ -872,7 +876,7 @@ function GetIconRefFromIconFamilyPtr( const (*var*) inIconFamilyPtr: IconFamilyR
  *    Non-Carbon CFM:   not available
  }
 function GetIconRefFromComponent( inComponent: Component; var outIconRef: IconRef ): OSStatus; external name '_GetIconRefFromComponent';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 
 {
@@ -906,7 +910,7 @@ function GetIconRefFromComponent( inComponent: Component; var outIconRef: IconRe
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function RegisterIconRefFromIconFamily( creator: OSType; iconType: OSType; iconFamily: IconFamilyHandle; var theIconRef: IconRef ): OSErr; external name '_RegisterIconRefFromIconFamily';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -933,7 +937,7 @@ function RegisterIconRefFromIconFamily( creator: OSType; iconType: OSType; iconF
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function RegisterIconRefFromResource( creator: OSType; iconType: OSType; const (*var*) resourceFile: FSSpec; resourceID: SInt16; var theIconRef: IconRef ): OSErr; external name '_RegisterIconRefFromResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}	{ not TARGET_CPU_64 }
 
@@ -969,7 +973,7 @@ function RegisterIconRefFromResource( creator: OSType; iconType: OSType; const (
  *    Non-Carbon CFM:   not available
  }
 function RegisterIconRefFromFSRef( creator: OSType; iconType: OSType; const (*var*) iconFile: FSRef; var theIconRef: IconRef ): OSStatus; external name '_RegisterIconRefFromFSRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 
 {
@@ -992,7 +996,7 @@ function RegisterIconRefFromFSRef( creator: OSType; iconType: OSType; const (*va
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function UnregisterIconRef( creator: OSType; iconType: OSType ): OSErr; external name '_UnregisterIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1019,7 +1023,7 @@ function UnregisterIconRef( creator: OSType; iconType: OSType ): OSErr; external
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function UpdateIconRef( theIconRef: IconRef ): OSErr; external name '_UpdateIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1042,7 +1046,7 @@ function UpdateIconRef( theIconRef: IconRef ): OSErr; external name '_UpdateIcon
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function OverrideIconRefFromResource( theIconRef: IconRef; const (*var*) resourceFile: FSSpec; resourceID: SInt16 ): OSErr; external name '_OverrideIconRefFromResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}	{ not TARGET_CPU_64 }
 
@@ -1065,7 +1069,7 @@ function OverrideIconRefFromResource( theIconRef: IconRef; const (*var*) resourc
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function OverrideIconRef( oldIconRef: IconRef; newIconRef: IconRef ): OSErr; external name '_OverrideIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1086,7 +1090,7 @@ function OverrideIconRef( oldIconRef: IconRef; newIconRef: IconRef ): OSErr; ext
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function RemoveIconRefOverride( theIconRef: IconRef ): OSErr; external name '_RemoveIconRefOverride';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1114,7 +1118,7 @@ function RemoveIconRefOverride( theIconRef: IconRef ): OSErr; external name '_Re
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function CompositeIconRef( backgroundIconRef: IconRef; foregroundIconRef: IconRef; var compositeIconRef: IconRef ): OSErr; external name '_CompositeIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1135,7 +1139,7 @@ function CompositeIconRef( backgroundIconRef: IconRef; foregroundIconRef: IconRe
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function IsIconRefComposite( compositeIconRef: IconRef; var backgroundIconRef: IconRef; var foregroundIconRef: IconRef ): OSErr; external name '_IsIconRefComposite';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1161,7 +1165,7 @@ function IsIconRefComposite( compositeIconRef: IconRef; var backgroundIconRef: I
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function IsValidIconRef( theIconRef: IconRef ): Boolean; external name '_IsValidIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { IsDataAvailableInIconRef}
@@ -1192,7 +1196,7 @@ function IsValidIconRef( theIconRef: IconRef ): Boolean; external name '_IsValid
  *    Non-Carbon CFM:   not available
  }
 function IsDataAvailableInIconRef( inIconKind: OSType; inIconRef: IconRef ): Boolean; external name '_IsDataAvailableInIconRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_NA) *)
 
 
 {
@@ -1223,7 +1227,7 @@ function IsDataAvailableInIconRef( inIconKind: OSType; inIconRef: IconRef ): Boo
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function FlushIconRefs( creator: OSType; iconType: OSType ): OSErr; external name '_FlushIconRefs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1246,7 +1250,7 @@ function FlushIconRefs( creator: OSType; iconType: OSType ): OSErr; external nam
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function FlushIconRefsByVolume( vRefNum: SInt16 ): OSErr; external name '_FlushIconRefsByVolume';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}	{ not TARGET_CPU_64 }
 
@@ -1276,7 +1280,7 @@ function FlushIconRefsByVolume( vRefNum: SInt16 ): OSErr; external name '_FlushI
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function SetCustomIconsEnabled( vRefNum: SInt16; enableCustomIcons: Boolean ): OSErr; external name '_SetCustomIconsEnabled';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1297,7 +1301,7 @@ function SetCustomIconsEnabled( vRefNum: SInt16; enableCustomIcons: Boolean ): O
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function GetCustomIconsEnabled( vRefNum: SInt16; var customIconsEnabled: Boolean ): OSErr; external name '_GetCustomIconsEnabled';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1332,7 +1336,7 @@ function GetCustomIconsEnabled( vRefNum: SInt16; var customIconsEnabled: Boolean
  *    Non-Carbon CFM:   in IconServicesLib 9.0 and later
  }
 function RegisterIconRefFromIconFile( creator: OSType; iconType: OSType; const (*var*) iconFile: FSSpec; var theIconRef: IconRef ): OSErr; external name '_RegisterIconRefFromIconFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1353,7 +1357,7 @@ function RegisterIconRefFromIconFile( creator: OSType; iconType: OSType; const (
  *    Non-Carbon CFM:   in IconServicesLib 9.0 and later
  }
 function ReadIconFile( const (*var*) iconFile: FSSpec; var iconFamily: IconFamilyHandle ): OSErr; external name '_ReadIconFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1373,7 +1377,7 @@ function ReadIconFile( const (*var*) iconFile: FSSpec; var iconFamily: IconFamil
  *    Non-Carbon CFM:   in IconServicesLib 9.0 and later
  }
 function WriteIconFile( iconFamily: IconFamilyHandle; const (*var*) iconFile: FSSpec ): OSErr; external name '_WriteIconFile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc}	{ not TARGET_CPU_64 }
 
@@ -1402,7 +1406,7 @@ function WriteIconFile( iconFamily: IconFamilyHandle; const (*var*) iconFile: FS
  *    Non-Carbon CFM:   not available
  }
 function ReadIconFromFSRef( const (*var*) ref: FSRef; var iconFamily: IconFamilyHandle ): OSStatus; external name '_ReadIconFromFSRef';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

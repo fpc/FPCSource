@@ -1,8 +1,9 @@
 { CoreGraphics - CGPDFContext.h
- * Copyright (c) 2000-2008 Apple Inc.
- * All rights reserved. }
+   Copyright (c) 2000-2011 Apple Inc.
+   All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -164,7 +170,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CGGeometry,CFBase,CFDictionary,CFURL,CGBase,CGContext,CGDataConsumer;
+uses MacTypes,CGGeometry,CFBase,CFData,CFDictionary,CFURL,CGBase,CGContext,CGDataConsumer;
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}
@@ -205,6 +211,16 @@ procedure CGPDFContextBeginPage( context: CGContextRef; pageInfo: CFDictionaryRe
 
 procedure CGPDFContextEndPage( context: CGContextRef ); external name '_CGPDFContextEndPage';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
+
+{ Add the metadata stream specified by `metadata' to the document catalog
+   of `context', as described in Table 3.25, "Entries in the catalog
+   dictionary", of the PDF 1.7 specification. The contents of metadata must
+   be XML formatted according to the Extensible Metadata Platform, as
+   described in section 10.2.2, "Metadata Streams", of the PDF 1.7
+   specification. }
+
+procedure CGPDFContextAddDocumentMetadata( context: CGContextRef; metadata: CFDataRef ); external name '_CGPDFContextAddDocumentMetadata';
+(* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_4_0) *)
 
 { Set the URL associated with `rect' to `url' in the PDF context
    `context'. }
@@ -364,54 +380,53 @@ var kCGPDFContextAllowsCopying: CFStringRef; external name '_kCGPDFContextAllows
 { The following keys are supported in the output intent dictionary:
 
    kCGPDFXOutputIntentSubtype ("S"): The output intent subtype. This key is
-      required; the value of this key must be a CFString equal to
-      "GTS_PDFX"; otherwise, the dictionary is ignored. }
+   required; the value of this key must be a CFString equal to "GTS_PDFX";
+   otherwise, the dictionary is ignored. }
 
 var kCGPDFXOutputIntentSubtype: CFStringRef; external name '_kCGPDFXOutputIntentSubtype'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { kCGPDFXOutputConditionIdentifier ("OutputConditionIdentifier"): A string
-      identifying the intended output device or production condition in a
-      human- or machine-readable form. This key is required; the value of
-      this key must be a CFString. For best results, the string should be
-      representable losslessly in ASCII encoding. }
+   identifying the intended output device or production condition in a
+   human- or machine-readable form. This key is required; the value of this
+   key must be a CFString. For best results, the string should be
+   representable losslessly in ASCII encoding. }
 
 var kCGPDFXOutputConditionIdentifier: CFStringRef; external name '_kCGPDFXOutputConditionIdentifier'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { kCGPDFXOutputCondition ("OutputCondition"): A text string identifying the
-      intended output device or production condition in a human-readable
-      form. This key is optional; if present, the value of this key must be
-      a CFString. }
+   intended output device or production condition in a human-readable form.
+   This key is optional; if present, the value of this key must be a
+   CFString. }
 
 var kCGPDFXOutputCondition: CFStringRef; external name '_kCGPDFXOutputCondition'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { kCGPDFXRegistryName ("RegistryName"): A string identifying the registry
-     in which the condition designated by `kCGPDFXOutputConditionIdentifier'
-     is defined. This key is optional; if present, the value of this key
-     must be a CFString. For best results, the string should be
-     representable losslessly in ASCII encoding. }
+   in which the condition designated by `kCGPDFXOutputConditionIdentifier'
+   is defined. This key is optional; if present, the value of this key must
+   be a CFString. For best results, the string should be representable
+   losslessly in ASCII encoding. }
 
 var kCGPDFXRegistryName: CFStringRef; external name '_kCGPDFXRegistryName'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { kCGPDFXInfo ("Info"): A human-readable text string containing additional
-      information or comments about the intended target device or production
-      condition. This key is required if the value of
-      `kCGPDFXOutputConditionIdentifier' does not specify a standard
-      production condition; it is optional otherwise. If present, the value
-      of this key must be a CFString. }
+   information about the intended target device or production condition.
+   This key is required if the value of `kCGPDFXOutputConditionIdentifier'
+   does not specify a standard production condition; it is optional
+   otherwise. If present, the value of this key must be a CFString. }
 
 var kCGPDFXInfo: CFStringRef; external name '_kCGPDFXInfo'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 { kCGPDFXDestinationOutputProfile ("DestOutputProfile"): An ICC profile
-      stream defining the transformation from the PDF document's source
-      colors to output device colorants. This key is required if the value
-      of `kCGPDFXOutputConditionIdentifier' does not specify a standard
-      production condition; it is optional otherwise. If present, the value
-      of this key must be a ICC-based CGColorSpaceRef. }
+   stream defining the transformation from the PDF document's source colors
+   to output device colorants. This key is required if the value of
+   `kCGPDFXOutputConditionIdentifier' does not specify a standard production
+   condition; it is optional otherwise. If present, the value of this key
+   must be a ICC-based CGColorSpaceRef. }
 
 var kCGPDFXDestinationOutputProfile: CFStringRef; external name '_kCGPDFXDestinationOutputProfile'; (* attribute const *)
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)

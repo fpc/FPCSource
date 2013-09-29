@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
     P:=AddPackage('cairo');
 {$ifdef ALLPACKAGES}
-    P.Directory:='cairo';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author :=  'Library:  University of Southern California + Red Hat Inc., header: Luiz AmXrico Pereira CXmara';

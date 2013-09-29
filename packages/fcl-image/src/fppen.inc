@@ -37,6 +37,18 @@ begin
   FPattern := AValue;
 end;
 
+procedure TFPCustomPen.SetEndCap(AValue: TFPPenEndCap);
+begin
+  if FEndCap=AValue then Exit;
+  FEndCap:=AValue;
+end;
+
+procedure TFPCustomPen.SetJoinStyle(AValue: TFPPenJoinStyle);
+begin
+  if FJoinStyle=AValue then Exit;
+  FJoinStyle:=AValue;
+end;
+
 procedure TFPCustomPen.DoCopyProps (From:TFPCanvasHelper);
 begin
   with From as TFPCustomPen do

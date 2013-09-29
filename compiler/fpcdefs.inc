@@ -28,13 +28,6 @@
 
 {$define USEEXCEPT}
 
-{ If anyone wants to use interrupt for
-  a specific target, add a
-  $define FPC_HAS_SYSTEMS_INTERRUPT_TABLE
-  to fpcdefs.inc to reactivate
-  the corresponding code }
-{$undef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
@@ -49,6 +42,25 @@
   {$packrecords c}
 {$endif cpuarm}
 
+{$ifdef i8086}
+  {$define cpu16bit}
+  {$define cpu16bitaddr}
+  {$define cpu16bitalu}
+  {$define x86}
+  {$define cpuflags}
+  {$define cpuextended}
+  {//$define SUPPORT_MMX}
+  {$define cpumm}
+  {$define fewintregisters}
+  {//$define cpurox}
+  {$define SUPPORT_SAFECALL}
+  {$define cpuneedsmulhelper}
+  { TODO: add another define in order to disable the div helper for 16-bit divs? }
+  {$define cpuneedsdiv32helper}
+  {$define VOLATILE_ES}
+  {$define SUPPORT_GET_FRAME}
+{$endif i8086}
+
 {$ifdef i386}
   {$define cpu32bit}
   {$define cpu32bitaddr}
@@ -61,6 +73,7 @@
   {$define fewintregisters}
   {$define cpurox}
   {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -75,6 +88,7 @@
   {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
 {$endif x86_64}
 
 {$ifdef ia64}
@@ -134,7 +148,9 @@
   {$define cpurox}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
   {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
   { default to armel }
   {$if not(defined(CPUARM)) and not(defined(CPUARMEB)) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB)) and not(defined(FPC_ARMHF))}
     {$define FPC_ARMEL}
@@ -160,6 +176,7 @@
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
 {$endif m68k}
 
 {$ifdef avr}
@@ -172,6 +189,7 @@
   {$define cpuneedsdiv32helper}
   {$define cpuneedsmulhelper}
   {$define cpurefshaveindexreg}
+  {$define cpucapabilities}
 {$endif avr}
 
 {$ifdef mipsel}
@@ -196,12 +214,13 @@
   {$else}
     {$error mips64 not yet supported}
   {$endif}
-  { define cpuflags}
+  {$define cpuflags} { Flags are emulated }
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
   {$define fpc_compiler_has_fixup_jmps}
+  {$define SUPPORT_GET_FRAME}
 {$endif mips}
 
 {$ifdef jvm}
@@ -210,11 +229,29 @@
   {$define cpu32bitaddr}
   {$define cpuhighleveltarget}
   {$define symansistr}
+  {$define SUPPORT_GET_FRAME}
 {$endif}
+
+{$ifdef aarch64}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cpuflags}
+  {$define cpurox}
+  {$define cputargethasfixedstack}
+  {$define cpurefshaveindexreg}
+{$endif aarch64}
 
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
+
+{ Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
+  (but there we don't support it)
+}
+{$ifdef cpu64bitaddr}
+{$define NoDbgStabs}
+{$endif}
 
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }

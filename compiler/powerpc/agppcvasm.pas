@@ -396,7 +396,7 @@ unit agppcvasm;
          asmbin : 'fpcvasm';
          asmcmd: '-quiet -Felf -o $OBJ $ASM';
          supported_targets : [system_powerpc_morphos];
-         flags : [af_allowdirect,af_needar,af_smartlink_sections];
+         flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
          dollarsign: '$';

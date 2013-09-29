@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_rmwait;
+procedure add_rmwait(const ADirectory: string);
 
 Var
   P : TPackage;
@@ -23,9 +23,7 @@ begin
     P.Description := 'Tool to remove (delete) file(s) with optional retries';
     P.NeedLibC:= false;
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='rmwait';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
     P.OSes:=[win32,win64,wince,os2,emx,go32v2];

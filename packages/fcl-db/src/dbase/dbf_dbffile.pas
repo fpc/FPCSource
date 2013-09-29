@@ -34,19 +34,24 @@ type
 
 //====================================================================
   TDbfIndexMissingEvent = procedure(var DeleteLink: Boolean) of object;
-  TUpdateNullField = (unClear, unSet);
+  TUpdateNullField = (unfClear, unfSet);
+  TNullFieldFlag = (nfNullFlag, nfVarlengthFlag); //the field that the nullflags bit applies to
 
 //====================================================================
   TDbfGlobals = class;
 //====================================================================
 
+  { TDbfFile }
+
   TDbfFile = class(TPagedFile)
   protected
     FMdxFile: TIndexFile;
     FMemoFile: TMemoFile;
+    FMemoStream: TStream;
     FFieldDefs: TDbfFieldDefs;
     FIndexNames: TStringList;
     FIndexFiles: TList;
+    FIndexStream: TStream;
     FDbfVersion: TXBaseVersion;
     FPrevBuffer: TRecordBuffer;
     FDefaultBuffer: TRecordBuffer;
@@ -65,17 +70,23 @@ type
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
     FOnIndexMissing: TDbfIndexMissingEvent;
-
+    // Yes if table has blob/memo type field(s) (storage in external file)
     function  HasBlob: Boolean;
+    // File extension for memo field; uppercase if FFileName is uppercase
+    // (useful for *nix case-sensitive filesystems)
     function  GetMemoExt: string;
 
     function GetLanguageId: Integer;
     function GetLanguageStr: string;
-    
+
   protected
+    // Reads the field's properties from the field header(s)
     procedure ConstructFieldDefs;
     procedure InitDefaultBuffer;
-    procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
+    // Shows if the (null or varlength) flag for AFieldDef is set.
+    function IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
+    // Updates _NULLFLAGS field with null or varlength flag for field
+    procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField; WhichField: TNullFieldFlag);
     procedure WriteLockInfo(Buffer: TRecordBuffer);
 
   public
@@ -86,6 +97,7 @@ type
     procedure Close;
     procedure Zap;
 
+    // Write out field definitions to header etc.
     procedure FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
     function GetIndexByName(AIndexName: string): TIndexFile;
     procedure SetRecordSize(NewSize: Integer); override;
@@ -97,18 +109,28 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
+
+    // Inserts new record
     function  Insert(Buffer: TRecordBuffer): integer;
+    // Write dbf header as well as EOF marker at end of file if necessary
     procedure WriteHeader; override;
-    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);     // dBase7 support. Writeback last next-autoinc value
+    // Writes autoinc value to record buffer and updates autoinc value in field header
+    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);
     procedure FastPackTable;
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
     function  GetFieldInfo(FieldName: string): TDbfFieldDef;
+    // Copies record buffer to field buffer
+    // Returns true if not null & data succesfully copied; false if field is null
     function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; 
       NativeFormat: boolean): Boolean;
+    // Copies record buffer to field buffer
+    // Returns true if not null & data succesfully copied; false if field is null
     function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
       Src, Dst: Pointer; NativeFormat: boolean): Boolean;
+    // Copies field buffer to record buffer for this field
     procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
+    // Fill DestBuf with default field data
     procedure InitRecord(DestBuf: TRecordBuffer);
     procedure PackIndex(lIndexFile: TIndexFile; AIndexName: string);
     procedure RegenerateIndexes;
@@ -118,15 +140,20 @@ type
     procedure RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer);
 
     property MemoFile: TMemoFile read FMemoFile;
+    // Backing stream for stream/memory-based memo "files"
+    property MemoStream: TStream read FMemoStream write FMemoStream;
     property FieldDefs: TDbfFieldDefs read FFieldDefs;
     property IndexNames: TStringList read FIndexNames;
     property IndexFiles: TList read FIndexFiles;
+    // Backing stream for stream/memory-based index "files"
+    property IndexStream: TStream read FIndexStream write FIndexStream;
     property MdxFile: TIndexFile read FMdxFile;
     property LanguageId: Integer read GetLanguageId;
     property LanguageStr: string read GetLanguageStr;
     property FileCodePage: Cardinal read FFileCodePage;
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
     property FileLangId: Byte read FFileLangId write FFileLangId;
+    // Dbase (clone) version that this format emulates. Related to tablelevel.
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: TRecordBuffer read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
@@ -157,6 +184,9 @@ type
   end;
 
 //====================================================================
+
+  { TDbfGlobals }
+
   TDbfGlobals = class
   protected
     FCodePages: TList;
@@ -165,8 +195,10 @@ type
     FDefaultCreateLangId: Byte;
     FUserName: string;
     FUserNameLen: DWORD;
-	
+
+    // Translates FDefaultCreateLangId back to codepage
     function  GetDefaultCreateCodePage: Integer;
+    // Takes codepage and sets FDefaultCreateLangId
     procedure SetDefaultCreateCodePage(NewCodePage: Integer);
     procedure InitUserName;
   public
@@ -203,6 +235,8 @@ uses
 
 const
   sDBF_DEC_SEP = '.';
+  FIELD_DESCRIPTOR_ARRAY_TERMINATOR = $0D; // Marker at end of list of fields within header
+  NULLFLAGSFIELD = '_NULLFLAGS'; //Visual Foxpro system field with flags for field=null and field has varlength byte
 
 {$I dbf_struct.inc}
 
@@ -327,77 +361,59 @@ var
   I: Integer;
   deleteLink: Boolean;
   lModified: boolean;
-  LangStr: PChar;
-  version: byte;
-begin
-  // check if not already opened
-  if not Active then
+
+  procedure GetVersion;
+  var
+    version: byte;
   begin
-    // open requested file
-    OpenFile;
+    // OH 2000-11-15 dBase7 support. I build dBase Tables with different
+    // BDE dBase Level (1. without Memo, 2. with Memo)
+    //                          Header Byte ($1d hex) (29 dec) -> Language driver ID.
+    //  $03,$83 xBaseIII        Header Byte $1d=$00, Float -> N($13.$04) DateTime C($1E)
+    //  $03,$8B xBaseIV/V       Header Byte $1d=$58, Float -> N($14.$04)
+    //  $04,$8C xBaseVII        Header Byte $1d=$00  Float -> O($08)     DateTime @($08)
+    //  $03,$F5 FoxPro Level 25 Header Byte $1d=$03, Float -> N($14.$04)
+    // Access 97
+    //  $03,$83 dBaseIII        Header Byte $1d=$00, Float -> N($13.$05) DateTime D($08)
+    //  $03,$8B dBaseIV/V       Header Byte $1d=$00, Float -> N($14.$05) DateTime D($08)
+    //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
 
-    // check if we opened an already existing file
-    lModified := false;
-    if not FileCreated then
-    begin
-      HeaderSize := sizeof(rDbfHdr); // temporary
-      // OH 2000-11-15 dBase7 support. I build dBase Tables with different
-      // BDE dBase Level (1. without Memo, 2. with Memo)
-      //                          Header Byte ($1d hex) (29 dec) -> Language driver ID.
-      //  $03,$83 xBaseIII        Header Byte $1d=$00, Float -> N($13.$04) DateTime C($1E)
-      //  $03,$8B xBaseIV/V       Header Byte $1d=$58, Float -> N($14.$04)
-      //  $04,$8C xBaseVII        Header Byte $1d=$00  Float -> O($08)     DateTime @($08)
-      //  $03,$F5 FoxPro Level 25 Header Byte $1d=$03, Float -> N($14.$04)
-      // Access 97
-      //  $03,$83 dBaseIII        Header Byte $1d=$00, Float -> N($13.$05) DateTime D($08)
-      //  $03,$8B dBaseIV/V       Header Byte $1d=$00, Float -> N($14.$05) DateTime D($08)
-      //  $03,$F5 FoxPro Level 25 Header Byte $1d=$09, Float -> N($14.$05) DateTime D($08)
-
-      version := PDbfHdr(Header)^.VerDBF;
+    version := PDbfHdr(Header)^.VerDBF;
+    FDbfVersion := xUnknown;
+    // Some hardcode versions for Visual FoxPro; see MS documentation
+    // (including the correction at the bottom):
+    // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
+    case version of
+      $30, $31, $32 {VFP9 with new data types}: FDbfVersion:=xVisualFoxPro;
+      $F5, $FB: FDbfVersion:=xFoxPro;
+    end;
+    if FDbfVersion = xUnknown then
       case (version and $07) of
-        $03:
+        $03: //dbf without memo. Could be foxpro, too
           if LanguageID = 0 then
             FDbfVersion := xBaseIII
           else
             FDbfVersion := xBaseIV;
         $04:
           FDbfVersion := xBaseVII;
-        $02, $05:
+        $02 {FoxBase, not readable by current Visual FoxPro driver}, $05:
           FDbfVersion := xFoxPro;
       else
-        // check visual foxpro
-        if ((version and $FE) = $30) or (version = $F5) or (version = $FB) then
         begin
-          FDbfVersion := xFoxPro;
-        end else begin
           // not a valid DBF file
           raise EDbfError.Create(STRING_INVALID_DBF_FILE);
         end;
       end;
-      FFieldDefs.DbfVersion := FDbfVersion;
-      RecordSize := PDbfHdr(Header)^.RecordSize;
-      HeaderSize := PDbfHdr(Header)^.FullHdrSize;
-      if (HeaderSize = 0) or (RecordSize = 0) then
-      begin
-        HeaderSize := 0;
-        RecordSize := 0;
-        RecordCount := 0;
-        FForceClose := true;
-        exit;
-      end;
-      // check if specified recordcount correct
-      if PDbfHdr(Header)^.RecordCount <> RecordCount then
-      begin
-        // This message was annoying
-        // and was not understood by most people
-        // ShowMessage('Invalid Record Count,'+^M+
-        //             'RecordCount in Hdr : '+IntToStr(PDbfHdr(Header).RecordCount)+^M+
-        //             'expected : '+IntToStr(RecordCount));
-        PDbfHdr(Header)^.RecordCount := RecordCount;
-        lModified := true;
-      end;
-      // determine codepage
-      if FDbfVersion >= xBaseVII then
+    FFieldDefs.DbfVersion := FDbfVersion;
+  end;
+
+  procedure GetCodePage;
+  var
+    LangStr: PChar;
+  begin
+    // determine codepage
+    case FDbfVersion of
+      xBaseVII:
       begin
         // cache language str
         LangStr := @PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
@@ -431,59 +447,112 @@ begin
           FFileCodePage := 0;
         end;
         FFileLangId := GetLangId_From_LangName(LanguageStr);
-      end else begin
-        // FDbfVersion <= xBaseV
+      end;
+    else
+      begin
+        // DBase II..V, FoxPro, Visual FoxPro
         FFileLangId := PDbfHdr(Header)^.Language;
         FFileCodePage := LangId_To_CodePage[FFileLangId];
       end;
-      // determine used codepage, if no codepage, then use default codepage
-      FUseCodePage := FFileCodePage;
-      if FUseCodePage = 0 then
-        FUseCodePage := DbfGlobals.DefaultOpenCodePage;
+    end;
+    // determine used codepage, if no codepage, then use default codepage
+    FUseCodePage := FFileCodePage;
+    if FUseCodePage = 0 then
+      FUseCodePage := DbfGlobals.DefaultOpenCodePage;
+  end;
+
+begin
+  // check if not already opened
+  if not Active then
+  begin
+    // open requested file
+    OpenFile;
+
+    // check if we opened an already existing file
+    lModified := false;
+    if not FileCreated then
+    begin
+      HeaderSize := sizeof(rDbfHdr); // temporary, required for getting version
+      GetVersion;
+
+      RecordSize := PDbfHdr(Header)^.RecordSize;
+      HeaderSize := PDbfHdr(Header)^.FullHdrSize;
+      if (HeaderSize = 0) or (RecordSize = 0) then
+      begin
+        HeaderSize := 0;
+        RecordSize := 0;
+        RecordCount := 0;
+        FForceClose := true;
+        exit;
+      end;
+
+      // check if specified recordcount is right; correct if not
+      if PDbfHdr(Header)^.RecordCount <> RecordCount then
+      begin
+        PDbfHdr(Header)^.RecordCount := RecordCount;
+        lModified := true;
+      end;
+
+      GetCodePage;
       // get list of fields
       ConstructFieldDefs;
       // open blob file if present
       lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
       if HasBlob then
       begin
-        // open blob file
-        if not FileExists(lMemoFileName) then
+        // open blob file; if it doesn't exist yet create it
+        // using AutoCreate as long as we're not running read-only
+        // If needed, fake a memo file:
+        if (Mode=pfReadOnly) and (not FileExists(lMemoFileName)) then
           MemoFileClass := TNullMemoFile
-        else if FDbfVersion = xFoxPro then
+        else if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           MemoFileClass := TFoxProMemoFile
         else
-          MemoFileClass := TDbaseMemoFile;
+          MemoFileClass := TDbaseMemoFile; //fallback/default
         FMemoFile := MemoFileClass.Create(Self);
         FMemoFile.FileName := lMemoFileName;
+        if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          FMemoFile.Stream:=FMemoStream;
         FMemoFile.Mode := Mode;
-        FMemoFile.AutoCreate := false;
+        FMemoFile.AutoCreate := true;
         FMemoFile.MemoRecordSize := 0;
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
         // set header blob flag corresponding to field list
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
           lModified := true;
         end;
       end else
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF and $7F;
           lModified := true;
         end;
       // check if mdx flagged
-      if (FDbfVersion <> xFoxPro) and (PDbfHdr(Header)^.MDXFlag <> 0) then
+      if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) and (PDbfHdr(Header)^.MDXFlag <> 0) then
       begin
         // open mdx file if present
         lMdxFileName := ChangeFileExt(FileName, '.mdx');
-        if FileExists(lMdxFileName) then
+        // Deal with case-sensitive filesystems:
+        if (FileName<>'') and (UpperCase(FileName)=FileName) then
+          lMdxFileName := UpperCase(lMdxFileName);
+        if FileExists(lMdxFileName) or ((Mode in [pfMemoryOpen,pfMemoryCreate])) then
         begin
           // open file
           FMdxFile := TIndexFile.Create(Self);
           FMdxFile.FileName := lMdxFileName;
           FMdxFile.Mode := Mode;
-          FMdxFile.AutoCreate := false;
+          if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+          begin
+            FMdxFile.Stream := FIndexStream;
+            FMdxFile.AutoCreate := true;
+          end
+          else
+          begin
+            FMdxFile.AutoCreate := false;
+          end;
           FMdxFile.OnLocaleError := FOnLocaleError;
           FMdxFile.CodePage := UseCodePage;
           FMdxFile.Open;
@@ -575,18 +644,32 @@ var
   I, lFieldOffset, lSize, lPrec: Integer;
   lHasBlob: Boolean;
   lLocaleID: LCID;
+  lNullVarFlagCount:integer; //(VFP only) Keeps track of number null/varlength flags needed for _NULLFLAGS size calculation
 
 begin
   try
     // first reset file
     RecordCount := 0;
     lHasBlob := false;
+    lNullVarFlagCount := 0;
     // determine codepage & locale
-    if FFileLangId = 0 then
-      FFileLangId := DbfGlobals.DefaultCreateLangId;
+    if FDbfVersion in [xFoxPro, xVisualFoxPro] then
+    begin
+      // Don't use DbfGlobals default language ID as it is dbase-based
+      if FFileLangId = 0 then
+        FFileLangId := ConstructLangId(LangId_To_CodePage[FFileLangId],GetUserDefaultLCID, true);
+    end
+    else
+    begin
+      // DBase
+      if FFileLangId = 0 then
+        FFileLangId := DbfGlobals.DefaultCreateLangId;
+    end;
     FFileCodePage := LangId_To_CodePage[FFileLangId];
     lLocaleID := LangId_To_Locale[FFileLangId];
     FUseCodePage := FFileCodePage;
+
+
     // prepare header size
     if FDbfVersion = xBaseVII then
     begin
@@ -595,33 +678,39 @@ begin
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
       PDbfHdr(Header)^.VerDBF := $04;
-      // write language string
+      // write language string. FPC needs an explicit cast to pchar to avoid calling widestring version of StrPLCopy
       StrPLCopy(
-        @PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32],
-        ConstructLangName(FFileCodePage, lLocaleID, false), 
+        PChar(@PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
+        PChar(ConstructLangName(FFileCodePage, lLocaleID, false)),
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
-      // version xBaseIII/IV/V without memo
+      // DBase III..V, (Visual) FoxPro without memo
       HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrIII);
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
-      if FDbfVersion = xFoxPro then
-      begin
-        PDbfHdr(Header)^.VerDBF := $02
-      end else
-        PDbfHdr(Header)^.VerDBF := $03;
-      // standard language WE, dBase III no language support
-      if FDbfVersion = xBaseIII then
-        PDbfHdr(Header)^.Language := 0
+      // Note: VerDBF may be changed later on depending on what features/fields are used
+      // (autoincrement etc)
+      case FDbfVersion of
+        xFoxPro: PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo
+        alternative $02 FoxBASE is not readable by current Visual FoxPro drivers.
+        }
+        xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
+        else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo}
+      end;
+
+      // standard language WE/Western Europe
+      if FDbfVersion=xBaseIII then
+        PDbfHdr(Header)^.Language := 0 //no language support
       else
         PDbfHdr(Header)^.Language := FFileLangId;
+
       // init field ptr
       lFieldDescPtr := @lFieldDescIII;
     end;
-    // begin writing fields
+    // begin writing field definitions
     FFieldDefs.Clear;
-    // deleted mark 1 byte
+    // deleted mark takes 1 byte, so skip over that
     lFieldOffset := 1;
     for I := 1 to AFieldDefs.Count do
     begin
@@ -640,16 +729,28 @@ begin
       lFieldDef.FieldName := AnsiUpperCase(lFieldDef.FieldName);
       lFieldDef.Offset := lFieldOffset;
       lHasBlob := lHasBlob or lFieldDef.IsBlob;
+      // Check for foxpro, too, as it can get auto-upgraded to vfp:
+      if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
+        begin
+        if (lFieldDef.NativeFieldType='Q') or (lFieldDef.NativeFieldType='V') then
+          begin
+          lNullVarFlagCount:=lNullVarFlagCount+1;
+          end;
+        if (lFieldDef.NullPosition>=0) then
+          lNullVarFlagCount:=lNullVarFlagCount+1;
+        end;
 
       // apply field transformation tricks
       lSize := lFieldDef.Size;
       lPrec := lFieldDef.Precision;
       if (lFieldDef.NativeFieldType = 'C')
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion = xFoxPro)
+        and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
-                then
+        then
       begin
+        // Up to 32kb strings
+        // Stores high byte of size in precision, low in size
         lPrec := lSize shr 8;
         lSize := lSize and $FF;
       end;
@@ -670,12 +771,40 @@ begin
         lFieldDescIII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescIII.FieldSize := lSize;
         lFieldDescIII.FieldPrecision := lPrec;
-        if FDbfVersion = xFoxPro then
+        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
           lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
-        if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
-          PDbfHdr(Header)^.VerDBF := $30;
-        if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
-          PDbfHdr(Header)^.VerDBF := $31;
+
+        // Upgrade the version info if needed for supporting field types used.
+        // This is also what Visual FoxPro does with FoxPro tables to which you
+        // add new VFP features.
+        if (FDBFVersion in [xUnknown,xFoxPro,xVisualFoxPro]) then
+        begin
+          // VerDBF=$03 also includes dbase formats, so we perform an extra check
+          if (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
+           ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or (lNullVarFlagCount>0))
+           then
+           begin
+             PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+             FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
+           end;
+          //AutoInc only support in Visual Foxpro; another upgrade
+          //Note: .AutoIncrementNext is really a cardinal (see the definition)
+          lFieldDescIII.AutoIncrementNext:=SwapIntLE(lFieldDef.AutoInc);
+          lFieldDescIII.AutoIncrementStep:=lFieldDef.AutoIncStep;
+          // Set autoincrement flag using AutoIncStep as a marker
+          if (lFieldDef.AutoIncStep<>0) then
+            lFieldDescIII.VisualFoxProFlags:=(lFieldDescIII.VisualFoxProFlags or $0C);
+          if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.AutoIncStep<>0) then
+          begin
+            PDbfHdr(Header)^.VerDBF := $31; {Visual FoxPro, autoincrement enabled}
+            FDBFVersion:=xVisualFoxPro;
+          end;
+
+          // Only supported in Visual FoxPro but let's not upgrade format as
+          // IsSystemField is a minor property
+          if (lFieldDef.IsSystemField) then
+            lFieldDescIII.VisualFoxProFlags:=(lFieldDescIII.VisualFoxProFlags or $01);
+        end;
       end;
 
       // update our field list
@@ -690,32 +819,52 @@ begin
       WriteRecord(I, lFieldDescPtr);
       Inc(lFieldOffset, lFieldDef.Size);
     end;
-    // end of header
-    WriteChar($0D);
+
+    // Visual Foxpro: write _NULLFLAGS field if required
+    if (FDBFVersion=xVisualFoxPro) and (lNullVarFlagCount>0) then
+    begin
+      FillChar(lFieldDescIII, SizeOf(lFieldDescIII), #0);
+      StrPLCopy(lFieldDescIII.FieldName, NULLFLAGSFIELD, 10);
+      lFieldDescIII.FieldType := '0'; //bytes
+      lFieldDescIII.FieldSize := 1+(lNullVarFlagCount-1) div 8; //Number of bytes needed for all bit flags
+      lFieldDescIII.FieldPrecision := 0;
+      lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
+      lFieldDescIII.VisualFoxProFlags:=$01+$04 ; //System column (hidden)+Column can store null values (which is a bit of a paradox)
+      // save field props
+      WriteRecord(AFieldDefs.Count+1, @lFieldDescIII);
+      Inc(lFieldOffset, lFieldDescIII.FieldSize);
+    end;
+
+    // end of field descriptor; ussually end of header -
+    // Visual Foxpro backlink info is part of the header but comes after the
+    // terminator
+    WriteChar(FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
     // write memo bit
     if lHasBlob then
     begin
-      if FDbfVersion = xBaseIII then
-        PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80
-      else
-      if FDbfVersion = xFoxPro then
-      begin
-        if PDbfHdr(Header)^.VerDBF = $02 then
-          PDbfHdr(Header)^.VerDBF := $F5;
-      end else
-        PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $88;
+      case FDbfVersion of
+        xBaseIII: PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
+        xFoxPro: if (PDbfHdr(Header)^.VerDBF in [$02,$03]) then {change from FoxBASE to...}
+          PDbfHdr(Header)^.VerDBF := $F5; {...FoxPro 2.x (or earlier) with memo}
+        xVisualFoxPro: //MSDN says field 28 or $02 to set memo flag
+          PDbfHdr(Header)^.MDXFlag := PDbfHdr(Header)^.MDXFlag or $02;
+        else PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $88;
+      end;
     end;
 
     // update header
     PDbfHdr(Header)^.RecordSize := lFieldOffset;
-    PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
-    // add empty "back-link" info, whatever it is: 
-    { A 263-byte range that contains the backlink, which is the relative path of 
+    if lNullVarFlagCount>0 then
+      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count+1) + 1
+    else
+      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
+    { For Visual FoxPro only, add empty "back-link" info:
+      A 263-byte range that contains the backlink, which is the relative path of
       an associated database (.dbc) file, information. If the first byte is 0x00, 
       the file is not associated with a database. Therefore, database files always 
       contain 0x00. }
-    if FDbfVersion = xFoxPro then
+    if (FDbfVersion = xVisualFoxPro) then
       Inc(PDbfHdr(Header)^.FullHdrSize, 263);
 
     // write dbf header to disk
@@ -731,11 +880,13 @@ begin
   if HasBlob and (FMemoFile=nil) then
   begin
     lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
-    if FDbfVersion = xFoxPro then
+    if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
       FMemoFile := TFoxProMemoFile.Create(Self)
     else
       FMemoFile := TDbaseMemoFile.Create(Self);
     FMemoFile.FileName := lMemoFileName;
+    if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      FMemoFile.Stream:=FMemoStream;
     FMemoFile.Mode := Mode;
     FMemoFile.AutoCreate := AutoCreate;
     FMemoFile.MemoRecordSize := MemoSize;
@@ -750,16 +901,21 @@ var
 begin
   Result := false;
   for I := 0 to FFieldDefs.Count-1 do
-    if FFieldDefs.Items[I].IsBlob then 
+    if FFieldDefs.Items[I].IsBlob then
+    begin
       Result := true;
+      break;
+    end;
 end;
 
 function TDbfFile.GetMemoExt: string;
 begin
-  if FDbfVersion = xFoxPro then
-    Result := '.fpt'
-  else
-    Result := '.dbt';
+  case FDbfVersion of
+    xFoxPro, xVisualFoxPro: Result := '.fpt'
+    else Result := '.dbt';
+  end;
+  if (FFileName<>'') and (FFileName=UpperCase(FFileName)) then
+    Result := UpperCase(Result);
 end;
 
 procedure TDbfFile.Zap;
@@ -792,8 +948,10 @@ begin
 //  lDataHdr.RecordCount := RecordCount;
   inherited WriteHeader;
 
+  // Write terminator at the end of the file, after the records:
   EofTerminator := $1A;
-  WriteBlock(@EofTerminator, 1, CalcPageOffset(RecordCount+1));
+  // We're using lDataHdr to make sure we have the latest/correct version
+  WriteBlock(@EofTerminator, 1, CalcPageOffset(lDataHdr.RecordCount+1));
 end;
 
 procedure TDbfFile.ConstructFieldDefs;
@@ -810,15 +968,19 @@ var
   dataPtr: PChar;
   lNativeFieldType: Char;
   lFieldName: string;
-  lCanHoldNull: boolean;
+  lCanHoldNull: boolean; //Can the field store nulls, i.e. is it nullable?
+  lIsVFPSystemField: boolean; //Is this a Visual FoxPro system/hidden field?
+  lIsVFPVarLength: boolean; //Is this a Visual FoxPro varbinary/varchar field,
+  // where varlength bit is maintained in _NULLFLAGS
   lCurrentNullPosition: integer;
 begin
   FFieldDefs.Clear;
-  if DbfVersion >= xBaseVII then
+  if DbfVersion = xBaseVII then
   begin
     lHeaderSize := SizeOf(rAfterHdrVII) + SizeOf(rDbfHdr);
     lFieldSize := SizeOf(rFieldDescVII);
   end else begin
+    // DBase III..V, (Visual) FoxPro
     lHeaderSize := SizeOf(rAfterHdrIII) + SizeOf(rDbfHdr);
     lFieldSize := SizeOf(rFieldDescIII);
   end;
@@ -832,13 +994,15 @@ begin
   lFieldOffset := 1;
   lAutoInc := 0;
   I := 1;
-  lCurrentNullPosition := 0;
+  lCurrentNullPosition := 0; // Contains the next value for the _NULLFLAGS bit position
   lCanHoldNull := false;
+  lIsVFPSystemField := false;
+  lIsVFPVarLength := false;
   try
-    // there has to be minimum of one field
+    // Specs say there has to be at least one field, so use repeat:
     repeat
       // version field info?
-      if FDbfVersion >= xBaseVII then
+      if FDbfVersion = xBaseVII then
       begin
         ReadRecord(I, @lFieldDescVII);
         lFieldName := AnsiUpperCase(PChar(@lFieldDescVII.FieldName[0]));
@@ -849,23 +1013,42 @@ begin
         if lNativeFieldType = '+' then
           FAutoIncPresent := true;
       end else begin
+        // DBase III..V, FoxPro, Visual FoxPro
         ReadRecord(I, @lFieldDescIII);
         lFieldName := AnsiUpperCase(PChar(@lFieldDescIII.FieldName[0]));
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
-        lCanHoldNull := (FDbfVersion = xFoxPro) and 
-          ((lFieldDescIII.FoxProFlags and $2) <> 0) and
-          (lFieldName <> '_NULLFLAGS');
+        if (FDBFVersion=xVisualFoxPro) and ((lFieldDescIII.VisualFoxProFlags and $0C)<>0) then
+        begin
+          // We do not test for an I field - we could implement our own N autoincrement this way...
+          lAutoInc:=lFieldDescIII.AutoIncrementNext;
+          FAutoIncPresent:=true;
+        end;
+
+        // Only Visual FoxPro supports null fields, if the nullable field flag is on
+        lCanHoldNull := (FDbfVersion in [xVisualFoxPro]) and
+          ((lFieldDescIII.VisualFoxProFlags and $2) <> 0) and
+          (lFieldName <> NULLFLAGSFIELD {the field where null status is stored can never be null itself});
+        // System/hidden flag (VFP only):
+        lIsVFPSystemField := (FDbfVersion in [xVisualFoxPro]) and
+          ((lFieldDescIII.VisualFoxProFlags and $01)=$01);
+        // Only Visual Foxpro supports varbinary/varchar fields where a flag indicates
+        // if the actual size is stored in the last data byte.
+        lIsVFPVarLength := (FDbfVersion in [xVisualFoxPro]) and
+          (lNativeFieldType in ['Q','V']) and
+          (lFieldName <> NULLFLAGSFIELD);
       end;
 
       // apply field transformation tricks
       if (lNativeFieldType = 'C') 
 {$ifndef USE_LONG_CHAR_FIELDS}
-          and (FDbfVersion = xFoxPro) 
+        and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
-                then
+        then
       begin
+        // (V)FP uses the byte where precision is normally stored
+        // for the high byte of the field size
         lSize := lSize + lPrec shl 8;
         lPrec := 0;
       end;
@@ -880,6 +1063,15 @@ begin
         Precision := lPrec;
         AutoInc := lAutoInc;
         NativeFieldType := lNativeFieldType;
+        IsSystemField := lIsVFPSystemField;
+        if lIsVFPVarLength then
+        begin
+          // The varlength flag uses the same _NULLFLAGS field as the null flags.
+          // It comes before the null bit for that field, if any.
+          VarLengthPosition := lCurrentNullPosition;
+          inc(lCurrentNullPosition);
+        end else
+          VarLengthPosition := -1;
         if lCanHoldNull then
         begin
           NullPosition := lCurrentNullPosition;
@@ -893,7 +1085,7 @@ begin
       //  2) known field type
       //  {3) no changes have to be made to precision or size}
       if (Length(lFieldName) = 0) or (TempFieldDef.FieldType = ftUnknown) then
-        raise EDbfError.Create(STRING_INVALID_DBF_FILE);
+        raise EDbfError.Create(STRING_INVALID_DBF_FILE_FIELDERROR);
 
       // determine if lock field present, if present, then store additional info
       if lFieldName = '_DBASELOCK' then
@@ -903,7 +1095,7 @@ begin
         if FLockUserLen > DbfGlobals.UserNameLen then
           FLockUserLen := DbfGlobals.UserNameLen;
       end else
-      if UpperCase(lFieldName) = '_NULLFLAGS' then
+      if (FDbfVersion=xVisualFoxPro) and (uppercase(lFieldName) = NULLFLAGSFIELD) then
         FNullField := TempFieldDef;
 
       // goto next field
@@ -912,7 +1104,7 @@ begin
 
       // continue until header termination character found
       // or end of header reached
-    until (I > lColumnCount) or (ReadChar = $0D);
+    until (I > lColumnCount) or (ReadChar = FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
     // test if not too many fields
     if FFieldDefs.Count >= 4096 then
@@ -971,8 +1163,8 @@ begin
             ReadBlock(dataPtr, lStdProp.DataSize, lPropHdrOffset + lStdProp.DataOffset);
         end;
       end;
-      // read custom properties...not implemented
-      // read RI properties...not implemented
+      // todo: read custom properties...not implemented
+      // todo: read RI/referential integrity properties...not implemented
     end;
   finally
     HeaderSize := PDbfHdr(Header)^.FullHdrSize;
@@ -985,10 +1177,44 @@ begin
   Result := PDbfHdr(Header)^.Language;
 end;
 
-function TDbfFile.GetLanguageStr: String;
+function TDbfFile.GetLanguageStr: string;
 begin
   if FDbfVersion >= xBaseVII then
     Result := PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+end;
+
+function TDbfFile.IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
+var
+  NullFlagByte: Pointer;
+begin
+  case WhichField of
+  nfNullFlag:
+    begin
+      if (AFieldDef.NullPosition<0) or (FNullField=nil) then
+        result:=false //field is not even nullable
+      else
+      begin
+        // go to _NULLFLAGS byte that has this field's null flag
+        // Find out the byte where the null bit for the field is stored by doing
+        // NullPosition shr3 (= NullPosition div 8)...
+        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
+        // ... get the correct bit in the byte by the equivalent of getting the bit number in that byte:
+        // NullPosition and $7 (=mod 8)... and going to the bit value in the byte (by shl)
+        // The result is true if the field is null.
+        Result := (PByte(NullFlagByte)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
+      end;
+    end;
+  nfVarlengthFlag:
+    begin
+      if (AFieldDef.VarLengthPosition<0) or (FNullField=nil) then
+        result:=false //field *never* has a varlength byte
+      else
+      begin
+        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3);
+        Result := (PByte(NullFlagByte)^ and (1 shl (AFieldDef.VarLengthPosition and $7))) <> 0
+      end;
+    end;
+  end;
 end;
 
 {
@@ -1049,7 +1275,7 @@ begin
         PChar(pNormal)^ := '*';
         WriteRecord(iNormal, pNormal);
       end else begin
-        // Cannot found a record after iDel so iDel must be deleted
+        // Cannot find a record after iDel so iDel must be deleted
         dec(iDel);
         break;
       end;
@@ -1071,6 +1297,7 @@ var
   NewBaseName: string;
   I: integer;
 begin
+  // todo: verify if this works with memo files
   // get memory for index file list
   lIndexFileNames := TStringList.Create;
   try 
@@ -1177,7 +1404,10 @@ begin
   if FMemoFile <> nil then
     DestDbfFile.FinishCreate(DestFieldDefs, FMemoFile.RecordSize)
   else
-    DestDbfFile.FinishCreate(DestFieldDefs, 512);
+    if (DestDbfFile.DbfVersion in [xFoxPro,xVisualFoxPro]) then
+      DestDbfFile.FinishCreate(DestFieldDefs, 64) {VFP default}
+    else
+      DestDbfFile.FinishCreate(DestFieldDefs, 512);
 
   // adjust size and offsets of fields
   GetMem(RestructFieldInfo, sizeof(TRestructFieldInfo)*DestFieldDefs.Count);
@@ -1191,7 +1421,7 @@ begin
       begin
         // get minimum field length
         lFieldSize := Min(TempSrcDef.Precision, TempDstDef.Precision) +
-          Min(TempSrcDef.Size - TempSrcDef.Precision, 
+          Min(TempSrcDef.Size - TempSrcDef.Precision,
             TempDstDef.Size - TempDstDef.Precision);
         // if one has dec separator, but other not, we lose one digit
         if (TempDstDef.Precision > 0) xor 
@@ -1200,7 +1430,7 @@ begin
         // should not happen, but check nevertheless (maybe corrupt data)
         if lFieldSize < 0 then
           lFieldSize := 0;
-        srcOffset := TempSrcDef.Size - TempSrcDef.Precision - 
+        srcOffset := TempSrcDef.Size - TempSrcDef.Precision -
           (TempDstDef.Size - TempDstDef.Precision);
         if srcOffset < 0 then
         begin
@@ -1252,7 +1482,7 @@ begin
   else
     GetMem(pDestBuff, DestDbfFile.RecordSize);
 
-  // let the games begin!
+  // Go through record data:
   try
 {$ifdef USE_CACHE}
     BufferAhead := true;
@@ -1263,7 +1493,7 @@ begin
     begin
       // read record from original dbf
       ReadRecord(lRecNo, pBuff);
-      // copy record?
+      // copy record unless (deleted or user wants packing)
       if (ansichar(pBuff^) <> '*') or not Pack then
       begin
         // if restructure, initialize dest
@@ -1405,6 +1635,7 @@ var
   date: TDateTime;
   timeStamp: TTimeStamp;
   asciiContents: boolean;
+  SrcRecord: Pointer;
 
 {$ifdef SUPPORT_INT64}
   function GetInt64FromStrLength(Src: Pointer; Size: Integer; Default: Int64): Int64;
@@ -1428,7 +1659,7 @@ var
   var wD, wM, wY, CenturyBase: Word;
 
 {$ifndef DELPHI_5}
-  // Delphi 3 standard-behavior no change possible
+  // Delphi 3 standard behavior, no change possible
   const TwoDigitYearCenturyWindow= 0;
 {$endif}
 
@@ -1473,40 +1704,39 @@ begin
   // check Dst = nil, called with dst = nil to check empty field
   if (FNullField <> nil) and (Dst = nil) and (AFieldDef.NullPosition >= 0) then
   begin
-    // go to byte with null flag of this field
-    Src := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
-    Result := (PByte(Src)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
+    result:= not(IsNullFlagSet(Src, AFieldDef, nfNullFlag));
     exit;
   end;
-  
+
   FieldOffset := AFieldDef.Offset;
   FieldSize := AFieldDef.Size;
+  SrcRecord := Src;
   Src := PChar(Src) + FieldOffset;
   asciiContents := false;
   Result := true;
   // field types that are binary and of which the fieldsize should not be truncated
   case AFieldDef.NativeFieldType of
-    '+', 'I':
+    '+', 'I': //Autoincrement, integer
       begin
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
-          Result := PDWord(Src)^ <> 0;
+          Result := Unaligned(PDWord(Src)^) <> 0;
           if Result and (Dst <> nil) then
           begin
-            PDWord(Dst)^ := SwapIntBE(PDWord(Src)^);
+            PDWord(Dst)^ := SwapIntBE(Unaligned(PDWord(Src)^));
             if Result then
               PInteger(Dst)^ := Integer(PDWord(Dst)^ xor $80000000);
           end;
         end else begin
           Result := true;
           if Dst <> nil then
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            PInteger(Dst)^ := SwapIntLE(Unaligned(PInteger(Src)^));
         end;
       end;
     'O':
       begin
 {$ifdef SUPPORT_INT64}
-        Result := PInt64(Src)^ <> 0;
+        Result := Unaligned(PInt64(Src)^) <> 0;
         if Result and (Dst <> nil) then
         begin
           SwapInt64BE(Src, Dst);
@@ -1519,7 +1749,7 @@ begin
       end;
     '@':
       begin
-        Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) and (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
         if Result and (Dst <> nil) then
         begin
           SwapInt64BE(Src, Dst);
@@ -1534,49 +1764,91 @@ begin
       begin
         // all binary zeroes -> empty datetime
 {$ifdef SUPPORT_INT64}        
-        Result := PInt64(Src)^ <> 0;
+        Result := Unaligned(PInt64(Src)^) <> 0;
 {$else}        
-        Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) or (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
 {$endif}        
         if Result and (Dst <> nil) then
         begin
-          timeStamp.Date := SwapIntLE(PInteger(Src)^) - JulianDateDelta;
-          timeStamp.Time := SwapIntLE(PInteger(PChar(Src)+4)^);
+          timeStamp.Date := SwapIntLE(Unaligned(PInteger(Src)^)) - JulianDateDelta;
+          timeStamp.Time := SwapIntLE(Unaligned(PInteger(PChar(Src)+4)^));
           date := TimeStampToDateTime(timeStamp);
           SaveDateToDst;
         end;
       end;
-    'Y':
+    'Y': // currency
       begin
 {$ifdef SUPPORT_INT64}
         Result := true;
         if Dst <> nil then
         begin
-          PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
+          PInt64(Dst)^ := SwapIntLE(Unaligned(PInt64(Src)^));
           if DataType = ftCurrency then
             PDouble(Dst)^ := PInt64(Dst)^ / 10000.0;
         end;
 {$endif}
       end;
-    'B':    // foxpro double
+    'B':  // Foxpro double
       begin
-        if FDbfVersion = xFoxPro then
+        if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
-          Result := true;
-          if Dst <> nil then
-            PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
-        end else
+        {$ifdef SUPPORT_INT64}
+          Result := Unaligned(PInt64(Src)^) <> 0;
+          if Result and (Dst <> nil) then
+          begin
+            SwapInt64LE(Src, Dst);
+            PDouble(Dst)^ := PDouble(Dst)^;
+          end;
+        {$endif} end else
           asciiContents := true;
       end;
     'M':
       begin
         if FieldSize = 4 then
         begin
-          Result := PInteger(Src)^ <> 0;
+          Result := Unaligned(PInteger(Src)^) <> 0;
           if Dst <> nil then
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            PInteger(Dst)^ := SwapIntLE(Unaligned(PInteger(Src)^));
         end else
           asciiContents := true;
+      end;
+    'Q', 'V':  // Visual Foxpro varbinary, varchar
+      //todo: check if codepage conversion/translation for varchar is needed
+      begin
+        if (FDbfVersion in [xVisualFoxPro]) then
+        begin
+          Result := true;
+          // The length byte is only stored if the field is not full
+          if (Dst <> nil) then
+          begin
+            //clear the destination, just in case
+            Fillchar(pbyte(Dst)^,Fieldsize,0);
+            if IsNullFlagSet(SrcRecord, AFieldDef, nfVarlengthFlag) then
+            // so we decrease the fieldsize and let the rest of the code handle it
+              FieldSize:=(PByte(Src)+FieldSize-1)^;
+            // If field is not null:
+            if not(IsNullFlagSet(SrcRecord, AFieldDef, nfNullFlag)) then
+              if Afielddef.FieldType=ftVarBytes then
+              begin
+                PWord(Dst)^:=Fieldsize; //Store size in destination
+                move(Src^, pbyte(Dst+sizeof(Word))^, FieldSize)
+              end
+              else
+                move(Src^, pbyte(Dst)^, FieldSize)
+            else
+              result:=false;
+          end;
+        end;
+      end;
+    '0':  // Zero not letter 0: bytes
+      begin
+        if (Dst <> nil) then
+        begin
+          //clear the destination, just in case
+          Fillchar(pbyte(Dst)^,Fieldsize,0);
+          move(Src^, pbyte(Dst)^, FieldSize);
+          Result := true;
+        end;
       end;
   else
     asciiContents := true;
@@ -1603,7 +1875,7 @@ begin
         begin
           // in DBase- FileDescription lowercase t is allowed too
           // with asking for Result= true s must be longer then 0
-          // else it happens an AV, maybe field is NULL
+          // else an AV occurs, maybe field is NULL
           if (PChar(Src)^ = 'T') or (PChar(Src)^ = 't') then
             PWord(Dst)^ := 1
           else
@@ -1667,20 +1939,38 @@ begin
 end;
 
 procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; 
-  Action: TUpdateNullField);
+  Action: TUpdateNullField; WhichField: TNullFieldFlag);
 var
   NullDst: pbyte;
   Mask: byte;
 begin
-  // this field has null setting capability
-  NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
-  Mask := 1 shl (AFieldDef.NullPosition and $7);
-  if Action = unSet then
+  // this field has null setting capability...
+  // ... but no Super Cow Powers.
+  case WhichField of
+  nfNullFlag:
+    begin
+      // Find out the byte where the length bit for the field is stored by doing
+      // NullPosition shr3 (= NullPosition div 8)...
+      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
+      // ... get the correct bit in the byte by the equivalent of
+      // getting the bit number in that byte:
+      // NullPosition and $7 (=mod 8)...
+      // and going to the bit value in the byte (shl)
+      Mask := 1 shl (AFieldDef.NullPosition and $7);
+    end;
+  nfVarlengthFlag:
+    begin
+      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3));
+      Mask := 1 shl (AFieldDef.VarLengthPosition and $7);
+    end;
+  end;
+
+  if Action = unfSet then
   begin
-    // clear the field, set null flag
+    // set flag
     NullDst^ := NullDst^ or Mask;
-  end else begin
-    // set field data, clear null flag
+  end else begin //unfClear
+    // clear flag
     NullDst^ := NullDst^ and not Mask;
   end;
 end;
@@ -1689,8 +1979,9 @@ procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType;
   Src, Dst: Pointer; NativeFormat: boolean);
 const
   IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
-  SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unClear, unSet);
+  SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unfClear, unfSet);
 var
+  DstRecord: Pointer;
   FieldSize,FieldPrec: Integer;
   TempFieldDef: TDbfFieldDef;
   Len: Integer;
@@ -1727,31 +2018,33 @@ begin
   FieldSize := TempFieldDef.Size;
   FieldPrec := TempFieldDef.Precision;
 
-  // if src = nil then write empty field
-  // symmetry with above
+  DstRecord:=Dst; //beginning of record
+  Dst := PChar(Dst) + TempFieldDef.Offset; //beginning of field
 
-  // foxpro has special _nullfield for flagging fields as `null'
+  // if src = nil then write empty field
+  // symmetry with above loading code
+
+  // Visual Foxpro has special _nullfield for flagging fields as `null'
   if (FNullField <> nil) and (TempFieldDef.NullPosition >= 0) then
-    UpdateNullField(Dst, TempFieldDef, SrcNilToUpdateNullField[Src = nil]);
+    UpdateNullField(DstRecord, TempFieldDef, SrcNilToUpdateNullField[Src = nil],nfNullFlag);
 
   // copy field data to record buffer
-  Dst := PChar(Dst) + TempFieldDef.Offset;
   asciiContents := false;
   case TempFieldDef.NativeFieldType of
-    '+', 'I':
+    '+', 'I' {autoincrement, integer}:
       begin
-        if FDbfVersion <> xFoxPro then
+        if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           if Src = nil then
             IntValue := 0
           else
             IntValue := PDWord(Src)^ xor $80000000;
-          PDWord(Dst)^ := SwapIntBE(IntValue);
+          Unaligned(PDWord(Dst)^) := SwapIntBE(IntValue);
         end else begin
           if Src = nil then
-            PDWord(Dst)^ := 0
+            Unaligned(PDWord(Dst)^) := 0
           else
-            PDWord(Dst)^ := SwapIntLE(PDWord(Src)^);
+            Unaligned(PDWord(Dst)^) := SwapIntLE(PDWord(Src)^);
         end;
       end;
     'O':
@@ -1759,12 +2052,12 @@ begin
 {$ifdef SUPPORT_INT64}
         if Src = nil then
         begin
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
         end else begin
           if PDouble(Src)^ < 0 then
-            PInt64(Dst)^ := not PInt64(Src)^
+            Unaligned(PInt64(Dst)^) := not PInt64(Src)^
           else
-            PDouble(Dst)^ := (PDouble(Src)^) * -1;
+            Unaligned(PDouble(Dst)^) := (PDouble(Src)^) * -1;
           SwapInt64BE(Dst, Dst);
         end;
 {$endif}
@@ -1774,10 +2067,10 @@ begin
         if Src = nil then
         begin
 {$ifdef SUPPORT_INT64}
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
 {$else}          
-          PInteger(Dst)^ := 0;
-          PInteger(PChar(Dst)+4)^ := 0;
+          Unaligned(PInteger(Dst)^) := 0;
+          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
 {$endif}
         end else begin
           LoadDateFromSrc;
@@ -1792,16 +2085,16 @@ begin
         if Src = nil then
         begin
 {$ifdef SUPPORT_INT64}
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
 {$else}          
-          PInteger(Dst)^ := 0;
-          PInteger(PChar(Dst)+4)^ := 0;
+          Unaligned(PInteger(Dst)^) := 0;
+          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
 {$endif}          
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
-          PInteger(Dst)^ := SwapIntLE(timeStamp.Date + JulianDateDelta);
-          PInteger(PChar(Dst)+4)^ := SwapIntLE(timeStamp.Time);
+          Unaligned(PInteger(Dst)^) := SwapIntLE(timeStamp.Date + JulianDateDelta);
+          Unaligned(PInteger(PChar(Dst)+4)^) := SwapIntLE(timeStamp.Time);
         end;
       end;
     'Y':
@@ -1809,24 +2102,24 @@ begin
 {$ifdef SUPPORT_INT64}
         if Src = nil then
         begin
-          PInt64(Dst)^ := 0;
+          Unaligned(PInt64(Dst)^) := 0;
         end else begin
           case DataType of
             ftCurrency:
-              PInt64(Dst)^ := Trunc(PDouble(Src)^ * 10000);
+              Unaligned(PInt64(Dst)^) := Trunc(PDouble(Src)^ * 10000);
             ftBCD:
-              PCurrency(Dst)^ := PCurrency(Src)^;
+              Unaligned(PCurrency(Dst)^) := PCurrency(Src)^;
           end;
           SwapInt64LE(Dst, Dst);
         end;
 {$endif}
       end;
-    'B':
+    'B' {(Visual) FoxPro Double}:
       begin
-        if DbfVersion = xFoxPro then
+        if DbfVersion in [xFoxPro,xVisualFoxPro] then
         begin
           if Src = nil then
-            PDouble(Dst)^ := 0
+            Unaligned(PDouble(Dst)^) := 0
           else
             SwapInt64LE(Src, Dst);
         end else
@@ -1837,12 +2130,60 @@ begin
         if FieldSize = 4 then
         begin
           if Src = nil then
-            PInteger(Dst)^ := 0
+            Unaligned(PInteger(Dst)^) := 0
           else
-            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
+            Unaligned(PInteger(Dst)^) := SwapIntLE(PInteger(Src)^);
         end else
           asciiContents := true;
       end;
+    'Q': //Visual FoxPro varbinary
+      begin
+        // copy data, and update varlength flag/varlength byte in field data
+        Len := PWord(Src)^;
+        if Len > FieldSize then
+          Len := FieldSize;
+        if Len < FieldSize then
+        begin
+          // Clear flag and store actual size byte in last data byte
+          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
+        end
+        else
+        begin
+          UpdateNullField(DstRecord, TempFieldDef, unfClear, nfVarlengthFlag);
+        end;
+
+        Move((Src+sizeof(word))^, Dst^, Len);
+        // fill remaining data area with spaces, keeping room for size indicator if needed
+        if Len=FieldSize then
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+        else
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+      end;
+    'V': //Visual FoxPro varchar
+      begin
+        // copy data, and update varlength flag/varlength byte in field data
+        Len := StrLen(Src);
+        if Len > FieldSize then
+          Len := FieldSize;
+        if Len < FieldSize then
+        begin
+          // Clear flag and store actual size byte in last data byte
+          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
+        end
+        else
+        begin
+          UpdateNullField(DstRecord, TempFieldDef, unfClear, nfVarlengthFlag);
+        end;
+
+        Move(Src^, Dst^, Len);
+        // fill remaining data area with spaces, keeping room for size indicator if needed
+        if Len=FieldSize then
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+        else
+          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+      end
   else
     asciiContents := true;
   end;
@@ -1917,7 +2258,7 @@ begin
   GetMem(FDefaultBuffer, lRecordSize+1);
   FillChar(FDefaultBuffer^, lRecordSize, ' ');
   
-  // set nullflags field so that all fields are null
+  // set nullflags field so that all fields are null (and var* fields marked as full)
   if FNullField <> nil then
     FillChar(PChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
 
@@ -1925,9 +2266,9 @@ begin
   for I := 0 to FFieldDefs.Count-1 do
   begin
     TempFieldDef := FFieldDefs.Items[I];
-    // binary field? (foxpro memo fields are binary, but dbase not)
-    if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'Y'])
-        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4)) then
+    // binary (non-text) field? (foxpro memo fields are binary, but dbase not)
+    if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'W', 'Y'])
+        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4) {Visual FoxPro?}) then
       FillChar(PChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
     // copy default value?
     if TempFieldDef.HasDefault then
@@ -1935,7 +2276,18 @@ begin
       Move(TempFieldDef.DefaultBuf[0], FDefaultBuffer[TempFieldDef.Offset], TempFieldDef.Size);
       // clear the null flag, this field has a value
       if FNullField <> nil then
-        UpdateNullField(FDefaultBuffer, TempFieldDef, unClear);
+        UpdateNullField(FDefaultBuffer, TempFieldDef, unfClear, nfNullFlag);
+      // Check for varbinary/varchar and if default matches it, then mark field as full
+      if (TempFieldDef.VarLengthPosition>=0) then
+        if (strlen(FDefaultBuffer)>=TempFieldDef.Size) then
+          UpdateNullField(FDefaultBuffer, TempFieldDef, unfClear, nfVarlengthFlag)
+        else
+          begin
+            // Set flag and store actual size byte in last data byte
+            UpdateNullField(FDefaultBuffer, TempFieldDef, unfSet, nfVarlengthFlag);
+            //todo: verify pointer use
+            PByte(PChar(FDefaultBuffer)+TempFieldDef.Size)^:=strlen(FDefaultBuffer);
+          end;
     end;
   end;
 end;
@@ -1965,7 +2317,8 @@ begin
     for I := 0 to FFieldDefs.Count-1 do
     begin
       TempFieldDef := FFieldDefs.Items[I];
-      if (TempFieldDef.NativeFieldType = '+') then
+      if (DbfVersion=xBaseVII) and
+        (TempFieldDef.NativeFieldType = '+') then
       begin
         // read current auto inc, from header or field, depending on sharing
         lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
@@ -1983,6 +2336,18 @@ begin
         TempFieldDef.AutoInc := NextVal;
         // write new value to header buffer
         PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
+      end
+      else
+      if (DbfVersion=xVisualFoxPro) and
+        (TempFieldDef.AutoIncStep<>0) then
+      begin
+        // read current auto inc from field header
+        NextVal:=TempFieldDef.AutoInc; //todo: is this correc
+        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal); //todo: is swapintbe correct?
+        // Increase with step size
+        NextVal:=NextVal+TempFieldDef.AutoIncStep;
+        // write new value back
+        TempFieldDef.AutoInc:=NextVal;
       end;
     end;
 
@@ -2085,6 +2450,12 @@ begin
       lIndexFile.FileName := lIndexFileName;
       lIndexFile.Mode := IndexOpenMode[CreateIndex, Mode];
       lIndexFile.AutoCreate := CreateIndex or (Length(IndexField) > 0);
+      if (Mode in [pfMemoryOpen,pfMemoryCreate]) then
+      begin
+        if FIndexStream = nil then
+          FIndexStream := TMemoryStream.Create;
+        lIndexFile.Stream := FIndexStream;
+      end;
       lIndexFile.CodePage := UseCodePage;
       lIndexFile.OnLocaleError := FOnLocaleError;
       lIndexFile.Open;
@@ -2456,7 +2827,6 @@ begin
   // error occurred while writing?
   if WriteError then
   begin
-    // -- Tobias --
     // The record couldn't be written, so
     // the written index records and the
     // change to the header have to be
@@ -2466,7 +2836,7 @@ begin
     Dec(PDbfHdr(Header)^.RecordCount);
     WriteHeader;
     UnlockPage(0);
-    // roll back indexes too
+    // roll back indexes, too
     RollbackIndexesAndRaise(FIndexFiles.Count, ecWriteDbf);
   end else
     Result := newRecord;
@@ -2768,7 +3138,8 @@ finalization
 
 
 (*
-  Stuffs non implemented yet
+  Not implemented yet (encrypted cdx is undocumented;
+  unencrypted cdx could be implemented)
   TFoxCDXHeader         = Record
     PointerRootNode     : Integer;
     PointerFreeList     : Integer;

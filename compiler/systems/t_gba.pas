@@ -627,6 +627,6 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_arm_gba_info,TLinkerGba);
+  RegisterLinker(ld_gba,TLinkerGba);
   RegisterTarget(system_arm_gba_info);
 end.

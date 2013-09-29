@@ -65,8 +65,8 @@ unit i_symbian;
             dirsep       : '\';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_windows;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
             dbg          : dbg_stabs;
@@ -128,8 +128,8 @@ unit i_symbian;
             dirsep       : '\';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_windows;
+            linkextern   : ld_none;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -161,11 +161,11 @@ implementation
 
 initialization
 
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef Symbian}
   set_source_info(system_i386_symbian_info);
   {$endif Symbian}
-{$endif CPU86}
+{$endif CPUI386}
 
 {$ifdef CPUARM}
   {$ifdef Symbian}

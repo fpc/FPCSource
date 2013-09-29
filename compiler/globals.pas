@@ -154,9 +154,17 @@ interface
 
          disabledircache : boolean;
 
+{$if defined(i8086)}
+         x86memorymodel  : tx86memorymodel;
+{$endif defined(i8086)}
+
+{$if defined(ARM)}
+         instructionset : tinstructionset;
+{$endif defined(ARM)}
+
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
-        controllertype   : tcontrollertype;
+         controllertype   : tcontrollertype;
 {$endif defined(ARM) or defined(AVR)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
@@ -260,6 +268,7 @@ interface
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
+       SetPEOptFlagsSetExplicity,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -269,6 +278,7 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peoptflags,
        peflags : longint;
        minstacksize,
        maxstacksize,
@@ -314,10 +324,18 @@ interface
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
-       { windows / OS/2 application type }
+       { Application type (platform specific) 
+         see globtype.pas for description }
        apptype : tapptype;
 
        features : tfeatures;
+
+       { prefix added to automatically generated setters/getters. If empty,
+         no getters/setters will be automatically generated except if required
+         for visibility reasons (but in that case the names will be mangled so
+         they are unique) }
+       prop_auto_getter_prefix,
+       prop_auto_setter_prefix : string;
 
     const
        DLLsource : boolean = false;
@@ -411,8 +429,8 @@ interface
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
-        cputype : cpu_SPARC_V8;
-        optimizecputype : cpu_SPARC_V8;
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
@@ -436,8 +454,8 @@ interface
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
-        cputype : cpu_mips32;
-        optimizecputype : cpu_mips32;
+        cputype : cpu_mips2;
+        optimizecputype : cpu_mips2;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
@@ -445,6 +463,16 @@ interface
         optimizecputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
+  {$ifdef aarch64}
+        cputype : cpu_armv8;
+        optimizecputype : cpu_armv8;
+        fputype : fpu_vfp;
+  {$endif aarch64}
+  {$ifdef i8086}
+        cputype : cpu_8086;
+        optimizecputype : cpu_8086;
+        fputype : fpu_x87;
+  {$endif i8086}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
@@ -457,6 +485,12 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+{$if defined(i8086)}
+        x86memorymodel : mm_small;
+{$endif defined(i8086)}
+{$if defined(ARM)}
+        instructionset : is_arm;
+{$endif defined(ARM)}
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
@@ -488,7 +522,8 @@ interface
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
     function Setabitype(const s:string;var a:tabi):boolean;
-    function Setcputype(const s:string;var a:tcputype):boolean;
+    function Setoptimizecputype(const s:string;var a:tcputype):boolean;
+    function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
 {$if defined(arm) or defined(avr)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
@@ -497,7 +532,6 @@ interface
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
-    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -854,7 +888,7 @@ implementation
       {$endif}
       {$ifdef mswindows}
         GetEnvPchar:=nil;
-        p:=GetEnvironmentStrings;
+        p:=GetEnvironmentStringsA;
         hp:=p;
         while hp^<>#0 do
          begin
@@ -882,6 +916,11 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
+        if (length(GetEnvPChar)=0) then 
+          begin
+            FreeEnvPChar(GetEnvPChar);
+            GetEnvPChar:=nil;
+          end;
       {$endif}
       end;
 
@@ -895,11 +934,6 @@ implementation
       {$endif}
       end;
 
-{$if defined(MORPHOS) or defined(AMIGA)}
-  {$define AMIGASHELL}
-{$endif}
-
-{$UNDEF AMIGASHELL}
       function is_number_float(d : double) : boolean;
         var
            bytearray : array[0..7] of byte;
@@ -1069,7 +1103,8 @@ implementation
         result:=false;
         hs:=Upper(s);
         for t:=low(t) to high(t) do
-          if abi2str[t]=hs then
+          if abiinfo[t].supported and
+             (abiinfo[t].name=hs) then
             begin
               a:=t;
               result:=true;
@@ -1078,7 +1113,7 @@ implementation
       end;
 
 
-    function Setcputype(const s:string;var a:tcputype):boolean;
+    function Setoptimizecputype(const s:string;var a:tcputype):boolean;
       var
         t  : tcputype;
         hs : string;
@@ -1092,6 +1127,33 @@ implementation
               result:=true;
               break;
             end;
+      end;
+
+
+    function Setcputype(const s:string;var a:tsettings):boolean;
+      var
+        t  : tcputype;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(tcputype) to high(tcputype) do
+          if cputypestr[t]=hs then
+            begin
+              a.cputype:=t;
+              result:=true;
+              break;
+            end;
+{$ifdef arm}
+        { set default instruction set for arm }
+        if result then
+          begin
+            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m] then
+              a.instructionset:=is_thumb
+            else
+              a.instructionset:=is_arm;
+          end;
+{$endif arm}
       end;
 
 
@@ -1328,48 +1390,6 @@ implementation
       end;
 
 
-    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
-      var
-        tok   : string;
-        doset,
-        found : boolean;
-        opt   : ttargetswitch;
-      begin
-        result:=true;
-        uppervar(s);
-        repeat
-          tok:=GetToken(s,',');
-          if tok='' then
-           break;
-          if Copy(tok,1,2)='NO' then
-            begin
-              delete(tok,1,2);
-              doset:=false;
-            end
-          else
-            doset:=true;
-          found:=false;
-          for opt:=low(ttargetswitch) to high(ttargetswitch) do
-            begin
-              if TargetSwitchStr[opt]=tok then
-                begin
-                  found:=true;
-                  break;
-                end;
-            end;
-          if found then
-            begin
-              if doset then
-                include(a,opt)
-              else
-                exclude(a,opt);
-            end
-          else
-            result:=false;
-        until false;
-      end;
-
-
     function IncludeFeature(const s : string) : boolean;
       var
         i : tfeature;
@@ -1554,6 +1574,7 @@ implementation
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
+        SetPEOptFlagsSetExplicity:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;
@@ -1577,7 +1598,11 @@ implementation
           in options or init_parser }
         stacksize:=0;
         { not initialized yet }
+{$ifndef jvm}
         jmp_buf_size:=-1;
+{$else}
+        jmp_buf_size:=0;
+{$endif}
         apptype:=app_cui;
 
         { Init values }

@@ -56,6 +56,8 @@ type
 
     constructor op_reg_reg_ref(op: tasmop; _op1, _op2: tregister; const _op3: treference);
     constructor op_reg_reg_const(op: tasmop; _op1, _op2: tregister; _op3: aint);
+    { INS and EXT }
+    constructor op_reg_reg_const_const(op: tasmop; _op1,_op2: tregister; _op3,_op4: aint);
     constructor op_reg_const_reg(op: tasmop; _op1: tregister; _op2: aint; _op3: tregister);
 
     { this is for Jmp instructions }
@@ -186,6 +188,17 @@ begin
 end;
 
 
+constructor taicpu.op_reg_reg_const_const(op: tasmop; _op1, _op2: tregister; _op3, _op4: aint);
+begin
+  inherited create(op);
+  ops := 4;
+  loadreg(0, _op1);
+  loadreg(1, _op2);
+  loadconst(2, _op3);
+  loadconst(3, _op4);
+end;
+
+
 constructor taicpu.op_reg_const_reg(op: tasmop; _op1: tregister; _op2: aint;
  _op3: tregister);
 begin
@@ -292,38 +305,30 @@ end;
       A_OR,
       A_XOR,
       A_NOR,
+{ We can get into trouble if an instruction can be interpreted as
+  macros with different operands. The following commented out ones
+  refer to elementary instructions: DIV[U], MULT[U] do not modify
+  first operand. Rest are subject to check. }
       A_MUL,
       A_MULO,
       A_MULOU,
       A_DMUL,
       A_DMULO,
       A_DMULOU,
-      A_DIV,
-      A_DIVU,
+//      A_DIV,
+//      A_DIVU,
       A_DDIV,
       A_DDIVU,
       A_REM,
       A_REMU,
       A_DREM,
       A_DREMU,
-      A_MULT,
+//      A_MULT,
       A_DMULT,
-      A_MULTU,
+//      A_MULTU,
       A_DMULTU,
       A_MFHI,
       A_MFLO,
-      A_MULTG,
-      A_DMULTG,
-      A_MULTUG,
-      A_DMULTUG,
-      A_DIVG,
-      A_DDIVG,
-      A_DIVUG,
-      A_DDIVUG,
-      A_MODG,
-      A_DMODG,
-      A_MODUG,
-      A_DMODUG,
 
       A_SLL,
       A_SRL,
@@ -393,7 +398,10 @@ end;
       A_SGTU,
       A_SLE,
       A_SLEU,
-      A_SNE];
+      A_SNE,
+      A_EXT,
+      A_INS,
+      A_MFC0];
 
       begin
         result := operand_read;

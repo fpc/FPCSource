@@ -119,6 +119,7 @@ type
 
     FNSHelper: TNSSupport;
     FNsAttHash: TDblHashArray;
+    FEmptyStr: PHashItem;
     FStdPrefix_xml: PHashItem;
     FStdPrefix_xmlns: PHashItem;
     FStdUri_xml: PHashItem;
@@ -1226,6 +1227,7 @@ begin
   FValidatorNesting := 0;
   FCurrNode := @FNodeStack[0];
   FCurrAttrIndex := -1;
+  FEmptyStr := FNameTable.FindOrAdd('');
   if FNamespaces then
   begin
     FNSHelper := TNSSupport.Create(FNameTable);
@@ -3622,7 +3624,9 @@ begin
             begin
               attrData^.FPrefix := FNSHelper.GetPrefix(PWideChar(attrData^.FQName^.Key), attrData^.FColonPos);
               Inc(FPrefixedAttrs);
-            end;
+            end
+            else
+              attrData^.FNsUri := FEmptyStr;
           end;
         end;
       end;
@@ -3670,8 +3674,13 @@ begin
   for I := 1 to FAttrCount do
   begin
     attrData := @FNodeStack[FNesting+i];
-    if (attrData^.FColonPos < 1) or Assigned(attrData^.FNsUri) then
+    if Assigned(attrData^.FNsUri) then
       Continue;
+    if (attrData^.FColonPos < 1) then
+    begin
+      attrData^.FNsUri := FEmptyStr;
+      Continue;
+    end;
 
     Pfx := attrData^.FPrefix;
     b := TBinding(Pfx^.Data);

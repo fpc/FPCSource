@@ -256,8 +256,9 @@ Const
         syscall_nr_MAXSYSCALL   = 313;
 
 { Aliases }
-        syscall_nr_getdirentries = syscall_nr_ogetdirentries;
+        syscall_nr_getdirentries = syscall_nr_getdirentriesi49;
         syscall_nr_waitpid      = syscall_nr_wait4;  // 7, added: ease of notation purposes
 {        syscall_nr_getdents = syscall_nr_getdirentries; }
 {$define USE_GETDIRENTRIES_SYSCALL}
+{$define USE_GETDIRENTRIES_I49_SYSCALL}
 

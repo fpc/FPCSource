@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libsee');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libsee';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'David Leonard';

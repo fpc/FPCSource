@@ -21,6 +21,7 @@ const
 var
    s : string;
    i : longint;
+   i8086  : boolean;
    x86_64 : boolean;
 
     function lower(const s : string) : string;
@@ -204,6 +205,7 @@ var
    optypes : array[1..max_operands] of string;
 begin
    writeln('Nasm Instruction Table Converter Version ',Version);
+   i8086:=paramstr(1)='i8086';
    x86_64:=paramstr(1)='x86_64';
    insns:=0;
    maxinfolen:=0;
@@ -219,6 +221,17 @@ begin
        openinc(attsuffile,'x8664ats.inc');
        openinc(intfile,'x8664int.inc');
        openinc(propfile,'x8664pro.inc');
+     end
+   else if i8086 then
+     begin
+       { create inc files }
+       openinc(insfile,'i8086tab.inc');
+       openinc(opfile,'i8086op.inc');
+       assign(nopfile,'i8086nop.inc');
+       openinc(attfile,'i8086att.inc');
+       openinc(attsuffile,'i8086atts.inc');
+       openinc(intfile,'i8086int.inc');
+       openinc(propfile,'i8086prop.inc');
      end
    else
      begin

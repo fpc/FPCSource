@@ -3,9 +3,7 @@
  
      Contains:   Types, constants, prototypes for Unicode Utilities (Unicode input and text utils)
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1997-2008 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1997-2011 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -473,7 +477,8 @@ type
    utilities. It is created and initialized via a call to UCTypeSelectCreateSelector
 }
 type
-	UCTypeSelectRef = ^SInt32; { an opaque type }
+	UCTypeSelectRef = ^OpaqueUCTypeSelectRef; { an opaque type }
+	OpaqueUCTypeSelectRef = record end;
 {
    UCTypeSelectCompareResult
    Used as the return value for UCTypeSelectCompare()
@@ -534,7 +539,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewIndexToUCStringUPP( userRoutine: IndexToUCStringProcPtr ): IndexToUCStringUPP; external name '_NewIndexToUCStringUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 {
  *  DisposeIndexToUCStringUPP()
@@ -545,7 +550,7 @@ function NewIndexToUCStringUPP( userRoutine: IndexToUCStringProcPtr ): IndexToUC
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeIndexToUCStringUPP( userUPP: IndexToUCStringUPP ); external name '_DisposeIndexToUCStringUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 {
  *  InvokeIndexToUCStringUPP()
@@ -556,7 +561,7 @@ procedure DisposeIndexToUCStringUPP( userUPP: IndexToUCStringUPP ); external nam
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeIndexToUCStringUPP( index: UInt32; listDataPtr: UnivPtr; refcon: UnivPtr; var outString: CFStringRef; var tsOptions: UCTypeSelectOptions; userUPP: IndexToUCStringUPP ): Boolean; external name '_InvokeIndexToUCStringUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 {
    kUCTypeSelectMaxListSize can be used for any listSize arguement
@@ -645,7 +650,7 @@ const
  *    Non-Carbon CFM:   in UnicodeUtilitiesCoreLib 8.5 and later
  }
 function UCKeyTranslate( const (*var*) keyLayoutPtr: UCKeyboardLayout; virtualKeyCode: UInt16; keyAction: UInt16; modifierKeyState: UInt32; keyboardType: UInt32; keyTranslateOptions: OptionBits; var deadKeyState: UInt32; maxStringLength: UniCharCount; var actualStringLength: UniCharCount; unicodeString: {variable-size-array} UniCharPtr ): OSStatus; external name '_UCKeyTranslate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { Standard collation functions}
@@ -659,7 +664,7 @@ function UCKeyTranslate( const (*var*) keyLayoutPtr: UCKeyboardLayout; virtualKe
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 8.6 and later
  }
 function UCCreateCollator( locale: LocaleRef; opVariant: LocaleOperationVariant; options: UCCollateOptions; var collatorRef_: CollatorRef ): OSStatus; external name '_UCCreateCollator';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -671,7 +676,7 @@ function UCCreateCollator( locale: LocaleRef; opVariant: LocaleOperationVariant;
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 8.6 and later
  }
 function UCGetCollationKey( collatorRef_: CollatorRef; textPtr: ConstUniCharPtr; textLength: UniCharCount; maxKeySize: ItemCount; var actualKeySize: ItemCount; collationKey: {variable-size-array} UCCollationValuePtr ): OSStatus; external name '_UCGetCollationKey';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -683,7 +688,7 @@ function UCGetCollationKey( collatorRef_: CollatorRef; textPtr: ConstUniCharPtr;
  *    Non-Carbon CFM:   in UnicodeUtilitiesCoreLib 8.6 and later
  }
 function UCCompareCollationKeys( key1Ptr: UCCollationValuePtr; key1Length: ItemCount; key2Ptr: UCCollationValuePtr; key2Length: ItemCount; var equivalent: Boolean; var order: SInt32 ): OSStatus; external name '_UCCompareCollationKeys';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -695,7 +700,7 @@ function UCCompareCollationKeys( key1Ptr: UCCollationValuePtr; key1Length: ItemC
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 8.6 and later
  }
 function UCCompareText( collatorRef_: CollatorRef; text1Ptr: ConstUniCharPtr; text1Length: UniCharCount; text2Ptr: ConstUniCharPtr; text2Length: UniCharCount; var equivalent: Boolean; var order: SInt32 ): OSStatus; external name '_UCCompareText';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -707,7 +712,7 @@ function UCCompareText( collatorRef_: CollatorRef; text1Ptr: ConstUniCharPtr; te
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 8.6 and later
  }
 function UCDisposeCollator( var collatorRef_: CollatorRef ): OSStatus; external name '_UCDisposeCollator';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { Simple collation using default locale}
@@ -721,7 +726,7 @@ function UCDisposeCollator( var collatorRef_: CollatorRef ): OSStatus; external 
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 8.6 and later
  }
 function UCCompareTextDefault( options: UCCollateOptions; text1Ptr: ConstUniCharPtr; text1Length: UniCharCount; text2Ptr: ConstUniCharPtr; text2Length: UniCharCount; var equivalent: Boolean; var order: SInt32 ): OSStatus; external name '_UCCompareTextDefault';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 { Simple locale-independent collation}
@@ -735,7 +740,7 @@ function UCCompareTextDefault( options: UCCollateOptions; text1Ptr: ConstUniChar
  *    Non-Carbon CFM:   in UnicodeUtilitiesCoreLib 8.6 and later
  }
 function UCCompareTextNoLocale( options: UCCollateOptions; text1Ptr: ConstUniCharPtr; text1Length: UniCharCount; text2Ptr: ConstUniCharPtr; text2Length: UniCharCount; var equivalent: Boolean; var order: SInt32 ): OSStatus; external name '_UCCompareTextNoLocale';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -774,7 +779,7 @@ function UCCompareTextNoLocale( options: UCCollateOptions; text1Ptr: ConstUniCha
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 9.0 and later
  }
 function UCCreateTextBreakLocator( locale: LocaleRef; opVariant: LocaleOperationVariant; breakTypes: UCTextBreakType; var breakRef: TextBreakLocatorRef ): OSStatus; external name '_UCCreateTextBreakLocator';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -791,7 +796,7 @@ function UCCreateTextBreakLocator( locale: LocaleRef; opVariant: LocaleOperation
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 9.0 and later
  }
 function UCFindTextBreak( breakRef: TextBreakLocatorRef; breakType: UCTextBreakType; options: UCTextBreakOptions; textPtr: ConstUniCharPtr; textLength: UniCharCount; startOffset: UniCharArrayOffset; var breakOffset: UniCharArrayOffset ): OSStatus; external name '_UCFindTextBreak';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -808,7 +813,7 @@ function UCFindTextBreak( breakRef: TextBreakLocatorRef; breakType: UCTextBreakT
  *    Non-Carbon CFM:   in UnicodeUtilitiesLib 9.0 and later
  }
 function UCDisposeTextBreakLocator( var breakRef: TextBreakLocatorRef ): OSStatus; external name '_UCDisposeTextBreakLocator';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -851,7 +856,7 @@ function UCDisposeTextBreakLocator( var breakRef: TextBreakLocatorRef ): OSStatu
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectCreateSelector( locale: LocaleRef { can be NULL }; opVariant: LocaleOperationVariant; options: UCCollateOptions; var newSelector: UCTypeSelectRef ): OSStatus; external name '_UCTypeSelectCreateSelector';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -875,7 +880,7 @@ function UCTypeSelectCreateSelector( locale: LocaleRef { can be NULL }; opVarian
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectFlushSelectorData( ref: UCTypeSelectRef ): OSStatus; external name '_UCTypeSelectFlushSelectorData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -901,7 +906,7 @@ function UCTypeSelectFlushSelectorData( ref: UCTypeSelectRef ): OSStatus; extern
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectReleaseSelector( var ref: UCTypeSelectRef ): OSStatus; external name '_UCTypeSelectReleaseSelector';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -938,7 +943,7 @@ function UCTypeSelectReleaseSelector( var ref: UCTypeSelectRef ): OSStatus; exte
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectWouldResetBuffer( inRef: UCTypeSelectRef; inText: CFStringRef { can be NULL }; inEventTime: Float64 ): Boolean; external name '_UCTypeSelectWouldResetBuffer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -986,7 +991,7 @@ function UCTypeSelectWouldResetBuffer( inRef: UCTypeSelectRef; inText: CFStringR
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectAddKeyToSelector( inRef: UCTypeSelectRef; inText: CFStringRef; inEventTime: Float64; var updateFlag: Boolean ): OSStatus; external name '_UCTypeSelectAddKeyToSelector';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1029,7 +1034,7 @@ function UCTypeSelectAddKeyToSelector( inRef: UCTypeSelectRef; inText: CFStringR
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectCompare( ref: UCTypeSelectRef; inText: CFStringRef; var result: UCTypeSelectCompareResult ): OSStatus; external name '_UCTypeSelectCompare';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1091,7 +1096,7 @@ function UCTypeSelectCompare( ref: UCTypeSelectRef; inText: CFStringRef; var res
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectFindItem( ref: UCTypeSelectRef; listSize: UInt32; listDataPtr: UnivPtr { can be NULL }; refcon: UnivPtr { can be NULL }; userUPP: IndexToUCStringUPP; var closestItem: UInt32 ): OSStatus; external name '_UCTypeSelectFindItem';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 
 {
@@ -1179,7 +1184,8 @@ function UCTypeSelectFindItem( ref: UCTypeSelectRef; listSize: UInt32; listDataP
  *    Non-Carbon CFM:   not available
  }
 function UCTypeSelectWalkList( ref: UCTypeSelectRef; currSelect: CFStringRef; direction: UCTSWalkDirection; listSize: UInt32; listDataPtr: UnivPtr { can be NULL }; refcon: UnivPtr { can be NULL }; userUPP: IndexToUCStringUPP; var closestItem: UInt32 ): OSStatus; external name '_UCTypeSelectWalkList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
+
 
 
 {$endc} {TARGET_OS_MAC}

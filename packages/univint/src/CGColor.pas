@@ -3,6 +3,7 @@
  * All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -78,6 +79,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -87,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -102,6 +105,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +115,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +126,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -177,21 +183,24 @@ uses MacTypes,CFBase,CGBase,CGColorSpace;
    (including alpha) specified by `components'. `space' may be any color
    space except a pattern color space. }
 
-function CGColorCreate( space: CGColorSpaceRef; {const} components: {variable-size-array} CGFloatPtr ): CGColorRef; external name '_CGColorCreate'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorCreate( space: CGColorSpaceRef; {const} components: {variable-size-array} CGFloatPtr ): CGColorRef; external name '_CGColorCreate';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {$ifc TARGET_OS_MAC}
 { Create a color in the "Generic" gray color space. }
 
-function CGColorCreateGenericGray(gray: CGFloat; alpha: CGFloat): CGColorRef; external name '_CGColorCreateGenericGray'; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+function CGColorCreateGenericGray( gray: CGFloat; alpha: CGFloat ): CGColorRef; external name '_CGColorCreateGenericGray';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 { Create a color in the "Generic" RGB color space. }
 
-function CGColorCreateGenericRGB(red: CGFloat; green: CGFloat; blue: CGFloat; alpha: CGFloat): CGColorRef; external name '_CGColorCreateGenericRGB'; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+function CGColorCreateGenericRGB( red: CGFloat; green: CGFloat; blue: CGFloat; alpha: CGFloat ): CGColorRef; external name '_CGColorCreateGenericRGB';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 { Create a color in the "Generic" CMYK color space. }
 
-function CGColorCreateGenericCMYK(cyan: CGFloat; magenta: CGFloat; yellow: CGFloat; black: CGFloat; alpha: CGFloat): CGColorRef; external name '_CGColorCreateGenericCMYK'; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-{$endc}
+function CGColorCreateGenericCMYK( cyan: CGFloat; magenta: CGFloat; yellow: CGFloat; black: CGFloat; alpha: CGFloat ): CGColorRef; external name '_CGColorCreateGenericCMYK';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 { Return a constant color. As `CGColorGetConstantColor' is not a "Copy" or
    "Create" function, it does not necessarily return a new reference each
@@ -200,61 +209,74 @@ function CGColorCreateGenericCMYK(cyan: CGFloat; magenta: CGFloat; yellow: CGFlo
    retained and released in a properly nested fashion, just like any other
    CF type. }
 
-function CGColorGetConstantColor(colorName: CFStringRef): CGColorRef; external name '_CGColorGetConstantColor'; (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+function CGColorGetConstantColor( colorName: CFStringRef ): CGColorRef; external name '_CGColorGetConstantColor';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
+{$endc}
 
-{ Create a color in colorspace `colorspace' with pattern `pattern' and
- * components `components'.  `colorspace' must be a pattern colorspace. }
+{ Create a color in color space `space' with pattern `pattern' and
+   components `components'. `space' must be a pattern color space. }
 
-function CGColorCreateWithPattern( colorspace: CGColorSpaceRef; pattern: CGPatternRef; {const} components: {variable-size-array} CGFloatPtr ): CGColorRef; external name '_CGColorCreateWithPattern'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorCreateWithPattern( colorspace: CGColorSpaceRef; pattern: CGPatternRef; {const} components: {variable-size-array} CGFloatPtr ): CGColorRef; external name '_CGColorCreateWithPattern';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Create a copy of `color'. }
 
-function CGColorCreateCopy( color: CGColorRef ): CGColorRef; external name '_CGColorCreateCopy'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorCreateCopy( color: CGColorRef ): CGColorRef; external name '_CGColorCreateCopy';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Create a copy of `color' with alpha set to `alpha'. }
 
-function CGColorCreateCopyWithAlpha( color: CGColorRef; alpha: CGFloat ): CGColorRef; external name '_CGColorCreateCopyWithAlpha'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorCreateCopyWithAlpha( color: CGColorRef; alpha: CGFloat ): CGColorRef; external name '_CGColorCreateCopyWithAlpha';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Equivalent to `CFRetain(color)', except it doesn't crash (as CFRetain
- * does) if `color' is NULL. }
+   does) if `color' is NULL. }
 
-function CGColorRetain( color: CGColorRef ): CGColorRef; external name '_CGColorRetain'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorRetain( color: CGColorRef ): CGColorRef; external name '_CGColorRetain';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Equivalent to `CFRelease(color)', except it doesn't crash (as CFRelease
- * does) if `color' is NULL. }
+   does) if `color' is NULL. }
 
-procedure CGColorRelease( color: CGColorRef ); external name '_CGColorRelease'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+procedure CGColorRelease( color: CGColorRef ); external name '_CGColorRelease';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Return true if `color1' is equal to `color2'; false otherwise. }
 
-function CGColorEqualToColor( color1: CGColorRef; color2: CGColorRef ): CBool; external name '_CGColorEqualToColor'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorEqualToColor( color1: CGColorRef; color2: CGColorRef ): CBool; external name '_CGColorEqualToColor';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Return the number of color components (including alpha) associated with
- * `color'. }
+   `color'. }
 
-function CGColorGetNumberOfComponents( color: CGColorRef ): size_t; external name '_CGColorGetNumberOfComponents'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetNumberOfComponents( color: CGColorRef ): size_t; external name '_CGColorGetNumberOfComponents';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
-{ Return the color components (including alpha) associated with
- * `color'. }
+{ Return the color components (including alpha) associated with `color'. }
 
-function CGColorGetComponents( color: CGColorRef ): CGFloatPtr; external name '_CGColorGetComponents'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetComponents( color: CGColorRef ): CGFloatPtr; external name '_CGColorGetComponents';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Return the alpha component associated with `color'. }
 
-function CGColorGetAlpha( color: CGColorRef ): CGFloat; external name '_CGColorGetAlpha'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetAlpha( color: CGColorRef ): CGFloat; external name '_CGColorGetAlpha';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
-{ Return the colorspace associated with `color'. }
+{ Return the color space associated with `color'. }
 
-function CGColorGetColorSpace( color: CGColorRef ): CGColorSpaceRef; external name '_CGColorGetColorSpace'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetColorSpace( color: CGColorRef ): CGColorSpaceRef; external name '_CGColorGetColorSpace';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Return the pattern associated with `color', if it's a color in a pattern
- * colorspace; NULL otherwise. }
+   color space; NULL otherwise. }
 
-function CGColorGetPattern( color: CGColorRef ): CGPatternRef; external name '_CGColorGetPattern'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetPattern( color: CGColorRef ): CGPatternRef; external name '_CGColorGetPattern';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Return the CFTypeID for CGColors. }
 
-function CGColorGetTypeID: CFTypeID; external name '_CGColorGetTypeID'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGColorGetTypeID: CFTypeID; external name '_CGColorGetTypeID';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {$ifc TARGET_OS_MAC}
 {** Names of colors for use with `CGColorGetConstantColor'. **}
@@ -262,12 +284,15 @@ function CGColorGetTypeID: CFTypeID; external name '_CGColorGetTypeID'; (* AVAIL
 { Colors in the "Generic" gray color space. }
 
 var kCGColorWhite: CFStringRef; external name '_kCGColorWhite'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-var  kCGColorBlack: CFStringRef; external name '_kCGColorBlack'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
+
+var kCGColorBlack: CFStringRef; external name '_kCGColorBlack'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
+
 var kCGColorClear: CFStringRef; external name '_kCGColorClear'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {$endc}
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

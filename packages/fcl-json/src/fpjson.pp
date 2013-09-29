@@ -314,6 +314,7 @@ Type
     function Add(AnObject: TJSONObject): Integer;
     Procedure Delete(Index : Integer);
     procedure Exchange(Index1, Index2: Integer);
+    function Extract(Item: TJSONData): TJSONData;
     procedure Insert(Index: Integer);
     procedure Insert(Index: Integer; Item : TJSONData);
     procedure Insert(Index: Integer; I : Integer);
@@ -945,6 +946,9 @@ end;
 function TJSONFloatNumber.GetAsString: TJSONStringType;
 begin
   Str(FValue,Result);
+  // Str produces a ' ' in front where the - can go.
+  if (Result<>'') and (Result[1]=' ') then
+    Delete(Result,1,1);
 end;
 
 procedure TJSONFloatNumber.SetAsString(const AValue: TJSONStringType);
@@ -1554,6 +1558,11 @@ begin
   FList.Exchange(Index1, Index2);
 end;
 
+function TJSONArray.Extract(Item: TJSONData): TJSONData;
+begin
+  Result := TJSONData(FList.Extract(Item));
+end;
+
 procedure TJSONArray.Insert(Index: Integer);
 begin
   Insert(Index,TJSONNull.Create);
@@ -1911,6 +1920,7 @@ Var
 
 
 begin
+  Result:='';
   CurrentIndent:=CurrentIndent+Indent;  
   For I:=0 to Count-1 do
     begin

@@ -39,6 +39,7 @@ unit parabase;
        TCGParaLocation = record
          Next : PCGParaLocation;
          Size : TCGSize; { size of this location }
+         Def  : tdef;
          Loc  : TCGLoc;
          case TCGLoc of
            LOC_REFERENCE : (reference : TCGParaReference);
@@ -72,6 +73,8 @@ unit parabase;
              register : tregister);
        end;
 
+       { TCGPara }
+
        TCGPara = object
           Def       : tdef; { Type of the parameter }
           Location  : PCGParalocation;
@@ -80,9 +83,6 @@ unit parabase;
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
-{$ifdef powerpc}
-          composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
-{$endif powerpc}
           constructor init;
           destructor  done;
           procedure   reset;
@@ -91,6 +91,7 @@ unit parabase;
           procedure   check_simple_location;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
+          function    locations_count:integer;
 
           procedure   buildderef;
           procedure   deref;
@@ -135,9 +136,6 @@ implementation
         location:=nil;
         def:=nil;
         temporary:=false;
-{$ifdef powerpc}
-        composite:=false;
-{$endif powerpc}
       end;
 
 
@@ -160,9 +158,6 @@ implementation
         alignment:=0;
         size:=OS_NO;
         intsize:=0;
-{$ifdef powerpc}
-        composite:=false;
-{$endif powerpc}
       end;
 
     procedure TCGPara.resetiftemp;
@@ -174,22 +169,20 @@ implementation
 
     function tcgpara.getcopy:tcgpara;
       var
-        hlocation : pcgparalocation;
+        srcloc,hlocation : pcgparalocation;
       begin
         result.init;
-        while assigned(location) do
+        srcloc:=location;
+        while assigned(srcloc) do
           begin
             hlocation:=result.add_location;
-            hlocation^:=location^;
+            hlocation^:=srcloc^;
             hlocation^.next:=nil;
-            location:=location^.next;
+            srcloc:=srcloc^.next;
           end;
         result.alignment:=alignment;
         result.size:=size;
         result.intsize:=intsize;
-{$ifdef powerpc}
-        result.composite:=composite;
-{$endif powerpc}
       end;
 
 
@@ -269,6 +262,20 @@ implementation
       end;
 
 
+    function TCGPara.locations_count: integer;
+      var
+        hlocation: pcgparalocation;
+      begin
+        result:=0;
+        hlocation:=location;
+        while assigned(hlocation) do
+          begin
+            inc(result);
+            hlocation:=hlocation^.next;
+          end;
+      end;
+
+
     procedure TCGPara.buildderef;
       begin
         defderef.build(def);
@@ -289,9 +296,6 @@ implementation
         ppufile.putbyte(byte(Alignment));
         ppufile.putbyte(ord(Size));
         ppufile.putaint(IntSize);
-{$ifdef powerpc}
-        ppufile.putbyte(byte(composite));
-{$endif}
         ppufile.putderef(defderef);
         nparaloc:=0;
         hparaloc:=location;
@@ -345,9 +349,6 @@ implementation
         Alignment:=shortint(ppufile.getbyte);
         Size:=TCgSize(ppufile.getbyte);
         IntSize:=ppufile.getaint;
-{$ifdef powerpc}
-        composite:=boolean(ppufile.getbyte);
-{$endif}
         ppufile.getderef(defderef);
         nparaloc:=ppufile.getbyte;
         while nparaloc>0 do

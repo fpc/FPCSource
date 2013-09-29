@@ -1,1 +1,1 @@
-{$ ../mips/set.inc}
+{$i ../mips/set.inc}

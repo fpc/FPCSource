@@ -13,9 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('aspell');
+
 {$ifdef ALLPACKAGES}
-    P.Directory:='aspell';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
+
     P.Version:='2.7.1';
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';

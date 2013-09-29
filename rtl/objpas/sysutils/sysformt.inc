@@ -171,11 +171,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     ReadWidth;
     ReadPrec;
 {$ifdef INWIDEFORMAT}
-{$ifdef VER2_2}
-    FormatChar:=UpCase(Fmt[ChPos])[1];
-{$else VER2_2}
     FormatChar:=UpCase(UnicodeChar(Fmt[ChPos]));
-{$endif VER2_2}
     if word(FormatChar)>255 then
       ReadFormat:=#255
     else

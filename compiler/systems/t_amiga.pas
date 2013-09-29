@@ -70,14 +70,14 @@ end;
 procedure TLinkerAmiga.SetAmiga68kInfo;
 begin
   with Info do begin
-    ExeCmd[1]:='m68k-amiga-ld $OPT -d -n -o $EXE $RES';
+    ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
   end;
 end;
 
 procedure TLinkerAmiga.SetAmigaPPCInfo;
 begin
   with Info do begin
-    ExeCmd[1]:='ld $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+    ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
   end;
 end;
 
@@ -200,17 +200,24 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
+  DynLinkStr : string;
 begin
   StripStr:='';
   if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
-  MakeAmiga68kExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath
+  else
+    DynLinkStr:='';
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  MakeAmiga68kExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
 
@@ -219,17 +226,24 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
+  DynLinkStr : string;
 begin
   StripStr:='';
   if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
-  MakeAmigaPPCExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath
+  else
+    DynLinkStr:='';
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  MakeAmigaPPCExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
 
@@ -263,11 +277,11 @@ end;
 initialization
 {$ifdef m68k}
 { TODO: No executable creation support for m68k yet!}
-  RegisterExternalLinker(system_m68k_Amiga_info,TLinkerAmiga);
+  RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_Amiga_info,TLinkerAmiga);
+  RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_powerpc_Amiga_info);
 {$endif powerpc}
 end.

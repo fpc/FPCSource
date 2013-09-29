@@ -1,5 +1,6 @@
-{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos,aix }
+{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos,aix,android }
 { %needlibrary }
+{ %delfiles=tw9089a tw9089b }
 
 program ptest;
 

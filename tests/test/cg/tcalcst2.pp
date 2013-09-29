@@ -28,6 +28,13 @@ program tcalcst2;
   {$define tp}
 {$endif}
 
+{$ifdef cpu68k}
+  {$define cpusmall}
+{$endif}
+{$ifdef cpu8086}
+  {$define cpusmall}
+{$endif}
+
  { REAL should map to single or double }
  { so it is not checked, since single  }
  { double nodes are checked.           }
@@ -37,7 +44,7 @@ program tcalcst2;
  const
 { should be defined depending on CPU target }
 {$ifdef fpc}
-  {$ifdef cpu68k}
+  {$ifdef cpusmall}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
   {$else}

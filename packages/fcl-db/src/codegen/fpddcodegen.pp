@@ -38,6 +38,8 @@ Type
   TVisibility = (vPrivate,vProtected,vPublic,vPublished);
   TVisibilities = Set of TVisibility;
   TPropAccess = (paReadWrite,paReadonly,paWriteonly);
+  TPropSetter = (psRead,psWrite);
+  TPropSetters = set of TPropSetter;
 
 
   TFieldPropDefs = Class;
@@ -51,6 +53,7 @@ Type
     FFieldType: TFieldType;
     FPropAccess: TPropAccess;
     FPropDef: String;
+    FPropSetters: TPropSetters;
     FPropType : TPropType;
     FPRopSize: Integer;
     FPropName : String;
@@ -66,8 +69,8 @@ Type
     Constructor Create(ACollection : TCollection) ; override;
     Procedure Assign(ASource : TPersistent); override;
     Function FieldPropDefs : TFieldPropDefs;
-    Function HasGetter : Boolean; Virtual; // Always false.
-    Function HasSetter : Boolean; Virtual; // True for streams/strings
+    Function HasGetter : Boolean; Virtual; // Checks Propsetters for psRead
+    Function HasSetter : Boolean; Virtual; // True for streams/strings or if Propsetters has pswrite
     Function ObjPasTypeDef : String; virtual; // Object pascal definition of type
     Function ObjPasReadDef : String; virtual; // Object pascal definition of getter
     Function ObjPasWriteDef : String; virtual; // Object pascal definition of setter
@@ -81,6 +84,7 @@ Type
     Property PropertyDef : String Read FPropDef Write FPropDef;
     Property PropertyVisibility : TVisibility Read FPropVis Write FPropVis;
     Property PropertyAccess : TPropAccess Read FPropAccess Write FPropAccess;
+    Property PropSetters : TPropSetters Read FPropSetters Write FPropSetters;
   end;
   
   { TFieldPropDefs }
@@ -113,6 +117,7 @@ Type
     FInterfaceUnits: String;
     FOptions: TCodeOptions;
     FUnitName: String;
+    FExtraSetterLine : string;
     procedure SetImplementationUnits(const AValue: String);
     procedure SetInterfaceUnits(const AValue: String);
     procedure SetUnitname(const AValue: String);
@@ -122,9 +127,15 @@ Type
     Constructor create; virtual;
     Procedure Assign(ASource : TPersistent); override;
   Published
+    // Line of code that will be added to each property setter. Use %PROPNAME% to include property name in the line.
+    Property ExtraSetterLine : String Read FExtraSetterLine Write FExtraSetterLine;
+    // options
     Property Options : TCodeOptions Read FOptions Write SetOPtions;
+    // Name of unit if a unit is generated.
     Property UnitName : String Read FUnitName Write SetUnitname;
+    // Comma-separated list of  units that will be put in the interface units clause
     Property InterfaceUnits : String Read FInterfaceUnits Write SetInterfaceUnits;
+    //  Comma-separated list of  units that will be put in the implementation units clause
     Property ImplementationUnits : String Read FImplementationUnits Write SetImplementationUnits;
   end;
   TCodeGeneratorOptionsClass = Class of TCodeGeneratorOptions;
@@ -539,13 +550,13 @@ end;
 
 function TFieldPropDef.HasGetter: Boolean;
 begin
-  Result:=False;
+  Result:=psRead in PropSetters;
 end;
 
 function TFieldPropDef.HasSetter: Boolean;
 begin
   Result:=(PropertyAccess in [paReadWrite,paWriteOnly])
-          and (PropertyType in [ptStream,ptTStrings]);
+          and ((PropertyType in [ptStream,ptTStrings]) or (psWrite in Propsetters));
 end;
 
 function TFieldPropDef.ObjPasTypeDef: String;
@@ -832,7 +843,7 @@ begin
   For I:=0 to Fields.Count-1 do
     begin
     F:=Fields[i];
-    if AllowPropertyDeclaration(F,[]) and F.HasGetter then
+    if AllowPropertyDeclaration(F,[]) and F.HasSetter then
       begin
       If not B then
         begin
@@ -867,22 +878,33 @@ Procedure TDDClassCodeGenerator.WritePropertySetterImpl(Strings : TStrings; F : 
 
 Var
   S : String;
+  L : Integer;
 
 begin
-  S:=PropertyGetterDeclaration(F,True);
+  S:=PropertySetterDeclaration(F,True);
   BeginMethod(Strings,S);
   AddLn(Strings,'begin');
   IncIndent;
   Try
+    AddLn(Strings,Format('if (F%s=AValue) then exit;',[F.PropertyName]));
     Case F.PropertyType of
       ptTStrings :
         S:=Format('F%s.Assign(AValue);',[F.PropertyName]);
       ptStream :
         S:=Format('F%s.CopyFrom(AValue,0);',[F.PropertyName]);
     else
-       S:=Format('F%s:=AValue',[F.PropertyName]);
+       S:=Format('F%s:=AValue;',[F.PropertyName]);
     end;
     AddLn(Strings,S);
+    S:=CodeOptions.ExtraSetterLine;
+    L:=Length(S);
+    if (L>0) then
+      begin
+      S:=StringReplace(S,'%PROPNAME%',F.PropertyName,[rfReplaceAll,rfIgnoreCase]);
+      if (S[L]<>';') then
+        S:=S+';';
+      AddLn(Strings,S);  
+      end;
   Finally
     DecIndent;
   end;
@@ -1093,7 +1115,7 @@ begin
   Result:='Procedure ';
   If Impl then
     Result:=Result+ClassOptions.ObjectClassName+'.';
-  Result:=Result+Def.ObjPasReadDef+' (AValue  : '+Def.ObjPasTypeDef+');';
+  Result:=Result+Def.ObjPasWriteDef+' (AValue  : '+Def.ObjPasTypeDef+');';
 end;
 
 function TDDClassCodeGenerator.NeedsConstructor: Boolean;
@@ -1478,8 +1500,11 @@ begin
   If ASource is TCodeGeneratorOptions then
     begin
     CG:=ASource as TCodeGeneratorOptions;
+    FInterfaceUnits:=CG.InterfaceUnits;
+    FImplementationUnits:=CG.ImplementationUnits;
     FOptions:=CG.FOptions;
     FUnitName:=CG.UnitName;
+    FExtraSetterLine:=CG.ExtraSetterLine;
     end
   else
     inherited Assign(ASource);

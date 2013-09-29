@@ -21,6 +21,7 @@ unit typinfo;
   interface
 
 {$MODE objfpc}
+{$MODESWITCH AdvancedRecords}
 {$inline on}
 {$h+}
 
@@ -43,7 +44,7 @@ unit typinfo;
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
                    tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
-                   tkHelper);
+                   tkHelper,tkFile,tkClassRef,tkPointer);
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -73,8 +74,6 @@ unit typinfo;
       ptStatic = 1;
       ptVirtual = 2;
       ptConst = 3;
-
-      tkString = tkSString;
 
    type
       TTypeKinds = set of TTypeKind;
@@ -115,6 +114,53 @@ unit typinfo;
       PPTypeInfo = ^PTypeInfo;
 
 {$PACKRECORDS C}
+      // members of TTypeData
+      TArrayTypeData =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Size: SizeInt;
+        ElCount: SizeInt;
+        ElType: PTypeInfo;
+        DimCount: Byte;
+        Dims: array[0..255] of PTypeInfo;
+      end;
+
+      PManagedField = ^TManagedField;
+      TManagedField =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        TypeRef: PTypeInfo;
+        FldOffset: SizeInt;
+      end;
+
+      PProcedureParam = ^TProcedureParam;
+      TProcedureParam =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Flags: Byte;
+        ParamType: PTypeInfo;
+        Name: ShortString;
+      end;
+
+      TProcedureSignature =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Flags: Byte;
+        CC: TCallConv;
+        ResultType: PTypeInfo;
+        ParamCount: Byte;
+        {Params: array[0..ParamCount - 1] of TProcedureParam;}
+        function GetParam(ParamIndex: Integer): PProcedureParam;
+      end;
+
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -122,9 +168,11 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
          case TTypeKind of
-            tkUnKnown,tkLString,tkWString,tkAString,tkVariant,tkUString:
+            tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
-            tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
+            tkAString:
+              (CodePage: Word);
+            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
@@ -152,6 +200,12 @@ unit typinfo;
                UnitName : ShortString
                // here the properties follow as array of TPropInfo
               );
+            tkRecord:
+              (
+                RecSize: Integer;
+                ManagedFldCount: Integer;
+                {ManagedFields: array[1..ManagedFldCount] of TManagedField}
+              );
             tkHelper:
               (HelperParent : PTypeInfo;
                ExtendedInfo : PTypeInfo;
@@ -171,10 +225,12 @@ unit typinfo;
                   end;
               followed by
                   ResultType : ShortString     // for mkFunction, mkClassFunction only
-                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PTypeInfo;  // for mkFunction, mkClassFunction only
                   CC : TCallConv;
-                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
+                  ParamTypeRefs : array[1..ParamCount] of PTypeInfo;}
               );
+            tkProcVar:
+              (ProcSig: TProcedureSignature);
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
             tkQWord:
@@ -194,17 +250,22 @@ unit typinfo;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
               );
+            tkArray:
+              (ArrayData: TArrayTypeData);
             tkDynArray:
               (
               elSize     : PtrUInt;
-              elType2    : PPTypeInfo;
+              elType2    : PTypeInfo;
               varType    : Longint;
-              elType     : PPTypeInfo;
+              elType     : PTypeInfo;
               DynUnitName: ShortStringBase
               );
+            tkClassRef:
+              (InstanceType: PTypeInfo);
+            tkPointer:
+              (RefType: PTypeInfo);
       end;
 
-      // unsed, just for completeness
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -218,9 +279,9 @@ unit typinfo;
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
         PropType : PTypeInfo;
-        GetProc : Pointer;
-        SetProc : Pointer;
-        StoredProc : Pointer;
+        GetProc : CodePointer;
+        SetProc : CodePointer;
+        StoredProc : CodePointer;
         Index : Integer;
         Default : Longint;
         NameIndex : SmallInt;
@@ -238,9 +299,11 @@ unit typinfo;
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
       PPropList = ^TPropList;
-      TPropList = array[0..65535] of PPropInfo;
+      TPropList = array[0..{$ifdef cpu16}32765 div sizeof(PPropInfo){$else}65535{$endif}] of PPropInfo;
 
    const
+      tkString = tkSString;
+      tkProcedure = tkProcVar; // for compatibility with Delphi
       tkAny = [Low(TTypeKind)..High(TTypeKind)];
       tkMethods = [tkMethod];
       tkProperties = tkAny-tkMethods-[tkUnknown];
@@ -714,17 +777,17 @@ var
   AMethod : TMethod;
 begin
   case (PropInfo^.PropProcs shr 4) and 3 of
-    ptfield:
+    ptField:
       Result:=PBoolean(Pointer(Instance)+PtrUInt(PropInfo^.StoredProc))^;
-    ptconst:
+    ptConst:
       Result:=LongBool(PropInfo^.StoredProc);
-    ptstatic,
-    ptvirtual:
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs shr 4) and 3=ptstatic then
           AMethod.Code:=PropInfo^.StoredProc
         else
-          AMethod.Code:=ppointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.StoredProc))^;
+          AMethod.Code:=pcodepointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.StoredProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
            Result:=TBooleanIndexFunc(AMethod)(PropInfo^.Index)
@@ -923,7 +986,7 @@ begin
   end;
 
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       if Signed then begin
         case DataSize of
           1: Result:=PShortInt(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
@@ -939,13 +1002,13 @@ begin
           8: Result:=PInt64(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
         end;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then begin
           case DataSize of
@@ -1011,20 +1074,20 @@ begin
        end;
     end;
   case (PropInfo^.PropProcs shr 2) and 3 of
-    ptfield:
+    ptField:
       case DataSize of
         1: PByte(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Byte(Value);
         2: PWord(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Word(Value);
         4: PLongint(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Longint(Value);
         8: PInt64(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         if datasize=8 then
           begin
@@ -1196,7 +1259,7 @@ begin
 {$ifdef cpu64}
   SetInt64Prop(Instance,PropInfo,Int64(Value));
 {$else cpu64}
-  SetOrdProp(Instance,PropInfo,Integer(Value));
+  SetOrdProp(Instance,PropInfo,PtrInt(Value));
 {$endif cpu64}
 end;
 
@@ -1235,15 +1298,15 @@ begin
 
   TypeInfo := PropInfo^.PropType;
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       Result:=IInterface(PPointer(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^);
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
           Result:=TGetInterfaceProcIndex(AMethod)(PropInfo^.Index)
@@ -1273,13 +1336,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PInterface(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetIntfStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1333,13 +1396,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PPointer(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetPointerProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1370,20 +1433,20 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
-    tkUString :
+    tkUString:
       Result := GetUnicodeStrProp(Instance,PropInfo);
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PShortString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetShortStrProcIndex(AMethod)(PropInfo^.Index)
@@ -1397,13 +1460,13 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetAnsiStrProcIndex(AMethod)(PropInfo^.Index)
@@ -1435,13 +1498,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PShortString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetShortStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1455,13 +1518,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PAnsiString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetAnsiStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1516,13 +1579,13 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PWideString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetWideStrProcIndex(AMethod)(PropInfo^.Index)
@@ -1552,13 +1615,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PWideString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetWideStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1600,13 +1663,13 @@ begin
         case (PropInfo^.PropProcs) and 3 of
           ptField:
             Result := PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetUnicodeStrProcIndex(AMethod)(PropInfo^.Index)
@@ -1636,13 +1699,13 @@ begin
         case (PropInfo^.PropProcs shr 2) and 3 of
           ptField:
             PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptstatic,
-          ptvirtual :
+          ptStatic,
+          ptVirtual:
             begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetUnicodeStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1696,7 +1759,7 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
@@ -1763,7 +1826,7 @@ begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
@@ -1821,19 +1884,19 @@ begin
   Result.Code:=nil;
   Result.Data:=nil;
   case (PropInfo^.PropProcs) and 3 of
-    ptfield:
+    ptField:
       begin
         Value:=PMethod(Pointer(Instance)+PtrUInt(PropInfo^.GetProc));
         if Value<>nil then
           Result:=Value^;
       end;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
           Result:=TGetMethodProcIndex(AMethod)(PropInfo^.Index)
@@ -1852,15 +1915,15 @@ var
   AMethod : TMethod;
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
-    ptfield:
+    ptField:
       PMethod(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^ := Value;
-    ptstatic,
-    ptvirtual :
+    ptStatic,
+    ptVirtual:
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
           TSetMethodProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1982,6 +2045,20 @@ end;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 begin
   Result:=IsStoredProp(instance,FindPropInfo(Instance,PropName));
+end;
+
+{ TProcedureSignature }
+
+function TProcedureSignature.GetParam(ParamIndex: Integer): PProcedureParam;
+begin
+  if (ParamIndex<0)or(ParamIndex>=ParamCount) then
+    Exit(nil);
+  Result := PProcedureParam(PByte(@Flags) + SizeOf(Self));
+  while ParamIndex > 0 do
+    begin
+      Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
+      dec(ParamIndex);
+    end;
 end;
 
 end.

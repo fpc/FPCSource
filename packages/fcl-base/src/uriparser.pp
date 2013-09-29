@@ -47,7 +47,7 @@ function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
   out ResultUri: AnsiString): Boolean; overload;
 
 function URIToFilename(const URI: string; out Filename: string): Boolean;
-function FilenameToURI(const Filename: string): string;
+function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
 
 function IsAbsoluteURI(const UriReference: string): Boolean;
 
@@ -169,7 +169,8 @@ end;
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
 var
   s, Authority: String;
-  i: Integer;
+  i,j: Integer;
+  PortValid: Boolean;
 begin
   Result.Protocol := LowerCase(DefaultProtocol);
   Result.Port := DefaultPort;
@@ -267,8 +268,18 @@ begin
   i := LastDelimiter(':@', Authority);
   if (i > 0) and (Authority[i] = ':') then
   begin
-    Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
-    Authority := Copy(Authority, 1, i - 1);
+    PortValid := true;
+    for j:=i+1 to Length(Authority) do
+      if not (Authority[j] in ['0'..'9']) then
+      begin
+        PortValid := false;
+        break;
+      end;
+    if PortValid then
+    begin
+      Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
+      Authority := Copy(Authority, 1, i - 1);
+    end;
   end;
 
   // Extract the hostname
@@ -321,7 +332,6 @@ begin
   end;
 end;
 
-// TODO: this probably must NOT percent-encode the result...
 function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
   out ResultUri: AnsiString): Boolean;
 var
@@ -366,6 +376,8 @@ begin
       RemoveDotSegments(Path);
     end;
   end; // with
+  
+  // EncodeUri percent-encodes the result, and that's good
   ResultUri := EncodeUri(Rel);
 end;
 
@@ -412,10 +424,11 @@ begin
   end;
 end;
 
-function FilenameToURI(const Filename: string): string;
+function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
 var
   I: Integer;
   IsAbsFilename: Boolean;
+  FilenamePart: string;
 begin
   IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
     ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
@@ -429,17 +442,21 @@ begin
       Result := Result + '//';
   end;
 
-  Result := Result + Filename;
+  FilenamePart := Filename;
   { unreachable code warning is ok here }
   if PathDelim <> '/' then
   begin
-    I := Pos(PathDelim, Result);
+    I := Pos(PathDelim, FilenamePart);
     while I <> 0 do
     begin
-      Result[I] := '/';
-      I := Pos(PathDelim, Result);
+      FilenamePart[I] := '/';
+      I := Pos(PathDelim, FilenamePart);
     end;
   end;
+  if Encode then
+    FilenamePart := Escape(FilenamePart, ValidPathChars);
+
+  Result := Result + FilenamePart;
 end;
 
 

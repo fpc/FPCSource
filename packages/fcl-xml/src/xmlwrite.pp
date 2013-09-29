@@ -384,12 +384,17 @@ end;
 procedure CDSectSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
   var idx: Integer);
 begin
-  if (idx <= Length(s)-2) and (s[idx+1] = ']') and (s[idx+2] = '>') then
+  if s[idx]=']' then
   begin
-    Sender.wrtStr(']]]]><![CDATA[>');
-    Inc(idx, 2);
-    // TODO: emit warning 'cdata-section-splitted'
-  end
+    if (idx <= Length(s)-2) and (s[idx+1] = ']') and (s[idx+2] = '>') then
+    begin
+      Sender.wrtStr(']]]]><![CDATA[>');
+      Inc(idx, 2);
+      // TODO: emit warning 'cdata-section-splitted'
+    end
+    else
+      Sender.wrtChr(']');
+  end  
   else
     raise EConvertError.Create('Illegal character');
 end;
@@ -476,22 +481,10 @@ function SortAtts(Item1, Item2: Pointer): Integer;
 var
   p1: PAttrFixup absolute Item1;
   p2: PAttrFixup absolute Item2;
-  s1, s2: DOMString;
 begin
   Result := Compare(p1^.Attr.namespaceURI, p2^.Attr.namespaceURI);
   if Result = 0 then
-  begin
-    // TODO: Must fix the parser so it doesn't produce Level 1 attributes
-    if nfLevel2 in p1^.Attr.Flags then
-      s1 := p1^.Attr.localName
-    else
-      s1 := p1^.Attr.nodeName;
-    if nfLevel2 in p2^.Attr.Flags then
-      s2 := p2^.Attr.localName
-    else
-      s2 := p2^.Attr.nodeName;
-    Result := Compare(s1, s2);
-  end;
+    Result := Compare(p1^.Attr.localName, p2^.Attr.localName);
 end;
 
 procedure TXMLWriter.NamespaceFixup(Element: TDOMElement);

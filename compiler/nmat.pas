@@ -192,6 +192,7 @@ implementation
         else_statements,
         statements : tstatementnode;
         result_data : ttempcreatenode;
+        nd : torddef;
       begin
          result:=nil;
          typecheckpass(left);
@@ -242,18 +243,20 @@ implementation
          { Additionally, do the same for cardinal/qwords and other positive types, but    }
          { always in a way that a smaller type is converted to a bigger type              }
          { (webtbs/tw8870)                                                                }
-         if (rd.ordtype in [u32bit,u64bit]) and
+         if (rd.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
             ((is_constintnode(left) and
-              (tordconstnode(left).value >= 0)) or
+              (tordconstnode(left).value >= 0) and
+              (tordconstnode(left).value <= get_max_value(rd))) or
              (not is_signed(ld) and
               (rd.size >= ld.size))) then
            begin
              inserttypeconv(left,right.resultdef);
              ld:=torddef(left.resultdef);
            end;
-         if (ld.ordtype in [u32bit,u64bit]) and
+         if (ld.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
             ((is_constintnode(right) and
-              (tordconstnode(right).value >= 0)) or
+              (tordconstnode(right).value >= 0) and
+              (tordconstnode(right).value <= get_max_value(ld))) or
              (not is_signed(rd) and
               (ld.size >= rd.size))) then
           begin
@@ -273,7 +276,6 @@ implementation
              resultdef:=left.resultdef;
            end
          else
-{$ifndef cpu64bitaddr}
           { when there is one 64bit value, everything is done
             in 64bit }
           if (is_64bitint(left.resultdef) or
@@ -296,21 +298,33 @@ implementation
              resultdef:=left.resultdef;
            end
          else
-          { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
-          if ((rd.ordtype = u32bit) and
+          { is there a larger than the native int? }
+          if is_oversizedint(ld) or is_oversizedint(rd) then
+           begin
+             nd:=get_common_intdef(ld,rd,false);
+             if (ld.ordtype<>nd.ordtype) then
+               inserttypeconv(left,nd);
+             if (rd.ordtype<>nd.ordtype) then
+               inserttypeconv(right,nd);
+             resultdef:=left.resultdef;
+           end
+         else
+          { when mixing unsigned and signed native ints, convert everything to a larger signed type (JM) }
+          if (is_nativeuint(rd) and
               is_signed(ld)) or
-             ((ld.ordtype = u32bit) and
+             (is_nativeuint(ld) and
               is_signed(rd)) then
            begin
               CGMessage(type_h_mixed_signed_unsigned);
-              if (ld.ordtype<>s64bit) then
-                inserttypeconv(left,s64inttype);
-              if (rd.ordtype<>s64bit) then
-                inserttypeconv(right,s64inttype);
+              { get a signed int, larger than the native int }
+              nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
+              if (ld.ordtype<>nd.ordtype) then
+                inserttypeconv(left,nd);
+              if (rd.ordtype<>nd.ordtype) then
+                inserttypeconv(right,nd);
               resultdef:=left.resultdef;
            end
          else
-{$endif not cpu64bitaddr}
            begin
               { Make everything always default singed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
@@ -394,6 +408,13 @@ implementation
         left := nil;
         right := nil;
         firstpass(result);
+
+        if result.resultdef.typ<>orddef then
+          internalerror(2013031701);
+        if resultdef.typ<>orddef then
+          internalerror(2013031701);
+        if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
+          inserttypeconv(result,resultdef);
       end;
 {$else cpuneedsdiv32helper}
       begin
@@ -439,7 +460,6 @@ implementation
     function tmoddivnode.firstoptimize: tnode;
       var
         power,shiftval : longint;
-        newtype: tnodetype;
         statements : tstatementnode;
         temp : ttempcreatenode;
       begin
@@ -559,7 +579,6 @@ implementation
                   result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
           end;
-
       end;
 
 
@@ -606,18 +625,34 @@ implementation
            begin
              { keep singness of orignal type }
              if is_signed(left.resultdef) then
-{$ifdef cpunodefaultint}
-               inserttypeconv(left,nd)
-{$else cpunodefaultint}
-               inserttypeconv(left,s32inttype)
-{$endif cpunodefaultint}
+               begin
+{$if defined(cpunodefaultint)}
+                 inserttypeconv(left,nd)
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+                 inserttypeconv(left,s32inttype)
+{$elseif defined(cpu16bitalu)}
+                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
+                   inserttypeconv(left,s32inttype)
+                 else
+                   inserttypeconv(left,sinttype);
+{$else}
+                 internalerror(2013031301);
+{$endif}
+               end
              else
                begin
-{$ifdef cpunodefaultint}
+{$if defined(cpunodefaultint)}
                  inserttypeconv(left,nd)
-{$else cpunodefaultint}
+{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
-{$endif cpunodefaultint}
+{$elseif defined(cpu16bitalu)}
+                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
+                   inserttypeconv(left,u32inttype)
+                 else
+                   inserttypeconv(left,uinttype);
+{$else}
+                 internalerror(2013031301);
+{$endif}
                end
            end;
 
@@ -757,13 +792,18 @@ implementation
                }
              end
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitaddr}
-         else if is_64bit(left.resultdef) then
+         else if is_oversizedord(left.resultdef) then
            begin
-             inserttypeconv(left,s64inttype);
-             resultdef:=left.resultdef
+             if is_64bit(left.resultdef) then
+               inserttypeconv(left,s64inttype)
+             else if is_32bit(left.resultdef) then
+               inserttypeconv(left,s32inttype)
+             else if is_16bit(left.resultdef) then
+               inserttypeconv(left,s16inttype)
+             else
+               internalerror(2013040701);
+             resultdef:=left.resultdef;
            end
-{$endif not cpu64bitaddr}
          else if (left.resultdef.typ=orddef) then
            begin
              inserttypeconv(left,sinttype);
@@ -893,14 +933,19 @@ implementation
             result:=left;
             left:=nil;
           end
-{$ifndef cpu64bitaddr}
-        else if is_64bit(left.resultdef) then
+        else if is_oversizedord(left.resultdef) then
           begin
-            inserttypeconv(left,s64inttype);
+            if is_64bit(left.resultdef) then
+              inserttypeconv(left,s64inttype)
+            else if is_32bit(left.resultdef) then
+              inserttypeconv(left,s32inttype)
+            else if is_16bit(left.resultdef) then
+              inserttypeconv(left,s16inttype)
+            else
+              internalerror(2013040702);
             result:=left;
             left:=nil;
           end
-{$endif not cpu64bitaddr}
         else if (left.resultdef.typ=orddef) then
           begin
             inserttypeconv(left,sinttype);

@@ -36,18 +36,19 @@ interface
 
       TJVMParaManager=class(TParaManager)
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+        procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
-        function ret_in_param(def: tdef; calloption: tproccalloption): boolean; override;
+        function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -63,7 +64,7 @@ implementation
       hlcgobj;
 
 
-    procedure TJVMParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure TJVMParaManager.GetIntParaLoc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       begin
         { not yet implemented/used }
         internalerror(2010121001);
@@ -73,10 +74,24 @@ implementation
       begin
         { we don't need a separate high parameter, since all arrays in Java
           have an implicit associated length }
-        if not is_open_array(def) then
+        if not is_open_array(def) and
+           not is_array_of_const(def) then
           result:=inherited
         else
           result:=false;
+      end;
+
+
+    function TJVMParaManager.keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        { even though these don't need a high parameter (see push_high_param),
+          we do have to keep the original parameter's array length because it's
+          used by the compiler (to determine the size of the array to construct
+          to pass to an array of const parameter)  }
+        if not is_array_of_const(def) then
+          result:=inherited
+        else
+          result:=true;
       end;
 
 
@@ -132,6 +147,7 @@ implementation
             result.size:=OS_NO;
             result.intsize:=0;
             paraloc^.size:=OS_NO;
+            paraloc^.def:=voidtype;
             paraloc^.loc:=LOC_VOID;
             exit;
           end;
@@ -140,6 +156,11 @@ implementation
           begin
             retcgsize:=OS_INT;
             result.intsize:=sizeof(pint);
+          end
+        else if jvmimplicitpointertype(result.def) then
+          begin
+            retcgsize:=OS_ADDR;
+            result.def:=getpointerdef(result.def);
           end
         else
           begin
@@ -153,6 +174,8 @@ implementation
         paraloc^.loc:=LOC_REFERENCE;
         paraloc^.reference.index:=NR_EVAL_STACK_BASE;
         paraloc^.reference.offset:=0;
+        paraloc^.size:=result.size;
+        paraloc^.def:=result.def;
       end;
 
     function TJVMParaManager.param_use_paraloc(const cgpara: tcgpara): boolean;
@@ -161,7 +184,7 @@ implementation
         result:=true;
       end;
 
-    function TJVMParaManager.ret_in_param(def: tdef; calloption: tproccalloption): boolean;
+    function TJVMParaManager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
         { not as efficient as returning in param for jvmimplicitpointertypes,
           but in the latter case the routines are harder to use from Java
@@ -211,6 +234,11 @@ implementation
                 paracgsize:=OS_ADDR;
                 paradef:=java_jlobject;
               end
+            else if jvmimplicitpointertype(hp.vardef) then
+              begin
+                paracgsize:=OS_ADDR;
+                paradef:=getpointerdef(hp.vardef);
+              end
             else
               begin
                 paracgsize:=def_cgsize(hp.vardef);
@@ -231,6 +259,8 @@ implementation
               taking up two slots) }
             paraloc^.loc:=LOC_REFERENCE;;
             paraloc^.reference.offset:=paraofs;
+            paraloc^.size:=paracgsize;
+            paraloc^.def:=paradef;
             case side of
               callerside:
                 begin

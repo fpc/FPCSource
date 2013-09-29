@@ -3,9 +3,7 @@
  
      Contains:   Interface for UTC to Local Time conversion and 64 Bit Clock routines
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1999-2008 by Apple Inc., all rights reserved.
+     Copyright:  © 1999-2011 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -226,7 +230,7 @@ type
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function ConvertLocalTimeToUTC( localSeconds: UInt32; var utcSeconds: UInt32 ): OSStatus; external name '_ConvertLocalTimeToUTC';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -248,7 +252,7 @@ function ConvertLocalTimeToUTC( localSeconds: UInt32; var utcSeconds: UInt32 ): 
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function ConvertUTCToLocalTime( utcSeconds: UInt32; var localSeconds: UInt32 ): OSStatus; external name '_ConvertUTCToLocalTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { 64 bit clock conversion routines }
@@ -271,7 +275,7 @@ function ConvertUTCToLocalTime( utcSeconds: UInt32; var localSeconds: UInt32 ): 
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function ConvertUTCToLocalDateTime( const (*var*) utcDateTime_: UTCDateTime; var localDateTime_: LocalDateTime ): OSStatus; external name '_ConvertUTCToLocalDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -293,7 +297,7 @@ function ConvertUTCToLocalDateTime( const (*var*) utcDateTime_: UTCDateTime; var
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function ConvertLocalToUTCDateTime( const (*var*) localDateTime_: LocalDateTime; var utcDateTime_: UTCDateTime ): OSStatus; external name '_ConvertLocalToUTCDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { Getter and Setter Clock routines using 64 Bit values }
@@ -313,7 +317,7 @@ function ConvertLocalToUTCDateTime( const (*var*) localDateTime_: LocalDateTime;
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function GetUTCDateTime( var utcDateTime_: UTCDateTime; options: OptionBits ): OSStatus; external name '_GetUTCDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -332,7 +336,7 @@ function GetUTCDateTime( var utcDateTime_: UTCDateTime; options: OptionBits ): O
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function SetUTCDateTime( const (*var*) utcDateTime_: UTCDateTime; options: OptionBits ): OSStatus; external name '_SetUTCDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -351,7 +355,7 @@ function SetUTCDateTime( const (*var*) utcDateTime_: UTCDateTime; options: Optio
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function GetLocalDateTime( var localDateTime_: LocalDateTime; options: OptionBits ): OSStatus; external name '_GetLocalDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -369,7 +373,7 @@ function GetLocalDateTime( var localDateTime_: LocalDateTime; options: OptionBit
  *    Non-Carbon CFM:   in UTCUtils 1.0 and later
  }
 function SetLocalDateTime( const (*var*) localDateTime_: LocalDateTime; options: OptionBits ): OSStatus; external name '_SetLocalDateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc} {not TARGET_CPU_64}
 

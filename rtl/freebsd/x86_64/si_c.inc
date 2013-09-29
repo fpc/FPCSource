@@ -76,7 +76,7 @@ begin
     .long  1
     .asciz "FreeBSD"
     .align 4
-    .long 700055
+    .long	900044
     .align 4
     .section	.note.GNU-stack,"",@progbits
   end;

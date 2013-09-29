@@ -87,15 +87,17 @@ function Win32GetCurrentThreadId:DWORD;
 function TlsAlloc : DWord;
 function TlsFree(dwTlsIndex : DWord) : LongBool;
 
-function GetFileAttributes(p : pchar) : dword;
-function DeleteFile(p : pchar) : longint;
-function MoveFile(old,_new : pchar) : longint;
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+
+function GetFileAttributesW(p : pwidechar) : dword;
+    cdecl; external KernelDLL name 'GetFileAttributesW';
+function DeleteFileW(p : pwidechar) : longint;
+    cdecl; external KernelDLL name 'DeleteFileW';
+function MoveFileW(old,_new : pwidechar) : longint;
+    cdecl; external KernelDLL name 'MoveFileW';
+function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-function RemoveDirectory(name:pointer):longbool;
+    cdecl; external KernelDLL name 'CreateFileW';
 
 
 {$ifdef CPUARM}
@@ -206,6 +208,12 @@ var
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    cdecl; external 'coredll' name 'MessageBoxW';
 
+function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
+    cdecl; external KernelDLL name 'CreateDirectoryW';
+function RemoveDirectoryW(name:pwidechar):longbool;
+    cdecl; external KernelDLL name 'RemoveDirectoryW';
+
+
 {*****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -304,7 +312,6 @@ const
      MB_COMPOSITE = 2;
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
-     CP_OEMCP = 1;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
@@ -413,73 +420,6 @@ end;
 {*****************************************************************************
                       WinAPI wrappers implementation
 *****************************************************************************}
-
-function GetFileAttributesW(p : pwidechar) : dword;
-    cdecl; external KernelDLL name 'GetFileAttributesW';
-function DeleteFileW(p : pwidechar) : longint;
-    cdecl; external KernelDLL name 'DeleteFileW';
-function MoveFileW(old,_new : pwidechar) : longint;
-    cdecl; external KernelDLL name 'MoveFileW';
-function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-    cdecl; external KernelDLL name 'CreateFileW';
-function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
-    cdecl; external KernelDLL name 'CreateDirectoryW';
-function RemoveDirectoryW(name:pwidechar):longbool;
-    cdecl; external KernelDLL name 'RemoveDirectoryW';
-
-function GetFileAttributes(p : pchar) : dword;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  GetFileAttributes := GetFileAttributesW(buf);
-end;
-
-function DeleteFile(p : pchar) : longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  DeleteFile := DeleteFileW(buf);
-end;
-
-function MoveFile(old,_new : pchar) : longint;
-var
-  buf_old, buf_new: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(old, -1, buf_old, SizeOf(buf_old));
-  AnsiToWideBuf(_new, -1, buf_new, SizeOf(buf_new));
-  MoveFile := MoveFileW(buf_old, buf_new);
-end;
-
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(lpFileName, -1, buf, SizeOf(buf));
-  CreateFile := CreateFileW(buf, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-                            dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-end;
-
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  CreateDirectory := CreateDirectoryW(buf, sec);
-end;
-
-function RemoveDirectory(name:pointer):longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  RemoveDirectory := RemoveDirectoryW(buf);
-end;
 
 const
 {$ifdef CPUARM}
@@ -1591,6 +1531,9 @@ function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
       scpAnsi: Result := GetACP;
       scpConsoleInput: Result := GetACP;
       scpConsoleOutput: Result := GetACP;
+      { all of WinCE's file APIs are based on UTF8 -> prevent data loss when using
+        single byte strings }
+      scpFileSystemSingleByte: Result := CP_UTF8;
     end;
   end;
 
@@ -1611,6 +1554,8 @@ procedure InitWinCEWidestrings;
     widestringmanager.GetStandardCodePageProc:=@WinCEGetStandardCodePage;
 
     DefaultSystemCodePage:=GetACP;
+    DefaultFileSystemCodePage:=WinCEGetStandardCodePage(scpFileSystemSingleByte);
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;
 

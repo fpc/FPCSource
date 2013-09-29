@@ -102,10 +102,17 @@ begin
 end;
 
 procedure TPlainResultsWriter.WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime);
+
+Var
+  S : String;
+
 begin
   inherited;
-  FDoc.Add('  ' + StringOfChar(' ',ALevel*2) +  FormatDateTime('ss.zzz', ATiming) + '  ' 
-    + ATest.TestName);
+  S:='  ' + StringOfChar(' ',ALevel*2);
+  if Not SkipTiming then
+    S:=S + FormatDateTime('ss.zzz', ATiming) + '  ';
+  S:=S + ATest.TestName;
+  FDoc.Add(S);
   if Assigned(FTempFailure) then
   begin
     //check if it's an error 
@@ -137,12 +144,15 @@ procedure TPlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: i
   ANumIgnores: integer);
 var
   idx: integer;
+  S: String;
 begin
   inherited;
   idx := Integer(FSuiteHeaderIdx[FSuiteHeaderIdx.Count -1]);
-  FDoc[idx] := FDoc[idx] + ' Time:'+ FormatDateTime('ss.zzz', ATiming)+
-    ' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+ 
-    ' I:'+ IntToStr(ANumIgnores);
+  if Not SkipTiming then
+    S:= ' Time:'+ FormatDateTime('ss.zzz', ATiming);
+  S:=S+ ' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+
+    ' I:'+ IntToStr(ANumIgnores) ;
+  FDoc[idx] := FDoc[idx]+S;
   FSuiteHeaderIdx.Delete(FSuiteHeaderIdx.Count -1);
 end;
 

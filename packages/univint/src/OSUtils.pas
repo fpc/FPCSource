@@ -2,20 +2,14 @@
      File:       CarbonCore/OSUtils.h
  
      Contains:   OS Utilities Interfaces.
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {      Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -91,6 +85,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +95,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +111,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +121,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +132,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -276,7 +275,11 @@ type
 			);
 	end;
 {
- *  IsMetric()
+ *  IsMetric()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use CFLocaleGetValue() and the property kCFLocaleUsesMetricSystem
+ *    to determine this value.
  *  
  *  Summary:
  *    Verifies whether the current script system is using the metric
@@ -308,12 +311,12 @@ type
  *    system is being used.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function IsMetric: Boolean; external name '_IsMetric';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_7, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -340,7 +343,7 @@ function IsMetric: Boolean; external name '_IsMetric';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure Delay( numTicks: UNSIGNEDLONG; var finalTicks: UNSIGNEDLONG ); external name '_Delay';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -373,7 +376,7 @@ procedure Delay( numTicks: UNSIGNEDLONG; var finalTicks: UNSIGNEDLONG ); externa
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure Enqueue( qElement: QElemPtr; qHeader: QHdrPtr ); external name '_Enqueue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -405,7 +408,7 @@ procedure Enqueue( qElement: QElemPtr; qHeader: QHdrPtr ); external name '_Enque
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Dequeue( qElement: QElemPtr; qHeader: QHdrPtr ): OSErr; external name '_Dequeue';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -441,7 +444,7 @@ function Dequeue( qElement: QElemPtr; qHeader: QHdrPtr ): OSErr; external name '
  *    Non-Carbon CFM:   in InterfaceLib 7.5 and later
  }
 procedure MakeDataExecutable( baseAddress: UnivPtr; length: UNSIGNEDLONG ); external name '_MakeDataExecutable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -492,7 +495,7 @@ procedure MakeDataExecutable( baseAddress: UnivPtr; length: UNSIGNEDLONG ); exte
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure ReadLocation( var loc: MachineLocation ); external name '_ReadLocation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -528,7 +531,7 @@ procedure ReadLocation( var loc: MachineLocation ); external name '_ReadLocation
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TickCount: UInt32; external name '_TickCount';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -556,7 +559,7 @@ function TickCount: UInt32; external name '_TickCount';
  *    Non-Carbon CFM:   not available
  }
 function CSCopyUserName( useShortName: Boolean ): CFStringRef; external name '_CSCopyUserName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -579,7 +582,7 @@ function CSCopyUserName( useShortName: Boolean ): CFStringRef; external name '_C
  *    Non-Carbon CFM:   not available
  }
 function CSCopyMachineName: CFStringRef; external name '_CSCopyMachineName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 const
@@ -612,7 +615,7 @@ procedure SwapMMUMode( var mode: SInt8 ); inline;
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetSysPPtr: SysPPtr; external name '_GetSysPPtr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -635,7 +638,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewDeferredTaskUPP( userRoutine: DeferredTaskProcPtr ): DeferredTaskUPP; external name '_NewDeferredTaskUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeDeferredTaskUPP()
@@ -646,7 +649,7 @@ function NewDeferredTaskUPP( userRoutine: DeferredTaskProcPtr ): DeferredTaskUPP
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeDeferredTaskUPP( userUPP: DeferredTaskUPP ); external name '_DisposeDeferredTaskUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeDeferredTaskUPP()
@@ -657,7 +660,7 @@ procedure DisposeDeferredTaskUPP( userUPP: DeferredTaskUPP ); external name '_Di
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure InvokeDeferredTaskUPP( dtParam: SIGNEDLONG; userUPP: DeferredTaskUPP ); external name '_InvokeDeferredTaskUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 type
 	DeferredTask = record
@@ -690,7 +693,7 @@ type
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function DTInstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTInstall';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -713,7 +716,7 @@ function DTInstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTInsta
  *    Non-Carbon CFM:   not available
  }
 function DTUninstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTUninstall';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -731,7 +734,7 @@ function DTUninstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTUni
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function SetCurrentA5: SIGNEDLONG; external name '_SetCurrentA5';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -749,7 +752,7 @@ function SetCurrentA5: SIGNEDLONG; external name '_SetCurrentA5';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function SetA5( newA5: SIGNEDLONG ): SIGNEDLONG; external name '_SetA5';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -768,7 +771,7 @@ function SetA5( newA5: SIGNEDLONG ): SIGNEDLONG; external name '_SetA5';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function InitUtil: OSErr; external name '_InitUtil';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -787,7 +790,7 @@ function InitUtil: OSErr; external name '_InitUtil';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function WriteParam: OSErr; external name '_WriteParam';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -807,7 +810,7 @@ function WriteParam: OSErr; external name '_WriteParam';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure WriteLocation( const (*var*) loc: MachineLocation ); external name '_WriteLocation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_1, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}

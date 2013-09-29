@@ -1,15 +1,15 @@
 { Thread management routines }
 
-constructor TThread.Create(CreateSuspended: Boolean;
-                           const StackSize: SizeUInt = DefaultStackSize);
+procedure TThread.SysCreate(CreateSuspended: Boolean;
+                            const StackSize: SizeUInt);
 begin
-  inherited Create;
+
 end;
 
 
-destructor TThread.Destroy;
+procedure TThread.SysDestroy;
 begin
-  inherited Destroy;
+
 end;
 
 procedure TThread.CallOnTerminate;

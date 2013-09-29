@@ -1965,7 +1965,7 @@ var
   symname : string;
 begin
   maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
-  symname := '_$' + current_asmdata.name + '$toc$' + hexstr(a, sizeof(a)*2);
+  symname := '_$' + current_asmdata.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
     l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);

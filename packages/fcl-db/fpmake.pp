@@ -5,15 +5,15 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_fcl_db;
+procedure add_fcl_db(const ADirectory: string);
 
 const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
-  DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince];
-  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
-  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
-  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
-  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64];
+  DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince,android];
+  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android];
   SqldbWithoutOracleOSes   = [win64];
 
 
@@ -32,10 +32,9 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded,msdos];
 
-{$ifdef ALLPACKAGES}
-    P.Directory:='fcl-db';
-{$endif ALLPACKAGES}
+    P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
@@ -62,7 +61,7 @@ begin
     P.IncludePath.Add('src/sqldb/postgres', SqldbConnectionOSes);
     P.IncludePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.IncludePath.Add('src/sdf');
-    P.IncludePath.Add('src/memds');  
+    P.IncludePath.Add('src/memds');
     P.IncludePath.Add('src/sqlite',SqliteOSes);
     P.IncludePath.Add('src/dbase');
     P.SourcePath.Add('src/sql');
@@ -773,7 +772,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fcl_db;
+  add_fcl_db('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}

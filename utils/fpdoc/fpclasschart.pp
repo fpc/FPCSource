@@ -19,7 +19,7 @@ program fpclasschart;
 
 uses
   SysUtils, Classes, Typinfo, Gettext, dom, xmlread,
-  dGlobals, PasTree, PParser,PScanner, xmlwrite;
+  dGlobals, PasTree, PParser,PScanner, xmlwrite, fpdocclasstree;
 
 resourcestring
   STitle = 'fpClassTree - Create class tree from pascal sources';
@@ -37,20 +37,14 @@ type
 
   { TClassTreeEngine }
 
+
   TClassTreeEngine = class(TFPDocEngine)
   Private
-    FClassTree : TXMLDocument;
-    FTreeStart : TDomElement;
+    FTree : TClassTreeBuilder;
     FObjects : TStringList;
-    FObjectKind : TPasObjKind;
-    FParentObject : TPasClassType;
-    function LookForElement(PE: TDomElement; AElement: TPasElement): TDomNode;
-    function NodeMatch(N: TDomNode; AElement: TPasElement): Boolean;
-    Function AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
   public
     Constructor Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
     Destructor Destroy; override;
-    Function BuildTree : Integer;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility :TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement; override;
@@ -94,6 +88,11 @@ type
     Property LargeHeadClassObjects : TStrings Read FLargeHeadClassObjects;
     Property MaxObjectsPerColumn : Integer Read FMaxObjectsPerColumn Write FMaxObjectsPerColumn;
   end;
+
+{ TClassTreeBuilder }
+
+
+
 
 { TChartFormatter }
 
@@ -450,21 +449,11 @@ end;
 
 Constructor TClassTreeEngine.Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
 
-Var
-  N : TDomNode;
 
 begin
-  FClassTree:=AClassTree;
-  FTreeStart:=FClassTree.DocumentElement;
   FPackage:=TPasPackage.Create('dummy',Nil);
-  FObjectKind:=AObjectKind;
+  FTree:=TClassTreeBuilder.Create(FPackage,AObjectKind);
   FObjects:=TStringList.Create;
-  Case FObjectkind of
-    okObject    : FParentObject:=TPasClassType.Create('TObject',FPackage);
-    okClass     : FParentObject:=TPasClassType.Create('TObject',FPackage);
-    okInterface : FParentObject:=TPasClassType.Create('IInterface',FPackage);
-  end;
-  FParentObject.ObjKind:=FObjectKind;
   Inherited Create;
 end;
 
@@ -474,89 +463,7 @@ begin
   inherited Destroy;
 end;
 
-Function TClassTreeEngine.BuildTree : Integer;
 
-Var
-  I : Integer;
-  PC : TPasClassType;
-
-begin
-  Result:=0;
-  FObjects.Sorted:=True;
-  For I:=0 to FObjects.Count-1 do
-    begin
-    PC:=TPasClassType(FObjects.Objects[i]);
-    If (PC.ObjKind=FObjectKind) and Not PC.IsForward then
-      AddToClassTree(PC as TPasElement,Result)
-    end;
-end;
-
-Function TClassTreeEngine.NodeMatch(N : TDomNode; AElement : TPasElement) : Boolean;
-
-begin
-  Result:=(N.NodeType=ELEMENT_NODE) and (CompareText(N.NodeName,AElement.Name)=0)
-end;
-
-Function TClassTreeEngine.LookForElement(PE : TDomElement; AElement : TPasElement) : TDomNode;
-
-Var
-  N : TDomNode;
-
-begin
-  Result:=PE.FirstChild;
-  While (Result<>Nil) and Not NodeMatch(Result,AElement) do
-    Result:=Result.NextSibling;
-  If (Result=Nil) then
-    begin
-    N:=PE.FirstChild;
-    While (Result=Nil) and (N<>Nil) do
-      begin
-      if (N.NodeType=ELEMENT_NODE) then
-        begin
-        Result:=LookForElement(N as TDomElement,AElement);
-        end;
-      N:=N.NextSibling;
-      end;
-    end
-end;
-
-Function TClassTreeEngine.AddToClassTree(AElement : TPasElement; Var ACount : Integer) : TDomElement;
-
-Var
-  PC : TPasClassType;
-  PE : TDomElement;
-  M : TPasModule;
-  N : TDomNode;
-
-begin
-  PE:=Nil;
-  If (AElement is TPasClassType) then
-    begin
-    PC:=AElement as TPasClassType;
-    If not Assigned(PC.AncestorType) and (CompareText(PC.Name,FParentObject.Name)<>0) then
-      PC.AncestorType:=FParentObject;
-    If Assigned(PC.AncestorType) then
-      PE:=AddToClassTree(PC.AncestorType,ACount);
-    end;
-  If (PE=Nil) then
-    PE:=FTreeStart;
-  N:=LookForElement(PE,AElement);
-  If (N<>Nil) then
-    Result:=N as TDomElement
-  else
-    begin
-    Inc(ACount);
-    Result:=FClassTree.CreateElement(AElement.Name);
-    If Not (AElement is TPasUnresolvedTypeRef) then
-      begin
-      M:=AElement.GetModule;
-      if Assigned(M) then
-        Result['unit']:=M.Name;
-      end;
-    PE.AppendChild(Result);
-    end;
-end;    
-    
 { ---------------------------------------------------------------------
   Main program. Document all units.    
   ---------------------------------------------------------------------}
@@ -636,7 +543,7 @@ begin
       Engine := TClassTreeEngine.Create(XML,AObjectKind);
       Try
         ParseSource(Engine,InputFiles[I],OSTarget,CPUTarget);
-        ACount:=ACount+Engine.BuildTree;
+        ACount:=ACount+Engine.Ftree.BuildTree(Engine.FObjects);
       Finally
         Engine.Free;
       end;

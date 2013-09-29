@@ -569,7 +569,7 @@ implementation
       begin
         UpdateStatus;
         do_internalerror(i);
-        inc(status.errorcount);
+        GenerateError;
         raise ECompilerAbort.Create;
       end;
 
@@ -584,7 +584,7 @@ implementation
            (status.errorwarning and ((l and V_Warning)<>0)) or
            (status.errornote and ((l and V_Note)<>0)) or
            (status.errorhint and ((l and V_Hint)<>0)) then
-         inc(status.errorcount)
+         GenerateError
         else
          if l and V_Warning <> 0 then
           inc(status.countWarnings)
@@ -652,7 +652,7 @@ implementation
                 'F' :
                   begin
                     v:=v or V_Fatal;
-                    inc(status.errorcount);
+                    GenerateError;
                     dostop:=true;
                   end;
                 'E','W','N','H':
@@ -666,7 +666,7 @@ implementation
                     if st=ms_error then
                       begin
                         v:=v or V_Error;
-                        inc(status.errorcount);
+                        GenerateError;
                       end
                     else if st<>ms_off then
                       case ch of
@@ -675,7 +675,7 @@ implementation
                            v:=v or V_Warning;
                            if CheckVerbosity(V_Warning) then
                              if status.errorwarning then
-                              inc(status.errorcount)
+                              GenerateError
                              else
                               inc(status.countWarnings);
                          end;
@@ -684,7 +684,7 @@ implementation
                            v:=v or V_Note;
                            if CheckVerbosity(V_Note) then
                              if status.errornote then
-                              inc(status.errorcount)
+                              GenerateError
                              else
                               inc(status.countNotes);
                          end;
@@ -693,7 +693,7 @@ implementation
                            v:=v or V_Hint;
                            if CheckVerbosity(V_Hint) then
                              if status.errorhint then
-                              inc(status.errorcount)
+                              GenerateError
                              else
                               inc(status.countHints);
                          end;

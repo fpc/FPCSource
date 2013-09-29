@@ -34,9 +34,13 @@ procedure fpc_cpuinit;
   end;
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame : pointer; assembler;
+function get_frame : pointer; assembler;nostackframe;
   asm
+{$if defined(amiga)}
+    move.l a5,d0
+{$else}
     move.l a6,d0
+{$endif}
   end;
 
 
@@ -69,38 +73,45 @@ function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-function Sptr : pointer; assembler;
+function Sptr : pointer; assembler;nostackframe;
 asm
   move.l sp,d0
-end ['d0'];
+end;
+
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+function get_pc_addr : pointer;assembler;nostackframe;
+asm
+  move.l (sp),d0
+end;
+
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 procedure FillChar(var x;count:longint;value:byte); assembler;
     asm
-     move.l 8(a6), a0      { destination                   }
-     move.l 12(a6), d1     { number of bytes to fill       }
-     move.b 16(a6),d0      { fill data                     }
+     move.l x, a0          { destination                   }
+     move.l count, d1      { number of bytes to fill       }
+     move.b value, d0      { fill data                     }
+     tst.l d1              { anything to fill at all?      }
+     beq    @LMEMSET5
+{$ifdef CPUM68K_HAS_DBRA}
      cmpi.l #65535, d1     { check, if this is a word move }
      ble    @LMEMSET3      { use fast dbra mode            }
+{$endif CPUM68K_HAS_DBRA}
      bra @LMEMSET2
    @LMEMSET1:
      move.b d0,(a0)+
    @LMEMSET2:
      subq.l #1,d1
-     cmp.l #-1,d1
-     bne  @LMEMSET1
+     bpl @LMEMSET1
      bra @LMEMSET5        { finished slow mode , exit     }
 
+{$ifdef CPUM68K_HAS_DBRA}
    @LMEMSET4:             { fast loop mode section 68010+ }
      move.b d0,(a0)+
    @LMEMSET3:
-{$ifdef CPUCOLDFIRE}
-     sub.l #1,d1
-     bmi @LMEMSET4
-{$else}
      dbra d1,@LMEMSET4
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
 
    @LMEMSET5:
     end ['d0','d1','a0'];
@@ -119,9 +130,9 @@ procedure strcopy; assembler;[public,alias: 'FPC_STRCOPY'];
 { registers destroyed: a0,a1,d0,d1                  }
 {---------------------------------------------------}
 asm
-{            move.l 12(a6),a0
-   move.l 16(a6),a1
-   move.l 8(a6),d1 }
+{  move.l sstr,a0
+   move.l dstr,a1
+   move.l len,d1 }
    move.l d0,d1
 
    move.b (a0)+,d0     { Get source length }
@@ -142,12 +153,12 @@ asm
 @LMSTRCOPY56:         { 68010 Fast loop mode }
    move.b (a0)+,(a1)+
 @LMSTRCOPY55:
-{$ifdef CPUCOLDFIRE}
+{$ifndef CPUM68K_HAS_DBRA}
    sub.l #1,d1
-   bmi @LMSTRCOPY56
-{$else}
+   bpl @LMSTRCOPY56
+{$else CPUM68K_HAS_DBRA}
    dbra  d1,@LMSTRCOPY56
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
 @Lend:
 end;
 
@@ -182,12 +193,12 @@ procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 @Loop:
       move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
 @ALoop:
-{$ifdef CPUCOLDFIRE}
+{$ifndef CPUM68K_HAS_DBRA}
       sub.l   #1,d6
-      bmi     @Loop
-{$else}
+      bpl     @Loop
+{$else CPUM68K_HAS_DBRA}
       dbra    d6,@Loop
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
       move.l  s1,a0
       add.b   d0,(a0)              { change to new string length }
 @Lend:
@@ -248,13 +259,17 @@ procedure move(const source;var dest;count : longint);
 begin
   asm
     clr.l      d0
-    move.l   16(a6),d0   {  number of bytes }
+    move.l   count, d0   {  number of bytes }
+    tst.l  d0            { anything to copy at all? }
+    beq    @LMOVE5
   @LMOVE0:
-    move.l   12(a6),a1   {  destination          }
-    move.l   8(a6),a0      {  source               }
+    move.l   dest, a1    {  destination          }
+    move.l   source, a0  {  source               }
 
+{$ifdef CPUM68K_HAS_DBRA}
     cmpi.l #65535, d0     { check, if this is a word move }
     ble    @LMEMSET00     { use fast dbra mode 68010+     }
+{$endif CPUM68K_HAS_DBRA}
 
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE4
@@ -276,6 +291,7 @@ begin
     bne       @LMOVE3
     bra       @LMOVE5
 
+{$ifdef CPUM68K_HAS_DBRA}
   @LMEMSET00:            { use fast loop mode 68010+ }
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE04
@@ -285,22 +301,13 @@ begin
   @LMOVE01:
     move.b   -(a0),-(a1)   {  (s < d) copy loop }
   @LMOVE02:
-{$ifdef CPUCOLDFIRE}
-    sub.l     #1,d0
-    bmi       @LMOVE01
-{$else}
     dbra      d0,@LMOVE01
-{$endif}
     bra       @LMOVE5
   @LMOVE03:
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
   @LMOVE04:
-{$ifdef CPUCOLDFIRE}
-    sub.l     #1,d0
-    bmi       @LMOVE03
-{$else}
     dbra      d0,@LMOVE03
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
   { end fast loop mode }
   @LMOVE5:
   end ['d0','a0','a1'];
@@ -311,9 +318,11 @@ end;
 procedure fillword(var x;count : longint;value : word);
   begin
     asm
-     move.l 8(a6), a0      { destination             }
-     move.l 12(a6), d1     { number of bytes to fill }
-     move.w 16(a6),d0      { fill data               }
+     move.l x, a0         { destination              }
+     move.l count, d1     { number of bytes to fill  }
+     move.w value, d0     { fill data                }
+     tst.l d1             { anything to fill at all? }
+     beq @LMEMSET3
      bra @LMEMSET21
    @LMEMSET11:
      move.w d0,(a0)+
@@ -321,6 +330,7 @@ procedure fillword(var x;count : longint;value : word);
      subq.l #1,d1
      cmp.b #-1,d1
      bne  @LMEMSET11
+   @LMEMSET3:
     end ['d0','d1','a0'];
   end;
 
@@ -329,7 +339,7 @@ procedure fillword(var x;count : longint;value : word);
 function abs(l : longint) : longint;
   begin
      asm
-        move.l 8(a6),d0
+        move.l l,d0
         tst.l  d0
         bpl @LMABS1
         neg.l d0
@@ -342,28 +352,39 @@ function abs(l : longint) : longint;
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
+    Dec(Target);
+    Result := Target;
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
+    Inc(Target);
+    Result := Target;
   end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Target := Source;
   end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    Target := Target + Source;
   end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
   begin
   {$warning FIX ME}
+    Result := Target;
+    if Target = Comperand then
+      Target := NewValue;
   end;

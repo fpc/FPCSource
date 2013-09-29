@@ -473,7 +473,7 @@ begin
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If not Assigned(FObservers) then
     FObservers:=TFPList.Create;
-  FObservers.Add(AObserver);
+  FObservers.Add(I);
 end;
 
 procedure TObservedHook.FPODetachObserver(AObserver: TObject);
@@ -486,7 +486,7 @@ begin
     Raise EObserver.CreateFmt(SErrNotObserver,[AObserver.ClassName]);
   If Assigned(FObservers) then
     begin
-    FObservers.Remove(AObserver);
+    FObservers.Remove(I);
     If (FObservers.Count=0) then
       FreeAndNil(FObservers);
     end;
@@ -523,9 +523,8 @@ begin
   If Assigned(FObservers) then
     For I:=FObservers.Count-1 downto 0 do
       begin
-      O:=TObject(FObservers[i]);
-      If O.GetInterface(SGUIDObserver,Obs) then
-        Obs.FPOObservedChanged(ASender,AOperation,Data);
+      Obs:=IFPObserver(FObservers[i]);
+      Obs.FPOObservedChanged(ASender,AOperation,Data);
       end;
 end;
 

@@ -85,19 +85,19 @@ end;
 class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
-    Fail(msg + ComparisonMsg(Expected, Actual));
+    Fail(msg + ComparisonMsg(Expected, Actual, false));
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: integer; msg: string);
 begin
   if (expected = actual) then
-    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual)));
+    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual), false));
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: boolean; msg: string);
 begin
   if (expected = actual) then
-    Fail(msg + ComparisonMsg(BoolToStr(expected), BoolToStr(actual)));
+    Fail(msg + ComparisonMsg(BoolToStr(expected), BoolToStr(actual), false));
 end;
 
 class procedure TAssert.CheckNotEquals(expected: extended; actual: extended;

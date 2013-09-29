@@ -24,7 +24,12 @@ type
     procedure TestSingleLineHeader;
     procedure TestSingleLineNoHeader;
     procedure TestOutput;
+    {
+    November 2012: this test tests again sdf;
+    however sdfdataset should comply with RFC4180 CSV, see issue #22980
+    todo: rewrite test to RFC4180
     procedure TestInputOurFormat;
+    }
     procedure TestDelimitedTextOutput;
   end;
 
@@ -128,6 +133,8 @@ begin
 end;
 
 procedure Ttestsdfspecific.TestOutput;
+// Basic assignment test: assign some difficult data to records and
+// see if the recordcount is correct.
 const
   OutputFilename='output.csv';
 begin
@@ -173,8 +180,9 @@ begin
   TestDataset.Close;
 end;
 
+{
 procedure Ttestsdfspecific.TestInputOurFormat;
-// Test if input works with our format
+// Test if input works as expected: output is written according to specs and read in.
 // Mainly check if reading quotes is according to Delphi sdf specs and works.
 // See test results from bug 19610 for evidence that the strings below should work.
 // If this works, we can switch to this and be RFC 4180 compliant and Delphi compliant.
@@ -236,15 +244,15 @@ begin
   TestDataSet.Next;
   AssertEquals(Expected7, TestDataSet.FieldByName('NAME').AsString);
 end;
+}
 
 procedure Ttestsdfspecific.TestDelimitedTextOutput;
-// Test if input works with our format
-// Mainly check if reading quotes is according to Delphi sdf specs and works.
-// See test results from bug 19610 for evidence that the strings below should work.
-// If this works, we can switch to this and be RFC 4180 compliant and Delphi compliant.
+// Test if saving and loading data keeps the original values.
+
+// Mainly check if writing & reading quotes works.
+// to do: more fully test RFC4180
 const
   OutputFileName='delim.csv';
-  //Value1 is the on disk format; it should translate to Expected1
   Value1='Delimiter,"and";quote';
   Value2='J"T"';
   Value3='Just a long line';

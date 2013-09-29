@@ -1,11 +1,11 @@
 { %skiptarget=go32v2,os2 }
 { %opt=-gl -O- }
 { %needlibrary }
+{ %delfiles=tlib1a }
 {$goto on}
 
 { test lineinfo in libraries, to get always proper results, the optimizer
   must be turned off with -O- }
-
 uses
   {$ifdef unix}dl,{$endif unix}sysutils;
 

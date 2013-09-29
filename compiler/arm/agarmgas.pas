@@ -30,7 +30,7 @@ unit agarmgas;
 
     uses
        globtype,
-       aasmtai,aasmdata,
+       aasmtai,
        aggas,
        cpubase,cpuinfo;
 
@@ -68,6 +68,7 @@ unit agarmgas;
         'armv6k',
         'armv6t2',
         'armv6z',
+        'armv6-m',
         'armv7',
         'armv7-a',
         'armv7-r',
@@ -106,11 +107,15 @@ unit agarmgas;
           result:='-mfpu=vfpv3 '+result;
         if (current_settings.fputype = fpu_vfpv3_d16) then
           result:='-mfpu=vfpv3-d16 '+result;
+        if (current_settings.fputype = fpu_fpv4_s16) then
+          result:='-mfpu=fpv4-sp-d16 '+result;
 
-        if current_settings.cputype=cpu_armv7m then
-          result:='-march=armv7m -mthumb -mthumb-interwork '+result
-        { pass only cpu types >= armv6 because the rtl uses runtime selected code with armv5te statements }
-        else if current_settings.cputype>=cpu_armv6 then
+        if GenerateThumb2Code then
+          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
+        else if GenerateThumbCode then
+          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
+        // EDSP instructions in RTL require armv5te at least to not generate error
+        else if current_settings.cputype >= cpu_armv5te then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
 
         if target_info.abi = abi_eabihf then
@@ -121,7 +126,7 @@ unit agarmgas;
     procedure TArmGNUAssembler.WriteExtraHeader;
       begin
         inherited WriteExtraHeader;
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           AsmWriteLn(#9'.syntax unified');
       end;
 
@@ -159,10 +164,10 @@ unit agarmgas;
                 if (base<>NR_NO) and not(is_pc(base)) then
                   internalerror(200309011);
                 s:=symbol.name;
-                if offset<0 then
-                  s:=s+tostr(offset)
-                else if offset>0 then
-                  s:=s+'+'+tostr(offset);
+                if offset<>0 then
+                  s:=s+tostr_with_plus(offset);
+                if refaddr=addr_pic then
+                  s:=s+'(PLT)';
               end
             else
               begin
@@ -284,7 +289,7 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-      if current_settings.cputype in cpu_thumb2 then
+      if GenerateThumb2Code then
         begin
           postfix:='';
           if taicpu(hp).wideformat then
@@ -292,8 +297,10 @@ unit agarmgas;
 
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+' '+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
+          else if (taicpu(hp).opcode>=A_VABS) and (taicpu(hp).opcode<=A_VSUB) then
+            s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else
-            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+postfix+cond2str[taicpu(hp).condition]; // Conditional infixes are deprecated in unified syntax
+            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]+postfix; // Conditional infixes are deprecated in unified syntax
         end
       else
         s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
@@ -350,8 +357,9 @@ unit agarmgas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_targets : [system_arm_linux,system_arm_wince,system_arm_gba,system_arm_palmos,system_arm_nds,system_arm_embedded,system_arm_symbian];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            supported_targets : [system_arm_linux,system_arm_wince,system_arm_gba,system_arm_palmos,system_arm_nds,
+                                 system_arm_embedded,system_arm_symbian,system_arm_android];
+            flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
@@ -364,7 +372,7 @@ unit agarmgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';

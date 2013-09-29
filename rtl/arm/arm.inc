@@ -607,7 +607,11 @@ asm
   movs r0, r1
 // unlock and return
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -692,7 +696,11 @@ asm
   mov r0, r1
 // unlock and return
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -752,7 +760,11 @@ asm
 // unlock and return
   mov r2, #0
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -816,7 +828,11 @@ asm
 // unlock and return
   mov r2, #0
   str r2, [r3]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -881,7 +897,11 @@ asm
 // unlock and return
   mov r3, #0
   str r3, [r12]
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc,lr
+{$endif}
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -1011,6 +1031,55 @@ function SwapEndian(const AValue: QWord): QWord; {$ifdef SYSTEMINLINE}inline;{$e
 begin
   Result:=QWord(SwapEndian(Int64(AValue)));
 end;
+
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+{ Generic read/readwrite barrier code.  }
+procedure barrier; assembler; nostackframe;
+asm
+  // manually encode the instructions to avoid bootstrap and -march external
+  // assembler settings 
+{$ifdef CPUARM_HAS_DMB}
+  .long 0xf57ff05f  // dmb sy
+{$else}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
+{$endif}
+{$endif}
+end;
+
+procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { reads imply barrier on earlier reads depended on; not required on ARM }
+end;
+
+procedure ReadWriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  barrier;
+end;
+
+procedure WriteBarrier; assembler; nostackframe;
+asm
+  // specialize the write barrier because according to ARM, implementations for
+  // "dmb st" may be more optimal than the more generic "dmb sy"
+{$ifdef CPUARM_HAS_DMB}
+  .long 0xf57ff05e  // dmb st
+{$else}
+{$ifdef CPUARMV6}
+  mov r0, #0
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
+{$endif}
+{$endif}
+end;
+
+{$endif}
 
 {include hand-optimized assembler division code}
 { $i divide.inc}

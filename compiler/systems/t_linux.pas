@@ -239,13 +239,15 @@ function ModulesLinkToLibc:boolean;
 var
   hp: tmodule;
 begin
-  result:=false;
+  { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
+    The former contains library names qualified with prefix and suffix (coming from
+    "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
+    directives). }
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
     begin
-      { Syntax "external 'c' name 'foo'" adds 'libc.so' to
-        linkothersharedlibs, while "$linklib c" adds just 'c'.
-        Therefore we must search for both names, this deserves a better fix. }
+      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      if result then break;
       result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
       if result then break;
       result:=hp.linkothersharedlibs.find('c');
@@ -419,19 +421,30 @@ begin
        begin
          { crti.o must come first }
          if librarysearchpath.FindFile('crti.o',false,s) then
-           AddFileName(s);
+           AddFileName(s)
+         else
+           Message1(exec_w_init_file_not_found,'crti.o');
+
          { then the crtbegin* }
          if cs_create_pic in current_settings.moduleswitches then
            begin
              if librarysearchpath.FindFile('crtbeginS.o',false,s) then
-               AddFileName(s);
+               AddFileName(s)
+             else
+               Message1(exec_w_init_file_not_found,'crtbeginS.o');
            end
          else
-           if (cs_link_staticflag in current_settings.globalswitches) and
-              librarysearchpath.FindFile('crtbeginT.o',false,s) then
-             AddFileName(s)
+           if (cs_link_staticflag in current_settings.globalswitches) then
+             begin
+               if librarysearchpath.FindFile('crtbeginT.o',false,s) then
+                 AddFileName(s)
+               else
+                 Message1(exec_w_init_file_not_found,'crtbeginT.o');
+             end
            else if librarysearchpath.FindFile('crtbegin.o',false,s) then
-             AddFileName(s);
+             AddFileName(s)
+           else
+             Message1(exec_w_init_file_not_found,'crtbegin.o');
        end;
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -489,8 +502,8 @@ begin
                  end
                 else
                  begin
-                   linklibc:=true;
-                 end;
+                  linklibc:=true;
+              end;
               end;
              Add(')');
            end
@@ -518,10 +531,21 @@ begin
       if linklibc and (libctype<>uclibc) then
        begin
          if cs_create_pic in current_settings.moduleswitches then
-           found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+           begin
+             found1:=librarysearchpath.FindFile('crtendS.o',false,s1);
+             if not(found1) then
+               Message1(exec_w_init_file_not_found,'crtendS.o');
+           end
          else
-           found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+           begin
+             found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+             if not(found1) then
+               Message1(exec_w_init_file_not_found,'crtend.o');
+           end;
+
          found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+         if not(found2) then
+           Message1(exec_w_init_file_not_found,'crtn.o');
          if found1 or found2 then
           begin
             Add('INPUT(');
@@ -638,7 +662,7 @@ begin
        _end.  Align after .bss to ensure correct alignment even if the
        .bss section disappears because there are no input sections.}
       add('   . = ALIGN(32 / 8);');
-      add('  }');
+      add('}');
       add('  . = ALIGN(32 / 8);');
       add('  PROVIDE (_end = .);');
       add('  PROVIDE (end = .);');
@@ -1038,7 +1062,8 @@ begin
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if create_smartlink_sections then
+  if (cs_link_smart in current_settings.globalswitches) and
+     create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
@@ -1177,9 +1202,12 @@ begin
 end;
 
 
+const
+  relsec_prefix:array[boolean] of TCmdStr = ('rel','rela');
+
 procedure TInternalLinkerLinux.DefaultLinkScript;
 var
-  s,s1,s2:TCmdStr;
+  s,s1,s2,relprefix:TCmdStr;
   found1,found2:boolean;
   linkToSharedLibs:boolean;
 
@@ -1214,6 +1242,8 @@ begin
       AddSharedLibrary('c');
     end;
 
+  TElfExeOutput(exeoutput).interpreter:=stringdup(dynlinker);
+
   { add objectfiles, start with prt0 always }
   if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
     LinkScript.Concat('READOBJECT '+ maybequoted(FindObjectFile(prtobj,'',false)));
@@ -1246,7 +1276,7 @@ begin
   { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
     and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
   if IsSharedLibrary then
-    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(dynlinker));
+    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(sysrootpath+dynlinker));
 
   linkToSharedLibs:=(not SharedLibFiles.Empty);
 
@@ -1267,6 +1297,7 @@ begin
   if (cs_link_staticflag in current_settings.globalswitches) or
     (linklibc and not reorder) then
     begin
+      LinkScript.Concat('GROUP');
       if (cs_link_staticflag in current_settings.globalswitches) then
         begin
           AddLibraryStatement('gcc');
@@ -1274,6 +1305,7 @@ begin
         end;
       if linklibc and not reorder then
         AddLibraryStatement('c');
+      LinkScript.Concat('ENDGROUP');
     end;
 
   { objects which must be at the end }
@@ -1298,6 +1330,8 @@ begin
    else
      LinkScript.Concat('ISSHAREDLIBRARY');
 
+  relprefix:=relsec_prefix[ElfTarget.relocs_use_addend];
+
   with LinkScript do
     begin
       Concat('HEADER');
@@ -1319,25 +1353,23 @@ begin
       Concat('EXESECTION .dynstr');
       Concat('  OBJSECTION .dynstr');
       Concat('ENDEXESECTION');
-{$ifdef x86_64}
-      Concat('EXESECTION .rela.dyn');
-      Concat('  OBJSECTION .rela.dyn');
-{$else}
-      Concat('EXESECTION .rel.dyn');
-      Concat('  OBJSECTION .rel.dyn');
-{$endif}
-
+      Concat('EXESECTION .gnu.version');
+      Concat('  OBJSECTION .gnu.version');
       Concat('ENDEXESECTION');
-{$ifdef x86_64}
-      Concat('EXESECTION .rela.plt');
-      Concat('  OBJSECTION .rela.plt');
-      Concat('  PROVIDE __rela_iplt_start');
-      Concat('  OBJSECTION .rela.iplt');
-      Concat('  PROVIDE __rela_iplt_end');
-{$else}
-      Concat('EXESECTION .rel.plt');
-      Concat('  OBJSECTION .rel.plt');
-{$endif}
+      Concat('EXESECTION .gnu.version_d');
+      Concat('  OBJSECTION .gnu.version_d');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version_r');
+      Concat('  OBJSECTION .gnu.version_r');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .'+relprefix+'.dyn');
+      Concat('  OBJSECTION .'+relprefix+'.dyn');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .'+relprefix+'.plt');
+      Concat('  OBJSECTION .'+relprefix+'.plt');
+      Concat('  PROVIDE __'+relprefix+'_iplt_start');
+      Concat('  OBJSECTION .'+relprefix+'.iplt');
+      Concat('  PROVIDE __'+relprefix+'_iplt_end');
       Concat('ENDEXESECTION');
       Concat('EXESECTION .init');
       Concat('  OBJSECTION .init');
@@ -1348,20 +1380,6 @@ begin
       Concat('EXESECTION .text');
       Concat('  OBJSECTION .text*');
       Concat('ENDEXESECTION');
-
-      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
-      Concat('EXESECTION __libc_thread_freeres_fn');
-      Concat('  PROVIDE __start__libc_thread_freeres_fn');
-      Concat('  OBJSECTION __libc_thread_freeres_fn');
-      Concat('  PROVIDE __stop__libc_thread_freeres_fn');
-      Concat('ENDEXESECTION');
-
-      Concat('EXESECTION __libc_freeres_fn');
-      Concat('  PROVIDE __start__libc_freeres_fn');
-      Concat('  OBJSECTION __libc_freeres_fn');
-      Concat('  PROVIDE __stop__libc_freeres_fn');
-      Concat('ENDEXESECTION');
-
       Concat('EXESECTION .fini');
       Concat('  OBJSECTION .fini');
       Concat('  PROVIDE __etext');
@@ -1371,7 +1389,16 @@ begin
       Concat('EXESECTION .rodata');
       Concat('  OBJSECTION .rodata*');
       Concat('ENDEXESECTION');
-
+{$ifdef arm}
+      Concat('EXESECTION .ARM.extab');
+      Concat('  OBJSECTION .ARM.extab*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .ARM.exidx');
+      Concat('  SYMBOL __exidx_start');
+      Concat('  OBJSECTION .ARM.exidx*');
+      Concat('  SYMBOL __exidx_end');
+      Concat('ENDEXESECTION');
+{$endif}
       Concat('EXESECTION .eh_frame');
       Concat('  OBJSECTION .eh_frame');
       Concat('ENDEXESECTION');
@@ -1420,12 +1447,19 @@ begin
       Concat('EXESECTION .dynamic');
       Concat('  OBJSECTION .dynamic');
       Concat('ENDEXESECTION');
+{$ifndef mips}
       Concat('EXESECTION .got');
+{$ifdef arm}
+      Concat('  OBJSECTION .got.plt');
+{$endif arm}
       Concat('  OBJSECTION .got');
       Concat('ENDEXESECTION');
+{$endif mips}
+{$ifndef arm}
       Concat('EXESECTION .got.plt');
       Concat('  OBJSECTION .got.plt');
       Concat('ENDEXESECTION');
+{$endif arm}
       Concat('EXESECTION .data');
       Concat('  OBJSECTION .data*');
       Concat('  OBJSECTION .fpc*');
@@ -1433,18 +1467,17 @@ begin
       Concat('  PROVIDE _edata');
       Concat('  PROVIDE edata');
       Concat('ENDEXESECTION');
+{$ifdef mips}
+      Concat('EXESECTION .got');
+      Concat('  OBJSECTION .got');
+      Concat('ENDEXESECTION');
+{$endif mips}
       Concat('EXESECTION .bss');
+      Concat('  OBJSECTION .dynbss');
       Concat('  OBJSECTION .bss*');
       Concat('  OBJSECTION fpc.reshandles');
       Concat('  PROVIDE end');
       Concat('  SYMBOL _end');
-      Concat('ENDEXESECTION');
-
-      { This is not in standard ld scripts, it is handled by 'orphan section' functionality }
-      Concat('EXESECTION __libc_freeres_ptrs');
-      Concat('  PROVIDE __start__libc_freeres_ptrs');
-      Concat('  OBJSECTION __libc_freeres_ptrs');
-      Concat('  PROVIDE __stop__libc_freeres_ptrs');
       Concat('ENDEXESECTION');
 
       ScriptAddGenericSections('.debug_aranges,.debug_pubnames,.debug_info,'+
@@ -1464,67 +1497,58 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_linux,TLinkerLinux);
+  RegisterLinker(ld_int_linux,TInternalLinkerLinux);
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_linux_info,TLinkerLinux);
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
 
-  RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
   RegisterExport(system_x86_6432_linux,texportliblinux);
   RegisterTarget(system_x86_6432_linux_info);
 {$endif i386}
 {$ifdef m68k}
-  RegisterExternalLinker(system_m68k_linux_info,TLinkerLinux);
   RegisterImport(system_m68k_linux,timportliblinux);
   RegisterExport(system_m68k_linux,texportliblinux);
   RegisterTarget(system_m68k_linux_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_linux_info,TLinkerLinux);
   RegisterImport(system_powerpc_linux,timportliblinux);
   RegisterExport(system_powerpc_linux,texportliblinux);
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  RegisterExternalLinker(system_powerpc64_linux_info,TLinkerLinux);
   RegisterImport(system_powerpc64_linux,timportliblinux);
   RegisterExport(system_powerpc64_linux,texportliblinux);
   RegisterTarget(system_powerpc64_linux_info);
 {$endif powerpc64}
 {$ifdef alpha}
-  RegisterExternalLinker(system_alpha_linux_info,TLinkerLinux);
   RegisterImport(system_alpha_linux,timportliblinux);
   RegisterExport(system_alpha_linux,texportliblinux);
   RegisterTarget(system_alpha_linux_info);
 {$endif alpha}
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x86_64_linux_info,TLinkerLinux);
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
 {$endif x86_64}
 {$ifdef SPARC}
-  RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);
   RegisterImport(system_SPARC_linux,timportliblinux);
   RegisterExport(system_SPARC_linux,texportliblinux);
   RegisterTarget(system_SPARC_linux_info);
 {$endif SPARC}
 {$ifdef ARM}
-  RegisterExternalLinker(system_arm_linux_info,TLinkerLinux);
   RegisterImport(system_arm_linux,timportliblinux);
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
 {$ifdef MIPS}
 {$ifdef MIPSEL}
-  RegisterExternalLinker(system_mipsel_linux_info,TLinkerLinux);
   RegisterImport(system_mipsel_linux,timportliblinux);
   RegisterExport(system_mipsel_linux,texportliblinux);
   RegisterTarget(system_mipsel_linux_info);
 {$else MIPS}
-  RegisterExternalLinker(system_mipseb_linux_info,TLinkerLinux);
   RegisterImport(system_mipseb_linux,timportliblinux);
   RegisterExport(system_mipseb_linux,texportliblinux);
   RegisterTarget(system_mipseb_linux_info);

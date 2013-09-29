@@ -76,48 +76,49 @@ begin
 Dest := Dest + S;
 end ;
 
+Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
+  var
+    i : Integer;
+    P : PChar;
+    Unique : Boolean;
+  begin
+    Result := S;
+    if Result='' then
+      exit;
+    Unique:=false;
+    P:=PChar(Result);
+    for i:=1 to Length(Result) do
+      begin
+        if CharInSet(P^,Chars) then
+          begin
+            if not Unique then
+              begin
+                UniqueString(Result);
+                p:=@Result[i];
+                Unique:=true;
+              end;
+            P^:=Char(Ord(P^)+Adjustment);
+          end;
+        Inc(P);
+      end;
+  end;
+
+
 {   UpperCase returns a copy of S where all lowercase characters ( from a to z )
     have been converted to uppercase   }
+Function UpperCase(Const S : AnsiString) : AnsiString;
+  begin
+    Result:=InternalChangeCase(S,['a'..'z'],-32);
+  end;
 
-
-Function UpperCase(Const S : String) : String;
-
-Var
-  i : Integer;
-  P : PChar;
-
-begin
-  Result := S;
-  if not assigned(pointer(result)) then exit;
-  UniqueString(Result);
-  P:=Pchar(pointer(Result));
-  for i := 1 to Length(Result) do
-    begin
-    if (P^ in ['a'..'z']) then P^ := char(byte(p^) - 32);
-      Inc(P);
-    end;
-end;
 
 {   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
     have been converted to lowercase  }
+Function Lowercase(Const S : AnsiString) : AnsiString;
+  begin
+    Result:=InternalChangeCase(S,['A'..'Z'],32);
+  end;
 
-Function Lowercase(Const S : String) : String;
-
-Var
-  i : Integer;
-  P : PChar;
-
-begin
-  Result := S;
-  if not assigned(pointer(result)) then exit;
-  UniqueString(Result);
-  P:=Pchar(pointer(Result));
-  for i := 1 to Length(Result) do
-    begin
-    if (P^ in ['A'..'Z']) then P^ := char(byte(p^) + 32);
-      Inc(P);
-    end;
-end;
 
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
@@ -1084,27 +1085,38 @@ Begin
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
-  case ValueType of
-    fvCurrency:
+  try
+    case ValueType of
+      fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-      Val(S,Currency(Value),E);
+        Val(S,Currency(Value),E);
 {$else FPC_HAS_STR_CURRENCY}
-      begin
-        // needed for platforms where Currency = Int64
-        Val(S,TempValue,E);
-        Currency(Value) := TempValue;
-      end;
+        begin
+          // needed for platforms where Currency = Int64
+          Val(S,TempValue,E);
+          Currency(Value) := TempValue;
+        end;
 {$endif FPC_HAS_STR_CURRENCY}
-    fvExtended:
-      Val(S,Extended(Value),E);
-    fvDouble:
-      Val(S,Double(Value),E);
-    fvSingle:
-      Val(S,Single(Value),E);
-    fvComp:
-      Val(S,Comp(Value),E);
-    fvReal:
-      Val(S,Real(Value),E);
+      fvExtended:
+        Val(S,Extended(Value),E);
+      fvDouble:
+        Val(S,Double(Value),E);
+      fvSingle:
+        Val(S,Single(Value),E);
+      fvComp:
+        Val(S,Comp(Value),E);
+      fvReal:
+        Val(S,Real(Value),E);
+    end;
+  { on x87, a floating point exception may be pending in case of an invalid
+    input value -> trigger it now }
+{$ifdef cpux86}
+    asm
+      fwait
+    end;
+{$endif}
+  except
+    E:=1;
   end;
   Result:=(E=0);
 End;
@@ -1153,6 +1165,11 @@ const
   maxdigits = 15;
 {$endif}
 
+{ deactive aligned function for 2.6 }
+{$ifdef VER2_6}
+{$macro on}
+{$define aligned:= }
+{$endif VER2_6}
 Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
 Var
   P, PE, Q, Exponent: Integer;
@@ -1198,17 +1215,17 @@ Begin
         { First convert to scientific format, with correct precision }
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):precision+7, Result);
+            Str(Double(Extended(Aligned(Value))):precision+7, Result);
           fvSingle:
-            Str(Single(Extended(Value)):precision+6, Result);
+            Str(Single(Extended(Aligned(Value))):precision+6, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):precision+6, Result);
+            Str(Currency(Aligned(Value)):precision+6, Result);
 {$else}
-            Str(Extended(Currency(Value)):precision+8, Result);
+            Str(Extended(Currency(Aligned(Value))):precision+8, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):precision+8, Result);
+            Str(Extended(Aligned(Value)):precision+8, Result);
         end;
         { Delete leading spaces }
         while Result[1] = ' ' do
@@ -1295,17 +1312,17 @@ Begin
         If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):Precision+7, Result);
+            Str(Double(Extended(Aligned(Value))):Precision+7, Result);
           fvSingle:
-            Str(Single(Extended(Value)):Precision+6, Result);
+            Str(Single(Extended(Aligned(Value))):Precision+6, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):Precision+6, Result);
+            Str(Currency(Aligned(Value)):Precision+6, Result);
 {$else}
-            Str(Extended(Currency(Value)):Precision+8, Result);
+            Str(Extended(Currency(Aligned(Value))):Precision+8, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):Precision+8, Result);
+            Str(Extended(Aligned(Value)):Precision+8, Result);
         end;
         { Delete leading spaces }
         while Result[1] = ' ' do
@@ -1344,17 +1361,17 @@ Begin
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):0:Digits, Result);
+            Str(Double(Extended(Aligned(Value))):0:Digits, Result);
           fvSingle:
-            Str(Single(Extended(Value)):0:Digits, Result);
+            Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):0:Digits, Result);
+            Str(Currency(Aligned(Value)):0:Digits, Result);
 {$else}
-            Str(Extended(Currency(Value)):0:Digits, Result);
+            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):0:Digits, Result);
+            Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
         If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
@@ -1369,17 +1386,17 @@ Begin
         Else If Digits > maxdigits Then Digits := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):0:Digits, Result);
+            Str(Double(Extended(Aligned(Value))):0:Digits, Result);
           fvSingle:
-            Str(Single(Extended(Value)):0:Digits, Result);
+            Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):0:Digits, Result);
+            Str(Currency(Aligned(Value)):0:Digits, Result);
 {$else}
-            Str(Extended(Currency(Value)):0:Digits, Result);
+            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):0:Digits, Result);
+            Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
@@ -1403,17 +1420,17 @@ Begin
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):0:Digits, Result);
+            Str(Double(Extended(Aligned(Value))):0:Digits, Result);
           fvSingle:
-            Str(Single(Extended(Value)):0:Digits, Result);
+            Str(Single(Extended(Aligned(Value))):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):0:Digits, Result);
+            Str(Currency(Aligned(Value)):0:Digits, Result);
 {$else}
-            Str(Extended(Currency(Value)):0:Digits, Result);
+            Str(Extended(Currency(Aligned(Value))):0:Digits, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):0:Digits, Result);
+            Str(Extended(Aligned(Value)):0:Digits, Result);
         end;
         Negative:=Result[1] = '-';
         if Negative then
@@ -1466,7 +1483,7 @@ Begin
   if not (format in [ffCurrency]) and (length(Result) > 1) and (Result[1] = '-') then
     RemoveLeadingNegativeSign(Result);
 End;
-
+{$macro off}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Extended; Const FormatSettings: TFormatSettings): String;
@@ -2277,7 +2294,7 @@ Var
                     end;
                   If thousand And (Digits[N]<>'-') Then
                     Begin
-                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
+                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) and (N > 1) Then
                       Begin
                       Buf[0] := FormatSettings.ThousandSeparator;
                       Inc(Buf);

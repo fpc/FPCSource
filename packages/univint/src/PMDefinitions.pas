@@ -11,7 +11,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -87,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -96,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -111,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -120,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -130,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -186,22 +192,28 @@ uses MacTypes,MacErrors,CFString;
 {$endc} {not TARGET_CPU_64}
 
 { Printing objects }
-
 type
 	PMObject = UnivPtr;
-	PMPrintSettings = ^SInt32; { an opaque type }
+	PMPrintSettings = ^OpaquePMPrintSettings; { an opaque type }
+	OpaquePMPrintSettings = record end;
 	PMPrintSettingsPtr = ^PMPrintSettings; { when a var xx:PMPrintSettings parameter can be nil, it is changed to xx: PMPrintSettingsPtr }
-	PMPageFormat = ^SInt32; { an opaque type }
+	PMPageFormat = ^OpaquePMPageFormat; { an opaque type }
+	OpaquePMPageFormat = record end;
 	PMPageFormatPtr = ^PMPageFormat; { when a var xx:PMPageFormat parameter can be nil, it is changed to xx: PMPageFormatPtr }
-	PMPrintSession = ^SInt32; { an opaque type }
+	PMPrintSession = ^OpaquePMPrintSession; { an opaque type }
+	OpaquePMPrintSession = record end;
 	PMPrintSessionPtr = ^PMPrintSession; { when a var xx:PMPrintSession parameter can be nil, it is changed to xx: PMPrintSessionPtr }
-	PMPrinter = ^SInt32; { an opaque type }
+	PMPrinter = ^OpaquePMPrinter; { an opaque type }
+	OpaquePMPrinter = record end;
 	PMPrinterPtr = ^PMPrinter; { when a var xx:PMPrinter parameter can be nil, it is changed to xx: PMPrinterPtr }
-	PMServer = ^SInt32; { an opaque type }
+	PMServer = ^OpaquePMServer; { an opaque type }
+	OpaquePMServer = record end;
 	PMServerPtr = ^PMServer; { when a var xx:PMPrinter parameter can be nil, it is changed to xx: PMServerPtr }
-	PMPreset = ^SInt32; { an opaque type }
+	PMPreset = ^OpaquePMPreset; { an opaque type }
+	OpaquePMPreset = record end;
 	PMPresetPtr = ^PMPreset; { when a var xx:PMPrinter parameter can be nil, it is changed to xx: PMPresetPtr }
-	PMPaper = ^SInt32; { an opaque type }
+	PMPaper = ^OpaquePMPaper; { an opaque type }
+	OpaquePMPaper = record end;
 	PMPaperPtr = ^PMPaper; { when a var xx:PMPrinter parameter can be nil, it is changed to xx: PMPaperPtr }
 const
 	kPMCancel = $0080; { user hit cancel button in dialog }

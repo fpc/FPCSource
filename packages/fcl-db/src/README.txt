@@ -13,8 +13,8 @@ sqldb
 	PostgreSQL, SQLite3 and Sybase ASE
 
 dbase
-  contains the tDbf components, to work with DBASE and FoxPro
-  file-based databases
+  contains the tDbf components, to work with DBASE, FoxPro and Visual
+	FoxPro file-based databases
 
 sdf
   contains a dataset class to use text files directly as a

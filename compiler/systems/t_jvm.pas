@@ -94,13 +94,11 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_jvm_java32_info, tlinkerjvm);
+  RegisterLinker(ld_jvm, tlinkerjvm);
   RegisterImport(system_jvm_java32,timportlibjvm);
   RegisterExport(system_jvm_java32,texportlibjvm);
   RegisterTarget(system_jvm_java32_info);
 
-
-  RegisterExternalLinker(system_jvm_android32_info, tlinkerjvm);
   RegisterImport(system_jvm_android32,timportlibjvm);
   RegisterExport(system_jvm_android32,texportlibjvm);
   RegisterTarget(system_jvm_android32_info);

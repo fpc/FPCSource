@@ -11,7 +11,7 @@ begin
   Writeln('Usage : testhttp DocumentRoot [Port]');
   Writeln('Where');
   Writeln(' Documentroot   location to serve files from. It is mapped to location /files');
-  Writeln(' Port            port to listen on (default 8080)');
+  Writeln(' Port           port to listen on (default 8080)');
   Halt(1);
 end;
 

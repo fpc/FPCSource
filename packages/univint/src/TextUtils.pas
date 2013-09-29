@@ -3,9 +3,7 @@
  
      Contains:   Text Utilities Interfaces.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1985-2008 Apple Inc. All rights reserved.
+     Copyright:  © 1985-2011 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -267,7 +271,7 @@ type
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function Munger( h: Handle; offset: SIGNEDLONG; ptr1: {const} UnivPtr; len1: SIGNEDLONG; ptr2: {const} UnivPtr; len2: SIGNEDLONG ): SIGNEDLONG; external name '_Munger';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -287,7 +291,7 @@ function Munger( h: Handle; offset: SIGNEDLONG; ptr1: {const} UnivPtr; len1: SIG
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function NewString( const (*var*) theString: Str255 ): StringHandle; external name '_NewString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -306,7 +310,7 @@ function NewString( const (*var*) theString: Str255 ): StringHandle; external na
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetString( theString: StringHandle; const (*var*) strNew: Str255 ); external name '_SetString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -325,7 +329,7 @@ procedure SetString( theString: StringHandle; const (*var*) strNew: Str255 ); ex
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetString( stringID: SInt16 ): StringHandle; external name '_GetString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -347,7 +351,7 @@ function GetString( stringID: SInt16 ): StringHandle; external name '_GetString'
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure GetIndString( var theString: Str255; strListID: SInt16; itemIndex: SInt16 ); external name '_GetIndString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -409,7 +413,7 @@ procedure GetIndString( var theString: Str255; strListID: SInt16; itemIndex: SIn
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure FindWordBreaks( textPtr: Ptr; textLength: SInt16; offset: SInt16; leadingEdge: Boolean; breaks: BreakTablePtr; var offsets: OffsetTable; script: ScriptCode ); external name '_FindWordBreaks';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -428,7 +432,7 @@ procedure FindWordBreaks( textPtr: Ptr; textLength: SInt16; offset: SInt16; lead
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure LowercaseText( textPtr: Ptr; len: SInt16; script: ScriptCode ); external name '_LowercaseText';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -447,7 +451,7 @@ procedure LowercaseText( textPtr: Ptr; len: SInt16; script: ScriptCode ); extern
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure UppercaseText( textPtr: Ptr; len: SInt16; script: ScriptCode ); external name '_UppercaseText';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -466,7 +470,7 @@ procedure UppercaseText( textPtr: Ptr; len: SInt16; script: ScriptCode ); extern
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure StripDiacritics( textPtr: Ptr; len: SInt16; script: ScriptCode ); external name '_StripDiacritics';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -485,7 +489,7 @@ procedure StripDiacritics( textPtr: Ptr; len: SInt16; script: ScriptCode ); exte
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure UppercaseStripDiacritics( textPtr: Ptr; len: SInt16; script: ScriptCode ); external name '_UppercaseStripDiacritics';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -503,7 +507,7 @@ procedure UppercaseStripDiacritics( textPtr: Ptr; len: SInt16; script: ScriptCod
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FindScriptRun( textPtr: Ptr; textLen: SIGNEDLONG; var lenUsed: SIGNEDLONG ): ScriptRunStatus; external name '_FindScriptRun';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -608,7 +612,7 @@ function FindScriptRun( textPtr: Ptr; textLen: SIGNEDLONG; var lenUsed: SIGNEDLO
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure UpperString( var theString: Str255; diacSensitive: Boolean ); external name '_UpperString';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -683,7 +687,7 @@ procedure upperstring( theString: CStringPtr; diacSensitive: Boolean ); external
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
 procedure c2pstrcpy( var dst: Str255; src: ConstCStringPtr ); external name '_c2pstrcpy';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -702,7 +706,7 @@ procedure c2pstrcpy( var dst: Str255; src: ConstCStringPtr ); external name '_c2
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
 procedure p2cstrcpy( dst: CStringPtr; const (*var*) src: Str255 ); external name '_p2cstrcpy';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -721,7 +725,7 @@ procedure p2cstrcpy( dst: CStringPtr; const (*var*) src: Str255 ); external name
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
 procedure CopyPascalStringToC( const (*var*) src: Str255; dst: CStringPtr ); external name '_CopyPascalStringToC';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -740,7 +744,7 @@ procedure CopyPascalStringToC( const (*var*) src: Str255; dst: CStringPtr ); ext
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
 procedure CopyCStringToPascal( src: ConstCStringPtr; var dst: Str255 ); external name '_CopyCStringToPascal';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -770,7 +774,7 @@ function c2pstr( aStr: CStringPtr ): StringPtr; external name '_c2pstr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function C2PStr( cString: UnivPtr ): StringPtr; external name '_C2PStr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  p2cstr()   *** DEPRECATED ***
@@ -796,7 +800,7 @@ function p2cstr( aStr: StringPtr ): CStringPtr; external name '_p2cstr';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function P2CStr( pString: StringPtr ): Ptr; external name '_P2CStr';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 {$endc} {not TARGET_CPU_64}
 

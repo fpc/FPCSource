@@ -65,8 +65,8 @@ uses
   {$ENDIF}
   {$ENDIF}
   GL;
-  
-Const                      
+
+Const
 {$IFDEF Windows}
   GLU_Lib = 'glu32.dll';
 {$ELSE}
@@ -79,7 +79,9 @@ Const
 {$IFDEF haiku}
   GLU_LIB = 'libGLU.so';
 {$ELSE}
-{$ifndef MorphOS}
+{$ifdef MorphOS}
+  GLU_LIB = 'tinygl.library';
+{$else}
   GLU_LIB = 'libGLU.so.1';
 {$endif}
 {$ENDIF}
@@ -429,7 +431,6 @@ implementation
 
   procedure Freeglu;
     begin
-{$IFNDEF MORPHOS}
      if (hlib <> 0) then
       FreeLibrary(hlib);
       gluBeginCurve:=nil;
@@ -491,13 +492,11 @@ implementation
       gluTessVertex:=nil;
       gluUnProject:=nil;
       gluUnProject4:=nil;
-{$ENDIF MORPHOS}
     end;
 
 
   procedure Loadglu(lib : pchar);
     begin
-{$IFDNDEF MORPHOS}
       Freeglu;
       hlib:=LoadLibrary(lib);
       if hlib=0 then
@@ -562,7 +561,6 @@ implementation
       pointer(gluTessVertex):=GetProcAddress(hlib,'gluTessVertex');
       pointer(gluUnProject):=GetProcAddress(hlib,'gluUnProject');
       pointer(gluUnProject4):=GetProcAddress(hlib,'gluUnProject4');
-{$ENDIF MORPHOS}
     end;
 
 
@@ -570,4 +568,5 @@ initialization
   LoadGLu(GLU_LIB);
 finalization
   Freeglu;
+{$ENDIF MORPHOS}
 end.

@@ -3,9 +3,7 @@
  
      Contains:   TextEncoding-related types and constants, and prototypes for related functions
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1995-2008 Apple Inc. All rights reserved.
+     Copyright:  © 1995-2012 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,6 +12,7 @@
  
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -182,6 +186,39 @@ uses MacTypes;
 {$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
+
+{
+ *  Generic Text Alignment Constants
+ *  
+ *  Summary:
+ *    These constants are implemented to supplant the old TextEdit
+ *    Manager constants ( teFlushDefault, teCenter teFlushRight,
+ *    teFlushLeft ) These constants are used outside the context of the
+ *    legacy TextEdit Manager Framework. Use these as you would use the
+ *    old TextEdit.h constants to specify how text should be justified
+ *    (word aligned.) The new constants use the same values as the the
+ *    old TextEdit ones, for backwards compatibility.
+ }
+const
+{
+   * Flush according to the line direction
+   }
+	kTextFlushDefault = 0;
+
+  {
+   * Center justify (word alignment)
+   }
+	kTextCenter = 1;
+
+  {
+   * Flush right
+   }
+	kTextFlushRight = -1;
+
+  {
+   * Flush left
+   }
+	kTextFlushLeft = -2;
 
 { TextEncodingBase type & values }
 { (values 0-32 correspond to the Script Codes defined in Inside Macintosh: Text pages 6-52 and 6-53 }
@@ -278,7 +315,9 @@ const
 	kTextEncodingUnicodeV3_2 = $0106;
 	kTextEncodingUnicodeV4_0 = $0108;
 	kTextEncodingUnicodeV5_0 = $010A;
-	kTextEncodingUnicodeV5_1 = $010B;
+	kTextEncodingUnicodeV5_1 = $010B; { No constant for Unicode 5.2, but leave an opening.}
+	kTextEncodingUnicodeV6_0 = $010D; { Adds many symbols, including emoji support.}
+	kTextEncodingUnicodeV6_1 = $010E;  { Adds emoji variation sequences, properties changes.}
 
 { ISO 8-bit and 7-bit encodings begin at 0x200}
 const
@@ -345,7 +384,8 @@ const
 	kTextEncodingJIS_X0213_MenKuTen = $0629; { JIS X0213 in plane-row-column notation (3 bytes)}
 	kTextEncodingGB_2312_80 = $0630;
 	kTextEncodingGBK_95 = $0631; { annex to GB 13000-93; for Windows 95; EUC-CN extended}
-	kTextEncodingGB_18030_2000 = $0632;
+	kTextEncodingGB_18030_2000 = $0632; { This is actually implemented as GB_18030_2005}
+	kTextEncodingGB_18030_2005 = $0632;
 	kTextEncodingKSC_5601_87 = $0640; { same as KSC 5601-92 without Johab annex}
 	kTextEncodingKSC_5601_92_Johab = $0641; { KSC 5601-92 Johab annex}
 	kTextEncodingCNS_11643_92_P1 = $0651; { CNS 11643-1992 plane 1}
@@ -892,7 +932,7 @@ const
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function CreateTextEncoding( encodingBase: TextEncodingBase; encodingVariant: TextEncodingVariant; encodingFormat: TextEncodingFormat ): TextEncoding; external name '_CreateTextEncoding';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -904,7 +944,7 @@ function CreateTextEncoding( encodingBase: TextEncodingBase; encodingVariant: Te
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function GetTextEncodingBase( encoding: TextEncoding ): TextEncodingBase; external name '_GetTextEncodingBase';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -916,7 +956,7 @@ function GetTextEncodingBase( encoding: TextEncoding ): TextEncodingBase; extern
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function GetTextEncodingVariant( encoding: TextEncoding ): TextEncodingVariant; external name '_GetTextEncodingVariant';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -928,7 +968,7 @@ function GetTextEncodingVariant( encoding: TextEncoding ): TextEncodingVariant; 
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function GetTextEncodingFormat( encoding: TextEncoding ): TextEncodingFormat; external name '_GetTextEncodingFormat';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -940,7 +980,7 @@ function GetTextEncodingFormat( encoding: TextEncoding ): TextEncodingFormat; ex
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function ResolveDefaultTextEncoding( encoding: TextEncoding ): TextEncoding; external name '_ResolveDefaultTextEncoding';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -952,7 +992,7 @@ function ResolveDefaultTextEncoding( encoding: TextEncoding ): TextEncoding; ext
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function GetTextEncodingName( iEncoding: TextEncoding; iNamePartSelector: TextEncodingNameSelector; iPreferredRegion: RegionCode; iPreferredEncoding: TextEncoding; iOutputBufLen: ByteCount; var oNameLength: ByteCount; oActualRegion: RegionCodePtr { can be NULL }; oActualEncoding: TextEncodingPtr { can be NULL }; oEncodingName: TextPtr ): OSStatus; external name '_GetTextEncodingName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -964,7 +1004,7 @@ function GetTextEncodingName( iEncoding: TextEncoding; iNamePartSelector: TextEn
  *    Non-Carbon CFM:   in TextCommon 1.2.1 and later
  }
 function TECGetInfo( var tecInfo: TECInfoHandle ): OSStatus; external name '_TECGetInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -976,7 +1016,7 @@ function TECGetInfo( var tecInfo: TECInfoHandle ): OSStatus; external name '_TEC
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function UpgradeScriptInfoToTextEncoding( iTextScriptID: ScriptCode; iTextLanguageID: LangCode; iRegionID: RegionCode; iTextFontname: StringPtr; var oEncoding: TextEncoding ): OSStatus; external name '_UpgradeScriptInfoToTextEncoding';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -988,7 +1028,7 @@ function UpgradeScriptInfoToTextEncoding( iTextScriptID: ScriptCode; iTextLangua
  *    Non-Carbon CFM:   in TextCommon 1.1 and later
  }
 function RevertTextEncodingToScriptInfo( iEncoding: TextEncoding; var oTextScriptID: ScriptCode; oTextLanguageID: LangCodePtr { can be NULL }; oTextFontname: StringPtr { can be NULL } ): OSStatus; external name '_RevertTextEncodingToScriptInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1037,7 +1077,7 @@ function RevertTextEncodingToScriptInfo( iEncoding: TextEncoding; var oTextScrip
  *    Non-Carbon CFM:   not available
  }
 function GetTextEncodingFromScriptInfo( iTextScriptID: ScriptCode; iTextLanguageID: LangCode; iTextRegionID: RegionCode; var oEncoding: TextEncoding ): OSStatus; external name '_GetTextEncodingFromScriptInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
 
 {
@@ -1082,7 +1122,7 @@ function GetTextEncodingFromScriptInfo( iTextScriptID: ScriptCode; iTextLanguage
  *    Non-Carbon CFM:   not available
  }
 function GetScriptInfoFromTextEncoding( iEncoding: TextEncoding; var oTextScriptID: ScriptCode; oTextLanguageID: LangCodePtr { can be NULL } ): OSStatus; external name '_GetScriptInfoFromTextEncoding';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_NA) *)
 
 
 {
@@ -1094,7 +1134,7 @@ function GetScriptInfoFromTextEncoding( iEncoding: TextEncoding; var oTextScript
  *    Non-Carbon CFM:   in TextCommon 1.5 and later
  }
 function NearestMacTextEncodings( generalEncoding: TextEncoding; var bestMacEncoding: TextEncoding; var alternateMacEncoding: TextEncoding ): OSStatus; external name '_NearestMacTextEncodings';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {
@@ -1106,7 +1146,7 @@ function NearestMacTextEncodings( generalEncoding: TextEncoding; var bestMacEnco
  *    Non-Carbon CFM:   in TextCommon 1.5 and later
  }
 function UCGetCharProperty( charPtr: ConstUniCharPtr; textLength: UniCharCount; propType: UCCharPropertyType; var propValue: UCCharPropertyValue ): OSStatus; external name '_UCGetCharProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 
 {

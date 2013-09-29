@@ -77,6 +77,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -86,6 +87,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -101,6 +103,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -110,6 +113,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -120,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -181,8 +186,8 @@ interface
 {unit Multiprocessing}
 {$i Multiprocessing.pas}
 (* conflicts with FPC ObjC support
-{unit ObjCRuntime}
-{$i ObjCRuntime.pas}
+{unit ObjC}
+{$i ObjC.pas}
 *)
 {unit PEFBinaryFormat}
 {$i PEFBinaryFormat.pas}
@@ -362,6 +367,8 @@ interface
 {$i DateTimeUtils.pas}
 {unit Debugging}
 {$i Debugging.pas}
+{unit DictionaryServices}
+{$i DictionaryServices.pas}
 {unit DigitalHubRegistry}
 {$i DigitalHubRegistry.pas}
 {unit DriverServices}
@@ -482,6 +489,8 @@ interface
 {$i AXTextAttributedString.pas}
 {unit AXValue}
 {$i AXValue.pas}
+{unit AudioHardwareBase}
+{$i AudioHardwareBase.pas}
 {unit AuthSession}
 {$i AuthSession.pas}
 {unit BackupCore}
@@ -506,6 +515,8 @@ interface
 {$i CFUUID.pas}
 {unit CGAffineTransforms}
 {$i CGAffineTransforms.pas}
+{unit CGImageMetadata}
+{$i CGImageMetadata.pas}
 {unit CGLCurrent}
 {$i CGLCurrent.pas}
 {unit CGLDevice}
@@ -518,16 +529,18 @@ interface
 {$i CGPDFDictionary.pas}
 {unit CGPath}
 {$i CGPath.pas}
+{unit CSIdentityBase}
+{$i CSIdentityBase.pas}
 {unit CTFontDescriptor}
 {$i CTFontDescriptor.pas}
-{unit CTFontManager}
-{$i CTFontManager.pas}
 {unit CTParagraphStyle}
 {$i CTParagraphStyle.pas}
 {unit CTTextTab}
 {$i CTTextTab.pas}
 {unit CVBuffer}
 {$i CVBuffer.pas}
+{unit CaptiveNetwork}
+{$i CaptiveNetwork.pas}
 {unit ColorSyncProfile}
 {$i ColorSyncProfile.pas}
 {unit ColorSyncTransform}
@@ -598,6 +611,8 @@ interface
 {$i ABActions.pas}
 {unit AudioHardware}
 {$i AudioHardware.pas}
+{unit AudioHardwareDeprecated}
+{$i AudioHardwareDeprecated.pas}
 {unit CFMachPort}
 {$i CFMachPort.pas}
 {unit CFMessagePort}
@@ -656,10 +671,8 @@ interface
 {$i CGPDFPage.pas}
 {unit CGPSConverter}
 {$i CGPSConverter.pas}
-{unit CTFont}
-{$i CTFont.pas}
-{unit CTGlyphInfo}
-{$i CTGlyphInfo.pas}
+{unit CTFontManager}
+{$i CTFontManager.pas}
 {unit CarbonEventsCore}
 {$i CarbonEventsCore.pas}
 {unit ColorSyncDeprecated}
@@ -748,6 +761,8 @@ interface
 {$i CVOpenGLTextureCache.pas}
 {unit CVPixelBuffer}
 {$i CVPixelBuffer.pas}
+{unit CVPixelBufferIOSurface}
+{$i CVPixelBufferIOSurface.pas}
 {unit CVPixelBufferPool}
 {$i CVPixelBufferPool.pas}
 {unit CVPixelFormatDescription}
@@ -848,8 +863,12 @@ interface
 {$i CGPDFContext.pas}
 {unit CGPattern}
 {$i CGPattern.pas}
+{unit CTFont}
+{$i CTFont.pas}
 {unit CTFrame}
 {$i CTFrame.pas}
+{unit CTGlyphInfo}
+{$i CTGlyphInfo.pas}
 {unit CTLine}
 {$i CTLine.pas}
 {unit CTRun}
@@ -886,6 +905,8 @@ interface
 {$i QDPictToCGContext.pas}
 {unit QLGenerator}
 {$i QLGenerator.pas}
+{unit QLThumbnail}
+{$i QLThumbnail.pas}
 {unit Quickdraw}
 {$i Quickdraw.pas}
 {unit SCDynamicStore}
@@ -2042,6 +2063,13 @@ function kMDExporterInterfaceID: CFUUIDRef; inline;
 begin
 	kMDExporterInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault,$B4,$1C,$60,$74,$7D,$FB,$40,$57,$96,$9D,$31,$C8,$E8,$61,$A8,$D4)
 end;
+
+function kMDImporterURLInterfaceID: CFUUIDRef; inline;
+begin
+	kMDImporterURLInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault,$13,$F6,$0F,$02,$36,$22,$4F,$35,$98,$91,$EC,$10,$E6,$CD,$08,$F8)
+end;
+
+
 
 {$endc} {TARGET_OS_MAC}
 

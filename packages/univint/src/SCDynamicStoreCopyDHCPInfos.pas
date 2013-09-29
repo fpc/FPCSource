@@ -20,10 +20,11 @@
  * 
  * @APPLE_LICENSE_HEADER_END@
  }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{	  Unit name changed to SCDynamicStoreCopyDHCPInfos to avoid conflict with 
+{  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{  Unit name changed to SCDynamicStoreCopyDHCPInfos to avoid conflict with 
       SCDynamicStoreCopyDHCPInfo function }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -99,6 +100,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -108,6 +110,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +126,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -142,6 +147,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -188,11 +194,10 @@ interface
 uses MacTypes,CFBase,SCDynamicStore,CFDictionary,CFData,CFDate;
 {$endc} {not MACOSALLINCLUDE}
 
+{$ALIGN POWER}
 
 { until __IPHONE_NA is automatically translated }
 {$ifc TARGET_OS_MAC}
-
-{$ALIGN POWER}
 
 {!
 	@header SCDynamicStoreCopyDHCPInfo
@@ -200,6 +205,7 @@ uses MacTypes,CFBase,SCDynamicStore,CFDictionary,CFData,CFDate;
 		provide access to information returned by the DHCP or
 		BOOTP server.
  }
+
 
 
 {!
@@ -252,7 +258,24 @@ function DHCPInfoGetOptionData( info: CFDictionaryRef; code: UInt8 ): CFDataRef;
 function DHCPInfoGetLeaseStartTime( info: CFDictionaryRef ): CFDateRef; external name '_DHCPInfoGetLeaseStartTime';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_1,__IPHONE_NA) *)
 
-{$endc} {TARGET_OS_MAC}
+
+{!
+	@function DHCPInfoGetLeaseExpirationTime
+	@discussion Returns a CFDateRef corresponding to the lease expiration time,
+		if present.
+	@param info The non-NULL DHCP information dictionary returned by
+		calling SCDynamicStoreCopyDHCPInfo.
+	@result Returns a non-NULL CFDateRef if the DHCP lease has an expiration;
+		NULL if the lease is infinite i.e. has no expiration, or the
+		configuration method is not DHCP. An infinite lease can be determined
+		by a non-NULL lease start time (see DHCPInfoGetLeaseStartTime above).
+	 
+		The return value must NOT be released.
+}
+function DHCPInfoGetLeaseExpirationTime( info: CFDictionaryRef ): CFDateRef; external name '_DHCPInfoGetLeaseExpirationTime';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_8,__IPHONE_NA) *)
+
+{$endc} { TARGET_OS_MAC }
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

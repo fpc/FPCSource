@@ -29,7 +29,7 @@ function disable_debugger(state : integer): integer; cdecl; external 'root' name
 
 { OS independant parts}
 
-{$I sysunix.inc}
+{$I system.inc}
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -463,7 +463,7 @@ begin
   SysInitExceptions;
 //  WriteLn('after SysInitException');
 
-  InitUnixStrings;
+  initunicodestringmanager;
 { Setup IO }
   SysInitStdIO;
 { Reset IO Error }

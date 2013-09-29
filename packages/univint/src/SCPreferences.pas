@@ -1,5 +1,5 @@
 {
- * Copyright (c) 2000, 2001, 2004, 2005, 2007-2009 Apple Inc. All rights reserved.
+ * Copyright (c) 2000, 2001, 2004, 2005, 2007-2010 Apple Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  * 
@@ -20,8 +20,9 @@
  * 
  * @APPLE_LICENSE_HEADER_END@
  }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -97,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -106,6 +108,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +124,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -130,6 +134,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -140,6 +145,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -226,7 +232,8 @@ type
 		accessing system configuration preferences.
  }
 type
-	SCPreferencesRef = ^SInt32; { an opaque type }
+	SCPreferencesRef = ^__SCPreferences; { an opaque type }
+	__SCPreferences = record end;
 
 {!
 	@enum SCPreferencesNotification
@@ -238,10 +245,9 @@ type
 		request has been made to apply the currently saved
 		preferences to the active system configuration.
  }
-//AVAILABLE_MAC_OS_X_10_4_OR_LATER
 const
-	kSCPreferencesNotificationCommit = 1 shl 0;
-	kSCPreferencesNotificationApply = 1 shl 1;
+	kSCPreferencesNotificationCommit = 1 shl 0;	// __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA)
+	kSCPreferencesNotificationApply = 1 shl 1;	// __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA)
 
 type
 	SCPreferencesNotification = UInt32;
@@ -539,7 +545,6 @@ function SCPreferencesScheduleWithRunLoop( prefs: SCPreferencesRef; runLoop: CFR
 function SCPreferencesUnscheduleFromRunLoop( prefs: SCPreferencesRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ): Boolean; external name '_SCPreferencesUnscheduleFromRunLoop';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA) *)
 
-{$ifc not TARGET_OS_IPHONE}
 {!
 	@function SCPreferencesSetDispatchQueue
 	@discussion Schedule commit and apply notifications for the specified
@@ -551,7 +556,6 @@ function SCPreferencesUnscheduleFromRunLoop( prefs: SCPreferencesRef; runLoop: C
  }
 function SCPreferencesSetDispatchQueue( prefs: SCPreferencesRef; queue: dispatch_queue_t ): Boolean; external name '_SCPreferencesSetDispatchQueue';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_NA) *)
-{$endc} {not TARGET_OS_IPHONE}
 
 {!
 	@function SCPreferencesSynchronize

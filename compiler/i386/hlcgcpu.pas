@@ -58,7 +58,6 @@ implementation
   procedure thlcgcpu.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
     var
       locsize : tcgsize;
-      locdef : tdef;
       tmploc : tlocation;
       href   : treference;
       stacksize   : longint;

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-extra');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-extra';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');

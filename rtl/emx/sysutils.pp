@@ -26,6 +26,12 @@ uses
  Dos;
 
 {$DEFINE HAS_SLEEP}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -452,7 +458,7 @@ const
                              specification for DosFindFirst call.}
 
 {$ASMMODE INTEL}
-function FileOpen (const FileName: string; Mode: integer): longint; assembler;
+function FileOpen (const FileName: pointer; Mode: integer): longint; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -477,21 +483,28 @@ asm
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
+function FileOpen (const FileName: rawbytestring; Mode: integer): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
+  FileOpen := FileOpen(pointer(SystemFileName),Mode);
+end;
 
-function FileCreate (const FileName: string): longint;
+function FileCreate (const FileName: RawByteString): longint;
 begin
   FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW, 777);
                                                        (* Sharing to DenyAll *)
 end;
 
 
-function FileCreate (const FileName: string; Rights: integer): longint;
+function FileCreate (const FileName: RawByteString; Rights: integer): longint;
 begin
   FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW,
                                               Rights); (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode: integer; Rights: integer): longint; assembler;
+function FileCreate (const FileName: Pointer; ShareMode: integer; Rights: integer): longint; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -515,6 +528,13 @@ asm
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
+function FileCreate (const FileName: RawByteString; ShareMode: integer; Rights: integer): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
+  FileOpen := FileCreate(pointer(SystemFileName),ShareMode,Rights);
+end;
 
 function FileRead (Handle: longint; Out Buffer; Count: longint): longint;
                                                                      assembler;
@@ -623,7 +643,7 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileAge (const FileName: string): longint;
+function FileAge (const FileName: RawByteString): longint;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
@@ -637,10 +657,11 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
+function FileExists (const FileName: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if FileName = '' then
    Result := false
   else
@@ -658,9 +679,10 @@ type
   end;
   PSearchRec = ^SearchRec;
 
-function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
 var
+  SystemEncodedPath: RawByteString;
   SR: PSearchRec;
   FStat: PFileFindBuf3L;
   Count: cardinal;
@@ -669,14 +691,15 @@ var
 begin
   if os_mode = osOS2 then
    begin
+    SystemEncodedPath:=ToSingleByteEncodedFileName(Path);
     New (FStat);
     Rslt.FindHandle := THandle ($FFFFFFFF);
     Count := 1;
     if FSApi64 then
-     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
     else
-     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+     Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
     if (Err = 0) and (Count = 0) then
      Err := 18;
@@ -689,15 +712,16 @@ begin
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
-        Rslt.Name := FStat^.Name;
+        Name := FStat^.Name;
         Rslt.Attr := FStat^.AttrFile;
        end
       else
        begin
         Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Name := PFileFindBuf3 (FStat)^.Name;
         Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
        end;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end
     else
      FindClose (Rslt);
@@ -717,14 +741,15 @@ begin
       Rslt.Size := cardinal (SR^.Size);
       Rslt.Attr := SR^.Attr;
       Rslt.ExcludeAttr := 0;
-      Rslt.Name := SR^.Name;
+      Name := SR^.Name;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end;
     DOS.DosError := Err;
    end;
 end;
 
 
-function FindNext (var Rslt: TSearchRec): longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 var
   SR: PSearchRec;
@@ -749,15 +774,16 @@ begin
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
-        Rslt.Name := FStat^.Name;
+        Name := FStat^.Name;
         Rslt.Attr := FStat^.AttrFile;
        end
       else
        begin
         Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
-        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Name := PFileFindBuf3 (FStat)^.Name;
         Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
        end;
+      SetCodePage(Name, DefaultFileSystemCodePage, false);
      end;
     Dispose (FStat);
    end
@@ -775,29 +801,30 @@ begin
         Rslt.Size := cardinal (SR^.Size);
         Rslt.Attr := SR^.Attr;
         Rslt.ExcludeAttr := 0;
-        Rslt.Name := SR^.Name;
+        Name := SR^.Name;
+        SetCodePage(Name, DefaultFileSystemCodePage, false);
        end;
      end;
    end;
 end;
 
 
-procedure FindClose (var F: TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 
 var SR: PSearchRec;
 
 begin
     if os_mode = osOS2 then
         begin
-            DosFindClose (F.FindHandle);
+            DosFindClose (Handle);
         end
     else
         begin
-            SR := PSearchRec (F.FindHandle);
+            SR := PSearchRec (Handle);
             DOS.FindClose (SR^);
             FreeMem (SR, SizeOf (SearchRec));
         end;
-    F.FindHandle := 0;
+    Handle := 0;
 end;
 
 
@@ -878,59 +905,56 @@ asm
 end {['eax', 'edx']};
 
 
-function FileSetAttr (const Filename: string; Attr: longint): longint; assembler;
-asm
-{$IFDEF REGCALL}
- mov ecx, edx
- mov edx, eax
-{$ELSE REGCALL}
- mov ecx, Attr
- mov edx, FileName
-{$ENDIF REGCALL}
- mov ax, 4301h
- call syscall
- mov eax, 0
- jnc @FSetAttrEnd
- mov eax, -1
-@FSetAttrEnd:
-end {['eax', 'ecx', 'edx']};
+function FileSetAttr (const Filename: RawByteString; Attr: longint): longint;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  asm
+   mov ecx, Attr
+   mov edx, SystemFileName
+   mov ax, 4301h
+   call syscall
+   mov @result, 0
+   jnc @FSetAttrEnd
+   mov @result, -1
+  @FSetAttrEnd:
+  end ['eax', 'ecx', 'edx'];
+end;
 
+function DeleteFile (const FileName: string): boolean;
+var
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
+  asm
+   mov edx, SystemFileName
+   mov ax, 4100h
+   call syscall
+   mov @result, 0
+   jc @FDeleteEnd
+   moc @result, 1
+  @FDeleteEnd:
+  end ['eax', 'edx'];
+end;
 
-function DeleteFile (const FileName: string): boolean; assembler;
-asm
-{$IFDEF REGCALL}
- mov edx, eax
-{$ELSE REGCALL}
- mov edx, FileName
-{$ENDIF REGCALL}
- mov ax, 4100h
- call syscall
- mov eax, 0
- jc @FDeleteEnd
- inc eax
-@FDeleteEnd:
-end {['eax', 'edx']};
-
-
-function RenameFile (const OldName, NewName: string): boolean; assembler;
-asm
- push edi
-{$IFDEF REGCALL}
- mov edx, eax
- mov edi, edx
-{$ELSE REGCALL}
- mov edx, OldName
- mov edi, NewName
-{$ENDIF REGCALL}
- mov ax, 5600h
- call syscall
- mov eax, 0
- jc @FRenameEnd
- inc eax
-@FRenameEnd:
- pop edi
-end {['eax', 'edx', 'edi']};
-
+function RenameFile (const OldName, NewName: string): boolean;
+var
+  OldSystemFileName, NewSystemFileName: RawByteString;
+Begin
+  OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
+  asm
+   mov edx, OldSystemFileName
+   mov edi, NewSystemFileName
+   mov ax, 5600h
+   call syscall
+   mov @result, 0
+   jc @FRenameEnd
+   mov @result, 1
+  @FRenameEnd:
+  end ['eax', 'edx', 'edi'];
+end;
 
 {****************************************************************************
                               Disk Functions
@@ -1022,43 +1046,11 @@ begin
 end;
 
 
-function GetCurrentDir: string;
-begin
- GetDir (0, Result);
-end;
-
-
-function SetCurrentDir (const NewDir: string): boolean;
-begin
-{$I-}
- ChDir (NewDir);
- Result := (IOResult = 0);
-{$I+}
-end;
-
-
-function CreateDir (const NewDir: string): boolean;
-begin
-{$I-}
- MkDir (NewDir);
- Result := (IOResult = 0);
-{$I+}
-end;
-
-
-function RemoveDir (const Dir: string): boolean;
-begin
-{$I-}
- RmDir (Dir);
- Result := (IOResult = 0);
- {$I+}
-end;
-
-
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: RawByteString): boolean;
 var
   L: longint;
 begin
+  { no need to convert to DefaultFileSystemEncoding, FileGetAttr will do that }
   if Directory = '' then
    Result := false
   else
@@ -1213,7 +1205,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-    GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
+    GetEnvironmentVariable := GetEnvPChar (EnvVar);
 end;
 
 
@@ -1225,7 +1217,7 @@ begin
 end;
 
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   Result:=FPCGetEnvStrFromP (EnvP, Index);

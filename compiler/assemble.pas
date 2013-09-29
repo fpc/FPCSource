@@ -42,7 +42,7 @@ interface
        AsmOutSize=32768*4;
 
     type
-      TAssembler=class(TAbstractAssembler)
+      TAssembler=class(TObject)
       public
       {filenames}
         path        : TPathStr;
@@ -66,7 +66,7 @@ interface
       }
       TExternalAssembler=class(TAssembler)
       private
-        procedure CreateSmartLinkPath(const s:string);
+        procedure CreateSmartLinkPath(const s:TPathStr);
       protected
       {outfile}
         AsmSize,
@@ -291,11 +291,11 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+    procedure TExternalAssembler.CreateSmartLinkPath(const s:TPathStr);
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
-          dir : TSearchRec;
+          dir : TRawByteSearchRec;
         begin
           if findfirst(s+source_info.dirsep+'*'+AExt,faAnyFile,dir) = 0 then
             begin
@@ -307,7 +307,7 @@ Implementation
         end;
 
       var
-        hs  : string;
+        hs  : TPathStr;
       begin
         if PathExists(s,false) then
          begin
@@ -579,17 +579,6 @@ Implementation
     function TExternalAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=target_asm.asmcmd;
-{$ifdef m68k}
-        { TODO: use a better approach for this }
-        case current_settings.cputype of
-          cpu_MC68000:
-            result:='-march=68000 '+result;
-          cpu_MC68020:
-            result:='-march=68020 '+result;
-          cpu_Coldfire:
-            result:='-march=cfv4e '+result;
-        end;
-{$endif}
 {$ifdef arm}
         if (target_info.system=system_arm_darwin) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
@@ -690,11 +679,24 @@ Implementation
       end;
 
     procedure TExternalAssembler.WriteSourceLine(hp: tailineinfo);
+      var
+        module : tmodule;
       begin
         { load infile }
-        if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+        if (lastfileinfo.moduleindex<>hp.fileinfo.moduleindex) or
+            (lastfileinfo.fileindex<>hp.fileinfo.fileindex) then
           begin
-            infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+            { in case of a generic the module can be different }
+            if current_module.unit_index=hp.fileinfo.moduleindex then
+              module:=current_module
+            else
+              module:=get_module(hp.fileinfo.moduleindex);
+            { during the compilation of the system unit there are cases when
+              the fileinfo contains just zeros => invalid }
+            if assigned(module) then
+              infile:=module.sourcefiles.get_file(hp.fileinfo.fileindex)
+            else
+              infile:=nil;
             if assigned(infile) then
               begin
                 { open only if needed !! }
@@ -703,6 +705,7 @@ Implementation
               end;
             { avoid unnecessary reopens of the same file !! }
             lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+            lastfileinfo.moduleindex:=hp.fileinfo.moduleindex;
             { be sure to change line !! }
             lastfileinfo.line:=-1;
           end;
@@ -1491,10 +1494,10 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-{$ifdef TEST_WIN64_SEH}
+{$ifndef DISABLE_WIN64_SEH}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
-{$endif TEST_WIN64_SEH}
+{$endif DISABLE_WIN64_SEH}
            end;
            hp:=Tai(hp.next);
          end;

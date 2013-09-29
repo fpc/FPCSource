@@ -1,19 +1,17 @@
 {
-     File:       LaunchServices/LSQuarantine.h
+     File:       LSQuarantine.h
  
      Contains:   File quarantine property keys
  
-     Version:    LaunchServices-360.3~1
- 
-     Copyright:  © 2007-2008 by Apple Inc., all rights reserved.
+     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://www.freepascal.org/bugs.html
- 
 }
 {	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 {
     Modified for use with Free Pascal
@@ -90,6 +88,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +98,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +114,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +124,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +135,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -255,7 +258,7 @@ uses MacTypes,CFBase;
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineAgentNameKey: CFStringRef; external name '_kLSQuarantineAgentNameKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineAgentBundleIdentifierKey
  *  
@@ -265,7 +268,7 @@ var kLSQuarantineAgentNameKey: CFStringRef; external name '_kLSQuarantineAgentNa
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineAgentBundleIdentifierKey: CFStringRef; external name '_kLSQuarantineAgentBundleIdentifierKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTimeStampKey
  *  
@@ -275,7 +278,7 @@ var kLSQuarantineAgentBundleIdentifierKey: CFStringRef; external name '_kLSQuara
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTimeStampKey: CFStringRef; external name '_kLSQuarantineTimeStampKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeKey
  *  
@@ -285,7 +288,7 @@ var kLSQuarantineTimeStampKey: CFStringRef; external name '_kLSQuarantineTimeSta
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeKey: CFStringRef; external name '_kLSQuarantineTypeKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeWebDownload
  *  
@@ -295,7 +298,7 @@ var kLSQuarantineTypeKey: CFStringRef; external name '_kLSQuarantineTypeKey'; (*
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeWebDownload: CFStringRef; external name '_kLSQuarantineTypeWebDownload'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeOtherDownload
  *  
@@ -305,7 +308,7 @@ var kLSQuarantineTypeWebDownload: CFStringRef; external name '_kLSQuarantineType
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeOtherDownload: CFStringRef; external name '_kLSQuarantineTypeOtherDownload'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeEmailAttachment
  *  
@@ -315,7 +318,7 @@ var kLSQuarantineTypeOtherDownload: CFStringRef; external name '_kLSQuarantineTy
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeEmailAttachment: CFStringRef; external name '_kLSQuarantineTypeEmailAttachment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeInstantMessageAttachment
  *  
@@ -325,7 +328,7 @@ var kLSQuarantineTypeEmailAttachment: CFStringRef; external name '_kLSQuarantine
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeInstantMessageAttachment: CFStringRef; external name '_kLSQuarantineTypeInstantMessageAttachment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeCalendarEventAttachment
  *  
@@ -335,7 +338,7 @@ var kLSQuarantineTypeInstantMessageAttachment: CFStringRef; external name '_kLSQ
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeCalendarEventAttachment: CFStringRef; external name '_kLSQuarantineTypeCalendarEventAttachment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeOtherAttachment
  *  
@@ -345,7 +348,7 @@ var kLSQuarantineTypeCalendarEventAttachment: CFStringRef; external name '_kLSQu
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineTypeOtherAttachment: CFStringRef; external name '_kLSQuarantineTypeOtherAttachment'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineOriginURLKey
  *  
@@ -355,7 +358,7 @@ var kLSQuarantineTypeOtherAttachment: CFStringRef; external name '_kLSQuarantine
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineOriginURLKey: CFStringRef; external name '_kLSQuarantineOriginURLKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineDataURLKey
  *  
@@ -365,7 +368,7 @@ var kLSQuarantineOriginURLKey: CFStringRef; external name '_kLSQuarantineOriginU
  *    Non-Carbon CFM:   not available
  }
 var kLSQuarantineDataURLKey: CFStringRef; external name '_kLSQuarantineDataURLKey'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

@@ -28,7 +28,7 @@ unit ncpumat;
 interface
 
 uses
-  node, nmat, ncgmat;
+  node, nmat, ncgmat, cgbase;
 
 type
   tMIPSELmoddivnode = class(tmoddivnode)
@@ -45,6 +45,10 @@ type
     procedure second_boolean; override;
   end;
 
+  TMIPSunaryminusnode = class(tcgunaryminusnode)
+    procedure emit_float_sign_change(r: tregister; _size : tcgsize);override;
+  end;
+
 implementation
 
 uses
@@ -54,7 +58,7 @@ uses
   aasmbase, aasmcpu, aasmtai, aasmdata,
   defutil,
   procinfo,
-  cgbase, cgobj, hlcgobj, pass_2,
+  cgobj, hlcgobj, pass_2,
   ncon,
   cpubase,
   ncgutil, cgcpu, cgutils;
@@ -63,31 +67,23 @@ uses
                              TMipselMODDIVNODE
 *****************************************************************************}
 
+const
+  ops_div: array[boolean] of tasmop = (A_DIVU, A_DIV);
+
 procedure tMIPSELmoddivnode.pass_generate_code;
 var
   power: longint;
-  tmpreg, numerator, divider, resultreg: tregister;
+  tmpreg, numerator, divider: tregister;
+  hl,hl2: tasmlabel;
 begin
   secondpass(left);
   secondpass(right);
-  location_copy(location, left.location);
+  location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+  location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
   { put numerator in register }
   hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-  location_copy(location, left.location);
-  numerator := location.Register;
-
-  if (nodetype = modn) then
-    resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT)
-  else
-  begin
-    if (location.loc = LOC_CREGISTER) then
-    begin
-      location.loc      := LOC_REGISTER;
-      location.Register := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-    end;
-    resultreg := location.Register;
-  end;
+  numerator := left.location.Register;
 
   if (nodetype = divn) and
     (right.nodetype = ordconstn) and
@@ -97,9 +93,9 @@ begin
     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 31, numerator, tmpreg);
     { if signed, tmpreg=right value-1, otherwise 0 }
     cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).Value.svalue - 1, tmpreg);
-    { add to the left value }
-    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, tmpreg, numerator);
-    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), numerator, resultreg);
+    { add left value }
+    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, numerator, tmpreg);
+    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), tmpreg, location.register);
   end
   else
   begin
@@ -108,29 +104,45 @@ begin
       right.resultdef, right.resultdef, True);
     divider := right.location.Register;
 
+    { GAS performs division in delay slot:
 
-    if (nodetype = modn) then
+          bne   denom,$zero,.L1
+          div   $zero,numerator,denom
+          break 7
+     .L1:
+          mflo  result
+
+      We can't yet do the same without prior fixing the spilling code:
+      if registers require spilling, loads can be inserted before 'div',
+      resulting in invalid code.
+    }
+    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops_div[is_signed(resultdef)],NR_R0,numerator,divider));
+    { Check for zero denominator, omit if dividing by constant (constants are checked earlier) }
+    if (right.nodetype<>ordconstn) then
     begin
-      if is_signed(right.resultdef) then
-      begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_REM, resultreg, numerator, divider));
-      end
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_REMU, resultreg, numerator, divider));
-    end
-    else
-    begin
-      if is_signed({left.resultdef}right.resultdef) then
-      begin
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIV, resultreg, numerator, divider));
-      end
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVU, resultreg, numerator, divider));
+      current_asmdata.getjumplabel(hl);
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,divider,NR_R0,hl);
+      current_asmdata.CurrAsmList.Concat(taicpu.op_const(A_BREAK,7));
+      cg.a_label(current_asmdata.CurrAsmList,hl);
     end;
+
+    { Dividing low(longint) by -1 will overflow }
+    if is_signed(right.resultdef) and (cs_check_overflow in current_settings.localswitches) then
+    begin
+      current_asmdata.getjumplabel(hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_R1,NR_R0,-1));
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,divider,NR_R1,hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LUI,NR_R1,$8000));
+      cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,numerator,NR_R1,hl2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(A_BREAK,6));
+      cg.a_label(current_asmdata.CurrAsmList,hl2);
+    end;
+
+   if (nodetype=modn) then
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFHI,location.register))
+   else
+     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MFLO,location.register));
   end;
-  { set result location }
-  location.loc      := LOC_REGISTER;
-  location.Register := resultreg;
 end;
 
 
@@ -154,7 +166,7 @@ end;
 
 procedure tMIPSELshlshrnode.pass_generate_code;
 var
-  hregister, resultreg, hregister1, hreg64hi, hreg64lo: tregister;
+  hregister, hreg64hi, hreg64lo: tregister;
   op: topcg;
   shiftval: aword;
 begin
@@ -223,15 +235,8 @@ begin
   begin
     { load left operators in a register }
     hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-    location_copy(location, left.location);
-    resultreg  := location.Register;
-    hregister1 := location.Register;
-    if (location.loc = LOC_CREGISTER) then
-    begin
-      location.loc := LOC_REGISTER;
-      resultreg    := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-      location.Register := resultreg;
-    end;
+    location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+    location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
     { determine operator }
     if nodetype = shln then
       op := OP_SHL
@@ -241,13 +246,13 @@ begin
     if (right.nodetype = ordconstn) then
     begin
       if tordconstnode(right).Value.svalue and 31 <> 0 then
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, tordconstnode(right).Value.svalue and 31, hregister1, resultreg);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, tordconstnode(right).Value.svalue and 31, left.location.register, location.register);
     end
     else
     begin
       { load shift count in a register if necessary }
       hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location, right.resultdef, right.resultdef, True);
-      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, OS_32, right.location.Register, hregister1, resultreg);
+      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, OS_32, right.location.Register, left.location.register, location.register);
     end;
   end;
 end;
@@ -261,6 +266,7 @@ procedure tMIPSELnotnode.second_boolean;
 var
   hl: tasmlabel;
   tmpreg : TRegister;
+  r64: TRegister64;
 begin
   { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -281,17 +287,22 @@ begin
   begin
     secondpass(left);
     case left.location.loc of
-      LOC_FLAGS:
+      LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE,
+      LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF:
       begin
-        internalerror(2007011501);
-      end;
-      LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
-      begin
-        tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, tmpreg, left.location.Register, NR_R0));
-        location_reset(location, LOC_REGISTER, OS_INT);
-        location.Register := tmpreg;
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags.reg2:=NR_R0;
+        location.resflags.cond:=OC_EQ;
+        if is_64bit(resultdef) then
+          begin
+            tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+            { OR low and high parts together }
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,tmpreg,left.location.register64.reglo,left.location.register64.reghi));
+            location.resflags.reg1:=tmpreg;
+          end
+        else
+          location.resflags.reg1:=left.location.register;
       end;
       else
         internalerror(2003042401);
@@ -300,8 +311,26 @@ begin
 end;
 
 
+{*****************************************************************************
+                               TMIPSunaryminusnode
+*****************************************************************************}
+
+procedure TMIPSunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
+begin
+  case _size of
+    OS_F32:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_s,r,r));
+    OS_F64:
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_d,r,r));
+  else
+    internalerror(2013030501);
+  end;
+end;
+
+
 begin
   cmoddivnode := tMIPSELmoddivnode;
   cshlshrnode := tMIPSELshlshrnode;
   cnotnode    := tMIPSELnotnode;
+  cunaryminusnode := TMIPSunaryminusnode;
 end.

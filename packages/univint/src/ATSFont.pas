@@ -3,29 +3,19 @@
  
      Contains:   Public interface to the font access and data management functions of ATS.
  
-     DRI:        Julio Gonzalez
+     Version:    ATS
  
-     Copyright:  © 2000-2008 by Apple Inc., all rights reserved.
+     Copyright:  © 2000-2012 by Apple Inc., all rights reserved.
  
-     Warning:    *** APPLE INTERNAL USE ONLY ***
-                 This file may contain unreleased API's
+     Bugs?:      For bug reports, consult the following page on
+                 the World Wide Web:
  
-     BuildInfo:  Built by:            root
-                 On:                  Fri Jul 24 22:21:51 2009
-                 With Interfacer:     3.0d46   (Mac OS X for PowerPC)
-                 From:                ATSFont.i
-                     Revision:        
-                     Dated:           
-                     Last change by:  
-                     Last comment:    
- 
-     Bugs:       Report bugs to Radar component "System Interfaces", "Latest"
-                 List the version information (from above) in the Problem Description.
+                     http://www.freepascal.org/bugs.html
  
 }
 
-{ Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-
+{  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -101,6 +91,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -110,6 +101,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -125,6 +117,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +127,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -144,6 +138,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -193,15 +188,15 @@ uses MacTypes,CFBase,CFRunLoop,CFPropertyList,ATSTypes,CFString,CFURL,Files,Text
 
 {$ifc TARGET_OS_MAC}
 
-{$ALIGN POWER}
+{$ALIGN MAC68K}
 
 
 const
-	kATSOptionFlagsDefault		= 0;
-	kATSOptionFlagsComposeFontPostScriptName = $01;				{  ATSFontGetPostScriptName  }
-	kATSOptionFlagsUseDataForkAsResourceFork = $0100;			{  ATSFontActivateFromFileSpecification  }
-	kATSOptionFlagsUseResourceFork = $0200;
-	kATSOptionFlagsUseDataFork	= $0300;
+	kATSOptionFlagsDefault = 0;
+	kATSOptionFlagsComposeFontPostScriptName = 1 shl 0; { ATSFontGetPostScriptName }
+	kATSOptionFlagsUseDataForkAsResourceFork = 1 shl 8; { ATSFontActivateFromFileSpecification }
+	kATSOptionFlagsUseResourceFork = 2 shl 8;
+	kATSOptionFlagsUseDataFork = 3 shl 8;
 
 	kATSIterationCompleted		= -980;
 	kATSInvalidFontFamilyAccess	= -981;
@@ -209,7 +204,7 @@ const
 	kATSIterationScopeModified	= -983;
 	kATSInvalidFontTableAccess	= -984;
 	kATSInvalidFontContainerAccess = -985;
-  kATSInvalidGlyphAccess        = -986;
+    kATSInvalidGlyphAccess        = -986;
 
 
 { Activation Option Flags }
@@ -273,6 +268,9 @@ type
 		3: (
 			fontApplierFunctionFilter: ATSFontApplierFunction;
 			);
+		4: (
+			fontFileRefFilter: {const} FSRefPtr;
+			);
 	end;
 { Notification related }
 
@@ -291,7 +289,7 @@ type
  *    options that follow may be used together in order to alter the
  *    default behavior of ATS notifications.
  }
-
+type
 	ATSFontNotifyOption = SInt32;
 const
 {
@@ -372,8 +370,11 @@ type
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{
+  Register for kCTFontManagerRegisteredFontsChangedNotification notifications
+}
 function ATSGetGeneration: ATSGeneration; external name '_ATSGetGeneration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -425,6 +426,9 @@ function ATSGetGeneration: ATSGeneration; external name '_ATSGetGeneration';
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{
+  Use CTFontManagerRegisterFontsForURL() or CTFontManagerRegisterFontsForURLs()
+}
 function ATSFontActivateFromFileSpecification( const (*var*) iFile: FSSpec; iContext: ATSFontContext; iFormat: ATSFontFormat; iReserved: UnivPtr; iOptions: ATSOptionFlags; var oContainer: ATSFontContainerRef ): OSStatus; external name '_ATSFontActivateFromFileSpecification';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
@@ -476,8 +480,11 @@ function ATSFontActivateFromFileSpecification( const (*var*) iFile: FSSpec; iCon
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{
+   Use CTFontManagerRegisterFontsForURL() or CTFontManagerRegisterFontsForURLs()
+}
 function ATSFontActivateFromFileReference( const (*var*) iFile: FSRef; iContext: ATSFontContext; iFormat: ATSFontFormat; iRefCon: UnivPtr; iOptions: ATSOptionFlags; var oContainer: ATSFontContainerRef ): OSStatus; external name '_ATSFontActivateFromFileReference';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -491,8 +498,11 @@ function ATSFontActivateFromFileReference( const (*var*) iFile: FSRef; iContext:
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{
+  Use CTFontManagerRegisterFontForData() or CGFontCreateWithDataProvider() w/ CTFontManagerRegisterGraphicsFont()
+}
 function ATSFontActivateFromMemory( iData: LogicalAddress; iLength: ByteCount; iContext: ATSFontContext; iFormat: ATSFontFormat; iReserved: UnivPtr; iOptions: ATSOptionFlags; var oContainer: ATSFontContainerRef ): OSStatus; external name '_ATSFontActivateFromMemory';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -506,8 +516,9 @@ function ATSFontActivateFromMemory( iData: LogicalAddress; iLength: ByteCount; i
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerUnregisterFontsForURL() or CTFontManagerUnregisterFontsForURLs()" }
 function ATSFontDeactivate( iContainer: ATSFontContainerRef; iRefCon: UnivPtr; iOptions: ATSOptionFlags ): OSStatus; external name '_ATSFontDeactivate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -554,8 +565,9 @@ function ATSFontDeactivate( iContainer: ATSFontContainerRef; iRefCon: UnivPtr; i
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAttribute() with kCTFontURLAttribute." }
 function ATSFontGetContainerFromFileReference( const (*var*) iFile: FSRef; iContext: ATSFontContext; iOptions: ATSOptionFlags; var oContainer: ATSFontContainerRef ): OSStatus; external name '_ATSFontGetContainerFromFileReference';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -589,8 +601,9 @@ function ATSFontGetContainerFromFileReference( const (*var*) iFile: FSRef; iCont
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAttribute() with kCTFontURLAttribute." }
 function ATSFontGetContainer( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oContainer: ATSFontContainerRef ): OSStatus; external name '_ATSFontGetContainer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -624,8 +637,9 @@ function ATSFontGetContainer( iFont: ATSFontRef; iOptions: ATSOptionFlags; var o
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerEnableFontDescriptors()" }
 function ATSFontSetEnabled( iFont: ATSFontRef; iOptions: ATSOptionFlags; iEnabled: Boolean ): OSStatus; external name '_ATSFontSetEnabled';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -650,9 +664,9 @@ function ATSFontSetEnabled( iFont: ATSFontRef; iOptions: ATSOptionFlags; iEnable
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAttribute() with kCTFontEnabledAttribute" }
 function ATSFontIsEnabled( iFont: ATSFontRef ): Boolean; external name '_ATSFontIsEnabled';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 { ----------------------------------------------------------------------------------------- }
 { Font family                                                                               }
@@ -668,9 +682,9 @@ function ATSFontIsEnabled( iFont: ATSFontRef ): Boolean; external name '_ATSFont
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerCopyAvailableFontFamilyNames()" }
 function ATSFontFamilyApplyFunction( iFunction: ATSFontFamilyApplierFunction; iRefCon: UnivPtr ): OSStatus; external name '_ATSFontFamilyApplyFunction';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyIteratorCreate()
@@ -683,9 +697,9 @@ function ATSFontFamilyApplyFunction( iFunction: ATSFontFamilyApplierFunction; iR
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerCopyAvailableFontFamilyNames()" }
 function ATSFontFamilyIteratorCreate( iContext: ATSFontContext; {const} iFilter: ATSFontFilterPtr { can be NULL }; iRefCon: UnivPtr; iOptions: ATSOptionFlags; var ioIterator: ATSFontFamilyIterator ): OSStatus; external name '_ATSFontFamilyIteratorCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyIteratorRelease()
@@ -699,7 +713,7 @@ function ATSFontFamilyIteratorCreate( iContext: ATSFontContext; {const} iFilter:
  *    Non-Carbon CFM:   not available
  }
 function ATSFontFamilyIteratorRelease( var ioIterator: ATSFontFamilyIterator ): OSStatus; external name '_ATSFontFamilyIteratorRelease';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -714,7 +728,7 @@ function ATSFontFamilyIteratorRelease( var ioIterator: ATSFontFamilyIterator ): 
  *    Non-Carbon CFM:   not available
  }
 function ATSFontFamilyIteratorReset( iContext: ATSFontContext; {const} iFilter: ATSFontFilterPtr { can be NULL }; iRefCon: UnivPtr; iOptions: ATSOptionFlags; var ioIterator: ATSFontFamilyIterator ): OSStatus; external name '_ATSFontFamilyIteratorReset';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -729,7 +743,7 @@ function ATSFontFamilyIteratorReset( iContext: ATSFontContext; {const} iFilter: 
  *    Non-Carbon CFM:   not available
  }
 function ATSFontFamilyIteratorNext( iIterator: ATSFontFamilyIterator; var oFamily: ATSFontFamilyRef ): OSStatus; external name '_ATSFontFamilyIteratorNext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -743,9 +757,9 @@ function ATSFontFamilyIteratorNext( iIterator: ATSFontFamilyIterator; var oFamil
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontDescriptorCreateMatchingFontDescriptors() with kCTFontFamilyNameAttribute" }
 function ATSFontFamilyFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags ): ATSFontFamilyRef; external name '_ATSFontFamilyFindFromName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyGetGeneration()
@@ -758,9 +772,9 @@ function ATSFontFamilyFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Register for kCTFontManagerRegisteredFontsChangedNotification notifications" }
 function ATSFontFamilyGetGeneration( iFamily: ATSFontFamilyRef ): ATSGeneration; external name '_ATSFontFamilyGetGeneration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyGetName()
@@ -773,9 +787,9 @@ function ATSFontFamilyGetGeneration( iFamily: ATSFontFamilyRef ): ATSGeneration;
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyFamilyName()" }
 function ATSFontFamilyGetName( iFamily: ATSFontFamilyRef; iOptions: ATSOptionFlags; var oName: CFStringRef ): OSStatus; external name '_ATSFontFamilyGetName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyGetEncoding()
@@ -788,9 +802,9 @@ function ATSFontFamilyGetName( iFamily: ATSFontFamilyRef; iOptions: ATSOptionFla
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontGetStringEncoding()" }
 function ATSFontFamilyGetEncoding( iFamily: ATSFontFamilyRef ): TextEncoding; external name '_ATSFontFamilyGetEncoding';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 { ----------------------------------------------------------------------------------------- }
 { Font                                                                                      }
@@ -806,9 +820,9 @@ function ATSFontFamilyGetEncoding( iFamily: ATSFontFamilyRef ): TextEncoding; ex
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCollectionCreateFromAvailableFonts()" }
 function ATSFontApplyFunction( iFunction: ATSFontApplierFunction; iRefCon: UnivPtr ): OSStatus; external name '_ATSFontApplyFunction';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontIteratorCreate()
@@ -821,9 +835,9 @@ function ATSFontApplyFunction( iFunction: ATSFontApplierFunction; iRefCon: UnivP
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCollectionCreateFromAvailableFonts()" }
 function ATSFontIteratorCreate( iContext: ATSFontContext; {const} iFilter: ATSFontFilterPtr { can be NULL }; iRefCon: UnivPtr; iOptions: ATSOptionFlags; var ioIterator: ATSFontIterator ): OSStatus; external name '_ATSFontIteratorCreate';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontIteratorRelease()
@@ -837,7 +851,7 @@ function ATSFontIteratorCreate( iContext: ATSFontContext; {const} iFilter: ATSFo
  *    Non-Carbon CFM:   not available
  }
 function ATSFontIteratorRelease( var ioIterator: ATSFontIterator ): OSStatus; external name '_ATSFontIteratorRelease';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -852,7 +866,7 @@ function ATSFontIteratorRelease( var ioIterator: ATSFontIterator ): OSStatus; ex
  *    Non-Carbon CFM:   not available
  }
 function ATSFontIteratorReset( iContext: ATSFontContext; {const} iFilter: ATSFontFilterPtr { can be NULL }; iRefCon: UnivPtr; iOptions: ATSOptionFlags; var ioIterator: ATSFontIterator ): OSStatus; external name '_ATSFontIteratorReset';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -867,7 +881,7 @@ function ATSFontIteratorReset( iContext: ATSFontContext; {const} iFilter: ATSFon
  *    Non-Carbon CFM:   not available
  }
 function ATSFontIteratorNext( iIterator: ATSFontIterator; var oFont: ATSFontRef ): OSStatus; external name '_ATSFontIteratorNext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -881,9 +895,9 @@ function ATSFontIteratorNext( iIterator: ATSFontIterator; var oFont: ATSFontRef 
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCreateWithName()" }
 function ATSFontFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags ): ATSFontRef; external name '_ATSFontFindFromName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFindFromPostScriptName()
@@ -896,9 +910,9 @@ function ATSFontFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags ): AT
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCreateWithName()" }
 function ATSFontFindFromPostScriptName( iName: CFStringRef; iOptions: ATSOptionFlags ): ATSFontRef; external name '_ATSFontFindFromPostScriptName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFindFromContainer()
@@ -911,9 +925,9 @@ function ATSFontFindFromPostScriptName( iName: CFStringRef; iOptions: ATSOptionF
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontDescriptorCreateMatchingFontDescriptors() with kCTFontURLAttribute or use CTFontManagerCreateFontDescriptorsFromURL()" }
 function ATSFontFindFromContainer( iContainer: ATSFontContainerRef; iOptions: ATSOptionFlags; iCount: ItemCount; ioArray: {variable-size-array} ATSFontRefPtr; var oCount: ItemCount ): OSStatus; external name '_ATSFontFindFromContainer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetGeneration()
@@ -926,9 +940,9 @@ function ATSFontFindFromContainer( iContainer: ATSFontContainerRef; iOptions: AT
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Register for kCTFontManagerRegisteredFontsChangedNotification notifications" }
 function ATSFontGetGeneration( iFont: ATSFontRef ): ATSGeneration; external name '_ATSFontGetGeneration';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetName()
@@ -941,9 +955,9 @@ function ATSFontGetGeneration( iFont: ATSFontRef ): ATSGeneration; external name
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyFullName()" }
 function ATSFontGetName( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oName: CFStringRef ): OSStatus; external name '_ATSFontGetName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetPostScriptName()
@@ -956,9 +970,9 @@ function ATSFontGetName( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oName:
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyPostScriptName()" }
 function ATSFontGetPostScriptName( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oName: CFStringRef ): OSStatus; external name '_ATSFontGetPostScriptName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetTableDirectory()
@@ -971,9 +985,9 @@ function ATSFontGetPostScriptName( iFont: ATSFontRef; iOptions: ATSOptionFlags; 
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAvailableTables()" }
 function ATSFontGetTableDirectory( iFont: ATSFontRef; iBufferSize: ByteCount; ioBuffer: UnivPtr; oSize: ByteCountPtr { can be NULL } ): OSStatus; external name '_ATSFontGetTableDirectory';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetTable()
@@ -986,9 +1000,9 @@ function ATSFontGetTableDirectory( iFont: ATSFontRef; iBufferSize: ByteCount; io
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyTable()" }
 function ATSFontGetTable( iFont: ATSFontRef; iTag: FourCharCode; iOffset: ByteOffset; iBufferSize: ByteCount; ioBuffer: UnivPtr; oSize: ByteCountPtr { can be NULL } ): OSStatus; external name '_ATSFontGetTable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetHorizontalMetrics()
@@ -1001,9 +1015,9 @@ function ATSFontGetTable( iFont: ATSFontRef; iTag: FourCharCode; iOffset: ByteOf
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontGetXHeight(), CTFontGetAscent(), and friends to find a specific metric." }
 function ATSFontGetHorizontalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oMetrics: ATSFontMetrics ): OSStatus; external name '_ATSFontGetHorizontalMetrics';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetVerticalMetrics()
@@ -1016,9 +1030,9 @@ function ATSFontGetHorizontalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlag
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontGetXHeight(), CTFontGetAscent(), and friends to find a specific metric." }
 function ATSFontGetVerticalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oMetrics: ATSFontMetrics ): OSStatus; external name '_ATSFontGetVerticalMetrics';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 { ----------------------------------------------------------------------------------------- }
 { Compatibility                                                                             }
@@ -1034,9 +1048,9 @@ function ATSFontGetVerticalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlags;
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCreateWithQuickdrawInstance()" }
 function ATSFontFamilyFindFromQuickDrawName( const (*var*) iName: Str255 ): ATSFontFamilyRef; external name '_ATSFontFamilyFindFromQuickDrawName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontFamilyGetQuickDrawName()
@@ -1049,8 +1063,9 @@ function ATSFontFamilyFindFromQuickDrawName( const (*var*) iName: Str255 ): ATSF
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "QuickDraw is deprecated" }
 function ATSFontFamilyGetQuickDrawName( iFamily: ATSFontFamilyRef; var oName: Str255 ): OSStatus; external name '_ATSFontFamilyGetQuickDrawName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {$ifc TARGET_CPU_64}
@@ -1085,6 +1100,7 @@ function ATSFontFamilyGetQuickDrawName( iFamily: ATSFontFamilyRef; var oName: St
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAttribute() with kCTFontURLAttribute." }
 function ATSFontGetFileSpecification( iFont: ATSFontRef; var oFile: ATSFSSpec ): OSStatus; external name '_ATSFontGetFileSpecification';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
@@ -1119,8 +1135,9 @@ function ATSFontGetFileSpecification( iFont: ATSFontRef; var oFile: ATSFSSpec ):
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontCopyAttribute() with kCTFontURLAttribute." }
 function ATSFontGetFileReference( iFont: ATSFontRef; var oFile: FSRef ): OSStatus; external name '_ATSFontGetFileReference';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 {
@@ -1134,9 +1151,9 @@ function ATSFontGetFileReference( iFont: ATSFontRef; var oFile: FSRef ): OSStatu
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
+{ "QuickDraw is deprecated" }
 function ATSFontGetFontFamilyResource( iFont: ATSFontRef; iBufferSize: ByteCount; ioBuffer: UnivPtr; oSize: ByteCountPtr { can be NULL } ): OSStatus; external name '_ATSFontGetFontFamilyResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 { ----------------------------------------------------------------------------------------- }
 { Notification                                                                              }
@@ -1168,9 +1185,9 @@ function ATSFontGetFontFamilyResource( iFont: ATSFontRef; iBufferSize: ByteCount
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Register for kCTFontManagerRegisteredFontsChangedNotification notifications" }
 function ATSFontNotify( action: ATSFontNotifyAction; info: UnivPtr { can be NULL } ): OSStatus; external name '_ATSFontNotify';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontNotificationSubscribe()
@@ -1210,9 +1227,9 @@ function ATSFontNotify( action: ATSFontNotifyAction; info: UnivPtr { can be NULL
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Register for kCTFontManagerRegisteredFontsChangedNotification notifications" }
 function ATSFontNotificationSubscribe( callback: ATSNotificationCallback; options: ATSFontNotifyOption; iRefcon: UnivPtr { can be NULL }; oNotificationRef: ATSFontNotificationRefPtr { can be NULL } ): OSStatus; external name '_ATSFontNotificationSubscribe';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontNotificationUnsubscribe()
@@ -1241,9 +1258,9 @@ function ATSFontNotificationSubscribe( callback: ATSNotificationCallback; option
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
+{ "Unregister for kCTFontManagerRegisteredFontsChangedNotification notifications" }
 function ATSFontNotificationUnsubscribe( notificationRef: ATSFontNotificationRef ): OSStatus; external name '_ATSFontNotificationUnsubscribe';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 { ----------------------------------------------------------------------------------------- }
 { Font query message hooks                                                                  }
@@ -1364,8 +1381,9 @@ type
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerCreateFontRequestRunLoopSource()" }
 function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIndex; callout: ATSFontQueryCallback; {const} context: ATSFontQuerySourceContextPtr { can be NULL } ): CFRunLoopSourceRef; external name '_ATSCreateFontQueryRunLoopSource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 
 { ----------------------------------------------------------------------------------------- }
@@ -1544,9 +1562,9 @@ type
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerSetAutoActivationSetting() with kCTFontManagerBundleIdentifier" }
 function ATSFontSetGlobalAutoActivationSetting( iSetting: ATSFontAutoActivationSetting ): OSStatus; external name '_ATSFontSetGlobalAutoActivationSetting';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetGlobalAutoActivationSetting()
@@ -1566,9 +1584,9 @@ function ATSFontSetGlobalAutoActivationSetting( iSetting: ATSFontAutoActivationS
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerGetAutoActivationSetting() with kCTFontManagerBundleIdentifier" }
 function ATSFontGetGlobalAutoActivationSetting: ATSFontAutoActivationSetting; external name '_ATSFontGetGlobalAutoActivationSetting';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontSetAutoActivationSettingForApplication()
@@ -1607,9 +1625,9 @@ function ATSFontGetGlobalAutoActivationSetting: ATSFontAutoActivationSetting; ex
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerSetAutoActivationSetting()" }
 function ATSFontSetAutoActivationSettingForApplication( iSetting: ATSFontAutoActivationSetting; iApplicationFileURL: CFURLRef ): OSStatus; external name '_ATSFontSetAutoActivationSettingForApplication';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {
  *  ATSFontGetAutoActivationSettingForApplication()
@@ -1642,8 +1660,9 @@ function ATSFontSetAutoActivationSettingForApplication( iSetting: ATSFontAutoAct
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
+{ "Use CTFontManagerGetAutoActivationSetting()" }
 function ATSFontGetAutoActivationSettingForApplication( iApplicationFileURL: CFURLRef ): ATSFontAutoActivationSetting; external name '_ATSFontGetAutoActivationSettingForApplication';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_8 *)
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

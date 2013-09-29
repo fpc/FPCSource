@@ -15,15 +15,13 @@
 {****************************************************************************}
 
 Procedure BitsError (const Msg : string);
-
 begin
-  Raise EBitsError.Create(Msg) at get_caller_addr(get_frame);
+  Raise EBitsError.Create(Msg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 Procedure BitsErrorFmt (const Msg : string; const Args : array of const);
-
 begin
-  Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame);
+  Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
 {Min function for Longint}

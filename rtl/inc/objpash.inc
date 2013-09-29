@@ -47,18 +47,18 @@
        { methods }
        vmtMethodStart          = vmtParent+sizeof(pointer)*10;
        vmtDestroy              = vmtMethodStart;
-       vmtNewInstance          = vmtMethodStart+sizeof(pointer);
-       vmtFreeInstance         = vmtMethodStart+sizeof(pointer)*2;
-       vmtSafeCallException    = vmtMethodStart+sizeof(pointer)*3;
-       vmtDefaultHandler       = vmtMethodStart+sizeof(pointer)*4;
-       vmtAfterConstruction    = vmtMethodStart+sizeof(pointer)*5;
-       vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
-       vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
-       vmtDispatch             = vmtMethodStart+sizeof(pointer)*8;
-       vmtDispatchStr          = vmtMethodStart+sizeof(pointer)*9;
-       vmtEquals               = vmtMethodStart+sizeof(pointer)*10;
-       vmtGetHashCode          = vmtMethodStart+sizeof(pointer)*11;
-       vmtToString             = vmtMethodStart+sizeof(pointer)*12;
+       vmtNewInstance          = vmtMethodStart+sizeof(codepointer);
+       vmtFreeInstance         = vmtMethodStart+sizeof(codepointer)*2;
+       vmtSafeCallException    = vmtMethodStart+sizeof(codepointer)*3;
+       vmtDefaultHandler       = vmtMethodStart+sizeof(codepointer)*4;
+       vmtAfterConstruction    = vmtMethodStart+sizeof(codepointer)*5;
+       vmtBeforeDestruction    = vmtMethodStart+sizeof(codepointer)*6;
+       vmtDefaultHandlerStr    = vmtMethodStart+sizeof(codepointer)*7;
+       vmtDispatch             = vmtMethodStart+sizeof(codepointer)*8;
+       vmtDispatchStr          = vmtMethodStart+sizeof(codepointer)*9;
+       vmtEquals               = vmtMethodStart+sizeof(codepointer)*10;
+       vmtGetHashCode          = vmtMethodStart+sizeof(codepointer)*11;
+       vmtToString             = vmtMethodStart+sizeof(codepointer)*12;
 
        { IInterface }
        S_OK          = 0;
@@ -83,7 +83,7 @@
        { to access the message table from outside }
        TMsgStrTable = record
           name   : pshortstring;
-          method : pointer;
+          method : codepointer;
        end;
 
        PMsgStrTable = ^TMsgStrTable;
@@ -110,19 +110,19 @@
          vAutoTable: Pointer;
          vIntfTable: PInterfaceTable;
          vMsgStrPtr: pstringmessagetable;
-         vDestroy: Pointer;
-         vNewInstance: Pointer;
-         vFreeInstance: Pointer;
-         vSafeCallException: Pointer;
-         vDefaultHandler: Pointer;
-         vAfterConstruction: Pointer;
-         vBeforeDestruction: Pointer;
-         vDefaultHandlerStr: Pointer;
-         vDispatch: Pointer;
-         vDispatchStr: Pointer;
-         vEquals: Pointer;
-         vGetHashCode: Pointer;
-         vToString: Pointer;
+         vDestroy: CodePointer;
+         vNewInstance: CodePointer;
+         vFreeInstance: CodePointer;
+         vSafeCallException: CodePointer;
+         vDefaultHandler: CodePointer;
+         vAfterConstruction: CodePointer;
+         vBeforeDestruction: CodePointer;
+         vDefaultHandlerStr: CodePointer;
+         vDispatch: CodePointer;
+         vDispatchStr: CodePointer;
+         vEquals: CodePointer;
+         vGetHashCode: CodePointer;
+         vToString: CodePointer;
        end;
 
        PGuid = ^TGuid;
@@ -181,7 +181,8 @@
        end;
 
        TMethod = record
-         Code, Data : Pointer;
+         Code : CodePointer;
+         Data : Pointer;
        end;
 
        TObject = class
@@ -195,7 +196,7 @@
           class function newinstance : tobject;virtual;
           procedure FreeInstance;virtual;
           function SafeCallException(exceptobject : tobject;
-            exceptaddr : pointer) : HResult;virtual;
+            exceptaddr : codepointer) : HResult;virtual;
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
@@ -210,8 +211,8 @@
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
 
-          class function MethodAddress(const name : shortstring) : pointer;
-          class function MethodName(address : pointer) : shortstring;
+          class function MethodAddress(const name : shortstring) : codepointer;
+          class function MethodName(address : codepointer) : shortstring;
           function FieldAddress(const name : shortstring) : pointer;
 
           { new since Delphi 4 }
@@ -321,17 +322,17 @@
        PInterface = PUnknown;
 
 
-       TExceptProc = Procedure (Obj : TObject; Addr : Pointer; FrameCount:Longint; Frame: PPointer);
+       TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
        { Exception object stack }
        PExceptObject = ^TExceptObject;
        TExceptObject = record
          FObject    : TObject;
-         Addr       : pointer;
+         Addr       : codepointer;
          Next       : PExceptObject;
          refcount   : Longint;
          Framecount : Longint;
-         Frames     : PPointer;
+         Frames     : PCodePointer;
        end;
 
     Const
@@ -424,7 +425,7 @@
        end;
 
   var
-    DispCallByIDProc : pointer;
+    DispCallByIDProc : codepointer;
 
   const
     { for safe as operator support }

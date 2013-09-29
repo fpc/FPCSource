@@ -12,6 +12,7 @@ var
   STRING_KEY_VIOLATION: string;
 
   STRING_INVALID_DBF_FILE: string;
+  STRING_INVALID_DBF_FILE_FIELDERROR: string;
   STRING_FIELD_TOO_LONG: string;
   STRING_INVALID_FIELD_COUNT: string;
   STRING_INVALID_FIELD_TYPE: string;
@@ -37,6 +38,7 @@ initialization
                                          'Index: %s'+#13+#10+'Enregistrement=%d Cle=''%s''';
 
   STRING_INVALID_DBF_FILE             := 'Fichier DBF invalide.';
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Fichier DBF invalide. Definition de champ invalide.'; //todo: verify field part
   STRING_FIELD_TOO_LONG               := 'Valeur trop longue: %d caractères (ne peut dépasser %d).';
   STRING_INVALID_FIELD_COUNT          := 'Nombre de champs non valide: %d (doit être entre 1 et 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Type de champ ''%s'' invalide pour le champ %s.';

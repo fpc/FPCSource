@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fpgtk');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fpgtk';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,aix];

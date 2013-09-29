@@ -3,7 +3,7 @@
  
      Contains:   Event Manager Interfaces.
  
-     Version:    HIToolbox-437~1
+     Version:    HIToolbox-624~3
  
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
  
@@ -16,6 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -91,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -100,6 +102,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -115,6 +118,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +128,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -134,6 +139,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -602,14 +608,6 @@ function GetCaretTime: UInt32; external name '_GetCaretTime';
 
 {$endc} {not TARGET_CPU_64}
 
-{$ifc not TARGET_CPU_64 or not defined MACOSALLINCLUDE or not MACOSALLINCLUDE) }
-{ GetKeys is available in 64 bit mode, but because we call it from
-  an implemented routine, this means that 64 bit apps using MacOSAll
-  always have to depend on the Carbon framework unless smart linking
-  is used. This is undesirable (since Carbon is unsupported for 64 bit),
-  so we put it in a separate unit.
-}
-
 { 
     QuickTime 3.0 supports GetKeys() on unix and win32
 }
@@ -634,9 +632,6 @@ procedure __GetKeys( var theKeys: KeyMap ); external name '_GetKeys';
 }
 
 procedure GetKeys( var theKeys: KeyMap );
-
-{$endc} {not TARGET_CPU_64 or not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
-
 
 { Obsolete event types & masks }
 const
@@ -1027,6 +1022,7 @@ implementation
 
 {$ifc TARGET_OS_MAC}
 
+
 {$ifc TARGET_RT_BIG_ENDIAN}
 
 procedure GetKeys( var theKeys: KeyMap );
@@ -1047,6 +1043,7 @@ begin
 end;
 
 {$endc}
+
 
 {$endc} {TARGET_OS_MAC}
 

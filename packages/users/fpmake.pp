@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('users');
 {$ifdef ALLPACKAGES}
-    P.Directory:='users';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Michael van Canneyt, Marco van de Voort';

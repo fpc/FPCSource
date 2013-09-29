@@ -2,18 +2,13 @@
      File:       CarbonCore/Folders.h
  
      Contains:   Folder Manager Interfaces.
+                 The contents of this header file are deprecated.
+                 Use NSFileManager instead.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1995-2008 by Apple Computer, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1995-2011 by Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +84,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +94,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +110,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +120,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +131,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -310,7 +310,7 @@ const
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FindFolder( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: Boolean; var foundVRefNum: FSVolumeRefNum; var foundDirID: SInt32 ): OSErr; external name '_FindFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -347,7 +347,7 @@ function FindFolder( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: 
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function ReleaseFolder( vRefNum: FSVolumeRefNum; folderType: OSType ): OSErr; external name '_ReleaseFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -416,7 +416,7 @@ function ReleaseFolder( vRefNum: FSVolumeRefNum; folderType: OSType ): OSErr; ex
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function FSFindFolder( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: Boolean; var foundRef: FSRef ): OSErr; external name '_FSFindFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {//}
@@ -470,6 +470,10 @@ const
 	kMusicDocumentsFolderType = FourCharCode('µdoc'); { Refers to the "Music" folder in a users home directory}
 	kInternetSitesFolderType = FourCharCode('site'); { Refers to the "Sites" folder in a users home directory}
 	kPublicFolderType = FourCharCode('pubb'); { Refers to the "Public" folder in a users home directory}
+
+{  The following selectors are available on Mac OS X 10.7 and later.}
+const
+	kDropBoxFolderType = FourCharCode('drop'); { Refers to the "Drop Box" folder inside the user's home directory}
 
 const
 	kSharedLibrariesFolderType = FourCharCode('Älib'); { for general shared libs. }
@@ -796,7 +800,7 @@ type
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function AddFolderDescriptor( foldType: FolderType; flags: FolderDescFlags; foldClass: FolderClass; foldLocation: FolderLocation; badgeSignature: OSType; badgeType: OSType; const (*var*) name: StrFileName; replaceFlag: Boolean ): OSErr; external name '_AddFolderDescriptor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -840,7 +844,7 @@ function AddFolderDescriptor( foldType: FolderType; flags: FolderDescFlags; fold
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function GetFolderTypes( requestedTypeCount: UInt32; var totalTypeCount: UInt32; var theTypes: FolderType ): OSErr; external name '_GetFolderTypes';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -865,7 +869,7 @@ function GetFolderTypes( requestedTypeCount: UInt32; var totalTypeCount: UInt32;
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function RemoveFolderDescriptor( foldType: FolderType ): OSErr; external name '_RemoveFolderDescriptor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -910,7 +914,7 @@ function RemoveFolderDescriptor( foldType: FolderType ): OSErr; external name '_
  *    Non-Carbon CFM:   not available
  }
 function GetFolderNameUnicode( vRefNum: FSVolumeRefNum; foldType: OSType; var foundVRefNum: FSVolumeRefNum; var name: HFSUniStr255 ): OSStatus; external name '_GetFolderNameUnicode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -953,7 +957,7 @@ function GetFolderNameUnicode( vRefNum: FSVolumeRefNum; foldType: OSType; var fo
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function InvalidateFolderDescriptorCache( vRefNum: FSVolumeRefNum; dirID: SInt32 ): OSErr; external name '_InvalidateFolderDescriptorCache';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -996,7 +1000,7 @@ function InvalidateFolderDescriptorCache( vRefNum: FSVolumeRefNum; dirID: SInt32
  *    Non-Carbon CFM:   not available
  }
 function IdentifyFolder( vRefNum: FSVolumeRefNum; dirID: SInt32; var foldType: FolderType ): OSErr; external name '_IdentifyFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1048,7 +1052,7 @@ function IdentifyFolder( vRefNum: FSVolumeRefNum; dirID: SInt32; var foldType: F
  *    Non-Carbon CFM:   not available
  }
 function FSDetermineIfRefIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; folderType: OSType; const (*var*) inRef: FSRef; var outResult: Boolean ): OSErr; external name '_FSDetermineIfRefIsEnclosedByFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1106,7 +1110,7 @@ function FSDetermineIfRefIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fo
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function DetermineIfPathIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; folderType: OSType; utf8Path: ConstCStringPtr; pathIsRealPath: Boolean; var outResult: Boolean ): OSErr; external name '_DetermineIfPathIsEnclosedByFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1193,7 +1197,7 @@ function DetermineIfPathIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fol
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
 function FindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: Boolean; flags: UInt32; data: UnivPtr; var foundVRefNum: FSVolumeRefNum; var foundDirID: SInt32 ): OSErr; external name '_FindFolderExtended';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1269,7 +1273,7 @@ function FindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; create
  *    Non-Carbon CFM:   in InterfaceLib 9.1 and later
  }
 function FSFindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: Boolean; flags: UInt32; data: UnivPtr; var foundRef: FSRef ): OSErr; external name '_FSFindFolderExtended';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1309,7 +1313,7 @@ function FSFindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; crea
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function GetFolderDescriptor( foldType: FolderType; descSize: Size; var foldDesc: FolderDesc ): OSErr; external name '_GetFolderDescriptor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1357,7 +1361,7 @@ function GetFolderDescriptor( foldType: FolderType; descSize: Size; var foldDesc
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function GetFolderName( vRefNum: FSVolumeRefNum; foldType: OSType; var foundVRefNum: FSVolumeRefNum; var name: StrFileName ): OSErr; external name '_GetFolderName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1409,7 +1413,7 @@ function GetFolderName( vRefNum: FSVolumeRefNum; foldType: OSType; var foundVRef
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function AddFolderRouting( fileType: OSType; routeFromFolder: FolderType; routeToFolder: FolderType; flags: RoutingFlags; replaceFlag: Boolean ): OSErr; external name '_AddFolderRouting';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1447,7 +1451,7 @@ function AddFolderRouting( fileType: OSType; routeFromFolder: FolderType; routeT
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function RemoveFolderRouting( fileType: OSType; routeFromFolder: FolderType ): OSErr; external name '_RemoveFolderRouting';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1497,7 +1501,7 @@ function RemoveFolderRouting( fileType: OSType; routeFromFolder: FolderType ): O
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function FindFolderRouting( fileType: OSType; routeFromFolder: FolderType; var routeToFolder: FolderType; var flags: RoutingFlags ): OSErr; external name '_FindFolderRouting';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1547,7 +1551,7 @@ function FindFolderRouting( fileType: OSType; routeFromFolder: FolderType; var r
  *    Non-Carbon CFM:   in FoldersLib 1.0 and later
  }
 function GetFolderRoutings( requestedRoutingCount: UInt32; var totalRoutingCount: UInt32; routingSize: Size; var theRoutings: FolderRouting ): OSErr; external name '_GetFolderRoutings';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1602,7 +1606,7 @@ function GetFolderRoutings( requestedRoutingCount: UInt32; var totalRoutingCount
  *    Non-Carbon CFM:   not available
  }
 function FSpDetermineIfSpecIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; folderType: OSType; const (*var*) inSpec: FSSpec; var outResult: Boolean ): OSErr; external name '_FSpDetermineIfSpecIsEnclosedByFolder';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_4, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1619,7 +1623,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewFolderManagerNotificationUPP( userRoutine: FolderManagerNotificationProcPtr ): FolderManagerNotificationUPP; external name '_NewFolderManagerNotificationUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  DisposeFolderManagerNotificationUPP()
@@ -1630,7 +1634,7 @@ function NewFolderManagerNotificationUPP( userRoutine: FolderManagerNotification
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeFolderManagerNotificationUPP( userUPP: FolderManagerNotificationUPP ); external name '_DisposeFolderManagerNotificationUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
  *  InvokeFolderManagerNotificationUPP()
@@ -1641,7 +1645,7 @@ procedure DisposeFolderManagerNotificationUPP( userUPP: FolderManagerNotificatio
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeFolderManagerNotificationUPP( message: OSType; arg: UnivPtr; userRefCon: UnivPtr; userUPP: FolderManagerNotificationUPP ): OSStatus; external name '_InvokeFolderManagerNotificationUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {$ifc not TARGET_CPU_64}
 {
@@ -1670,7 +1674,7 @@ function InvokeFolderManagerNotificationUPP( message: OSType; arg: UnivPtr; user
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
 function FolderManagerRegisterNotificationProc( notificationProc: FolderManagerNotificationUPP; refCon: UnivPtr; options: UInt32 ): OSErr; external name '_FolderManagerRegisterNotificationProc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1697,7 +1701,7 @@ function FolderManagerRegisterNotificationProc( notificationProc: FolderManagerN
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
 function FolderManagerUnregisterNotificationProc( notificationProc: FolderManagerNotificationUPP; refCon: UnivPtr ): OSErr; external name '_FolderManagerUnregisterNotificationProc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1726,7 +1730,7 @@ function FolderManagerUnregisterNotificationProc( notificationProc: FolderManage
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
 function FolderManagerRegisterCallNotificationProcs( message: OSType; arg: UnivPtr; options: UInt32 ): OSStatus; external name '_FolderManagerRegisterCallNotificationProcs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_3, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}

@@ -103,7 +103,7 @@ implementation
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,ncon,
+       fmodule,node,htypechk,ncon,ppu,
        objcutil,
        { parser }
        scanner,
@@ -234,6 +234,7 @@ implementation
         explicit_paraloc,
         need_array,
         is_univ: boolean;
+        stoptions : TSingleTypeOptions;
 
         procedure handle_default_para_value;
           var
@@ -410,7 +411,11 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,[]);
+                   if m_delphi in current_settings.modeswitches then
+                     stoptions:=[stoAllowSpecialization]
+                   else
+                     stoptions:=[];
+                   single_type(arrayelementdef,stoptions);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -656,39 +661,34 @@ implementation
             genname : tidstring;
             s : shortstring;
           begin
-            result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
+            result:=not assigned(astruct)and
+                      (m_delphi in current_settings.modeswitches)and
+                      (token in [_LT,_LSHARPBRACKET]);
             if result then
               begin
+                consume(token);
                 { parse all parameters first so we can check whether we have
                   the correct generic def available }
                 genparalistdecl:=TFPHashList.Create;
-                if try_to_consume(_LT) then
-                  begin
-                    { start with 1, so Find can return Nil (= 0) }
-                    idx:=1;
-                    repeat
-                      if token=_ID then
-                        begin
-                          genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
-                          consume(_ID);
-                          inc(idx);
-                        end
-                      else
-                        begin
-                          message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
-                          if token<>_COMMA then
-                            consume(token);
-                        end;
-                    until not try_to_consume(_COMMA);
-                    if not try_to_consume(_GT) then
-                      consume(_RSHARPBRACKET);
-                  end
-                else
-                  begin
-                    { no generic }
-                    srsym:=nil;
-                    exit;
-                  end;
+
+                { start with 1, so Find can return Nil (= 0) }
+                idx:=1;
+                repeat
+                  if token=_ID then
+                    begin
+                      genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                      consume(_ID);
+                      inc(idx);
+                    end
+                  else
+                    begin
+                      message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                      if token<>_COMMA then
+                        consume(token);
+                    end;
+                until not try_to_consume(_COMMA);
+                if not try_to_consume(_GT) then
+                  consume(_RSHARPBRACKET);
 
                 s:='';
                 str(genparalistdecl.count,s);
@@ -706,7 +706,9 @@ implementation
                     srsym:=nil;
                     exit;
                   end
-              end;
+              end
+            else
+              srsym:=nil;
           end;
 
         procedure consume_generic_interface;
@@ -721,7 +723,7 @@ implementation
             consume(_LSHARPBRACKET);
             genparalist:=tfpobjectlist.create(false);
 
-            if not parse_generic_specialization_types(genparalist,prettyname,specializename,nil) then
+            if not parse_generic_specialization_types(genparalist,nil,prettyname,specializename) then
               srsym:=generrorsym
             else
               begin
@@ -906,6 +908,14 @@ implementation
                         searchagain:=true;
                       end
                      else
+                     if (m_delphi in current_settings.modeswitches) and
+                        (srsym.typ=absolutevarsym) and
+                        ([vo_is_funcret,vo_is_result]*tabstractvarsym(srsym).varoptions=[vo_is_funcret]) then
+                       begin
+                         HideSym(srsym);
+                         searchagain:=true;
+                       end
+                     else
                       begin
                         {  we use a different error message for tp7 so it looks more compatible }
                         if (m_fpc in current_settings.modeswitches) then
@@ -1076,6 +1086,13 @@ implementation
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
 
+// Issue #24863, commented out for now because it breaks building of RTL and needs extensive
+// testing and/or RTL patching.
+{
+            if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
+               not(cs_compilesystem in current_settings.moduleswitches) then
+              current_module.flags:=current_module.flags or uf_uses_variants;
+}
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
 
@@ -1224,8 +1241,10 @@ implementation
               block_type:=old_block_type;
               if assigned(pd) then
                 begin
-                  { operators always need to be searched in all units }
+                  { operators always need to be searched in all units (that
+                    contain operators) }
                   include(pd.procoptions,po_overload);
+                  pd.procsym.owner.includeoption(sto_has_operator);
                   if pd.parast.symtablelevel>normal_function_level then
                     Message(parser_e_no_local_operator);
                   if isclassmethod then
@@ -1267,10 +1286,6 @@ implementation
                            else
                              MessagePos(pd.fileinfo,type_e_type_id_expected);
                        end;
-                     if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
-                        ((pd.returndef.typ<>orddef) or
-                         (torddef(pd.returndef).ordtype<>pasbool8)) then
-                        Message(parser_e_comparative_operator_return_boolean);
                      if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                         equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                         (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
@@ -1484,26 +1499,9 @@ begin
 end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-var v: Tconstexprint;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-
 begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
-
-{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
-  if target_info.system in systems_interrupt_table then
-    begin
-      if token<>_SEMICOLON then
-        begin
-          pd.proccalloption:=pocall_interrupt;
-          v:=get_intconst;
-          Tprocdef(pd).interruptvector:=v.uvalue;
-        end;
-    end;
-{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);
@@ -1629,8 +1627,19 @@ end;
 
 procedure pd_static(pd:tabstractprocdef);
 begin
-  if pd.typ=procdef then
-    include(tprocdef(pd).procsym.symoptions,sp_static);
+  if pd.typ<>procdef then
+    internalerror(2013032001);
+  if not assigned(tprocdef(pd).struct) then
+    internalerror(2013032002);
+  include(tprocdef(pd).procsym.symoptions,sp_static);
+  { "static" is not allowed for operators or normal methods (except in objects) }
+  if (pd.proctypeoption=potype_operator) or
+      (
+        not (po_classmethod in pd.procoptions) and
+        not is_object(tprocdef(pd).struct)
+      )
+      then
+    Message1(parser_e_proc_dir_not_allowed,arraytokeninfo[_STATIC].str);
   include(pd.procoptions,po_staticmethod);
 end;
 
@@ -2930,9 +2939,17 @@ const
            else
             break;
          end;
+         { nostackframe requires assembler, but assembler
+           may be specified in the implementation part only,
+           and in not required if the function is first forward declared
+           if it is a procdef that has forwardef set to true
+           we postpone the possible error message to the real implementation
+           parse_only does not need to be considered as po_nostackframe
+           is an implementation only directive  }
          if (po_nostackframe in pd.procoptions) and
-            not (po_assembler in pd.procoptions) then
-           message(parser_w_nostackframe_without_assembler);
+            not (po_assembler in pd.procoptions) and
+            ((pd.typ<>procdef) or not tprocdef(pd).forwarddef) then
+           message(parser_e_nostackframe_without_assembler);
       end;
 
 

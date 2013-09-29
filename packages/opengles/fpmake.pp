@@ -15,14 +15,15 @@ begin
 
     P:=AddPackage('opengles');
 {$ifdef ALLPACKAGES}
-    P.Directory:='opengles';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Author := 'Free Pascal Development team';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
-    P.OSes := [darwin,iphonesim];
+    P.OSes := [darwin,iphonesim,linux,win32,win64,wince];
 
+    P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gles11.pp',[darwin,iphonesim]);

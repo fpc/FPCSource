@@ -6,13 +6,13 @@ Program trtti1;
 Uses
   Typinfo;
 
-Const TypeNames : Array [TTYpeKind] of string[15] =
+Const TypeNames : Array [TTypeKind] of string[15] =
                     ('Unknown','Integer','Char','Enumeration',
                      'Float','Set','Method','ShortString','LongString',
                      'AnsiString','WideString','Variant','Array','Record',
                      'Interface','Class','Object','WideChar','Bool','Int64','QWord',
                      'DynamicArray','RawInterface','ProcVar','UnicodeString','UnicodeChar',
-					 'Helper');
+                     'Helper','File','ClassRef','Pointer');
 
 Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 

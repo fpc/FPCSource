@@ -55,7 +55,8 @@ interface
      strict protected
       { called from wrap_proc_body to insert the trashing for the wrapped
         routine's local variables and parameters }
-      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode; virtual;
+      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
+      class function  check_insert_trashing(pd: tprocdef): boolean; virtual;
       { callback called for every local variable and parameter by
         maybe_insert_trashing(), calls through to maybe_trash_variable() }
       class procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
@@ -264,7 +265,6 @@ implementation
       stat: tstatementnode;
       block: tnode;
       psym: tsym;
-      tcinitproc: tprocdef;
     begin
       result:=maybe_insert_trashing(pd,n);
       if target_info.system in systems_typed_constants_node_init then
@@ -291,7 +291,6 @@ implementation
                     if (psym.typ<>procsym) or
                        (tprocsym(psym).procdeflist.count<>1) then
                       internalerror(2011040301);
-                    tcinitproc:=tprocdef(tprocsym(psym).procdeflist[0]);
                     addstatement(stat,ccallnode.create(nil,tprocsym(psym),
                       pd.struct.symtable,nil,[]));
                   end;
@@ -332,14 +331,20 @@ implementation
       stat: tstatementnode;
     begin
       result:=n;
-      if (localvartrashing<>-1)  and
-         not(po_assembler in pd.procoptions) then
+      if check_insert_trashing(pd) then
         begin
           result:=internalstatements(stat);
           pd.parast.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           pd.localst.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           addstatement(stat,n);
         end;
+    end;
+
+  class function tnodeutils.check_insert_trashing(pd: tprocdef): boolean;
+    begin
+      result:=
+        (localvartrashing<>-1) and
+        not(po_assembler in pd.procoptions);
     end;
 
 
@@ -547,6 +552,7 @@ implementation
       StructList: TFPList absolute arg;
     begin
       if (tdef(p).typ in [objectdef,recorddef]) and
+         not (df_generic in tdef(p).defoptions) and
          ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
         StructList.Add(p);
     end;
@@ -573,14 +579,14 @@ implementation
           begin
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
             else
-              unitinits.concat(Tai_const.Create_pint(0));
+              unitinits.concat(Tai_const.Create_nil_codeptr);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
             else
-              unitinits.concat(Tai_const.Create_pint(0));
+              unitinits.concat(Tai_const.Create_nil_codeptr);
             inc(count);
           end;
           structlist.free;
@@ -599,13 +605,13 @@ implementation
          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
            begin
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
              else
-               unitinits.concat(Tai_const.Create_sym(nil));
+               unitinits.concat(Tai_const.Create_nil_codeptr);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
              else
-               unitinits.concat(Tai_const.Create_sym(nil));
+               unitinits.concat(Tai_const.Create_nil_codeptr);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
@@ -617,13 +623,13 @@ implementation
       if (current_module.flags and (uf_init or uf_finalize))<>0 then
         begin
           if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
           else
-            unitinits.concat(Tai_const.Create_sym(nil));
+            unitinits.concat(Tai_const.Create_nil_codeptr);
           if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
           else
-            unitinits.concat(Tai_const.Create_sym(nil));
+            unitinits.concat(Tai_const.Create_nil_codeptr);
           inc(count);
         end;
       { Insert TableCount,InitCount at start }
@@ -705,7 +711,7 @@ implementation
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-       if ltvTable.first<>nil then
+       if not ltvTable.Empty then
         begin
           s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
           { end of the list marker }
@@ -825,8 +831,8 @@ implementation
         begin
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),0));
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),0));
+              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),AT_DATA,0));
+              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),AT_DATA,0));
               inc(count);
             end;
           hp:=tmodule(hp.next);
@@ -909,14 +915,21 @@ implementation
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(pint));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
-      { Initial heapsize }
+
+      { allocate an initial heap on embedded systems }
+      if target_info.system in systems_embedded then
+        begin
+          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+          new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_initialheap',current_settings.alignment.varalignmax);
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize));
+        end;
+
+      { Valgrind usage }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
     end;
-
-
 
 
    class procedure tnodeutils.add_main_procdef_paras(pd: tdef);

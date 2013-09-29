@@ -1,11 +1,9 @@
 {
-     File:       OT/OpenTransportProtocol.h
+     File:       OSServices/OpenTransportProtocol.h
  
-     Contains:   Definitions likely to be used by low-level protocol stack implementation.
+     Contains:   *** DEPRECATED *** Definitions likely to be used by low-level protocol stack implementation.
  
-     Version:    OpenTransport-110~114
- 
-     Copyright:  © 1993-2008 by Apple Computer, Inc. and Mentat Inc., all rights reserved.
+     Copyright:  (c) 1993-2011 Apple Inc. and Mentat Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -15,6 +13,7 @@
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -90,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -99,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -123,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -133,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -3636,7 +3640,7 @@ type
  *    Non-Carbon CFM:   not available
  }
 function OTCreateTimerTaskInContext( upp: OTProcessUPP; arg: UnivPtr; clientContext: OTClientContextPtr ): SIGNEDLONG; external name '_OTCreateTimerTaskInContext';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3661,7 +3665,7 @@ function OTCreateTimerTaskInContext( upp: OTProcessUPP; arg: UnivPtr; clientCont
  *    Non-Carbon CFM:   not available
  }
 function OTCancelTimerTask( timerTask: OTTimerTask ): Boolean; external name '_OTCancelTimerTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3673,7 +3677,7 @@ function OTCancelTimerTask( timerTask: OTTimerTask ): Boolean; external name '_O
  *    Non-Carbon CFM:   not available
  }
 procedure OTDestroyTimerTask( timerTask: OTTimerTask ); external name '_OTDestroyTimerTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3685,7 +3689,7 @@ procedure OTDestroyTimerTask( timerTask: OTTimerTask ); external name '_OTDestro
  *    Non-Carbon CFM:   not available
  }
 function OTScheduleTimerTask( timerTask: OTTimerTask; milliSeconds: OTTimeout ): Boolean; external name '_OTScheduleTimerTask';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -3714,7 +3718,7 @@ function OTScheduleTimerTask( timerTask: OTTimerTask; milliSeconds: OTTimeout ):
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTBufferDataSize( var buffer: OTBuffer ): OTByteCount; external name '_OTBufferDataSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3726,7 +3730,7 @@ function OTBufferDataSize( var buffer: OTBuffer ): OTByteCount; external name '_
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTReadBuffer( var buffer: OTBufferInfo; dest: UnivPtr; var len: OTByteCount ): Boolean; external name '_OTReadBuffer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -3738,7 +3742,7 @@ function OTReadBuffer( var buffer: OTBufferInfo; dest: UnivPtr; var len: OTByteC
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuffer';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4657,7 +4661,7 @@ type
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTSetFirstClearBit( bitMap: UInt8Ptr; startBit: OTByteCount; numBits: OTByteCount ): OTResult; external name '_OTSetFirstClearBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { Standard clear, set and test bit functions}
@@ -4670,7 +4674,7 @@ function OTSetFirstClearBit( bitMap: UInt8Ptr; startBit: OTByteCount; numBits: O
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTClearBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external name '_OTClearBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4682,7 +4686,7 @@ function OTClearBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external n
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTSetBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external name '_OTSetBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 {
@@ -4694,7 +4698,7 @@ function OTSetBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external nam
  *    Non-Carbon CFM:   in OTUtilityLib 1.0 and later
  }
 function OTTestBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external name '_OTTestBit';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_4,__IPHONE_NA,__IPHONE_NA) *)
 
 
 { OTHashList}

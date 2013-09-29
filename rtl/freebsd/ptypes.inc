@@ -22,6 +22,8 @@
 {$I ctypes.inc}
 {$packrecords c}
 
+const 
+    SEM_SAFE=255;
 type
 
     dev_t    = cuint32;         { used for device numbers      }
@@ -135,9 +137,24 @@ type
    pthread_key_t        = cint;
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
    pthread_rwlockattr_t = ^pthread_rwlockattr_t_rec;
+  
+   psem_t = ^sem_t;
+   ppsem_t= ^psem_t;
+   semid_t= pointer;
+   sem_t = record
+       magic   : cuint32;
+       lock    : pthread_mutex_t;
+       gtzero  : pthread_cond_t;
+       count   : cuint32;
+       nwaiters: cuint32;
+       semid   : semid_t;
+       sysse   : cint;
+       entry   : psem_t;
+       backpointer : ppsem_t;
+       spare   : array[0..SEM_SAFE] of char;
 
-   sem_t_rec		= record end;
-   sem_t                = ^sem_t_rec;
+    end;
+
    rlim_t		= int64;
    TRlim		= rlim_t;
   {

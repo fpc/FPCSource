@@ -15,7 +15,8 @@ unit Cairo;
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -56,7 +57,7 @@ Uses
   CTypes;
 
 const
-{$ifdef win32}
+{$ifdef MSWINDOWS}
   LIB_CAIRO = 'libcairo-2.dll';
   {$IFDEF FPC}
     {$ifndef NO_SMART_LINK}

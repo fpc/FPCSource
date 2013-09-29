@@ -319,7 +319,7 @@ end;
 procedure SetKbdCtrlBreakHandler;
 begin
   PrevCtrlBreakHandler := SysSetCtrlBreakHandler (@KbdCtrlBreakHandler);
-  if PrevCtrlBreakHandler = TCtrlBreakHandler (pointer (-1)) then
+  if PrevCtrlBreakHandler = TCtrlBreakHandler (codepointer (-1)) then
     PrevCtrlBreakHandler := nil;
 end;
 

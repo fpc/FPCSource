@@ -57,7 +57,7 @@ implementation
 
     procedure ti386callnode.extra_interrupt_code;
       begin
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim,system_i386_android]) then
           begin
             emit_none(A_PUSHF,S_L);
             emit_reg(A_PUSH,S_L,NR_CS);
@@ -94,7 +94,7 @@ implementation
           but this one is never put into a register (vs_nonregable set)
           so funcret is always in EAX for register calling }
         if (target_info.system = system_i386_win32) and
-            paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) and
+            paramanager.ret_in_param(procdefinition.returndef,procdefinition) and
             not ((procdefinition.proccalloption=pocall_register) or
                  ((procdefinition.proccalloption=pocall_internproc) and
                   (pocall_default=pocall_register))) then

@@ -508,7 +508,7 @@ package=units-graph.source.zip[ugrphsrc.zip],Unit Graph sources
 # Source 17
 package=units-hermes.source.zip[uhermsrc.zip],Port of Hermes graphics library
 # Source 18
-package=units-fppkg.source.zip[ufppkdos.zip],Units for FPPkg packaging support
+package=units-fppkg.source.zip[ufppksrc.zip],Units for FPPkg packaging support
 
 #
 # Source packages 2nd part

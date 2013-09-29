@@ -91,6 +91,8 @@ const
 
   function PQprotocolVersion(conn:PPGconn):longint;cdecl;external External_library name 'PQprotocolVersion';
 
+  function PQserverVersion(conn:PPGconn):longint;cdecl;external External_library name 'PQserverVersion';
+
   function PQerrorMessage(conn:PPGconn):Pchar;cdecl;external External_library name 'PQerrorMessage';
 
   function PQsocket(conn:PPGconn):longint;cdecl;external External_library name 'PQsocket';

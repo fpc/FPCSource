@@ -15,7 +15,8 @@
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301, USA.
 
  ****************************************************************************
 
@@ -30,6 +31,11 @@ These functions are the same over all three BSDs, except that some have a
 {$ifdef FreeBSD}
  {$DEFINE ErrnoWord}
 {$endif}
+
+{ This variable is needed in syscall.inc assembler code }
+var
+  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
+{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
 
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 

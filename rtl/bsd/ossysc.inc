@@ -223,7 +223,12 @@ with blockmode have this higher?}
 function readbuffer:longint;
 
 var retval :longint;
+{$ifdef USE_GETDIRENTRIES_I49_SYSCALL}
+  { OpenBSD i49 getDirEntries system call uses off_t type for last parameter }
+    basep : off_t;
+{$else not USE_GETDIRENTRIES_I49_SYSCALL}
     basep : clong;
+{$endif not USE_GETDIRENTRIES_I49_SYSCALL}
 begin
 {$ifdef USE_GETDIRENTRIES_SYSCALL}
  Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(@basep));

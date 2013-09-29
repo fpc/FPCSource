@@ -195,13 +195,15 @@ interface
 
     function ReplaceForbiddenAsmSymbolChars(const s: string): string;
 
-	{ dummy default noop callback }
-	procedure default_global_used; 
-  type
-	TGlobalUsedProcedure = procedure;
-	{ Procedure variable to allow for special handling of 
-	  the occurence of use of a global variable,
-	  used by PIC code generation to request GOT loading }
+    { dummy default noop callback }
+    procedure default_global_used;
+
+    type
+      { Procedure variable to allow for special handling of
+        the occurence of use of a global variable,
+        used by PIC code generation to request GOT loading }
+      TGlobalUsedProcedure = procedure;
+
   const
     global_used : TGlobalUsedProcedure = @default_global_used;
 
@@ -432,7 +434,7 @@ implementation
         is_set:=false;
         { write it always }
         increfs;
-		global_used;
+        global_used;
       end;
 
 

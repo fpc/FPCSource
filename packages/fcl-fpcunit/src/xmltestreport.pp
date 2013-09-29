@@ -129,7 +129,8 @@ end;
 procedure TXMLResultsWriter.WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime);
 begin
   inherited;
-  FCurrentTest['ElapsedTime'] := FormatDateTime('hh:nn:ss.zzz', ATiming);
+  if not SkipTiming then
+    FCurrentTest['ElapsedTime'] := FormatDateTime('hh:nn:ss.zzz', ATiming);
 end;
 
 
@@ -156,7 +157,8 @@ var
 begin
   inherited;
   n := TDomElement(FSuitePath[FSuitePath.Count -1]);
-  n['ElapsedTime'] := FormatDateTime('hh:nn:ss.zzz', ATiming);
+  if not SkipTiming then
+    n['ElapsedTime'] := FormatDateTime('hh:nn:ss.zzz', ATiming);
   n['NumberOfRunTests'] := IntToStr(ANumRuns);
   n['NumberOfErrors'] := IntToStr(ANumErrors);
   n['NumberOfFailures'] := IntToStr(ANumFailures);
@@ -267,10 +269,13 @@ begin
   n.AppendChild(FDoc.CreateTextNode(IntToStr(aResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);
 
-  n := FDoc.CreateElement('TotalElapsedTime');
-  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', 
-    Now - aResult.StartingTime)));
-  lResults.AppendChild(n);     
+  if not SkipTiming then
+  begin
+    n := FDoc.CreateElement('TotalElapsedTime');
+    n.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz',
+      Now - aResult.StartingTime)));
+    lResults.AppendChild(n);
+  end;
 
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
   n := FDoc.CreateElement('DateTimeRan');

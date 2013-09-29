@@ -32,9 +32,8 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_mips_default,
        cpu_mips1,
-       cpu_mis2,
+       cpu_mips2,
        cpu_mips3,
        cpu_mips4,
        cpu_mips5,
@@ -77,19 +76,17 @@ Const
    ];
 
    { cpu strings as accepted by 
-     GNU assembler in -arch=XXX option }
+     GNU assembler in -arch=XXX option 
+     this ilist needs to be uppercased }
    cputypestr : array[tcputype] of string[8] = ('',
-     { cpu_mips_default } 'mips2',
-     { cpu_mips1        } 'mips1',
-     { cpu_mips2        } 'mips2',
-     { cpu_mips3        } 'mips3',
-     { cpu_mips4        } 'mips4',
-     { cpu_mips5        } 'mips5',
-     { cpu_mips32       } 'mips32',
-     { cpu_mips32r2     } 'mips32r2'
+     { cpu_mips1        } 'MIPS1',
+     { cpu_mips2        } 'MIPS2',
+     { cpu_mips3        } 'MIPS3',
+     { cpu_mips4        } 'MIPS4',
+     { cpu_mips5        } 'MIPS5',
+     { cpu_mips32       } 'MIPS32',
+     { cpu_mips32r2     } 'MIPS32R2'
    );
-
-   mips_cpu : tcputype = cpu_mips_default;
 
    fputypestr : array[tfputype] of string[9] = ('',
      'SOFT',
@@ -114,7 +111,7 @@ Const
    supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse,
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
-   level1optimizerswitches = [];
+   level1optimizerswitches = [cs_opt_level1];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];

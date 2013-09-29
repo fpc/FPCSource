@@ -35,7 +35,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -57,7 +57,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -82,7 +82,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -110,7 +110,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -141,7 +141,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -175,7 +175,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -213,7 +213,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdi
-  call  seterrno
+  call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
 end;

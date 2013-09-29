@@ -491,8 +491,8 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_beos,TLinkerbeos);
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_beos_info,TLinkerbeos);
   RegisterImport(system_i386_beos,timportlibbeos);
   RegisterExport(system_i386_beos,texportlibbeos);
   RegisterTarget(system_i386_beos_info);

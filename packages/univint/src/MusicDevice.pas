@@ -3,7 +3,7 @@
  
      Contains:   MusicDevice Interfaces
   
-     Copyright:  © 2000-2008 by Apple Inc., all rights reserved.
+     Copyright:  © 2000-2011 by Apple, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,7 +11,8 @@
                      http://www.freepascal.org/bugs.html
  
 }
-{	  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 
 {
     Modified for use with Free Pascal
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -97,6 +99,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -112,6 +115,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -121,6 +125,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -131,6 +136,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -192,15 +198,28 @@ uses MacTypes,AUComponent,AudioComponents,CoreAudioTypes;
     @header MusicDevice
 	
 	@discussion
-	A music device audio unit - what is commonly referred to as a music instrument - is used to render notes. A note is a sound, usually pitched, that is started and stopped with a note number or pitch specifier.	A note is played on a group (in MIDI this is called a MIDI Channel) and the various state values of a group (such as pitch bend, after-touch, etc) is inherited and controlled by every playing note on a given group. A note can be individually stopped (which is the common case), or stopped with the "All Notes Off" message that is sent to a specific group.
+	A music device audio unit - what is commonly referred to as a music instrument - is used to render notes. 
+	A note is a sound, usually pitched, that is started and stopped with a note number or pitch specifier.	
+	A note is played on a group (in MIDI this is called a MIDI Channel) and the various state values of a 
+	group (such as pitch bend, after-touch, etc) is inherited and controlled by every playing note on a given group. 
+	A note can be individually stopped (which is the common case), or stopped with the "All Notes Off" message that 
+	is sent to a specific group.
 
-	A music instrument can be multi-timbral - that is, each group can have a particular patch (or sound) associated with it, and different groups can have different patches. This is a common case for music instruments that implement the General MIDI specification. In this case, the music instrument should return the number of available patches at a given time as the value for the _InstrumentCount property.
+	A music instrument can be multi-timbral - that is, each group can have a particular patch (or sound) associated with 
+	it, and different groups can have different patches. This is a common case for music instruments that implement 
+	the General MIDI specification. In this case, the music instrument should return the number of available 
+	patches at a given time as the value for the _InstrumentCount property.
 	
-	It is also common for instruments to be mono-timbral - that is, they are only capable of producing notes using a single patch/sound and typically only respond to commands on one group. In this case, the music instrument should return 0 as the value for the _InstrumentCount property.
+	It is also common for instruments to be mono-timbral - that is, they are only capable of producing notes using a 
+	single patch/sound and typically only respond to commands on one group. In this case, the music instrument 
+	should return 0 as the value for the _InstrumentCount property.
 	
-	Parameters can be defined in Group Scope, and these parameter IDs within the range of 0 < 1024, are equivalent to the standard definitions of control in the MIDI specification (up to the ID of). Parameters in group scope above 1024 are audio unit defined.
+	Parameters can be defined in Group Scope, and these parameter IDs within the range of 0 < 1024, are equivalent 
+	to the standard definitions of control in the MIDI specification (up to the ID of). Parameters in group scope 
+	above 1024 are audio unit defined.
 
-	Notes can be created/started with one of two methods. To stop a note it must be stopped with the same API group as was used to start it (MIDI or the extended Start/Stop note API.
+	Notes can be created/started with one of two methods. To stop a note it must be stopped with the same API group 
+	as was used to start it (MIDI or the extended Start/Stop note API.
 	
 	(1) the MIDI Note on event (MusicDeviceMIDIEvent)
 		- notes must be stopped with the MIDI note off event (MusicDeviceMIDIEvent)
@@ -226,12 +245,14 @@ type
 	@typedef MusicDeviceStdNoteParams
 	@abstract convenience struct for specifying a note and velocity
 	
-	@discussion This struct is the common usage for MusicDeviceStartNote, as most synths that implement this functionality will only allow for the specification of a note number and velocity when starting a new note.
+	@discussion This struct is the common usage for MusicDeviceStartNote, as most synths that implement this functionality 
+				will only allow for the specification of a note number and velocity when starting a new note.
 	
 	@param			argCount
 			Should be set to 2
 	@param			mPitch
-			The pitch of the new note, typically specified using a MIDI note number (and a fractional pitch) within the range of 0 < 128. So 60 is middle C, 60.5 is middle C + 50 cents.
+			The pitch of the new note, typically specified using a MIDI note number (and a fractional pitch) within the 
+					range of 0 < 128. So 60 is middle C, 60.5 is middle C + 50 cents.
 	@param			mVelocity
 			The velocity of the new note - this can be a fractional value - specified as MIDI (within the range of 0 < 128)
 }
@@ -247,7 +268,8 @@ type
 	@typedef NoteParamsControlValue
 	@abstract used to describe a control and value
 	
-	@discussion This struct is used to describe a parameterID (a control in MIDI terminology, though it is not limited to MIDI CC specifications) and the value of this parameter.
+	@discussion This struct is used to describe a parameterID (a control in MIDI terminology, though it is not limited to 
+					MIDI CC specifications) and the value of this parameter.
 	
 	@param			mID
 			The parameter ID
@@ -265,12 +287,16 @@ type
 	@typedef MusicDeviceNoteParams
 	@abstract Used to hold the value of the inParams parameter for the MusicDeviceStartNote function.
 	
-	@discussion The generic version of this structure describes an arg count (which is the number of mControls values + 1 for mPitch and 1 for mVelocity). So, argCount should at least be two. See MusicDeviceStdNoteParams for the common use case, as many audio unit instruments will not respond to control values provided in the start note function
+	@discussion The generic version of this structure describes an arg count (which is the number of mControls values 
+				+ 1 for mPitch and 1 for mVelocity). So, argCount should at least be two. See MusicDeviceStdNoteParams 
+				for the common use case, as many audio unit instruments will not respond to control values provided 
+				in the start note function
 	
 	@param			argCount
 			The number of controls + 2 (for mPitch and mVelocity)
 	@param			mPitch
-			The pitch of the new note, typically specified using a MIDI note number (and a fractional pitch) within the range of 0 < 128. So 60 is middle C, 60.5 is middle C + 50 cents.
+			The pitch of the new note, typically specified using a MIDI note number (and a fractional pitch) within the 
+				range of 0 < 128. So 60 is middle C, 60.5 is middle C + 50 cents.
 	@param			mVelocity
 			The velocity of the new note - this can be a fractional value - specified as MIDI (within the range of 0 < 128)
 	@param			mControls
@@ -287,7 +313,9 @@ type
 	
 {!
 	@enum	MusicNoteEvent
-	@discussion This is used to signify that the patch used to start a note (its sound) is defined by the current selection for the group ID; this is the normal usage in MIDI as any notes started on a given channel (group ID) use the sound (patch) defined for that channel. See MusicDeviceStartNote
+	@discussion This is used to signify that the patch used to start a note (its sound) is defined by the current 
+					selection for the group ID; this is the normal usage in MIDI as any notes started on a given channel 
+					(group ID) use the sound (patch) defined for that channel. See MusicDeviceStartNote
 	
 	@constant	kMusicNoteEvent_UseGroupInstrument
 			Use the patch (instrument number) assigned to the new notes group ID
@@ -301,14 +329,18 @@ const
 
 {!
 	@typedef		MusicDeviceGroupID
-	@discussion The type used to specify which group (channel number in MIDI) is used with a given command (new note, control or parameter value change)
+	@discussion The type used to specify which group (channel number in MIDI) is used with a given command (new note, 
+				control or parameter value change)
 }
 type
 	MusicDeviceGroupID = UInt32;
 
 {!
 	@typedef		NoteInstanceID
-	@discussion The type used to hold an unique identifier returned by MusicDeviceStartNote that is used to then address that note (typically to turn the note off). An ID must be used for notes, because notes can be specified by fractional pitches, and so using the MIDI note number is not sufficient to identify the note to turn it off (or to apply polyphonic after touch). 
+	@discussion The type used to hold an unique identifier returned by MusicDeviceStartNote that is used to then address 
+				that note (typically to turn the note off). An ID must be used for notes, because notes can be specified 
+				by fractional pitches, and so using the MIDI note number is not sufficient to identify the note to turn 
+				it off (or to apply polyphonic after touch). 
 }
 type
 	NoteInstanceID = UInt32;
@@ -328,7 +360,9 @@ type
 	@function	MusicDeviceMIDIEvent
 	@abstract	Used to sent MIDI channel messages to an audio unit
 	
-	@discussion	This is the API used to send MIDI channel messages to an audio unit. The status and data parameters are used exactly as described by the MIDI specification, including the combination of channel and command in the status byte.
+	@discussion	This is the API used to send MIDI channel messages to an audio unit. The status and data parameters 
+				are used exactly as described by the MIDI specification, including the combination of channel and 
+				command in the status byte.
 	
 	@param			inUnit
 				The audio unit
@@ -337,9 +371,15 @@ type
 	@param			inData1
 				The first MIDI data byte (value is in the range 0 < 128)
 	@param			inData2
-				The second MIDI data byte (value is in the range 0 < 128). If the MIDI status byte only has one data byte, this should be set to zero.
+				The second MIDI data byte (value is in the range 0 < 128). If the MIDI status byte only has one 
+					
+					data byte, this should be set to zero.
 	@param			inOffsetSampleFrame
-				If you are scheduling the MIDI Event from the audio unit's render thread, then you can supply a sample offset that the audio unit may apply when applying that event in its next audio unit render. This allows you to schedule to the sample, the time when a MIDI command is applied and is particularly important when starting new notes. If you are not scheduling in the audio unit's render thread, then you should set this value to 0
+				If you are scheduling the MIDI Event from the audio unit's render thread, then you can supply a 
+					sample offset that the audio unit may apply when applying that event in its next audio unit render. 
+					This allows you to schedule to the sample, the time when a MIDI command is applied and is particularly 
+					important when starting new notes. If you are not scheduling in the audio unit's render thread, 
+					then you should set this value to 0
 
 	@result			noErr, or an audio unit error code
 }
@@ -350,7 +390,8 @@ function MusicDeviceMIDIEvent( inUnit: MusicDeviceComponent; inStatus: UInt32; i
 	@function	MusicDeviceSysEx
 	@abstract	used to send any non-channel MIDI event to an audio unit
 	
-	@discussion	This is used to send any non-channel MIDI event to an audio unit. In practise this is a System Exclusive (SysEx) MIDI message
+	@discussion	This is used to send any non-channel MIDI event to an audio unit. In practise this is a System Exclusive 
+					(SysEx) MIDI message
 	
 	@param			inUnit
 				The audio unit
@@ -369,22 +410,36 @@ function MusicDeviceSysEx( inUnit: MusicDeviceComponent; const inData: UnivPtr; 
 	@function	MusicDeviceStartNote
 	@abstract	used to start a note
 	
-	@discussion	This function is used to start a note.  The caller must provide a NoteInstanceID to receive a token that is then used to stop the note. The MusicDeviceStopNote call should be used to stop notes started with this API. The token can also be used to address individual notes on the kAudioUnitScope_Note if the audio unit supports it. The instrumentID is no longer used and the kMusicNoteEvent_Unused constant should be specified (this takes the current patch for the specifed group as the sound to use for the note).
+	@discussion	This function is used to start a note.  The caller must provide a NoteInstanceID to receive a 
+					token that is then used to stop the note. The MusicDeviceStopNote call should be used to stop 
+					notes started with this API. The token can also be used to address individual notes on the 
+					kAudioUnitScope_Note if the audio unit supports it. The instrumentID is no longer used and the 
+					kMusicNoteEvent_Unused constant should be specified (this takes the current patch for the 
+					specifed group as the sound to use for the note).
 	
-			The Audio unit must provide an unique ID for the note instance ID. This ID must be non-zero and not 0xFFFFFFFF (any other UInt32 value is valid).
+			The Audio unit must provide an unique ID for the note instance ID. This ID must be non-zero and not 
+					0xFFFFFFFF (any other UInt32 value is valid).
 			
-			Not all Music Device audio units implement the semantics of this API (though it is strongly recommended that they do). A host application shoudl query the kMusicDeviceProperty_SupportsStartStopNote to check that this is supported.
+			Not all Music Device audio units implement the semantics of this API (though it is strongly recommended 
+					that they do). A host application shoudl query the kMusicDeviceProperty_SupportsStartStopNote to 
+					check that this is supported.
 			
 	@param			inUnit
 				The audio unit
 	@param			inInstrument
-				The instrumentID is no longer used and the kMusicNoteEvent_Unused constant should be specified (this takes the current patch for the specifed group as the sound to use for the note)
+				The instrumentID is no longer used and the kMusicNoteEvent_Unused constant should be specified (this takes 
+					the current patch for the specifed group as the sound to use for the note)
 	@param			inGroupID
-				The group ID that this note will be attached too. As with MIDI, all notes sounding on a groupID can be controlled through the various parameters (such as pitch bend, etc) that can be specified on the Group Scope
+				The group ID that this note will be attached too. As with MIDI, all notes sounding on a groupID can be 
+					controlled through the various parameters (such as pitch bend, etc) that can be specified on the Group 
+					Scope
 	@param			outNoteInstanceID
 				A pointer to receive the token that is used to identify the note. This parameter must be specified
 	@param			inOffsetSampleFrame
-				If you are scheduling the MIDI Event from the audio unit's render thread, then you can supply a sample offset that the audio unit may apply when starting the note in its next audio unit render. This allows you to schedule to the sample and is particularly important when starting new notes. If you are not scheduling in the audio unit's render thread, then you should set this value to 0
+				If you are scheduling the MIDI Event from the audio unit's render thread, then you can supply a sample offset 
+					that the audio unit may apply when starting the note in its next audio unit render. This allows you to 
+					schedule to the sample and is particularly important when starting new notes. If you are not scheduling 
+					in the audio unit's render thread, then you should set this value to 0
 	@param			inParams
 				The parameters to be used when starting the note - pitch and velocity must be specified
 	
@@ -397,7 +452,8 @@ function MusicDeviceStartNote( inUnit: MusicDeviceComponent; inInstrument: Music
 	@function	MusicDeviceStopNote
 	@abstract	used to stop notes started with the MusicDeviceStartNote call
 
-	@discussion	This call is used to stop notes that have been started with the MusicDeviceStartNote call; both the group ID that the note was started on and the noteInstanceID should be specified.
+	@discussion	This call is used to stop notes that have been started with the MusicDeviceStartNote call; both the group ID 
+					that the note was started on and the noteInstanceID should be specified.
 	
 	@param			inUnit
 				The audio unit
@@ -441,10 +497,8 @@ const
 
 {!
 	@typedef		MusicDeviceMIDIEventProc
-	@discussion		This proc can be exported through the FastDispatch property. A host can
-					then retrieve this Proc using that property and thus make a direct
-					call into your audio unit bypassing the component dispatch glue which
-					can add considerable overhead and is desirable to avoid.
+	@discussion		This proc can be exported through the FastDispatch property or is used as the prototype for
+					an audio component dispatch for this selector. 
 					
 					The arguments are the same as are provided to the corresponding API call
 	
@@ -462,10 +516,8 @@ type
 
 {!
 	@typedef		MusicDeviceSysExProc
-	@discussion		This proc can be exported through the FastDispatch property. A host can
-					then retrieve this Proc using that property and thus make a direct
-					call into your audio unit bypassing the component dispatch glue which
-					can add considerable overhead and is desirable to avoid.
+	@discussion		This proc can be exported through the FastDispatch property or is used as the prototype for
+					an audio component dispatch for this selector. 
 					
 					The arguments are the same as are provided to the corresponding API call
 	
@@ -481,10 +533,8 @@ type
 
 {!
 	@typedef		MusicDeviceStartNoteProc
-	@discussion		This proc can be exported through the FastDispatch property. A host can
-					then retrieve this Proc using that property and thus make a direct
-					call into your audio unit bypassing the component dispatch glue which
-					can add considerable overhead and is desirable to avoid.
+	@discussion		This proc can be exported through the FastDispatch property or is used as the prototype for
+					an audio component dispatch for this selector. 
 					
 					The arguments are the same as are provided to the corresponding API call
 	
@@ -503,10 +553,8 @@ type
 
 {!
 	@typedef		MusicDeviceStopNoteProc
-	@discussion		This proc can be exported through the FastDispatch property. A host can
-					then retrieve this Proc using that property and thus make a direct
-					call into your audio unit bypassing the component dispatch glue which
-					can add considerable overhead and is desirable to avoid.
+	@discussion		This proc can be exported through the FastDispatch property or is used as the prototype for
+					an audio component dispatch for this selector. 
 					
 					The arguments are the same as are provided to the corresponding API call
 	

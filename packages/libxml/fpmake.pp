@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('libxml2');
 {$ifdef ALLPACKAGES}
-    P.Directory:='libxml';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.OSes := [freebsd,linux,win32];

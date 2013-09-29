@@ -98,11 +98,11 @@ begin
   fp := nil;
   try
     case mode of
-      fopenread: fp  := TFileStream.Create(filename, fmOpenRead);
-      fopenwrite: fp := TFileStream.Create(filename, fmCreate);
+      fopenread: fp  := TFileStream.Create(strpas(filename), fmOpenRead);
+      fopenwrite: fp := TFileStream.Create(strpas(filename), fmCreate);
       fappendwrite:
       begin
-        fp := TFileStream.Create(filename, fmOpenReadWrite);
+        fp := TFileStream.Create(strpas(filename), fmOpenReadWrite);
         fp.Seek(soFromEnd, 0);
       end;
     end;
@@ -187,7 +187,7 @@ begin
   OldFileMode := FileMode;
 
   GetMem(fp, SizeOf(file));
-  Assign(fp^, filename);
+  Assign(fp^, strpas(filename));
   {$push}{$i-}
   Case mode of
   fopenread:

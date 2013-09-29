@@ -24,6 +24,7 @@ Type
 
 Var
   // Set this if you want a descendent class to serve the files.
+  // You can use this to customize the behaviour in the descendent, for instance if you have multiple virtual hosts.
   DefaultFileModuleClass : TFPCustomFileModuleClass = TFPCustomFileModule;
   // Setting this will load mime types from that file.
   MimeTypesFile : string;

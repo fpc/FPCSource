@@ -34,17 +34,22 @@ uses
   { symtable }
   symtype,symdef,symbase;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
-    function parse_generic_parameters:TFPObjectList;
-    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;out prettyname,specializename:ansistring;parsedtype:tdef):boolean;
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);
+    function parse_generic_parameters(allowconstraints:boolean):TFPObjectList;
+    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
     function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+    function resolve_generic_dummysym(const name:tidstring):tsym;
+    function could_be_generic(const name:tidstring):boolean;inline;
 
     type
       tspecializationstate = record
         oldsymtablestack   : tsymtablestack;
         oldextendeddefs    : TFPHashObjectList;
+        oldgenericdummysyms: tfphashobjectlist;
       end;
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
@@ -97,18 +102,272 @@ uses
           end;
       end;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
+    function check_generic_constraints(genericdef:tstoreddef;paradeflist:tfpobjectlist;poslist:tfplist):boolean;
+      var
+        i,j,
+        intfcount : longint;
+        formaldef,
+        paradef : tstoreddef;
+        objdef,
+        paraobjdef,
+        formalobjdef : tobjectdef;
+        intffound : boolean;
+        filepos : tfileposinfo;
+      begin
+        { check whether the given specialization parameters fit to the eventual
+          constraints of the generic }
+        if not assigned(genericdef.genericparas) or (genericdef.genericparas.count=0) then
+          internalerror(2012101001);
+        if genericdef.genericparas.count<>paradeflist.count then
+          internalerror(2012101002);
+        if paradeflist.count<>poslist.count then
+          internalerror(2012120801);
+        result:=true;
+        for i:=0 to genericdef.genericparas.count-1 do
+          begin
+            filepos:=pfileposinfo(poslist[i])^;
+            formaldef:=tstoreddef(ttypesym(genericdef.genericparas[i]).typedef);
+            if formaldef.typ=undefineddef then
+              { the parameter is of unspecified type, so no need to check }
+              continue;
+            if not (df_genconstraint in formaldef.defoptions) or
+                not assigned(formaldef.genconstraintdata) then
+              internalerror(2013021602);
+            paradef:=tstoreddef(paradeflist[i]);
+            { undefineddef is compatible with anything }
+            if formaldef.typ=undefineddef then
+              continue;
+            if paradef.typ<>formaldef.typ then
+              begin
+                case formaldef.typ of
+                  recorddef:
+                    MessagePos(filepos,type_e_record_type_expected);
+                  objectdef:
+                    case tobjectdef(formaldef).objecttype of
+                      odt_class,
+                      odt_javaclass:
+                        MessagePos1(filepos,type_e_class_type_expected,paradef.typename);
+                      odt_interfacecom,
+                      odt_interfacecorba,
+                      odt_dispinterface,
+                      odt_interfacejava:
+                        MessagePos1(filepos,type_e_interface_type_expected,paradef.typename);
+                      else
+                        internalerror(2012101003);
+                    end;
+                  errordef:
+                    { ignore }
+                    ;
+                  else
+                    internalerror(2012101004);
+                end;
+                result:=false;
+              end
+            else
+              begin
+                { the paradef types are the same, so do special checks for the
+                  cases in which they are needed }
+                if formaldef.typ=objectdef then
+                  begin
+                    paraobjdef:=tobjectdef(paradef);
+                    formalobjdef:=tobjectdef(formaldef);
+                    if not (formalobjdef.objecttype in [odt_class,odt_javaclass,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_dispinterface]) then
+                      internalerror(2012101102);
+                    if formalobjdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_dispinterface] then
+                      begin
+                        { this is either a concerete interface or class type (the
+                          latter without specific implemented interfaces) }
+                        case paraobjdef.objecttype of
+                          odt_interfacecom,
+                          odt_interfacecorba,
+                          odt_interfacejava,
+                          odt_dispinterface:
+                            if not paraobjdef.is_related(formalobjdef.childof) then
+                              begin
+                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                                result:=false;
+                              end;
+                          odt_class,
+                          odt_javaclass:
+                            begin
+                              objdef:=paraobjdef;
+                              intffound:=false;
+                              while assigned(objdef) do
+                                begin
+                                  for j:=0 to objdef.implementedinterfaces.count-1 do
+                                    if timplementedinterface(objdef.implementedinterfaces[j]).intfdef=formalobjdef.childof then
+                                      begin
+                                        intffound:=true;
+                                        break;
+                                      end;
+                                  if intffound then
+                                    break;
+                                  objdef:=objdef.childof;
+                                end;
+                              result:=intffound;
+                              if not result then
+                                MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,formalobjdef.childof.typename);
+                            end;
+                          else
+                            begin
+                              MessagePos1(filepos,type_e_class_or_interface_type_expected,paraobjdef.typename);
+                              result:=false;
+                            end;
+                        end;
+                      end
+                    else
+                      begin
+                        { this is either a "class" or a concrete instance with
+                          or without implemented interfaces }
+                        if not (paraobjdef.objecttype in [odt_class,odt_javaclass]) then
+                          begin
+                            MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
+                            result:=false;
+                            continue;
+                          end;
+                        if assigned(formalobjdef.childof) and
+                            not paradef.is_related(formalobjdef.childof) then
+                          begin
+                            MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                            result:=false;
+                          end;
+                        intfcount:=0;
+                        for j:=0 to formalobjdef.implementedinterfaces.count-1 do
+                          begin
+                            objdef:=paraobjdef;
+                            while assigned(objdef) do
+                              begin
+                                intffound:=assigned(
+                                             objdef.find_implemented_interface(
+                                               timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef
+                                             )
+                                           );
+                                if intffound then
+                                  break;
+                                objdef:=objdef.childof;
+                              end;
+                            if intffound then
+                              inc(intfcount)
+                            else
+                              MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef.typename);
+                          end;
+                        if intfcount<>formalobjdef.implementedinterfaces.count then
+                          result:=false;
+                      end;
+                  end;
+              end;
+          end;
+      end;
+
+
+    function parse_generic_specialization_types_internal(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
+      var
+        old_block_type : tblock_type;
+        first : boolean;
+        typeparam : tnode;
+        parampos : pfileposinfo;
+        tmpparampos : tfileposinfo;
+      begin
+        result:=true;
+        if genericdeflist=nil then
+          internalerror(2012061401);
+        { set the block type to type, so that the parsed type are returned as
+          ttypenode (e.g. classes are in non type-compatible blocks returned as
+          tloadvmtaddrnode) }
+        old_block_type:=block_type;
+        { if parsedtype is set, then the first type identifer was already parsed
+          (happens in inline specializations) and thus we only need to parse
+          the remaining types and do as if the first one was already given }
+        first:=not assigned(parsedtype);
+        if assigned(parsedtype) then
+          begin
+            genericdeflist.Add(parsedtype);
+            specializename:='$'+parsedtype.fulltypename;
+            prettyname:=parsedtype.typesym.prettyname;
+            if assigned(poslist) then
+              begin
+                New(parampos);
+                parampos^:=parsedpos;
+                poslist.add(parampos);
+              end;
+          end
+        else
+          begin
+            specializename:='';
+            prettyname:='';
+          end;
+        while not (token in [_GT,_RSHARPBRACKET]) do
+          begin
+            { "first" is set to false at the end of the loop! }
+            if not first then
+              consume(_COMMA);
+            block_type:=bt_type;
+            tmpparampos:=current_filepos;
+            typeparam:=factor(false,true);
+            if typeparam.nodetype=typen then
+              begin
+                if df_generic in typeparam.resultdef.defoptions then
+                  Message(parser_e_no_generics_as_params);
+                if assigned(poslist) then
+                  begin
+                    New(parampos);
+                    parampos^:=tmpparampos;
+                    poslist.add(parampos);
+                  end;
+                genericdeflist.Add(typeparam.resultdef);
+                if not assigned(typeparam.resultdef.typesym) then
+                  message(type_e_generics_cannot_reference_itself)
+                else
+                  begin
+                    { we use the full name of the type to uniquely identify it }
+                    specializename:=specializename+'$'+typeparam.resultdef.fulltypename;
+                    if not first then
+                      prettyname:=prettyname+',';
+                    prettyname:=prettyname+typeparam.resultdef.fullownerhierarchyname+typeparam.resultdef.typesym.prettyname;
+                  end;
+              end
+            else
+              begin
+                Message(type_e_type_id_expected);
+                result:=false;
+              end;
+            typeparam.free;
+            first:=false;
+          end;
+        block_type:=old_block_type;
+      end;
+
+
+    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
+      var
+        dummypos : tfileposinfo;
+      begin
+        FillChar(dummypos, SizeOf(tfileposinfo), 0);
+        result:=parse_generic_specialization_types_internal(genericdeflist,poslist,prettyname,specializename,nil,dummypos);
+      end;
+
+
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);
+      var
+        dummypos : tfileposinfo;
+      begin
+        FillChar(dummypos, SizeOf(tfileposinfo), 0);
+        generate_specialization(tt,parse_class_parent,_prettyname,nil,'',dummypos);
+      end;
+
+
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);
       var
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
+        errorrecovery,
         found,
         first,
         err : boolean;
         errval,
         i,
         gencount : longint;
-        crc : cardinal;
         genericdef,def : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
@@ -127,42 +386,52 @@ uses
         state : tspecializationstate;
         hmodule : tmodule;
         oldcurrent_filepos : tfileposinfo;
+        poslist : tfplist;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
         tt:=nil;
 
         { either symname must be given or genericdef needs to be valid }
+        errorrecovery:=false;
         if (symname='') and
             (not assigned(genericdef) or
             not assigned(genericdef.typesym) or
             (genericdef.typesym.typ<>typesym)) then
-           internalerror(2011042701);
+          begin
+            errorrecovery:=true;
+            tt:=generrordef;
+          end;
 
         { Only parse the parameters for recovery or
           for recording in genericbuf }
-        if parse_generic then
+        if parse_generic or errorrecovery then
           begin
             first:=assigned(parsedtype);
             if not first and not try_to_consume(_LT) then
               consume(_LSHARPBRACKET);
             gencount:=0;
-            repeat
-              if not first then
-                begin
-                  pt2:=factor(false,true);
-                  pt2.free;
-                end;
-              first:=false;
-              inc(gencount);
-            until not try_to_consume(_COMMA);
+            { handle "<>" }
+            if not first and ((token=_RSHARPBRACKET) or (token=_GT)) then
+              Message(type_e_type_id_expected)
+            else
+              repeat
+                if not first then
+                  begin
+                    pt2:=factor(false,true);
+                    pt2.free;
+                  end;
+                first:=false;
+                inc(gencount);
+              until not try_to_consume(_COMMA);
             if not try_to_consume(_GT) then
               consume(_RSHARPBRACKET);
             { we need to return a def that can later pass some checks like
               whether it's an interface or not }
-            if not assigned(tt) or (tt.typ=undefineddef) then
+            if not errorrecovery and
+                (not assigned(tt) or (tt.typ=undefineddef)) then
               begin
-                if (symname='') and (df_generic in genericdef.defoptions) then
+                if (symname='') and genericdef.is_generic then
                   { this happens in non-Delphi modes }
                   tt:=genericdef
                 else
@@ -216,16 +485,32 @@ uses
           end;
 
         if not assigned(parsedtype) and not try_to_consume(_LT) then
-          consume(_LSHARPBRACKET);
+          begin
+            consume(_LSHARPBRACKET);
+            { handle "<>" }
+            if (token=_GT) or (token=_RSHARPBRACKET) then
+              begin
+                Message(type_e_type_id_expected);
+                if not try_to_consume(_GT) then
+                  try_to_consume(_RSHARPBRACKET);
+                tt:=generrordef;
+                exit;
+              end;
+          end;
 
-        generictypelist:=TFPObjectList.create(false);
         genericdeflist:=TFPObjectList.Create(false);
+        poslist:=tfplist.create;
 
         { Parse type parameters }
-        err:=not parse_generic_specialization_types(genericdeflist,prettyname,specializename,parsedtype);
+        err:=not parse_generic_specialization_types_internal(genericdeflist,poslist,prettyname,specializename,parsedtype,parsedpos);
         if err then
           begin
-            try_to_consume(_RSHARPBRACKET);
+            if not try_to_consume(_GT) then
+              try_to_consume(_RSHARPBRACKET);
+            genericdeflist.free;
+            for i:=0 to poslist.count-1 do
+              dispose(pfileposinfo(poslist[i]));
+            poslist.free;
             tt:=generrordef;
             exit;
           end;
@@ -260,20 +545,11 @@ uses
                   end;
           end
         else
-          { search for a potential suffix }
-          for i:=length(genname) downto 1 do
-            if genname[i]='$' then
-              begin
-                { if the part right of the $ is a number we assume that the left
-                  part is the name of the generic, otherwise we assume that the
-                  complete name is the name of the generic }
-                countstr:=copy(genname,i+1,length(genname)-i);
-                gencount:=0;
-                val(countstr,gencount,errval);
-                if errval=0 then
-                  genname:=copy(genname,1,i-1);
-                break;
-              end;
+          begin
+            split_generic_name(genname,ugenname,gencount);
+            if genname<>ugenname then
+              genname:=ugenname;
+          end;
 
         { search a generic with the given count of params }
         countstr:='';
@@ -285,7 +561,7 @@ uses
         if assigned(genericdef) and (genericdef.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             if genericdef.owner.symtabletype = objectsymtable then
-              found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,false)
+              found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,[])
             else
               found:=searchsym_in_record(tabstractrecorddef(genericdef.owner.defowner),ugenname,srsym,st);
           end
@@ -295,14 +571,32 @@ uses
         if not found or (srsym.typ<>typesym) then
           begin
             identifier_not_found(genname);
+            if not try_to_consume(_GT) then
+              try_to_consume(_RSHARPBRACKET);
+            for i:=0 to poslist.count-1 do
+              dispose(pfileposinfo(poslist[i]));
+            poslist.free;
             genericdeflist.Free;
-            generictypelist.Free;
             tt:=generrordef;
             exit;
           end;
 
         { we've found the correct def }
         genericdef:=tstoreddef(ttypesym(srsym).typedef);
+
+        if not check_generic_constraints(genericdef,genericdeflist,poslist) then
+          begin
+            { the parameters didn't fit the constraints, so don't continue with the
+              specialization }
+            genericdeflist.free;
+            for i:=0 to poslist.count-1 do
+              dispose(pfileposinfo(poslist[i]));
+            poslist.free;
+            tt:=generrordef;
+            if not try_to_consume(_GT) then
+              try_to_consume(_RSHARPBRACKET);
+            exit;
+          end;
 
         { build the new type's name }
         finalspecializename:=generate_generic_name(genname,specializename);
@@ -324,19 +618,20 @@ uses
             internalerror(200511182);
         end;
 
+        generictypelist:=tfpobjectlist.create(false);
+
         { build the list containing the types for the generic params }
-        gencount:=0;
-        for i:=0 to st.SymList.Count-1 do
+        if not assigned(genericdef.genericparas) then
+          internalerror(2013092601);
+        if genericdeflist.count<>genericdef.genericparas.count then
+          internalerror(2013092603);
+        for i:=0 to genericdef.genericparas.Count-1 do
           begin
-            srsym:=tsym(st.SymList[i]);
-            if sp_generic_para in srsym.symoptions then
-              begin
-                if gencount=genericdeflist.Count then
-                  internalerror(2011042702);
-                generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[gencount]));
-                generictypelist.add(generictype);
-                inc(gencount);
-              end;
+            srsym:=tsym(genericdef.genericparas[i]);
+            if not (sp_generic_para in srsym.symoptions) then
+              internalerror(2013092602);
+            generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[i]));
+            generictypelist.add(generictype);
           end;
 
         { Special case if we are referencing the current defined object }
@@ -449,7 +744,7 @@ uses
                 current_filepos.moduleindex:=hmodule.unit_index;
                 current_tokenpos:=current_filepos;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf);
-                read_named_type(tt,srsym,genericdef,generictypelist,false);
+                read_named_type(tt,srsym,genericdef,generictypelist,false,false);
                 current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
@@ -558,11 +853,22 @@ uses
       end;
 
 
-    function parse_generic_parameters:TFPObjectList;
+    function parse_generic_parameters(allowconstraints:boolean):TFPObjectList;
       var
         generictype : ttypesym;
+        i,firstidx : longint;
+        srsymtable : tsymtable;
+        basedef,def : tdef;
+        defname : tidstring;
+        allowconstructor,
+        doconsume : boolean;
+        constraintdata : tgenericconstraintdata;
+        old_block_type : tblock_type;
       begin
         result:=TFPObjectList.Create(false);
+        firstidx:=0;
+        old_block_type:=block_type;
+        block_type:=bt_type;
         repeat
           if token=_ID then
             begin
@@ -571,70 +877,144 @@ uses
               result.add(generictype);
             end;
           consume(_ID);
-        until not try_to_consume(_COMMA) ;
-      end;
+          if try_to_consume(_COLON) then
+            begin
+              if not allowconstraints then
+                { TODO }
+                Message(parser_e_illegal_expression{ parser_e_generic_constraints_not_allowed_here});
+              { construct a name which can be used for a type specification }
+              constraintdata:=tgenericconstraintdata.create;
+              defname:='';
+              str(current_module.deflist.count,defname);
+              defname:='$gendef'+defname;
 
-    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;out prettyname,specializename:ansistring;parsedtype:tdef):boolean;
-      var
-        old_block_type : tblock_type;
-        first : boolean;
-        typeparam : tnode;
-      begin
-        result:=true;
-        if genericdeflist=nil then
-          internalerror(2012061401);
-        { set the block type to type, so that the parsed type are returned as
-          ttypenode (e.g. classes are in non type-compatible blocks returned as
-          tloadvmtaddrnode) }
-        old_block_type:=block_type;
-        { if parsedtype is set, then the first type identifer was already parsed
-          (happens in inline specializations) and thus we only need to parse
-          the remaining types and do as if the first one was already given }
-        first:=not assigned(parsedtype);
-        if assigned(parsedtype) then
-          begin
-            genericdeflist.Add(parsedtype);
-            specializename:='$'+parsedtype.typename;
-            prettyname:=parsedtype.typesym.prettyname;
-          end
-        else
-          begin
-            specializename:='';
-            prettyname:='';
-          end;
-        while not (token in [_GT,_RSHARPBRACKET]) do
-          begin
-            { "first" is set to false at the end of the loop! }
-            if not first then
-              consume(_COMMA);
-            block_type:=bt_type;
-            typeparam:=factor(false,true);
-            if typeparam.nodetype=typen then
-              begin
-                if df_generic in typeparam.resultdef.defoptions then
-                  Message(parser_e_no_generics_as_params);
-                genericdeflist.Add(typeparam.resultdef);
-                if not assigned(typeparam.resultdef.typesym) then
-                  message(type_e_generics_cannot_reference_itself)
-                else
+              allowconstructor:=m_delphi in current_settings.modeswitches;
+
+              basedef:=generrordef;
+              repeat
+                doconsume:=true;
+
+                case token of
+                  _CONSTRUCTOR:
+                    begin
+                      if not allowconstructor or (gcf_constructor in constraintdata.flags) then
+                        Message(parser_e_illegal_expression);
+                      include(constraintdata.flags,gcf_constructor);
+                      allowconstructor:=false;
+                    end;
+                  _CLASS:
+                    begin
+                      if gcf_class in constraintdata.flags then
+                        Message(parser_e_illegal_expression);
+                      if basedef=generrordef then
+                        include(constraintdata.flags,gcf_class)
+                      else
+                        Message(parser_e_illegal_expression);
+                    end;
+                  _RECORD:
+                    begin
+                      if ([gcf_constructor,gcf_class]*constraintdata.flags<>[])
+                          or (constraintdata.interfaces.count>0) then
+                        Message(parser_e_illegal_expression)
+                      else
+                        begin
+                          srsymtable:=trecordsymtable.create(defname,0);
+                          basedef:=trecorddef.create(defname,srsymtable);
+                          include(constraintdata.flags,gcf_record);
+                          allowconstructor:=false;
+                        end;
+                    end;
+                  else
+                    begin
+                      { after single_type "token" is the trailing ",", ";" or
+                        ">"! }
+                      doconsume:=false;
+                      { def is already set to a class or record }
+                      if gcf_record in constraintdata.flags then
+                        Message(parser_e_illegal_expression);
+                      single_type(def, [stoAllowSpecialization]);
+                      { only types that are inheritable are allowed }
+                      if (def.typ<>objectdef) or
+                          not (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_javaclass]) then
+                        Message1(type_e_class_or_interface_type_expected,def.typename)
+                      else
+                        case tobjectdef(def).objecttype of
+                          odt_class,
+                          odt_javaclass:
+                            begin
+                              if gcf_class in constraintdata.flags then
+                                { "class" + concrete class is not allowed }
+                                Message(parser_e_illegal_expression)
+                              else
+                                { do we already have a concrete class? }
+                                if basedef<>generrordef then
+                                  Message(parser_e_illegal_expression)
+                                else
+                                  basedef:=def;
+                            end;
+                          odt_interfacecom,
+                          odt_interfacecorba,
+                          odt_interfacejava,
+                          odt_dispinterface:
+                            constraintdata.interfaces.add(def);
+                        end;
+                    end;
+                end;
+                if doconsume then
+                  consume(token);
+              until not try_to_consume(_COMMA);
+
+              if ([gcf_class,gcf_constructor]*constraintdata.flags<>[]) or
+                  (constraintdata.interfaces.count>1) or
+                  (
+                    (basedef.typ=objectdef) and
+                    (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class])
+                  ) then
+                begin
+                  if basedef.typ=errordef then
+                    { don't pass an errordef as a parent to a tobjectdef }
+                    basedef:=class_tobject
+                  else
+                    if (basedef.typ<>objectdef) or
+                        not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
+                      internalerror(2012101101);
+                  basedef:=tobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef));
+                  for i:=0 to constraintdata.interfaces.count-1 do
+                    tobjectdef(basedef).implementedinterfaces.add(
+                      timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
+                end
+              else
+                if constraintdata.interfaces.count=1 then
                   begin
-                    specializename:=specializename+'$'+typeparam.resultdef.typename;
-                    if first then
-                      prettyname:=prettyname+typeparam.resultdef.typesym.prettyname
-                    else
-                      prettyname:=prettyname+','+typeparam.resultdef.typesym.prettyname;
+                    if basedef.typ<>errordef then
+                      internalerror(2013021601);
+                    def:=tdef(constraintdata.interfaces[0]);
+                    basedef:=tobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def));
+                    constraintdata.interfaces.delete(0);
                   end;
-              end
-            else
-              begin
-                Message(type_e_type_id_expected);
-                result:=false;
-              end;
-            typeparam.free;
-            first:=false;
-          end;
+              if basedef.typ<>errordef then
+                with tstoreddef(basedef) do
+                  begin
+                    genconstraintdata:=tgenericconstraintdata.create;
+                    genconstraintdata.flags:=constraintdata.flags;
+                    genconstraintdata.interfaces.assign(constraintdata.interfaces);
+                    include(defoptions,df_genconstraint);
+                  end;
+
+              for i:=firstidx to result.count-1 do
+                ttypesym(result[i]).typedef:=basedef;
+              { we need a typesym in case we do a Delphi-mode inline
+                specialization with this parameter; so just use the first sym }
+              if not assigned(basedef.typesym) then
+                basedef.typesym:=ttypesym(result[firstidx]);
+              firstidx:=result.count;
+
+              constraintdata.free;
+            end;
+        until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
         block_type:=old_block_type;
       end;
+
 
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
       var
@@ -646,6 +1026,12 @@ uses
         if not assigned(genericlist) then
           exit;
 
+        if assigned(genericdef) then
+          include(def.defoptions,df_specialization)
+        else
+          if genericlist.count>0 then
+            include(def.defoptions,df_generic);
+
         case def.typ of
           recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
           arraydef: st:=tarraydef(def).symtable;
@@ -654,14 +1040,14 @@ uses
             internalerror(201101020);
         end;
 
+        if (genericlist.count>0) and not assigned(def.genericparas) then
+          def.genericparas:=tfphashobjectlist.create(false);
         for i:=0 to genericlist.count-1 do
           begin
             generictype:=ttypesym(genericlist[i]);
-            if generictype.typedef.typ=undefineddef then
-              include(def.defoptions,df_generic)
-            else
-              include(def.defoptions,df_specialization);
             st.insert(generictype);
+            include(generictype.symoptions,sp_generic_para);
+            def.genericparas.add(generictype.name,generictype);
           end;
        end;
 
@@ -710,6 +1096,44 @@ uses
       result:=name+'$crc'+hexstr(crc,8);
     end;
 
+    procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+      var
+        i,code : longint;
+        countstr : string;
+      begin
+        for i:=length(name) downto 1 do
+          if name[i]='$' then
+            begin
+              nongeneric:=copy(name,1,i-1);
+              countstr:=copy(name,i+1,length(name)-i);
+              val(countstr,count,code);
+              if code<>0 then
+                break;
+              exit;
+            end;
+        nongeneric:=name;
+        count:=0;
+      end;
+
+
+    function resolve_generic_dummysym(const name:tidstring):tsym;
+      var
+        list : tfpobjectlist;
+      begin
+        list:=tfpobjectlist(current_module.genericdummysyms.find(name));
+        if assigned(list) and (list.count>0) then
+          result:=tgenericdummyentry(list.last).resolvedsym
+        else
+          result:=nil;
+      end;
+
+
+    function could_be_generic(const name:tidstring):boolean;
+      begin
+        result:=(name<>'') and
+                  (current_module.genericdummysyms.findindexof(name)>=0);
+      end;
+
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var
       pu : tused_unit;
@@ -725,7 +1149,9 @@ uses
         the resolved symbols }
       state.oldsymtablestack:=symtablestack;
       state.oldextendeddefs:=current_module.extendeddefs;
+      state.oldgenericdummysyms:=current_module.genericdummysyms;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
+      current_module.genericdummysyms:=tfphashobjectlist.create(true);
       symtablestack:=tdefawaresymtablestack.create;
       hmodule:=find_module_from_symtable(genericdef.owner);
       if hmodule=nil then
@@ -777,6 +1203,8 @@ uses
       { Restore symtablestack }
       current_module.extendeddefs.free;
       current_module.extendeddefs:=state.oldextendeddefs;
+      current_module.genericdummysyms.free;
+      current_module.genericdummysyms:=state.oldgenericdummysyms;
       symtablestack.free;
       symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }

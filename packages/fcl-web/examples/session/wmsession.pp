@@ -49,7 +49,7 @@ end;
 {
   When a new session is detected
 
-  - either because there was no session,in which case NewSession is the default
+  - either because there was no session, in which case NewSession is the default
 
   - The URL contained the newsession action in the 'DemoSession' action variable,
     something like:
@@ -93,7 +93,7 @@ end;
   that is currently stored in the session object.
 
   If the user supplied a new value for 'var', we store it in the session.
-  to supply the value, append
+  To supply this value, append
   ?var=value
   to the URL.
 }

@@ -2,18 +2,12 @@
      File:       CarbonCore/Script.h
  
      Contains:   Script Manager interfaces
+                 The contents of this header file are deprecated.
  
-     Version:    CarbonCore-859.2~1
- 
-     Copyright:  © 1986-2008 by Apple Inc., all rights reserved
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://www.freepascal.org/bugs.html
- 
+     Copyright:  © 1986-2011 by Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -89,6 +83,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -98,6 +93,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -113,6 +109,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -122,6 +119,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -132,6 +130,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -1094,7 +1093,7 @@ const
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetScriptManagerVariable( selector: SInt16 ): SIGNEDLONG; external name '_GetScriptManagerVariable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1116,7 +1115,7 @@ function GetScriptManagerVariable( selector: SInt16 ): SIGNEDLONG; external name
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function SetScriptManagerVariable( selector: SInt16; param: SIGNEDLONG ): OSErr; external name '_SetScriptManagerVariable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$ifc not TARGET_CPU_64}
@@ -1267,7 +1266,7 @@ const
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetScriptVariable( script: SInt16; selector: SInt16 ): SIGNEDLONG; external name '_GetScriptVariable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1297,7 +1296,7 @@ function GetScriptVariable( script: SInt16; selector: SInt16 ): SIGNEDLONG; exte
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function SetScriptVariable( script: SInt16; selector: SInt16; param: SIGNEDLONG ): OSErr; external name '_SetScriptVariable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1335,7 +1334,7 @@ function SetScriptVariable( script: SInt16; selector: SInt16; param: SIGNEDLONG 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetSysDirection: SInt16; external name '_GetSysDirection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1353,7 +1352,7 @@ function GetSysDirection: SInt16; external name '_GetSysDirection';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetSysDirection( value: SInt16 ); external name '_SetSysDirection';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1378,7 +1377,7 @@ procedure SetSysDirection( value: SInt16 ); external name '_SetSysDirection';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FontScript: SInt16; external name '_FontScript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1403,7 +1402,7 @@ function FontScript: SInt16; external name '_FontScript';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function IntlScript: SInt16; external name '_IntlScript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1427,7 +1426,7 @@ function IntlScript: SInt16; external name '_IntlScript';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FontToScript( fontNumber: SInt16 ): SInt16; external name '_FontToScript';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1448,7 +1447,7 @@ function FontToScript( fontNumber: SInt16 ): SInt16; external name '_FontToScrip
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function CharacterByteType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode ): SInt16; external name '_CharacterByteType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1469,7 +1468,7 @@ function CharacterByteType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function CharacterType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode ): SInt16; external name '_CharacterType';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1488,7 +1487,7 @@ function CharacterType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode ): 
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function TransliterateText( srcHandle: Handle; dstHandle: Handle; target: SInt16; srcMask: SIGNEDLONG; script: ScriptCode ): OSErr; external name '_TransliterateText';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1509,7 +1508,7 @@ function TransliterateText( srcHandle: Handle; dstHandle: Handle; target: SInt16
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function FillParseTable( var table: CharByteTable; script: ScriptCode ): Boolean; external name '_FillParseTable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1550,7 +1549,7 @@ function FillParseTable( var table: CharByteTable; script: ScriptCode ): Boolean
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function GetIntlResource( theID: SInt16 ): Handle; external name '_GetIntlResource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1568,7 +1567,7 @@ function GetIntlResource( theID: SInt16 ): Handle; external name '_GetIntlResour
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure ClearIntlResourceCache; external name '_ClearIntlResourceCache';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {
@@ -1586,7 +1585,7 @@ procedure ClearIntlResourceCache; external name '_ClearIntlResourceCache';
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHandle: Handle; var offset: SIGNEDLONG; var length: SIGNEDLONG ); external name '_GetIntlResourceTable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}
@@ -1697,7 +1696,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function IntlTokenize( tokenParam: TokenBlockPtr ): TokenResults; external name '_IntlTokenize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 {$endc} {not TARGET_CPU_64}

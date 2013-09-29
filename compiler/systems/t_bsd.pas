@@ -146,8 +146,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
-             DllCmd[1]:='ld $OPT -shared -L. -o $EXE $CATRES'
+             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
+             DllCmd[1]:='ld $TARGET $EMUL $OPT -shared -L. -o $EXE $CATRES'
            end
          else
            begin
@@ -166,22 +166,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
-         DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
+         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -295,9 +295,13 @@ var
   startupfile: TCmdStr;
 begin
   startupfile:=GetDarwinCrt1ObjName(isdll);
-  if (startupfile<>'') and
-     not librarysearchpath.FindFile(startupfile,false,result) then
-    result:='/usr/lib/'+startupfile;
+  if startupfile<>'' then
+    begin
+     if not librarysearchpath.FindFile(startupfile,false,result) then
+       result:='/usr/lib/'+startupfile
+    end
+  else
+    result:='';
   result:=maybequoted(result);
 end;
 
@@ -324,7 +328,8 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and (target_info.system in systems_freebsd) then
+      if isdll and 
+         (target_info.system in systems_bsd) then
         begin
           prtobj:='dllprt0';
           cprtobj:='dllprt0';
@@ -413,7 +418,7 @@ begin
         end
       else if iPhoneOSVersionMin<>'' then
         begin
-          LinkRes.Add('-ios_version_min');
+          LinkRes.Add('-iphoneos_version_min');
           LinkRes.Add(iPhoneOSVersionMin);
         end;
     end;
@@ -457,7 +462,7 @@ begin
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
-      if (isdll) and (target_info.system in systems_freebsd) then
+      if (isdll) and (target_info.system in systems_bsd) then
         begin
           LinkRes.add('VERSION');
           LinkRes.add('{');
@@ -596,6 +601,8 @@ function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr,
+  targetstr,
+  emulstr,
   extdbgbinstr,
   extdbgcmdstr: TCmdStr;
   linkscript: TAsmScript;
@@ -614,6 +621,20 @@ begin
   StripStr:='';
   DynLinkStr:='';
   GCSectionsStr:='';
+  { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
+    to avoid creation of a i386:x86_64 arch binary }
+
+  if target_info.system=system_i386_freebsd then
+    begin
+      targetstr:='-b elf32-i386-freebsd';
+      emulstr:='-m elf_i386_fbsd';
+    end
+  else
+    begin
+      targetstr:='';
+      emulstr:='';
+    end;
+
   if (cs_link_staticflag in current_settings.globalswitches) then
     begin
       if (target_info.system=system_m68k_netbsd) and
@@ -655,6 +676,8 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$TARGET',targetstr);
+  Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -721,6 +744,8 @@ var
   linkscript: TAsmScript;
   binstr,
   cmdstr,
+  targetstr,
+  emulstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
   GCSectionsStr : string[63];
@@ -743,6 +768,20 @@ begin
     else
       GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
+  { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
+    to avoid creation of a i386:x86_64 arch binary }
+
+  if target_info.system=system_i386_freebsd then
+    begin
+      targetstr:='-b elf32-i386-freebsd';
+      emulstr:='-m elf_i386_fbsd';
+    end
+  else
+    begin
+      targetstr:='';
+      emulstr:='';
+    end;
+
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
@@ -755,6 +794,8 @@ begin
   Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$TARGET',targetstr);
+  Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
@@ -842,29 +883,23 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_bsd,TLinkerBSD);
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x86_64_FreeBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
-  RegisterExternalLinker(system_x86_64_OpenBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_openbsd,timportlibbsd);
   RegisterExport(system_x86_64_openbsd,texportlibbsd);
   RegisterTarget(system_x86_64_openbsd_info);
-  RegisterExternalLinker(system_x86_64_NetBSD_info,TLinkerBSD);
   RegisterImport(system_x86_64_netbsd,timportlibbsd);
   RegisterExport(system_x86_64_netbsd,texportlibbsd);
   RegisterTarget(system_x86_64_netbsd_info);
 
-  RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
   RegisterExport(system_x86_64_darwin,texportlibdarwin);
   RegisterTarget(system_x86_64_darwin_info);
 {$endif}
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_i386_NetBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_i386_OpenBSD_info,TLinkerBSD);
   RegisterImport(system_i386_freebsd,timportlibbsd);
   RegisterExport(system_i386_freebsd,texportlibbsd);
   RegisterTarget(system_i386_freebsd_info);
@@ -874,42 +909,33 @@ initialization
   RegisterImport(system_i386_openbsd,timportlibbsd);
   RegisterExport(system_i386_openbsd,texportlibbsd);
   RegisterTarget(system_i386_openbsd_info);
-  RegisterExternalLinker(system_i386_darwin_info,TLinkerBSD);
   RegisterImport(system_i386_darwin,timportlibdarwin);
   RegisterExport(system_i386_darwin,texportlibdarwin);
   RegisterTarget(system_i386_darwin_info);
-  RegisterExternalLinker(system_i386_iphonesim_info,TLinkerBSD);
   RegisterImport(system_i386_iphonesim,timportlibdarwin);
   RegisterExport(system_i386_iphonesim,texportlibdarwin);
   RegisterTarget(system_i386_iphonesim_info);
 {$endif i386}
 {$ifdef m68k}
-//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_m68k_NetBSD_info,TLinkerBSD);
   RegisterImport(system_m68k_netbsd,timportlibbsd);
   RegisterExport(system_m68k_netbsd,texportlibbsd);
   RegisterTarget(system_m68k_netbsd_info);
 {$endif m68k}
 {$ifdef powerpc}
-//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
-  RegisterExternalLinker(system_powerpc_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc_darwin,timportlibdarwin);
   RegisterExport(system_powerpc_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc_darwin_info);
 
-  RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
   RegisterImport(system_powerpc_netbsd,timportlibbsd);
   RegisterExport(system_powerpc_netbsd,texportlibbsd);
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  RegisterExternalLinker(system_powerpc64_darwin_info,TLinkerBSD);
   RegisterImport(system_powerpc64_darwin,timportlibdarwin);
   RegisterExport(system_powerpc64_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_darwin_info,TLinkerBSD);
   RegisterImport(system_arm_darwin,timportlibdarwin);
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);

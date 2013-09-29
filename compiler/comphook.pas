@@ -79,7 +79,10 @@ type
     currentmodulestate : string[20];
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
-    errorcount,
+    errorcount,               { this field should never be increased directly,
+                                use Verbose.GenerateError procedure to do this,
+                                this allows easier error catching using GDB by
+                                adding a single breakpoint at this procedure }
     countWarnings,
     countNotes,
     countHints    : longint;  { number of found errors/warnings/notes/hints }

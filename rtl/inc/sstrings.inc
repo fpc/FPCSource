@@ -74,7 +74,11 @@ begin
   if index<1 then
    index:=1;
   if index>length(s) then
-   index:=length(s)+1;
+   begin
+     index:=length(s)+1;
+     if index>high(s) then
+      exit;
+   end;
   indexlen:=Length(s)-Index+1;
   srclen:=length(Source);
   if sizeInt(length(source))+sizeint(length(s))>=sizeof(s) then
@@ -104,7 +108,11 @@ begin
   if index<1 then
    index:=1;
   if index>length(s) then
-   index:=length(s)+1;
+   begin
+     index:=length(s)+1;
+     if index>high(s) then
+      exit;
+   end;
   indexlen:=Length(s)-Index+1;
   if (sizeint(length(s))+1=sizeof(s)) and (indexlen>0) then
    dec(indexlen);
@@ -439,6 +447,23 @@ begin
 end;
 
 {$endif CPU64}
+
+{$if defined(CPU16) or defined(CPU8)}
+procedure fpc_shortstr_longword(v : longword;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; compilerproc;
+begin
+  int_str_unsigned(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+
+procedure fpc_shortstr_longint(v : longint;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+{$endif CPU16 or CPU8}
 
 
 { fpc_shortstr_sInt must appear before this file is included, because }
@@ -861,6 +886,42 @@ end;
 {$endif CPU64}
 
 
+{$if defined(CPU16) or defined(CPU8)}
+
+procedure fpc_chararray_longword(v : longword;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str_unsigned(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+
+procedure fpc_chararray_longint(v : longint;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char);compilerproc;
 var
@@ -1052,7 +1113,6 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
 var
-  prev : ValUInt;
   base,u : byte;
   negative : boolean;
 begin
@@ -1076,9 +1136,8 @@ begin
      else
       u:=16;
      end;
-     prev := fpc_Val_UInt_Shortstr;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
+        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<fpc_val_uint_shortstr) then
       begin
         fpc_Val_UInt_Shortstr:=0;
         exit;
@@ -1094,7 +1153,8 @@ end;
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
 
-  var  u, temp, prev, maxprevvalue, maxnewvalue : qword;
+  var  u : sizeuint;
+       temp, prev, maxprevvalue, maxnewvalue : qword;
        base : byte;
        negative : boolean;
 
@@ -1150,7 +1210,7 @@ end;
 
   Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
 
-  var  u, prev: QWord;
+  var  u : sizeuint;
        base : byte;
        negative : boolean;
 
@@ -1177,9 +1237,8 @@ end;
        else
         u:=16;
        end;
-       prev := fpc_val_qword_shortstr;
        If (u>=base) or
-         ((QWord(maxqword-u) div QWord(base))<prev) then
+         ((QWord(maxqword-u) div QWord(base))<fpc_val_qword_shortstr) then
          Begin
            fpc_val_qword_shortstr := 0;
            Exit
@@ -1192,16 +1251,120 @@ end;
 
 {$endif CPU64}
 
+{$if defined(CPU16) or defined(CPU8)}
+  Function fpc_val_longint_shortstr(Const S: ShortString; out Code: ValSInt): LongInt; [public, alias:'FPC_VAL_LONGINT_SHORTSTR']; compilerproc;
+
+  var  u, temp, prev, maxprevvalue, maxnewvalue : longword;
+       base : byte;
+       negative : boolean;
+
+  const maxlongint=longword($7fffffff);
+        maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_longint_shortstr := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    maxprevvalue := maxlongword div base;
+    if (base = 10) then
+      maxnewvalue := maxlongint + ord(negative)
+    else
+      maxnewvalue := maxlongword;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*longword(base);
+     If (u >= base) or
+        (longword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
+       Begin
+         fpc_val_longint_shortstr := 0;
+         Exit
+       End;
+       Temp:=Temp+u;
+       inc(code);
+     end;
+    code:=0;
+    fpc_val_longint_shortstr:=longint(Temp);
+    If Negative Then
+      fpc_val_longint_shortstr:=-fpc_val_longint_shortstr;
+  end;
+
+
+  Function fpc_val_longword_shortstr(Const S: ShortString; out Code: ValSInt): LongWord; [public, alias:'FPC_VAL_LONGWORD_SHORTSTR']; compilerproc;
+
+  var  u, prev: LongWord;
+       base : byte;
+       negative : boolean;
+
+  const maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_longword_shortstr:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       prev := fpc_val_longword_shortstr;
+       If (u>=base) or
+         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
+         Begin
+           fpc_val_longword_shortstr := 0;
+           Exit
+         End;
+       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*LongWord(base) + u;
+       inc(code);
+     end;
+    code := 0;
+  end;
+{$endif CPU16 or CPU8}
+
+
 {$ifndef FPUNONE}
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   valmaxexpnorm=4932;
+  mantissabits=64;
 {$else}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
   valmaxexpnorm=308;
+  mantissabits=53;
 {$else}
 {$ifdef FPC_HAS_TYPE_SINGLE}
   valmaxexpnorm=38;
+  mantissabits=24;
 {$else}
 {$error Unknown floating point precision }
 {$endif}
@@ -1375,15 +1538,21 @@ var
   sign : valreal;
   esign,
   exponent,
+  expstart,
   decpoint : SizeInt;
-  flags    : byte;
+  nint,
+  nlz,
+  explimit,
+  explastdigit: SizeInt;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;
   exponent:=0;
   decpoint:=0;
   esign:=1;
-  flags:=0;
+  hd:=0.0;
+  nlz:=0;
+  nint:=0;
   sign:=1;
   while (code<=length(s)) and (s[code] in [' ',#9]) do
     inc(code);
@@ -1395,72 +1564,105 @@ begin
              inc(code);
            end;
     end;
-  while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
+  { leading zeroes do not influence result, skip all but one of them }
+  expstart:=code;
+  while (code<Length(s)) and (s[code]='0') do
+    inc(code);
+  if (code>expstart) then
+    dec(code);
+  expstart:=code;
+  while (Code<=Length(s)) do
     begin
-   { Read integer part }
-      flags:=flags or 1;
-      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
+      case s[code] of
+        '0':
+          begin
+            if (hd=0) then
+              inc(nlz,ord(decpoint<>0))
+            else
+              inc(nint,ord(decpoint=0));
+            hd:=hd*10;
+          end;
+        '1'..'9':
+          begin
+            if (decpoint=0) then
+              inc(nint);
+            hd:=hd*10+(ord(s[code])-ord('0'));
+          end;
+        '.':
+          if decpoint=0 then
+            decpoint:=code
+          else
+            exit;
+      else
+        break;
+      end;
       inc(code);
     end;
-{ Decimal ? }
-  if (length(s)>=code) and (s[code]='.') then
-    begin
-      inc(code);
-      while (length(s)>=code) and (s[code] in ['0'..'9']) do
-        begin
-           { Read fractional part. }
-          flags:=flags or 2;
-          fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
-          inc(decpoint);
-          inc(code);
-        end;
-   end;
- { Again, read integer and fractional part}
-  if flags=0 then
-    begin
-      fpc_Val_Real_ShortStr:=0.0;
-      exit;
-    end;
+  { must have seen at least one digit }
+  if (code-expstart)<1+ord(decpoint<>0) then
+    exit;
+
+  if decpoint<>0 then
+    decpoint:=code-decpoint-1;
+
  { Exponent ? }
   if (length(s)>=code) and (s[code] in ['e','E']) then
     begin
       inc(code);
       if Length(s) >= code then
-        if s[code]='+' then
-          inc(code)
-        else
-          if s[code]='-' then
-           begin
-             esign:=-1;
-             inc(code);
-           end;
-      if (length(s)<code) or not(s[code] in ['0'..'9']) then
-        begin
-          fpc_Val_Real_ShortStr:=0.0;
-          exit;
+        case s[code] of
+          '+': inc(code);
+          '-': begin
+                 esign:=-1;
+                 inc(code);
+               end;
         end;
+      expstart:=code;
+      { Limit the exponent, accounting for digits in integer part of mantissa
+        and leading zeros in fractional part, e.g 100.0e306 = 1.0e308, etc. }
+      if (esign<0) then
+        explimit:=valmaxexpnorm+mantissabits-1+nint
+      else if (nint>0) then
+        explimit:=valmaxexpnorm+1-nint
+      else
+        explimit:=valmaxexpnorm+1+nlz;
+      explastdigit:=(explimit mod 10)+ord('0');
+      explimit:=explimit div 10;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
-          exponent:=exponent*10;
-          exponent:=exponent+ord(s[code])-ord('0');
+          { Check commented out: since this code is used by compiler, it would error out
+            e.g. if compiling '1e3000' for non-x86 target. OTOH silently treating it
+            as infinity isn't a good option either. }
+          (*
+          if (exponent>explimit) or
+            ((exponent=explimit) and (ord(s[code])>explastdigit)) then
+            begin
+              { ignore exponent overflow for zero mantissa }
+              if hd<>0.0 then
+                exit;
+            end
+          else *)
+            exponent:=exponent*10+(ord(s[code])-ord('0'));
           inc(code);
         end;
+      if code=expstart then
+        exit;
     end;
+{ Not all characters are read ? }
+  if length(s)>=code then
+    exit;
+
 { adjust exponent based on decimal point }
-  if esign>0 then
+  dec(exponent,decpoint*esign);
+  if (exponent<0) then
     begin
-      dec(exponent,decpoint);
-      if (exponent<0) then
-        begin
-          esign:=-1;
-          exponent:=-exponent;
-        end
-    end
-  else
-    inc(exponent,decpoint);
+      esign:=-1;
+      exponent:=-exponent;
+    end;
+
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
-  fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
+  fpc_Val_Real_ShortStr:=hd*sign;
 
 { Calculate Exponent }
   hd:=1.0;
@@ -1485,13 +1687,6 @@ begin
   else
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
 
-
-{ Not all characters are read ? }
-  if length(s)>=code then
-    begin
-      fpc_Val_Real_ShortStr:=0.0;
-      exit;
-    end;
 { success ! }
   code:=0;
 end;
@@ -1740,7 +1935,7 @@ end;
 function ShortCompareText(const S1, S2: shortstring): SizeInt;
 var
   c1, c2: Byte;
-  i: Integer;
+  i: SizeInt;
   L1, L2, Count: SizeInt;
   P1, P2: PChar;
 begin

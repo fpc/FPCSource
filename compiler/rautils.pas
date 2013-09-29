@@ -206,7 +206,6 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
                   Instruction generation routines
 ---------------------------------------------------------------------}
 
-  Procedure ConcatPasString(p : TAsmList;s:string);
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
   Procedure ConcatConstant(p : TAsmList;value: aint; constsize:byte);
   Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
@@ -692,7 +691,7 @@ begin
       begin
         if (m_tp7 in current_settings.modeswitches) and
           not (df_generic in defoptions) and
-          (not paramanager.ret_in_param(returndef,proccalloption)) then
+          (not paramanager.ret_in_param(returndef,current_procinfo.procdef)) then
           begin
             message(asmr_e_cannot_use_RESULT_here);
             exit;
@@ -1527,20 +1526,6 @@ end;
   { PROCEDURE ConcatString(s:string);                                   }
   {  Description: This routine adds the character chain pointed to in   }
   {  s to the instruction linked list.                                  }
-  {*********************************************************************}
-  Var
-   pc: PChar;
-  Begin
-     getmem(pc,length(s)+1);
-     p.concat(Tai_string.Create_pchar(strpcopy(pc,s),length(s)));
-  end;
-
-  Procedure ConcatPasString(p : TAsmList;s:string);
-  {*********************************************************************}
-  { PROCEDURE ConcatPasString(s:string);                                }
-  {  Description: This routine adds the character chain pointed to in   }
-  {  s to the instruction linked list, contrary to ConcatString it      }
-  {  uses a pascal style string, so it conserves null characters.       }
   {*********************************************************************}
   Begin
      p.concat(Tai_string.Create(s));

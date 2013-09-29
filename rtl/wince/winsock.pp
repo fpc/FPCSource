@@ -19,6 +19,9 @@ unit winsock;
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
 
 {remaining functions exported from ws2.dll and not used yet = to do,
 

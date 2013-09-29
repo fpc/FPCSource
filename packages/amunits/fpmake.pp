@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('amunits');
 {$ifdef ALLPACKAGES}
-    P.Directory:='amunits';
+    P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 

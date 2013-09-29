@@ -48,11 +48,13 @@ unit raatt;
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
         AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
+        AS_EQUAL,
         {------------------ Assembler directives --------------------}
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,AS_CEXTENDED,
-        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_RVA,AS_END,
+        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_RVA,
+        AS_SET,AS_WEAK,AS_SECTION,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI,
@@ -74,10 +76,12 @@ unit raatt;
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/','$',
         '#','{','}','[',']',
+        '=',
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
-        '.data','.text','.init','.fini','.rva','END',
+        '.data','.text','.init','.fini','.rva',
+        '.set','.weak','.section','END',
         'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
         'directive');
 
@@ -649,6 +653,13 @@ unit raatt;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
+
+             '=' :
+               begin
+                 actasmtoken:=AS_EQUAL;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
 {$endif arm}
 
              ',' :
@@ -945,7 +956,7 @@ unit raatt;
                 expr:=actasmpattern;
                 if asciiz then
                   expr:=expr+#0;
-                ConcatPasString(curlist,expr);
+                ConcatString(curlist,expr);
                 Consume(AS_STRING);
               end;
             AS_COMMA:
@@ -972,9 +983,14 @@ unit raatt;
    Function tattreader.Assemble: tlinkedlist;
      Var
        hl         : tasmlabel;
-       commname   : string;
+       commname,
+       symname,
+       symval     : string;
        lasTSec    : TAsmSectiontype;
-       l1,l2      : longint;
+       l1,
+       l2,
+       symofs     : aint;
+       symtyp     : TAsmsymtype;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');
        firsttoken:=TRUE;
@@ -1198,6 +1214,31 @@ unit raatt;
                  Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
                Consume(AS_RVA);
                BuildRva;
+             end;
+
+           AS_SET:
+             begin
+               Consume(AS_SET);
+               BuildConstSymbolExpression(true,false,false, symofs,symname,symtyp);
+               Consume(AS_COMMA);
+               BuildConstSymbolExpression(true,false,false, symofs,symval,symtyp);
+
+               curList.concat(tai_set.create(symname,symval));
+             end;
+
+           AS_WEAK:
+             begin
+               Consume(AS_WEAK);
+               BuildConstSymbolExpression(true,false,false, l1,symname,symtyp);
+               curList.concat(tai_weak.create(symname));
+             end;
+
+           AS_SECTION:
+             begin
+               Consume(AS_SECTION);
+               new_section(curlist, sec_user, actasmpattern, 0);
+               //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
+               consume(AS_STRING);
              end;
 
            AS_TARGET_DIRECTIVE:
@@ -1486,7 +1527,18 @@ unit raatt;
                        begin
                          case sym.typ of
                            staticvarsym :
-                             hs:=tstaticvarsym(sym).mangledname;
+                             begin
+                               { we always assume in asm statements that     }
+                               { that the variable is valid.                 }
+                               tabstractvarsym(sym).varstate:=vs_readwritten;
+                               inc(tabstractvarsym(sym).refs);
+                               { variable can't be placed in a register }
+                               tabstractvarsym(sym).varregable:=vr_none;
+                               { and anything may happen with its address }
+                               tabstractvarsym(sym).addr_taken:=true;
+
+                               hs:=tstaticvarsym(sym).mangledname;
+                             end;
                            localvarsym,
                            paravarsym :
                              Message(asmr_e_no_local_or_para_allowed);

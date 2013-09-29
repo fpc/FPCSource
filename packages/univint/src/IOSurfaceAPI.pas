@@ -5,7 +5,8 @@
  *  Copyright 2006-2008 Apple Computer, Inc. All rights reserved.
  *
  }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -81,6 +82,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __ppc64__ and __ppc64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := TRUE}
@@ -90,6 +92,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -105,6 +108,7 @@ interface
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __x86_64__ and __x86_64__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -114,6 +118,7 @@ interface
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
 	{$setc TARGET_CPU_PPC64 := FALSE}
@@ -124,6 +129,7 @@ interface
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
 {$endc}
@@ -171,8 +177,6 @@ uses MacTypes,MacOSXPosix,CFBase,CFDictionary,IOKitReturn;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 type
 	IOSurfaceRef = ^__IOSurface; { an opaque type }
 	__IOSurface = record end;
@@ -180,6 +184,7 @@ type
 type
 	IOSurfaceID = UInt32;
 
+{$ifc TARGET_OS_MAC}
 { The following list of properties are used with the CFDictionary passed to IOSurfaceCreate(). }
 
 { kIOSurfaceAllocSize    - CFNumber of the total allocation size of the buffer including all planes.    
@@ -415,7 +420,9 @@ procedure IOSurfaceRemoveValue( buffer: IOSurfaceRef; key: CFStringRef ); extern
 
 { This call lets you get a mach_port_t that holds a reference to the IOSurface. This is useful 
    if you need to atomically or securely pass an IOSurface to another task without making the surface global to
-   the entire system.  The returned port must be deallocated with mach_port_deallocate or the equivalent.  }
+   the entire system.  The returned port must be deallocated with mach_port_deallocate or the equivalent.  
+   Note: Any live mach ports created from an IOSurfaceRef implicity increase the IOSurface's global use
+   count by one until the port is deleted. }
 function IOSurfaceCreateMachPort( buffer: IOSurfaceRef ): mach_port_t; external name '_IOSurfaceCreateMachPort';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -423,6 +430,18 @@ function IOSurfaceCreateMachPort( buffer: IOSurfaceRef ): mach_port_t; external 
    Note: This call does NOT destroy the port. }
 function IOSurfaceLookupFromMachPort( port: mach_port_t ): IOSurfaceRef; external name '_IOSurfaceLookupFromMachPort';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
+
+{$ifdef XPC_TRANSLATED}
+{ This call lets you get an xpc_object_t that holds a reference to the IOSurface.
+   Note: Any live XPC objects created from an IOSurfaceRef implicity increase the IOSurface's global use
+   count by one until the object is destroyed. }
+function IOSurfaceCreateXPCObject( aSurface: IOSurfaceRef ): xpc_object_t; external name '_IOSurfaceCreateXPCObject';
+(* IOSFC_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_NA) *)
+
+{ This call lets you take an xpc_object_t created via IOSurfaceCreatePort() and recreate an IOSurfaceRef from it. }
+function IOSurfaceLookupFromXPCObject( xobj: xpc_object_t ): IOSurfaceRef; external name '_IOSurfaceLookupFromXPCObject';
+(* IOSFC_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_NA) *)
+{$endif} {XPC_TRANSLATED}
 
 { 
    IOSurfaceGetPropertyMaximum() will return the maximum of a given property that is guaranteed to be 
@@ -445,7 +464,6 @@ function IOSurfaceLookupFromMachPort( port: mach_port_t ): IOSurfaceRef; externa
 }   
 function IOSurfaceGetPropertyMaximum( property: CFStringRef ): size_t; external name '_IOSurfaceGetPropertyMaximum';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
-
 
 { 
    If a property has a particular alignment requirement, then IOSurfaceGetPropertyAlignment() will return it.  

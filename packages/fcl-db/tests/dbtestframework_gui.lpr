@@ -2,18 +2,23 @@ program dbtestframework_gui;
 
 {$mode objfpc}{$H+}
 
-// Note that this Lazarus project by default re-compiles all DB-units! This eases
-// developing, but asks some attention from the developer.
-// If you want to use the default, installed db-units, simply clear the search path
-// in the compiler-options.
-// It could also be that after compiling this project, you have to manually clean
+// Note that this Lazarus project by default re-compiles all DB units! This eases
+// developing, but requires some attention from the developer.
+// It could very well be that after compiling this project, you have to manually clean
 // the .ppu files before you can build fcl-db in the regular way. (Using fpmake)
 
+// If you want to use the default installed db units, use the
+// Default_no_local_ppus build mode which clears the search path in the compiler
+// options.
+
 uses
-  Interfaces, Forms, GuiTestRunner,
+  Interfaces, Forms,
+  // GUI:
+  StdCtrls {to extend GuiTestRunner},
+  DBGuiTestRunner, inieditor,
   // Generic DB test framework units
   ToolsUnit,
-  // Connectors for different database-types
+  // Connectors for different database types
   sqldbtoolsunit,
   dbftoolsunit,
   bufdatasettoolsunit,
@@ -26,13 +31,17 @@ uses
   TestDBBasics,
   TestDatasources,
   TestBufDatasetStreams,
-  TestSpecificTBufDataset;
+  TestSQLDB,
+  TestSpecificTBufDataset,
+  TestSpecificTDBF,
+  TestDBExport;
 
 {$R *.res}
 
 begin
+  Application.Title:='DBTestFramework';
   Application.Initialize;
-  Application.CreateForm(TGuiTestRunner, TestRunner);
+  Application.CreateForm(TDBGuiTestRunnerForm, DBGuiTestRunnerForm);
   Application.Run;
 end.
 

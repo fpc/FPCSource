@@ -38,7 +38,7 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
+        procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -74,17 +74,23 @@ implementation
       end;
 
 
-    procedure TSparcParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
+    procedure TSparcParaManager.GetIntParaLoc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
+        psym: tparavarsym;
+        pdef: tdef;
       begin
         if nr<1 then
           InternalError(2002100806);
+        psym:=tparavarsym(pd.paras[nr-1]);
+        pdef:=psym.vardef;
+        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
+          pdef:=getpointerdef(pdef);
         cgpara.reset;
-        cgpara.size:=def_cgsize(def);
+        cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=std_param_align;
-        cgpara.def:=def;
+        cgpara.def:=pdef;
         paraloc:=cgpara.add_location;
         with paraloc^ do
           begin
@@ -102,7 +108,8 @@ implementation
                 reference.index:=NR_STACK_POINTER_REG;
                 reference.offset:=92+(nr-6)*4;
               end;
-            size:=OS_INT;
+            size:=def_cgsize(pdef);
+            def:=pdef;
           end;
       end;
 
@@ -156,6 +163,7 @@ implementation
             if retcgsize=OS_F64 then
               setsubreg(paraloc^.register,R_SUBFD);
             paraloc^.size:=retcgsize;
+            paraloc^.def:=result.def;
           end
         else
          { Return in register }
@@ -170,6 +178,7 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
                { low }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
@@ -178,12 +187,14 @@ implementation
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
+               paraloc^.def:=u32inttype;
              end
             else
 {$endif not cpu64bitaddr}
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=retcgsize;
+               paraloc^.def:=result.def;
                if (side=callerside) then
                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
@@ -222,6 +233,7 @@ implementation
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_G0;
                 paraloc^.size:=OS_ADDR;
+                paraloc^.def:=voidpointertype;
                 break;
               end;
 
@@ -255,9 +267,15 @@ implementation
                 { Floats are passed in int registers,
                   We can allocate at maximum 32 bits per register }
                 if paracgsize in [OS_64,OS_S64,OS_F32,OS_F64] then
-                  paraloc^.size:=OS_32
+                  begin
+                    paraloc^.size:=OS_32;
+                    paraloc^.def:=u32inttype;
+                  end
                 else
-                  paraloc^.size:=paracgsize;
+                  begin
+                    paraloc^.size:=paracgsize;
+                    paraloc^.def:=paradef;
+                  end;
                 { ret in param? }
                 if vo_is_funcret in hp.varoptions then
                   begin

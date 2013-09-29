@@ -1,9 +1,9 @@
-Hello world, example
-============
+Hello world example
+===================
 The simplest "Hello World" example using fcl-web (fpweb) that uses a web action 
 called "func1call" in the web module to generate the response page.
 
-Note, that the only difference between CGI/FCGI and Apache module is in the 
+Note that the only difference between CGI/FCGI and Apache module is in the 
 main project .lpr file and the web server (Apache) configuration.
 
 =====================
@@ -24,7 +24,7 @@ in the cgi/fcgi/apache directories.
 
 1.a; with FPC
 -------------
-Enter to the directory (cgi/fcgi/apache) that has the .lpr file you wish to 
+Go to the directory (cgi/fcgi/apache) that has the .lpr file you wish to 
 compile, and then execute the command 
 
 fpc -Fu../webmodule helloworld.lpr
@@ -60,7 +60,7 @@ the :8080 part from the calling URL.
 http://<WebServer>/<ApacheLocationName>/func1call should start the 
 example if everything is set up properly.
 ex: http://127.0.0.1:8080/myapache/func1call
-if in httpd.conf it was set up as:
+Example Apache configuration file (e.g. httpd.conf) snippet for this:
 LoadModule mod_helloworld "<path_to_mod>/helloworld.dll"
 <Location /myapache>
     SetHandler mod_helloworld
@@ -85,7 +85,7 @@ On Linux, it is enough to simply reload Apache after recompile.
 http://<WebServer>/<ApacheScriptAliasName>/func1call should start the example 
 if everything is set up properly.
 ex: http://127.0.0.1:8080/myfcgi/func1call
-if in the Apache configuration file (ex: httpd.conf) it was set up as:
+Example Apache configuration file (e.g. httpd.conf) snippet for this:
 
 LoadModule fastcgi_module "<path_to_mod>/mod_fastcgi-2.4.6-AP22.dll"
 <IfModule mod_fastcgi.c>

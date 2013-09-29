@@ -17,12 +17,10 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+Procedure do_MkDir(s: rawbytestring);
 var
     Rc : longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
   DoDirSeparators(s);
   Rc := _mkdir(pchar(s));
   if Rc <> 0 then
@@ -30,13 +28,14 @@ begin
 end;
 
 
-procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+procedure do_RmDir(s: rawbytestring);
 var Rc : longint;
 begin
-  if (len=1) and (s^ = '.' ) then
-    InOutRes := 16;
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
+  if s = '.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
   DoDirSeparators(s);
   Rc := _rmdir(pchar(s));
   if Rc <> 0 then
@@ -44,17 +43,17 @@ begin
 end;
 
 
-procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+procedure do_ChDir(s: rawbytestring);
 var RC: longint;
 begin
-  If not assigned(s) or (len=0) or (InOutRes <> 0) then
-    exit;
+  DoDirSeparators(s);
   RC := _chdir (pchar(s));
   if Rc <> 0 then
     SetFileError(Rc);
 end;
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+
+procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 VAR P : ARRAY [0..255] OF CHAR;
     i : LONGINT;
 begin
@@ -63,8 +62,8 @@ begin
   i := _strlen (P);
   if i > 0 then
   begin
+    SetLength (dir, i);
     Move (P, dir[1], i);
-    BYTE(dir[0]) := i;
     DoDirSeparators(dir);
     // fix / after volume, the compiler needs that
     // normaly root of a volumes is SERVERNAME/SYS:, change that
@@ -73,6 +72,7 @@ begin
     if (i > 0) then
       if i = Length (dir) then dir := dir + '/' else
       if dir [i+1] <> '/' then insert ('/',dir,i+1);
+    SetCodePage (dir,DefaultFileSystemCodePage,false);
   END ELSE
     InOutRes := 1;
 end;

@@ -63,8 +63,8 @@ unit i_watcom;
             dirsep       : '\';
             assem        : as_i386_wasm;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_watcom;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -94,9 +94,9 @@ unit i_watcom;
   implementation
 
 initialization
-{$ifdef cpu86}
+{$ifdef cpui386}
   {$ifdef watcom}
     set_source_info(system_i386_watcom_info);
   {$endif watcom}
-{$endif cpu86}
+{$endif cpui386}
 end.

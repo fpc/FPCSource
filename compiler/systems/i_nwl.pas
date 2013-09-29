@@ -63,8 +63,8 @@ unit i_nwl;
             dirsep       : '/';
             assem        : as_i386_elf32;
             assemextern  : as_gas;
-            link         : nil;
-            linkextern   : nil;
+            link         : ld_none;
+            linkextern   : ld_netwlibc;
             ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
@@ -94,9 +94,9 @@ unit i_nwl;
   implementation
 
 initialization
-{$ifdef CPU86}
+{$ifdef CPUI386}
   {$ifdef netwlibc}
     set_source_info(system_i386_netwlibc_info);
   {$endif netwlibc}
-{$endif CPU86}
+{$endif CPUI386}
 end.

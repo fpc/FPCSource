@@ -1,0 +1,7 @@
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=i8086 math set setjump setjumph
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
+

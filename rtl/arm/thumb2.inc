@@ -33,10 +33,18 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
+    {$IFDEF FPUFPV4_S16}
+    movw r0, #(0xed88)
+    movt r0, #(0xe000)
+    ldr r1, [r0]
+    orr r1, r1, #(0xF << 20)
+    str r1, [r0]
+    {$ELSE FPUFPV4_S16}
     rfs r0
     and r0,r0,#0xffe0ffff
     orr r0,r0,#0x00070000
     wfs r0
+    {$endif FPUFPV4_S16}
   end;
 end;
 {$endif}
@@ -496,140 +504,67 @@ asm
 end;
 {$endif}
 
-
-var
-  fpc_system_lock: longint; export name 'fpc_system_lock';
-
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-// lock
-  ldr r3, .Lfpc_system_lock
-  mov r1, #1
 .Lloop:
-  ldrex r2, [r3]
-  cmp r2, #0
-  itt eq
-  strexeq r2, r1, [r3]
-  cmpeq r2, #0
+  ldrex ip, [r0]
+  sub ip, #1
+  strex r3, ip, [r0]
+  cmp r3, #0
   bne .Lloop
-// do the job
-  ldr r1, [r0]
-  sub r1, r1, #1
-  str r1, [r0]
-  mov r0, r1
-// unlock and return
-  str r2, [r3]
-  mov pc, lr
   
-.Lfpc_system_lock:
-  .long fpc_system_lock
+  mov r0, ip
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-// lock
-  ldr r3, .Lfpc_system_lock
-  mov r1, #1
 .Lloop:
-  ldrex r2, [r3]
-  cmp r2, #0
-  itt eq
-  strexeq r2, r1, [r3]
-  cmpeq r2, #0
+  ldrex ip, [r0]
+  add ip, #1
+  strex r3, ip, [r0]
+  cmp r3, #0
   bne .Lloop
-// do the job
-  ldr r1, [r0]
-  add r1, r1, #1
-  str r1, [r0]
-  mov r0, r1
-// unlock and return
-  str r2, [r3]
-  mov pc, lr
-
-.Lfpc_system_lock:
-  .long fpc_system_lock
+  
+  mov r0, ip
 end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-
-// lock
-  ldr r3, .Lfpc_system_lock
-  mov r2, #1
 .Lloop:
-  ldrex r2, [r3]
-  cmp r2, #0
-  itt eq
-  strexeq r2, r12, [r3]
-  cmpeq r2, #0
+  ldrex ip, [r0]
+  strex r3, r1, [r0]
+  cmp r3, #0
   bne .Lloop
-// do the job
-  ldr r2, [r0]
-  str r1, [r0]
-  mov r0, r2
-// unlock and return
-  mov r2, #0
-  str r2, [r3]
-  mov pc, lr
-
-.Lfpc_system_lock:
-  .long fpc_system_lock
+  
+  mov r0, ip
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-// lock
-  ldr r3, .Lfpc_system_lock
-  mov r2, #1
 .Lloop:
-  ldrex r2, [r3]
-  cmp r2, #0
-  itt eq
-  strexeq r2, r12, [r3]
-  cmpeq r2, #0
+  ldrex ip, [r0]
+  add r2, ip, r1
+  strex r3, r2, [r0]
+  cmp r3, #0
   bne .Lloop
-// do the job
-  ldr r2, [r0]
-  add r1, r1, r2
-  str r1, [r0]
-  mov r0, r2
-// unlock and return
-  mov r2, #0
-  str r2, [r3]
-  mov pc, lr
-
-.Lfpc_system_lock:
-  .long fpc_system_lock
+  
+  mov r0, ip
 end;
-
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
-// lock
-  ldr r12, .Lfpc_system_lock
-  mov r3, #1
 .Lloop:
-  ldrex r2, [r12]
-  cmp r2, #0
-  itt eq
-  strexeq r2, r1, [r12]
-  cmpeq r2, #0
+  ldrex ip, [r0]
+  cmp ip, r2
+  ite eq
+  strexeq r3, r1, [r0]
+  movne r3, #0
+  cmp r3, #0
   bne .Lloop
-// do the job
-  ldr r3, [r0]
-  cmp r3, r2
-  it eq
-  streq r1, [r0]
-  mov r0, r3
-// unlock and return
-  mov r3, #0
-  str r3, [r12]
-  mov pc, lr
-
-.Lfpc_system_lock:
-  .long fpc_system_lock
+  
+  mov r0, ip
 end;
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
