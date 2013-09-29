@@ -173,6 +173,7 @@ ResourceString
   SInvalidPropertyType          = 'Property type (%s) is not valid';
   SInvalidPropertyValue         = 'Invalid value for property';
   SInvalidRegType               = 'Invalid data type for "%s"';
+  SInvalidRomanNumeral          = '%s is not a valid Roman numeral';
   SInvalidString                = 'Invalid string constant';
   SInvalidStringGridOp          = 'Unable to insert rows in or delete rows from grid';
   SInvalidTabIndex              = 'Registerindex out of bounds';
