@@ -1087,7 +1087,7 @@ implementation
       { target }
       systems,paramgr,
       { symtable }
-      symsym,symtable,defutil,objcdef,
+      symsym,symtable,defutil,objcdef,defcmp,
 {$ifdef jvm}
       jvmdef,
 {$endif}
@@ -1150,7 +1150,7 @@ implementation
           that concatenation shouldn't be converted to defaultsystemcodepage
           if all strings have the same type }
         result:=tstringdef(def).encoding;
-        if result=CP_NONE then
+        if result=globals.CP_NONE then
           result:=0
       end;
 
@@ -6488,7 +6488,7 @@ implementation
         for i:=0 to ImplementedInterfaces.Count-1 do
           begin
             ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
-            if ImplIntf.intfdef=aintfdef then
+            if equal_defs(implintf.intfdef,aintfdef) then
               begin
                 result:=ImplIntf;
                 exit;
