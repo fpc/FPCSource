@@ -26,4 +26,12 @@ type
 function setjmp(var S : jmp_buf) : longint;[external name 'FPC_SETJMP'];
 procedure longjmp(var S : jmp_buf;value : longint);[external name 'FPC_LONGJMP'];
 
+type
+  TSetJmpCounter = record
+    Address: LongWord;
+    Counter: LongWord;
+  end;
+  PSetJmpCounter = ^TSetJmpCounter;
 
+procedure fpc_dump_setjmp;
+function fpc_setjmp_table_entry(idx: LongWord): PSetJmpCounter;

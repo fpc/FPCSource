@@ -949,6 +949,11 @@ Begin
 {$ifdef SYSTEMDEBUG}
   writeln('InternalExit');
 {$endif SYSTEMDEBUG}
+
+{$IFDEF CPUARM}
+  fpc_dump_setjmp;
+{$ENDIF}
+
   while exitProc<>nil Do
    Begin
      InOutRes:=0;
