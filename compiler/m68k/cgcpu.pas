@@ -327,7 +327,7 @@ unit cgcpu;
           else
             pushsize:=int_cgsize(cgpara.alignment);
 
-          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[paraloc^.size]);
+          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[pushsize]);
           ref.direction := dir_dec;
 
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
@@ -774,14 +774,19 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
        href : treference;
+        size : tcgsize;
       begin
         href := ref;
         fixref(list,href);
 {$ifdef DEBUG_CHARLIE}
         list.concat(tai_comment.create(strpnew('a_load_reg_ref')));
 {$endif DEBUG_CHARLIE}
+        if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+          size:=fromsize
+        else
+          size:=tosize;
         { move to destination reference }
-        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
       end;
 
 
@@ -789,6 +794,7 @@ unit cgcpu;
       var
         aref: treference;
         bref: treference;
+        tmpref : treference;
         dofix : boolean;
         hreg: TRegister;
       begin
@@ -799,6 +805,16 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
 //        writeln('a_load_ref_ref');
 {$endif DEBUG_CHARLIE}
+        if fromsize<>tosize then
+          begin
+            { if we need to change the size then always use a temporary
+              register }
+            hreg:=getintregister(list,fromsize);
+            list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
+            sign_extend(list,fromsize,hreg);
+            list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
+            exit;
+          end;
         { Coldfire dislikes certain move combinations }
         if current_settings.cputype in cpu_coldfire then
           begin
@@ -845,8 +861,9 @@ unit cgcpu;
             if dofix then
               begin
                 hreg:=getaddressregister(list);
-                list.concat(taicpu.op_ref_reg(A_LEA,S_L,bref,hreg));
-                list.concat(taicpu.op_reg_ref(A_MOVE,S_L{TCGSize2OpSize[fromsize]},hreg,bref));
+                reference_reset_base(tmpref,hreg,0,0);
+                list.concat(taicpu.op_ref_reg(A_LEA,S_L,aref,hreg));
+                list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],tmpref,bref));
                 exit;
               end;
           end;
@@ -871,10 +888,15 @@ unit cgcpu;
     procedure tcg68k.a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
        href : treference;
+       size : tcgsize;
       begin
          href:=ref;
          fixref(list,href);
-         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           size:=fromsize
+         else
+           size:=tosize;
+         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
          sign_extend(list, fromsize, register);
       end;
@@ -1554,14 +1576,14 @@ unit cgcpu;
               { move a word }
               if len>1 then
                 begin
-                   if (orglen<source.alignment) and
+                   if (orglen<sizeof(aint)) and
                        (source.base=NR_FRAME_POINTER_REG) and
                        (source.offset>0) then
                      { copy of param to local location }
-                     alignsize:=int_cgsize(source.alignment)
+                     alignsize:=OS_INT
                    else
                      alignsize:=OS_16;
-                   a_load_ref_reg(list,alignsize,OS_16,srcref,hregister);
+                   a_load_ref_reg(list,alignsize,alignsize,srcref,hregister);
                    a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
@@ -1570,14 +1592,14 @@ unit cgcpu;
               { move a single byte }
               if len>0 then
                 begin
-                   if (orglen<source.alignment) and
+                   if (orglen<sizeof(aint)) and
                        (source.base=NR_FRAME_POINTER_REG) and
                        (source.offset>0) then
                      { copy of param to local location }
-                     alignsize:=int_cgsize(source.alignment)
+                     alignsize:=OS_INT
                    else
                      alignsize:=OS_8;
-                   a_load_ref_reg(list,alignsize,OS_8,srcref,hregister);
+                   a_load_ref_reg(list,alignsize,alignsize,srcref,hregister);
                    a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
            end

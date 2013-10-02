@@ -395,8 +395,13 @@ unit cpupara;
 		    writeln('loc reference');
 {$endif DEBUG_CHARLIE}
                     paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=int_cgsize(paralen);
                     paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+                    if paradef.typ<>orddef then
+                      paracgsize:=int_cgsize(paralen);
+                    if paracgsize=OS_NO then
+                      paraloc^.size:=OS_INT
+                    else
+                      paraloc^.size:=paracgsize;
                     if (side = callerside) then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
