@@ -145,17 +145,17 @@ cocoaint_shared: univint_shared
 endif
 
 ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux win32 win64 wince),)
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all fcl-web_all fpmkunit_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug fcl-web_debug fpmkunit_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart fcl-web_smart fpmkunit_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release fpmkunit_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared fpmkunit_shared
+fppkg_all: fpmkunit_all fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all fcl-web_all fpmkunit_all
+fppkg_debug: fpmkunit_debug fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug fcl-web_debug fpmkunit_debug
+fppkg_smart: fpmkunit_smart fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart fcl-web_smart fpmkunit_smart
+fppkg_release: fpmkunit_release fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release fpmkunit_release
+fppkg_shared: fpmkunit_shared fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared fpmkunit_shared
 else
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all paszlib_all fpmkunit_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug fpmkunit_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart fpmkunit_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release paszlib_release fpmkunit_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared fpmkunit_shared
+fppkg_all: fpmkunit_all fcl-base_all fcl-xml_all fcl-process_all paszlib_all fpmkunit_all
+fppkg_debug: fpmkunit_debug fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug fpmkunit_debug
+fppkg_smart: fpmkunit_smart fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart fpmkunit_smart
+fppkg_release: fpmkunit_release fcl-base_release fcl-xml_release fcl-process_release paszlib_release fpmkunit_release
+fppkg_shared: fpmkunit_shared fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared fpmkunit_shared
 endif
 
 fcl-xml_all: fcl-base_all fpmkunit_all
