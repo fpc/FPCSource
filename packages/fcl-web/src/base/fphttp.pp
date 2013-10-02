@@ -435,16 +435,20 @@ end;
 
 function TCustomWebAction.GetDisplayName: String;
 begin
-  If (FName='') then
-    FName:=ClassName+IntToStr(self.Index);
   Result:=FName;
+  If (Result='') then
+    begin
+    Result:=ClassName+IntToStr(self.Index);
+    if Result[1]='T' then
+      Delete(Result,1,1)
+    end;
 end;
 
 Function TCustomWebAction.GetNamePath : String;
 begin
- If (FName='') then
-    FName:=ClassName+IntToStr(self.Index);
   Result:=FName;
+  If (Result='') then
+    FName:=ClassName+IntToStr(self.Index);
 end;
 
 procedure TCustomWebAction.SetDisplayName(const AValue: String);
