@@ -158,6 +158,7 @@ implementation
       var
         hreg1,
         hreg2    : tregister;
+        reg64    : tregister64;
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
@@ -195,29 +196,50 @@ implementation
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
               begin
-                { can we optimize it, or do we need to fix the ref. ? }
-                if isvalidrefoffset(left.location.reference) then
+                if opsize in [OS_64,OS_S64] then
                   begin
-                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
-                       left.location.reference));
+                    reg64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    reg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,reg64);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,reg64.reghi,reg64.reglo));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,reg64.reglo));
                   end
                 else
                   begin
-                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
-                        left.location.reference,hreg2);
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                     cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                    { can we optimize it, or do we need to fix the ref. ? }
+                    if isvalidrefoffset(left.location.reference) then
+                      begin
+                        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
+                           left.location.reference));
+                      end
+                    else
+                      begin
+                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
+                            left.location.reference,hreg2);
+                         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+    //                     cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                      end;
+    //                reference_release(current_asmdata.CurrAsmList,left.location.reference);
                   end;
-//                reference_release(current_asmdata.CurrAsmList,left.location.reference);
                 resflags:=F_NE;
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-                hreg2:=left.location.register;
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                if opsize in [OS_64,OS_S64] then
+                  begin
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.register64.reglo,hreg2));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,hreg2));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,hreg2));
+                  end
+                else
+                  begin
+                    hreg2:=left.location.register;
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+    //                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                  end;
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=F_NE;
               end;
