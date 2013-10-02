@@ -67,12 +67,15 @@ Resourcestring
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
   SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
+  SErrNoScanner = 'No scanner. No source specified ?';
   
 { TJSONParser }
 
 Function TJSONParser.Parse : TJSONData;
 
 begin
+  if (FScanner=Nil) then
+    DoError(SErrNoScanner);
   Result:=DoParse(False,True);
 end;
 
