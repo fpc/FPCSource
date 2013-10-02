@@ -315,6 +315,7 @@ Type
     Procedure Delete(Index : Integer);
     procedure Exchange(Index1, Index2: Integer);
     function Extract(Item: TJSONData): TJSONData;
+    function Extract(Index : Integer): TJSONData;
     procedure Insert(Index: Integer);
     procedure Insert(Index: Integer; Item : TJSONData);
     procedure Insert(Index: Integer; I : Integer);
@@ -1561,6 +1562,11 @@ end;
 function TJSONArray.Extract(Item: TJSONData): TJSONData;
 begin
   Result := TJSONData(FList.Extract(Item));
+end;
+
+function TJSONArray.Extract(Index: Integer): TJSONData;
+begin
+  Result := TJSONData(FList.Extract(FList.Items[Index]));
 end;
 
 procedure TJSONArray.Insert(Index: Integer);
