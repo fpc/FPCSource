@@ -727,8 +727,17 @@ unit cgcpu;
            if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
-              list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
-           sign_extend(list,size,register);
+             begin
+               { clear the register first, for unsigned and positive values, so
+                  we don't need to zero extend after }
+               if (size in [OS_16,OS_8]) or
+                  ((size in [OS_S16,OS_S8]) and (a > 0)) then
+                 list.concat(taicpu.op_reg(A_CLR,S_L,register));
+               list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
+               { only sign extend if we need to, zero extension is not necessary because the CLR.L above }
+               if (size in [OS_S16,OS_S8]) and (a < 0) then
+                 sign_extend(list,size,register);
+             end;
          end;
       end;
 
