@@ -525,7 +525,9 @@ unit cgcpu;
                        if ref.index<>NR_NO then
                          begin
                            idxreg:=getaddressregister(list);
-                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,idxreg));
+                           instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,idxreg);
+                           add_move_instruction(instr);
+                           list.concat(instr);
                            list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,idxreg));
                            ref.index:=idxreg;
                          end
@@ -563,7 +565,9 @@ unit cgcpu;
                          if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                            begin
                               hreg:=getaddressregister(list);
-                              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                              instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                              add_move_instruction(instr);
+                              list.concat(instr);
                               list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
                               fixref:=true;
                               ref.base:=hreg;
@@ -576,7 +580,9 @@ unit cgcpu;
                    if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
                      begin
                        hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
+                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                       add_move_instruction(instr);
+                       list.concat(instr);
                        list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
                        fixref:=true;
                        ref.offset:=0;
@@ -1255,9 +1261,7 @@ unit cgcpu;
                     if op in [OP_AND,OP_OR,OP_SUB,OP_XOR] then
                        sign_extend(list, size, hreg1);
                     sign_extend(list, size, hreg2);
-                    instr:=taicpu.op_reg_reg(topcg2tasmop[op],S_L,hreg1, hreg2);
-                    add_move_instruction(instr);
-                    list.concat(instr);
+                    list.concat(taicpu.op_reg_reg(topcg2tasmop[op],S_L,hreg1, hreg2));
                   end
                  else
                   begin
