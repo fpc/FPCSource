@@ -1507,9 +1507,9 @@ implementation
       end;
 
     const
-      segprefixes: array[NR_CS..NR_GS] of Byte=(
-      //cs   ds   es   ss   fs   gs
-        $2E, $3E, $26, $36, $64, $65
+      segprefixes: array[NR_ES..NR_GS] of Byte=(
+      // es  cs   ss   ds   fs   gs
+        $26, $2E, $36, $3E, $64, $65
       );
 
     procedure taicpu.Pass2(objdata:TObjData);
@@ -1519,7 +1519,7 @@ implementation
          exit;
         current_filepos:=fileinfo;
         { Segment override }
-        if (segprefix>=NR_CS) and (segprefix<=NR_GS) then
+        if (segprefix>=NR_ES) and (segprefix<=NR_GS) then
          begin
            objdata.writebytes(segprefixes[segprefix],1);
            { fix the offset for GenNode }
@@ -1552,31 +1552,39 @@ implementation
       end;
 
 
+    procedure badreg(r:Tregister);
+      begin
+        Message1(asmw_e_invalid_register,generic_regname(r));
+      end;
+
+
     function regval(r:Tregister):byte;
       const
-    {$if defined(x86_64)}
-        opcode_table:array[tregisterindex] of tregisterindex = (
-          {$i r8664op.inc}
-        );
-    {$elseif defined(i386)}
-        opcode_table:array[tregisterindex] of tregisterindex = (
-          {$i r386op.inc}
-        );
-    {$elseif defined(i8086)}
-        opcode_table:array[tregisterindex] of tregisterindex = (
-          {$i r8086op.inc}
-        );
-    {$endif}
+        intsupreg2opcode: array[0..7] of byte=
+        // ax cx dx bx si di bp sp   -- in x86reg.dat
+        // ax cx dx bx sp bp si di   -- needed order
+          (0, 1, 2, 3, 6, 7, 5, 4);
+        maxsupreg: array[tregistertype] of tsuperregister=
+{$ifdef x86_64}
+          (0, 16, 9, 8, 16, 32, 0);
+{$else x86_64}
+          (0,  8, 9, 8,  8, 32, 0);
+{$endif x86_64}
       var
-        regidx : tregisterindex;
+        rs: tsuperregister;
+        rt: tregistertype;
       begin
-        regidx:=findreg_by_number(r);
-        if regidx<>0 then
-          result:=opcode_table[regidx]
-        else
+        rs:=getsupreg(r);
+        rt:=getregtype(r);
+        if (rs>=maxsupreg[rt]) then
+          badreg(r);
+        result:=rs and 7;
+        if (rt=R_INTREGISTER) then
           begin
-            Message1(asmw_e_invalid_register,generic_regname(r));
-            result:=0;
+            if (rs<8) then
+              result:=intsupreg2opcode[rs];
+            if getsubreg(r)=R_SUBH then
+              inc(result,4);
           end;
       end;
 
