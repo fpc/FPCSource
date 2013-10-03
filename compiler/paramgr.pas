@@ -76,6 +76,7 @@ unit paramgr;
           }
           function get_para_align(calloption : tproccalloption):byte;virtual;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;virtual;
+          function get_volatile_registers_address(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
@@ -250,6 +251,12 @@ implementation
 
 
     function tparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+      begin
+        result:=[];
+      end;
+
+
+    function tparamanager.get_volatile_registers_address(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;

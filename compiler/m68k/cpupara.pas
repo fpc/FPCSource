@@ -50,6 +50,7 @@ unit cpupara;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
          private
           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -495,8 +496,17 @@ unit cpupara;
 
     function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
       begin
-        { for now we set all int registers as volatile }
+        { d0 and d1 are considered volatile (ToDo: results in "procedure too
+          complex when compiling unicodedata.pas) }
+        //Result:=[RS_D0,RS_D1];
         Result:=[RS_D0..RS_D7];
+      end;
+
+
+    function tm68kparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { a0 and a1 are considered volatile }
+        Result:=[RS_A0,RS_A1];
       end;
 
 

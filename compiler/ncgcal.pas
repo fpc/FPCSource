@@ -744,6 +744,7 @@ implementation
       var
         name_to_call: shortstring;
         regs_to_save_int,
+        regs_to_save_address,
         regs_to_save_fpu,
         regs_to_save_mm   : Tcpuregisterset;
         href : treference;
@@ -773,6 +774,7 @@ implementation
            secondpass(tnode(callinitblock));
 
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
+         regs_to_save_address:=paramanager.get_volatile_registers_address(procdefinition.proccalloption);
          regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
 
@@ -800,6 +802,7 @@ implementation
               begin
                 case retlocitem^.loc of
                   LOC_REGISTER:
+
                     include(regs_to_save_int,getsupreg(retlocitem^.register));
                   LOC_FPUREGISTER:
                     include(regs_to_save_fpu,getsupreg(retlocitem^.register));
@@ -922,6 +925,8 @@ implementation
                    end;
 {$endif i8086}
                  cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+                 if cg.uses_registers(R_ADDRESSREGISTER) then
+                   cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
                  if cg.uses_registers(R_FPUREGISTER) then
                    cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
                  if cg.uses_registers(R_MMREGISTER) then
@@ -950,6 +955,8 @@ implementation
                     end;
 
                   cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+                  if cg.uses_registers(R_ADDRESSREGISTER) then
+                    cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
                   if cg.uses_registers(R_FPUREGISTER) then
                     cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
                   if cg.uses_registers(R_MMREGISTER) then
@@ -1008,6 +1015,8 @@ implementation
                 end;
 
               cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+              if cg.uses_registers(R_ADDRESSREGISTER) then
+                cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
               if cg.uses_registers(R_FPUREGISTER) then
                 cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
               if cg.uses_registers(R_MMREGISTER) then
@@ -1052,7 +1061,10 @@ implementation
                begin
                  case retlocitem^.loc of
                    LOC_REGISTER:
-                     exclude(regs_to_save_int,getsupreg(retlocitem^.register));
+                     if getregtype(retlocitem^.register)=R_INTREGISTER then
+                       exclude(regs_to_save_int,getsupreg(retlocitem^.register))
+                     else
+                       exclude(regs_to_save_address,getsupreg(retlocitem^.register));
                    LOC_FPUREGISTER:
                      exclude(regs_to_save_fpu,getsupreg(retlocitem^.register));
                    LOC_MMREGISTER:
@@ -1071,6 +1083,8 @@ implementation
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
          if cg.uses_registers(R_FPUREGISTER) then
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
+         if cg.uses_registers(R_ADDRESSREGISTER) then
+           cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
 
 {$ifdef SUPPORT_SAFECALL}
