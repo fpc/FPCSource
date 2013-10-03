@@ -489,7 +489,7 @@ unit cgcpu;
                      begin
                        hreg:=getaddressregister(list);
                        instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                       add_move_instruction(instr);
+                       //add_move_instruction(instr);
                        list.concat(instr);
                        fixref:=true;
                        ref.base:=hreg;
@@ -526,7 +526,7 @@ unit cgcpu;
                          begin
                            idxreg:=getaddressregister(list);
                            instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,idxreg);
-                           add_move_instruction(instr);
+                           //add_move_instruction(instr);
                            list.concat(instr);
                            list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,idxreg));
                            ref.index:=idxreg;
@@ -566,7 +566,7 @@ unit cgcpu;
                            begin
                               hreg:=getaddressregister(list);
                               instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                              add_move_instruction(instr);
+                              //add_move_instruction(instr);
                               list.concat(instr);
                               list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
                               fixref:=true;
@@ -581,7 +581,7 @@ unit cgcpu;
                      begin
                        hreg:=getaddressregister(list);
                        instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                       add_move_instruction(instr);
+                       //add_move_instruction(instr);
                        list.concat(instr);
                        list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
                        fixref:=true;
