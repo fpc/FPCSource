@@ -546,12 +546,16 @@ implementation
       unsigned : boolean;
       useconst : boolean;
       tmpreg : tregister;
-      op : tasmop;
+      opsize : topsize;
+      cmpsize : tcgsize;
      begin
        pass_left_right;
        { set result location }
        location_reset(location,LOC_JUMP,OS_NO);
 
+       { ToDo : set "allowconstants" to True, but this seems to upset Coldfire
+                a bit for the CMP instruction => check manual and implement
+                exception accordingly below }
        { load values into registers (except constants) }
        force_reg_left_right(true, false);
 
@@ -598,20 +602,30 @@ implementation
           useconst := false;
         location.loc := LOC_FLAGS;
         location.resflags := getresflags(unsigned);
-        op := A_CMP;
+        if tcgsize2size[right.location.size]=tcgsize2size[left.location.size] then
+          cmpsize:=left.location.size
+        else
+          { ToDo : zero/sign extend??? }
+          if tcgsize2size[right.location.size]<tcgsize2size[left.location.size] then
+            cmpsize:=left.location.size
+          else
+            cmpsize:=right.location.size;
+        opsize:=tcgsize2opsize[cmpsize];
+        if opsize=S_NO then
+          internalerror(2013090301);
         { Attention: The RIGHT(!) operand is substracted from and must be a
                      register! }
         if (right.location.loc = LOC_CONSTANT) then
           if useconst then
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(op,S_L,
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
               longint(right.location.value),left.location.register))
           else
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
                 tmpreg,left.location.register));
             end
         else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
             right.location.register,left.location.register));
      end;
 
