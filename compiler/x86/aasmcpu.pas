@@ -427,10 +427,10 @@ implementation
        IF_SSE41  = $00200000;
        IF_SSE42  = $00200000;
        IF_AVX    = $00200000;
-       IF_SANDYBRIDGE = $00200000;
-       IF_BMI1 = $00200000;
-       IF_BMI2 = $00200000;
+       IF_BMI1   = $00200000;
+       IF_BMI2   = $00200000;
 
+       IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
        IF_286    = $02000000;  { 286+ instruction  }
@@ -439,14 +439,13 @@ implementation
        IF_PENT   = $05000000;  { Pentium instruction  }
        IF_P6     = $06000000;  { P6 instruction  }
        IF_KATMAI = $07000000;  { Katmai instructions  }
-       { Willamette instructions }
-       IF_WILLAMETTE = $08000000;
-       { Prescott instructions }
-       IF_PRESCOTT = $09000000;
+       IF_WILLAMETTE = $08000000; { Willamette instructions }
+       IF_PRESCOTT   = $09000000; { Prescott instructions }
        IF_X86_64 = $0a000000;
        IF_CYRIX  = $0b000000;  { Cyrix-specific instruction  }
        IF_AMD    = $0c000000;  { AMD-specific instruction  }
        IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
+       IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
