@@ -50,6 +50,7 @@
         sub cx, di
         jz no_bss
         xor al, al
+        cld
         rep stosb
 no_bss:
 
