@@ -404,6 +404,8 @@ begin
     wrt(': ');
     WriteType(AProp.VarType);
   end;
+  if AProp.IndexValue <> '' then
+    wrt(' index ' + AProp.IndexValue); 
   if AProp.ReadAccessorName <> '' then
     wrt(' read ' + AProp.ReadAccessorName);
   if AProp.WriteAccessorName <> '' then
