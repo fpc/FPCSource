@@ -165,6 +165,7 @@ implementation
         hlabel,
         oldTrueLabel,
         oldFalseLabel : tasmlabel;
+        tmpreference : treference;
       begin
          oldTrueLabel:=current_procinfo.CurrTrueLabel;
          oldFalseLabel:=current_procinfo.CurrFalseLabel;
@@ -209,8 +210,18 @@ implementation
                     { can we optimize it, or do we need to fix the ref. ? }
                     if isvalidrefoffset(left.location.reference) then
                       begin
-                        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
-                           left.location.reference));
+                        { Coldfire cannot handle tst.l 123(dX) }
+                        if (current_settings.cputype in cpu_coldfire) and
+                           not (isaddressregister(left.location.reference.base)) then
+                          begin
+                            tmpreference:=left.location.reference;
+                            hreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            tmpreference.base:=hreg2;
+                            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.reference.base,hreg2));
+                            current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],tmpreference));
+                          end
+                        else
+                          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],left.location.reference));
                       end
                     else
                       begin
