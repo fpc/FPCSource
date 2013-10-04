@@ -286,7 +286,7 @@ unit cpupara;
 
         parasize:=0;
 
-        for i:=0 to p.paras.count-1 do
+        for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
 	    paradef:=hp.vardef;
