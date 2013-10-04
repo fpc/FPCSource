@@ -48,11 +48,9 @@
         mov di, _edata wrt dgroup
         mov cx, _end wrt dgroup
         sub cx, di
-        jz no_bss
         xor al, al
         cld
         rep stosb
-no_bss:
 
         ; save the Program Segment Prefix
         push ds
