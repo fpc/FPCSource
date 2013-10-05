@@ -2978,19 +2978,9 @@ const CrtAddress: word = 0;
     SaveSupPorted := FALSE;
     SavePtr := nil;
     { Get the video mode }
-    asm
-      mov  ah,0fh
-      push bp
-      push si
-      push di
-      push bx
-      int  10h
-      pop bx
-      pop di
-      pop si
-      pop bp
-      mov  [VideoMode], al
-    end ['AX'];
+    regs.ah:=$0f;
+    intr($10,regs);
+    VideoMode:=regs.al;
     { saving/restoring video state screws up Windows (JM) }
     if inWindows then
       exit;
@@ -3062,19 +3052,8 @@ const CrtAddress: word = 0;
    regs:Registers;
   begin
      { go back to the old video mode...}
-     asm
-      mov  ah,00
-      mov  al,[VideoMode]
-      push bp
-      push si
-      push di
-      push bx
-      int  10h
-      pop bx
-      pop di
-      pop si
-      pop bp
-     end ['AX'];
+     regs.ax:=VideoMode;
+     intr($10,regs);
 (*     { then restore all state information }
 {$ifndef fpc}
      if assigned(SavePtr) and (SaveSupPorted=TRUE) then
