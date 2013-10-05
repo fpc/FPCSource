@@ -1649,7 +1649,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
 {$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
@@ -1660,7 +1660,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
 {$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
@@ -1681,7 +1681,7 @@ unit rgobj;
               begin
                 { Only report for imaginary registers }
                 if live_registers.buf^[i]>=first_imaginary then
-                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub))+' not released');
+                  Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf^[i],defaultsub))+' not released');
               end;
           end;
 {$endif}
