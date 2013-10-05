@@ -212,7 +212,7 @@ implementation
                       begin
                         { Coldfire cannot handle tst.l 123(dX) }
                         if (current_settings.cputype in cpu_coldfire) and
-                           not (isaddressregister(left.location.reference.base)) then
+                           isintregister(left.location.reference.base) then
                           begin
                             tmpreference:=left.location.reference;
                             hreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);

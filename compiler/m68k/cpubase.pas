@@ -347,6 +347,7 @@ unit cpubase;
     function std_regname(r:Tregister):string;
 
     function isaddressregister(reg : tregister) : boolean;
+    function isintregister(reg : tregister) : boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -500,6 +501,11 @@ implementation
     function isaddressregister(reg : tregister) : boolean;
       begin
         result:=getregtype(reg)=R_ADDRESSREGISTER;
+      end;
+
+    function isintregister(reg : tregister) : boolean;
+      begin
+        result:=getregtype(reg)=R_INTREGISTER;
       end;
 
 
