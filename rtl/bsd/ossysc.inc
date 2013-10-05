@@ -572,7 +572,7 @@ begin
                End;
            End
       end
-{$ifdef openbsd}
+{$if defined(openbsd) or defined (netbsd)}
    { At least for openbsd, a positive return value is
      the length of the returned pchar }
    else if (ret<0) then
