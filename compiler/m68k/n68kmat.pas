@@ -157,9 +157,11 @@ implementation
       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,denum,paraloc1);
       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
       cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
       cg.a_call_name(current_asmdata.CurrAsmList,name,false);
       cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
+      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
       cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,NR_FUNCTION_RESULT_REG,num);
       paraloc2.done;
