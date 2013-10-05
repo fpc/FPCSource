@@ -1144,7 +1144,7 @@ implementation
         { set default instruction set for arm }
         if result then
           begin
-            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m] then
+            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m,cpu_armv7em] then
               a.instructionset:=is_thumb
             else
               a.instructionset:=is_arm;
