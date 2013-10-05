@@ -4536,6 +4536,8 @@ begin
   exitproc := go32exitsave;
 end;
 
+var
+  regs: Registers;
 begin
   { must be done *before* initialize graph is called, because the save }
   { buffer can be used in the normal exit_proc (which is hooked in     }
@@ -4547,22 +4549,8 @@ begin
   { such a problem has exited), so detect its presense and do not }
   { use those functions if it's running. I'm really tired of      }
   { working around Windows bugs :( (JM)                           }
-  asm
-    mov  ax,$160a
-    push bp
-    push si
-    push di
-    push bx
-    int  $2f
-    pop bx
-    pop di
-    pop si
-    pop bp
-    test ax,ax
-    jz @no_win
-    mov al, 1
-@no_win:
-    mov inWindows,al
-  end ['AX'];
+  regs.ax:=$160a;
+  intr($2f,regs);
+  inWindows:=regs.ax=0;
   InitializeGraph;
 end.
