@@ -126,9 +126,7 @@ const
       (0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63);
 
   var
-//     ScrWidth : word absolute $40:$4a;
-// !!! doesn't work with absolute, due to a i8086 code generator bug; TODO: fix
-     ScrWidth : word=80;
+     ScrWidth : word absolute $40:$4a;
      inWindows: boolean;
 
 {$ifndef tp}
