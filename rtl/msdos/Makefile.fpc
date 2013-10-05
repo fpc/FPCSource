@@ -8,11 +8,11 @@ loaders=prt0s prt0t prt0m # exceptn fpu
 units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
-      msmouse ports keyboard
+      msmouse ports keyboard \
+      charset
 #      printer cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf ctypes \
-#      charset \
 #      video mouse vesamode fmtbcd \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 # implicitunits=exeinfo
