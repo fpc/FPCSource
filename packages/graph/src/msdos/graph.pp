@@ -3514,7 +3514,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-(*     if VGADetected then
+     if VGADetected then
        begin
          SaveVideoState := @SaveStateVGA;
 {$ifdef logging}
@@ -3673,7 +3673,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
 
 
-         InitMode(mode);
+(*         InitMode(mode);
          { now add all standard VGA modes...       }
          mode.DriverNumber:= LowRes;
          mode.HardwarePages:= 0;
@@ -3717,7 +3717,7 @@ const CrtAddress: word = 0;
          mode.InitMode := {$ifdef fpc}@{$endif}InitModeX;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
-         AddMode(mode);
+         AddMode(mode);*)
 
          InitMode(mode);
          mode.ModeNumber:=VGALo;
@@ -3796,7 +3796,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     { check if VESA adapter supPorted...      }
+(*     { check if VESA adapter supPorted...      }
 {$ifndef noSupPortVESA}
      hasVesa := getVesaInfo(VESAInfo);
      { VBE Version v1.00 is unstable, therefore }
