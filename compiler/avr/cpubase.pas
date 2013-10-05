@@ -290,6 +290,7 @@ unit cpubase;
       }
       std_param_align = 4;
 
+      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
 {*****************************************************************************

@@ -2184,6 +2184,10 @@ implementation
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              inc(size,sizeof(aint));
 
         { mm registers }
         if uses_registers(R_MMREGISTER) then
@@ -2214,6 +2218,17 @@ implementation
                   end;
                 include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
               end;
+
+            if uses_registers(R_ADDRESSREGISTER) then
+              for r:=low(saved_address_registers) to high(saved_address_registers) do
+                begin
+                  if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+                    begin
+                      a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE),href);
+                      inc(href.offset,sizeof(aint));
+                    end;
+                  include(rg[R_ADDRESSREGISTER].preserved_by_proc,saved_address_registers[r]);
+                end;
 
             if uses_registers(R_MMREGISTER) then
               begin
@@ -2260,6 +2275,17 @@ implementation
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
             end;
+
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              begin
+                hreg:=newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                { Allocate register so the optimizer does not remove the load }
+                a_reg_alloc(list,hreg);
+                a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
+                inc(href.offset,sizeof(aint));
+              end;
 
         if uses_registers(R_MMREGISTER) then
           begin

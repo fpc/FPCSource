@@ -330,6 +330,7 @@ unit cpubase;
         (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
 
       { this is only for the generic code which is not used for this architecture }
+      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       { Required parameter alignment when calling a routine declared as
