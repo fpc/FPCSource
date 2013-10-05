@@ -156,7 +156,7 @@ const
 {*                   720x348x2 Hercules mode routines                   *}
 {************************************************************************}
 
-(*var
+var
   DummyHGCBkColor: Word;
 
 procedure InitHGC720;
@@ -171,7 +171,16 @@ begin
   for I := 0 to 11 do
     PortW[$3B4] := I or (RegValues[I] shl 8);
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
-  DosMemFillChar($B000, 0, 65536, #0);
+//  DosMemFillChar($B000, 0, 65536, #0);
+  asm
+    mov ax, $B000
+    mov es, ax
+    mov cx, 32768
+    xor di, di
+    xor ax, ax
+    cld
+    rep stosw
+  end ['ax','cx','di'];
   VideoOfs := 0;
   DummyHGCBkColor := 0;
 end;
@@ -514,7 +523,7 @@ begin
     VideoOfs := 0;
   end;
 end;
-*)
+
 {************************************************************************}
 {*                     320x200x4 CGA mode routines                      *}
 {************************************************************************}
@@ -3270,7 +3279,7 @@ const CrtAddress: word = 0;
          { check if CGA adapter supPorted ... }
          CGADetected := Test6845($3D4);
        end;
-(*     if HGCDetected then
+     if HGCDetected then
        begin
          { HACK:
            until we create Save/RestoreStateHGC, we use Save/RestoreStateVGA
@@ -3305,7 +3314,7 @@ const CrtAddress: word = 0;
          mode.XAspect := 7500;
          mode.YAspect := 10000;
          AddMode(mode);
-       end;*)
+       end;
      if CGADetected or EGADetected then
        begin
          { HACK:
