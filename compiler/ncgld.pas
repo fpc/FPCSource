@@ -269,10 +269,16 @@ implementation
                  case tabsolutevarsym(symtableentry).abstyp of
                    toaddr :
                      begin
-{$ifdef i386}
+{$if defined(i8086)}
+                       if tabsolutevarsym(symtableentry).absseg then
+                         begin
+                           location.reference.segment:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                           cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
+                         end;
+{$elseif defined(i386)}
                        if tabsolutevarsym(symtableentry).absseg then
                          location.reference.segment:=NR_FS;
-{$endif i386}
+{$endif}
                        location.reference.offset:=aint(tabsolutevarsym(symtableentry).addroffset);
                      end;
                    toasm :

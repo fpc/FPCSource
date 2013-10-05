@@ -576,23 +576,30 @@ implementation
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
             if (hp.nodetype=loadn) and
                ((tloadnode(hp).symtableentry.typ=absolutevarsym) and
                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
               begin
-                if not(nf_typedaddr in flags) then
-                  resultdef:=voidnearfspointertype
-                else
-                  resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
+                {$if defined(i8086)}
+                  if not(nf_typedaddr in flags) then
+                    resultdef:=voidfarpointertype
+                  else
+                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_far);
+                {$elseif defined(i386)}
+                  if not(nf_typedaddr in flags) then
+                    resultdef:=voidnearfspointertype
+                  else
+                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
+                {$endif}
               end
             else
-{$endif i386}
+{$endif i386 or i8086}
             if (hp.nodetype=loadn) and
                (tloadnode(hp).symtableentry.typ=absolutevarsym) and
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
                not(tabsolutevarsym(tloadnode(hp).symtableentry).absseg) and
-{$endif i386}
+{$endif i386 or i8086}
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
                  offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;

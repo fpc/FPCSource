@@ -256,6 +256,9 @@ interface
 {$endif defined(i386) or defined(i8086)}
          asmname : pshortstring;
          addroffset : aword;
+{$if defined(i8086)}
+         addrsegment : aword;
+{$endif defined(i8086)}
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);

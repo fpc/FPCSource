@@ -1265,18 +1265,28 @@ implementation
                   pt:=expr(true);
                   if is_constintnode(pt) then
                     begin
-                      tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
-                      if (tmpaddr<int64(low(abssym.addroffset))) or
-                         (tmpaddr>int64(high(abssym.addroffset))) then
-                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
-                      else
-                        abssym.addroffset:=tmpaddr;
+                      {$if defined(i8086)}
+                        abssym.addrsegment:=abssym.addroffset;
+                        tmpaddr:=tordconstnode(pt).value.svalue;
+                        if (tmpaddr<int64(low(abssym.addroffset))) or
+                           (tmpaddr>int64(high(abssym.addroffset))) then
+                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                        else
+                          abssym.addroffset:=tmpaddr;
+                      {$elseif defined(i386)}
+                        tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                        if (tmpaddr<int64(low(abssym.addroffset))) or
+                           (tmpaddr>int64(high(abssym.addroffset))) then
+                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                        else
+                          abssym.addroffset:=tmpaddr;
+                      {$endif}
                       abssym.absseg:=true;
                     end
                   else
                     Message(type_e_ordinal_expr_expected);
                 end;
-{$endif i386}
+{$endif i386 or i8086}
             end
           { variable }
           else
