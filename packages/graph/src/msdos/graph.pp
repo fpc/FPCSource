@@ -2201,8 +2201,8 @@ End;
   procedure VLine16(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var
-     ytmp: smallint;
-     ScrOfs,i : longint;
+     ytmp,i: smallint;
+     ScrOfs: word;
      BitMask : byte;
 
   Begin
