@@ -1778,8 +1778,9 @@ unit cgcpu;
                     { point to nowhere!                                   }
 
                     { save the PC counter (pop it from the stack)         }
-                    //hregister:=cg.getaddressregister(list);
-                    hregister:=NR_A3;
+                    { use A0 for this which is defined as a scratch       }
+                    { register                                            }
+                    hregister:=NR_A0;
                     cg.a_reg_alloc(list,hregister);
                     reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
                     ref.direction:=dir_inc;
