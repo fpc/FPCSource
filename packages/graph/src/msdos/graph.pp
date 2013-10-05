@@ -126,7 +126,9 @@ const
       (0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63);
 
   var
-     ScrWidth : word absolute $40:$4a;
+//     ScrWidth : word absolute $40:$4a;
+// !!! doesn't work with absolute, due to a i8086 code generator bug; TODO: fix
+     ScrWidth : word=80;
      inWindows: boolean;
 
 {$ifndef tp}
@@ -1507,7 +1509,7 @@ end;
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
-(*
+
   Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc}
     begin
       if DontClearGraphMemory then
@@ -2178,7 +2180,7 @@ End;
            begin
               Port[$3cf]:=$ff;
 {$ifndef tp}
-              seg_bytemove(dosmemselector,$a0000+ScrOfs,dosmemselector,$a0000+ScrOfs,HLength);
+              seg_bytemove(SegA000,ScrOfs,SegA000,ScrOfs,HLength);
 {$else}
               move(Ptr(SegA000,ScrOfs)^, Ptr(SegA000,ScrOfs)^, HLength);
 {$endif}
@@ -2267,17 +2269,17 @@ End;
       mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
 {$ifdef fpc}
-      push ebp
-      push esi
-      push edi
-      push ebx
+      push bp
+      push si
+      push di
+      push bx
 {$endif fpc}
       int 10h
 {$ifdef fpc}
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
+      pop bx
+      pop di
+      pop si
+      pop bp
 {$endif fpc}
 
       { read start address }
@@ -2291,7 +2293,7 @@ End;
       mov al,0dh
       out dx,al
       in  al,dx
-    end ['EDX','EAX'];
+    end ['DX','AX'];
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -2314,19 +2316,19 @@ End;
       mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
 {$ifdef fpc}
-      push ebp
-      push esi
-      push edi
-      push ebx
+      push bp
+      push si
+      push di
+      push bx
 {$endif fpc}
       int 10h
 {$ifdef fpc}
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
+      pop bx
+      pop di
+      pop si
+      pop bp
 {$endif fpc}
-    end ['EAX'];
+    end ['AX'];
   end;
 
  procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -2343,7 +2345,7 @@ End;
 
 
 
-
+(*
  {************************************************************************}
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
@@ -3448,7 +3450,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-(*     if EGADetected then
+     if EGADetected then
        begin
          { HACK:
            until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
@@ -3512,7 +3514,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     if VGADetected then
+(*     if VGADetected then
        begin
          SaveVideoState := @SaveStateVGA;
 {$ifdef logging}
