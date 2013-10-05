@@ -2963,16 +2963,8 @@ const CrtAddress: word = 0;
   SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
 
 
-      {**************************************************************}
-      {*                     DPMI Routines                          *}
-      {**************************************************************}
-
-{//$IFDEF DPMI}
-  RealStateSeg: word;    { Real segment of saved video state }
-
  Procedure SaveStateVGA; {$ifndef fpc}far;{$endif fpc}
  var
-  PtrLong: longint;
   regs: Registers;
   begin
     SaveSupPorted := FALSE;
@@ -2984,184 +2976,56 @@ const CrtAddress: word = 0;
     { saving/restoring video state screws up Windows (JM) }
     if inWindows then
       exit;
-(*    { Prepare to save video state...}
-    asm
-      mov  ax, 1C00h       { get buffer size to save state }
-      mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
-{$ifdef fpc}
-      push ebx
-      push ebp
-      push esi
-      push edi
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-      pop edi
-      pop esi
-      pop ebp
-{$endif fpc}
-      mov  [StateSize], bx
-{$ifdef fpc}
-      pop ebx
-{$endif fpc}
-      cmp  al,01ch
-      jnz  @notok
-      mov  [SaveSupPorted],TRUE
-     @notok:
-    end ['ECX','EAX'];
+    { Prepare to save video state...}
+    regs.ax:=$1C00;       { get buffer size to save state }
+    regs.cx:=%00000111;   { Save DAC / Data areas / Hardware states }
+    intr($10,regs);
+    StateSize:=regs.bx;
+    SaveSupPorted:=(regs.al=$1c);
     if SaveSupPorted then
       begin
-
-{$ifndef fpc}
-        PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
-{$else fpc}
-        PtrLong:=Global_Dos_Alloc(64*StateSize);  { values returned in 64-byte blocks }
-{$endif fpc}
-        if PtrLong = 0 then
-           RunError(203);
-        SavePtr := pointer(longint(PtrLong and $0000ffff) shl 16);
-{$ifndef fpc}
-        { In FPC mode, we can't do anything with this (no far pointers)  }
-        { However, we still need to keep it to be able to free the       }
-        { memory afterwards. Since this data is not accessed in PM code, }
-        { there's no need to save it in a seperate buffer (JM)           }
+        GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
         if not assigned(SavePtr) then
            RunError(203);
-{$endif fpc}
-        RealStateSeg := word(PtrLong shr 16);
-        FillChar(regs, sizeof(regs), #0);
         { call the real mode interrupt ... }
-        regs.eax := $1C01;      { save the state buffer                   }
-        regs.ecx := $07;        { Save DAC / Data areas / Hardware states }
-        regs.es := RealStateSeg;
-        regs.ebx := 0;
-        RealIntr($10,regs);
-        FillChar(regs, sizeof(regs), #0);
+        regs.ax := $1C01;      { save the state buffer                   }
+        regs.cx := $07;        { Save DAC / Data areas / Hardware states }
+        regs.es := DSeg;
+        regs.bx := Word(SavePtr);
+        Intr($10,regs);
         { restore state, according to Ralph Brown Interrupt list }
         { some BIOS corrupt the hardware after a save...         }
-        regs.eax := $1C02;      { restore the state buffer                }
-        regs.ecx := $07;        { rest DAC / Data areas / Hardware states }
-        regs.es := RealStateSeg;
-        regs.ebx := 0;
-        RealIntr($10,regs);
-      end;*)
+        regs.ax := $1C02;      { restore the state buffer                }
+        regs.cx := $07;        { rest DAC / Data areas / Hardware states }
+        regs.es := DSeg;
+        regs.bx := Word(SavePtr);
+        Intr($10,regs);
+      end;
   end;
 
  procedure RestoreStateVGA; {$ifndef fpc}far;{$endif fpc}
   var
    regs:Registers;
+   SavePtrCopy: Pointer;
   begin
      { go back to the old video mode...}
      regs.ax:=VideoMode;
      intr($10,regs);
-(*     { then restore all state information }
-{$ifndef fpc}
-     if assigned(SavePtr) and (SaveSupPorted=TRUE) then
-{$else fpc}
-     { No far pointer supPort, so it's possible that that assigned(SavePtr) }
-     { would return false under FPC. Just check if it's different from nil. }
-     if (SavePtr <> nil) and (SaveSupPorted=TRUE) then
-{$endif fpc}
-      begin
-        FillChar(regs, sizeof(regs), #0);
-        { restore state, according to Ralph Brown Interrupt list }
-        { some BIOS corrupt the hardware after a save...         }
-         regs.eax := $1C02;      { restore the state buffer                }
-         regs.ecx := $07;        { rest DAC / Data areas / Hardware states }
-         regs.es := RealStateSeg;
-         regs.ebx := 0;
-         RealIntr($10,regs);
-(*
-{$ifndef fpc}
-         if GlobalDosFree(longint(SavePtr) shr 16)<>0 then
-{$else fpc}
-         if Not Global_Dos_Free(longint(SavePtr) shr 16) then
-{$endif fpc}
-          RunError(216);
-
-         SavePtr := nil;
-*)
-       end;*)
-  end;
-
-{//$ELSE}
-(*
-      {**************************************************************}
-      {*                     Real mode routines                     *}
-      {**************************************************************}
-
-
- Procedure SaveStateVGA; far;
-  begin
-    SavePtr := nil;
-    SaveSupPorted := FALSE;
-    { Get the video mode }
-    asm
-      mov  ah,0fh
-      int  10h
-      mov  [VideoMode], al
-    end;
-    { Prepare to save video state...}
-    asm
-      mov  ax, 1C00h       { get buffer size to save state }
-      mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
-      int  10h
-      mov  [StateSize], bx
-      cmp  al,01ch
-      jnz  @notok
-      mov  [SaveSupPorted],TRUE
-     @notok:
-    end;
-    if SaveSupPorted then
-      Begin
-        GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
-        if not assigned(SavePtr) then
-           RunError(203);
-        asm
-         mov  ax, 1C01h       { save the state buffer                   }
-         mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
-         mov  es, WORD PTR [SavePtr+2]
-         mov  bx, WORD PTR [SavePtr]
-         int  10h
-        end;
-        { restore state, according to Ralph Brown Interrupt list }
-        { some BIOS corrupt the hardware after a save...         }
-        asm
-         mov  ax, 1C02h       { save the state buffer                   }
-         mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
-         mov  es, WORD PTR [SavePtr+2]
-         mov  bx, WORD PTR [SavePtr]
-         int  10h
-        end;
-      end;
-  end;
-
- procedure RestoreStateVGA; far;
-  begin
-     { go back to the old video mode...}
-     asm
-      mov  ah,00
-      mov  al,[VideoMode]
-      int  10h
-     end;
-
      { then restore all state information }
-     if assigned(SavePtr) and (SaveSupPorted=TRUE) then
-       begin
-         { restore state, according to Ralph Brown Interrupt list }
-         asm
-           mov  ax, 1C02h       { save the state buffer                   }
-           mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
-           mov  es, WORD PTR [SavePtr+2]
-           mov  bx, WORD PTR [SavePtr]
-           int  10h
-         end;
-{        done in exitproc (JM)
-         FreeMem(SavePtr, 64*StateSize);}
+     if assigned(SavePtr) and SaveSupPorted then
+      begin
+         regs.ax := $1C02;      { restore the state buffer                }
+         regs.cx := $07;        { rest DAC / Data areas / Hardware states }
+         regs.es := DSeg;
+         regs.bx := Word(SavePtr);
+         Intr($10,regs);
+
+         SavePtrCopy := SavePtr;
          SavePtr := nil;
+         FreeMem(SavePtrCopy, 64*StateSize);
        end;
-  end;*)
-{//$ENDIF DPMI}
+  end;
+
 
    Procedure SetVGARGBAllPalette(const Palette:PaletteType); {$ifndef fpc}far;{$endif fpc}
     var
@@ -4501,15 +4365,7 @@ procedure freeSaveStateBuffer; {$ifndef fpc}far; {$endif}
 begin
   if savePtr <> nil then
     begin
-{$ifdef dpmi}
-{$ifndef fpc}
-      if GlobalDosFree(longint(SavePtr) shr 16)<>0 then;
-{$else fpc}
-      if Not Global_Dos_Free(longint(SavePtr) shr 16) then;
-{$endif fpc}
-{$else dpmi}
       FreeMem(SavePtr, 64*StateSize);
-{$endif dpmi}
       SavePtr := nil;
   end;
   exitproc := go32exitsave;
