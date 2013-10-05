@@ -7127,7 +7127,16 @@ end;
 
 function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
-  Result:='libp'+Name+LibExt;
+  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
+    Result := Name+LibExt
+  else if AOS in [amiga,morphos] then
+    Result:='lib'+Name+LibExt
+  else if AOS in [java] then
+    Result:=Name+'.jar'
+  else if AOS in [macos] then
+    Result:=Name+'Lib'
+  else
+    Result:='libp'+Name+LibExt;
 end;
 
 procedure TTarget.SetOptions(const AValue: TStrings);
