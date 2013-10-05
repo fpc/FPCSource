@@ -1047,7 +1047,7 @@ unit cgcpu;
         case op of
           OP_NEG,OP_NOT,
           OP_DIV,OP_IDIV:
-            internalerror(200308281);
+            internalerror(200308283);
           OP_SHL,
           OP_SHR,
           OP_SAR,
@@ -3978,7 +3978,7 @@ unit cgcpu;
           OP_NOT:
             list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
           OP_DIV,OP_IDIV:
-            internalerror(200308281);
+            internalerror(200308284);
           OP_ROL:
             begin
               if not(size in [OS_32,OS_S32]) then
@@ -4396,7 +4396,7 @@ unit cgcpu;
           case op of
             OP_NEG,OP_NOT,
             OP_DIV,OP_IDIV:
-              internalerror(200308281);
+              internalerror(200308285);
             OP_SHL:
               begin
                 if a>32 then
@@ -4582,7 +4582,7 @@ unit cgcpu;
         ovloc.loc:=LOC_VOID;
         case op of
            OP_NEG,OP_NOT:
-              internalerror(200308281);
+              internalerror(200308286);
            OP_ROL:
               begin
                 if not(size in [OS_32,OS_S32]) then
