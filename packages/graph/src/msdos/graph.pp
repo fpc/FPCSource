@@ -3222,6 +3222,7 @@ const CrtAddress: word = 0;
     EGADetected : Boolean; { TRUE means EGA or higher (VGA) }
     VGADetected : Boolean;
     mode: TModeInfo;
+    regs: Registers;
    begin
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
@@ -3236,60 +3237,27 @@ const CrtAddress: word = 0;
      EGADetected := FALSE;
      VGADetected := FALSE;
      { check if EGA adapter supPorted...       }
-     asm
-       mov ah,12h
-       mov bx,0FF10h
-       push bx
-       push bp
-       push si
-       push di
-       int 10h              { get EGA information }
-       pop di
-       pop si
-       pop bp
-       cmp bh,0ffh
-       pop bx
-       jz  @noega
-       mov [EGADetected],TRUE
-     @noega:
-     end ['BX','AX'];
+     regs.ah:=$12;
+     regs.bx:=$FF10;
+     intr($10,regs);     { get EGA information }
+     EGADetected:=regs.bh<>$FF;
 {$ifdef logging}
      LogLn('EGA detected: '+strf(Longint(EGADetected)));
 {$endif logging}
      { check if VGA adapter supPorted...       }
      if EGADetected then
        begin
-        asm
-         mov ax,1a00h
-         push bp
-         push si
-         push di
-         push bx
-         int 10h            { get display combination code...}
-         pop bx
-         pop di
-         pop si
-         pop bp
-         cmp al,1ah         { check if supPorted...          }
-         jne @novga
-         { now check if this is the ATI EGA }
-         mov ax,1c00h       { get state size for save...     }
-                            { ... all imPortant data         }
-         mov cx,07h
-         push bp
-         push si
-         push di
-         push bx
-         int 10h
-         pop bx
-         pop di
-         pop si
-         pop bp
-         cmp al,1ch         { success?                       }
-         jne @novga
-         mov [VGADetected],TRUE
-        @novga:
-        end ['CX','AX'];
+         regs.ax:=$1a00;
+         intr($10,regs);    { get display combination code...}
+         if regs.al=$1a then
+           begin
+             { now check if this is the ATI EGA }
+             regs.ax:=$1c00; { get state size for save...     }
+                             { ... all imPortant data         }
+             regs.cx:=$07;
+             intr($10,regs);
+             VGADetected:=regs.al=$1c;
+           end;
        end;
 {$ifdef logging}
        LogLn('VGA detected: '+strf(Longint(VGADetected)));
