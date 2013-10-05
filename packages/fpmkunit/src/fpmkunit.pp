@@ -543,7 +543,7 @@ Type
   Protected
     Function GetSourceFileName : String; virtual;
     Function GetUnitFileName : String; virtual;
-    function GetUnitLibFileName: String; virtual;
+    function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
     Function GetRSTFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
@@ -570,7 +570,6 @@ Type
     Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
-    Property UnitLibFileName : String Read GetUnitLibFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
@@ -7126,7 +7125,7 @@ begin
   result := GetImportLibraryFilename(Name,AOS);
 end;
 
-function TTarget.GetUnitLibFileName: String;
+function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
   Result:='libp'+Name+LibExt;
 end;
@@ -7215,8 +7214,8 @@ begin
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
     begin
       List.Add(APrefixU + UnitFileName);
-      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
-        List.Add(APrefixU + UnitLibFileName);
+      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + GetUnitLibFileName(AOS)) then
+        List.Add(APrefixU + GetUnitLibFileName(AOS));
       if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
         List.Add(APrefixU + GetImportLibFilename(AOS));
     end
@@ -7240,8 +7239,8 @@ begin
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
     begin
     List.Add(APrefixU + UnitFileName);
-    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
-      List.Add(APrefixU + UnitLibFileName);
+    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + GetUnitLibFileName(AOS)) then
+      List.Add(APrefixU + GetUnitLibFileName(AOS));
     if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
       List.Add(APrefixU + GetImportLibFilename(AOS));
     end
