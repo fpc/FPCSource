@@ -3296,8 +3296,9 @@ begin
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
     if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
-     ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-         system_m68k_linux,system_arm_nds,system_arm_embedded])
+     ((target_info.system in [system_arm_wince,system_arm_gba,
+         system_m68k_amiga,system_m68k_atari,system_m68k_linux,
+         system_arm_nds,system_arm_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}

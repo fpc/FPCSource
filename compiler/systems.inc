@@ -200,6 +200,7 @@
        tlink = (ld_none,
              ld_aix,           { external linkers (one per OS, handles all CPUs) }
              ld_amiga,
+             ld_atari,
              ld_android,
              ld_beos,
              ld_bsd,
