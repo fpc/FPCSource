@@ -209,8 +209,298 @@ type
     Procedure TestFind;
   end;
 
+  { TTestJSONPath }
+
+  TTestJSONPath = class(TTestJSON)
+  private
+    FData: TJSONData;
+  Protected
+    Procedure TearDown; override;
+    Property Data : TJSONData read FData Write FData;
+  Published
+    Procedure TestNullEmpty;
+    Procedure TestNullGet;
+    Procedure TestNullNonExisting;
+    Procedure TestNullNotEmpty;
+    Procedure TestBooleanEmpty;
+    Procedure TestBooleanNotEmpty;
+    Procedure TestIntegerEmpty;
+    Procedure TestIntegerNotEmpty;
+    Procedure TestInt64Empty;
+    Procedure TestInt64NotEmpty;
+    Procedure TestFloatEmpty;
+    Procedure TestFloatNotEmpty;
+    Procedure TestStringEmpty;
+    Procedure TestStringNotEmpty;
+    Procedure TestArrayEmpty;
+    Procedure TestArrayNotIndex;
+    Procedure TestArrayIncompleteIndex;
+    Procedure TestArrayNonNumericalIndex;
+    Procedure TestArrayOutOfRangeIndex;
+    Procedure TestArrayCorrectIndex;
+    Procedure TestArrayRecursiveArray;
+    Procedure TestArrayRecursiveObject;
+    Procedure TestObjectEmpty;
+    Procedure TestObjectDots;
+    Procedure TestObjectExisting;
+    Procedure TestObjectNonExisting;
+    Procedure TestObjectTrailingDot;
+    Procedure TestObjectRecursiveArray;
+    Procedure TestObjectRecursiveObject;
+    Procedure TestDeepRecursive;
+  end;
 
 implementation
+
+{ TTestJSONPath }
+
+procedure TTestJSONPath.TearDown;
+begin
+  FreeAndNil(FData);
+  inherited TearDown;
+end;
+
+procedure TTestJSONPath.TestNullEmpty;
+begin
+  Data:=TJSONNull.Create;
+  AssertSame('Empty on NULL returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestNullGet;
+begin
+  Data:=TJSONNull.Create;
+  AssertSame('Empty get on NULL returns object itself',Data,Data.GetPath(''));
+end;
+
+procedure TTestJSONPath.TestNullNonExisting;
+
+Var
+  Msg : String;
+
+begin
+  Data:=TJSONNull.Create;
+  try
+    Data.GetPath('a.b.c');
+    Msg:='No exception raised'
+  except
+    on E : Exception do
+      begin
+      If Not (E is EJSON) then
+        Msg:='Wrong exception class. Got '+E.ClassName+' instead of EJSON'
+      else
+        If E.Message<>'Path "a.b.c" invalid: element "a.b.c" not found.' then
+          Msg:='Wrong exception message, expected: "Path "a.b.c" invalid: element "a.b.c" not found.", actual: "'+E.Message+'"';
+      end;
+  end;
+  If (Msg<>'') then
+    Fail(Msg);
+end;
+
+procedure TTestJSONPath.TestNullNotEmpty;
+begin
+  Data:=TJSONNull.Create;
+  AssertNull('Not empty on NULL returns nil',Data.FindPath('a'));
+end;
+
+procedure TTestJSONPath.TestBooleanEmpty;
+begin
+  Data:=TJSONBoolean.Create(true);
+  AssertSame('Empty on Boolean returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestBooleanNotEmpty;
+begin
+  Data:=TJSONBoolean.Create(True);
+  AssertNull('Not empty on Boolean returns nil',Data.FindPath('a'));
+end;
+
+procedure TTestJSONPath.TestIntegerEmpty;
+begin
+  Data:=TJSONIntegerNumber.Create(1);
+  AssertSame('Empty on integer returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestIntegerNotEmpty;
+begin
+  Data:=TJSONIntegerNumber.Create(1);
+  AssertNull('Not Empty on integer returns object itself',Data.FIndPath('a'));
+end;
+
+procedure TTestJSONPath.TestInt64Empty;
+begin
+  Data:=TJSONInt64Number.Create(1);
+  AssertSame('Empty on Int64 returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestInt64NotEmpty;
+begin
+  Data:=TJSONInt64Number.Create(1);
+  AssertNull('Not Empty on Int64 returns object itself',Data.FIndPath('a'));
+end;
+
+procedure TTestJSONPath.TestFloatEmpty;
+begin
+  Data:=TJSONFloatNumber.Create(1);
+  AssertSame('Empty on Float returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestFloatNotEmpty;
+begin
+  Data:=TJSONFloatNumber.Create(1);
+  AssertNull('Not Empty on Float returns object itself',Data.FIndPath('a'));
+end;
+
+procedure TTestJSONPath.TestStringEmpty;
+begin
+  Data:=TJSONString.Create('1');
+  AssertSame('Empty on String returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestStringNotEmpty;
+begin
+  Data:=TJSONString.Create('1');
+  AssertNull('Not Empty on String returns object itself',Data.FIndPath('a'));
+end;
+
+procedure TTestJSONPath.TestArrayEmpty;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertSame('Empty on array returns object itself',Data,Data.FIndPath(''));
+end;
+
+procedure TTestJSONPath.TestArrayNotIndex;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertNull('Not index indication on array returns object itself',Data.FindPath('oo'));
+end;
+
+procedure TTestJSONPath.TestArrayIncompleteIndex;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertNull('Not complete index indication on array returns object itself',Data.FindPath('[1'));
+  AssertNull('Not complete index indication on array returns object itself',Data.FindPath('['));
+end;
+
+procedure TTestJSONPath.TestArrayNonNumericalIndex;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertNull('Not complete index indication on array returns object itself',Data.FindPath('[a]'));
+end;
+
+procedure TTestJSONPath.TestArrayOutOfRangeIndex;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertNull('Not complete index indication on array returns object itself',Data.FindPath('[-1]'));
+  AssertNull('Not complete index indication on array returns object itself',Data.FindPath('[3]'));
+end;
+
+procedure TTestJSONPath.TestArrayCorrectIndex;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  AssertSame('Index 0 on array returns item 0',Data.Items[0],Data.FindPath('[0]'));
+  AssertSame('Index 1 on array returns item 1',Data.Items[1],Data.FindPath('[1]'));
+  AssertSame('Index 2 on array returns item 2',Data.Items[2],Data.FindPath('[2]'));
+end;
+
+procedure TTestJSONPath.TestArrayRecursiveArray;
+
+Var
+  A : TJSONArray;
+
+begin
+  A:=TJSONArray.Create([1,2,3]);
+  Data:=TJSONArray.Create([A,1,2,3]);
+  AssertSame('Index [0][0] on array returns item 0',A.Items[0],Data.FindPath('[0][0]'));
+  AssertSame('Index [0][1] on array returns item 1',A.Items[1],Data.FindPath('[0][1]'));
+  AssertSame('Index [0][2] on array returns item 2',A.Items[2],Data.FindPath('[0][2]'));
+end;
+
+procedure TTestJSONPath.TestArrayRecursiveObject;
+
+Var
+  A : TJSONObject;
+
+begin
+  A:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  Data:=TJSONArray.Create([A,1,2,3]);
+  AssertSame('[0]a on array returns element a of item 0',A.Elements['a'],Data.FindPath('[0]a'));
+  AssertSame('[0]b on array returns element b of item 0',A.Elements['b'],Data.FindPath('[0]b'));
+  AssertSame('[0]c on array returns element c of item 0',A.Elements['c'],Data.FindPath('[0]c'));
+  AssertSame('[0].a on array returns element a of item 0',A.Elements['a'],Data.FindPath('[0].a'));
+  AssertSame('[0].b on array returns element b of item 0',A.Elements['b'],Data.FindPath('[0].b'));
+  AssertSame('[0].c on array returns element c of item 0',A.Elements['c'],Data.FindPath('[0].c'));
+end;
+
+procedure TTestJSONPath.TestObjectEmpty;
+begin
+  Data:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  AssertSame('Empty on object returns object',Data,Data.FindPath(''));
+end;
+
+procedure TTestJSONPath.TestObjectDots;
+begin
+  Data:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  AssertSame('Dot on object returns object',Data,Data.FindPath('.'));
+  AssertSame('2 Dots on object returns object',Data,Data.FindPath('..'));
+  AssertSame('3 Dots on object returns object',Data,Data.FindPath('...'));
+end;
+
+procedure TTestJSONPath.TestObjectExisting;
+begin
+  Data:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  AssertSame('a on object returns element a',TJSONObject(Data).Elements['a'],Data.FindPath('a'));
+  AssertSame('.a on object returns element a',TJSONObject(Data).Elements['a'],Data.FindPath('.a'));
+  AssertSame('..a on object returns element a',TJSONObject(Data).Elements['a'],Data.FindPath('..a'));
+end;
+
+procedure TTestJSONPath.TestObjectNonExisting;
+begin
+  Data:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  AssertNull('d on object returns nil',Data.FindPath('d'));
+end;
+
+procedure TTestJSONPath.TestObjectTrailingDot;
+begin
+  Data:=TJSONObject.Create(['a',1,'b',2,'c',3]);
+  AssertNull('a. on object returns nil',Data.FindPath('a.'));
+end;
+
+procedure TTestJSONPath.TestObjectRecursiveArray;
+
+Var
+  A : TJSONArray;
+
+begin
+  A:=TJSONArray.Create([1,2,3]);
+  Data:=TJSONObject.Create(['a',A,'b',2,'c',3]);
+  AssertSame('a[0] returns item 0 of array a',A.Items[0],Data.FindPath('a[0]'));
+end;
+
+procedure TTestJSONPath.TestObjectRecursiveObject;
+Var
+  O : TJSONObject;
+  D : TJSONData;
+begin
+  D :=TJSONIntegerNumber.Create(1);
+  O:=TJSONObject.Create(['b',D]);
+  Data:=TJSONObject.Create(['a',O]);
+  AssertSame('a.b returns correct data ',D,Data.FindPath('a.b'));
+  AssertSame('a..b returns correct data ',D,Data.FindPath('a..b'));
+end;
+
+procedure TTestJSONPath.TestDeepRecursive;
+Var
+  O : TJSONObject;
+  A : TJSONArray;
+  D : TJSONData;
+begin
+  D :=TJSONIntegerNumber.Create(1);
+  A:=TJSONArray.Create([0,'string',TJSONObject.Create(['b',D])]);
+  Data:=TJSONObject.Create(['a',TJSONObject.Create(['c',A])]);
+  AssertSame('a.c[2].b returns correct data ',D,Data.FindPath('a.c[2].b'));
+  AssertSame('a.c[2]b returns correct data ',D,Data.FindPath('a.c[2]b'));
+  AssertNull('a.c[2]d returns nil ',Data.FindPath('a.c[2]d'));
+end;
 
 { TTestJSON }
 
@@ -2641,5 +2931,6 @@ initialization
   RegisterTest(TTestString);
   RegisterTest(TTestArray);
   RegisterTest(TTestObject);
+  RegisterTest(TTestJSONPath);
 end.
 

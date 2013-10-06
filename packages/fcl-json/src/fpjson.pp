@@ -48,6 +48,7 @@ Type
   
   TJSONData = class(TObject)
   protected
+    Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; virtual;
     function GetAsBoolean: Boolean; virtual; abstract;
     function GetAsFloat: TJSONFloat; virtual; abstract;
     function GetAsInteger: Integer; virtual; abstract;
@@ -70,6 +71,8 @@ Type
     Constructor Create; virtual;
     Class function JSONType: TJSONType; virtual;
     Procedure Clear;  virtual; Abstract;
+    Function FindPath(Const APath : TJSONStringType) : TJSONdata;
+    Function GetPath(Const APath : TJSONStringType) : TJSONdata;
     Function Clone : TJSONData; virtual; abstract;
     Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType; 
     property Count: Integer read GetCount;
@@ -274,6 +277,7 @@ Type
     procedure SetObjects(Index : Integer; const AValue: TJSONObject);
     procedure SetStrings(Index : Integer; const AValue: TJSONStringType);
   protected
+    Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
     Procedure Converterror(From : Boolean);
     function GetAsBoolean: Boolean; override;
     function GetAsFloat: TJSONFloat; override;
@@ -368,6 +372,7 @@ Type
     procedure SetObjects(const AName : String; const AValue: TJSONObject);
     procedure SetStrings(const AName : String; const AValue: TJSONStringType);
   protected
+    Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
     Procedure Converterror(From : Boolean);
     function GetAsBoolean: Boolean; override;
     function GetAsFloat: TJSONFloat; override;
@@ -466,7 +471,8 @@ Resourcestring
   SErrOddNumber = 'TJSONObject must be constructed with name,value pairs';
   SErrNameMustBeString = 'TJSONObject constructor element name at pos %d is not a string';
   SErrNonexistentElement = 'Unknown object member: "%s"';
-  
+  SErrPathElementNotFound = 'Path "%s" invalid: element "%s" not found.';
+
 Function StringToJSONString(const S : TJSONStringType) : TJSONStringType;
 
 Var
@@ -573,6 +579,18 @@ begin
   Clear;
 end;
 
+function TJSONData.DoFindPath(const APath: TJSONStringType; out
+  NotFound: TJSONStringType): TJSONdata;
+begin
+  If APath<>'' then
+    begin
+    NotFound:=APath;
+    Result:=Nil;
+    end
+  else
+    Result:=Self;
+end;
+
 function TJSONData.GetIsNull: Boolean;
 begin
   Result:=False;
@@ -583,19 +601,40 @@ begin
   JSONType:=jtUnknown;
 end;
 
+function TJSONData.FindPath(const APath: TJSONStringType): TJSONdata;
+
+Var
+  M : String;
+
+begin
+  Result:=DoFindPath(APath,M);
+end;
+
+function TJSONData.GetPath(const APath: TJSONStringType): TJSONdata;
+
+Var
+  M : String;
+begin
+  Result:=DoFindPath(APath,M);
+  If Result=Nil then
+    Raise EJSON.CreateFmt(SErrPathElementNotFound,[APath,M]);
+end;
+
 procedure TJSONData.SetItem(Index : Integer; const AValue:
   TJSONData);
 begin
   // Do Nothing
 end;
 
-Function TJSONData.FormatJSON(Options : TFormatOptions = DefaultFormat; IndentSize : Integer = DefaultIndentSize) : TJSONStringType;
+function TJSONData.FormatJSON(Options: TFormatOptions; Indentsize: Integer
+  ): TJSONStringType;
 
 begin
   Result:=DoFormatJSON(Options,0,IndentSize);
 end;
 
-Function TJSONData.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+function TJSONData.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
+  Indent: Integer): TJSONStringType;
 
 begin
   Result:=AsJSON;
@@ -1253,6 +1292,39 @@ begin
   Items[Index]:=TJSONString.Create(AValue);
 end;
 
+function TJSONArray.DoFindPath(const APath: TJSONStringType; out
+  NotFound: TJSONStringType): TJSONdata;
+
+Var
+  P,I : integer;
+  E : String;
+
+begin
+  if (APath<>'') and (APath[1]='[') then
+    begin
+    P:=Pos(']',APath);
+    I:=-1;
+    If (P>2) then
+      I:=StrToIntDef(Copy(APath,2,P-2),-1);
+    If (I>=0) and (I<Count) then
+       begin
+       E:=APath;
+       System.Delete(E,1,P);
+       Result:=Items[i].DoFindPath(E,NotFound);
+       end
+    else
+       begin
+       Result:=Nil;
+       If (P>0) then
+         NotFound:=Copy(APath,1,P)
+       else
+         NotFound:=APath;
+       end;
+    end
+  else
+    Result:=inherited DoFindPath(APath, NotFound);
+end;
+
 procedure TJSONArray.Converterror(From: Boolean);
 begin
   If From then
@@ -1329,7 +1401,8 @@ begin
     Result:=StringOfChar(' ',Indent);  
 end;
 
-Function TJSONArray.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
+  Indent: Integer): TJSONStringType;
 
 Var
   I : Integer;
@@ -1430,7 +1503,7 @@ begin
     end;
 end;
 
-constructor TJSONArray.Create(Const Elements: array of const);
+constructor TJSONArray.Create(const Elements: array of const);
 
 Var
   I : integer;
@@ -1445,7 +1518,7 @@ begin
     end;
 end;
 
-Destructor TJSONArray.Destroy;
+destructor TJSONArray.Destroy;
 begin
   FreeAndNil(FList);
   inherited Destroy;
@@ -1630,39 +1703,39 @@ end;
 
 { TJSONObject }
 
-function TJSONObject.GetArrays(Const AName : String): TJSONArray;
+function TJSONObject.GetArrays(const AName: String): TJSONArray;
 begin
   Result:=GetElements(AName) as TJSONArray;
 end;
 
-function TJSONObject.GetBooleans(Const AName : String): Boolean;
+function TJSONObject.GetBooleans(const AName: String): Boolean;
 begin
   Result:=GetElements(AName).AsBoolean;
 end;
 
-function TJSONObject.GetElements(Const AName: string): TJSONData;
+function TJSONObject.GetElements(const AName: string): TJSONData;
 begin
   Result:=TJSONData(FHash.Find(AName));
   If (Result=Nil) then
     Raise EJSON.CreateFmt(SErrNonexistentElement,[AName]);
 end;
 
-function TJSONObject.GetFloats(Const AName : String): TJSONFloat;
+function TJSONObject.GetFloats(const AName: String): TJSONFloat;
 begin
   Result:=GetElements(AName).AsFloat;
 end;
 
-function TJSONObject.GetIntegers(Const AName : String): Integer;
+function TJSONObject.GetIntegers(const AName: String): Integer;
 begin
   Result:=GetElements(AName).AsInteger;
 end;
 
-function TJSONObject.GetInt64s(Const AName : String): Int64;
+function TJSONObject.GetInt64s(const AName: String): Int64;
 begin
   Result:=GetElements(AName).AsInt64;
 end;
 
-function TJSONObject.GetIsNull(Const AName : String): Boolean;
+function TJSONObject.GetIsNull(const AName: String): Boolean;
 begin
   Result:=GetElements(AName).IsNull;
 end;
@@ -1740,6 +1813,40 @@ end;
 procedure TJSONObject.SetStrings(const AName : String; const AValue: TJSONStringType);
 begin
   SetElements(AName,TJSONString.Create(AVAlue));
+end;
+
+function TJSONObject.DoFindPath(const APath: TJSONStringType; out
+  NotFound: TJSONStringType): TJSONdata;
+
+Var
+  N: TJSONStringType;
+  L,P,P2 : Integer;
+
+begin
+  If (APath='') then
+    Exit(Self);
+  N:=APath;
+  L:=Length(N);
+  P:=1;
+  While (P<L) and (N[P]='.') do
+    inc(P);
+  P2:=P;
+  While (P2<=L) and (Not (N[P2] in ['.','['])) do
+    inc(P2);
+   N:=Copy(APath,P,P2-P);
+   If (N='') then
+     Result:=Self
+   else
+     begin
+     Result:=Find(N);
+     If Result=Nil then
+       NotFound:=N+Copy(APath,P2,L-P2)
+     else
+       begin
+       N:=Copy(APath,P2,L-P2+1);
+       Result:=Result.DoFindPath(N,NotFound);
+       end;
+     end;
 end;
 
 procedure TJSONObject.Converterror(From: Boolean);
@@ -1918,7 +2025,8 @@ begin
 end;
 
 
-Function TJSONObject.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+function TJSONObject.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
+  Indent: Integer): TJSONStringType;
 
 Var
   i : Integer;
@@ -2041,7 +2149,7 @@ begin
   FHash.Delete(Index);
 end;
 
-procedure TJSONObject.Delete(Const AName: string);
+procedure TJSONObject.Delete(const AName: string);
 
 Var
   I : Integer;
@@ -2142,7 +2250,7 @@ begin
 end;
 
 function TJSONObject.Get(const AName: String; ADefault: TJSONStringType
-  ): TJSONStringType;
+  ): TJSONStringTYpe;
 Var
   D : TJSONData;
 
