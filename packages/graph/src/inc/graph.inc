@@ -98,7 +98,7 @@ var
   { information for Text Output routines }
   CurrentTextInfo : TextSettingsType;
   CurrentXRatio, CurrentYRatio: graph_float;
-  installedfonts: longint;  { Number of installed fonts }
+  installedfonts: smallint;  { Number of installed fonts }
 
 
   StartXViewPort: smallint; { absolute }
