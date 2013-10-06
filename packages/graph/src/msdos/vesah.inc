@@ -17,7 +17,7 @@
 
 TYPE
 
-  pModeList = ^tModeList;
+  pModeList = ^tModeList;far;
   tModeList = Array [0..255] of word; {list of modes terminated by -1}
                                       {VESA modes are >=100h}
 
