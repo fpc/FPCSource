@@ -19,11 +19,7 @@
 
  ****************************************************************************
 }
-{DEFINE DEBUG_CHARLIE}
-
-{$IFNDEF DEBUG_CHARLIE}
 {$WARNINGS OFF}
-{$ENDIF}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -110,6 +106,8 @@ unit cgcpu;
         }
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
+        function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
+        procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
 
      end;
 
@@ -240,9 +238,6 @@ unit cgcpu;
         pushsize : tcgsize;
         ref : treference;
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_load_reg');_cgpara
-{$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
 { TODO: FIX ME! check_register_size()}
         // check_register_size(size,r);
@@ -268,9 +263,6 @@ unit cgcpu;
         pushsize : tcgsize;
         ref : treference;
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_load_const');_cgpara
-{$endif DEBUG_CHARLIE}
         if use_push(cgpara) then
           begin
             cgpara.check_simple_location;
@@ -337,10 +329,6 @@ unit cgcpu;
         len : tcgint;
         href : treference;
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_load_ref');_cgpara
-{$endif DEBUG_CHARLIE}
-
         { cgpara.size=OS_NO requires a copy on the stack }
         if use_push(cgpara) then
           begin
@@ -372,9 +360,6 @@ unit cgcpu;
         tmpreg : tregister;
         opsize : topsize;
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_loadaddr_ref');_cgpara
-{$endif DEBUG_CHARLIE}
         with r do
           begin
             { i suppose this is not required for m68k (KB) }
@@ -690,9 +675,6 @@ unit cgcpu;
 	tmpreg : tregister;
         instr : taicpu;
       begin
-{$ifdef DEBUG_CHARLIE}
-	list.concat(tai_comment.create(strpnew('a_call_reg')));
-{$endif}
 	if isaddressregister(reg) then
 	  begin
 	    { if we have an address register, we can jump to the address directly }
@@ -714,10 +696,6 @@ unit cgcpu;
 
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_load_const_reg');
-{$endif DEBUG_CHARLIE}
-
         if isaddressregister(register) then
          begin
            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
@@ -749,10 +727,6 @@ unit cgcpu;
         hreg : tregister;
         href : treference;
       begin
-{$ifdef DEBUG_CHARLIE}
-        list.concat(tai_comment.create(strpnew('a_load_const_ref')));
-{$endif DEBUG_CHARLIE}
-
         href:=ref;
         fixref(list,href);
         { for coldfire we need to go through a temporary register if we have a
@@ -781,9 +755,6 @@ unit cgcpu;
       begin
         href := ref;
         fixref(list,href);
-{$ifdef DEBUG_CHARLIE}
-        list.concat(tai_comment.create(strpnew('a_load_reg_ref')));
-{$endif DEBUG_CHARLIE}
         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
           size:=fromsize
         else
@@ -805,10 +776,7 @@ unit cgcpu;
         bref := dref;
         fixref(list,aref);
         fixref(list,bref);
-{$ifdef DEBUG_CHARLIE}
-//        writeln('a_load_ref_ref');
-{$endif DEBUG_CHARLIE}
-        if fromsize<>tosize then
+        if TCGSize2OpSize[fromsize]<>TCGSize2OpSize[tosize] then
           begin
             { if we need to change the size then always use a temporary
               register }
@@ -1041,139 +1009,92 @@ unit cgcpu;
               { Optimized, replaced with a simple load }
               a_load_const_reg(list,size,a,reg);
             end;
-          OP_ADD :
+          OP_ADD,
+          OP_SUB:
               begin
-                if (a >= 1) and (a <= 8) then
-                    list.concat(taicpu.op_const_reg(A_ADDQ,S_L,a, reg))
-                else
-                  begin
-                    { all others, including coldfire }
-                    list.concat(taicpu.op_const_reg(A_ADD,S_L,a, reg));
-                  end;
+                { add/sub works the same way, so have it unified here }
+                if (a >= 1) and (a <= 8) and not isaddressregister(reg) then
+                  if (op = OP_ADD) then
+                    opcode:=A_ADDQ
+                  else
+                    opcode:=A_SUBQ;
+                list.concat(taicpu.op_const_reg(opcode, S_L, a, reg));
               end;
           OP_AND,
-          OP_OR:
+          OP_OR,
+          OP_XOR:
               begin
-                if isaddressregister(reg) then
+                scratch_reg := force_to_dataregister(list, size, reg);
+                list.concat(taicpu.op_const_reg(opcode, S_L, a, scratch_reg));
+                move_if_needed(list, size, scratch_reg, reg);
+              end;
+          OP_DIV,
+          OP_IDIV:
+              begin
+                 internalerror(20020816);
+              end;
+          OP_MUL,
+          OP_IMUL:
+              begin
+                { NOTE: better have this as fast as possible on every CPU in all cases,
+                        because the compiler uses OP_IMUL for array indexing... (KB) }
+                { ColdFire doesn't support MULS/MULU <imm>,dX }
+                if current_settings.cputype in cpu_coldfire then
                   begin
-                    { use scratch register (there is a anda/ora though...) }
-                    scratch_reg:=getintregister(list,OS_INT);
-                    instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg);
-                    add_move_instruction(instr);
-                    list.concat(instr);
-                    list.concat(taicpu.op_const_reg(opcode,S_L,longint(a),scratch_reg));
-                    instr:=taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg);
-                    add_move_instruction(instr);
-                    list.concat(instr);
+                    { move const to a register first }
+                    scratch_reg := getintregister(list,OS_INT);
+                    a_load_const_reg(list, size, a, scratch_reg);
+
+                    { do the multiplication }
+                    scratch_reg2 := force_to_dataregister(list, size, reg);
+                    sign_extend(list, size, scratch_reg2);
+                    list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg,scratch_reg2));
+
+                    { move the value back to the original register }
+                    move_if_needed(list, size, scratch_reg2, reg);
                   end
                 else
-                  list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
-              end;
-          OP_DIV :
-              begin
-                 internalerror(20020816);
-              end;
-          OP_IDIV :
-              begin
-                 internalerror(20020816);
-              end;
-          OP_IMUL :
-              begin
-                if current_settings.cputype<>cpu_MC68020 then
-                  call_rtl_mul_const_reg(list,size,a,reg,'fpc_mul_longint')
-                  else
-                    begin
-                      if (isaddressregister(reg)) then
-                       begin
-                         scratch_reg := getintregister(list,OS_INT);
-                         instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg);
-                         add_move_instruction(instr);
-                         list.concat(instr);
-                         list.concat(taicpu.op_const_reg(A_MULS,S_L,a,scratch_reg));
-                         instr:=taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg);
-                         add_move_instruction(instr);
-                         list.concat(instr);
-                       end
+                  begin
+                    if current_settings.cputype = cpu_mc68020 then
+                      begin
+                        { do the multiplication }
+                        scratch_reg := force_to_dataregister(list, size, reg);
+                        sign_extend(list, size, scratch_reg);
+                        list.concat(taicpu.op_const_reg(opcode,S_L,a,scratch_reg));
+
+                        { move the value back to the original register }
+                        move_if_needed(list, size, scratch_reg, reg);
+                      end
+                    else
+                      { Fallback branch, plain 68000 for now }
+                      { FIX ME: this is slow as hell, but original 68000 doesn't have 32x32 -> 32bit MUL (KB) }
+                      if op = OP_MUL then
+                        call_rtl_mul_const_reg(list, size, a, reg,'fpc_mul_dword')
                       else
-                         list.concat(taicpu.op_const_reg(A_MULS,S_L,a,reg));
-                    end;
-              end;
-          OP_MUL :
-              begin
-                 if current_settings.cputype<>cpu_MC68020 then
-                   call_rtl_mul_const_reg(list,size,a,reg,'fpc_mul_dword')
-                  else
-                    begin
-                      if (isaddressregister(reg)) then
-                       begin
-                         scratch_reg := getintregister(list,OS_INT);
-                         instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg);
-                         add_move_instruction(instr);
-                         list.concat(instr);
-                         list.concat(taicpu.op_const_reg(A_MULU,S_L,a,scratch_reg));
-                         instr:=taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg);
-                         add_move_instruction(instr);
-                         list.concat(instr);
-                       end
-                      else
-                         list.concat(taicpu.op_const_reg(A_MULU,S_L,a,reg));
-                    end;
+                        call_rtl_mul_const_reg(list, size, a, reg,'fpc_mul_longint');
+                  end;
               end;
           OP_SAR,
           OP_SHL,
           OP_SHR :
               begin
+                scratch_reg := force_to_dataregister(list, size, reg);
+                sign_extend(list, size, scratch_reg);
                 if (a >= 1) and (a <= 8) then
-                 begin
-                   { not allowed to shift an address register }
-                   if (isaddressregister(reg)) then
-                     begin
-                       scratch_reg := getintregister(list,OS_INT);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                       list.concat(taicpu.op_const_reg(opcode,S_L,a, scratch_reg));
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                     end
-                   else
-                     list.concat(taicpu.op_const_reg(opcode,S_L,a, reg));
-                 end
-                else
-                 begin
-                   { we must load the data into a register ... :() }
-                   scratch_reg := cg.getintregister(list,OS_INT);
-                   list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, scratch_reg));
-                   { again... since shifting with address register is not allowed }
-                   if (isaddressregister(reg)) then
-                     begin
-                       scratch_reg2 := cg.getintregister(list,OS_INT);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg2);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                       list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, scratch_reg2));
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg2,reg);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                     end
-                   else
-                     list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, reg));
-                 end;
-              end;
-          OP_SUB :
-              begin
-                if (a >= 1) and (a <= 8) then
-                    list.concat(taicpu.op_const_reg(A_SUBQ,S_L,a,reg))
+                  begin
+                    list.concat(taicpu.op_const_reg(opcode, S_L, a, scratch_reg));
+                  end
                 else
                   begin
-                    { all others, including coldfire }
-                    list.concat(taicpu.op_const_reg(A_SUB,S_L,a, reg));
+                    { move const to a register first }
+                    scratch_reg2 := getintregister(list,OS_INT);
+                    a_load_const_reg(list, size, a, scratch_reg2);
+
+                    { do the operation }
+                    list.concat(taicpu.op_reg_reg(opcode, S_L, scratch_reg2, scratch_reg));
                   end;
-              end;
-          OP_XOR :
-              begin
-                list.concat(taicpu.op_const_reg(A_EORI,S_L,a, reg));
+                { move the value back to the original register }
+                move_if_needed(list, size, scratch_reg, reg);
               end;
         else
             internalerror(20020729);
@@ -1209,51 +1130,38 @@ unit cgcpu;
 
     procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
-       hreg1,hreg2,r,r2: tregister;
-       instr : taicpu;
-       paraloc1,paraloc2,paraloc3 : tcgpara;
+        hreg1, hreg2,r,r2: tregister;
+        instr : taicpu;
+        opcode : tasmop;
+        opsize : topsize;
       begin
+        opcode := topcg2tasmop[op];
+        if current_settings.cputype in cpu_coldfire then
+          opsize := S_L
+        else
+          opsize := TCGSize2OpSize[size];
+
         case op of
-          OP_ADD :
+          OP_ADD,
+          OP_SUB:
               begin
-                 if current_settings.cputype in cpu_ColdFire then
+                if current_settings.cputype in cpu_coldfire then
                   begin
                     { operation only allowed only a longword }
                     sign_extend(list, size, reg1);
                     sign_extend(list, size, reg2);
-                    list.concat(taicpu.op_reg_reg(A_ADD,S_L,reg1, reg2));
-                  end
-                 else
-                  begin
-                    list.concat(taicpu.op_reg_reg(A_ADD,TCGSize2OpSize[size],reg1, reg2));
                   end;
+                list.concat(taicpu.op_reg_reg(opcode, opsize, reg1, reg2));
               end;
           OP_AND,OP_OR,
           OP_SAR,OP_SHL,
-          OP_SHR,OP_SUB,OP_XOR :
+          OP_SHR,OP_XOR:
               begin
-                 { load to data registers }
-                 if (isaddressregister(reg1)) then
-                   begin
-                     hreg1 := getintregister(list,OS_INT);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                   end
-                 else
-                   hreg1 := reg1;
+                { load to data registers }
+                hreg1 := force_to_dataregister(list, size, reg1);
+                hreg2 := force_to_dataregister(list, size, reg2);
 
-                 if (isaddressregister(reg2))  then
-                   begin
-                      hreg2:= getintregister(list,OS_INT);
-                      instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2);
-                      add_move_instruction(instr);
-                      list.concat(instr);
-                   end
-                 else
-                   hreg2 := reg2;
-
-                 if current_settings.cputype in cpu_ColdFire then
+                if current_settings.cputype in cpu_coldfire then
                   begin
                     { operation only allowed only a longword }
                     {!***************************************
@@ -1262,147 +1170,65 @@ unit cgcpu;
                       no need to sign extend the value
                      !
                     }
-                    if op in [OP_AND,OP_OR,OP_SUB,OP_XOR] then
-                       sign_extend(list, size, hreg1);
+                    if op in [OP_AND,OP_OR,OP_XOR] then
+                      sign_extend(list, size, hreg1);
                     sign_extend(list, size, hreg2);
-                    list.concat(taicpu.op_reg_reg(topcg2tasmop[op],S_L,hreg1, hreg2));
-                  end
-                 else
-                  begin
-                    list.concat(taicpu.op_reg_reg(topcg2tasmop[op],TCGSize2OpSize[size],hreg1, hreg2));
                   end;
+                list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
 
-                 { move back result into destination register }
-                 if reg2 <> hreg2 then
-                   begin
-                      instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2);
-                      add_move_instruction(instr);
-                      list.concat(instr);
-                   end;
+                { move back result into destination register }
+                move_if_needed(list, size, hreg2, reg2);
               end;
-          OP_DIV :
-              begin
-                 internalerror(20020816);
-              end;
+          OP_DIV,
           OP_IDIV :
               begin
-                 internalerror(20020816);
+                internalerror(20020816);
               end;
-          OP_IMUL :
+          OP_MUL,
+          OP_IMUL:
               begin
-                 sign_extend(list, size,reg1);
-                 sign_extend(list, size,reg2);
-                 if current_settings.cputype<>cpu_MC68020 then
-                   call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_longint')
+                if current_settings.cputype <> cpu_mc68020 then
+                  if op = OP_MUL then
+                    call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_dword')
                   else
-                    begin
-//                     writeln('doing 68020');
+                    call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_longint')
+                else
+                  begin
+                    { 68020+ codepath, probably could be improved to
+                      include more CPUs... (KB) }
+                    hreg1 := force_to_dataregister(list, size, reg1);
+                    hreg2 := force_to_dataregister(list, size, reg2);
 
-                     if (isaddressregister(reg1)) then
-                       hreg1 := getintregister(list,OS_INT)
-                     else
-                       hreg1 := reg1;
-                     if (isaddressregister(reg2))  then
-                       hreg2:= getintregister(list,OS_INT)
-                     else
-                       hreg2 := reg2;
+                    sign_extend(list, size, hreg1);
+                    sign_extend(list, size, hreg2);
 
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
+                    list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
 
-                     list.concat(taicpu.op_reg_reg(A_MULS,S_L,reg1,reg2));
-
-                     { move back result into destination register }
-
-                     if reg2 <> hreg2 then
-                       begin
-                          instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2);
-                          add_move_instruction(instr);
-                          list.concat(instr);
-                       end;
-                    end;
-              end;
-          OP_MUL :
-              begin
-                 sign_extend(list, size,reg1);
-                 sign_extend(list, size,reg2);
-                 if current_settings.cputype <> cpu_MC68020 then
-                   call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_dword')
-                  else
-                    begin
-                     if (isaddressregister(reg1)) then
-                      begin
-                       hreg1 := cg.getintregister(list,OS_INT);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                      end
-                     else
-                       hreg1 := reg1;
-
-                     if (isaddressregister(reg2))  then
-                      begin
-                       hreg2:= cg.getintregister(list,OS_INT);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2);
-                       add_move_instruction(instr);
-                       list.concat(instr);
-                      end
-                     else
-                       hreg2 := reg2;
-
-                     list.concat(taicpu.op_reg_reg(A_MULU,S_L,reg1,reg2));
-
-                     { move back result into destination register }
-                     if reg2<>hreg2 then
-                       begin
-                          instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2);
-                          add_move_instruction(instr);
-                          list.concat(instr);
-                       end;
-                    end;
+                    { move back result into destination register }
+                    move_if_needed(list, size, hreg2, reg2);
+                  end;
               end;
           OP_NEG,
           OP_NOT :
-              Begin
+              begin
                 { if there are two operands, move the register,
                   since the operation will only be done on the result
-                  register.
-                }
+                  register. }
                 if reg1 <> NR_NO then
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,reg1,reg2);
+                  hreg1:=reg1
+                else
+                  hreg1:=reg2;
 
-                if (isaddressregister(reg2)) then
-                  begin
-                     hreg2 := getintregister(list,OS_INT);
-                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2);
-                     add_move_instruction(instr);
-                     list.concat(instr);
-                   end
-                  else
-                    hreg2 := reg2;
+                hreg2 := force_to_dataregister(list, size, hreg1);
 
                 { coldfire only supports long version }
                 if current_settings.cputype in cpu_ColdFire then
-                  begin
-                    sign_extend(list, size,hreg2);
-                    list.concat(taicpu.op_reg(topcg2tasmop[op],S_L,hreg2));
-                  end
-                else
-                  begin
-                    list.concat(taicpu.op_reg(topcg2tasmop[op],TCGSize2OpSize[size],hreg2));
-                  end;
+                  sign_extend(list, size, hreg2);
 
-                if reg2 <> hreg2 then
-                  begin
-                    instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2);
-                    add_move_instruction(instr);
-                    list.concat(instr);
-                  end;
+                list.concat(taicpu.op_reg(opcode, opsize, hreg2));
 
+                { move back the result to the result register if needed }
+                move_if_needed(list, size, hreg2, reg2);
               end;
         else
             internalerror(20020729);
@@ -1414,49 +1240,53 @@ unit cgcpu;
     procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);
       var
-       hregister : tregister;
-       instr : taicpu;
+        hregister : tregister;
+        instr : taicpu;
+        need_temp_reg : boolean;
+        temp_size: topsize;
       begin
-       if a = 0 then
-         begin
-           if (current_settings.cputype = cpu_MC68000) and isaddressregister(reg) then
-             begin
-               {
-                 68000 does not seem to like address register for TST instruction
-               }
-               { always move to a data register }
-               hregister := getintregister(list,OS_INT);
-               instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,hregister);
-               add_move_instruction(instr);
-               list.concat(instr);
-               { sign/zero extend the register }
-               sign_extend(list, size,hregister);
-               reg:=hregister;
-             end;
-           list.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[size],reg));
-         end
-       else
-         begin
-           if (current_settings.cputype in cpu_ColdFire) then
-             begin
-               {
-                 only longword comparison is supported,
-                 and only on data registers.
-               }
-               hregister := getintregister(list,OS_INT);
-               { always move to a data register }
-               instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,hregister);
-               add_move_instruction(instr);
-               list.concat(instr);
-               { sign/zero extend the register }
-               sign_extend(list, size,hregister);
-               list.concat(taicpu.op_const_reg(A_CMPI,S_L,a,hregister));
-             end
-           else
-             begin
-               list.concat(taicpu.op_const_reg(A_CMPI,TCGSize2OpSize[size],a,reg));
-             end;
-         end;
+        need_temp_reg := false;
+
+        { plain 68000 doesn't support address registers for TST }
+        need_temp_reg := (current_settings.cputype = cpu_mc68000) and
+          (a = 0) and isaddressregister(reg);
+
+        { ColdFire doesn't support address registers for CMPI }
+        need_temp_reg := need_temp_reg or ((current_settings.cputype in cpu_coldfire)
+          and (a <> 0) and isaddressregister(reg));
+
+        if need_temp_reg then
+          begin
+            hregister := getintregister(list,OS_INT);
+            temp_size := TCGSize2OpSize[size];
+            if temp_size < S_W then
+              temp_size := S_W;
+            instr:=taicpu.op_reg_reg(A_MOVE,temp_size,reg,hregister);
+            add_move_instruction(instr);
+            list.concat(instr);
+            reg := hregister;
+
+            { do sign extension if size had to be modified }
+            if temp_size <> TCGSize2OpSize[size] then
+              begin
+                sign_extend(list, size, reg);
+                size:=OS_INT;
+              end;
+          end;
+
+        if a = 0 then
+          list.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[size],reg))
+        else 
+          begin
+            { ColdFire also needs S_L for CMPI }
+            if current_settings.cputype in cpu_coldfire then
+              begin
+                sign_extend(list, size, reg);
+                size:=OS_INT;
+              end;
+            list.concat(taicpu.op_const_reg(A_CMPI,TCGSize2OpSize[size],a,reg));
+          end;
+
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
       end;
@@ -1691,10 +1521,6 @@ unit cgcpu;
         r,rsp: TRegister;
         ref  : TReference;
       begin
-{$ifdef DEBUG_CHARLIE}
-//        writeln('proc entry, localsize:',localsize);
-{$endif DEBUG_CHARLIE}
-
         if not nostackframe then
           begin
 	    if localsize<>0 then
@@ -1756,9 +1582,6 @@ unit cgcpu;
         if not nostackframe then
           begin
             localsize := current_procinfo.calc_stackframe_size;
-{$ifdef DEBUG_CHARLIE}
-//            writeln('proc exit with stackframe, size:',localsize,' parasize:',parasize);
-{$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
 	    parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
 	                                                            correct here, but at least it looks less
@@ -1805,9 +1628,6 @@ unit cgcpu;
           end
         else
           begin
-{$ifdef DEBUG_CHARLIE}
-//            writeln('proc exit, no stackframe');
-{$endif DEBUG_CHARLIE}
             list.concat(taicpu.op_none(A_RTS,S_NO));
           end;
 
@@ -1965,6 +1785,41 @@ unit cgcpu;
          ai.is_jmp:=true;
          list.concat(ai);
        end;
+
+    { ensures a register is a dataregister. this is often used, as 68k can't do lots of
+      operations on an address register. if the register is a dataregister anyway, it
+      just returns it untouched.}
+    function tcg68k.force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
+      var
+        scratch_reg: TRegister;
+        instr: Taicpu;
+      begin
+        if isaddressregister(reg) then
+          begin
+            scratch_reg:=getintregister(list,OS_INT);
+            instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg);
+            add_move_instruction(instr);
+            list.concat(instr);
+            result:=scratch_reg;
+          end
+        else
+          result:=reg;
+      end;
+
+    { moves source register to destination register, if the two are not the same. can be used in pair
+      with force_to_dataregister() }
+    procedure tcg68k.move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
+      var
+        instr: Taicpu;
+      begin
+        if (src <> dest) then
+          begin
+            instr:=taicpu.op_reg_reg(A_MOVE,S_L,src,dest);
+            add_move_instruction(instr);
+            list.concat(instr);
+          end;
+      end;
+
 
 
     procedure tcg68k.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
