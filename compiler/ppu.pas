@@ -846,11 +846,12 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getqword;
-{$else cpu64bitalu}
-  result:=getdword;
-{$endif cpu64bitalu}
+  case sizeof(aword) of
+    8: result:=getqword;
+    4: result:=getdword;
+    2: result:=getword;
+    1: result:=getbyte;
+  end;
 {$endif not generic_cpu}
 end;
 
