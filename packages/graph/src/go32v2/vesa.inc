@@ -2615,34 +2615,9 @@ Const
         LogLn('Prepare to save VESA video state');
 {$endif logging}
     { Prepare to save video state...}
-    asm
-      mov  ax, 4F04h       { get buffer size to save state }
-      mov  dx, 00h
-      mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-{$ifdef fpc}
-      push ebx
-      push ebp
-      push esi
-      push edi
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-      pop edi
-      pop esi
-      pop ebp
-{$endif fpc}
-      mov  [StateSize], bx
-{$ifdef fpc}
-      pop ebx
-{$endif fpc}
-      cmp  al,04fh
-      jnz  @notok
-      mov  [SaveSupported],TRUE
-     @notok:
-    end ['EDX','ECX','EAX'];
-    regs.eax := $4f04;
+    regs.eax := $4F04;     { get buffer size to save state }
     regs.edx := $0000;
-    regs.ecx := $000F;
+    regs.ecx := $000F;     { Save DAC / Data areas / Hardware states }
     RealIntr($10, regs);
     StateSize := word(regs.ebx);
     if byte(regs.eax) = $4f then
