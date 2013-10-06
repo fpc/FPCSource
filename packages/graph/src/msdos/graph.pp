@@ -48,10 +48,6 @@ CONST
   m1280x1024x32k    = $119;
   m1280x1024x64k    = $11A;
 
-const
-  UseLFB : boolean = false;
-  UseNoSelector : boolean = false;
-  LFBPointer : pointer = nil;
 { Helpful variable to get save/restore support in IDE PM }
 const
   DontClearGraphMemory : boolean = false;
@@ -3706,7 +3702,7 @@ const CrtAddress: word = 0;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
-(*         { now check all supported modes...}
+         { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
              InitMode(mode);
@@ -3818,7 +3814,7 @@ const CrtAddress: word = 0;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
-             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
+//             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -3933,7 +3929,7 @@ const CrtAddress: word = 0;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
-             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
+//             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -4048,7 +4044,7 @@ const CrtAddress: word = 0;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
-             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
+//             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -4163,7 +4159,7 @@ const CrtAddress: word = 0;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
-             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
+//             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -4219,7 +4215,7 @@ const CrtAddress: word = 0;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
-           end;*)
+           end;
        end;
    end;
 
