@@ -290,10 +290,15 @@ unit cgcpu;
                   { Optimized, replaced with a simple load }
                   a_load_const_reg(list,size,a,reg);
                 end;
-              OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+              OP_ADD, OP_SUB:
                 begin
-                  if (longword(a) = high(longword)) and
-                     (op in [OP_AND,OP_OR,OP_XOR]) then
+                  get_32bit_ops(op, op1, op2);
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
+                end;
+              OP_AND, OP_OR, OP_XOR:
+                begin
+                  if longword(a) = high(longword) then
                     begin
                       case op of
                         OP_AND:
@@ -305,13 +310,14 @@ unit cgcpu;
                             list.concat(taicpu.op_reg(A_NOT,S_W,reg));
                             list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(reg)));
                           end;
+                        else
+                          InternalError(2013100701);
                       end
                     end
                   else
                   begin
-                    get_32bit_ops(op, op1, op2);
-                    list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
-                    list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
+                    a_op_const_reg(list,op,OS_16,aint(a and $FFFF),reg);
+                    a_op_const_reg(list,op,OS_16,aint(a shr 16),GetNextReg(reg));
                   end;
                 end;
               OP_SHR,OP_SHL,OP_SAR:
@@ -493,10 +499,16 @@ unit cgcpu;
                   { Optimized, replaced with a simple load }
                   a_load_const_ref(list,size,a,ref);
                 end;
-              OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+              OP_ADD, OP_SUB:
                 begin
-                  if (longword(a) = high(longword)) and
-                     (op in [OP_AND,OP_OR,OP_XOR]) then
+                  get_32bit_ops(op, op1, op2);
+                  list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
+                end;
+              OP_AND, OP_OR, OP_XOR:
+                begin
+                  if longword(a) = high(longword) then
                     begin
                       case op of
                         OP_AND:
@@ -509,14 +521,15 @@ unit cgcpu;
                             inc(tmpref.offset, 2);
                             list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
                           end;
+                        else
+                          InternalError(2013100701);
                       end
                     end
                   else
                   begin
-                    get_32bit_ops(op, op1, op2);
-                    list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
+                    a_op_const_ref(list,op,OS_16,aint(a and $FFFF),tmpref);
                     inc(tmpref.offset, 2);
-                    list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
+                    a_op_const_ref(list,op,OS_16,aint(a shr 16),tmpref);
                   end;
                 end;
               else
