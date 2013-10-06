@@ -97,10 +97,12 @@ unit opttail;
                 { avoid short bool eval here }
                 result:=find_and_replace_tailcalls(tifnode(n).t1) or result;
               end;
+            calln,
             assignn:
               begin
-                if is_resultassignment(tbinarynode(n).left) and
-                   is_recursivecall(tbinarynode(n).right) then
+                if ((n.nodetype=calln) and is_recursivecall(n)) or
+                   ((n.nodetype=assignn) and is_resultassignment(tbinarynode(n).left) and
+                   is_recursivecall(tbinarynode(n).right)) then
                   begin
                     { found one! }
                     {

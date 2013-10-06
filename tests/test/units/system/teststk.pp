@@ -1,4 +1,7 @@
 { %RESULT=202 }
+{ %OPT=-O- }
+{ do not optimize because the code below would cause an endless loop due to tail recursion elimination }
+
 {$ifdef unix}
   {$define nocheck}
 {$endif}
