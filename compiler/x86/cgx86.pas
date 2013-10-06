@@ -2111,9 +2111,11 @@ unit cgx86;
          not((len<=16) and (cm=copy_mmx)) and
          not(len in copy_len_sizes) then
         cm:=copy_string;
+{$ifndef i8086}
       if (source.segment<>NR_NO) or
          (dest.segment<>NR_NO) then
         cm:=copy_string;
+{$endif not i8086}
       case cm of
         copy_move:
           begin
