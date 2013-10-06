@@ -2343,7 +2343,7 @@ End;
 
 
 
-(*
+
  {************************************************************************}
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
@@ -2361,7 +2361,6 @@ End;
 
  Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
-  {$ifndef fpc}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -2379,60 +2378,17 @@ End;
       mov    di, [X]
       xchg   ah, al            { The value of Y must be in AH }
       add    di, ax
-      shr    ax, 2
+      shr    ax, 1
+      shr    ax, 1
       add    di, ax
-      add    di, [VideoOfs]    { point to correct page.. }
+//      add    di, [VideoOfs]    { point to correct page.. }
       mov    ax, [Pixel]
       mov    es:[di], al
-    end;
-  {$else fpc}
-  assembler;
-  asm
-      push eax
-      push ebx
-      push ecx
-      push edi
-{$IFDEF REGCALL}
-      movsx  edi, ax
-      movsx  ebx, dx
-      mov    al, cl
-{$ELSE REGCALL}
-      movsx  edi, x
-      movsx  ebx, y
-{$ENDIF REGCALL}
-      cmp    clippixels, 0
-      je     @putpix320noclip
-      test   edi, edi
-      jl     @putpix320done
-      test   ebx, ebx
-      jl     @putpix320done
-      cmp    di, ViewWidth
-      jg     @putpix320done
-      cmp    bx, ViewHeight
-      jg     @putpix320done
-@putpix320noclip:
-      movsx  ecx, StartYViewPort
-      movsx  edx, StartXViewPort
-      add    ebx, ecx
-      add    edi, edx
-{    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
-{$IFNDEF REGCALL}
-      mov    ax, [pixel]
-{$ENDIF REGCALL}
-      shl    ebx, 6
-      add    edi, ebx
-      mov    fs:[edi+ebx*4+$a0000], al
-@putpix320done:
-      pop edi
-      pop ecx
-      pop ebx
-      pop eax
-{$endif fpc}
+    end ['ax','di'];
  end;
 
 
  Function GetPixel320(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
-  {$ifndef fpc}
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
@@ -2442,40 +2398,14 @@ End;
       mov    di, [X]
       xchg   ah, al            { The value of Y must be in AH }
       add    di, ax
-      shr    ax, 2
+      shr    ax, 1
+      shr    ax, 1
       add    di, ax
       xor    ax, ax
-      add    di, [VideoOfs]   { point to correct gfx page ... }
+//      add    di, [VideoOfs]   { point to correct gfx page ... }
       mov    al,es:[di]
       mov    @Result,ax
-    end;
-  {$else fpc}
-  assembler;
-  asm
-    push ebx
-    push ecx
-    push edx
-    push edi
-{$IFDEF REGCALL}
-    movsx  edi, ax
-    movsx  ebx, dx
-{$ELSE REGCALL}
-    movsx  edi, x
-    movsx  ebx, y
-{$ENDIF REGCALL}
-    movsx  ecx, StartYViewPort
-    movsx  edx, StartXViewPort
-    add    ebx, ecx
-    add    edi, edx
- {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
-    shl    ebx, 6
-    add    edi, ebx
-    movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
-    pop edi
-    pop edx
-    pop ecx
-    pop ebx
- {$endif fpc}
+    end ['ax','di'];
   end;
 
 
@@ -2554,7 +2484,7 @@ End;
   begin
     VideoOfs := 0;
   end;
-
+(*
  {************************************************************************}
  {*                       Mode-X related routines                        *}
  {************************************************************************}
@@ -3671,7 +3601,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
 
 
-(*         InitMode(mode);
+         InitMode(mode);
          { now add all standard VGA modes...       }
          mode.DriverNumber:= LowRes;
          mode.HardwarePages:= 0;
@@ -3693,7 +3623,7 @@ const CrtAddress: word = 0;
          mode.YAspect := 10000;
          AddMode(mode);
 
-         { now add all standard VGA modes...       }
+(*         { now add all standard VGA modes...       }
          InitMode(mode);
          mode.DriverNumber:= LowRes;
          mode.ModeNumber:=1;
