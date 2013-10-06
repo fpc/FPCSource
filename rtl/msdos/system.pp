@@ -45,10 +45,10 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 { Default memory segments (Tp7 compatibility) }
-  seg0040 = $0040;
-  segA000 = $A000;
-  segB000 = $B000;
-  segB800 = $B800;
+  seg0040: Word = $0040;
+  segA000: Word = $A000;
+  segB000: Word = $B000;
+  segB800: Word = $B800;
 
 var
 { Mem[] support }
