@@ -95,7 +95,7 @@ unit cgcpu;
 {        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;}
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
-{        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;}
+        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -1953,7 +1953,7 @@ unit cgcpu;
       end;
 
 
-(*    procedure tcg64f8086.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
+    procedure tcg64f8086.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1971,14 +1971,42 @@ unit cgcpu;
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
-              list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
+              if (value and $ffffffffffff) = 0 then
+                begin
+                  inc(tempref.offset,6);
+                  list.concat(taicpu.op_const_ref(op1,S_W,aint((value shr 48) and $ffff),tempref));
+                end
+              else if (value and $ffffffff) = 0 then
+                begin
+                  inc(tempref.offset,4);
+                  list.concat(taicpu.op_const_ref(op1,S_W,aint((value shr 32) and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 48) and $ffff),tempref));
+                end
+              else if (value and $ffff) = 0 then
+                begin
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op1,S_W,aint((value shr 16) and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 32) and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 48) and $ffff),tempref));
+                end
+              else
+                begin
+                  list.concat(taicpu.op_const_ref(op1,S_W,aint(value and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 16) and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 32) and $ffff),tempref));
+                  inc(tempref.offset,2);
+                  list.concat(taicpu.op_const_ref(op2,S_W,aint((value shr 48) and $ffff),tempref));
+                end;
             end;
           else
             internalerror(200204022);
         end;
-      end;*)
+      end;
 
     procedure create_codegen;
       begin
