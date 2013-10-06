@@ -49,11 +49,6 @@ const
   modelRGB           = $06;
   modelYUV           = $07;
 
-{$ifndef dpmi}
-{$i vesah.inc}
-{ otherwise it's already included in graph.pp }
-{$endif dpmi}
-
 var
 
   BytesPerLine: word;              { Number of bytes per scanline }
@@ -77,134 +72,45 @@ var
   ScanLines: word;        { maximum number of scan lines for mode }
 
 
-{$IFDEF DPMI}
+{//$IFDEF DPMI}
 
   function getVESAInfo(var VESAInfo: TVESAInfo) : boolean;
    var
-    ptrlong : longint;
-    VESAPtr : ^TVESAInfo;
     st : string[4];
     regs : Registers;
-{$ifndef fpc}
-    ModeSel: word;
-    offs: longint;
-{$endif fpc}
-    { added... }
-    modelist: PmodeList;
-    i: longint;
-    RealSeg : word;
+    i: smallint;
    begin
-    { Allocate real mode buffer }
-{$ifndef fpc}
-    Ptrlong:=GlobalDosAlloc(sizeof(TVESAInfo));
-    { Get selector value }
-    VESAPtr := pointer(Ptrlong shl 16);
-{$else fpc}
-    Ptrlong:=Global_Dos_Alloc(sizeof(TVESAInfo));
-    New(VESAPtr);
-{$endif fpc}
-    { Get segment value }
-    RealSeg := word(Ptrlong shr 16);
-    if not assigned(VESAPtr) then
-      RunError(203);
-    FillChar(regs, sizeof(regs), #0);
-
     { Get VESA Mode information ... }
-    regs.eax := $4f00;
-    regs.es := RealSeg;
-    regs.edi := $00;
-    RealIntr($10, regs);
-{$ifdef fpc}
-   { no far pointer support in FPC yet, so move the vesa info into a memory }
-   { block in the DS slector space (JM)                                     }
-    dosmemget(RealSeg,0,VesaPtr^,SizeOf(TVESAInfo));
-{$endif fpc}
-    St:=Vesaptr^.signature;
+    regs.ax := $4f00;
+    regs.es := Seg(VESAInfo);
+    regs.di := Ofs(VESAInfo);
+    Intr($10, regs);
+    St:=VESAInfo.signature;
     if st<>'VESA' then
      begin
 {$ifdef logging}
          LogLn('No VESA detected.');
 {$endif logging}
          getVesaInfo := FALSE;
-{$ifndef fpc}
-         GlobalDosFree(word(PtrLong and $ffff));
-{$else fpc}
-         If not Global_Dos_Free(word(PtrLong and $ffff)) then
-           RunError(216);
-         { also free the extra allocated buffer }
-         Dispose(VESAPtr);
-{$endif fpc}
          exit;
      end
     else
       getVesaInfo := TRUE;
 
-{$ifndef fpc}
-    { The mode pointer buffer points to a real mode memory }
-    { Therefore steps to get the modes:                    }
-    {  1. Allocate Selector and SetLimit to max number of  }
-    {     of possible modes.                               }
-    ModeSel := AllocSelector(0);
-    SetSelectorLimit(ModeSel, 256*sizeof(word));
-
-    {  2. Set Selector linear address to the real mode pointer }
-    {     returned.                                            }
-    offs := longint(longint(VESAPtr^.ModeList) shr 16) shl 4;
-   {shouldn't the OR in the next line be a + ?? (JM)}
-    offs :=  offs OR (Longint(VESAPtr^.ModeList) and $ffff);
-    SetSelectorBase(ModeSel, offs);
-
-     { copy VESA mode information to a protected mode buffer and }
-     { then free the real mode buffer...                         }
-     Move(VESAPtr^, VESAInfo, sizeof(VESAInfo));
-     GlobalDosFree(word(PtrLong and $ffff));
-
-    { ModeList points to the mode list     }
-    { We must copy it somewhere...         }
-    ModeList := Ptr(ModeSel, 0);
-
-{$else fpc}
-    { No far pointer support, so the Ptr(ModeSel, 0) doesn't work.     }
-    { Immediately copy everything to a buffer in the DS selector space }
-     New(ModeList);
-    { The following may copy data from outside the VESA buffer, but it   }
-    { shouldn't get past the 1MB limit, since that would mean the buffer }
-    { has been allocated in the BIOS or high memory region, which seems  }
-    { impossible to me (JM)}
-     DosMemGet(word(longint(VESAPtr^.ModeList) shr 16),
-        word(longint(VESAPtr^.ModeList) and $ffff), ModeList^,256*sizeof(word));
-
-     { copy VESA mode information to a protected mode buffer and }
-     { then free the real mode buffer...                         }
-     Move(VESAPtr^, VESAInfo, sizeof(VESAInfo));
-     If not Global_Dos_Free(word(PtrLong and $ffff)) then
-       RunError(216);
-     Dispose(VESAPtr);
-{$endif fpc}
-
     i:=0;
-    new(VESAInfo.ModeList);
-    while ModeList^[i]<> $ffff do
+    while VESAInfo.ModeList^[i]<> $ffff do
      begin
 {$ifdef logging}
-      LogLn('Found mode $'+hexstr(ModeList^[i],4));
+      LogLn('Found mode $'+hexstr(VESAInfo.ModeList^[i],4));
 {$endif loggin}
-      VESAInfo.ModeList^[i] := ModeList^[i];
       Inc(i);
      end;
-    VESAInfo.ModeList^[i]:=$ffff;
-    { Free the temporary selector used to get mode information }
 {$ifdef logging}
     LogLn(strf(i) + ' modes found.');
 {$endif logging}
-{$ifndef fpc}
-    FreeSelector(ModeSel);
-{$else fpc}
-    Dispose(ModeList);
-{$endif fpc}
    end;
 
-  function getVESAModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
+(*  function getVESAModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
    var
     Ptr: longint;
 {$ifndef fpc}
@@ -2884,4 +2790,4 @@ Const
     YOffset := (MaxY+1)*page;
     LinearPageOfs := YOffset*(MaxX+1);
   end;
-
+*)

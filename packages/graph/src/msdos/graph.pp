@@ -3025,7 +3025,7 @@ const CrtAddress: word = 0;
  {************************************************************************}
  {*                       VESA related routines                          *}
  {************************************************************************}
-{//$I vesa.inc}
+{$I vesa.inc}
 
  {************************************************************************}
  {*                       General routines                               *}
@@ -3682,7 +3682,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-(*     { check if VESA adapter supPorted...      }
+     { check if VESA adapter supPorted...      }
 {$ifndef noSupPortVESA}
      hasVesa := getVesaInfo(VESAInfo);
      { VBE Version v1.00 is unstable, therefore }
@@ -3692,7 +3692,7 @@ const CrtAddress: word = 0;
 {$else noSupPortVESA}
      hasVESA := false;
 {$endif noSupPortVESA}
-     if hasVesa then
+(*     if hasVesa then
        begin
          { We have to set and restore the entire VESA state }
          { otherwise, if we use the VGA BIOS only function  }
