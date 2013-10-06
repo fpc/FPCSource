@@ -76,20 +76,6 @@ var
 
   ScanLines: word;        { maximum number of scan lines for mode }
 
-function hexstr(val : longint;cnt : byte) : string;
-const
-  HexTbl : array[0..15] of char='0123456789ABCDEF';
-var
-  i : longint;
-begin
-  hexstr[0]:=char(cnt);
-  for i:=cnt downto 1 do
-   begin
-     hexstr[i]:=hextbl[val and $f];
-     val:=val shr 4;
-   end;
-end;
-
 
 {$IFDEF DPMI}
 
