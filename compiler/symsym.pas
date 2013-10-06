@@ -2057,9 +2057,9 @@ implementation
          ref:=nil;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
          absseg:=false;
-{$endif i386}
+{$endif i386 or i8086}
          case abstyp of
            tovar :
              ref:=ppufile.getpropaccesslist;
@@ -2068,9 +2068,13 @@ implementation
            toaddr :
              begin
                addroffset:=ppufile.getaword;
-{$ifdef i386}
+{$if defined(i386)}
                absseg:=boolean(ppufile.getbyte);
-{$endif i386}
+{$elseif defined(i8086)}
+               absseg:=boolean(ppufile.getbyte);
+               if absseg then
+                 addrsegment:=ppufile.getaword;
+{$endif}
              end;
          end;
       end;
@@ -2088,9 +2092,13 @@ implementation
            toaddr :
              begin
                ppufile.putaword(addroffset);
-{$ifdef i386}
+{$if defined(i386)}
                ppufile.putbyte(byte(absseg));
-{$endif i386}
+{$elseif defined(i8086)}
+               ppufile.putbyte(byte(absseg));
+               if absseg then
+                 ppufile.putaword(addrsegment);
+{$endif}
              end;
          end;
          ppufile.writeentry(ibabsolutevarsym);
