@@ -3814,7 +3814,7 @@ implementation
                 if para.parasym.varspez=vs_const then
                   pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
                 { check if we have to create a temp, assign the parameter's }
-                { contents to that temp and then substitute the paramter    }
+                { contents to that temp and then substitute the parameter   }
                 { with the temp everywhere in the function                  }
                 if
                   ((tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
@@ -3904,20 +3904,6 @@ implementation
                       begin
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
                           tt_persistent,tparavarsym(para.parasym).is_regvar(false));
-
-                        { inherit const }
-                        if tabstractvarsym(para.parasym).varspez=vs_const then
-                          begin
-                            include(tempnode.tempinfo^.flags,ti_const);
-
-                            { apply less strict rules for the temp. to be a register than
-                              ttempcreatenode does
-
-                              this way, dyn. array, ansistrings etc. can be put into registers as well }
-                            if tparavarsym(para.parasym).is_regvar(false) then
-                              include(tempnode.tempinfo^.flags,ti_may_be_in_reg);
-                          end;
-
                         addstatement(inlineinitstatement,tempnode);
 
                         if localvartrashing <> -1 then
