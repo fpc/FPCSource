@@ -22,7 +22,14 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, fpjson;
 
 type
-
+   TMyNull     = Class(TJSONNull);
+   TMyInteger  = Class(TJSONIntegerNumber);
+   TMyInt64    = Class(TJSONInt64Number);
+   TMyFloat    = Class(TJSONFloatNumber);
+   TMyString   = Class(TJSONString);
+   TMyBoolean  = Class(TJSONBoolean);
+   TMyArray    = Class(TJSONArray);
+   TMyObject   = Class(TJSONObject);
 
   { TTestJSONString }
 
@@ -38,7 +45,11 @@ type
   { TTestJSON }
   
   TTestJSON = Class(TTestCase)
+  private
   Protected
+    procedure SetDefaultInstanceTypes;
+    procedure SetMyInstanceTypes;
+    Procedure SetUp; override;
     Procedure TestItemCount(J : TJSONData;Expected : Integer);
     Procedure TestJSONType(J : TJSONData;Expected : TJSONType);
     Procedure TestJSON(J : TJSONData;Expected : String);
@@ -56,6 +67,7 @@ type
   published
     procedure TestNull;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
   
@@ -66,6 +78,7 @@ type
     procedure TestTrue;
     procedure TestFalse;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
   
@@ -79,6 +92,7 @@ type
     procedure TestNegative;
     procedure TestZero;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
 
@@ -92,6 +106,7 @@ type
     procedure TestNegative;
     procedure TestZero;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
   
@@ -105,6 +120,7 @@ type
     procedure TestNegative;
     procedure TestZero;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
 
@@ -122,6 +138,7 @@ type
     Procedure TestBooleanTrue;
     Procedure TestBooleanFalse;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
   
@@ -168,6 +185,7 @@ type
     procedure TestDelete;
     procedure TestRemove;
     Procedure TestClone;
+    Procedure TestMyClone;
     Procedure TestFormat;
   end;
   
@@ -203,6 +221,7 @@ type
     procedure TestDelete;
     procedure TestRemove;
     procedure TestClone;
+    procedure TestMyClone;
     procedure TestExtract;
     Procedure TestNonExistingAccessError;
     Procedure TestFormat;
@@ -250,7 +269,357 @@ type
     Procedure TestDeepRecursive;
   end;
 
+  { TTestFactory }
+
+  TTestFactory = class(TTestJSON)
+  Private
+    FType : TJSONInstanceType;
+    FClass : TJSONDataClass;
+    FData: TJSONData;
+  Protected
+    Procedure DoSet;
+    Procedure TearDown; override;
+    Procedure AssertElement0(AClass : TJSONDataClass);
+    Procedure AssertElementA(AClass : TJSONDataClass);
+    Property Data : TJSONData read FData Write FData;
+  Published
+    Procedure TestSet;
+    Procedure TestSetInvalid;
+    Procedure CreateNull;
+    Procedure CreateInteger;
+    Procedure CreateInt64;
+    Procedure CreateFloat;
+    Procedure CreateBoolean;
+    Procedure CreateString;
+    Procedure CreateArray;
+    Procedure CreateObject;
+    Procedure ArrayAddNull;
+    Procedure ArrayAddInteger;
+    Procedure ArrayAddInt64;
+    Procedure ArrayAddFloat;
+    Procedure ArrayAddBoolean;
+    Procedure ArrayAddString;
+    Procedure ArrayCreateNull;
+    Procedure ArrayCreateInteger;
+    Procedure ArrayCreateInt64;
+    Procedure ArrayCreateFloat;
+    Procedure ArrayCreateBoolean;
+    Procedure ArrayCreateString;
+    Procedure ObjectAddNull;
+    Procedure ObjectAddInteger;
+    Procedure ObjectAddInt64;
+    Procedure ObjectAddFloat;
+    Procedure ObjectAddBoolean;
+    Procedure ObjectAddString;
+    Procedure ObjectCreateNull;
+    Procedure ObjectCreateInteger;
+    Procedure ObjectCreateInt64;
+    Procedure ObjectCreateFloat;
+    Procedure ObjectCreateBoolean;
+    Procedure ObjectCreateString;
+  end;
+
 implementation
+
+{ TTestFactory }
+
+procedure TTestFactory.DoSet;
+begin
+  SetJSONInstanceType(FType,FClass);
+end;
+
+procedure TTestFactory.TearDown;
+begin
+  FreeAndNil(FData);
+  inherited TearDown;
+end;
+
+procedure TTestFactory.AssertElement0(AClass: TJSONDataClass);
+begin
+  AssertEquals('Correct class',TMyArray,Data.ClassType);
+  AssertEquals('Have 1 element',1,Data.Count);
+  AssertEquals('Correct class',AClass,(Data as TJSONArray)[0].ClassType);
+end;
+
+procedure TTestFactory.AssertElementA(AClass: TJSONDataClass);
+begin
+  AssertEquals('Correct class',TMyObject,Data.ClassType);
+  AssertEquals('Have element a',0,TMyObject(Data).IndexOfName('a'));
+  AssertEquals('Correct class',AClass,(Data as TJSONObject).Elements['a'].ClassType);
+end;
+
+procedure TTestFactory.TestSet;
+begin
+  SetMyInstanceTypes;
+  AssertEquals('Correct type for unknown',TJSONData,GetJSONInstanceType(jitUnknown));
+  AssertEquals('Correct type for integer',TMyInteger,GetJSONInstanceType(jitNumberInteger));
+  AssertEquals('Correct type for int64',TMyInt64,GetJSONInstanceType(jitNumberInt64));
+  AssertEquals('Correct type for float',TMyFloat,GetJSONInstanceType(jitNumberFloat));
+  AssertEquals('Correct type for boolean',TMyBoolean,GetJSONInstanceType(jitBoolean));
+  AssertEquals('Correct type for null',TMyNull,GetJSONInstanceType(jitNUll));
+  AssertEquals('Correct type for String',TMyString,GetJSONInstanceType(jitString));
+  AssertEquals('Correct type for Array',TMyArray,GetJSONInstanceType(jitArray));
+  AssertEquals('Correct type for Object',TMyObject,GetJSONInstanceType(jitObject));
+end;
+
+procedure TTestFactory.TestSetInvalid;
+
+Const
+  MyJSONInstanceTypes :
+    Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TMyInteger,
+    TMyInt64,TMyFloat, TMyString, TMyBoolean, TMyNull, TMyArray,
+    TMyObject);
+
+Var
+  Ti : TJSONInstanceType;
+
+begin
+  For ti:=Succ(Low(TJSONInstanceType)) to High(TJSONInstanceType) do
+    begin
+    FType:=Ti;
+    FClass:=MyJSONInstanceTypes[Pred(ti)];
+    AssertException('Set '+FClass.ClassName,EJSON,@DoSet);
+    end;
+  FType:=jitString;
+  FClass:=Nil;
+  AssertException('Set Nil',EJSON,@DoSet);
+end;
+
+procedure TTestFactory.CreateNull;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON;
+  AssertEquals('Correct class',TMyNull,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateInteger;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON(1);
+  AssertEquals('Correct class',TMyInteger,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateInt64;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON(Int64(1));
+  AssertEquals('Correct class',TMyInt64,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateFloat;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON(1.2);
+  AssertEquals('Correct class',TMyFloat,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateBoolean;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON(True);
+  AssertEquals('Correct class',TMyBoolean,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateString;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSON('True');
+  AssertEquals('Correct class',TMyString,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateArray;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray(['True']);
+  AssertEquals('Correct class',TMyArray,Data.ClassType);
+end;
+
+procedure TTestFactory.CreateObject;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a','True']);
+  AssertEquals('Correct class',TMyObject,Data.ClassType);
+end;
+
+procedure TTestFactory.ArrayAddNull;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add();
+  AssertElement0(TMyNull);
+end;
+
+procedure TTestFactory.ArrayAddInteger;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add(1);
+  AssertElement0(TMyInteger);
+end;
+
+procedure TTestFactory.ArrayAddInt64;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add(Int64(1));
+  AssertElement0(TMyInt64);
+end;
+
+procedure TTestFactory.ArrayAddFloat;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add(1.2);
+  AssertElement0(TMyFloat);
+end;
+
+procedure TTestFactory.ArrayAddBoolean;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add(True);
+  AssertElement0(TMyBoolean);
+end;
+
+procedure TTestFactory.ArrayAddString;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([]);
+  TJSONArray(Data).Add('True');
+  AssertElement0(TMyString);
+end;
+
+procedure TTestFactory.ArrayCreateNull;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([Nil]);
+  AssertElement0(TMyNull);
+end;
+
+procedure TTestFactory.ArrayCreateInteger;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([1]);
+  AssertElement0(TMyInteger);
+end;
+
+procedure TTestFactory.ArrayCreateInt64;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([int64(1)]);
+  AssertElement0(TMyInt64);
+end;
+
+procedure TTestFactory.ArrayCreateFloat;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([1.2]);
+  AssertElement0(TMyFloat);
+end;
+
+procedure TTestFactory.ArrayCreateBoolean;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray([True]);
+  AssertElement0(TMyBoolean);
+end;
+
+procedure TTestFactory.ArrayCreateString;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONArray(['true']);
+  AssertElement0(TMyString);
+end;
+
+procedure TTestFactory.ObjectAddNull;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a');
+  AssertElementA(TMyNull);
+end;
+
+procedure TTestFactory.ObjectAddInteger;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a',1);
+  AssertElementA(TMyInteger);
+end;
+
+procedure TTestFactory.ObjectAddInt64;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a',Int64(1));
+  AssertElementA(TMyInt64);
+end;
+
+procedure TTestFactory.ObjectAddFloat;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a',1.2);
+  AssertElementA(TMyFloat);
+end;
+
+procedure TTestFactory.ObjectAddBoolean;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a',True);
+  AssertElementA(TMyBoolean);
+end;
+
+procedure TTestFactory.ObjectAddString;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject([]);
+  TJSONObject(Data).Add('a','True');
+  AssertElementA(TMyString);
+end;
+
+procedure TTestFactory.ObjectCreateNull;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a',Nil]);
+  AssertElementA(TMyNull);
+end;
+
+procedure TTestFactory.ObjectCreateInteger;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a',1]);
+  AssertElementA(TMyInteger);
+end;
+
+procedure TTestFactory.ObjectCreateInt64;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a',int64(1)]);
+  AssertElementA(TMyInt64);
+end;
+
+procedure TTestFactory.ObjectCreateFloat;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a',1.2]);
+  AssertElementA(TMyFloat);
+end;
+
+procedure TTestFactory.ObjectCreateBoolean;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a',True]);
+  AssertElementA(TMyBoolean);
+end;
+
+procedure TTestFactory.ObjectCreateString;
+begin
+  SetMyInstanceTypes;
+  Data:=CreateJSONObject(['a','true']);
+  AssertElementA(TMyString);
+end;
 
 { TTestJSONPath }
 
@@ -503,6 +872,43 @@ begin
 end;
 
 { TTestJSON }
+
+procedure TTestJSON.SetDefaultInstanceTypes;
+
+Const
+  DefJSONInstanceTypes :
+    Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TJSONIntegerNumber,
+    TJSONInt64Number,TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
+    TJSONObject);
+Var
+  Ti : TJSONInstanceType;
+
+begin
+  For ti:=Low(TJSONInstanceType) to High(TJSONInstanceType) do
+   SetJSONInstanceType(Ti,DefJSONInstanceTypes[ti]);
+end;
+
+procedure TTestJSON.SetMyInstanceTypes;
+Const
+  MyJSONInstanceTypes :
+    Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TMyInteger,
+    TMyInt64,TMyFloat, TMyString, TMyBoolean, TMyNull, TMyArray,
+    TMyObject);
+Var
+  Ti : TJSONInstanceType;
+
+begin
+  For ti:=Low(TJSONInstanceType) to High(TJSONInstanceType) do
+   SetJSONInstanceType(Ti,MyJSONInstanceTypes[ti]);
+end;
+
+procedure TTestJSON.SetUp;
+
+
+begin
+  inherited SetUp;
+  SetDefaultInstanceTypes;
+end;
 
 procedure TTestJSON.TestItemCount(J: TJSONData; Expected: Integer);
 begin
@@ -760,6 +1166,27 @@ begin
   end;
 end;
 
+procedure TTestBoolean.TestMyClone;
+Var
+  B : TMyBoolean;
+  D : TJSONData;
+
+begin
+  B:=TMyBoolean.Create(true);
+  try
+    D:=B.Clone;
+    try
+     TestJSONType(D,jtBoolean);
+     AssertEquals('Correct class',TMyBoolean,D.ClassType);
+     TestAsBoolean(D,true);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(B);
+  end;
+end;
+
 procedure TTestBoolean.TestFormat;
 
 Var
@@ -812,6 +1239,26 @@ begin
     D:=J.Clone;
     try
       TestIsNull(D,True);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestNull.TestMyClone;
+Var
+  J : TMyNull;
+  D : TJSONData;
+
+begin
+  J:=TMyNull.Create;
+  try
+    D:=J.Clone;
+    try
+      TestIsNull(D,True);
+      AssertEquals('Correct class',TMyNull,D.ClassType);
     finally
       D.Free;
     end;
@@ -1000,6 +1447,27 @@ begin
   end;
 end;
 
+procedure TTestString.TestMyClone;
+Var
+  S : TMyString;
+  D : TJSONData;
+
+begin
+  S:=TMyString.Create('aloha');
+  try
+    D:=S.Clone;
+    try
+      AssertEquals('Correct class',TMyString,D.ClassType);
+     TestJSONType(D,jtString);
+     TestAsString(D,'aloha');
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(S);
+  end;
+end;
+
 procedure TTestString.TestFormat;
 Var
   S : TJSONString;
@@ -1099,6 +1567,27 @@ begin
 
 end;
 
+procedure TTestInteger.TestMyClone;
+Var
+  I : TMyInteger;
+  D : TJSONData;
+
+begin
+  I:=TMyInteger.Create(99);
+  try
+    D:=I.Clone;
+    try
+     AssertEquals('Correct class',TMyInteger,D.ClassType);
+     TestJSONType(D,jtNumber);
+     TestAsInteger(D,99);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(I);
+  end;
+end;
+
 procedure TTestInteger.TestFormat;
 
 Var
@@ -1177,6 +1666,28 @@ begin
 
 end;
 
+procedure TTestInt64.TestMyClone;
+Var
+  I : TMyInt64;
+  D : TJSONData;
+
+begin
+  I:=TMyInt64.Create(99);
+  try
+    D:=I.Clone;
+    try
+      AssertEquals('Correct class',TMyInt64,D.ClassType);
+     TestJSONType(D,jtNumber);
+     AssertEquals('Numbertype is ntInt64',ord(ntInt64),Ord(TMyInt64(D).NumberType));
+     TestAsInteger(D,99);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(I);
+  end;
+end;
+
 procedure TTestInt64.TestFormat;
 Var
   I : TJSONInt64Number;
@@ -1200,6 +1711,8 @@ Var
   
 begin
   Str(F,S);
+  If S[1]=' ' then
+    Delete(S,1,1);
   J:=TJSONFloatNumber.Create(F);
   try
     TestJSONType(J,jtNumber);
@@ -1265,6 +1778,29 @@ begin
 
 end;
 
+procedure TTestFloat.TestMyClone;
+
+Var
+  F : TMyFloat;
+  D : TJSONData;
+
+begin
+  F:=TMyFloat.Create(1.23);
+  try
+    D:=F.Clone;
+    try
+     AssertEquals('Correct class',TMyFloat,D.ClassType);
+     TestJSONType(D,jtNumber);
+     AssertEquals('Numbertype is ntFloat',ord(ntFloat),Ord(TMyFloat(D).NumberType));
+     TestAsFloat(D,1.23);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(F);
+  end;
+end;
+
 procedure TTestFloat.TestFormat;
 
 Var
@@ -1325,7 +1861,7 @@ begin
   end;
 end;
 
-procedure TTestArray.TestCreatePChar;
+procedure TTestArray.TestCreatePchar;
 
 Const
   S = 'A string';
@@ -1405,6 +1941,7 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[0],jtNumber);
     Str(S,R);
+    Delete(R,1,1);
     TestJSON(J,'['+R+']');
   finally
     FreeAndNil(J);
@@ -1489,15 +2026,18 @@ procedure TTestArray.TestCreateObject;
 
 Var
   J : TJSONArray;
+  O : TObject;
   
 begin
   J:=Nil;
   try
     Try
-      J:=TJSONArray.Create([TObject.Create]);
+      O:=TObject.Create;
+      J:=TJSONArray.Create([O]);
       Fail('Array constructor accepts only TJSONData');
     finally
       FreeAndNil(J);
+      FreeAndNil(O);
     end;
   except
     // Should be OK.
@@ -1604,6 +2144,7 @@ begin
     AssertEquals('J.Floats[0]='+FloatToStr(F),F,J.Floats[0]);
     TestAsFloat(J[0],F);
     Str(F,S);
+    Delete(S,1,1);
     TestJSON(J,'['+S+']');
   finally
     FreeAndNil(J);
@@ -1804,8 +2345,10 @@ begin
     AssertEquals('J.Floats[0]='+FloatToStr(F),F,J.Floats[0]);
     TestAsFloat(J[0],F);
     Str(F,S);
+    Delete(S,1,1);
     F:=2.3;
     Str(F,S2);
+    Delete(S2,1,1);
     TestJSON(J,'['+S+', '+S2+']');
   finally
     FreeAndNil(J);
@@ -2084,6 +2627,28 @@ begin
   end;
 end;
 
+procedure TTestArray.TestMyClone;
+Var
+  J,J2 : TMyArray;
+  D : TJSONData;
+
+begin
+  J:=TMyArray.Create;
+  try
+    J.Add(1);
+    J.Add('aloha');
+    D:=J.Clone;
+    try
+      TestJSONType(D,jtArray);
+      AssertEquals('Correct class',TMyArray,D.ClassType);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestArray.TestFormat;
 Var
   J : TJSONArray;
@@ -2205,7 +2770,7 @@ begin
     AssertEquals('J.Floats[''a'']='+FloatToStr(F),F,J.Floats[a]);
     TestAsFloat(J[A],F);
     Str(F,S);
-    TestJSON(J,'{ "'+a+'" : '+S+' }');
+    TestJSON(J,'{ "'+a+'" :'+S+' }');
   finally
     FreeAndNil(J);
   end;
@@ -2466,6 +3031,28 @@ begin
   end;
 end;
 
+procedure TTestObject.TestMyClone;
+Var
+  J : TMyObject;
+  D : TJSONData;
+
+begin
+  J:=TMyObject.Create;
+  try
+    J.Add('p1',1);
+    J.Add('p2','aloha');
+    D:=J.Clone;
+    try
+      TestJSONType(D,jtObject);
+      AssertEquals('Correct class',TMYObject,D.ClassType);
+    finally
+      D.Free;
+    end;
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestExtract;
 
 Const
@@ -2584,7 +3171,7 @@ begin
   end;
 end;
 
-procedure TTestObject.TestCreatePChar;
+procedure TTestObject.TestCreatePchar;
 
 Const
   A = 'A';
@@ -2669,7 +3256,7 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[A],jtNumber);
     Str(S,R);
-    TestJSON(J,'{ "A" : '+R+' }');
+    TestJSON(J,'{ "A" :'+R+' }');
   finally
     FreeAndNil(J);
   end;
@@ -2762,15 +3349,18 @@ Const
 
 Var
   J : TJSONObject;
+  O : TObject;
 
 begin
   J:=Nil;
   try
     Try
-      J:=TJSONObject.Create([A,TObject.Create]);
+      O:=TObject.Create;
+      J:=TJSONObject.Create([A,O]);
       Fail('Array constructor accepts only TJSONData');
     finally
       FreeAndNil(J);
+      FreeAndNil(O);
     end;
   except
     // Should be OK.
@@ -2932,5 +3522,6 @@ initialization
   RegisterTest(TTestArray);
   RegisterTest(TTestObject);
   RegisterTest(TTestJSONPath);
+  RegisterTest(TTestFactory);
 end.
 

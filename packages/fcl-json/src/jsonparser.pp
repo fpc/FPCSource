@@ -116,10 +116,10 @@ begin
     Case T of
       tkEof : If Not AllowEof then
                 DoError(SErrUnexpectedEOF);
-      tkNull  : Result:=TJSONNull.Create;
+      tkNull  : Result:=CreateJSON;
       tkTrue,
-      tkFalse : Result:=TJSONBoolean.Create(t=tkTrue);
-      tkString : Result:=TJSONString.Create(CurrentTokenString);
+      tkFalse : Result:=CreateJSON(t=tkTrue);
+      tkString : Result:=CreateJSON(CurrentTokenString);
       tkCurlyBraceOpen : Result:=ParseObject;
       tkCurlyBraceClose : DoError(SErrUnexpectedToken);
       tkSQuaredBraceOpen : Result:=ParseArray;
@@ -147,16 +147,20 @@ begin
   S:=CurrentTokenString;
   I:=0;
   If TryStrToInt64(S,I64) then
-    Result:=TJSONInt64Number.Create(I64)
-  Else If TryStrToInt(S,I) then
-    Result:=TJSONIntegerNumber.Create(I)
+    if (I64>Maxint) or (I64<-MaxInt) then
+      Result:=CreateJSON(I64)
+    Else
+      begin
+      I:=I64;
+      Result:=CreateJSON(I);
+      end
   else
     begin
     I:=0;
     Val(S,F,I);
     If (I<>0) then
       DoError(SErrInvalidNumber);
-    Result:=TJSONFloatNumber.Create(F);
+    Result:=CreateJSON(F);
     end;
 end;
 
@@ -195,7 +199,7 @@ Var
   N : String;
   
 begin
-  Result:=TJSONObject.Create;
+  Result:=CreateJSONObject([]);
   Try
     T:=GetNextToken;
     While T<>tkCurlyBraceClose do
@@ -229,7 +233,7 @@ Var
   LastComma : Boolean;
   
 begin
-  Result:=TJSONArray.Create;
+  Result:=CreateJSONArray([]);
   LastComma:=False;
   Try
     Repeat

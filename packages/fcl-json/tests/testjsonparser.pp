@@ -34,6 +34,7 @@ type
     procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
     procedure DoTestString(S : String);
     procedure DoTestArray(S: String; ACount: Integer);
+    Procedure DoTestClass(S : String; AClass : TJSONDataClass);
   published
     procedure TestEmpty;
     procedure TestNull;
@@ -47,6 +48,7 @@ type
     procedure TestObject;
     procedure TestMixed;
     procedure TestErrors;
+    Procedure TestClasses;
   end;
 
 implementation
@@ -210,8 +212,11 @@ begin
   DoTestArray('[1234567890123456, 2234567890123456]',2);
   DoTestArray('[1234567890123456, 2234567890123456, 3234567890123456]',3);
   Str(Double(1.2),S1);
+  Delete(S1,1,1);
   Str(Double(2.3),S2);
+  Delete(S2,1,1);
   Str(Double(3.4),S3);
+  Delete(S3,1,1);
   DoTestArray('['+S1+']',1);
   DoTestArray('['+S1+', '+S2+']',2);
   DoTestArray('['+S1+', '+S2+', '+S3+']',3);
@@ -262,7 +267,8 @@ begin
 end;
 
 
-procedure TTestParser.DoTestObject(S : String; Const ElNames : Array of String; DoJSONTest : Boolean = True);
+procedure TTestParser.DoTestObject(S: String; const ElNames: array of String;
+  DoJSONTest: Boolean);
 
 Var
   P : TJSONParser;
@@ -312,6 +318,26 @@ begin
   end;
 end;
 
+procedure TTestParser.DoTestClass(S: String; AClass: TJSONDataClass);
+
+Var
+  P : TJSONParser;
+  D : TJSONData;
+
+begin
+  P:=TJSONParser.Create(S);
+  try
+    D:=P.Parse;
+    try
+      AssertEquals('Correct class for '+S+' : ',AClass,D.ClassType);
+    finally
+      D.Free
+    end;
+  finally
+    P.Free;
+  end;
+end;
+
 procedure TTestParser.TestErrors;
 
 begin
@@ -326,6 +352,19 @@ begin
   DoTestError('[,]');
   DoTestError('[,,]');
   DoTestError('[1,,]');
+end;
+
+procedure TTestParser.TestClasses;
+begin
+  SetMyInstanceTypes;
+  DoTestClass('null',TMyNull);
+  DoTestClass('true',TMyBoolean);
+  DoTestClass('1',TMyInteger);
+  DoTestClass('1.2',TMyFloat);
+  DoTestClass('123456789012345',TMyInt64);
+  DoTestClass('"tata"',TMyString);
+  DoTestClass('{}',TMyObject);
+  DoTestClass('[]',TMyArray);
 end;
 
 procedure TTestParser.DoTestError(S : String);
