@@ -293,8 +293,16 @@ unit cgcpu;
               OP_ADD, OP_SUB:
                 begin
                   get_32bit_ops(op, op1, op2);
-                  list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
-                  list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
+                  { Optimization when the low 16-bits of the constant are 0 }
+                  if aint(a and $FFFF) = 0 then
+                    begin
+                      list.concat(taicpu.op_const_reg(op1,S_W,aint(a shr 16),GetNextReg(reg)));
+                    end
+                  else
+                    begin
+                      list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
+                      list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
+                    end;
                 end;
               OP_AND, OP_OR, OP_XOR:
                 begin
@@ -502,9 +510,18 @@ unit cgcpu;
               OP_ADD, OP_SUB:
                 begin
                   get_32bit_ops(op, op1, op2);
-                  list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
-                  inc(tmpref.offset, 2);
-                  list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
+                  { Optimization when the low 16-bits of the constant are 0 }
+                  if aint(a and $FFFF) = 0 then
+                    begin
+                      inc(tmpref.offset, 2);
+                      list.concat(taicpu.op_const_ref(op1,S_W,aint(a shr 16),tmpref));
+                    end
+                  else
+                    begin
+                      list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
+                      inc(tmpref.offset, 2);
+                      list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
+                    end;
                 end;
               OP_AND, OP_OR, OP_XOR:
                 begin
