@@ -319,7 +319,123 @@ type
     Procedure ObjectCreateString;
   end;
 
+  { TTestIterator }
+
+  TTestIterator = class(TTestJSON)
+  private
+    FData: TJSONData;
+  Protected
+    Procedure TearDown; override;
+    Procedure TestSingle;
+    Procedure TestLoop(ACount : Integer);
+    Property Data : TJSONData Read FData Write FData;
+  Published
+    Procedure TestNull;
+    Procedure TestInteger;
+    Procedure TestInt64;
+    Procedure TestFloat;
+    Procedure TestBoolean;
+    Procedure TestString;
+    Procedure TestArray;
+    Procedure TestObject;
+  end;
+
+
 implementation
+
+{ TTestIterator }
+
+procedure TTestIterator.TearDown;
+begin
+  FreeAndNil(FData);
+  inherited TearDown;
+end;
+
+procedure TTestIterator.TestSingle;
+
+Var
+  F : TJSONEnum;
+  C : Integer;
+
+begin
+  C:=0;
+  For F in Data do
+   begin
+   Inc(C);
+   If C>1 then
+     Fail(Data.ClassName+' loops more than once');
+   AssertEquals(Data.ClassName+' has empty key','',F.Key);
+   AssertEquals(Data.ClassName+' has empty numerical key',0,F.KeyNum);
+   AssertSame(Data.ClassName+' returns data',Data,F.Value);
+   end;
+  If C<1 then
+    Fail(Data.ClassName+' Loops not even once');
+end;
+
+procedure TTestIterator.TestLoop(ACount: Integer);
+Var
+  F : TJSONEnum;
+  C : Integer;
+
+begin
+  C:=0;
+  For F in Data do
+   begin
+   AssertEquals(Data.ClassName+' has correct string key',IntToStr(C),F.Key);
+   AssertEquals(Data.ClassName+' has correct numerical key',C,F.KeyNum);
+   AssertSame(Data.ClassName+' returns correct data',Data.Items[C],F.Value);
+   Inc(C);
+   end;
+  AssertEquals(Data.ClassName+' correct loop count',ACount,C);
+end;
+
+procedure TTestIterator.TestNull;
+begin
+  Data:=TJSONNull.Create;
+  TestSingle;
+end;
+
+procedure TTestIterator.TestInteger;
+begin
+  Data:=TJSONIntegerNumber.Create(1);
+  TestSingle;
+end;
+
+procedure TTestIterator.TestInt64;
+begin
+  Data:=TJSONInt64Number.Create(1);
+  TestSingle;
+end;
+
+procedure TTestIterator.TestFloat;
+begin
+  Data:=TJSONFloatNumber.Create(1.2);
+  TestSingle;
+end;
+
+procedure TTestIterator.TestBoolean;
+begin
+  Data:=TJSONBoolean.Create(True);
+  TestSingle;
+end;
+
+procedure TTestIterator.TestString;
+begin
+  Data:=TJSONString.Create('Data');
+  TestSingle;
+end;
+
+procedure TTestIterator.TestArray;
+begin
+  Data:=TJSONArray.Create([1,2,3]);
+  TestLoop(3);
+end;
+
+procedure TTestIterator.TestObject;
+begin
+  Data:=TJSONObject.Create(['0',1,'1',2,'2',3]);
+  TestLoop(3);
+end;
 
 { TTestFactory }
 
@@ -3523,5 +3639,6 @@ initialization
   RegisterTest(TTestObject);
   RegisterTest(TTestJSONPath);
   RegisterTest(TTestFactory);
+  RegisterTest(TTestIterator);
 end.
 

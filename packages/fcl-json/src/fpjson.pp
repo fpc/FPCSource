@@ -45,6 +45,24 @@ Const
   AsJSONFormat      = [foSingleLineArray,foSingleLineObject]; // These options make FormatJSON behave as AsJSON
   
 Type
+  TJSONData = Class;
+
+  { TMJBaseObjectEnumerator }
+  TJSONEnum = Record
+    Key : TJSONStringType;
+    KeyNum : Integer;
+    Value : TJSONData;
+  end;
+
+  TBaseJSONEnumerator = class
+  public
+    function GetCurrent: TJSONEnum; virtual; abstract;
+    function MoveNext : Boolean; virtual; abstract;
+    property Current: TJSONEnum read GetCurrent;
+  end;
+
+  { TMJObjectEnumerator }
+
 
   { TJSONData }
   
@@ -75,6 +93,8 @@ Type
     Constructor Create; virtual;
     Class function JSONType: TJSONType; virtual;
     Procedure Clear;  virtual; Abstract;
+    // Get enumerator
+    function GetEnumerator: TBaseJSONEnumerator; virtual;
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
     Function GetPath(Const APath : TJSONStringType) : TJSONdata;
     Function Clone : TJSONData; virtual; abstract;
@@ -315,6 +335,7 @@ Type
     // Examine
     procedure Iterate(Iterator : TJSONArrayIterator; Data: TObject);
     function IndexOf(obj: TJSONData): Integer;
+    function GetEnumerator: TBaseJSONEnumerator; override;
     // Manipulate
     Procedure Clear;  override;
     function Add(Item : TJSONData): Integer;
@@ -408,6 +429,7 @@ Type
     destructor Destroy; override;
     class function JSONType: TJSONType; override;
     Function Clone : TJSONData; override;
+    function GetEnumerator: TBaseJSONEnumerator; override;
     // Examine
     procedure Iterate(Iterator : TJSONObjectIterator; Data: TObject);
     function IndexOf(Item: TJSONData): Integer;
@@ -694,6 +716,102 @@ begin
   Result:=JPH;
 end;
 
+Type
+  { TJSONEnumerator }
+
+  TJSONEnumerator = class(TBaseJSONEnumerator)
+  Private
+    FData : TJSONData;
+  public
+    Constructor Create(AData : TJSONData);
+    function GetCurrent: TJSONEnum; override;
+    function MoveNext : Boolean; override;
+  end;
+
+  { TJSONArrayEnumerator }
+
+  TJSONArrayEnumerator = class(TBaseJSONEnumerator)
+  Private
+    FData : TJSONArray;
+    FCurrent : Integer;
+  public
+    Constructor Create(AData : TJSONArray);
+    function GetCurrent: TJSONEnum; override;
+    function MoveNext : Boolean; override;
+  end;
+
+  { TJSONObjectEnumerator }
+
+  TJSONObjectEnumerator = class(TBaseJSONEnumerator)
+  Private
+    FData : TJSONObject;
+    FCurrent : Integer;
+  public
+    Constructor Create(AData : TJSONObject);
+    function GetCurrent: TJSONEnum; override;
+    function MoveNext : Boolean; override;
+  end;
+
+constructor TJSONObjectEnumerator.Create(AData: TJSONObject);
+begin
+  FData:=AData;
+  FCurrent:=-1;
+end;
+
+function TJSONObjectEnumerator.GetCurrent: TJSONEnum;
+begin
+  Result.KeyNum:=FCurrent;
+  Result.Key:=FData.Names[FCurrent];
+  Result.Value:=FData.Items[FCurrent];
+end;
+
+function TJSONObjectEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrent);
+  Result:=FCurrent<FData.Count;
+end;
+
+{ TJSONArrayEnumerator }
+
+constructor TJSONArrayEnumerator.Create(AData: TJSONArray);
+begin
+  FData:=AData;
+  FCurrent:=-1;
+end;
+
+function TJSONArrayEnumerator.GetCurrent: TJSONEnum;
+begin
+  Result.KeyNum:=FCurrent;
+  Result.Key:=IntToStr(FCurrent);
+  Result.Value:=FData.Items[FCurrent];
+end;
+
+function TJSONArrayEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrent);
+  Result:=FCurrent<FData.Count;
+end;
+
+  { TJSONEnumerator }
+
+constructor TJSONEnumerator.Create(AData: TJSONData);
+begin
+  FData:=AData;
+end;
+
+function TJSONEnumerator.GetCurrent: TJSONEnum;
+begin
+  Result.Key:='';
+  Result.KeyNum:=0;
+  Result.Value:=FData;
+  FData:=Nil;
+end;
+
+function TJSONEnumerator.MoveNext: Boolean;
+begin
+  Result:=FData<>Nil;
+end;
+
 
 
 { TJSONData }
@@ -714,12 +832,12 @@ begin
   Clear;
 end;
 
-Class procedure TJSONData.DoError(const Msg: String);
+class procedure TJSONData.DoError(const Msg: String);
 begin
   Raise EJSON.Create(Msg);
 end;
 
-Class procedure TJSONData.DoError(const Fmt: String; Args: array of const);
+class procedure TJSONData.DoError(const Fmt: String; Args: array of const);
 begin
   Raise EJSON.CreateFmt(Fmt,Args);
 end;
@@ -744,6 +862,11 @@ end;
 class function TJSONData.JSONType: TJSONType;
 begin
   JSONType:=jtUnknown;
+end;
+
+function TJSONData.GetEnumerator: TBaseJSONEnumerator;
+begin
+  Result:=TJSONEnumerator.Create(Self);
 end;
 
 function TJSONData.FindPath(const APath: TJSONStringType): TJSONdata;
@@ -1713,6 +1836,11 @@ begin
   Result:=FList.IndexOf(Obj);
 end;
 
+function TJSONArray.GetEnumerator: TBaseJSONEnumerator;
+begin
+  Result:=TJSONArrayEnumerator.Create(Self);
+end;
+
 procedure TJSONArray.Clear;
 begin
   FList.Clear;
@@ -2167,6 +2295,11 @@ begin
     FreeAndNil(O);
     Raise;
   end;
+end;
+
+function TJSONObject.GetEnumerator: TBaseJSONEnumerator;
+begin
+  Result:=TJSONObjectEnumerator.Create(Self);
 end;
 
 
