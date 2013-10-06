@@ -1924,10 +1924,28 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
-              list.concat(taicpu.op_const_reg(op1,S_W,aint(value and $ffff),reg.reglo));
-              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
-              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
-              list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+              if (value and $ffffffffffff) = 0 then
+                begin
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                end
+              else if (value and $ffffffff) = 0 then
+                begin
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 32) and $ffff),reg.reghi));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                end
+              else if (value and $ffff) = 0 then
+                begin
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                end
+              else
+                begin
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint(value and $ffff),reg.reglo));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                end;
             end;
           else
             internalerror(200204021);
