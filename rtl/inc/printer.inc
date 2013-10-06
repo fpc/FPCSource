@@ -16,7 +16,7 @@
 {$I-}
 
 var
-  Old_Exit: pointer;
+  Old_Exit: codepointer;
   LstAvailable: boolean;
 
 function IsLstAvailable: boolean;

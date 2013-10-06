@@ -9,8 +9,8 @@ units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
       msmouse ports keyboard \
-      charset
-#      printer cmem
+      printer charset
+#      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf ctypes \
 #      video mouse vesamode fmtbcd \
