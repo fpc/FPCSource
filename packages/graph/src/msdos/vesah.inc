@@ -16,6 +16,7 @@
 
 
 TYPE
+  pFarChar = ^char;far;
 
   pModeList = ^tModeList;far;
   tModeList = Array [0..255] of word; {list of modes terminated by -1}
@@ -24,7 +25,7 @@ TYPE
   TVESAinfo = packed record  { VESA Information request }
     signature : array [1..4] of char;     { This should be VESA   }
     version   : word;                     { VESA revision         }
-    str       : pChar;                    { pointer to OEM string }
+    str       : pFarChar;                 { pointer to OEM string }
     caps      : longint;                  { video capabilities    }
     modeList  : pModeList;                { pointer to SVGA modes }
 (*    pad       : array [18..260] of byte;  { extra padding more then   }
