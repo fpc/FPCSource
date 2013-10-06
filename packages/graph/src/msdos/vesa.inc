@@ -2483,12 +2483,10 @@ Const
     ScanLines := GetMaxScanLines;
   end;
 
-
-{$IFDEF DPMI}
+*)
 
  Procedure SaveStateVESA; {$ifndef fpc}far;{$endif fpc}
  var
-  PtrLong: longint;
   regs: Registers;
   begin
     SaveSupported := FALSE;
@@ -2497,23 +2495,9 @@ Const
         LogLn('Get the video mode...');
 {$endif logging}
     { Get the video mode }
-    asm
-      mov  ah,0fh
-{$ifdef fpc}
-      push ebp
-      push esi
-      push edi
-      push ebx
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-{$endif fpc}
-      mov  [VideoMode], al
-    end ['EAX'];
+    regs.ah:=$0f;
+    intr($10,regs);
+    VideoMode:=regs.al;
     { saving/restoring video state screws up Windows (JM) }
     if inWindows then
       exit;
@@ -2521,211 +2505,63 @@ Const
         LogLn('Prepare to save VESA video state');
 {$endif logging}
     { Prepare to save video state...}
-    asm
-      mov  ax, 4F04h       { get buffer size to save state }
-      mov  dx, 00h
-      mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-{$ifdef fpc}
-      push ebx
-      push ebp
-      push esi
-      push edi
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-      pop edi
-      pop esi
-      pop ebp
-{$endif fpc}
-      mov  [StateSize], bx
-{$ifdef fpc}
-      pop ebx
-{$endif fpc}
-      cmp  al,04fh
-      jnz  @notok
-      mov  [SaveSupported],TRUE
-     @notok:
-    end ['EDX','ECX','EAX'];
-    regs.eax := $4f04;
-    regs.edx := $0000;
-    regs.ecx := $000F;
-    RealIntr($10, regs);
-    StateSize := word(regs.ebx);
-    if byte(regs.eax) = $4f then
-      SaveSupported := TRUE;
+    regs.ax:=$4F04;        { get buffer size to save state }
+    regs.dx:=$00;
+    regs.cx:=%00001111;    { Save DAC / Data areas / Hardware states }
+    intr($10,regs);
+    StateSize:=regs.bx;
+    SaveSupported:=(regs.al=$4f);
     if SaveSupported then
       begin
 {$ifdef logging}
         LogLn('allocating VESA save buffer of '+strf(64*StateSize));
 {$endif logging}
-{$ifndef fpc}
-        PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
-{$else fpc}
-        PtrLong:=Global_Dos_Alloc(64*StateSize);  { values returned in 64-byte blocks }
-{$endif fpc}
-        if PtrLong = 0 then
-           RunError(203);
-        SavePtr := pointer(longint(PtrLong and $0000ffff) shl 16);
-{$ifndef fpc}
-        { In FPC mode, we can't do anything with this (no far pointers)  }
-        { However, we still need to keep it to be able to free the       }
-        { memory afterwards. Since this data is not accessed in PM code, }
-        { there's no need to save it in a seperate buffer (JM)           }
+        GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
         if not assigned(SavePtr) then
            RunError(203);
-{$endif fpc}
-        RealStateSeg := word(PtrLong shr 16);
-
-        FillChar(regs, sizeof(regs), #0);
         { call the real mode interrupt ... }
-        regs.eax := $4F04;      { save the state buffer                   }
-        regs.ecx := $0F;        { Save DAC / Data areas / Hardware states }
-        regs.edx := $01;        { save state                              }
-        regs.es := RealStateSeg;
-        regs.ebx := 0;
-        RealIntr($10,regs);
-        FillChar(regs, sizeof(regs), #0);
+        regs.ax := $4F04;      { save the state buffer                   }
+        regs.cx := $0F;        { Save DAC / Data areas / Hardware states }
+        regs.dx := $01;        { save state                              }
+        regs.es := DSeg;
+        regs.bx := Word(SavePtr);
+        Intr($10,regs);
         { restore state, according to Ralph Brown Interrupt list }
         { some BIOS corrupt the hardware after a save...         }
-        regs.eax := $4F04;      { restore the state buffer                }
-        regs.ecx := $0F;        { rest DAC / Data areas / Hardware states }
-        regs.edx := $02;
-        regs.es := RealStateSeg;
-        regs.ebx := 0;
-        RealIntr($10,regs);
+        regs.ax := $4F04;      { restore the state buffer                }
+        regs.cx := $0F;        { rest DAC / Data areas / Hardware states }
+        regs.dx := $02;
+        regs.es := DSeg;
+        regs.bx := Word(SavePtr);
+        Intr($10,regs);
       end;
   end;
 
  procedure RestoreStateVESA; {$ifndef fpc}far;{$endif fpc}
   var
    regs:Registers;
+   SavePtrCopy: Pointer;
   begin
      { go back to the old video mode...}
-     asm
-      mov  ah,00
-      mov  al,[VideoMode]
-{$ifdef fpc}
-      push ebp
-      push esi
-      push edi
-      push ebx
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-      pop ebx
-      pop edi
-      pop esi
-      pop ebp
-{$endif fpc}
-     end ['EAX'];
+     regs.ax:=VideoMode;
+     intr($10,regs);
      { then restore all state information }
-{$ifndef fpc}
-     if assigned(SavePtr) and (SaveSupported=TRUE) then
-{$else fpc}
-     { No far pointer support, so it's possible that that assigned(SavePtr) }
-     { would return false under FPC. Just check if it's different from nil. }
-     if (SavePtr <> nil) and (SaveSupported=TRUE) then
-{$endif fpc}
+     if assigned(SavePtr) and SaveSupported then
        begin
-        FillChar(regs, sizeof(regs), #0);
-        { restore state, according to Ralph Brown Interrupt list }
-        { some BIOS corrupt the hardware after a save...         }
-         regs.eax := $4F04;      { restore the state buffer                }
-         regs.ecx := $0F;        { rest DAC / Data areas / Hardware states }
-         regs.edx := $02;        { restore state                           }
-         regs.es := RealStateSeg;
-         regs.ebx := 0;
-         RealIntr($10,regs);
-{$ifndef fpc}
-         if GlobalDosFree(longint(SavePtr) shr 16)<>0 then
-{$else fpc}
-         if Not(Global_Dos_Free(longint(SavePtr) shr 16)) then
-{$endif fpc}
-          RunError(216);
+         regs.ax := $4F04;      { restore the state buffer                }
+         regs.cx := $0F;        { rest DAC / Data areas / Hardware states }
+         regs.dx := $02;        { restore state                           }
+         regs.es := DSeg;
+         regs.bx := Word(SavePtr);
+         Intr($10,regs);
+
+         SavePtrCopy := SavePtr;
          SavePtr := nil;
+         FreeMem(SavePtrCopy, 64*StateSize);
        end;
   end;
 
-{$ELSE}
-
-      {**************************************************************}
-      {*                     Real mode routines                     *}
-      {**************************************************************}
-
- Procedure SaveStateVESA; far;
-  begin
-    SavePtr := nil;
-    SaveSupported := FALSE;
-    { Get the video mode }
-    asm
-      mov  ah,0fh
-      int  10h
-      mov  [VideoMode], al
-    end;
-    { Prepare to save video state...}
-    asm
-      mov  ax, 4f04h       { get buffer size to save state }
-      mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-      mov  dx, 00h
-      int  10h
-      mov  [StateSize], bx
-      cmp  al,04fh
-      jnz  @notok
-      mov  [SaveSupported],TRUE
-     @notok:
-    end;
-    if SaveSupported then
-      Begin
-        GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
-        if not assigned(SavePtr) then
-           RunError(203);
-        asm
-         mov  ax, 4F04h       { save the state buffer                   }
-         mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-         mov  dx, 01h
-         mov  es, WORD PTR [SavePtr+2]
-         mov  bx, WORD PTR [SavePtr]
-         int  10h
-        end;
-        { restore state, according to Ralph Brown Interrupt list }
-        { some BIOS corrupt the hardware after a save...         }
-        asm
-         mov  ax, 4F04h       { save the state buffer                   }
-         mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-         mov  dx, 02h
-         mov  es, WORD PTR [SavePtr+2]
-         mov  bx, WORD PTR [SavePtr]
-         int  10h
-        end;
-      end;
-  end;
-
- procedure RestoreStateVESA; far;
-  begin
-     { go back to the old video mode...}
-     asm
-      mov  ah,00
-      mov  al,[VideoMode]
-      int  10h
-     end;
-
-     { then restore all state information }
-     if assigned(SavePtr) and (SaveSupported=TRUE) then
-       begin
-         { restore state, according to Ralph Brown Interrupt list }
-         asm
-           mov  ax, 4F04h       { save the state buffer                   }
-           mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
-           mov  dx, 02h         { restore state                           }
-           mov  es, WORD PTR [SavePtr+2]
-           mov  bx, WORD PTR [SavePtr]
-           int  10h
-         end;
-         FreeMem(SavePtr, 64*StateSize);
-         SavePtr := nil;
-       end;
-  end;
-{$ENDIF DPMI}
+(*
 
  {************************************************************************}
  {*                     VESA Page flipping routines                      *}

@@ -3692,7 +3692,7 @@ const CrtAddress: word = 0;
 {$else noSupPortVESA}
      hasVESA := false;
 {$endif noSupPortVESA}
-(*     if hasVesa then
+     if hasVesa then
        begin
          { We have to set and restore the entire VESA state }
          { otherwise, if we use the VGA BIOS only function  }
@@ -3706,7 +3706,7 @@ const CrtAddress: word = 0;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
-         { now check all supported modes...}
+(*         { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
              InitMode(mode);
@@ -4219,8 +4219,8 @@ const CrtAddress: word = 0;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
-           end;
-       end;*)
+           end;*)
+       end;
    end;
 
 var
