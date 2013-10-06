@@ -456,6 +456,8 @@ Type
 
   EJSON = Class(Exception);
 
+  TJSONParserHandler = Procedure(AStream : TStream; Const AUseUTF8 : Boolean; Out Data : TJSONData);
+
 Procedure SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass);
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
@@ -463,6 +465,7 @@ Function StringToJSONString(const S : TJSONStringType) : TJSONStringType;
 Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
 Function JSONTypeName(JSONType : TJSONType) : String;
 
+// These functions create JSONData structures, taking into account the instance types
 Function CreateJSON : TJSONNull;
 Function CreateJSON(Data : Boolean) : TJSONBoolean;
 Function CreateJSON(Data : Integer) : TJSONIntegerNumber;
@@ -471,6 +474,13 @@ Function CreateJSON(Data : TJSONFloat) : TJSONFloatNumber;
 Function CreateJSON(Data : TJSONStringType) : TJSONString;
 Function CreateJSONArray(Data : Array of const) : TJSONArray;
 Function CreateJSONObject(Data : Array of const) : TJSONObject;
+
+// These functions rely on a callback. If the callback is not set, they will raise an error.
+// When the jsonparser unit is included in the project, the callback is automatically set.
+Function GetJSON(Const JSON : TJSONStringType; Const UseUTF8 : Boolean = True) : TJSONData;
+Function GetJSON(Const JSON : TStream; Const UseUTF8 : Boolean = True) : TJSONData;
+Procedure SetJSONParserHandler(AHandler : TJSONParserHandler);
+Function GetJSONParserHandler : TJSONParserHandler;
 
 implementation
 
@@ -496,6 +506,7 @@ Resourcestring
   SErrNonexistentElement = 'Unknown object member: "%s"';
   SErrPathElementNotFound = 'Path "%s" invalid: element "%s" not found.';
   SErrWrongInstanceClass = 'Cannot set instance class: %s does not descend from %s.';
+  SErrNoParserHandler = 'No JSON parser handler installed. Recompile your project with the jsonparser unit included';
 
 Var
   DefaultJSONInstanceTypes :
@@ -646,6 +657,41 @@ end;
 function CreateJSONObject(Data: array of const): TJSONObject;
 begin
   Result:=TJSONObjectCLass(DefaultJSONInstanceTypes[jitObject]).Create(Data);
+end;
+
+Var
+  JPH : TJSONParserHandler;
+
+function GetJSON(const JSON: TJSONStringType; Const UseUTF8: Boolean): TJSONData;
+
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create(JSON);
+  try
+    Result:=GetJSON(SS,UseUTF8);
+  finally
+    SS.Free;
+  end;
+end;
+
+function GetJSON(Const JSON: TStream; Const UseUTF8: Boolean): TJSONData;
+
+begin
+  Result:=Nil;
+  If (JPH=Nil) then
+    TJSONData.DoError(SErrNoParserHandler);
+  JPH(JSON,UseUTF8,Result);
+end;
+
+procedure SetJSONParserHandler(AHandler: TJSONParserHandler);
+begin
+  JPH:=AHandler;
+end;
+
+function GetJSONParserHandler: TJSONParserHandler;
+begin
+  Result:=JPH;
 end;
 
 

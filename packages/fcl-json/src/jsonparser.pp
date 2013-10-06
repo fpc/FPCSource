@@ -71,6 +71,22 @@ Resourcestring
   
 { TJSONParser }
 
+procedure DefJSONParserHandler(AStream: TStream; const AUseUTF8: Boolean; out
+  Data: TJSONData);
+
+Var
+  P : TJSONParser;
+
+begin
+  Data:=Nil;
+  P:=TJSONParser.Create(AStream,AUseUTF8);
+  try
+    Data:=P.Parse;
+  finally
+    P.Free;
+  end;
+end;
+
 Function TJSONParser.Parse : TJSONData;
 
 begin
@@ -299,5 +315,23 @@ begin
   inherited Destroy();
 end;
 
+Procedure InitJSONHandler;
+
+begin
+  if GetJSONParserHandler=Nil then
+    SetJSONParserHandler(@DefJSONParserHandler);
+end;
+
+Procedure DoneJSONHandler;
+
+begin
+  if GetJSONParserHandler=@DefJSONParserHandler then
+    SetJSONParserHandler(Nil);
+end;
+
+initialization
+  InitJSONHandler;
+finalization
+  DoneJSONHandler;
 end.
 

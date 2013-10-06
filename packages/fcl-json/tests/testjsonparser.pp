@@ -26,8 +26,9 @@ type
 
   { TTestParser }
 
-  TTestParser= class(TTestJSON)
+  TTestParser = class(TTestJSON)
   private
+    procedure CallNoHandlerStream;
     procedure DoTestError(S: String);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
@@ -35,6 +36,7 @@ type
     procedure DoTestString(S : String);
     procedure DoTestArray(S: String; ACount: Integer);
     Procedure DoTestClass(S : String; AClass : TJSONDataClass);
+    procedure CallNoHandler;
   published
     procedure TestEmpty;
     procedure TestNull;
@@ -49,6 +51,10 @@ type
     procedure TestMixed;
     procedure TestErrors;
     Procedure TestClasses;
+    Procedure TestHandler;
+    Procedure TestNoHandlerError;
+    Procedure TestHandlerResult;
+    Procedure TestHandlerResultStream;
   end;
 
 implementation
@@ -365,6 +371,80 @@ begin
   DoTestClass('"tata"',TMyString);
   DoTestClass('{}',TMyObject);
   DoTestClass('[]',TMyArray);
+end;
+
+procedure TTestParser.CallNoHandler;
+
+begin
+  GetJSON('1',True).Free;
+end;
+
+procedure TTestParser.CallNoHandlerStream;
+
+Var
+  S : TStringStream;
+
+begin
+  S:=TstringStream.Create('1');
+  try
+    GetJSON(S,True).Free;
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestParser.TestHandler;
+begin
+  AssertNotNull('Handler installed',GetJSONParserHandler);
+end;
+
+procedure TTestParser.TestNoHandlerError;
+
+Var
+  H : TJSONParserHandler;
+
+begin
+  H:=GetJSONParserHandler;
+  try
+    SetJSONParserHandler(Nil);
+    AssertException('No handler raises exception',EJSON,@CallNoHandler);
+    AssertException('No handler raises exception',EJSON,@CallNoHandlerStream);
+  finally
+    SetJSONParserHandler(H);
+  end;
+end;
+
+procedure TTestParser.TestHandlerResult;
+
+Var
+  D : TJSONData;
+
+begin
+  D:=GetJSON('"123"');
+  try
+    AssertEquals('Have correct string','123',D.AsString);
+  finally
+    D.Free;
+  end;
+end;
+
+procedure TTestParser.TestHandlerResultStream;
+Var
+  D : TJSONData;
+  S : TStream;
+
+begin
+  S:=TStringStream.Create('"123"');
+  try
+    D:=GetJSON(S);
+    try
+      AssertEquals('Have correct string','123',D.AsString);
+    finally
+      D.Free;
+    end;
+  finally
+    S.Free;
+  end;
 end;
 
 procedure TTestParser.DoTestError(S : String);
