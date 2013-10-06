@@ -50,7 +50,7 @@ TYPE
     winSize        : word;  {in K}     { window size       (1.0)    }
     winASeg,                           { Window A Segment address (1.0) }
     winBSeg        : word;             { Window B Segment address (1.0) }
-    winFunct       : procedure;        { Function to swtich bank    }
+    winFunct       : farpointer;       { Function to swtich bank    }
     BytesPerScanLine: word;            {bytes per scan line (1.0)   }
     { extended information }
     xRes, yRes : word;    {pixels}
