@@ -610,8 +610,7 @@ unit cgx86;
         { if there is a segment in an int register, move it to ES }
         if (ref.segment<>NR_NO) and (not is_segment_reg(ref.segment)) then
           begin
-            list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
+            list.concat(taicpu.op_reg_reg(A_MOV,S_W,ref.segment,NR_ES));
             ref.segment:=NR_ES;
           end;
 {$endif}
