@@ -2484,7 +2484,7 @@ End;
   begin
     VideoOfs := 0;
   end;
-(*
+
  {************************************************************************}
  {*                       Mode-X related routines                        *}
  {************************************************************************}
@@ -2510,17 +2510,17 @@ const CrtAddress: word = 0;
      OR   AX, 080h
   @L2:
 {$ifdef fpc}
-     push ebp
-     push esi
-     push edi
-     push ebx
+     push bp
+     push si
+     push di
+     push bx
 {$EndIf fpc}
      INT  10h
 {$ifdef fpc}
-     pop ebx
-     pop edi
-     pop esi
-     pop ebp
+     pop bx
+     pop di
+     pop si
+     pop bp
 {$EndIf fpc}
      MOV DX,03C4h   {select memory-mode-register at sequencer Port    }
      MOV AL,04
@@ -2536,7 +2536,6 @@ const CrtAddress: word = 0;
      INC DX
      MOV AL,0Fh     {...and allow access to all 4 bit maps            }
      OUT DX,AL
-{$ifndef fpc}
      MOV AX,[SegA000]  {starting with segment A000h, set 8000h logical     }
      MOV ES,AX      {words = 4*8000h physical words (because of 4     }
      XOR DI,DI      {bitplanes) to 0                                  }
@@ -2544,23 +2543,6 @@ const CrtAddress: word = 0;
      MOV CX,8000h
      CLD
      REP STOSW
-{$else fpc}
-     push eax
-     push ecx
-     push es
-     push edi
-     push fs
-     mov edi, $a0000
-     pop es
-     xor eax, eax
-     mov ecx, 4000h
-     cld
-     rep stosd
-     pop edi
-     pop es
-     pop ecx
-     pop eax
-{$EndIf fpc}
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
      OUT DX,AL          {data register:                            }
@@ -2575,7 +2557,7 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['EDX','EBX','EAX'];
+  end ['DX','BX','CX','AX','DI'];
  end;
 
 
@@ -2663,12 +2645,6 @@ const CrtAddress: word = 0;
    (* Select where the left corner of the screen will be *)
    { By Matt Pritchard }
     asm
-     push ax
-     push cx
-     push dx
-{$IFDEF REGCALL}
-     mov cx, dx
-{$ENDIF REGCALL}
       { Wait if we are currently in a Vertical Retrace        }
      MOV     DX, INPUT_1         { Input Status #1 Register       }
    @DP_WAIT0:
@@ -2680,25 +2656,10 @@ const CrtAddress: word = 0;
 
      MOV     DX, CRTC_Index      { We Change the VGA Sequencer    }
      MOV     AL, START_DISP_LO   { Display Start Low Register     }
-{$ifndef fpc}
      MOV     AH, BYTE PTR [AOffset] { Low 8 Bits of Start Addr    }
      OUT     DX, AX              { Set Display Addr Low           }
      MOV     AL, START_DISP_HI   { Display Start High Register    }
      MOV     AH, BYTE PTR [AOffset+1] { High 8 Bits of Start Addr }
-{$else fpc}
-{$IFDEF REGCALL}
-    mov ah, cl
-{$ELSE REGCALL}
-    mov ah, byte [AOffset]
-{$ENDIF REGCALL}
-    out dx, ax
-    mov AL, START_DISP_HI
-{$IFDEF REGCALL}
-    mov ah, ch
-{$ELSE REGCALL}
-    mov ah, byte [AOffset+1]
-{$ENDIF REGCALL}
-{$endif fpc}
      OUT     DX, AX              { Set Display Addr High          }
      { Wait for a Vertical Retrace to smooth out things      }
 
@@ -2709,9 +2670,6 @@ const CrtAddress: word = 0;
      AND     AL, VERT_RETRACE    { Vertical Retrace Start?        }
      JZ      @DP_WAIT1           { If Not, wait for it            }
     { Now Set Display Starting Address                     }
-     pop dx
-     pop cx
-     pop ax
   end;
 
 {$ifdef fpc}
@@ -2888,7 +2846,7 @@ const CrtAddress: word = 0;
    pop ax
  end;
 {$endif asmgraph}
-*)
+
 
 
  {************************************************************************}
@@ -3623,7 +3581,7 @@ const CrtAddress: word = 0;
          mode.YAspect := 10000;
          AddMode(mode);
 
-(*         { now add all standard VGA modes...       }
+         { now add all standard VGA modes...       }
          InitMode(mode);
          mode.DriverNumber:= LowRes;
          mode.ModeNumber:=1;
@@ -3645,7 +3603,7 @@ const CrtAddress: word = 0;
          mode.InitMode := {$ifdef fpc}@{$endif}InitModeX;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
-         AddMode(mode);*)
+         AddMode(mode);
 
          InitMode(mode);
          mode.ModeNumber:=VGALo;
