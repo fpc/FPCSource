@@ -2401,9 +2401,15 @@ begin
                  Writeln(['Assembler name : ',getstring]);
                toaddr :
                  begin
-                   Write(['Address : ',getlongint]);
+                   Write(['Address : ',getaword]);
                    if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
-                     WriteLn([' (Far: ',getbyte<>0,')']);
+                     Write([' (Far: ',getbyte<>0,')']);
+                   if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+                     if getbyte<>0 then
+                       Write([' (Far: TRUE, Segment=',getaword,')'])
+                     else
+                       Write([' (Far: FALSE)']);
+                   Writeln;
                  end;
                else
                  Writeln (['!! Invalid unit format : Invalid absolute type encountered: ',b]);
