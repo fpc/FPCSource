@@ -92,7 +92,7 @@ unit cgcpu;
      end;
 
       tcg64f8086 = class(tcg64f32)
-{        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;}
+        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
@@ -1855,7 +1855,7 @@ unit cgcpu;
       end;
 
 
-(*    procedure tcg64f8086.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+    procedure tcg64f8086.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1865,16 +1865,20 @@ unit cgcpu;
             get_64bit_ops(op,op1,op2);
             tempref:=ref;
             tcgx86(cg).make_simple_ref(list,tempref);
-            list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
-            inc(tempref.offset,4);
-            list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+            list.concat(taicpu.op_ref_reg(op1,S_W,tempref,reg.reglo));
+            inc(tempref.offset,2);
+            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,GetNextReg(reg.reglo)));
+            inc(tempref.offset,2);
+            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,reg.reghi));
+            inc(tempref.offset,2);
+            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,GetNextReg(reg.reghi)));
           end
         else
           begin
             a_load64_ref_reg(list,ref,reg);
             a_op64_reg_reg(list,op,size,reg,reg);
           end;
-      end;*)
+      end;
 
 
     procedure tcg64f8086.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
