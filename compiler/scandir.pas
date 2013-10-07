@@ -153,7 +153,7 @@ unit scandir;
                else if (hs='POWER') or (hs='POWERPC') then
                  current_settings.packrecords:=C_alignment
                else if (hs='RESET') then
-                 current_settings.packrecords:=0
+                 current_settings.packrecords:=default_settings.packrecords
                else
                  Message1(scan_e_illegal_pack_records,hs);
              end
@@ -924,7 +924,7 @@ unit scandir;
             current_settings.packrecords:=C_alignment
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             current_settings.packrecords:=0
+             current_settings.packrecords:=default_settings.packrecords
            else
             Message1(scan_e_illegal_pack_records,hs);
          end
