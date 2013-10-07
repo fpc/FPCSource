@@ -323,7 +323,6 @@ type
     Options: TPpuArrayOptions;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
-    function CanWrite: boolean; override;
   end;
 
   { TPpuEnumDef }
@@ -762,11 +761,6 @@ begin
   ElType.Free;
   RangeType.Free;
   inherited Destroy;
-end;
-
-function TPpuArrayDef.CanWrite: boolean;
-begin
-  Result:=inherited CanWrite and (Name <> '');
 end;
 
 { TPpuClassRefDef }
