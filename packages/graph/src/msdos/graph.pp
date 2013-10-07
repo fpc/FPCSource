@@ -3167,6 +3167,27 @@ const CrtAddress: word = 0;
       mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
     end;
 
+    procedure FillCommonVESA16(var mode: TModeInfo);
+    begin
+      mode.MaxColor := 16;
+      { the ModeInfo is automatically set if the mode is supPorted }
+      { by the call to SearchVESAMode.                             }
+      mode.HardwarePages := VESAModeInfo.NumberOfPages;
+      mode.DirectColor := FALSE;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
+      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+      mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
+      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
+      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
+      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+      mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
+    end;
+
     procedure FillCommonVESA256(var mode: TModeInfo);
     begin
       mode.MaxColor := 256;
@@ -3705,29 +3726,13 @@ const CrtAddress: word = 0;
          if SearchVESAModes(m800x600x16) then
            begin
              InitMode(mode);
+             FillCommonVESA16(mode);
              mode.ModeNumber:=m800x600x16;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
-             mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supPorted }
-             { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := VESAModeInfo.NumberOfPages;
-             mode.DirectColor := FALSE;
-             mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 799;
              mode.MaxY := 599;
-             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
-             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-{$ifdef fpc}
-             mode.SetAllPalette := @SetVESARGBAllPalette;
-{$endif fpc}
-             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
-             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -3801,29 +3806,13 @@ const CrtAddress: word = 0;
          if SearchVESAModes(m1024x768x16) then
            begin
              InitMode(mode);
+             FillCommonVESA16(mode);
              mode.ModeNumber:=m1024x768x16;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
-             mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supPorted }
-             { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := VESAModeInfo.NumberOfPages;
-             mode.PaletteSize := mode.MaxColor;
-             mode.DirectColor := FALSE;
              mode.MaxX := 1023;
              mode.MaxY := 767;
-             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
-             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-{$ifdef fpc}
-             mode.SetAllPalette := @SetVESARGBAllPalette;
-{$endif fpc}
-             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
-             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -3897,29 +3886,13 @@ const CrtAddress: word = 0;
          if SearchVESAModes(m1280x1024x16) then
            begin
              InitMode(mode);
+             FillCommonVESA16(mode);
              mode.ModeNumber:=m1280x1024x16;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supPorted }
-             { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := VESAModeInfo.NumberOfPages;
-             mode.DirectColor := FALSE;
-             mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
              mode.MaxY := 1023;
-             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
-             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-{$ifdef fpc}
-             mode.SetAllPalette := @SetVESARGBAllPalette;
-{$endif fpc}
-             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
-             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
