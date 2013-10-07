@@ -397,7 +397,11 @@ interface
         setalloc : 0;
         packenum : 4;
 
+{$ifdef i8086}
+        packrecords     : 1;
+{$else i8086}
         packrecords     : 0;
+{$endif i8086}
         maxfpuregisters : 0;
 
 { Note: GENERIC_CPU is sued together with generic subdirectory to
