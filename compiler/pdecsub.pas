@@ -2483,7 +2483,7 @@ const
              _UNIMPLEMENTED,
              _EXPERIMENTAL,
              _DEPRECATED :
-               if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
+               if ([m_delphi,m_objectivec1] * current_settings.modeswitches = [m_delphi]) and (pd.typ=procdef) then
                  maybe_parse_hint_directives(tprocdef(pd))
                else
                  exit;
