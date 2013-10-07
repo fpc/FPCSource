@@ -87,11 +87,6 @@ unit cgcpu;
 
 //        procedure g_restore_frame_pointer(list : TAsmList);override;
 //        procedure g_return_from_proc(list : TAsmList;parasize : tcgint);override;
-        procedure g_restore_registers(list:TAsmList);override;
-        procedure g_save_registers(list:TAsmList);override;
-
-//        procedure g_save_all_registers(list : TAsmList);override;
-//        procedure g_restore_all_registers(list : TAsmList;const funcretparaloc:TCGPara);override;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
@@ -1686,49 +1681,6 @@ unit cgcpu;
       end;
 
 
-    procedure Tcg68k.g_save_registers(list:TAsmList);
-      var
-        tosave : tcpuregisterset;
-        ref : treference;
-      begin
-      {!!!!!
-        tosave:=std_saved_registers;
-        { only save the registers which are not used and must be saved }
-        tosave:=tosave*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
-        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-        ref.direction:=dir_dec;
-        if tosave<>[] then
-          list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,tosave,ref));
-      }
-      end;
-
-
-    procedure Tcg68k.g_restore_registers(list:TAsmList);
-      var
-        torestore : tcpuregisterset;
-        r:Tregister;
-        ref : treference;
-      begin
-      {!!!!!!!!
-        torestore:=std_saved_registers;
-        { should be intersected with used regs, no ? }
-        torestore:=torestore*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
-        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-        ref.direction:=dir_inc;
-        if torestore<>[] then
-          list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,ref,torestore));
-      }
-      end;
-
-{
-    procedure tcg68k.g_save_all_registers(list : TAsmList);
-      begin
-      end;
-
-    procedure tcg68k.g_restore_all_registers(list : TAsmList;const funcretparaloc:TCGPara);
-      begin
-      end;
-}
     procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
       begin
         case _oldsize of
