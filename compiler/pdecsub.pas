@@ -2483,7 +2483,10 @@ const
              _UNIMPLEMENTED,
              _EXPERIMENTAL,
              _DEPRECATED :
-               exit;
+               if (pd.typ=procdef) and (m_delphi in current_settings.modeswitches) then
+                 maybe_parse_hint_directives(tprocdef(pd))
+               else
+                 exit;
            end;
          end;
 
