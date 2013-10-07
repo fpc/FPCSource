@@ -103,7 +103,8 @@ implementation
         if assigned(pd) then
           begin
             pd.symoptions:=pd.symoptions+dummysymoptions;
-            pd.deprecatedmsg:=deprecatedmsg;
+            if sp_has_deprecated_msg in dummysymoptions then
+              pd.deprecatedmsg:=deprecatedmsg;
           end
         else
           stringdispose(deprecatedmsg);
