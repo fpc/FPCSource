@@ -647,13 +647,6 @@ TYPE
       next: PModeInfo;
     end;
 
-    TNewModeInfo = record
-      modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
-      loHiModeNr: array[lowNewDriver..highNewDriver] of record
-        lo,hi: smallint;
-      end;
-    end;
-
 
 
 VAR

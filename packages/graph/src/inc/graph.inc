@@ -113,6 +113,14 @@ var
   ArcCall: ArcCoordsType;   { Information on the last call to Arc or Ellipse }
 
 
+type
+  TNewModeInfo = record
+    modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
+    loHiModeNr: array[lowNewDriver..highNewDriver] of record
+      lo,hi: smallint;
+    end;
+  end;
+
 var
 
   { ******************** HARDWARE INFORMATION ********************* }
