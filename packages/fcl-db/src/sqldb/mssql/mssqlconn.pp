@@ -944,12 +944,22 @@ const SCHEMA_QUERY='select id as RECNO, db_name() as CATALOG_NAME, user_name(uid
                    'where type in (%s) '+
                    'order by name';
 begin
+  // for simplicity are used only system tables and columns, common to both MS SQL Server and Sybase
   case SchemaType of
     stTables     : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 1 as TABLE_TYPE', '''U''']);
     stSysTables  : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 4 as TABLE_TYPE', '''S''']);
     stProcedures : Result := format(SCHEMA_QUERY, ['PROC_NAME , case type when ''P'' then 1 else 2 end as PROC_TYPE', '''P'',''FN'',''IF'',''TF''']);
-    stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME, c.name as COLUMN_NAME,'+
-                                    'colid as COLUMN_POSITION, prec as COLUMN_PRECISION, scale as COLUMN_SCALE, length as COLUMN_LENGTH, case when c.status&8=8 then 1 else 0 end as COLUMN_NULLABLE '+
+    stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME,'+
+                                    'c.name   as COLUMN_NAME,'+
+                                    'colid    as COLUMN_POSITION,'+
+                                    '0        as COLUMN_TYPE,'+
+                                    'c.type   as COLUMN_DATATYPE,'+
+                                    '''''     as COLUMN_TYPENAME,'+
+                                    'usertype as COLUMN_SUBTYPE,'+
+                                    'prec     as COLUMN_PRECISION,'+
+                                    'scale    as COLUMN_SCALE,'+
+                                    'length   as COLUMN_LENGTH,'+
+                                    'case when c.status&8=8 then 1 else 0 end as COLUMN_NULLABLE '+
                              'from syscolumns c join sysobjects o on c.id=o.id '+
                              'where c.id=object_id(''' + SchemaObjectName + ''') '+
                              'order by colid';

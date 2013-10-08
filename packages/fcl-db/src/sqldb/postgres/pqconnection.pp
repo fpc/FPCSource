@@ -1263,16 +1263,17 @@ begin
                           'left join pg_namespace n on c.relnamespace=n.oid '+
                         'where (relkind=''r'') and nspname in ((''pg_catalog'',''information_schema'')) ' + // only system tables
                         'order by relname';
+
     stColumns    : s := 'select '+
                           'a.attnum           as recno, '+
                           'current_database() as catalog_name, '+
                           'nspname            as schema_name, '+
                           'c.relname          as table_name, '+
                           'a.attname          as column_name, '+
-                          '0                  as column_position, '+
+                          'a.attnum           as column_position, '+
                           '0                  as column_type, '+
-                          '0                  as column_datatype, '+
-                          '''''               as column_typename, '+
+                          'a.atttypid         as column_datatype, '+
+                          't.typname          as column_typename, '+
                           '0                  as column_subtype, '+
                           '0                  as column_precision, '+
                           '0                  as column_scale, '+
@@ -1280,6 +1281,7 @@ begin
                           'not a.attnotnull   as column_nullable '+
                         'from pg_class c '+
                           'join pg_attribute a on c.oid=a.attrelid '+
+                          'join pg_type t on t.oid=a.atttypid '+
                           'left join pg_namespace n on c.relnamespace=n.oid '+
                           // This can lead to problems when case-sensitive tablenames are used.
                         'where (a.attnum>0) and (not a.attisdropped) and (upper(c.relname)=''' + Uppercase(SchemaObjectName) + ''') '+

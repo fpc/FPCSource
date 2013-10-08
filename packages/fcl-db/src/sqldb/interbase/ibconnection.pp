@@ -1351,26 +1351,30 @@ begin
                           'rdb$procedures '+
                         'WHERE '+
                           '(rdb$system_flag = 0 or rdb$system_flag is null)';
-    stColumns    : s := 'select '+
-                           'rdb$field_id            as recno, '+
+
+    stColumns    : s := 'SELECT '+
+                          'rdb$field_id             as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           '''''                     as schema_name, '+
                           'rdb$relation_name        as table_name, '+
-                          'rdb$field_name           as column_name, '+
-                          'rdb$field_position       as column_position, '+
+                          'r.rdb$field_name         as column_name, '+
+                          'rdb$field_position+1     as column_position, '+
                           '0                        as column_type, '+
-                          '0                        as column_datatype, '+
-                          '''''                     as column_typename, '+
-                          '0                        as column_subtype, '+
-                          '0                        as column_precision, '+
-                          '0                        as column_scale, '+
-                          '0                        as column_length, '+
-                          '0                        as column_nullable '+
-                        'from '+
-                          'rdb$relation_fields '+
+                          'rdb$field_type           as column_datatype, '+
+                          'rdb$type_name            as column_typename, '+
+                          'rdb$field_sub_type       as column_subtype, '+
+                          'rdb$field_precision      as column_precision, '+
+                          '-rdb$field_scale         as column_scale, '+
+                          'rdb$field_length         as column_length, '+
+                          'case r.rdb$null_flag when 1 then 0 else 1 end as column_nullable '+
+                        'FROM '+
+                          'rdb$relation_fields r '+
+                            'JOIN rdb$fields f ON r.rdb$field_source=f.rdb$field_name '+
+                            'JOIN rdb$types t ON f.rdb$field_type=t.rdb$type AND t.rdb$field_name=''RDB$FIELD_TYPE'' '+
                         'WHERE '+
-                          '(rdb$system_flag = 0 or rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
-                        'order by rdb$field_name';
+                          '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
+                        'ORDER BY '+
+                          'r.rdb$field_name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
