@@ -4155,6 +4155,7 @@ const CrtAddress: word = 0;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
+             mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
              mode.XAspect := 8333;
              mode.YAspect := 10000;
              AddMode(mode);
