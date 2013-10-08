@@ -1467,7 +1467,7 @@
       Msg : UINT;
       MsgFiller : TDwordFiller;
       FocusedWnd : HWND;
-      Unused : WPARAM;
+      Unused : LPARAM;
       Result : LRESULT;
     end;
 
