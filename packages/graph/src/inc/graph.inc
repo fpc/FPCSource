@@ -114,8 +114,14 @@ var
 
 
 type
+  PNewModelist = ^TNewModeList;
+  TNewModeList = record
+    Mode: PModeInfo;
+    next: PNewModeList;
+    internModeNumber: smallint;
+  end;
   TNewModeInfo = record
-    modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
+    modeInfo: array[lowNewDriver..highNewDriver] of PNewModeList;
     loHiModeNr: array[lowNewDriver..highNewDriver] of record
       lo,hi: smallint;
     end;
@@ -2111,7 +2117,9 @@ end;
   var
     list: PModeInfo;
     tmp : PModeInfo;
-    c: longint;
+    newList: PNewModeList;
+    newTmp : PNewModeList;
+    c: smallint;
   begin
    { restore old exitproc! }
    exitproc := exitsave;
@@ -2132,12 +2140,12 @@ end;
      end;
    for c := lowNewDriver to highNewDriver do
      begin
-       list := newModeList.modeinfo[c];
-       while assigned(list) do
+       newList := newModeList.modeinfo[c];
+       while assigned(newList) do
          begin
-           tmp := list;
-           list:=list^.next;
-           dispose(tmp);
+           newTmp := newList;
+           newList:=newList^.next;
+           dispose(newTmp);
          end;
      end;
 {$IFDEF DPMI}
