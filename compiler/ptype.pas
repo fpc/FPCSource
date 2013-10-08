@@ -96,10 +96,18 @@ implementation
         dummysymoptions : tsymoptions;
         deprecatedmsg : pshortstring;
       begin
-        dummysymoptions:=[];
-        deprecatedmsg:=nil;
+        if assigned(pd) then
+          begin
+            dummysymoptions:=pd.symoptions;
+            deprecatedmsg:=pd.deprecatedmsg;
+          end
+        else
+          begin
+            dummysymoptions:=[];
+            deprecatedmsg:=nil;
+          end;
         while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-          Consume(_SEMICOLON);
+          consume(_SEMICOLON);
         if assigned(pd) then
           begin
             pd.symoptions:=pd.symoptions+dummysymoptions;

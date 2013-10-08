@@ -1504,8 +1504,8 @@ parser_e_not_allowed_in_record=03332_E_Sichtbarkeits-Abschnitt "$1" ist in Recor
 % The visibility sections \var(protected) and \var(strict protected) are only
 % useful together with inheritance. Since records do not support that they are
 % forbidden.
-parser_e_proc_dir_not_allowed=03333_E_Prozedurdirektive "$1" ist hier nicht erlaubt
-% This procedure directive is not allowed in the given context. E.g. "static"
+parser_e_dir_not_allowed=03333_E_Direktive "$1" ist hier nicht erlaubt
+% This directive is not allowed in the given context. E.g. "static"
 % is not allowed for instance methods or class operators.
 parser_e_no_assembler_in_generic=03334_E_Assemblerblöcke sind innerhalb von "generics" nicht erlaubt
 % The use of assembler blocks/routines is not allowed inside generics.

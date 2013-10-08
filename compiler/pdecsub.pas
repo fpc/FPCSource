@@ -1639,7 +1639,7 @@ begin
         not is_object(tprocdef(pd).struct)
       )
       then
-    Message1(parser_e_proc_dir_not_allowed,arraytokeninfo[_STATIC].str);
+    Message1(parser_e_dir_not_allowed,arraytokeninfo[_STATIC].str);
   include(pd.procoptions,po_staticmethod);
 end;
 
