@@ -75,7 +75,10 @@
               InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
           end
         else
-          Result := nil;
+          if ReturnNilIfGrowHeapFails then
+            Result := nil
+          else
+            HandleError(203);
 {$ifdef DEBUG_TINY_HEAP}
         Writeln(ptruint(Result));
 {$endif DEBUG_TINY_HEAP}
