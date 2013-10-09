@@ -283,10 +283,11 @@ type
     y  : smallint;
   end;
 
+  PDrawnList  = ^TDrawnList;
   TDrawnList  = Array[0..(MaxYRes - 1) div YResDiv] of PFloodLine;
 
 var
-   DrawnList : TDrawnList;
+   DrawnList : PDrawnList;
    Buffer : Record                         { Union for byte and word addressing of buffer }
      ByteIndex : Word;
      WordIndex : Word;
@@ -352,8 +353,8 @@ var
      temp^.x1 := x1;
      temp^.x2 := x2;
      temp^.y := y;
-     temp^.next := DrawnList[y div YResDiv];
-     DrawnList[y div YResDiv] := temp;
+     temp^.next := DrawnList^[y div YResDiv];
+     DrawnList^[y div YResDiv] := temp;
    end;
 
   {********************************************************}
@@ -373,7 +374,7 @@ var
     temp : PFloodLine;
    begin
     AlreadyDrawn := false;
-    temp := DrawnList[y div YResDiv];
+    temp := DrawnList^[y div YResDiv];
     while assigned(temp) do
       begin
         if (temp^.y = y) and
@@ -395,12 +396,12 @@ var
   {********************************************************}
   Procedure CleanUpDrawnList;
   var
-    l: longint;
+    l: smallint;
     temp1, temp2: PFloodLine;
   begin
-    for l := 0 to high(DrawnList) do
+    for l := 0 to ViewHeight div YResDiv do
       begin
-        temp1 := DrawnList[l];
+        temp1 := DrawnList^[l];
         while assigned(temp1) do
           begin
             temp2 := temp1;
@@ -428,7 +429,8 @@ var
    BackupColor : Word;
    x1, x2, prevy: smallint;
   Begin
-    FillChar(DrawnList,sizeof(DrawnList),0);
+    GetMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
+    FillChar(DrawnList^,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1),0);
     { init prevy }
     prevy := 32767;
     { Save current drawing color }
@@ -533,6 +535,7 @@ var
     System.FreeMem (s2,(ViewWidth+1)*2);
     System.FreeMem (s3,(ViewWidth+1)*2);
     CleanUpDrawnList;
+    System.FreeMem(DrawnList,sizeof(PFloodLine)*((ViewHeight div YResDiv) + 1));
     CurrentColor := BackUpColor;
   End;
 
