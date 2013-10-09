@@ -9,7 +9,11 @@ uses
   cp1253,
   { other code pages }
   cp8859_1,cp850,cp437,cp1252,cp646,
-  cp874,cp932,cp936,cp949,cp950,
+  cp874,
+{$ifndef cpu16}
+  { these are too big for a 16-bit CPU }
+  cp932,cp936,cp949,cp950,
+{$endif not cpu16}
   cp1250,cp1254,cp1255,cp1256,cp1257,cp1258;
 
 

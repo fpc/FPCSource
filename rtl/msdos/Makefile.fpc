@@ -9,13 +9,17 @@ units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
       msmouse ports keyboard \
-      printer charset fmtbcd
+      printer charset cpall fmtbcd
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf ctypes \
 #      video mouse vesamode \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 # implicitunits=exeinfo
+implicitunits= \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp866 cp874 cp8859_1 cp8859_5
+#      cp932 cp936 cp949 cp950 
 [require]
 nortl=y
 [install]
@@ -196,6 +200,9 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 matrix$(PPUEXT) : $(INC)/matrix.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
