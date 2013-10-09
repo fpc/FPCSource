@@ -67,7 +67,7 @@ unit cgcpu;
         procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
-//        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
+        //procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
 
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -88,6 +88,7 @@ unit cgcpu;
 //        procedure g_restore_frame_pointer(list : TAsmList);override;
 //        procedure g_return_from_proc(list : TAsmList;parasize : tcgint);override;
 
+        procedure g_adjust_self_value(list:TAsmList;procdef:tprocdef;ioffset:tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
      protected
@@ -1773,37 +1774,82 @@ unit cgcpu;
       end;
 
 
+    procedure tcg68k.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      var
+        hsym : tsym;
+        href : treference;
+        paraloc : Pcgparalocation;
+      begin
+        { calculate the parameter info for the procdef }
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+               (hsym.typ=paravarsym)) then
+          internalerror(2013100702);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        while paraloc<>nil do
+          with paraloc^ do
+            begin
+              case loc of
+                LOC_REGISTER:
+                  a_op_const_reg(list,OP_SUB,size,ioffset,register);
+                LOC_REFERENCE:
+                  begin
+                    { offset in the wrapper needs to be adjusted for the stored
+                      return address }
+                    reference_reset_base(href,reference.index,reference.offset-sizeof(pint),sizeof(pint));
+                    list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_D0));
+                    list.concat(taicpu.op_const_reg(A_SUB,S_L,ioffset,NR_D0));
+                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_D0,href));
+                  end
+                else
+                  internalerror(2013100703);
+              end;
+              paraloc:=next;
+            end;
+      end;
+
 
     procedure tcg68k.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-{
-        procedure loadvmttor11;
+
+        procedure getselftoa0(offs:longint);
+          var
+            href : treference;
+            selfoffsetfromsp : longint;
+          begin
+            { move.l offset(%sp),%a0 }
+
+            { framepointer is pushed for nested procs }
+            if procdef.parast.symtablelevel>normal_function_level then
+              selfoffsetfromsp:=sizeof(aint)
+            else
+              selfoffsetfromsp:=0;
+            reference_reset_base(href,NR_SP,selfoffsetfromsp+offs,4);
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
+          end;
+
+        procedure loadvmttoa0;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_R3,0);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+          { move.l  (%a0),%a0 ; load vmt}
+          reference_reset_base(href,NR_A0,0,4);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
         end;
 
-        procedure op_onr11methodaddr;
+        procedure op_ona0methodaddr;
         var
           href : treference;
+          offs : longint;
         begin
           if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));
-          if not((longint(href.offset) >= low(smallint)) and
-                 (longint(href.offset) <= high(smallint))) then
-            begin
-              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
-                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
-              href.offset := smallint(href.offset and $ffff);
-            end;
-          list.concat(taicpu.op_reg_ref(A_LWZ,NR_R11,href));
-          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
-          list.concat(taicpu.op_none(A_BCTR));
+            Internalerror(2013100701);
+          reference_reset_base(href,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+          list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
+          reference_reset_base(href,NR_A0,0,4);
+          list.concat(taicpu.op_ref(A_JMP,S_L,href));
         end;
-}
+
       var
         make_global : boolean;
       begin
@@ -1828,18 +1874,19 @@ unit cgcpu;
           List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
-//        g_adjust_self_value(list,procdef,ioffset);
+        g_adjust_self_value(list,procdef,ioffset);
 
         { case 4 }
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
           begin
-//            loadvmttor11;
-//            op_onr11methodaddr;
+            getselftoa0(4);
+            loadvmttoa0;
+            op_ona0methodaddr;
           end
         { case 0 }
         else
-//          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          list.concat(taicpu.op_sym(A_JMP,S_L,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
