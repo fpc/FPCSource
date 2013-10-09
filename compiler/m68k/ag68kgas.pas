@@ -229,12 +229,12 @@ interface
               hs:='';
               for i:=RS_D0 to RS_D7 do
                 begin
-                  if i in o.regset^ then
+                  if i in o.dataregset^ then
                    hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_A0 to RS_SP do
                 begin
-                  if i in o.regset^ then
+                  if i in o.addrregset^ then
                    hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               delete(hs,length(hs),1);
