@@ -1411,8 +1411,10 @@ end;
 { Generic threadmanager }
 {$i thread.inc}
 
+{$ifndef FPC_SECTION_THREADVARS}
 { Generic threadvar support }
 {$i threadvr.inc}
+{$endif FPC_SECTION_THREADVARS}
 
 {$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }
