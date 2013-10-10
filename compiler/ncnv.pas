@@ -294,7 +294,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 
@@ -1428,8 +1428,7 @@ implementation
           result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
         else
           begin
-            result:=ccallnode.createinternres('fpc_round_real',
-              ccallparanode.create(left,nil),resultdef);
+            result:=cinlinenode.create(in_round_real,false,left);
             left:=nil;
           end;
       end;
