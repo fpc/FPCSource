@@ -71,6 +71,10 @@ interface
          'trapcc','tracs','trapeq','trapf','trapge','trapgt',
          'traphi','traple','trapls','traplt','trapmi','trapne',
          'trappl','trapt','trapvc','trapvs','unpk',
+         { mc64040 instructions }
+         'move16',
+         { coldfire v4 instructions }
+         'mov3q','mvz','mvs','sats',
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          'fabs','fadd',

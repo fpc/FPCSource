@@ -64,6 +64,10 @@ unit cpubase;
          a_trapcc,a_tracs,a_trapeq,a_trapf,a_trapge,a_trapgt,
          a_traphi,a_traple,a_trapls,a_traplt,a_trapmi,a_trapne,
          a_trappl,a_trapt,a_trapvc,a_trapvs,a_unpk,
+         { mc64040 instructions }
+         a_move16,
+         { coldfire v4 instructions }
+         a_mov3q,a_mvz,a_mvs,a_sats,
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
