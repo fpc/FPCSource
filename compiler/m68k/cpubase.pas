@@ -436,7 +436,6 @@ implementation
             cgsize2subreg:=R_SUBWHOLE;
           OS_64,OS_S64:
             begin
-//             writeln('64bit regsize?');
              cgsize2subreg:=R_SUBWHOLE;
             end;
           OS_F32 :
@@ -450,7 +449,6 @@ implementation
             end;
 }
           else begin
-            writeln('M68K: invalid register size');
     // this supposed to be debug
     //        p:=nil; dword(p^):=0;
     //        internalerror(200301231);
