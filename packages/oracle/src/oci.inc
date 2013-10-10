@@ -3378,10 +3378,11 @@ uses ctypes,
 {$include ociap.inc}
 
 {$IFDEF LinkDynamically}
-Procedure InitialiseOCI(LibraryName: AnsiString = ocilib);
+Function InitialiseOCI(const LibraryName: AnsiString = ocilib): integer;
 Procedure ReleaseOCI;
 
 var OCILibraryHandle : TLibHandle;
+    OCILoadedLibrary : AnsiString;
 {$ENDIF}
 
 implementation
@@ -3392,16 +3393,16 @@ implementation
 
 var 
   RefCount : integer;
-  LibName : AnsiString;
-  
-Procedure InitialiseOCI(LibraryName: AnsiString = ocilib);
+
+function InitialiseOCI(const LibraryName: AnsiString = ocilib): integer;
 
 begin
   inc(RefCount);
+  Result:=RefCount;
   if RefCount > 1 then
     begin
-    if CompareText(LibName,LibraryName)<>0 then
-      Raise EInOutError.CreateFmt('Can not load Oracle client library "%s". it is already loaded as "%s".',[LibraryName,LibName]);
+    if CompareText(OCILoadedLibrary,LibraryName)<>0 then
+      Raise EInOutError.CreateFmt('Can not load Oracle client library "%s". it is already loaded as "%s".',[LibraryName,OCILoadedLibrary]);
     exit; 
     end
   else
@@ -3412,7 +3413,7 @@ begin
       RefCount := 0;
       Raise EInOutError.CreateFmt('Can not load Oracle client library "%s". Is it installed?',[LibraryName]);
       end;
-    libName:=LibraryName;
+    OCILoadedLibrary:=LibraryName;
     end;  
     
 { ORL.inc}
@@ -3912,7 +3913,7 @@ begin
     begin
     if not UnloadLibrary(OCILibraryHandle) then 
       inc(RefCount);
-    LibName:='';
+    OCILoadedLibrary:='';
     end;
 end;
 
