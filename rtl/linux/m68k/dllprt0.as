@@ -36,9 +36,6 @@ FPC_SHARED_LIB_START:
         .globl  _haltproc
         .type   _haltproc,@function
 haltproc:
-        .globl  FPC_SHARED_LIB_EXIT
-        .type   FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
         moveq.l   #1,%d0
         move.w    U_SYSLINUX_EXITCODE,%d1
         trap      #0

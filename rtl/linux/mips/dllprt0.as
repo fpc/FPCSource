@@ -133,11 +133,8 @@ _start:
 	.size 	_start, .-_start
 
 	.globl  _haltproc
-    .globl  FPC_SHARED_LIB_EXIT
 	.ent	_haltproc
 	.type   _haltproc,@function
-    .type  FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
 _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
@@ -156,3 +153,4 @@ _haltproc:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
+.section .note.GNU-stack,"",@progbits

@@ -75,9 +75,6 @@ FPC_SHARED_LIB_START:
 .type _haltproc,@function
 
 _haltproc:
-	.globl FPC_SHARED_LIB_EXIT
-	.type FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
         call    FPC_LIB_EXIT@PLT
            mov $1,%eax  
            movzwl operatingsystem_result,%ebx
