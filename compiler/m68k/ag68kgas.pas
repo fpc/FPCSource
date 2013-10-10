@@ -171,7 +171,7 @@ interface
               for i:=RS_A0 to RS_SP do
                 begin
                   if i in o.addrregset^ then
-                   hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
+                   hs:=hs+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               delete(hs,length(hs),1);
               getopstr := hs;
