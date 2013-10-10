@@ -109,61 +109,6 @@ type
       globtype;
 
 
-{ TODO: FIX ME!! useful for debug, remove it, same table as in ag68kgas }
-    const
-      gas_op2str:op2strtable=
-    {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
-       { 68000 only opcodes }
-       ( '',
-         'abcd','add','adda','addi','addq','addx','and','andi',
-         'asl','asr','bcc','bcs','beq','bge','bgt','bhi',
-         'ble','bls','blt','bmi','bne','bpl','bvc','bvs',
-         'bchg','bclr','bra','bset','bsr','btst','chk',
-         'clr','cmp','cmpa','cmpi','cmpm','dbcc','dbcs','dbeq','dbge',
-         'dbgt','dbhi','dble','dbls','dblt','dbmi','dbne','dbra',
-         'dbpl','dbt','dbvc','dbvs','dbf','divs','divu',
-         'eor','eori','exg','illegal','ext','jmp','jsr',
-         'lea','link','lsl','lsr','move','movea','movei','moveq',
-         'movem','movep','muls','mulu','nbcd','neg','negx',
-         'nop','not','or','ori','pea','rol','ror','roxl',
-         'roxr','rtr','rts','sbcd','scc','scs','seq','sge',
-         'sgt','shi','sle','sls','slt','smi','sne',
-         'spl','st','svc','svs','sf','sub','suba','subi','subq',
-         'subx','swap','tas','trap','trapv','tst','unlk',
-         'rte','reset','stop',
-         { mc68010 instructions }
-         'bkpt','movec','moves','rtd',
-         { mc68020 instructions }
-         'bfchg','bfclr','bfexts','bfextu','bfffo',
-         'bfins','bfset','bftst','callm','cas','cas2',
-         'chk2','cmp2','divsl','divul','extb','pack','rtm',
-         'trapcc','tracs','trapeq','trapf','trapge','trapgt',
-         'traphi','traple','trapls','traplt','trapmi','trapne',
-         'trappl','trapt','trapvc','trapvs','unpk',
-         { fpu processor instructions - directly supported only. }
-         { ieee aware and misc. condition codes not supported   }
-         'fabs','fadd',
-         'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
-         'fblt','fbnlt','fble','fbgl','fbngl','fbgle','fbngle',
-         'fdbeq','fdbne','fdbgt','fdbngt','fdbge','fdbnge',
-         'fdblt','fdbnlt','fdble','fdbgl','fdbngl','fdbgle','fdbngle',
-         'fseq','fsne','fsgt','fsngt','fsge','fsnge',
-         'fslt','fsnlt','fsle','fsgl','fsngl','fsgle','fsngle',
-         'fcmp','fdiv','fmove','fmovem',
-         'fmul','fneg','fnop','fsqrt','fsub','fsgldiv',
-         'fsflmul','ftst',
-         'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
-         'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
-         { protected instructions }
-         'cprestore','cpsave',
-         { fpu unit protected instructions                    }
-         { and 68030/68851 common mmu instructions            }
-         { (this may include 68040 mmu instructions)          }
-         'frestore','fsave','pflush','pflusha','pload','pmove','ptest',
-         { useful for assembly language output }
-         'label','db','s','b','fb');
-
-
 {*****************************************************************************
                                  Taicpu Constructors
 *****************************************************************************}
@@ -538,8 +483,6 @@ type
           A_TST,A_CMP,A_CMPI:
             begin end; { Do nothing, default operand_read is fine here. }
           else begin
-{ TODO: FIX ME!!! remove ugly debug code ... }
-            writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);
             internalerror(2004040903);
           end;
         end;
