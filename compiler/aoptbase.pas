@@ -67,6 +67,7 @@ unit aoptbase;
         { false and sets last to nil                                     }
         Function GetLastInstruction(Current: tai; Var Last: tai): Boolean;
 
+        function SkipEntryExitMarker(current: tai; var next: tai): boolean;
 
         { processor dependent methods }
 
@@ -244,6 +245,21 @@ unit aoptbase;
           GetLastInstruction := True;
         End;
   End;
+
+
+  function TAOptBase.SkipEntryExitMarker(current: tai; var next: tai): boolean;
+    begin
+      result:=true;
+      if current.typ<>ait_marker then
+        exit;
+      next:=current;
+      while GetNextInstruction(next,next) do
+        begin
+          if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
+            exit;
+        end;
+      result:=false;
+    end;
 
 
   Function TAOptBase.RegUsedBetween(reg : TRegister;p1,p2 : tai) : Boolean;

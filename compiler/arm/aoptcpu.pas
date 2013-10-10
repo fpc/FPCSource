@@ -54,8 +54,6 @@ Type
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
 
-  private
-   function SkipEntryExitMarker(current: tai; var next: tai): boolean;
   protected
     function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
@@ -522,22 +520,6 @@ Implementation
           hp1.Free;
           Result:=true;
         end;
-    end;
-
-
-  { skip harmless marker marking entry/exit code, so it can be optimized as well }
-  function TCpuAsmOptimizer.SkipEntryExitMarker(current : tai;var next : tai) : boolean;
-    begin
-      result:=true;
-      if current.typ<>ait_marker then
-        exit;
-      next:=current;
-      while GetNextInstruction(next,next) do
-        begin
-          if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
-            exit;
-        end;
-      result:=false;
     end;
 
 
