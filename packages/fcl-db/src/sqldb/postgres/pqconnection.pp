@@ -409,6 +409,7 @@ begin
   else
     begin
     tr.PGConn := PQconnectdb(pchar(FConnectString));
+    T.FPGConn:=tr.PGConn;
     CheckConnectionStatus(tr.PGConn);
     if CharSet <> '' then
       PQsetClientEncoding(tr.PGConn, pchar(CharSet));
