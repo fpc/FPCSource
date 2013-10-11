@@ -3407,7 +3407,7 @@ begin
     end
   else
     begin
-    OCILibraryHandle:=loadlibrary(ocilib);
+    OCILibraryHandle:=loadlibrary(LibraryName);
     if (OCILibraryHandle=nilhandle) then
       begin
       RefCount := 0;
