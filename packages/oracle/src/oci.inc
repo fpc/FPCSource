@@ -3378,7 +3378,8 @@ uses ctypes,
 {$include ociap.inc}
 
 {$IFDEF LinkDynamically}
-Function InitialiseOCI(const LibraryName: AnsiString = ocilib): integer;
+Function InitialiseOCI(const LibraryName: AnsiString): integer;
+Function InitialiseOCI(): integer;
 Procedure ReleaseOCI;
 
 var OCILibraryHandle : TLibHandle;
@@ -3394,7 +3395,16 @@ implementation
 var 
   RefCount : integer;
 
-function InitialiseOCI(const LibraryName: AnsiString = ocilib): integer;
+Function InitialiseOCI(): integer;
+
+begin
+  if (OCILoadedLibrary='') then
+    Result:=InitialiseOCI(OCILib)
+ else
+    Result:=InitialiseOCI(OCILoadedLibrary);
+end;
+
+function InitialiseOCI(const LibraryName: AnsiString): integer;
 
 begin
   inc(RefCount);
