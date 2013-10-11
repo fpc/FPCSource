@@ -4712,3 +4712,78 @@ reg64,rm64,reg64                      \361\362\363\371\1\xf7\76\110       BMI2,X
 reg32,rm32,reg32                      \334\362\371\1\xf7\76\110           BMI2
 reg64,rm64,reg64                      \334\362\363\371\1\xf7\76\110       BMI2,X86_64
 
+;*******************************************************************************
+;********** NEC V20/V30 ********************************************************
+;*******************************************************************************
+
+[ADD4S]
+(Ch_All, Ch_None, Ch_None)
+void                                  \2\x0F\x20                          NEC,16BITONLY
+
+[BRKEM]
+(Ch_All, Ch_None, Ch_None)
+imm                                   \2\x0F\xFF\24                       NEC,SB,16BITONLY
+
+[CLR1]
+(Ch_Mop2, Ch_Rop1, Ch_None)
+rm8,reg_cl                            \2\x0F\x12\200                      NEC,16BITONLY
+rm16,reg_cl                           \2\x0F\x13\200                      NEC,16BITONLY
+rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,16BITONLY
+rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,16BITONLY
+
+[CMP4S]
+(Ch_All, Ch_None, Ch_None)
+void                                  \2\x0F\x26                          NEC,16BITONLY
+
+[EXT]
+(Ch_All, Ch_None, Ch_None)
+reg8,reg8                             \2\x0F\x33\101                      NEC,16BITONLY
+reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,16BITONLY
+
+;[FPO2]
+
+[INS]
+(Ch_All, Ch_None, Ch_None)
+reg8,reg8                             \2\x0F\x31\101                      NEC,16BITONLY
+reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,16BITONLY
+
+[NOT1]
+(Ch_Mop2, Ch_Rop1, Ch_None)
+rm8,reg_cl                            \2\x0F\x16\200                      NEC,16BITONLY
+rm16,reg_cl                           \2\x0F\x17\200                      NEC,16BITONLY
+rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,16BITONLY
+rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,16BITONLY
+
+[REPC]
+(Ch_RWECX, Ch_RWFlags, Ch_None)
+void                                  \1\x65                              NEC,PRE,16BITONLY
+
+[REPNC]
+(Ch_RWECX, Ch_RWFlags, Ch_None)
+void                                  \1\x64                              NEC,PRE,16BITONLY
+
+[ROL4]
+(Ch_Mop1, Ch_RWEAX, Ch_None)
+rm8                                   \2\x0F\x28\200                      NEC,16BITONLY
+
+[ROR4]
+(Ch_Mop1, Ch_RWEAX, Ch_None)
+rm8                                   \2\x0F\x2A\200                      NEC,16BITONLY
+
+[SET1]
+(Ch_Mop2, Ch_Rop1, Ch_None)
+rm8,reg_cl                            \2\x0F\x14\200                      NEC,16BITONLY
+rm16,reg_cl                           \2\x0F\x15\200                      NEC,16BITONLY
+rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,16BITONLY
+rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,16BITONLY
+
+[SUB4S]
+(Ch_All, Ch_None, Ch_None)
+void                                  \2\x0F\x22                          NEC,16BITONLY
+
+[TEST1]
+(Ch_WFlags, Ch_Rop1, Ch_Rop2)
+rm8,reg_cl                            \2\x0F\x10\200                      NEC,16BITONLY
+rm16,reg_cl                           \2\x0F\x11\200                      NEC,16BITONLY
+rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,16BITONLY
+rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,16BITONLY

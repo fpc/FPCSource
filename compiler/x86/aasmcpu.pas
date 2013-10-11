@@ -429,6 +429,7 @@ implementation
        IF_AVX    = $00200000;
        IF_BMI1   = $00200000;
        IF_BMI2   = $00200000;
+       IF_16BITONLY = $00200000;
 
        IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
@@ -446,6 +447,7 @@ implementation
        IF_AMD    = $0c000000;  { AMD-specific instruction  }
        IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
+       IF_NEC    = $0f000000;  { NEC V20/V30 instruction }
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }

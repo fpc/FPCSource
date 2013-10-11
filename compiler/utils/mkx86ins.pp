@@ -413,11 +413,19 @@ begin
              hs:=readstr;
              if x86_64 then
                begin
-                 if (upcase(hs)='NOX86_64') then
+                 { x86_64 }
+                 if (upcase(hs)='NOX86_64') or (upcase(hs)='16BITONLY') then
+                   skip:=true;
+               end
+             else if not i8086 then
+               begin
+                 { i386 }
+                 if (upcase(hs)='X86_64') or (upcase(hs)='16BITONLY') then
                    skip:=true;
                end
              else
                begin
+                 { i8086 }
                  if (upcase(hs)='X86_64') then
                    skip:=true;
                end;
