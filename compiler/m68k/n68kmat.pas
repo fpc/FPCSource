@@ -111,7 +111,11 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER,
               LOC_REFERENCE,
-              LOC_CREFERENCE :
+              LOC_CREFERENCE,
+              LOC_SUBSETREG,
+              LOC_CSUBSETREG,
+              LOC_SUBSETREF,
+              LOC_CSUBSETREF:
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
