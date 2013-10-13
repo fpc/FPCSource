@@ -790,21 +790,63 @@ implementation
           begin
             { Allocate register already, to prevent first allocation to be
               inside a loop }
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
             if sym.initialloc.size in [OS_128,OS_S128] then
               begin
                 cg.a_reg_sync(list,sym.initialloc.register128.reglo);
                 cg.a_reg_sync(list,sym.initialloc.register128.reghi);
               end
             else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
             if sym.initialloc.size in [OS_64,OS_S64] then
               begin
                 cg.a_reg_sync(list,sym.initialloc.register64.reglo);
                 cg.a_reg_sync(list,sym.initialloc.register64.reghi);
               end
             else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+            if sym.initialloc.size in [OS_64,OS_S64] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register64.reglo);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reglo));
+                cg.a_reg_sync(list,sym.initialloc.register64.reghi);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reghi));
+              end
+            else
+            if sym.initialloc.size in [OS_32,OS_S32] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+              end
+            else
+{$elseif defined(cpu8bitalu)}
+            if sym.initialloc.size in [OS_64,OS_S64] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register64.reglo);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reglo));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register64.reglo)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register64.reglo))));
+                cg.a_reg_sync(list,sym.initialloc.register64.reghi);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reghi));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register64.reghi)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register64.reghi))));
+              end
+            else
+            if sym.initialloc.size in [OS_32,OS_S32] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register))));
+              end
+            else
+            if sym.initialloc.size in [OS_16,OS_S16] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+              end
+            else
+{$endif}
              cg.a_reg_sync(list,sym.initialloc.register);
           end;
         sym.localloc:=sym.initialloc;
