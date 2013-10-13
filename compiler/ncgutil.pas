@@ -2052,21 +2052,63 @@ implementation
                     case localloc.loc of
                       LOC_CREGISTER :
                         if (pi_has_label in current_procinfo.flags) then
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
                           if def_cgsize(vardef) in [OS_128,OS_S128] then
                             begin
                               cg.a_reg_sync(list,localloc.register128.reglo);
                               cg.a_reg_sync(list,localloc.register128.reghi);
                             end
                           else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);
                               cg.a_reg_sync(list,localloc.register64.reghi);
                             end
                           else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                          if def_cgsize(vardef) in [OS_64,OS_S64] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register64.reglo);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reglo));
+                              cg.a_reg_sync(list,localloc.register64.reghi);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reghi));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_32,OS_S32] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                            end
+                          else
+{$elseif defined(cpu8bitalu)}
+                          if def_cgsize(vardef) in [OS_64,OS_S64] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register64.reglo);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reglo));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register64.reglo)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register64.reglo))));
+                              cg.a_reg_sync(list,localloc.register64.reghi);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reghi));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register64.reghi)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register64.reghi))));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_32,OS_S32] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register))));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_16,OS_S16] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                            end
+                          else
+{$endif}
                             cg.a_reg_sync(list,localloc.register);
                       LOC_CFPUREGISTER,
                       LOC_CMMREGISTER:
