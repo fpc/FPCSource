@@ -308,7 +308,7 @@ unit cpubase;
          GCC source.
       }
       saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
-      saved_address_registers : array[0..3] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
+      saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
 
       { this is only for the generic code which is not used for this architecture }
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
