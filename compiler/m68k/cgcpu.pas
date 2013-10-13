@@ -206,14 +206,28 @@ unit cgcpu;
 
 
     procedure tcg68k.init_register_allocators;
+      var
+        reg: TSuperRegister;
+        address_regs: array of TSuperRegister;
       begin
         inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
           [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7],
           first_int_imreg,[]);
+
+        { set up the array of address registers to use }
+        for reg:=RS_A0 to RS_A6 do
+          begin
+            { don't hardwire the frame pointer register, because it can vary between target OS }
+            if assigned(current_procinfo) and (current_procinfo.framepointer = NR_FRAME_POINTER_REG)
+               and (reg = RS_FRAME_POINTER_REG) then
+              continue;
+            setlength(address_regs,length(address_regs)+1);
+            address_regs[length(address_regs)-1]:=reg;
+          end;
         rg[R_ADDRESSREGISTER]:=trgcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
-          [RS_A0,RS_A1,RS_A2,RS_A3,RS_A4,RS_A5,RS_A6],
-          first_addr_imreg,[]);
+          address_regs, first_addr_imreg, []);
+
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
           [RS_FP0,RS_FP1,RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7],
           first_fpu_imreg,[]);
