@@ -1640,21 +1640,63 @@ implementation
       begin
         case location.loc of
           LOC_CREGISTER:
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
             if location.size in [OS_128,OS_S128] then
               begin
                 rv.intregvars.addnodup(getsupreg(location.register128.reglo));
                 rv.intregvars.addnodup(getsupreg(location.register128.reghi));
               end
             else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
             if location.size in [OS_64,OS_S64] then
               begin
                 rv.intregvars.addnodup(getsupreg(location.register64.reglo));
                 rv.intregvars.addnodup(getsupreg(location.register64.reghi));
               end
             else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+            if location.size in [OS_64,OS_S64] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register64.reglo));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reglo)));
+                rv.intregvars.addnodup(getsupreg(location.register64.reghi));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reghi)));
+              end
+            else
+            if location.size in [OS_32,OS_S32] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+              end
+            else
+{$elseif defined(cpu8bitalu)}
+            if location.size in [OS_64,OS_S64] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register64.reglo));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reglo)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register64.reglo))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register64.reglo)))));
+                rv.intregvars.addnodup(getsupreg(location.register64.reghi));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reghi)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register64.reghi))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register64.reghi)))));
+              end
+            else
+            if location.size in [OS_32,OS_S32] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register)))));
+              end
+            else
+            if location.size in [OS_16,OS_S16] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+              end
+            else
+{$endif}
               rv.intregvars.addnodup(getsupreg(location.register));
           LOC_CFPUREGISTER:
             rv.fpuregvars.addnodup(getsupreg(location.register));
