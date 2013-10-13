@@ -1,7 +1,6 @@
 {
-    Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009, 2010, 2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
-    Original C++ version by Glenn Fiedler (ptc@gaffer.org)
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,40 +29,26 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-type
-  TWin32Mouse = class(TWin32Hook)
-  private
-    FEventQueue: TEventQueue;
+constructor TWin32Resize.Create(AWindow: HWND; AThread: DWord; AEventQueue: TEventQueue);
+begin
+  inherited Create(AWindow, AThread);
+  FEventQueue := AEventQueue;
+end;
 
-    FFullScreen: Boolean;
-
-    { the actual image area, inside the window (top left and bottom right corner) }
-    FWindowX1, FWindowY1, FWindowX2, FWindowY2: Integer;
-
-    { console resolution
-      - mouse cursor position as seen by the user must always be in range:
-        [0..FConsoleWidth-1, 0..FConsoleHeight-1] }
-    FConsoleWidth, FConsoleHeight: Integer;
-
-    FPreviousMouseButtonState: TPTCMouseButtonState;
-    FPreviousMouseX, FPreviousMouseY: Integer; { for calculating the deltas }
-    FPreviousMousePositionSaved: Boolean; { true, if FPreviousMouseX,
-           FPreviousMouseY and FPreviousMouseButtonState contain valid values }
-
-    { flag data }
-    FEnabled: Boolean;
-
-    { window procedure }
-    function WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT; override;
-  public
-    { setup }
-    constructor Create(AWindow: HWND; AThread: DWord; AMultithreaded: Boolean; AEventQueue: TEventQueue;
-        AFullScreen: Boolean; AConsoleWidth, AConsoleHeight: Integer);
-
-    procedure SetWindowArea(AWindowX1, AWindowY1, AWindowX2, AWindowY2: Integer);
-    procedure SetConsoleSize(AConsoleWidth, AConsoleHeight: Integer);
-
-    { control }
-    procedure Enable;
-    procedure Disable;
+function TWin32Resize.WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT;
+var
+  Width, Height: Integer;
+begin
+  Result := 0;
+  
+  if message = WM_SIZE then
+  begin
+    Width := lParam and $FFFF;
+    Height := (lParam shr 16) and $FFFF;
+    //Writeln(wParam, ' ', Width, ' ', Height);
+    if wParam <> SIZE_MINIMIZED then
+    begin
+      FEventQueue.AddEvent(TPTCResizeEvent.Create(Width, Height));
+    end;
   end;
+end;

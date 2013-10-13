@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -66,6 +66,8 @@ type
     procedure Open(const ATitle: string; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
+
+    procedure InternalResize(AWidth, AHeight: Integer); override;
 
     procedure Copy(ASurface: IPTCSurface); override;
     procedure Copy(ASurface: IPTCSurface;

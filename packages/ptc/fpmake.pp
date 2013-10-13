@@ -77,6 +77,8 @@ begin
       AddInclude('cleari.inc');
       AddInclude('clipperd.inc');
       AddInclude('clipperi.inc');
+      AddInclude('closeeventd.inc');
+      AddInclude('closeeventi.inc');
       AddInclude('colord.inc');
       AddInclude('colori.inc');
       AddInclude('consoled.inc');
@@ -102,6 +104,8 @@ begin
       AddInclude('openglattributesi.inc');
       AddInclude('paletted.inc');
       AddInclude('palettei.inc');
+      AddInclude('resizeeventd.inc');
+      AddInclude('resizeeventi.inc');
       AddInclude('surfaced.inc');
       AddInclude('surfacei.inc');
       AddInclude('timerd.inc');
@@ -140,6 +144,8 @@ begin
       AddInclude('win32monitord.inc', [win32, win64]);
       AddInclude('win32moused.inc', [win32, win64]);
       AddInclude('win32mousei.inc', [win32, win64]);
+      AddInclude('win32resized.inc', [win32, win64]);
+      AddInclude('win32resizei.inc', [win32, win64]);
       AddInclude('win32window.inc', [win32, win64]);
       AddInclude('win32windowd.inc', [win32, win64]);
       AddInclude('win32directxcheck.inc', [win32, win64]);

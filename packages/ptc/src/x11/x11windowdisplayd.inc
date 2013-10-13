@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ type
     FX11InvisibleCursor: TCursor; { Blank cursor }
     FFullScreen: Boolean; { Keeps a snapshot of the PTC_X11_FULLSCREEN option
                              taken at the time 'open' was called }
+    FResizable: Boolean;
     FFocus: Boolean;
     FModeSwitcher: TX11Modes;
 
@@ -54,6 +55,8 @@ type
     FPreviousMouseX, FPreviousMouseY: Integer; { for calculating the deltas }
     FPreviousMousePositionSaved: Boolean; { true, if FPreviousMouseX,
            FPreviousMouseY and FPreviousMouseButtonState contain valid values }
+
+    FPreviousWidth, FPreviousHeight: Integer;
 
 {$IFDEF ENABLE_X11_EXTENSION_GLX}
     FGLXFBConfig: TX11GLXFBConfig;
@@ -82,6 +85,7 @@ type
     procedure Open(AWindow: TWindow; AFormat: IPTCFormat); override;
     procedure Open(AWindow: TWindow; AFormat: IPTCFormat; AX, AY, AWidth, AHeight: Integer); override;
     procedure Close; override;
+    procedure InternalResize(AWidth, AHeight: Integer); override;
     procedure Update; override;
     procedure Update(AArea: IPTCArea); override;
     function Lock: Pointer; override;

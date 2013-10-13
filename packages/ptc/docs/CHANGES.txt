@@ -1,12 +1,31 @@
+0.99.14
+ - support for resizable windows extended. Your application now receives
+   a new event IPTCResizeEvent and is allowed to call a new method called
+   InternalResize, which adjusts the console's width and height according to
+   the new window size. The previous behaviour where your application's image
+   is scaled, without it realizing that the resolution is changed still works
+   if you don't call InternalResize (or when you use ptcgraph for that matter)
+ - added support for intercepting the windows close events. When using unit ptc
+   directly, this is enabled by sending the option 'intercept window close' to
+   the console and then handling the newly introduced IPTCCloseEvent event.
+   When using ptcgraph and ptccrt, closing the window emulates pressing Ctrl-C,
+   in other words, your application will receive the #3 key code via ReadKey.
+ - fixed crash in hermes (the pixel conversion library, used internally by
+   PTCPas), encountered when converting from indexed 8bpp to 32bpp on amd64,
+   when the surface width is not multiple of 8
+ - even more X11 keyboard fixes
+ - removed the debug log (grlog.txt) written by programs that use ptcgraph
+
 0.99.13
- - added support for OpenGL under X11 and Windows. You can now use PTCPas to initialize
-   OpenGL and handle events for you in a multiplatform way (similar to GLUT or SDL). See
-   ptcgl.pp and ptcgl2.pp in the example directory.
+ - added support for OpenGL under X11 and Windows. You can now use PTCPas to
+   initialize OpenGL and handle events for you in a multiplatform way (similar
+   to GLUT or SDL). See ptcgl.pp and ptcgl2.pp in the example directory.
  - X11 keyboard handling improvements:
    - added support for the numpad keys
-   - typematic repeat (i.e. when you press a key and hold it down) now sends only
-     repeating key press events, instead of repeating pairs of key release + key press.
-     This makes it possible to detect auto-repeat and is also the way that Windows behaves.
+   - typematic repeat (i.e. when you press a key and hold it down) now sends
+     only repeating key press events, instead of repeating pairs of key
+     release + key press. This makes it possible to detect auto-repeat and is
+     also the way that Windows behaves.
 
 0.99.12
  - pressing Alt or F10 under Windows no longer pauses the application.

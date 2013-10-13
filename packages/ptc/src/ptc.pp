@@ -60,7 +60,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.13';
+  PTCPAS_VERSION = 'PTCPas 0.99.14';
 
 type
   PUint8  = ^Uint8;
@@ -195,6 +195,7 @@ end;
 {$INCLUDE win32/base/win32hookd.inc}
 {$INCLUDE win32/base/win32kbdd.inc}
 {$INCLUDE win32/base/win32moused.inc}
+{$INCLUDE win32/base/win32resized.inc}
 {$INCLUDE win32/directx/win32directxhookd.inc}
 {$INCLUDE win32/directx/win32directxlibraryd.inc}
 {$INCLUDE win32/directx/win32directxdisplayd.inc}
@@ -213,6 +214,7 @@ end;
 {$INCLUDE win32/base/win32hook.inc}
 {$INCLUDE win32/base/win32kbd.inc}
 {$INCLUDE win32/base/win32mousei.inc}
+{$INCLUDE win32/base/win32resizei.inc}
 {$INCLUDE win32/directx/win32directxcheck.inc}
 {$INCLUDE win32/directx/win32directxtranslate.inc}
 {$INCLUDE win32/directx/win32directxhook.inc}

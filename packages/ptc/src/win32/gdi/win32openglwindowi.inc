@@ -35,12 +35,12 @@ const
   PFD_SUPPORT_COMPOSITION = $00008000;
 
 constructor TWin32OpenGLWindow.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
-              AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor: Boolean;
+              AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor, AInterceptClose: Boolean;
               const AOpenGLAttributes: IPTCOpenGLAttributes);
 begin
   SetOpenGLAttributes(AOpenGLAttributes);
   inherited Create(AWndClass, ATitle, AExtra, AStyle, AClassStyle,
-                   AShow, AX, AY, AWidth, AHeight, ACenter, AMultithreaded, ACursor);
+                   AShow, AX, AY, AWidth, AHeight, ACenter, AMultithreaded, ACursor, AInterceptClose);
 end;
 
 function TWin32OpenGLWindow.WMCreate(

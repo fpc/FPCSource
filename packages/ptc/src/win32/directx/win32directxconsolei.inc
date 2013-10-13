@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -44,25 +44,6 @@
 {$DEFINE CHECK_OPEN:=//}
 {$DEFINE CHECK_LOCK:=//}
 {$ENDIF}
-
-//const
-  {Output}
-//  DEFAULT = 0;
-//  WINDOWED = 1;
-//  FULLSCREEN = 2;
-
-  {Window}
-//  RESIZABLE = 0;
-//  FIXED = 1;
-
-  {Primary}
-//  DIRECT = 0;
-//  SECONDARY = 1;
-
-  {Nearest}
-//  NEAREST_DEFAULT = 0;
-//  NEAREST_CENTERING = 1;
-//  NEAREST_STRETCHING = 2;
 
 function PChar2String(Q: PChar): string;
 var
@@ -125,6 +106,7 @@ begin
   Close;
 
   FHook.Free;
+  FResize.Free;
   FMouse.Free;
   FKeyboard.Free;
   FWindow.Free;
@@ -361,6 +343,12 @@ begin
     FPrimary.blocking(False);
     exit;
   end;
+  if AOption = 'intercept window close' then
+  begin
+    InterceptClose := True;
+    Result := True;
+    exit;
+  end;
   if AOption = 'enable logging' then
   begin
     LOG_enabled := True;
@@ -423,6 +411,22 @@ begin
   end;
   internal_close;
   FWin32Cursor.Show;
+end;
+
+procedure TDirectXConsole.InternalResize(AWidth, AHeight: Integer);
+begin
+  CHECK_OPEN('TDirectXConsole.InternalResize');
+  CHECK_LOCK('TDirectXConsole.InternalResize');
+
+  if FFullscreen then
+    raise TPTCError.Create('TDirectXConsole.InternalResize only works in windowed mode');
+  if FWindowMode <> RESIZABLE then
+    raise TPTCError.Create('TDirectXConsole.InternalResize only works in resizable window mode');
+
+  FPrimary.InternalResize(AWidth, AHeight);
+  if FPrimaryModeWindowed = SECONDARY then
+    FPrimary.secondary(AWidth, AHeight);
+  FMouse.SetConsoleSize(AWidth, AHeight);
 end;
 
 procedure TDirectXConsole.Flush;
@@ -939,6 +943,7 @@ end;
 procedure TDirectXConsole.internal_close;
 begin
   FOpen := False;
+  FreeAndNil(FResize);
   FreeAndNil(FMouse);
   FreeAndNil(FKeyboard);
   FreeAndNil(FHook);
@@ -978,6 +983,7 @@ end;
 
 procedure TDirectXConsole.internal_open_finish;
 begin
+  FreeAndNil(FResize);
   FreeAndNil(FMouse);
   FreeAndNil(FKeyboard);
   FreeAndNil(FEventQueue);
@@ -986,12 +992,15 @@ begin
   FMouse := TWin32Mouse.Create(FWindow.handle, FWindow.thread, False, FEventQueue, FPrimary.Fullscreen, FPrimary.width, FPrimary.height);
   if FPrimary.Fullscreen then
     FMouse.SetWindowArea(0, 0, FDisplay.Mode.Width, FDisplay.Mode.Height);
+  if not FPrimary.Fullscreen then
+    FResize := TWin32Resize.Create(FWindow.handle, FWindow.thread, FEventQueue);
   FWindow.update;
   FOpen := True;
 end;
 
 procedure TDirectXConsole.internal_open_reset;
 begin
+  FreeAndNil(FResize);
   FreeAndNil(FMouse);
   FreeAndNil(FKeyboard);
   FreeAndNil(FHook);
@@ -1029,7 +1038,7 @@ begin
                                     0, 0,
                                     GetSystemMetrics(SM_CXSCREEN),
                                     GetSystemMetrics(SM_CYSCREEN),
-                                    False, False, FCursor)
+                                    False, False, FCursor, InterceptClose)
   else
     FWindow := TWin32Window.Create(window);
 
@@ -1141,9 +1150,9 @@ begin
       extended := WS_EX_TOPMOST;
     case FWindowMode of
       RESIZABLE: FWindow := TWin32Window.Create('PTC_DIRECTX_WINDOWED_RESIZABLE', FTitle,
-                                              extended, WS_OVERLAPPEDWINDOW or WS_VISIBLE, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor);
+                                              extended, WS_OVERLAPPEDWINDOW or WS_VISIBLE, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor, InterceptClose);
       FIXED: FWindow := TWin32Window.Create('PTC_DIRECTX_WINDOWED_FIXED', FTitle,
-                                              extended, WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor);
+                                              extended, WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX, CS_VREDRAW or CS_HREDRAW, SW_NORMAL, CW_USEDEFAULT, CW_USEDEFAULT, mode.width, mode.height, FCenterWindow, False, FCursor, InterceptClose);
     end;
   end;
   FDisplay.cooperative(FWindow.handle, False);
@@ -1225,6 +1234,13 @@ begin
       FWin32Cursor.Show
     else
       FWin32Cursor.Hide;
+end;
+
+procedure TDirectXConsole.SetInterceptClose(AInterceptClose: Boolean);
+begin
+  FInterceptClose := AInterceptClose;
+  if Assigned(FWindow) then
+    FWindow.InterceptClose := AInterceptClose;
 end;
 
 {$IFDEF DEBUG}

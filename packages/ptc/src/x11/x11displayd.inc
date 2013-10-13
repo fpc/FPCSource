@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -43,6 +43,8 @@ type
                    PTC_X11_FULLSCREEN_CURSOR_VISIBLE,
                    PTC_X11_WINDOWED_CURSOR_INVISIBLE,
                    PTC_X11_GRAB_MOUSE,
+                   PTC_X11_INTERCEPT_WINDOW_CLOSE,
+                   PTC_X11_RESIZABLE_WINDOW,
                    PTC_X11_USE_OPENGL);
   TX11Flags = set of TX11FlagsEnum;
 
@@ -72,6 +74,9 @@ type
     FFunctionKeys: PInteger;
     FNormalKeys: PInteger;
 
+    function GetInterceptClose: Boolean;
+    procedure SetInterceptClose(AInterceptClose: Boolean);
+
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; virtual; abstract;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; virtual; abstract;
 
@@ -90,6 +95,7 @@ type
     function GetFormat: IPTCFormat;
     function GetArea: IPTCArea;
     procedure HandleKeyEvent(const e: TXKeyEvent);
+    property InterceptClose: Boolean read GetInterceptClose write SetInterceptClose;
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); virtual;
     destructor Destroy; override;
@@ -102,6 +108,8 @@ type
     procedure Open(AWindow: TWindow; AFormat: IPTCFormat; AX, AY, AWidth, AHeight: Integer); virtual; abstract;
 
     procedure Close; virtual; abstract;
+
+    procedure InternalResize(AWidth, AHeight: Integer); virtual;
 
     procedure Update; virtual; abstract;
     procedure Update(AArea: IPTCArea); virtual; abstract;

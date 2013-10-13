@@ -16,7 +16,7 @@
  **********************************************************************}
 unit ptcgraph;
 
-{$define logging}
+{//$define logging}
 
 {******************************************************************************}
                                     interface
@@ -24,6 +24,11 @@ unit ptcgraph;
 
 uses
   ptc, ptcwrapper;
+
+{$ifdef VER2_6}
+type
+  CodePointer = Pointer;
+{$endif}
 
 {$i graphh.inc}
 
@@ -120,9 +125,6 @@ var
 {******************************************************************************}
                                  implementation
 {******************************************************************************}
-
-//uses
-//  termio{,x86};
 
 const
   InternalDriverName = 'PTCPas';
@@ -285,12 +287,6 @@ const
                      end;
 
 var
-//  OldIO: TermIos;
-
-{  ptcconsole: TPTCConsole = nil;
-  ptcsurface: TPTCSurface = nil;
-  ptcpalette: TPTCPalette = nil;
-  ptcformat: TPTCFormat = nil;}
   PTCWidth: Integer;
   PTCHeight: Integer;
   PTCFormat8: IPTCFormat;
@@ -351,35 +347,11 @@ end;
 
 procedure ptc_update;
 begin
-  { copy to console }
-//  ptcsurface.copy(ptcconsole);
-  { update console }
-//  ptcconsole.update;
 end;
-
-{Procedure SetRawMode(b:boolean);
-Var
-  Tio : Termios;
-Begin
-  if b then
-   begin
-     TCGetAttr(1,Tio);
-     OldIO:=Tio;
-     CFMakeRaw(Tio);
-   end
-  else
-   Tio:=OldIO;
-  TCSetAttr(1,TCSANOW,Tio);
-End;}
-
 
 { ---------------------------------------------------------------------
     Required procedures
   ---------------------------------------------------------------------}
-
-var
-  LastColor: smallint;   {Cache the last set color to improve speed}
-
 
 procedure ptc_savevideostate;
 begin
@@ -389,39 +361,6 @@ procedure ptc_restorevideostate;
 begin
   if PTCWrapperObject <> nil then
     PTCWrapperObject.Close;
-end;
-
-{
-const
-  BgiColors: array[0..15] of LongInt
-    = ($000000, $000020, $002000, $002020,
-       $200000, $200020, $202000, $303030,
-       $202020, $00003F, $003F00, $003F3F,
-       $3F0000, $3F003F, $3F3F00, $3F3F3F);
-}
-
-procedure InitColors(nrColors: longint);
-
-var
-  i: smallint;
-begin
-{  for i:=0 to nrColors do
-    vga_setpalette(I,DefaultColors[i].red shr 2,
-      DefaultColors[i].green shr 2,DefaultColors[i].blue shr 2)}
-end;
-
-procedure ptc_initmodeproc;
-
-begin
-//  writeln('Initializing mode');
-  { create format }
-{  FreeAndNil(PTCFormat);
-  PTCFormat:=TPTCFormatFactory.CreateNew(16,$f800,$07e0,$001f);}
-  { open the console }
-{  ptcconsole.open(paramstr(0),ptcformat);}
-  { create surface matching console dimensions }
-{  FreeAndNil(PTCSurface);
-  PTCSurface:=TPTCSurface.Create(ptcconsole.width,ptcconsole.height,ptcformat);}
 end;
 
 function VGA6to8(dac6: Uint32): Uint32;
@@ -509,7 +448,6 @@ end;
 procedure ptc_SetVGAPalette(ColorNum, ARed, AGreen, ABlue: Integer);
 var
   PaletteData: PUint32;
-  r, g, b: Uint32;
   I: Integer;
 begin
   if (VGAPalette[ColorNum, 0] <> ARed) or
@@ -1025,10 +963,8 @@ begin
 end;
 
 procedure ptc_DirectPixelProc_16bpp(X,Y: smallint);
-
-var color:word;
-    pixels:Pword;
-
+var
+  pixels:Pword;
 begin
 //  Writeln('ptc_DirectPixelProc_16bpp(', X, ', ', Y, ')');
   pixels := ptc_surface_lock;
@@ -1057,10 +993,8 @@ begin
 end;
 
 procedure ptc_DirectPixelProc_8bpp(X,Y: smallint);
-
-var color:word;
-    pixels:PByte;
-
+var
+  pixels:PByte;
 begin
 //  Writeln('ptc_DirectPixelProc_8bpp(', X, ', ', Y, ')');
   pixels := ptc_surface_lock;
@@ -1147,28 +1081,6 @@ begin
       ptc_surface_unlock;
       ptc_update;
     end;
-end;
-
-
-{ Bitmap utilities }
-{type
-  PBitmap = ^TBitmap;
-  TBitmap = record
-            Width, Height: smallint;
-            Data: record end;
-            end;
-}
-
-procedure ptc_putimageproc (X,Y: smallint; var Bitmap; BitBlt: Word);
-begin
-end;
-
-procedure ptc_getimageproc (X1,Y1,X2,Y2: smallint; Var Bitmap);
-begin
-end;
-
-function  ptc_imagesizeproc (X1,Y1,X2,Y2: smallint): longint;
-begin
 end;
 
 procedure ptc_HLineProc_16bpp(x, x2,y : smallint);
@@ -1399,60 +1311,6 @@ begin
   ptc_update;
 end;
 
-
-
-
-procedure ptc_vlineproc (x,y,y2: smallint);
-begin
-end;
-
-procedure ptc_clrviewproc_16bpp;
-
-Var I,Xmax : longint;
-
-begin
-  Xmax:=StartXViewPort+ViewWidth-1;
-  For i:=StartYViewPort to StartYViewPort+ViewHeight-1 do
-    ptc_HLineProc_16bpp(0,viewwidth,i);
-  { reset coordinates }
-  CurrentX := 0;
-  CurrentY := 0;
-end;
-
-procedure ptc_patternlineproc (x1,x2,y: smallint);
-begin
-end;
-
-procedure ptc_ellipseproc  (X,Y: smallint;XRadius: word;
-  YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
-begin
-end;
-
-procedure ptc_lineproc (X1, Y1, X2, Y2 : smallint);
-begin
-end;
-
-procedure ptc_getscanlineproc (X1,X2,Y : smallint; var data);
-begin
-end;
-
-procedure ptc_setactivepageproc (page: word);
-begin
-end;
-
-procedure ptc_setvisualpageproc (page: word);
-begin
-end;
-
-
-procedure ptc_savestateproc;
-begin
-end;
-
-procedure ptc_restorestateproc;
-begin
-end;
-
 procedure ptc_SetRGBAllPaletteProc(const Palette: PaletteType);
 begin
   {...}
@@ -1492,7 +1350,6 @@ end;
         _graphresult := grnoinitgraph;
         exit
       end;
-//    SetRawMode(False);
     RestoreVideoState;
     isgraphmode := false;
  end;
@@ -1554,13 +1411,6 @@ end;
 
    var
     graphmode:Tmodeinfo;
-    d{,i} : longint;
-    ws,hs:string[5];
-
-   const depths:array[0..3] of byte=(8,16,24,32);
-         colours:array[0..3] of longint=(256,65536,16777216,16777216);
-         depth_names:array[0..3] of string[5]=('256','64K','16M','16M32');
-
    begin
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
@@ -1576,31 +1426,6 @@ end;
 
      SaveVideoState:=@ptc_savevideostate;
      RestoreVideoState:=@ptc_restorevideostate;
-{     if PTCConsole = nil then
-       PTCConsole := TPTCConsole.Create;}
-//     ptcmode:=ptcconsole.modes;
-//     i:=0;
-{     initmode(graphmode);
-     with graphmode do
-       begin
-         modenumber:=0;
-         drivernumber:=ptcgraph._ptc;
-         maxx:=639;
-         maxy:=479;
-         modename:='PTC_640x480x64K';
-         maxcolor:=65536;
-         palettesize:=65536;
-         hardwarepages:=0;
-         InitMode       := @ptc_InitModeProc;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-         HLine          := @ptc_HLineProc_16bpp;
-       end;
-     addmode(graphmode);}
 
      InitMode(graphmode);
      with graphmode do
@@ -2742,81 +2567,6 @@ end;
        end;
        AddMode(graphmode);
      end;
-
-
-
-(*
-     writeln('processing modes');
-     while ptcmode^.valid do
-       begin
-         for d:=low(depths) to high(depths) do
-           begin
-             InitMode(graphmode);
-             with graphmode do
-               begin
-                 ModeNumber:=I;
-                 DriverNumber:=ptcgraph.PTC;
-                 { MaxX is number of pixels in X direction - 1}
-                 MaxX:=ptcmode^.width-1;
-                 { same for MaxY}
-                 MaxY:=ptcmode^.height-1;
-                 str(ptcmode^.width,ws);
-                 str(ptcmode^.height,hs);
-                 modename:='PTC_'+ws+'x'+hs+'x'+depth_names[d];
-                 MaxColor := 1 shl ptcmode^.format.r * 1 shl ptcmode^.format.g *1 shl ptcmode^.format.b;
-                 writeln('mode ',modename,' ',maxcolor,'kleuren');
-                 PaletteSize := MaxColor;
-                 HardwarePages := 0;
-*)
-                 { necessary hooks ...}
-(*
-                 if (MaxColor = 16) and
-                   (LongInt(ModeInfo.Width) * LongInt(ModeInfo.Height) < 65536*4*2) then
-                  begin
-                   {Use optimized graphics routines for 4 bit EGA/VGA modes.}
-                   ScrWidth := ModeInfo.Width div 8;
-                   DirectPutPixel := @DirectPutPixel16;
-                   PutPixel := @PutPixel16;
-                   GetPixel := @GetPixel16;
-                   HLine := @HLine16;
-                   VLine := @VLine16;
-                   GetScanLine := @GetScanLine16;
-                 end
-               else
-*)
-(*
-                 begin
-                   DirectPutPixel := @ptc_DirectPixelProc;
-                   GetPixel       := @ptc_GetPixelProc;
-                   PutPixel       := @ptc_PutPixelProc;
-                   { May be implemented later:
-                   HLine          := @libvga_HLineProc;
-                   VLine          := @libvga_VLineProc;
-                   GetScanLine    := @libvga_GetScanLineProc;}
-                   ClearViewPort  := @ptc_ClrViewProc;
-                 end;
-                 SetRGBPalette  := @ptc_SetRGBPaletteProc;
-                 GetRGBPalette  := @ptc_GetRGBPaletteProc;
-                 { These are not really implemented yet:
-                 PutImage       := @libvga_PutImageProc;
-                 GetImage       := @libvga_GetImageProc;}
-{                If you use the default getimage/putimage, you also need the default
-                 imagesize! (JM)
-                 ImageSize      := @libvga_ImageSizeProc; }
-                 { Add later maybe ?
-                 SetVisualPage  := SetVisualPageProc;
-                 SetActivePage  := SetActivePageProc;
-                 Line           := @libvga_LineProc;
-                 InternalEllipse:= @libvga_EllipseProc;
-                 PatternLine    := @libvga_PatternLineProc;
-                 }
-                 InitMode       := @ptc_InitModeProc;
-               end;
-           AddMode(graphmode);
-           inc(i);
-         end;
-     end;
-*)
   end;
 
 initialization

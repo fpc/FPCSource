@@ -160,18 +160,27 @@ begin
 
       if FManaged then
       begin
-        console := FConsole;
+        if FConsole.InterceptClose then
+        begin
+          FConsole.FEventQueue.AddEvent(TPTCCloseEvent.Create);
+          Result := 0;
+          exit;
+        end
+        else
+        begin
+          console := FConsole;
 
-        { close console }
-        console.Close;
+          { close console }
+          console.Close;
 
-        { note: at this point the hook object has been destroyed by the console! }
+          { note: at this point the hook object has been destroyed by the console! }
 
-        { internal console shutdown }
-        console.internal_shutdown;
+          { internal console shutdown }
+          console.internal_shutdown;
 
-        { halt }
-        Halt(0);
+          { halt }
+          Halt(0);
+        end;
       end;
 
       { handled }

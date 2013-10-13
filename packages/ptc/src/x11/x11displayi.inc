@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -495,6 +495,24 @@ begin
       key := TPTCKeyEvent.Create;
   end;
   FEventQueue.AddEvent(key);
+end;
+
+function TX11Display.GetInterceptClose: Boolean;
+begin
+  Result := PTC_X11_INTERCEPT_WINDOW_CLOSE in FFlags;
+end;
+
+procedure TX11Display.SetInterceptClose(AInterceptClose: Boolean);
+begin
+  if AInterceptClose then
+    FFlags := FFlags + [PTC_X11_INTERCEPT_WINDOW_CLOSE]
+  else
+    FFlags := FFlags - [PTC_X11_INTERCEPT_WINDOW_CLOSE];
+end;
+
+procedure TX11Display.InternalResize(AWidth, AHeight: Integer);
+begin
+  raise TPTCError.Create('Console not in windowed mode');
 end;
 
 procedure TX11Display.OpenGL_SwapBuffers;

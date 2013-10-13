@@ -1,7 +1,6 @@
 {
-    Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009, 2010, 2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
-    Original C++ version by Glenn Fiedler (ptc@gaffer.org)
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -31,39 +30,41 @@
 }
 
 type
-  TWin32Mouse = class(TWin32Hook)
+  TPTCResizeEvent = class(TPTCEvent, IPTCResizeEvent)
   private
-    FEventQueue: TEventQueue;
+    FWidth: Integer;
+    FHeight: Integer;
 
-    FFullScreen: Boolean;
-
-    { the actual image area, inside the window (top left and bottom right corner) }
-    FWindowX1, FWindowY1, FWindowX2, FWindowY2: Integer;
-
-    { console resolution
-      - mouse cursor position as seen by the user must always be in range:
-        [0..FConsoleWidth-1, 0..FConsoleHeight-1] }
-    FConsoleWidth, FConsoleHeight: Integer;
-
-    FPreviousMouseButtonState: TPTCMouseButtonState;
-    FPreviousMouseX, FPreviousMouseY: Integer; { for calculating the deltas }
-    FPreviousMousePositionSaved: Boolean; { true, if FPreviousMouseX,
-           FPreviousMouseY and FPreviousMouseButtonState contain valid values }
-
-    { flag data }
-    FEnabled: Boolean;
-
-    { window procedure }
-    function WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT; override;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+  protected
+    function GetEventType: TPTCEventType; override;
   public
-    { setup }
-    constructor Create(AWindow: HWND; AThread: DWord; AMultithreaded: Boolean; AEventQueue: TEventQueue;
-        AFullScreen: Boolean; AConsoleWidth, AConsoleHeight: Integer);
-
-    procedure SetWindowArea(AWindowX1, AWindowY1, AWindowX2, AWindowY2: Integer);
-    procedure SetConsoleSize(AConsoleWidth, AConsoleHeight: Integer);
-
-    { control }
-    procedure Enable;
-    procedure Disable;
+    constructor Create(AWidth, AHeight: Integer);
   end;
+
+class function TPTCResizeEventFactory.CreateNew(AWidth, AHeight: Integer): IPTCResizeEvent;
+begin
+  Result := TPTCResizeEvent.Create(AWidth, AHeight);
+end;
+
+constructor TPTCResizeEvent.Create(AWidth, AHeight: Integer);
+begin
+  FWidth := AWidth;
+  FHeight := AHeight;
+end;
+
+function TPTCResizeEvent.GetEventType: TPTCEventType;
+begin
+  Result := PTCResizeEvent;
+end;
+
+function TPTCResizeEvent.GetWidth: Integer;
+begin
+  Result := FWidth;
+end;
+
+function TPTCResizeEvent.GetHeight: Integer;
+begin
+  Result := FHeight;
+end;
