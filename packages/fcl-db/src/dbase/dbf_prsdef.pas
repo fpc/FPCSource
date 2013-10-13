@@ -324,6 +324,7 @@ type
       AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
   public
     constructor Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; Descr: string);
+    // Create operator: name, param types used, result type, func addr, operator precedence
     constructor CreateOper(AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
 
     function IsFunction: Boolean; override;

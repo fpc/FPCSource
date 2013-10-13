@@ -31,11 +31,11 @@ uses
 
 {$define ENG_NUMBERS}
 
-// ENG_NUMBERS will force the use of english style numbers 8.1 instead of 8,1
+// ENG_NUMBERS will force the use of English style numbers 8.1 instead of 8,1
 //   (if the comma is your decimal separator)
-// the advantage is that arguments can be separated with a comma which is
-// fairly common, otherwise there is ambuigity: what does 'var1,8,4,4,5' mean?
-// if you don't define ENG_NUMBERS and DecimalSeparator is a comma then
+// The advantage is that arguments can be separated with a comma which is
+// fairly common, otherwise there is ambiguity: what does 'var1,8,4,4,5' mean?
+// If you don't define ENG_NUMBERS and DecimalSeparator is a comma then
 // the argument separator will be a semicolon ';'
 
 type
@@ -106,13 +106,13 @@ type
     property Optimize: Boolean read FOptimize write FOptimize;
     property ResultType: TExpressionType read GetResultType;
 
-
-    //if optimize is selected, constant expressions are tried to remove
-    //such as: 4*4*x is evaluated as 16*x and exp(1)-4*x is repaced by 2.17 -4*x
+    //If optimize is selected, the code tries to remove constant expressions
+    //Examples: 4*4*x is evaluated as 16*x and exp(1)-4*x is replaced by 2.17 -4*x
   end;
 
 
 //--Expression functions-----------------------------------------------------
+//I: integer; L: Long Integer
 
 procedure FuncFloatToStr(Param: PExpressionRec);
 procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: {$ifdef SUPPORT_INT64}Int64{$else}Integer{$endif});
@@ -489,8 +489,8 @@ begin
         begin
           case ResultType of
             etBoolean: ExprWord := TBooleanConstant.Create(EmptyStr, PBoolean(FExpResult)^);
-            etFloat: ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
-            etString: ExprWord := TStringConstant.Create(FExpResult);
+            etFloat:   ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
+            etString:  ExprWord := TStringConstant.Create(FExpResult);
           end;
 
           // fill in structure
@@ -2167,6 +2167,8 @@ initialization
     Add(TComma.Create(',', nil));
 
     // operators - name, param types, result type, func addr, precedence
+    // note that the parameter types in the second column must match with
+    // the function signature in the function address
     Add(TFunction.CreateOper('+', 'SS', etString,   nil,          40));
     Add(TFunction.CreateOper('+', 'FF', etFloat,    FuncAdd_F_FF, 40));
     Add(TFunction.CreateOper('+', 'FI', etFloat,    FuncAdd_F_FI, 40));
@@ -2176,8 +2178,8 @@ initialization
     Add(TFunction.CreateOper('+', 'FL', etFloat,    FuncAdd_F_FL, 40));
     Add(TFunction.CreateOper('+', 'IL', etLargeInt, FuncAdd_F_IL, 40));
     Add(TFunction.CreateOper('+', 'LF', etFloat,    FuncAdd_F_LF, 40));
-    Add(TFunction.CreateOper('+', 'LL', etLargeInt, FuncAdd_F_LI, 40));
-    Add(TFunction.CreateOper('+', 'LI', etLargeInt, FuncAdd_F_LL, 40));
+    Add(TFunction.CreateOper('+', 'LL', etLargeInt, FuncAdd_F_LL, 40));
+    Add(TFunction.CreateOper('+', 'LI', etLargeInt, FuncAdd_F_LI, 40));
 {$endif}
     Add(TFunction.CreateOper('-', 'FF', etFloat,    FuncSub_F_FF, 40));
     Add(TFunction.CreateOper('-', 'FI', etFloat,    FuncSub_F_FI, 40));
@@ -2187,8 +2189,8 @@ initialization
     Add(TFunction.CreateOper('-', 'FL', etFloat,    FuncSub_F_FL, 40));
     Add(TFunction.CreateOper('-', 'IL', etLargeInt, FuncSub_F_IL, 40));
     Add(TFunction.CreateOper('-', 'LF', etFloat,    FuncSub_F_LF, 40));
-    Add(TFunction.CreateOper('-', 'LL', etLargeInt, FuncSub_F_LI, 40));
-    Add(TFunction.CreateOper('-', 'LI', etLargeInt, FuncSub_F_LL, 40));
+    Add(TFunction.CreateOper('-', 'LL', etLargeInt, FuncSub_F_LL, 40));
+    Add(TFunction.CreateOper('-', 'LI', etLargeInt, FuncSub_F_LI, 40));
 {$endif}
     Add(TFunction.CreateOper('*', 'FF', etFloat,    FuncMul_F_FF, 40));
     Add(TFunction.CreateOper('*', 'FI', etFloat,    FuncMul_F_FI, 40));
@@ -2198,8 +2200,8 @@ initialization
     Add(TFunction.CreateOper('*', 'FL', etFloat,    FuncMul_F_FL, 40));
     Add(TFunction.CreateOper('*', 'IL', etLargeInt, FuncMul_F_IL, 40));
     Add(TFunction.CreateOper('*', 'LF', etFloat,    FuncMul_F_LF, 40));
-    Add(TFunction.CreateOper('*', 'LL', etLargeInt, FuncMul_F_LI, 40));
-    Add(TFunction.CreateOper('*', 'LI', etLargeInt, FuncMul_F_LL, 40));
+    Add(TFunction.CreateOper('*', 'LL', etLargeInt, FuncMul_F_LL, 40));
+    Add(TFunction.CreateOper('*', 'LI', etLargeInt, FuncMul_F_LI, 40));
 {$endif}
     Add(TFunction.CreateOper('/', 'FF', etFloat,    FuncDiv_F_FF, 40));
     Add(TFunction.CreateOper('/', 'FI', etFloat,    FuncDiv_F_FI, 40));
@@ -2209,8 +2211,8 @@ initialization
     Add(TFunction.CreateOper('/', 'FL', etFloat,    FuncDiv_F_FL, 40));
     Add(TFunction.CreateOper('/', 'IL', etLargeInt, FuncDiv_F_IL, 40));
     Add(TFunction.CreateOper('/', 'LF', etFloat,    FuncDiv_F_LF, 40));
-    Add(TFunction.CreateOper('/', 'LL', etLargeInt, FuncDiv_F_LI, 40));
-    Add(TFunction.CreateOper('/', 'LI', etLargeInt, FuncDiv_F_LL, 40));
+    Add(TFunction.CreateOper('/', 'LL', etLargeInt, FuncDiv_F_LL, 40));
+    Add(TFunction.CreateOper('/', 'LI', etLargeInt, FuncDiv_F_LI, 40));
 {$endif}
 
     Add(TFunction.CreateOper('=', 'FF', etBoolean, Func_FF_EQ , 80));
@@ -2249,7 +2251,7 @@ initialization
     Add(TFunction.CreateOper('>', 'LF', etBoolean, Func_LF_GT , 80));
     Add(TFunction.CreateOper('<=','LF', etBoolean, Func_LF_LTE, 80));
     Add(TFunction.CreateOper('>=','LF', etBoolean, Func_LF_GTE, 80));
-    Add(TFunction.CreateOper('<>','FI', etBoolean, Func_LF_NEQ, 80));
+    Add(TFunction.CreateOper('<>','LF', etBoolean, Func_LF_NEQ, 80));
     Add(TFunction.CreateOper('=', 'LI', etBoolean, Func_LI_EQ , 80));
     Add(TFunction.CreateOper('<', 'LI', etBoolean, Func_LI_LT , 80));
     Add(TFunction.CreateOper('>', 'LI', etBoolean, Func_LI_GT , 80));
@@ -2277,9 +2279,9 @@ initialization
     // Functions - name, description, param types, min params, result type, Func addr
     Add(TFunction.Create('STR',       '',      'FII', 1, etString, FuncFloatToStr, ''));
     Add(TFunction.Create('STR',       '',      'III', 1, etString, FuncIntToStr, ''));
-    {$ifdef SUPPORT_INT64}
-     Add(TFunction.Create('STR', '', 'LII', 1, etString, FuncInt64ToStr, ''));
-    {$endif}
+{$ifdef SUPPORT_INT64}
+    Add(TFunction.Create('STR',       '',      'LII', 1, etString, FuncInt64ToStr, ''));
+{$endif}
     Add(TFunction.Create('DTOS',      '',      'D',   1, etString, FuncDateToStr, ''));
     Add(TFunction.Create('SUBSTR',    'SUBS',  'SII', 3, etString, FuncSubString, ''));
     Add(TFunction.Create('UPPERCASE', 'UPPER', 'S',   1, etString, FuncUppercase, ''));
