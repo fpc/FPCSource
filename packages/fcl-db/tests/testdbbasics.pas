@@ -137,6 +137,7 @@ type
 
     procedure TestFirst;
     procedure TestIntFilter; //Integer range filter
+    procedure TestNegativeIntFilter; //Negative integer filter; bug 25168
     procedure TestOnFilter;
     procedure TestStringFilter; //String filter expressions
 
@@ -1238,6 +1239,37 @@ begin
     end;
 end;
 
+procedure TTestCursorDBBasics.TestNegativeIntFilter;
+// Tests a negative integer range filter expression
+var
+  Counter : integer;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    // Change ID values to be negative instead of positive
+    while not(EOF) do
+    begin
+      Edit;
+      FieldByName('ID').AsInteger:=
+        -1*(FieldByname('ID').AsInteger);
+      Post;
+      Next;
+    end;
+    Close;
+
+    Filtered := True;
+    Filter := '(id>-9) and (id<-4)';
+    Open;
+    for Counter := -5 downto -8 do
+      begin
+      CheckEquals(Counter,FieldByName('ID').asinteger);
+      next;
+      end;
+    CheckTrue(EOF);
+    Close;
+    end;
+end;
+
 procedure TTestDBBasics.TestRecordcountAfterReopen;
 var
   datalink1: tdatalink;
@@ -1272,6 +1304,7 @@ begin
   with DBConnector.GetNDataset(15) do
     begin
     Open;
+
     // Check equality
     Filter := '(name=''TestName3'')';
     Filtered := True;
@@ -2651,7 +2684,7 @@ begin
   AParam.Free;
 end;
 
-procedure TTestCursorDBBasics.Testbug7007;
+procedure TTestCursorDBBasics.TestBug7007;
 
 var
   datalink1: tdatalink;
