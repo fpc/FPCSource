@@ -665,6 +665,8 @@ function DrawAnimatedRects(hwnd:HWND; idAni:longint; const lprcFrom:RECT; const 
 function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external 'user32' name 'TrackPopupMenuEx';
 function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
 function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32' name 'DrawIconEx';
+function GetWindowInfo(hWnd:HWND; pwi:PWindowInfo):WINBOOL; external 'user32' name 'GetWindowInfo';
+
 function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32' name 'AnimatePalette';
 function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Arc';
 function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external 'gdi32' name 'BitBlt';
