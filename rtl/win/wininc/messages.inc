@@ -1443,7 +1443,7 @@
     TWMSetFocus = record
       Msg : UINT;
       FocusedWnd : HWND;
-      Unused : WPARAM;
+      Unused : LPARAM;
       Result : LRESULT;
     end;
 

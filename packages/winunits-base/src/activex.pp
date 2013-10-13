@@ -61,6 +61,10 @@ type
    TOleDate	       = DATE;
    POleDate	       = ^TOleDate;	
    OLE_HANDLE	       = UINT;
+   OLE_XSIZE_HIMETRIC = LONG;
+   OLE_YSIZE_HIMETRIC = LONG;
+   OLE_XPOS_HIMETRIC = LONG;
+   OLE_YPOS_HIMETRIC = LONG;
    LPOLE_HANDLE        = ^OLE_HANDLE;
    OLE_COLOR	       = DWORD;
    LPOLE_COLOR         = ^OLE_COLOR;
@@ -68,6 +72,7 @@ type
    POleHandle          = LPOLE_HANDLE;
    TOleColor           = OLE_COLOR;
    POleColor           = LPOle_Color;
+   HHandle             = UINT_PTR;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -900,6 +905,12 @@ Const
     OLECMDF_NINCHED 	  = $0000000000000008;
     OLECMDF_INVISIBLE 	  = $0000000000000010;
     OLECMDF_DEFHIDEONCTXTMENU = $0000000000000020;
+
+    OLECMDERR_E_UNKNOWNGROUP = -2147221244;
+    OLECMDERR_E_CANCELED     = -2147221245;
+    OLECMDERR_E_NOHELP       = -2147221246;
+    OLECMDERR_E_DISABLED     = -2147221247;
+    OLECMDERR_E_NOTSUPPORTED = -2147221248;
 
     OLECMDTEXTF_NONE      = $0000000000000000;
     OLECMDTEXTF_NAME      = $0000000000000001;
@@ -3603,6 +3614,73 @@ type
     // SetHdc :
    function SetHdc(hDC:wireHDC):HRESULT;stdcall;
   end;
+
+// IPicture :
+
+ IPicture = interface(IUnknown)
+   ['{7BF80980-BF32-101A-8BBB-00AA00300CAB}']
+    // get_Handle :
+   function get_Handle(out pHandle:OLE_HANDLE):HRESULT;stdcall;
+    // get_hPal :
+   function get_hPal(out phPal:OLE_HANDLE):HRESULT;stdcall;
+    // get_Type :
+   function get_Type(out pType:SHORT):HRESULT;stdcall;
+    // get_Width :
+   function get_Width(out pWidth:OLE_XSIZE_HIMETRIC):HRESULT;stdcall;
+    // get_Height :
+   function get_Height(out pHeight:OLE_YSIZE_HIMETRIC):HRESULT;stdcall;
+    // Render :
+   function Render(hDC:wireHDC;x:Integer;y:Integer;cx:Integer;cy:Integer;xSrc:OLE_XPOS_HIMETRIC;ySrc:OLE_YPOS_HIMETRIC;cxSrc:OLE_XSIZE_HIMETRIC;cySrc:OLE_YSIZE_HIMETRIC;var pRcWBounds:TRECT):HRESULT;stdcall;
+    // set_hPal :
+   function set_hPal(hPal:OLE_HANDLE):HRESULT;stdcall;
+    // get_CurDC :
+   function get_CurDC(out phDC:wireHDC):HRESULT;stdcall;
+    // SelectPicture :
+   function SelectPicture(hDCIn:wireHDC;out phDCOut:wireHDC;out phBmpOut:OLE_HANDLE):HRESULT;stdcall;
+    // get_KeepOriginalFormat :
+   function get_KeepOriginalFormat(out pKeep:Integer):HRESULT;stdcall;
+    // put_KeepOriginalFormat :
+   function put_KeepOriginalFormat(keep:Integer):HRESULT;stdcall;
+    // PictureChanged :
+   function PictureChanged:HRESULT;stdcall;
+    // SaveAsFile :
+   function SaveAsFile(pStream:IStream;fSaveMemCopy:Integer;out pCbSize:Integer):HRESULT;stdcall;
+    // get_Attributes :
+   function get_Attributes(out pDwAttr:LongWord):HRESULT;stdcall;
+  end;
+
+  IPicture2 = interface(IUnknown)
+   ['{F5185DD8-2012-4b0b-AAD9-F052C6BD482B}']
+    // get_Handle :
+   function get_Handle(out pHandle:HHANDLE):HRESULT;stdcall;
+    // get_hPal :
+   function get_hPal(out phPal:HHANDLE):HRESULT;stdcall;
+    // get_Type :
+   function get_Type(out pType:SHORT):HRESULT;stdcall;
+    // get_Width :
+   function get_Width(out pWidth:OLE_XSIZE_HIMETRIC):HRESULT;stdcall;
+    // get_Height :
+   function get_Height(out pHeight:OLE_YSIZE_HIMETRIC):HRESULT;stdcall;
+    // Render :
+   function Render(hDC:wireHDC;x:LONG;y:LONG;cx:LONG;cy:LONG;xSrc:OLE_XPOS_HIMETRIC;ySrc:OLE_YPOS_HIMETRIC;cxSrc:OLE_XSIZE_HIMETRIC;cySrc:OLE_YSIZE_HIMETRIC;var pRcWBounds:TRECT):HRESULT;stdcall;
+    // set_hPal :
+   function set_hPal(hPal:HHANDLE):HRESULT;stdcall;
+    // get_CurDC :
+   function get_CurDC(out phDC:HDC):HRESULT;stdcall;
+    // SelectPicture :
+   function SelectPicture(hDCIn:HDC;out phDCOut:HDC;out phBmpOut:HHANDLE):HRESULT;stdcall;
+    // get_KeepOriginalFormat :
+   function get_KeepOriginalFormat(out pKeep:WinBOOL):HRESULT;stdcall;
+    // put_KeepOriginalFormat :
+   function put_KeepOriginalFormat(keep:WinBOOL):HRESULT;stdcall;
+    // PictureChanged :
+   function PictureChanged:HRESULT;stdcall;
+    // SaveAsFile :
+   function SaveAsFile(pStream:IStream;fSaveMemCopy:LONG;out pCbSize:LONG):HRESULT;stdcall;
+    // get_Attributes :
+   function get_Attributes(out pDwAttr:LongWord):HRESULT;stdcall;
+  end;
+
 
 // IFontDisp :
 
