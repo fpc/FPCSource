@@ -1196,6 +1196,7 @@ var
   href:  treference;
   reg : Tsuperregister;
   helplist : TAsmList;
+  largeoffs : boolean;
 begin
   a_reg_alloc(list,NR_STACK_POINTER_REG);
 
@@ -1306,9 +1307,12 @@ begin
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
     begin
-      list.concat(Taicpu.op_none(A_P_SET_MACRO));
+      largeoffs:=(TMIPSProcinfo(current_procinfo).save_gp_ref.offset>simm16hi);
+      if largeoffs then
+        list.concat(Taicpu.op_none(A_P_SET_MACRO));
       list.concat(Taicpu.op_const(A_P_CPRESTORE,TMIPSProcinfo(current_procinfo).save_gp_ref.offset));
-      list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
+      if largeoffs then
+        list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
 
   href.base:=NR_STACK_POINTER_REG;
