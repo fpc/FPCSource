@@ -116,6 +116,7 @@ type
     Procedure StopAccepting(DoAbort : Boolean = False);
     Procedure SetNonBlocking;
     Property Bound : Boolean Read FBound;
+    // Maximium number of connections in total. *Not* the simultaneous connection count. -1 keeps accepting.
     Property MaxConnections : longint Read FMaxConnections Write FMaxConnections;
     Property QueueSize : Longint Read FQueueSize Write FQueueSize default 5;
     Property OnConnect : TConnectEvent Read FOnConnect Write FOnConnect;
@@ -279,11 +280,17 @@ Var
 
 begin
   Flags:=FReadFlags;
-  Result:=fprecv(handle,@Buffer,count,flags);
-  If Result<0 then
-    FLastError:=SocketError
-  else
-    FLastError:=0;
+{$ifdef unix}
+  Repeat
+{$endif}
+    Result:=fprecv(handle,@Buffer,count,flags);
+    If Result<0 then
+      FLastError:=SocketError
+    else
+      FLastError:=0;
+{$ifdef unix}
+  Until (FlastError<>ESysEINTR);
+{$ENDIF}
 end;
 
 Function TSocketStream.Write (Const Buffer; Count : Longint) :Longint;
@@ -293,11 +300,17 @@ Var
 
 begin
   Flags:=FWriteFlags;
-  Result:=fpsend(handle,@Buffer,count,flags);
-  If Result<0 then
-    FLastError:=SocketError
-  else
-    FlastError:=0;
+{$ifdef unix}
+  Repeat
+{$endif}
+    Result:=fpsend(handle,@Buffer,count,flags);
+    If Result<0 then
+      FLastError:=SocketError
+    else
+      FlastError:=0;
+{$ifdef unix}
+  Until (FlastError<>ESysEINTR);
+{$ENDIF}
 end;
 
 function TSocketStream.GetLocalAddress: TSockAddr;
@@ -387,7 +400,6 @@ Function TSocketServer.GetConnection : TSocketStream;
 
 var
   NewSocket : longint;
-  r,w,e : pfdset;
 
 begin
   Result:=Nil;
