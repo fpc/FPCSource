@@ -1203,7 +1203,6 @@ type
     Property IsNull : Boolean read GetIsNull;
     Property NativeStr : string read FNativeStr write FNativeStr;
     Property Text : string read GetAsString write SetText;
-    Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
     property AsWideString: WideString read GetAsWideString write SetAsWideString;
   published
     Property DataType : TFieldType read FDataType write SetDataType;
@@ -1212,6 +1211,7 @@ type
     Property ParamType : TParamType read FParamType write FParamType;
     Property Precision : Integer read FPrecision write FPrecision default 0;
     Property Size : Integer read FSize write FSize default 0;
+    Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
   end;
 
 
