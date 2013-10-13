@@ -1197,15 +1197,15 @@ unit cgcpu;
           OP_MUL,
           OP_IMUL:
               begin
-                if current_settings.cputype <> cpu_mc68020 then
+                if (current_settings.cputype <> cpu_mc68020) and
+                   (not (current_settings.cputype in cpu_coldfire)) then
                   if op = OP_MUL then
                     call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_dword')
                   else
                     call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_longint')
                 else
                   begin
-                    { 68020+ codepath, probably could be improved to
-                      include more CPUs... (KB) }
+                    { 68020+ and ColdFire codepath, probably could be improved }
                     hreg1 := force_to_dataregister(list, size, reg1);
                     hreg2 := force_to_dataregister(list, size, reg2);
 
