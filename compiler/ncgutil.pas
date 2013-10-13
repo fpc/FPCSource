@@ -1842,8 +1842,8 @@ implementation
               if (n.location.size in [OS_64,OS_S64]) then
                 begin
                   rr.oldhi := n.location.register64.reghi;
-                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                 end
               else
       {$endif cpu64bitalu}
