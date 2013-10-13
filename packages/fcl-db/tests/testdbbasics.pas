@@ -116,7 +116,7 @@ type
 
   TTestCursorDBBasics = class(TDBBasicsTestCase)
   private
-    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean); // Filters out all records with even ID
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
   published
@@ -136,9 +136,9 @@ type
     procedure TestLocateCaseInsInts;
 
     procedure TestFirst;
-    procedure TestIntFilter;
+    procedure TestIntFilter; //Integer range filter
     procedure TestOnFilter;
-    procedure TestStringFilter;
+    procedure TestStringFilter; //String filter expressions
 
     procedure TestNullAtOpen;
 
@@ -1193,21 +1193,23 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
-
-var a : TDataSetState;
+var
+  a : TDataSetState;
 begin
   Accept := odd(Dataset.FieldByName('ID').AsInteger);
 end;
 
 procedure TTestCursorDBBasics.TestOnFilter;
-var tel : byte;
+// Tests OnFilterRecord filtering
+var
+  Counter : byte;
 begin
   with DBConnector.GetNDataset(15) do
     begin
     OnFilterRecord := TestOnFilterProc;
     Filtered := True;
     Open;
-    for tel := 1 to 8 do
+    for Counter := 1 to 8 do
       begin
       CheckTrue(odd(FieldByName('ID').asinteger));
       next;
@@ -1217,16 +1219,18 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestIntFilter;
-var tel : byte;
+// Tests an integer range filter expression
+var
+  Counter : byte;
 begin
   with DBConnector.GetNDataset(15) do
     begin
     Filtered := True;
     Filter := '(id>4) and (id<9)';
     Open;
-    for tel := 5 to 8 do
+    for Counter := 5 to 8 do
       begin
-      CheckEquals(tel,FieldByName('ID').asinteger);
+      CheckEquals(Counter,FieldByName('ID').asinteger);
       next;
       end;
     CheckTrue(EOF);
@@ -1261,11 +1265,14 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestStringFilter;
-var tel : byte;
+// Tests a string expression filter
+var
+  Counter : byte;
 begin
   with DBConnector.GetNDataset(15) do
     begin
     Open;
+    // Check equality
     Filter := '(name=''TestName3'')';
     Filtered := True;
     CheckFalse(EOF);
