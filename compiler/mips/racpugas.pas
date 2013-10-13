@@ -32,7 +32,6 @@ Interface
   type
     tMipsReader = class(tattreader)
       function is_asmopcode(const s: string):boolean;override;
-      procedure BuildReference(oper : TOperand);
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
       procedure ReadSym(oper : TOperand);
@@ -123,76 +122,6 @@ Interface
                   end;
               end;
           end;
-      end;
-
-
-    Procedure TMipsReader.BuildReference(oper : TOperand);
-      var
-        l : aint;
-        regs : byte;
-        hasimm : boolean;
-      begin
-        oper.initref;
-        regs:=0;
-        hasimm:=false;
-        Consume(ActAsmToken);
-        repeat
-          Case actasmtoken of
-            AS_INTNUM,
-            AS_MINUS,
-            AS_PLUS:
-              Begin
-                if hasimm or (regs>1) then
-                 Begin
-                   Message(asmr_e_invalid_reference_syntax);
-                   RecoverConsume(true);
-                   break;
-                 End;
-                oper.opr.Ref.Offset:=BuildConstExpression(false,true);
-                hasimm:=true;
-              End;
-
-            AS_REGISTER:
-              Begin
-                if regs<2 then
-                  begin
-                    if regs=0 then
-                      oper.opr.ref.base:=actasmregister
-                    else
-                      oper.opr.ref.index:=actasmregister;
-                    inc(regs);
-                  end
-                else
-                  begin
-                    Message(asmr_e_invalid_reference_syntax);
-                    RecoverConsume(true);
-                    break;
-                  end;
-                Consume(AS_REGISTER);
-              end;
-
-            AS_ID:
-              Begin
-                l:=BuildConstExpression(true,true);
-                inc(oper.opr.ref.offset,l);
-              End;
-
-            AS_RPAREN:
-              begin
-                if (regs=0) and (not hasimm) then
-                  Message(asmr_e_invalid_reference_syntax);
-                Consume(AS_RPAREN);
-                break;
-              end;
-
-            else
-              Begin
-                Message(asmr_e_invalid_reference_syntax);
-                RecoverConsume(false);
-                break;
-              end;
-          end;
-        until false;
       end;
 
 
@@ -346,8 +275,12 @@ Interface
 
             AS_LPAREN :
               begin
-                { memory reference }
-                BuildReference(oper);
+                consume(AS_LPAREN);
+                oper.InitRef;
+                if actasmtoken=AS_REGISTER then
+                  oper.opr.ref.base:=actasmregister;
+                consume(AS_REGISTER);
+                consume(AS_RPAREN);
                 gotplus:=false;
               end;
 
@@ -478,19 +411,6 @@ Interface
                 { save the type of register used. }
                 tempreg:=actasmregister;
                 Consume(AS_REGISTER);
-                if (oper.opr.typ in [OPR_REGISTER,OPR_REFERENCE]) and gotplus then
-                  begin
-                    oper.initref;
-                    oper.opr.ref.refaddr:=addr_full;
-                    if oper.opr.ref.base<>NR_NO then
-                      oper.opr.ref.base:=tempreg
-                    else
-                      if oper.opr.ref.index<>NR_NO then
-                        oper.opr.ref.index:=tempreg
-                    else
-                      Message(asmr_e_multiple_index);
-                  end
-                else
                   begin
                     if (oper.opr.typ<>OPR_NONE) then
                       Message(asmr_e_invalid_operand_type);
