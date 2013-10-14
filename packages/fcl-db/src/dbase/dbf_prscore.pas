@@ -112,7 +112,7 @@ type
 
 
 //--Expression functions-----------------------------------------------------
-//I: integer; L: Long Integer
+//I: Integer; L: Large Integer (Int64); F: Double; S: String; B: Boolean
 
 procedure FuncFloatToStr(Param: PExpressionRec);
 procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: {$ifdef SUPPORT_INT64}Int64{$else}Integer{$endif});
@@ -124,6 +124,11 @@ procedure FuncDateToStr(Param: PExpressionRec);
 procedure FuncSubString(Param: PExpressionRec);
 procedure FuncUppercase(Param: PExpressionRec);
 procedure FuncLowercase(Param: PExpressionRec);
+procedure FuncNegative_F_F(Param: PExpressionRec);
+procedure FuncNegative_I_I(Param: PExpressionRec);
+{$ifdef SUPPORT_INT64}
+procedure FuncNegative_L_L(Param: PExpressionRec);
+{$endif}
 procedure FuncAdd_F_FF(Param: PExpressionRec);
 procedure FuncAdd_F_FI(Param: PExpressionRec);
 procedure FuncAdd_F_II(Param: PExpressionRec);
@@ -490,7 +495,12 @@ begin
           case ResultType of
             etBoolean: ExprWord := TBooleanConstant.Create(EmptyStr, PBoolean(FExpResult)^);
             etFloat:   ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
+            etInteger: ExprWord := TIntegerConstant.Create(PInteger(FExpResult)^);
+{$ifdef SUPPORT_INT64}
+            etLargeInt:ExprWord := TLargeIntegerConstant.Create(PInt64(FExpResult)^);
+{$endif}
             etString:  ExprWord := TStringConstant.Create(FExpResult);
+            else raise EparserException.CreateFmt('No support for resulttype %d. Please fix the TDBF code.',[ResultType]);
           end;
 
           // fill in structure
@@ -1425,6 +1435,26 @@ begin
   end;
 end;
 
+procedure FuncNegative_F_F(Param: PExpressionRec);
+begin
+  with Param^ do
+    PDouble(Res.MemoryPos^)^ := -PDouble(Args[0])^;
+end;
+
+procedure FuncNegative_I_I(Param: PExpressionRec);
+begin
+  with Param^ do
+    PInteger(Res.MemoryPos^)^ := -PInteger(Args[0])^;
+end;
+
+{$ifdef SUPPORT_INT64}
+procedure FuncNegative_L_L(Param: PExpressionRec);
+begin
+  with Param^ do
+    PInt64(Res.MemoryPos^)^ := -PInt64(Args[0])^;
+end;
+{$endif}
+
 procedure FuncAdd_F_FF(Param: PExpressionRec);
 begin
   with Param^ do
@@ -2169,6 +2199,11 @@ initialization
     // operators - name, param types, result type, func addr, precedence
     // note that the parameter types in the second column must match with
     // the function signature in the function address
+    Add(TFunction.CreateOper('-@', 'I', etInteger,  FuncNegative_I_I, 20));
+    Add(TFunction.CreateOper('-@', 'F', etFloat,    FuncNegative_F_F, 20));
+{$ifdef SUPPORT_INT64}
+    Add(TFunction.CreateOper('-@', 'L', etLargeInt, FuncNegative_L_L, 20));
+{$endif}
     Add(TFunction.CreateOper('+', 'SS', etString,   nil,          40));
     Add(TFunction.CreateOper('+', 'FF', etFloat,    FuncAdd_F_FF, 40));
     Add(TFunction.CreateOper('+', 'FI', etFloat,    FuncAdd_F_FI, 40));

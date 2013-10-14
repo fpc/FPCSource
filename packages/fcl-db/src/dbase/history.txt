@@ -33,6 +33,7 @@ BUGS & WARNINGS
 Changelog:
 ------------------------
 FreePascal trunk (future V7.0.0): (r* referes to FPC subversion revision/commit)
+- fix some filter functions working with incorrect parameters (r25755)
 - add support for memo and index stream so no disk files are needed when using streams
 - clarification on field types; remove some workarounds (r24169) todo: reinstate depending on test set
 - initial support for (Visual) FoxPro files (r24139)

@@ -200,6 +200,19 @@ type
     function AsPointer: PChar; override;
   end;
 
+{$ifdef SUPPORT_INT64}
+  { TLargeIntegerConstant }
+
+  TLargeIntegerConstant = class(TConstant)
+  private
+    FValue: Int64;
+  public
+    constructor Create(AValue: Int64);
+
+    function AsPointer: PChar; override;
+  end;
+{$endif}
+
   TBooleanConstant = class(TConstant)
   private
     FValue: Boolean;
@@ -334,8 +347,8 @@ type
   end;
 
   TVaryingFunction = class(TFunction)
-    // Functions that can vary for ex. random generators
-    // should be TVaryingFunction to be sure that they are
+    // Functions that can vary e.g. random generators
+    // should be TVaryingFunction to ensure that they are
     // always evaluated
   protected
     function GetCanVary: Boolean; override;
@@ -632,6 +645,22 @@ function TIntegerConstant.AsPointer: PChar;
 begin
   Result := PChar(@FValue);
 end;
+
+{$ifdef SUPPORT_INT64}
+{ TLargeIntegerConstant }
+
+constructor TLargeIntegerConstant.Create(AValue: Int64);
+begin
+  inherited Create(IntToStr(AValue), etLargeInt, _LargeIntVariable);
+
+  FValue := AValue;
+end;
+
+function TLargeIntegerConstant.AsPointer: PChar;
+begin
+  Result := PChar(@FValue);
+end;
+{$endif}
 
 { TVariable }
 
