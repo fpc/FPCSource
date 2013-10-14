@@ -63,7 +63,7 @@ unit Cairo;
 interface
 
 Uses
-  CTypes, glib2;
+  CTypes;
 
 const
 {$ifdef MSWINDOWS}
@@ -91,6 +91,7 @@ const
 {$ENDIF}
 
 type
+  GTYPE= culong; // =gulong from glib2, which we can't include due dependencies.
   cairo_status_t = (
     CAIRO_STATUS_SUCCESS = 0,
 
