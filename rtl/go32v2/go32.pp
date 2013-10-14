@@ -94,6 +94,7 @@ interface
     function set_descriptor_access_right(d : word;w : word) : longint;
     function create_code_segment_alias_descriptor(seg : word) : word;
     function get_linear_addr(phys_addr : longint;size : longint) : longint;
+    function free_linear_addr_mapping(linear_addr: dword): boolean;
     function get_segment_limit(d : word) : longint;
     function get_descriptor_access_right(d : word) : longint;
     function get_page_size:longint;
@@ -1097,6 +1098,25 @@ interface
             movl %ebx,__RESULT
             popl %esi
             popl %edi
+            popl %ebx
+         end;
+      end;
+
+    function free_linear_addr_mapping(linear_addr: dword): boolean;
+
+      begin
+         asm
+            pushl %ebx
+            pushl %ecx
+            movl linear_addr,%ebx
+            movl %ebx,%ecx
+            shrl $16,%ebx
+            movl $0x801,%eax
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+	    popl %ecx
             popl %ebx
          end;
       end;
