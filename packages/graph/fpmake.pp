@@ -90,6 +90,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
           AddInclude('graph16.inc',[freebsd,linux]);
+          AddInclude('vesa.inc',[go32v2,msdos]);
+          AddInclude('vesah.inc',[go32v2,msdos]);
         end;
 
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
