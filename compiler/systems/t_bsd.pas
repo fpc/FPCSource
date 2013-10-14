@@ -230,6 +230,9 @@ begin
     begin
       if not(cs_profile in current_settings.moduleswitches) then
         begin
+          { 10.8 and later: no crt1.* }
+          if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+            exit('');
           { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
           { others: crt1.10.5 -> crt1.o }
 {$if defined(i386) or defined(x86_64)}
@@ -238,17 +241,28 @@ begin
 {$endif}
           if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
             exit('crt1.10.5.o');
-          { iOS/simulator: crt1.3.1.o -> crt1.o }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
-             exit('crt1.3.1.o');
+{$if defined(arm)}
+          { iOS:
+              iOS 6 and later: nothing
+              iOS 3.1 - 5.x: crt1.3.1.o
+              pre-iOS 3.1: crt1.o
+          }
+          if (CompareVersionStrings(iPhoneOSVersionMin,'6.0')>=0) then
+            exit('');
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('crt1.3.1.o');
 {$endif}
           { nothing special -> default }
           result:='crt1.o';
         end
       else
-        result:='gcrt1.o';
+        begin
+          result:='gcrt1.o';
+          { 10.8 and later: tell the linker to use 'start' instead of "_main"
+            as entry point }
+          if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -no_new_main';
+        end;
     end
   else
     begin
@@ -258,11 +272,10 @@ begin
             >= 10.6: nothing }
           if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
             exit('');
-          { iOS/simulator: < 3.1: bundle1.o
-                           >= 3.1: nothing }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+          { iOS: < 3.1: bundle1.o
+                 >= 3.1: nothing }
+{$if defined(arm)}
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
             exit('');
 {$endif}
           result:='bundle1.o';
@@ -277,11 +290,10 @@ begin
             exit('');
           if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
             exit('dylib1.10.5.o');
-          { iOS/simulator: < 3.1: dylib1.o
-                           >= 3.1: nothing }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+          { iOS: < 3.1: dylib1.o
+                 >= 3.1: nothing }
+{$if defined(arm)}
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
             exit('');
 {$endif}
           result:='dylib1.o';
