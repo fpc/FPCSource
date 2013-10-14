@@ -10754,6 +10754,7 @@ tests/test/library/ttdlltest.pp svneol=native#text/plain
 tests/test/library/ulib2a.pp svneol=native#text/plain
 tests/test/library/ulib2b.pp svneol=native#text/plain
 tests/test/opt/README.txt svneol=native#text/plain
+tests/test/opt/tarmls1.pp svneol=native#text/plain
 tests/test/opt/tarmsa1.pp svneol=native#text/plain
 tests/test/opt/tarmshift.pp svneol=native#text/plain
 tests/test/opt/tcaseopt1.pp svneol=native#text/plain

@@ -663,10 +663,11 @@ Implementation
                           ldr reg1,ref
                           mov reg2,reg1
                         }
-                        if RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
-                         (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
-                         (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
-                         (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                        if (taicpu(p).oppostfix=taicpu(hp1).oppostfix) and
+                           RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                           (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
+                           (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
+                           (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                           begin
                             if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                               begin
