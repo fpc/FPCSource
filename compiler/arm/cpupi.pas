@@ -186,9 +186,48 @@ unit cpupi;
             end;
             floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
             result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
-            floatregstart:=tg.direction*result+maxpushedparasize;
+            { Note: in cgcpu "-floatregstart" is subtracted -> reason based on
+                "adding floatregstart" to avoid double negation
+
+              tg.direction=1 -> no framepointer ->
+                1) save used int registers
+                2) allocate stacksize (= subtracting result, which is positive,
+                   from the stackpointer)
+                3) add floatregstart to the stackpointer to get the offset where
+                   to store the floating point registers (-> floatregstart
+                   should be positive)
+                4) store the floating point registers from this offset with IA
+                   (i.e., this offset and higher addresses -> offset should
+                    point to lower end of area)
+               -> newsp+(result) points to lower end of saved int registers area
+               -> newsp+(result-floatsavesize) points to lower end of float reg
+                  saving area
+
+              tg.direction=-1 -> with framepointer ->
+                1) save stack pointer in framepointer
+                2) save used int registers using stackpointer
+                3) allocate stacksize (= subtracting result, which is positive,
+                   from the stack pointer)
+                4) add floatregstart" to the framepointer to get the offset
+                   where to store the floating point registers (-> floatregstart
+                   should be negative)
+                5) store the floating point registers from this offset with IA
+                   (i.e., this offset and higher addresses -> offset should
+                    point to lower end of area)
+                o in this case, firsttemp starts right after the saved int
+                  registers area (or a bit further, because it's calculated for
+                  the worst-case scenario, when all non-volative integer
+                  registers have to be saved) -> we store the floating point
+                  registers between the last temp and the parameter pushing area
+               -> fp+(-result) points to the top of the stack (= end of
+                  parameter pushing area)
+               -> fp+(-result+maxpushedparasize) points to the start of the
+                  parameter pushing area = lower end of float reg saving area
+            }
             if tg.direction=1 then
-              dec(floatregstart,floatsavesize);
+              floatregstart:=result-aint(floatsavesize)
+            else
+              floatregstart:=-result+maxpushedparasize;
           end;
       end;
 
