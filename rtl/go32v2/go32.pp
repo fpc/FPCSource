@@ -98,6 +98,8 @@ interface
     function get_descriptor_access_right(d : word) : longint;
     function get_page_size:longint;
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
+    function get_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
+    function set_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
     function realintr(intnr : word;var regs : trealregs) : boolean;
     function get_dpmi_version(var version: tdpmiversioninfo): boolean;
 
@@ -1141,6 +1143,60 @@ interface
            popl %edi
            popl %ebx
          end;
+      end;
+
+    function get_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
+      begin
+         asm
+           pushl %ebx
+           pushl %ecx
+           pushl %edx
+           pushl %esi
+           pushw %es
+	   pushw %ds
+	   popw %es
+           movl buf,%edx
+           movl handle,%esi
+           movl offset,%ebx
+           movl pagecount,%ecx
+           movl $0x0506,%eax
+           int $0x31
+           pushf
+           call test_int31
+           movb %al,__RESULT
+	   popw %es
+           popl %esi
+           popl %edx
+           popl %ecx
+           popl %ebx
+	 end;
+      end;
+
+    function set_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
+      begin
+         asm
+           pushl %ebx
+           pushl %ecx
+           pushl %edx
+           pushl %esi
+           pushw %es
+	   pushw %ds
+	   popw %es
+           movl buf,%edx
+           movl handle,%esi
+           movl offset,%ebx
+           movl pagecount,%ecx
+           movl $0x0507,%eax
+           int $0x31
+           pushf
+           call test_int31
+           movb %al,__RESULT
+	   popw %es
+           popl %esi
+           popl %edx
+           popl %ecx
+           popl %ebx
+	 end;
       end;
 
     function get_dpmi_version(var version: tdpmiversioninfo): boolean;
