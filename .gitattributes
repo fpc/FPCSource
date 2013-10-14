@@ -7619,6 +7619,7 @@ rtl/charmaps/cp950.pas svneol=native#text/pascal
 rtl/charmaps/cpall.pas svneol=native#text/pascal
 rtl/darwin/Makefile svneol=native#text/plain
 rtl/darwin/Makefile.fpc svneol=native#text/plain
+rtl/darwin/arm/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/arm/sighnd.inc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain
 rtl/darwin/errno.inc svneol=native#text/plain
