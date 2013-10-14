@@ -76,6 +76,13 @@ interface
 
       registers = trealregs;
 
+      tdpmiversioninfo = record
+        major, minor: byte;
+	flags: word;
+	cpu: byte;
+	master_pic, slave_pic: byte;
+      end;
+
     { this works only with real DPMI }
     function allocate_ldt_descriptors(count : word) : word;
     function free_ldt_descriptor(d : word) : boolean;
@@ -92,6 +99,7 @@ interface
     function get_page_size:longint;
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
     function realintr(intnr : word;var regs : trealregs) : boolean;
+    function get_dpmi_version(var version: tdpmiversioninfo): boolean;
 
     { is needed for functions which need a real mode buffer }
     function global_dos_alloc(bytes : longint) : longint;
@@ -1133,6 +1141,34 @@ interface
            popl %edi
            popl %ebx
          end;
+      end;
+
+    function get_dpmi_version(var version: tdpmiversioninfo): boolean;
+      var
+        _version, _flags, _cpu, _pic: word;
+      begin
+         asm
+           movl $0x0400,%eax
+           int $0x31
+           pushf
+	   movw %ax,_version
+	   movw %bx,_flags
+	   movw %cx,_cpu
+	   movw %dx,_pic
+           call test_int31
+           movb %al,__RESULT
+	 end ['EAX','EBX','ECX','EDX'];
+
+	 if get_dpmi_version then
+	 begin
+	   FillChar(version, SizeOf(version), 0);
+	   version.major := _version shr 8;
+	   version.minor := _version and $ff;
+	   version.flags := _flags;
+	   version.cpu := _cpu and $ff;
+	   version.master_pic := _pic shr 8;
+	   version.slave_pic := _pic and $ff;
+	 end;
       end;
 
 {*****************************************************************************
