@@ -120,6 +120,11 @@ begin
         begin
           AddUnit('ptcgraph');
         end;
+    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddUnit('ptcgraph');
+        end;
 
 
 {$ifndef ALLPACKAGES}

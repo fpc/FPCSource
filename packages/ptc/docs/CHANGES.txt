@@ -1,4 +1,6 @@
 0.99.14
+ - added new unit ptcmouse for use with ptcgraph & ptccrt applications. It is
+   similar to the winmouse and msmouse units.
  - support for resizable windows extended. Your application now receives
    a new event IPTCResizeEvent and is allowed to call a new method called
    InternalResize, which adjusts the console's width and height according to

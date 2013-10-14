@@ -3339,6 +3339,7 @@ packages/graph/src/msdos/vesa.inc svneol=native#text/plain
 packages/graph/src/msdos/vesah.inc svneol=native#text/plain
 packages/graph/src/ptcgraph/ptccrt.pp svneol=native#text/plain
 packages/graph/src/ptcgraph/ptcgraph.pp svneol=native#text/x-pascal
+packages/graph/src/ptcgraph/ptcmouse.pp svneol=native#text/plain
 packages/graph/src/sdlgraph/sdlgraph.pp svneol=native#text/plain
 packages/graph/src/unix/ggigraph.pp svneol=native#text/plain
 packages/graph/src/unix/graph.pp svneol=native#text/plain
