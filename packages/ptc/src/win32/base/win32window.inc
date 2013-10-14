@@ -30,6 +30,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{$ifdef VER2_6}
+type
+  WNDCLASSEXA = WNDCLASSEX;
+{$endif VER2_6}
+
 { $R win32\base\ptcres.res}
 
 { bug in the compiler???}
@@ -62,7 +67,7 @@ begin
     FInterceptClose := AInterceptClose;
     program_instance := GetModuleHandle(nil);
 {    library_instance := program_instance;}
-    wc.cbSize := SizeOf(WNDCLASSEX);
+    wc.cbSize := SizeOf(wc);
     wc.hInstance := program_instance;
     wc.lpszClassName := PChar(AWndClass);
     wc.style := AClassStyle;
@@ -136,15 +141,13 @@ procedure TWin32Window.Cursor(AFlag: Boolean);
 begin
   if AFlag then
   begin
-    {$WARNING GCLP_HCURSOR not defined in windows unit}
 //    SetClassLong(FWindow, GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
-    SetClassLongPtr(FWindow, {GCLP_HCURSOR}GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
+    SetClassLongPtr(FWindow, GCLP_HCURSOR, LoadCursor(0, IDC_ARROW));
   end
   else
   begin
-    {$WARNING GCLP_HCURSOR not defined in windows unit}
 //    SetClassLong(FWindow, GCL_HCURSOR, 0);
-    SetClassLongPtr(FWindow, {GCLP_HCURSOR}GCL_HCURSOR, 0);
+    SetClassLongPtr(FWindow, GCLP_HCURSOR, 0);
   end;
   SendMessage(FWindow, WM_SETCURSOR, 0, 0);
 end;
@@ -265,8 +268,7 @@ begin
           Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
-      {$WARNING GCLP_HCURSOR not defined in windows unit}
-      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then
+      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
 	Result := 1;
@@ -300,8 +302,7 @@ begin
           Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
-      {$WARNING GCLP_HCURSOR not defined in windows unit}
-      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then
+      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
 	Result := 1;

@@ -29,10 +29,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$WARNING add these to the windows unit}
+{$ifdef VER2_6}
+{ constants moved to the windows unit in fpc trunk }
 const
   PFD_DIRECT3D_ACCELERATED = $00004000;
   PFD_SUPPORT_COMPOSITION = $00008000;
+{$endif VER2_6}
 
 constructor TWin32OpenGLWindow.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
               AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor, AInterceptClose: Boolean;

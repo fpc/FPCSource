@@ -186,8 +186,6 @@ type
         #define HMONITOR_DECLARED
         DECLARE_HANDLE(HMONITOR);
     #endif}
-    {$WARNING HMONITOR should go to the windows unit}
-    HMONITOR = HANDLE;
 //    typedef BOOL (FAR PASCAL * LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
     LPDDENUMCALLBACKEXA = function(lpGUID: PGUID; lpDriverDescription: LPSTR; lpDriverName: LPSTR; lpContext: LPVOID; hm: HMONITOR): BOOL; stdcall;
   
