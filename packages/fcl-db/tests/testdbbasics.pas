@@ -1246,23 +1246,37 @@ var
 begin
   with DBConnector.GetNDataset(15) do
     begin
-    // Change ID values to be negative instead of positive
+    // Change ID values to -1..-15 instead of positive
+    Open;
     while not(EOF) do
-    begin
+      begin
       Edit;
       FieldByName('ID').AsInteger:=
         -1*(FieldByname('ID').AsInteger);
       Post;
       Next;
-    end;
+      end;
     Close;
 
+    // Regular filter with negative integer values
     Filtered := True;
     Filter := '(id>-9) and (id<-4)';
     Open;
     for Counter := -5 downto -8 do
       begin
-      CheckEquals(Counter,FieldByName('ID').asinteger);
+      CheckEquals(Counter,FieldByName('ID').AsInteger);
+      next;
+      end;
+    CheckTrue(EOF);
+    Close;
+
+    // Filter with negative integer values and subtraction calculations
+    Filtered := True;
+    Filter := '(id>(-8-1)) and (id<(-3-1))';
+    Open;
+    for Counter := -5 downto -8 do
+      begin
+      CheckEquals(Counter,FieldByName('ID').AsInteger);
       next;
       end;
     CheckTrue(EOF);
