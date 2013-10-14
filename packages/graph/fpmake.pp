@@ -115,6 +115,17 @@ begin
           AddUnit('graph');
         end;
     T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
+        end;
     T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux]);
       with T.Dependencies do
         begin
