@@ -1156,9 +1156,8 @@ interface
            movl $0x0508,%eax
            int $0x31
            pushf
-           setnc %al
-           movb %al,__RESULT
            call test_int31
+           movb %al,__RESULT
            popl %esi
            popl %edi
            popl %ebx
