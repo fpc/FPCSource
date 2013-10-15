@@ -224,6 +224,8 @@ program fpc;
                              cpusuffix:='x64'
                            else if processorstr='jvm' then
                              cpusuffix:='jvm'
+                           else if processorstr='i8086' then
+                             cpusuffix:='8086'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 
