@@ -292,7 +292,7 @@ implementation
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,OS_ADDR,sizeof(pint));
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name));
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
                      { Resourcestring layout:
                          TResourceStringRecord = Packed Record
                             Name,

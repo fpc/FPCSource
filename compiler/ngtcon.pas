@@ -491,7 +491,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 current_asmdata.ResStrInits.Concat(
                   TTCInitItem.Create(tcsym,curoffset,
-                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name)))
+                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA))
                 );
                 Include(tcsym.varoptions,vo_force_finalize);
               end;
@@ -959,7 +959,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       list.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
                     constsym :
                       if tconstsym(srsym).consttyp=constresourcestring then
-                        list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),sizeof(pint)))
+                        list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),AT_DATA,sizeof(pint)))
                       else
                         Message(type_e_variable_id_expected);
                     else
