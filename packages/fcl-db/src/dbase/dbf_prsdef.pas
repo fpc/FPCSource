@@ -201,9 +201,7 @@ type
   end;
 
 {$ifdef SUPPORT_INT64}
-  { TLargeIntegerConstant }
-
-  TLargeIntegerConstant = class(TConstant)
+  TLargeIntConstant = class(TConstant)
   private
     FValue: Int64;
   public
@@ -647,16 +645,16 @@ begin
 end;
 
 {$ifdef SUPPORT_INT64}
-{ TLargeIntegerConstant }
+{ TLargeIntConstant }
 
-constructor TLargeIntegerConstant.Create(AValue: Int64);
+constructor TLargeIntConstant.Create(AValue: Int64);
 begin
   inherited Create(IntToStr(AValue), etLargeInt, _LargeIntVariable);
 
   FValue := AValue;
 end;
 
-function TLargeIntegerConstant.AsPointer: PChar;
+function TLargeIntConstant.AsPointer: PChar;
 begin
   Result := PChar(@FValue);
 end;

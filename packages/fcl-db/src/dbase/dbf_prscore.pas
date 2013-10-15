@@ -497,10 +497,10 @@ begin
             etFloat:   ExprWord := TFloatConstant.CreateAsDouble(EmptyStr, PDouble(FExpResult)^);
             etInteger: ExprWord := TIntegerConstant.Create(PInteger(FExpResult)^);
 {$ifdef SUPPORT_INT64}
-            etLargeInt:ExprWord := TLargeIntegerConstant.Create(PInt64(FExpResult)^);
+            etLargeInt:ExprWord := TLargeIntConstant.Create(PInt64(FExpResult)^);
 {$endif}
             etString:  ExprWord := TStringConstant.Create(FExpResult);
-            else raise EparserException.CreateFmt('No support for resulttype %d. Please fix the TDBF code.',[ResultType]);
+            else raise EParserException.CreateFmt('No support for resulttype %d. Please fix the TDBF code.',[ResultType]);
           end;
 
           // fill in structure
