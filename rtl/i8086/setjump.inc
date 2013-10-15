@@ -22,13 +22,14 @@ asm
 
   mov bx, ss:[bp + 4 + extra_param_offset]  // S
   mov word [bx + Jmp_buf.bp], ax
-  mov word [bx + Jmp_buf.sp], di
   mov cx, word ss:[di]
   mov word [bx + Jmp_buf.ip], cx
 {$ifdef FPC_X86_CODE_FAR}
   mov cx, word ss:[di + 2]
   mov word [bx + Jmp_buf.cs], cx
 {$endif FPC_X86_CODE_FAR}
+  add di, 4 + extra_param_offset
+  mov word [bx + Jmp_buf.sp], di
 
   xor ax, ax
   pop bp
