@@ -135,10 +135,9 @@ type
     procedure TestLocateCaseIns;
     procedure TestLocateCaseInsInts;
 
-    procedure TestFirst;
+    procedure TestOnFilter;
     procedure TestIntFilter; //Integer range filter
     procedure TestNegativeIntFilter; //Negative integer filter; bug 25168
-    procedure TestOnFilter;
     procedure TestStringFilter; //String filter expressions
 
     procedure TestNullAtOpen;
@@ -146,7 +145,8 @@ type
     procedure TestAppendOnEmptyDataset;
     procedure TestInsertOnEmptyDataset;
 
-    procedure TestEofAfterFirst;           //bug 7211
+    procedure TestFirst;
+    procedure TestEofAfterFirst;           // bug 7211
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
@@ -430,6 +430,32 @@ begin
   finally
     aDatasource.Free;
     aDatalink.Free;
+  end;
+end;
+
+procedure TTestDBBasics.TestRecordcountAfterReopen;
+var
+  datalink1: tdatalink;
+  datasource1: tdatasource;
+  query1: TDataSet;
+
+begin
+  query1:= DBConnector.GetNDataset(11);
+  datalink1:= TDataLink.create;
+  datasource1:= tdatasource.create(nil);
+  try
+    datalink1.datasource:= datasource1;
+    datasource1.dataset:= query1;
+
+    query1.active := true;
+    query1.active := False;
+    CheckEquals(0, THackDataLink(datalink1).RecordCount);
+    query1.active := true;
+    CheckTrue(THackDataLink(datalink1).RecordCount>0);
+    query1.active := false;
+  finally
+    datalink1.free;
+    datasource1.free;
   end;
 end;
 
@@ -1030,28 +1056,6 @@ begin
     end;
 end;
 
-procedure TTestCursorDBBasics.TestFirst;
-var i : integer;
-begin
-  with DBConnector.GetNDataset(true,14) do
-    begin
-    open;
-    CheckEquals(1,FieldByName('ID').AsInteger);
-    First;
-    CheckEquals(1,FieldByName('ID').AsInteger);
-    next;
-    CheckEquals(2,FieldByName('ID').AsInteger);
-    First;
-    CheckEquals(1,FieldByName('ID').AsInteger);
-    for i := 0 to 12 do
-      next;
-    CheckEquals(14,FieldByName('ID').AsInteger);
-    First;
-    CheckEquals(1,FieldByName('ID').AsInteger);
-    close;
-    end;
-end;
-
 procedure TTestCursorDBBasics.TestDelete1;
 begin
   FTestDelete1(false);
@@ -1231,10 +1235,16 @@ begin
     Open;
     for Counter := 5 to 8 do
       begin
-      CheckEquals(Counter,FieldByName('ID').asinteger);
-      next;
+      CheckEquals(Counter, FieldByName('ID').AsInteger);
+      Next;
       end;
     CheckTrue(EOF);
+
+    Filter := '-id-ID=-4';
+    CheckEquals(2, FieldByName('ID').AsInteger, 'Unary minus');
+    Next;
+    CheckTrue(EOF, 'Unary minus');
+
     Close;
     end;
 end;
@@ -1256,58 +1266,31 @@ begin
       Post;
       Next;
       end;
-    Close;
 
     // Regular filter with negative integer values
     Filtered := True;
     Filter := '(id>-9) and (id<-4)';
-    Open;
+    First;
     for Counter := -5 downto -8 do
       begin
       CheckEquals(Counter,FieldByName('ID').AsInteger);
-      next;
+      Next;
       end;
     CheckTrue(EOF);
-    Close;
 
     // Filter with negative integer values and subtraction calculations
     Filtered := True;
     Filter := '(id>(-8-1)) and (id<(-3-1))';
-    Open;
+    First;
     for Counter := -5 downto -8 do
       begin
       CheckEquals(Counter,FieldByName('ID').AsInteger);
-      next;
+      Next;
       end;
     CheckTrue(EOF);
+
     Close;
     end;
-end;
-
-procedure TTestDBBasics.TestRecordcountAfterReopen;
-var
-  datalink1: tdatalink;
-  datasource1: tdatasource;
-  query1: TDataSet;
-
-begin
-  query1:= DBConnector.GetNDataset(11);
-  datalink1:= TDataLink.create;
-  datasource1:= tdatasource.create(nil);
-  try
-    datalink1.datasource:= datasource1;
-    datasource1.dataset:= query1;
-
-    query1.active := true;
-    query1.active := False;
-    CheckEquals(0, THackDataLink(datalink1).RecordCount);
-    query1.active := true;
-    CheckTrue(THackDataLink(datalink1).RecordCount>0);
-    query1.active := false;
-  finally
-    datalink1.free;
-    datasource1.free;
-  end;
 end;
 
 procedure TTestCursorDBBasics.TestStringFilter;
@@ -2343,6 +2326,28 @@ begin
     AFld1.Free;
     AFld2.Free;
     AFld3.Free;
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestFirst;
+var i : integer;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    next;
+    CheckEquals(2,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    for i := 0 to 12 do
+      next;
+    CheckEquals(14,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    close;
     end;
 end;
 
