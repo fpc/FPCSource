@@ -215,7 +215,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0,sizeof(pint));
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname,AT_DATA),0,sizeof(pint));
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
           end
         else

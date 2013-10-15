@@ -109,7 +109,7 @@ implementation
              if not is_objcclass(left.resultdef) then
                begin
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0,
+                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
                    sizeof(pint));
                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
                end

@@ -495,7 +495,7 @@ procedure tx64tryexceptnode.pass_generate_code;
               InternalError(2011103101);
             { TODO: make it done without using global label }
             current_asmdata.getglobaljumplabel(onlabel);
-            hlist.concat(tai_const.create_rva_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname)));
+            hlist.concat(tai_const.create_rva_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
             hlist.concat(tai_const.create_rva_sym(onlabel));
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);

@@ -2135,7 +2135,7 @@ implementation
            pd:=search_system_proc('fpc_check_object_ext');
            paramanager.getintparaloc(pd,1,cgpara1);
            paramanager.getintparaloc(pd,2,cgpara2);
-           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
+           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname,AT_DATA),0,sizeof(pint));
            if pd.is_pushleftright then
              begin
                a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);

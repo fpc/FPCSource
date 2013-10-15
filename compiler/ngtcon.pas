@@ -752,7 +752,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if not Tobjectdef(tclassrefdef(node.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
-              list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname)));
+              list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)));
             end;
            niln:
              list.concat(Tai_const.Create_sym(nil));
@@ -977,7 +977,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if (tinlinenode(node).left.nodetype=typen) then
                 begin
                   list.concat(Tai_const.createname(
-                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,0));
+                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0));
                 end
               else
                 Message(parser_e_illegal_expression);
@@ -1627,7 +1627,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     begin
                       for i:=1 to def.vmt_offset-objoffset do
                         list.concat(tai_const.create_8bit(0));
-                      list.concat(tai_const.createname(def.vmt_mangledname,0));
+                      list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
                       { this is more general }
                       objoffset:=def.vmt_offset + sizeof(pint);
                       vmtwritten:=true;
@@ -1656,7 +1656,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             for i:=1 to def.vmt_offset-objoffset do
               list.concat(tai_const.create_8bit(0));
-            list.concat(tai_const.createname(def.vmt_mangledname,0));
+            list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
             { this is more general }
             objoffset:=def.vmt_offset + sizeof(pint);
           end;
