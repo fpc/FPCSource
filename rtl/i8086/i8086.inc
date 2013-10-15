@@ -52,6 +52,24 @@ asm
   mov ax, ss
 end;
 
+{$IFNDEF INTERNAL_BACKTRACE}
+{$define FPC_SYSTEM_HAS_GET_FRAME}
+function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  mov ax, bp
+end;
+{$ENDIF not INTERNAL_BACKTRACE}
+
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+Function Get_pc_addr : CodePointer;assembler;nostackframe;
+asm
+  mov bx, bp
+  mov ax, ss:[bx]
+{$ifdef FPC_X86_CODE_FAR}
+  mov dx, ss:[bx+2]
+{$endif FPC_X86_CODE_FAR}
+end;
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;nostackframe;assembler;
 asm
