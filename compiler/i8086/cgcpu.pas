@@ -1627,7 +1627,12 @@ unit cgcpu;
         hsym : tsym;
         href : treference;
         paraloc : Pcgparalocation;
+        return_address_size: Integer;
       begin
+        if current_settings.x86memorymodel in x86_far_code_models then
+          return_address_size:=4
+        else
+          return_address_size:=2;
         { calculate the parameter info for the procdef }
         procdef.init_paraloc_info(callerside);
         hsym:=tsym(procdef.parast.Find('self'));
@@ -1652,15 +1657,15 @@ unit cgcpu;
                         list.concat(taicpu.op_reg_reg(A_MOV,S_W,reference.index,NR_DI));
 
                         if reference.index=NR_SP then
-                          reference_reset_base(href,NR_DI,reference.offset+sizeof(pint)+2,sizeof(pint))
+                          reference_reset_base(href,NR_DI,reference.offset+return_address_size+2,sizeof(pint))
                         else
-                          reference_reset_base(href,NR_DI,reference.offset+sizeof(pint),sizeof(pint));
+                          reference_reset_base(href,NR_DI,reference.offset+return_address_size,sizeof(pint));
                         a_op_const_ref(list,OP_SUB,size,ioffset,href);
                         list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
                       end
                     else
                       begin
-                        reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
+                        reference_reset_base(href,reference.index,reference.offset+return_address_size,sizeof(pint));
                         a_op_const_ref(list,OP_SUB,size,ioffset,href);
                       end;
                   end
