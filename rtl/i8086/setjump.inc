@@ -34,11 +34,10 @@ end;
 
 Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
-  push bp
-  mov bp, sp
+  mov si, sp
 
-  mov bx, ss:[bp + 6 + extra_param_offset]  // S
-  mov ax, ss:[bp + 4 + extra_param_offset]  // value
+  mov bx, ss:[si + 4 + extra_param_offset]  // S
+  mov ax, ss:[si + 2 + extra_param_offset]  // value
   test ax, ax
   jnz @@L1
   inc ax
