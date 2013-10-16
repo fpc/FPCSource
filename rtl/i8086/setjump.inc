@@ -15,24 +15,20 @@
 
 Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
 asm
-  mov ax, bp
-  mov di, sp
-  push bp
-  mov bp, sp
+  mov si, sp
 
-  mov bx, ss:[bp + 4 + extra_param_offset]  // S
-  mov word [bx + Jmp_buf.bp], ax
-  mov cx, word ss:[di]
+  mov bx, ss:[si + 2 + extra_param_offset]  // S
+  mov word [bx + Jmp_buf.bp], bp
+  mov cx, word ss:[si]
   mov word [bx + Jmp_buf.ip], cx
 {$ifdef FPC_X86_CODE_FAR}
-  mov cx, word ss:[di + 2]
+  mov cx, word ss:[si + 2]
   mov word [bx + Jmp_buf.cs], cx
 {$endif FPC_X86_CODE_FAR}
-  add di, 4 + extra_param_offset
-  mov word [bx + Jmp_buf.sp], di
+  add si, 4 + extra_param_offset
+  mov word [bx + Jmp_buf.sp], si
 
   xor ax, ax
-  pop bp
 end;
 
 
