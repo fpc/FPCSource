@@ -63,7 +63,7 @@ end;
 {$define FPC_SYSTEM_HAS_GET_PC_ADDR}
 Function Get_pc_addr : CodePointer;assembler;nostackframe;
 asm
-  mov bx, bp
+  mov bx, sp
   mov ax, ss:[bx]
 {$ifdef FPC_X86_CODE_FAR}
   mov dx, ss:[bx+2]
