@@ -25,7 +25,9 @@ asm
   mov ax, word ss:[si + 2]
   mov word [bx + Jmp_buf.cs], ax
 {$endif FPC_X86_CODE_FAR}
-  lea ax, [si + 4 + extra_param_offset]
+  // the fpc inline asm reader doesn't support 16-bit LEA it seems...
+  // lea ax, [si + 4 + extra_param_offset]
+  db 08Dh, 044h, 4 + extra_param_offset
   mov word [bx + Jmp_buf.sp], ax
 
   xor ax, ax
