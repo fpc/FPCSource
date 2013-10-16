@@ -28,8 +28,8 @@ end;
 function Ptr(sel,off: LongInt):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
 asm
   mov si, sp
-  mov ax, ss:[si + 4 + extra_param_offset]  // off
-  mov dx, ss:[si + 8 + extra_param_offset]  // sel
+  mov ax, ss:[si + 2 + extra_param_offset]  // off
+  mov dx, ss:[si + 6 + extra_param_offset]  // sel
 end;
 
 {$define FPC_SYSTEM_HAS_CSEG}
@@ -75,7 +75,7 @@ asm
 {$ifdef FPC_X86_CODE_FAR}
   xor dx, dx
 {$endif FPC_X86_CODE_FAR}
-  mov ax, ss:[si + 6 + extra_param_offset + extra_param_offset]  // framebp
+  mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx
@@ -91,7 +91,7 @@ end;
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;nostackframe;assembler;
 asm
   mov si, sp
-  mov ax, ss:[si + 6 + extra_param_offset + extra_param_offset]  // framebp
+  mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lgnf_null
   xchg ax, bx
