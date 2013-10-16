@@ -19,14 +19,14 @@ asm
 
   mov bx, ss:[si + 2 + extra_param_offset]  // S
   mov word [bx + Jmp_buf.bp], bp
-  mov cx, word ss:[si]
-  mov word [bx + Jmp_buf.ip], cx
+  mov ax, word ss:[si]
+  mov word [bx + Jmp_buf.ip], ax
 {$ifdef FPC_X86_CODE_FAR}
-  mov cx, word ss:[si + 2]
-  mov word [bx + Jmp_buf.cs], cx
+  mov ax, word ss:[si + 2]
+  mov word [bx + Jmp_buf.cs], ax
 {$endif FPC_X86_CODE_FAR}
-  add si, 4 + extra_param_offset
-  mov word [bx + Jmp_buf.sp], si
+  lea ax, [si + 4 + extra_param_offset]
+  mov word [bx + Jmp_buf.sp], ax
 
   xor ax, ax
 end;
