@@ -71,12 +71,11 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
+  mov si, sp
 {$ifdef FPC_X86_CODE_FAR}
   xor dx, dx
 {$endif FPC_X86_CODE_FAR}
-  mov ax, ss:[bp + 6 + extra_param_offset + extra_param_offset]  // framebp
+  mov ax, ss:[si + 6 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx
@@ -86,22 +85,19 @@ asm
 {$endif FPC_X86_CODE_FAR}
   xchg ax, bx
 @@Lg_a_null:
-  pop bp
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
-  mov ax, ss:[bp + 6 + extra_param_offset + extra_param_offset]  // framebp
+  mov si, sp
+  mov ax, ss:[si + 6 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lgnf_null
   xchg ax, bx
   mov bx, [bx]
   xchg ax, bx
 @@Lgnf_null:
-  pop bp
 end;
 
 {TODO: fix, use smallint?}
