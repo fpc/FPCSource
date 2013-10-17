@@ -924,8 +924,8 @@ reg16|32,mem          \320\1\xC5\110                  8086,NOX86_64
 
 [LEA,leaX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg32|64,mem          \320\1\x8D\110                  8086
-reg32|64,imm          \320\1\x8D\110                  8086,SD
+reg16|32|64,mem          \320\1\x8D\110                  8086
+reg16|32|64,imm          \320\1\x8D\110                  8086,SD
 
 [LEAVE]
 (Ch_RWESP, Ch_WEBP, Ch_None)

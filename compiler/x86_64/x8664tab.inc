@@ -2544,14 +2544,14 @@
   (
     opcode  : A_LEA;
     ops     : 2;
-    optypes : (ot_reg32 or ot_bits64,ot_memory,ot_none,ot_none);
+    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_memory,ot_none,ot_none);
     code    : #208#1#141#72;
     flags   : if_8086
   ),
   (
     opcode  : A_LEA;
     ops     : 2;
-    optypes : (ot_reg32 or ot_bits64,ot_immediate,ot_none,ot_none);
+    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_immediate,ot_none,ot_none);
     code    : #208#1#141#72;
     flags   : if_8086 or if_sd
   ),
