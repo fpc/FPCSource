@@ -1817,7 +1817,15 @@ unit cgcpu;
         else
           begin
             lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
+
+            if current_settings.x86memorymodel in x86_far_code_models then
+              begin
+                reference_reset_symbol(href,lab,0,sizeof(pint));
+                href.refaddr:=addr_far;
+                list.concat(taicpu.op_ref(A_JMP,S_NO,href));
+              end
+            else
+              list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
           end;
 
         List.concat(Tai_symbol_end.Createname(labelname));
