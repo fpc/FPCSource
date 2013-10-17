@@ -1029,7 +1029,7 @@ function PopCnt(Const AValue : QWord): QWord;[internproc:fpc_in_popcnt_x];
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:Longint):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  ptr(sel,off:{$ifdef CPU16}Word{$else}Longint{$endif}):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}

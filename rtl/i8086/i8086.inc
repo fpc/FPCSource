@@ -25,11 +25,11 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_PTR}
-function Ptr(sel,off: LongInt):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
+function Ptr(sel,off: Word):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
 asm
   mov si, sp
   mov ax, ss:[si + 2 + extra_param_offset]  // off
-  mov dx, ss:[si + 6 + extra_param_offset]  // sel
+  mov dx, ss:[si + 4 + extra_param_offset]  // sel
 end;
 
 {$define FPC_SYSTEM_HAS_CSEG}
