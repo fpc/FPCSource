@@ -101,7 +101,7 @@ asm
 end;
 
 {TODO: fix, use smallint?}
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   push bp
   mov bp, sp
@@ -114,7 +114,7 @@ asm
 end;
 
 {TODO: fix, use smallint?}
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   push bp
   mov bp, sp
