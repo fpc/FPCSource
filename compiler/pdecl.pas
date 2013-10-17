@@ -956,6 +956,9 @@ implementation
                       stringconstn:
                         with Tstringconstnode(p) do
                           begin
+                             { resourcestrings are currently always single byte }
+                             if cst_type in [cst_widestring,cst_unicodestring] then
+                               changestringtype(getansistringdef);
                              getmem(sp,len+1);
                              move(value_str^,sp^,len+1);
                              sym:=tconstsym.create_string(orgname,constresourcestring,sp,len,nil);
