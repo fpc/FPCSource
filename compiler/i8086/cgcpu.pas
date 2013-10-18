@@ -1792,7 +1792,7 @@ unit cgcpu;
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-            getselftobx(8);
+            getselftobx(6);
             loadvmttobx;
             loadmethodoffstobx;
             { set target address
