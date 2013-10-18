@@ -929,6 +929,7 @@ var
   doc: TXMLDocument;
   rslt: TXPathVariable;
   nsdoc: TXMLDocument;
+  resolver: TXPathNSResolver;
 begin
   for i := 0 to High(tests) do
   begin
@@ -937,11 +938,16 @@ begin
       nsdoc := ParseString(tests[i].re);
       try
         try
-          rslt := EvaluateXPathExpression(tests[i].expr, doc.DocumentElement, nsdoc.DocumentElement);
+          resolver := TXPathNSResolver.Create(nsdoc.DocumentElement);
           try
-            CheckResult(tests[i], rslt);
+            rslt := EvaluateXPathExpression(tests[i].expr, doc.DocumentElement, resolver);
+            try
+              CheckResult(tests[i], rslt);
+            finally
+              rslt.Free;
+            end;
           finally
-            rslt.Free;
+            resolver.Free;
           end;
         except
           writeln;
