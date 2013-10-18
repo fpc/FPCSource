@@ -55,6 +55,7 @@ implementation
     globtype,verbose,
     paramgr,
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
+    defutil,
     symconst;
 
   { thlcgcpu }
@@ -199,9 +200,21 @@ implementation
   procedure thlcgcpu.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
     var
       r,tmpref: treference;
+      is_sixbyterecord: Boolean;
+      is_methodptr: Boolean;
+      is_nestedprocptr: Boolean;
     begin
-      { handle i8086 6-byte (mixed near + far) method pointers }
-      if (size.typ in [procvardef,recorddef]) and (size.size=6) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      is_sixbyterecord:=(size.typ=recorddef) and (size.size=6);
+      is_methodptr:=(size.typ=procvardef)
+        and (po_methodpointer in tprocvardef(size).procoptions)
+        and not(po_addressonly in tprocvardef(size).procoptions);
+      is_nestedprocptr:=(size.typ=procvardef)
+        and is_nested_pd(tprocvardef(size))
+        and not(po_addressonly in tprocvardef(size).procoptions);
+
+      { handle i8086 method pointers (incl. 6-byte mixed near + far),
+        6-byte records and nested proc ptrs }
+      if (is_sixbyterecord or is_methodptr or is_nestedprocptr) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
