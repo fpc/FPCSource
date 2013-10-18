@@ -6,7 +6,15 @@ program tmacprocvar;
 
 	type
 		SInt8 = -128..127;
+{$IFDEF CPUI8086}
+	{$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+		Ptr = ^SInt8;far;
+	{$else}
+		Ptr = ^SInt8;near;
+	{$endif}
+{$ELSE CPUI8086}
 		Ptr = ^SInt8;
+{$ENDIF}
 		ProcPtr = Ptr; {This is the definition of ProcPtr in Apples Univ Interfaces}
 
 	procedure A;
