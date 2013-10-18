@@ -3,7 +3,7 @@
 type
   PointerLocal = procedure(_EBP: Pointer);
 
-procedure proccall(p: pointer);
+procedure proccall(p: codepointer);
 begin
   PointerLocal(p)(get_caller_frame(get_frame));
 end;
