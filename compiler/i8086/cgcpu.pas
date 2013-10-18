@@ -1725,6 +1725,8 @@ unit cgcpu;
                 selfoffsetfromsp:=2*sizeof(aint)
               else
                 selfoffsetfromsp:=sizeof(aint);
+              if current_settings.x86memorymodel in x86_far_code_models then
+                inc(selfoffsetfromsp,2);
               list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
               reference_reset_base(href,NR_DI,selfoffsetfromsp+offs+2,2);
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
@@ -1751,6 +1753,12 @@ unit cgcpu;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
+          if current_settings.x86memorymodel in x86_far_code_models then
+            begin
+              { mov vmtseg(%bx),%si ; method seg }
+              reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,2);
+              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_SI);
+            end;
           { mov vmtoffs(%bx),%bx ; method offs }
           reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),2);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
@@ -1790,16 +1798,31 @@ unit cgcpu;
           begin
             { case 1 & case 2 }
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
+            if current_settings.x86memorymodel in x86_far_code_models then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-            getselftobx(6);
+            if current_settings.x86memorymodel in x86_far_code_models then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SI));
+            if current_settings.x86memorymodel in x86_far_code_models then
+              getselftobx(10)
+            else
+              getselftobx(6);
             loadvmttobx;
             loadmethodoffstobx;
             { set target address
               "mov %bx,4(%sp)" }
-            reference_reset_base(href,NR_DI,4,2);
+            if current_settings.x86memorymodel in x86_far_code_models then
+              reference_reset_base(href,NR_DI,6,2)
+            else
+              reference_reset_base(href,NR_DI,4,2);
             list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
             list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
+            if current_settings.x86memorymodel in x86_far_code_models then
+              begin
+                reference_reset_base(href,NR_DI,8,2);
+                list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_SI,href));
+              end;
 
             { load ax? }
             if procdef.proccalloption=pocall_register then
@@ -1807,11 +1830,16 @@ unit cgcpu;
 
             { restore register
               pop  %di,bx }
+            if current_settings.x86memorymodel in x86_far_code_models then
+              list.concat(taicpu.op_reg(A_POP,S_W,NR_SI));
             list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
             list.concat(taicpu.op_reg(A_POP,S_W,NR_BX));
 
             { ret  ; jump to the address }
-            list.concat(taicpu.op_none(A_RET,S_W));
+            if current_settings.x86memorymodel in x86_far_code_models then
+              list.concat(taicpu.op_none(A_RETF,S_W))
+            else
+              list.concat(taicpu.op_none(A_RET,S_W));
           end
         { case 0 }
         else
