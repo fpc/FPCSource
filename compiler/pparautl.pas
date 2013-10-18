@@ -106,10 +106,10 @@ implementation
               paranr:=paranr_parentfp
             { nested procvars require Delphi-style parentfp passing, see
               po_delphi_nested_cc declaration for more info }
-{$ifdef i386}
+{$if defined(i386) or defined(i8086)}
             else if (pd.proccalloption in pushleftright_pocalls) then
               paranr:=paranr_parentfp_delphi_cc_leftright
-{$endif i386}
+{$endif i386 or i8086}
             else
               paranr:=paranr_parentfp_delphi_cc;
             { Generate frame pointer. It can't be put in a register since it
