@@ -1455,44 +1455,24 @@ unit cgcpu;
 
     procedure tcg8086.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
       var
-        power,len  : longint;
+        power  : longint;
         opsize : topsize;
-{$ifndef __NOWINPECOFF__}
-        again,ok : tasmlabel;
-{$endif}
       begin
         { get stack space }
         getcpuregister(list,NR_DI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_DI);
         list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
-        { Now DI contains (high+1). Copy it to CX for later use. }
-        getcpuregister(list,NR_CX);
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
+        { Now DI contains (high+1). }
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
-             list.concat(Taicpu.op_const_reg(A_SHL,S_W,power,NR_DI))
+             a_op_const_reg(list,OP_SHL,OS_16,power,NR_DI)
            else
-             list.concat(Taicpu.op_const_reg(A_IMUL,S_W,elesize,NR_DI));
+             a_op_const_reg(list,OP_IMUL,OS_16,elesize,NR_DI);
          end;
-{$ifndef __NOWINPECOFF__}
-        { windows guards only a few pages for stack growing, }
-        { so we have to access every page first              }
-        if target_info.system=system_i386_win32 then
-          begin
-             current_asmdata.getjumplabel(again);
-             current_asmdata.getjumplabel(ok);
-             a_label(list,again);
-             list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
-             a_jmp_cond(list,OC_B,ok);
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
-             list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,NR_EDI));
-             a_jmp_always(list,again);
-
-             a_label(list,ok);
-          end;
-{$endif __NOWINPECOFF__}
+        { Now DI contains (high+1)*elesize. Copy it to CX for later use. }
+        getcpuregister(list,NR_CX);
+        list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
         { If we were probing pages, EDI=(size mod pagesize) and ESP is decremented
           by (size div pagesize)*pagesize, otherwise EDI=size.
           Either way, subtracting EDI from ESP will set ESP to desired final value. }
@@ -1513,34 +1493,19 @@ unit cgcpu;
         a_loadaddr_ref_reg(list,ref,NR_SI);
 
         { calculate size }
-        len:=elesize;
         opsize:=S_B;
-{        if (len and 3)=0 then
-         begin
-           opsize:=S_L;
-           len:=len shr 2;
-         end
-        else}
-         if (len and 1)=0 then
+         if (elesize and 1)=0 then
           begin
             opsize:=S_W;
-            len:=len shr 1;
+            list.concat(Taicpu.op_const_reg(A_SHR,S_W,1,NR_CX))
           end;
 
-        if len>1 then
-          begin
-            if ispowerof2(len, power) then
-              list.concat(Taicpu.op_const_reg(A_SHL,S_W,power,NR_CX))
-            else
-              list.concat(Taicpu.op_const_reg(A_IMUL,S_W,len,NR_CX));
-          end;
         if ts_cld in current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-//          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
         ungetcpuregister(list,NR_DI);
         ungetcpuregister(list,NR_CX);
