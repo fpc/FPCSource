@@ -1463,6 +1463,18 @@ unit cgcpu;
         a_load_loc_reg(list,OS_INT,lenloc,NR_DI);
         list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
         { Now DI contains (high+1). }
+
+        { special case handling for elesize=2:
+          set CX = (high+1) instead of CX = (high+1)*elesize.
+
+          This allows us to avoid the SHR later. }
+        if elesize=2 then
+          begin
+            { Now DI contains (high+1). Copy it to CX for later use. }
+            getcpuregister(list,NR_CX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
+          end;
+        { DI := DI * elesize }
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
@@ -1470,9 +1482,12 @@ unit cgcpu;
            else
              a_op_const_reg(list,OP_IMUL,OS_16,elesize,NR_DI);
          end;
-        { Now DI contains (high+1)*elesize. Copy it to CX for later use. }
-        getcpuregister(list,NR_CX);
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
+        if elesize<>2 then
+          begin
+            { Now DI contains (high+1)*elesize. Copy it to CX for later use. }
+            getcpuregister(list,NR_CX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DI,NR_CX));
+          end;
         { If we were probing pages, EDI=(size mod pagesize) and ESP is decremented
           by (size div pagesize)*pagesize, otherwise EDI=size.
           Either way, subtracting EDI from ESP will set ESP to desired final value. }
@@ -1494,19 +1509,39 @@ unit cgcpu;
 
         { calculate size }
         opsize:=S_B;
-         if (elesize and 1)=0 then
+        if elesize=2 then
           begin
             opsize:=S_W;
+            { CX is already number of words, so no need to SHL/SHR }
+          end
+        else if (elesize and 1)=0 then
+          begin
+            opsize:=S_W;
+            { CX is number of bytes, convert to words }
             list.concat(Taicpu.op_const_reg(A_SHR,S_W,1,NR_CX))
           end;
 
         if ts_cld in current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
-        list.concat(Taicpu.op_none(A_REP,S_NO));
-        case opsize of
-          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
-          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-        end;
+        if (opsize=S_B) and not (cs_opt_size in current_settings.optimizerswitches) then
+          begin
+            { SHR CX,1 moves the lowest (odd/even) bit to the carry flag }
+            list.concat(Taicpu.op_const_reg(A_SHR,S_W,1,NR_CX));
+            list.concat(Taicpu.op_none(A_REP,S_NO));
+            list.concat(Taicpu.op_none(A_MOVSW,S_NO));
+            { ADC CX,CX will set CX to 1 if the number of bytes was odd }
+            list.concat(Taicpu.op_reg_reg(A_ADC,S_W,NR_CX,NR_CX));
+            list.concat(Taicpu.op_none(A_REP,S_NO));
+            list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+          end
+        else
+          begin
+            list.concat(Taicpu.op_none(A_REP,S_NO));
+            case opsize of
+              S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+              S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+            end;
+          end;
         ungetcpuregister(list,NR_DI);
         ungetcpuregister(list,NR_CX);
         ungetcpuregister(list,NR_SI);
