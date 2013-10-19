@@ -107,7 +107,6 @@ implementation
           end
         else
           begin
-            { TODO: update for far procs }
             if not tabstractprocdef(left.resultdef).is_addressonly then
               location_copy(location,left.location)
             else
@@ -116,17 +115,21 @@ implementation
                   tmethodpointer record and set the "frame pointer" to nil }
                 if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(2013031503);
-                location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
+                location_reset_ref(location,LOC_REFERENCE,int_cgsize(6),sizeof(pint));
                 tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
-                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
+                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,tmpreg,location.reference);
+                tmpref:=left.location.reference;
+                tmpref.refaddr:=addr_seg;
+                inc(location.reference.offset,2);
+                cg.a_load_ref_ref(current_asmdata.CurrAsmList,OS_16,OS_16,tmpref,location.reference);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
-                inc(location.reference.offset,sizeof(pint));
+                inc(location.reference.offset,2);
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_ADDR,0,location.reference);
-                dec(location.reference.offset,sizeof(pint));
+                dec(location.reference.offset,4);
               end;
           end;
       end;
