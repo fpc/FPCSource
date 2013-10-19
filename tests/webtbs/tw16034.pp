@@ -9,6 +9,11 @@ program Hello;
 
 type
   ptr = pointer;
+{$ifdef fpc}
+  codeptr = codepointer;
+{$else}
+  codeptr = pointer;
+{$endif}
   Int = ptrint;
   pPtr = ^ptr;
   UInt = ptruint;
@@ -109,7 +114,7 @@ var
 
   s0, s1, s2: UInt;
   v0, v1, v2: ptr;
-  cn0, cn1, cn2: ptr;
+  cn0, cn1, cn2: codeptr;
 
 begin
   // VMT Pointers

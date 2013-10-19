@@ -10,7 +10,7 @@
 program exception;
 uses sysutils,crt;
 var
-  saveexit : pointer;
+  saveexit : codepointer;
   finally_called : boolean;
 
 procedure my_exit;
