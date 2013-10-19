@@ -30,7 +30,7 @@ unit cgcpu;
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,cgutils,
-       symconst,symdef
+       symconst,symdef,symsym
        ;
 
     type
@@ -616,17 +616,17 @@ unit cgcpu;
       possible calling conventions:
                     default stdcall cdecl pascal register
       default(0):      OK     OK    OK     OK       OK
-      virtual(1):      OK     OK    OK     OK       OK(2)
+      virtual(1):      OK     OK    OK     OK       OK(2 or 1)
 
       (0):
           set self parameter to correct value
           jmp mangledname
 
-      (1): The wrapper code use %eax to reach the virtual method address
+      (1): The wrapper code use %ecx to reach the virtual method address
            set self to correct value
            move self,%eax
-           mov  0(%eax),%eax ; load vmt
-           jmp  vmtoffs(%eax) ; method offs
+           mov  0(%eax),%ecx ; load vmt
+           jmp  vmtoffs(%ecx) ; method offs
 
       (2): Virtual use values pushed on stack to reach the method address
            so the following code be generated:
@@ -641,6 +641,27 @@ unit cgcpu;
            ret  0; jmp the address
 
       }
+
+      { returns whether ECX is used as a parameter }
+      function is_ecx_used: boolean;
+        var
+          i: Integer;
+          hp: tparavarsym;
+          paraloc: PCGParaLocation;
+        begin
+          for i:=0 to procdef.paras.count-1 do
+           begin
+             hp:=tparavarsym(procdef.paras[i]);
+             paraloc:=hp.paraloc[calleeside].Location;
+             while paraloc<>nil do
+               begin
+                 if (paraloc^.Loc=LOC_REGISTER) and (getsupreg(paraloc^.register)=RS_ECX) then
+                   exit(true);
+                 paraloc:=paraloc^.Next;
+               end;
+           end;
+          Result:=false;
+        end;
 
       procedure getselftoeax(offs: longint);
         var
@@ -660,23 +681,23 @@ unit cgcpu;
             end;
         end;
 
-      procedure loadvmttoeax;
+      procedure loadvmtto(reg: tregister);
         var
           href : treference;
         begin
-          { mov  0(%eax),%eax ; load vmt}
+          { mov  0(%eax),%reg ; load vmt}
           reference_reset_base(href,NR_EAX,0,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
         end;
 
-      procedure op_oneaxmethodaddr(op: TAsmOp);
+      procedure op_onregmethodaddr(op: TAsmOp; reg: tregister);
         var
           href : treference;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+          { call/jmp  vmtoffs(%reg) ; method offs }
+          reference_reset_base(href,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
@@ -724,13 +745,13 @@ unit cgcpu;
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
           begin
-            if (procdef.proccalloption=pocall_register) then
+            if (procdef.proccalloption=pocall_register) and is_ecx_used then
               begin
                 { case 2 }
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                 getselftoeax(8);
-                loadvmttoeax;
+                loadvmtto(NR_EAX);
                 loadmethodoffstoeax;
                 { mov %eax,4(%esp) }
                 reference_reset_base(href,NR_ESP,4,4);
@@ -744,8 +765,8 @@ unit cgcpu;
               begin
                 { case 1 }
                 getselftoeax(0);
-                loadvmttoeax;
-                op_oneaxmethodaddr(A_JMP);
+                loadvmtto(NR_ECX);
+                op_onregmethodaddr(A_JMP,NR_ECX);
               end;
           end
         { case 0 }
