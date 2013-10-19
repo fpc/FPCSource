@@ -411,7 +411,7 @@ unit cgcpu;
 
     procedure tcg386.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
       var
-        power,len  : longint;
+        power  : longint;
         opsize : topsize;
 {$ifndef __NOWINPECOFF__}
         again,ok : tasmlabel;
@@ -421,9 +421,21 @@ unit cgcpu;
         getcpuregister(list,NR_EDI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-        { Now EDI contains (high+1). Copy it to ECX for later use. }
-        getcpuregister(list,NR_ECX);
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+        { Now EDI contains (high+1). }
+
+        { special case handling for elesize=8, 4 and 2:
+          set ECX = (high+1) instead of ECX = (high+1)*elesize.
+
+          In the case of elesize=4 and 2, this allows us to avoid the SHR later.
+          In the case of elesize=8, we can later use a SHL ECX, 1 instead of
+          SHR ECX, 2 which is one byte shorter. }
+        if (elesize=8) or (elesize=4) or (elesize=2) then
+          begin
+            { Now EDI contains (high+1). Copy it to ECX for later use. }
+            getcpuregister(list,NR_ECX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+          end;
+        { EDI := EDI * elesize }
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
@@ -431,6 +443,12 @@ unit cgcpu;
            else
              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
          end;
+        if (elesize<>8) and (elesize<>4) and (elesize<>2) then
+          begin
+            { Now EDI contains (high+1)*elesize. Copy it to ECX for later use. }
+            getcpuregister(list,NR_ECX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+          end;
 {$ifndef __NOWINPECOFF__}
         { windows guards only a few pages for stack growing, }
         { so we have to access every page first              }
@@ -464,27 +482,38 @@ unit cgcpu;
         a_loadaddr_ref_reg(list,ref,NR_ESI);
 
         { calculate size }
-        len:=elesize;
         opsize:=S_B;
-        if (len and 3)=0 then
-         begin
-           opsize:=S_L;
-           len:=len shr 2;
-         end
-        else
-         if (len and 1)=0 then
+        if elesize=8 then
+          begin
+            opsize:=S_L;
+            { ECX is number of qwords, convert to dwords }
+            list.concat(Taicpu.op_const_reg(A_SHL,S_L,1,NR_ECX))
+          end
+        else if elesize=4 then
+          begin
+            opsize:=S_L;
+            { ECX is already number of dwords, so no need to SHL/SHR }
+          end
+        else if elesize=2 then
           begin
             opsize:=S_W;
-            len:=len shr 1;
+            { ECX is already number of words, so no need to SHL/SHR }
+          end
+        else
+         if (elesize and 3)=0 then
+         begin
+           opsize:=S_L;
+           { ECX is number of bytes, convert to dwords }
+           list.concat(Taicpu.op_const_reg(A_SHR,S_L,2,NR_ECX))
+         end
+        else
+         if (elesize and 1)=0 then
+          begin
+            opsize:=S_W;
+            { ECX is number of bytes, convert to words }
+            list.concat(Taicpu.op_const_reg(A_SHR,S_L,1,NR_ECX))
           end;
 
-        if len>1 then
-          begin
-            if ispowerof2(len, power) then
-              list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
-            else
-              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
-          end;
         if ts_cld in current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
         list.concat(Taicpu.op_none(A_REP,S_NO));
