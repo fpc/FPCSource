@@ -1565,9 +1565,9 @@ implementation
         else if is_objcclass(current_structdef) then
           setobjcclassmethodoptions;
 
-        { if this helper is defined in the implementation section of the unit
-          or inside the main project file, the extendeddefs list of the current
-          module must be updated (it will be removed when poping the symtable) }
+        { we need to add this helper to the extendeddefs of the current module,
+          as the global and static symtable are not pushed onto the symtable
+          stack again (it will be removed when poping the symtable) }
         if is_objectpascal_helper(current_structdef) and
             (current_objectdef.extendeddef.typ<>errordef) then
           begin
@@ -1575,7 +1575,7 @@ implementation
             st:=current_structdef.owner;
             while st.symtabletype in [objectsymtable,recordsymtable] do
               st:=st.defowner.owner;
-            if st.symtabletype=staticsymtable then
+            if st.symtabletype in [staticsymtable,globalsymtable] then
               begin
                 if current_objectdef.extendeddef.typ in [recorddef,objectdef] then
                   s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'')
