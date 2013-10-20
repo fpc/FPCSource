@@ -4549,6 +4549,9 @@ type
                     readnumber;
                     if length(pattern)=1 then
                       begin
+                        { does really an identifier follow? }
+                        if not (c in ['_','A'..'Z','a'..'z']) then
+                          message2(scan_f_syn_expected,tokeninfo^[_ID].str,c);
                         readstring;
                         token:=_ID;
                         idtoken:=_ID;
