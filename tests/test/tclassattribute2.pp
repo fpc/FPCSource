@@ -2,6 +2,7 @@
 program tclassattribute2;
 
 {$mode objfpc}{$H+}
+{$modeswitch prefixedattributes}
 
 type
   // Delphi XE does compile attributes that are not defined, but ignores them.

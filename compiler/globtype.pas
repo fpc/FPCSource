@@ -336,8 +336,9 @@ interface
          m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
-         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
+         m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
+         m_prefixed_attributes  { enable attributes that are defined before the type they belong to }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -492,7 +493,8 @@ interface
          'ISOUNARYMINUS',
          'SYSTEMCODEPAGE',
          'FINALFIELDS',
-         'UNICODESTRINGS');
+         'UNICODESTRINGS',
+         'PREFIXEDATTRIBUTES');
 
 
      type

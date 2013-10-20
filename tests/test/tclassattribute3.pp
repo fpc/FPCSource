@@ -2,6 +2,7 @@
 program tclassattribute3;
 
 {$mode objfpc}{$H+}
+{$modeswitch prefixedattributes}
 
 type
 

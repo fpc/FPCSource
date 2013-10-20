@@ -1227,7 +1227,10 @@ implementation
               end;
             _LECKKLAMMER:
               begin
-                parse_rttiattributes(current_rttiattributesdef);
+                if m_prefixed_attributes in current_settings.modeswitches then
+                  parse_rttiattributes(current_rttiattributesdef)
+                else
+                  consume(_ID);
               end;
             _END :
               begin

@@ -1,6 +1,6 @@
 program tclassattribute4;
 
-{$mode objfpc}{$H+}
+{$mode delphi}
 
 uses
   typinfo;

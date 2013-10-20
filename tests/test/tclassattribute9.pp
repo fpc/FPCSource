@@ -1,6 +1,7 @@
 program tclassattribute9;
 
 {$mode objfpc}{$H+}
+{$modeswitch prefixedattributes}
 
 uses
   typinfo;
