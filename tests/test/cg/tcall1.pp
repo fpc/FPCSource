@@ -85,7 +85,7 @@ type
   tclass2 = class
     constructor create_none;               { class constructor }
   public
-    b: array[1..$66666666] of byte;
+    b: array[1..{$ifdef cpu16}32765{$else}$66666666{$endif}] of byte;
   end;
 
 
