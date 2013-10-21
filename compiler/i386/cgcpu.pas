@@ -642,13 +642,15 @@ unit cgcpu;
 
       }
 
-      { returns whether ECX is used as a parameter }
+      { returns whether ECX is used (either as a parameter or is nonvolatile and shouldn't be changed) }
       function is_ecx_used: boolean;
         var
           i: Integer;
           hp: tparavarsym;
           paraloc: PCGParaLocation;
         begin
+          if not (RS_ECX in paramanager.get_volatile_registers_int(procdef.proccalloption)) then
+            exit(true);
           for i:=0 to procdef.paras.count-1 do
            begin
              hp:=tparavarsym(procdef.paras[i]);
