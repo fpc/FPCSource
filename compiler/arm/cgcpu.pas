@@ -702,7 +702,10 @@ unit cgcpu;
          so : tshifterop;
        begin
          if op = OP_NEG then
-             list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0))
+           begin
+             list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0));
+             maybeadjustresult(list,OP_NEG,size,dst);
+           end
          else if op = OP_NOT then
            begin
              if size in [OS_8, OS_16, OS_S8, OS_S16] then
@@ -725,7 +728,7 @@ unit cgcpu;
                list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
            end
          else
-             a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
+           a_op_reg_reg_reg(list,op,size,src,dst,dst);
        end;
 
 
