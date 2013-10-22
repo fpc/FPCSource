@@ -282,6 +282,15 @@ var
   pid: SizeUInt;
   BuildDir: String;
   BuildOutputFilename: String;
+
+  procedure CleanUp;
+  begin
+    if BuildDir<>'' then begin
+      // delete build directory
+      DeleteDirectory(BuildDir);
+    end;
+  end;
+
 begin
   Compiler:=GetCompiler;
   pid:=GetProcessID;
@@ -307,34 +316,37 @@ begin
       Halt(1);
     end;
   end;
-  CompParams:=GetCompilerParameters(CacheFilename,BuildDir,BuildOutputFilename);
-  Proc:=TProcess.Create(nil);
-  Proc.CommandLine:=Compiler+' '+CompParams;
-{$WARNING Unconditional use of pipes breaks for targets not supporting them}
-  Proc.Options:= [poUsePipes, poStdErrToOutput];
-  Proc.ShowWindow := swoHide;
-  Proc.Execute;
-  ss:=TStringStream.Create('');
-  repeat
-    Count:=Proc.Output.Read(Buf{%H-},4096);
-    if Count>0 then
-      ss.write(buf,count);
-  until Count=0;
-  if BuildDir<>'' then begin
-    // move from build directory to cache
-    if not RenameFile(BuildOutputFilename,OutputFilename) then begin
-      writeln('unable to move "',BuildOutputFilename,'" to "',OutputFilename,'"');
+  try
+    CompParams:=GetCompilerParameters(CacheFilename,BuildDir,BuildOutputFilename);
+    Proc:=TProcess.Create(nil);
+    Proc.CommandLine:=Compiler+' '+CompParams;
+  {$WARNING Unconditional use of pipes breaks for targets not supporting them}
+    Proc.Options:= [poUsePipes, poStdErrToOutput];
+    Proc.ShowWindow := swoHide;
+    Proc.Execute;
+    ss:=TStringStream.Create('');
+    repeat
+      Count:=Proc.Output.Read(Buf{%H-},4096);
+      if Count>0 then
+        ss.write(buf,count);
+    until Count=0;
+    if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
+      WriteCompilerOutput(SrcFilename,BuildOutputFilename,ss.DataString);
+      CleanUp;
       Halt(1);
     end;
-    // delete build directory
-    DeleteDirectory(BuildDir);
+    if BuildDir<>'' then begin
+      // move from build directory to cache
+      if not RenameFile(BuildOutputFilename,OutputFilename) then begin
+        writeln('unable to move "',BuildOutputFilename,'" to "',OutputFilename,'"');
+        Halt(1);
+      end;
+    end;
+    ss.Free;
+    Proc.Free;
+  finally
+    CleanUp;
   end;
-  if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
-    WriteCompilerOutput(SrcFilename,CacheFilename,ss.DataString);
-    Halt(1);
-  end;
-  ss.Free;
-  Proc.Free;
 end;
 
 function GetCompilerParameters(const SrcFilename, OutputDirectory,
