@@ -112,12 +112,47 @@ forms:
 Where the type of AVAlue is one of the supported types: 
 integer, int64, double, string, TJSONArray or TJSONObject.
 
-The Delete() call deletes an element from an array or object.
+The Delete() call deletes an element from an array or object. The element is
+freed.
 
 Important remark:
 The array and object classes own their members: the members are destroyed as
 they are deleted. For this, the Extract() call exists: it removes an
 element/member from the array/object, without destroying it.
+
+Converting from string/stream to JSONData
+=========================================
+
+The fpjson unit contains a GetJSON() function which accepts a string or a
+stream as a parameter. The function will parse the JSON in the stream and 
+the return value is a TJSONData value corresponding to the JSON.
+The function works with a callback, which is set by the JSONParser unit.
+The JSONParser unit simply needs to be included in the project.
+
+The parsing happens with default settings for the parser class.
+You can override this behaviour by creating your own callback, 
+and creating the parser with different settings.
+
+Enumerator support
+==================
+
+the TJSONData class offers support for an enumerator, hence the 
+For e in JSON do
+construct can be used. The enumerator is a TJSONEnum value, which has 3
+members:
+Key : The key of the element 
+     (name in TJSONObject, Index in TJSONArray, empty otherwise)
+KeyNum: The index of the element.
+     (Index in TJSONArray/TJSONObject, 0 otherwise)
+Value : The value of the element
+     (These are the member values for TJSONArray/TJSONObject, and is the
+     element itself otherwise)
+
+While the enumerator is looping, it is not allowed to change the content of
+the array or object, and the value may not be freed.
+
+Scanner/Parser
+==============
 
 The JSONSCanner unit contains a scanner for JSON data: TJSONScanner. 
 Currently it does not support full unicode, only UTF-8 is supported.
@@ -165,3 +200,30 @@ A second effect of the Strict property is the requirement of " as a string
 delimiter. A single quote is also often found in Javascript and JSON:
 { title: 'A nice title' }
 By default, this is accepted. Setting 'Strict' to true will reject this.
+
+Customizing the classes : Factory support
+=========================================
+
+The various classes created by the methods can be customized. 
+This can be useful to create customized descendents, for example to attach
+extra data to the various values. All instances of TJSONData are created
+through the CreateJSON() functions, which use a set of customizable classes
+to create the JSONData structures.
+
+All functions which somehow create a new instance (clone, add, insert, parsing)
+use the CreateJSON functions.
+
+Which classes need to be created for a specific value is enumerated in
+
+TJSONInstanceType = (jitUnknown, jitNumberInteger,jitNumberInt64,jitNumberFloat,
+                       jitString, jitBoolean, jitNull, jitArray, jitObject);
+
+when a Int64 value must be instantiated, the class identified with 
+jitNumberInt64 is instantiated.
+
+To customize the classes, the new class can be set using SetJSONInstanceType:
+
+Procedure SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass);
+Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
+
+The function checks whether sane classes are specified.;
