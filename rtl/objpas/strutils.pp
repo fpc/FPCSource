@@ -136,6 +136,11 @@ Const
 { ---------------------------------------------------------------------
     Other functions, based on RxStrUtils.
   ---------------------------------------------------------------------}
+type
+ TRomanConversionStrictness = (rcsStrict, rcsRelaxed, rcsDontCare);
+
+resourcestring
+  SInvalidRomanNumeral = '%s is not a valid Roman numeral';
 
 function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
 function DelSpace(const S: string): string;
@@ -178,7 +183,9 @@ function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
 function IntToBin(Value: Longint; Digits: Integer): string;
 function intToBin(Value: int64; Digits:integer): string;
 function IntToRoman(Value: Longint): string;
-function RomanToInt(const S: string): Longint;
+function TryRomanToInt(S: String; out N: LongInt; Strictness: TRomanConversionStrictness = rcsRelaxed): Boolean;
+function RomanToInt(const S: string; Strictness: TRomanConversionStrictness = rcsRelaxed): Longint;
+function RomanToIntDef(Const S : String; const ADefault: integer = 0; Strictness: TRomanConversionStrictness = rcsRelaxed): Integer;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
 function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 
@@ -1342,8 +1349,10 @@ begin
     end;
 end;
 
-function RomanToint(const S: string): Longint;
 
+function RomanToIntDontCare(const S: String): Longint;
+{This was the original implementation of RomanToInt,
+ it is internally used in TryRomanToInt when Strictness = rcsDontCare}
 const
   RomanChars  = ['C','D','I','L','M','V','X'];
   RomanValues : array['C'..'X'] of Word
@@ -1389,6 +1398,252 @@ begin
   if Negative then
     Result:=-Result;
 end;
+
+
+{ TryRomanToInt: try to convert a roman numeral to an integer
+  Parameters:
+  S: Roman numeral (like: 'MCMXXII')
+  N: Integer value of S (only meaningfull if the function succeeds)
+  Stricness: controls how strict the parsing of S is
+    - rcsStrict:
+      * Follow common subtraction rules
+         - only 1 preceding subtraction character allowed: IX = 9, but IIX <> 8
+         - from M you can only subtract C
+         - from D you can only subtract C
+         - from C you can only subtract X
+         - from L you can only subtract X
+         - from X you can only subtract I
+         - from V you can only subtract I
+      *  The numeral is parsed in "groups" (first M's, then D's etc.), the next group to be parsed
+         must always be of a lower denomination than the previous one.
+         Example: 'MMDCCXX' is allowed but 'MMCCXXDD' is not
+      * There can only ever be 3 consecutive M's, C's, X's or I's
+      * There can only ever be 1 D, 1 L and 1 V
+      * After IX or IV there can be no more characters
+      * Negative numbers are not supported
+      // As a consequence the maximum allowed Roman numeral is MMMCMXCIX = 3999, also N can never become 0 (zero)
+
+    - rcsRelaxed: Like rcsStrict but with the following exceptions:
+      * An infinite number of (leading) M's is allowed
+      * Up to 4 consecutive M's, C's, X's and I's are allowed
+      // So this is allowed: 'MMMMMMCXIIII'  = 6124
+
+    - rcsDontCare:
+      * no checking on the order of "groups" is done
+      * there are no restrictions on the number of consecutive chars
+      * negative numbers are supported
+      * an empty string as input will return True and N will be 0
+      * invalid input will return false
+      // for backwards comatibility: it supports rather ludicrous input like '-IIIMIII' -> -(2+(1000-1)+3)=-1004
+}
+function TryRomanToInt(S: String; out N: LongInt; Strictness: TRomanConversionStrictness = rcsRelaxed): Boolean;
+var
+  i, Len: Integer;
+  Terminated: Boolean;
+begin
+  Result := (False);
+  S := UpperCase(S);  //don't use AnsiUpperCase please
+  Len := Length(S);
+  if (Strictness = rcsDontCare) then
+  begin
+    N := RomanToIntDontCare(S);
+    if (N = 0) then
+    begin
+      Result := (Len = 0);
+    end
+    else
+      Result := True;
+    Exit;
+  end;
+  if (Len = 0) then Exit;
+  i := 1;
+  N := 0;
+  Terminated := False;
+  //leading M's
+  while (i <= Len) and ((Strictness <> rcsStrict) or (i < 4)) and (S[i] = 'M') do
+  begin
+    //writeln('TryRomanToInt: Found 1000');
+    Inc(i);
+    N := N + 1000;
+  end;
+  //then CM or or CD or D or (C, CC, CCC, CCCC)
+  if (i <= Len) and (S[i] = 'D') then
+  begin
+    //writeln('TryRomanToInt: Found 500');
+    Inc(i);
+    N := N + 500;
+  end
+  else if (i + 1 <= Len) and (S[i] = 'C') then
+  begin
+    if (S[i+1] = 'M') then
+    begin
+      //writeln('TryRomanToInt: Found 900');
+      Inc(i,2);
+      N := N + 900;
+    end
+    else if (S[i+1] = 'D') then
+    begin
+      //writeln('TryRomanToInt: Found 400');
+      Inc(i,2);
+      N := N + 400;
+    end;
+  end ;
+  //next max 4 or 3 C's, depending on Strictness
+  if (i <= Len) and (S[i] = 'C') then
+  begin
+    //find max 4 C's
+    //writeln('TryRomanToInt: Found 100');
+    Inc(i);
+    N := N + 100;
+    if (i <= Len) and (S[i] = 'C') then
+    begin
+      //writeln('TryRomanToInt: Found 100');
+      Inc(i);
+      N := N + 100;
+    end;
+    if (i <= Len) and (S[i] = 'C') then
+    begin
+      //writeln('TryRomanToInt: Found 100');
+      Inc(i);
+      N := N + 100;
+    end;
+    if (Strictness <> rcsStrict) and (i <= Len) and (S[i] = 'C') then
+    begin
+      //writeln('TryRomanToInt: Found 100');
+      Inc(i);
+      N := N + 100;
+    end;
+  end;
+
+  //then XC or XL
+  if (i + 1 <= Len) and (S[i] = 'X') then
+  begin
+    if (S[i+1] = 'C') then
+    begin
+      //writeln('TryRomanToInt: Found 90');
+      Inc(i,2);
+      N := N + 90;
+    end
+    else if  (S[i+1] = 'L') then
+    begin
+      //writeln('TryRomanToInt: Found 40');
+      Inc(i,2);
+      N := N + 40;
+    end;
+  end;
+
+  //then L
+  if (i <= Len) and (S[i] = 'L') then
+  begin
+    //writeln('TryRomanToInt: Found 50');
+    Inc(i);
+    N := N + 50;
+  end;
+
+  //then (X, xx, xxx, xxxx)
+  if (i <= Len) and (S[i] = 'X') then
+  begin
+    //find max 3 or 4 X's, depending on Strictness
+    //writeln('TryRomanToInt: Found 10');
+    Inc(i);
+    N := N + 10;
+    if (i <= Len) and (S[i] = 'X') then
+    begin
+      //writeln('TryRomanToInt: Found 10');
+      Inc(i);
+      N := N + 10;
+    end;
+    if (i <= Len) and (S[i] = 'X') then
+    begin
+      //writeln('TryRomanToInt: Found 10');
+      Inc(i);
+      N := N + 10;
+    end;
+    if (Strictness <> rcsStrict) and (i <= Len) and (S[i] = 'X') then
+    begin
+      //writeln('TryRomanToInt: Found 10');
+      Inc(i);
+      N := N + 10;
+    end;
+  end;
+
+  //then IX or IV
+  if (i + 1 <= Len) and (S[i] = 'I') then
+  begin
+    if (S[i+1] = 'X') then
+    begin
+      Terminated := (True);
+      //writeln('TryRomanToInt: Found 9');
+      Inc(i,2);
+      N := N + 9;
+    end
+    else if (S[i+1] = 'V') then
+    begin
+      Terminated := (True);
+      //writeln('TryRomanToInt: Found 4');
+      Inc(i,2);
+      N := N + 4;
+    end;
+  end;
+
+  //then V
+  if (not Terminated) and (i <= Len) and (S[i] = 'V') then
+  begin
+    //writeln('TryRomanToInt: Found 5');
+    Inc(i);
+    N := N + 5;
+  end;
+
+
+  //then I
+  if (not Terminated) and (i <= Len) and (S[i] = 'I') then
+  begin
+    Terminated := (True);
+    //writeln('TryRomanToInt: Found 1');
+    Inc(i);
+    N := N + 1;
+    //Find max 2 or 3 closing I's, depending on strictness
+    if (i <= Len) and (S[i] = 'I') then
+    begin
+      //writeln('TryRomanToInt: Found 1');
+      Inc(i);
+      N := N + 1;
+    end;
+    if (i <= Len) and (S[i] = 'I') then
+    begin
+      //writeln('TryRomanToInt: Found 1');
+      Inc(i);
+      N := N + 1;
+    end;
+    if (Strictness <> rcsStrict) and (i <= Len) and (S[i] = 'I') then
+    begin
+      //writeln('TryRomanToInt: Found 1');
+      Inc(i);
+      N := N + 1;
+    end;
+  end;
+
+  //writeln('TryRomanToInt: Len = ',Len,' i = ',i);
+  Result := (i > Len);
+  //if Result then writeln('TryRomanToInt: N = ',N);
+
+end;
+
+function RomanToInt(const S: string; Strictness: TRomanConversionStrictness = rcsRelaxed): Longint;
+begin
+  if not TryRomanToInt(S, Result, Strictness) then
+    raise EConvertError.CreateFmt(SInvalidRomanNumeral,[S]);
+end;
+
+function RomanToIntDef(const S: String; const ADefault: integer;
+  Strictness: TRomanConversionStrictness): Integer;
+begin
+  if not TryRomanToInt(S, Result, Strictness) then
+    Result := ADefault;
+end;
+
+
+
 
 function intToRoman(Value: Longint): string;
 
@@ -1761,6 +2016,7 @@ begin
       end;
    end;
 end;
+
 
 // def from delphi.about.com:
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
