@@ -708,7 +708,7 @@ interface
          hd:=tobjectdef(left.resultdef);
          while assigned(hd) do
            begin
-             ImplIntf:=hd.find_implemented_interface(tobjectdef(resultdef));
+             ImplIntf:=find_implemented_interface(hd,tobjectdef(resultdef));
              if assigned(ImplIntf) then
                begin
                  case ImplIntf.IType of

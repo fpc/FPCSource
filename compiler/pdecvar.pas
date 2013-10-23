@@ -831,7 +831,7 @@ implementation
                end
              else if is_class(p.propdef) then
                begin
-                 ImplIntf:=tobjectdef(p.propdef).find_implemented_interface(tobjectdef(def));
+                 ImplIntf:=find_implemented_interface(tobjectdef(p.propdef),tobjectdef(def));
                  if assigned(ImplIntf) then
                    begin
                      if compare_defs(ImplIntf.IntfDef,def,nothingn)<te_equal then

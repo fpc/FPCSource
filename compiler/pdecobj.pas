@@ -321,7 +321,7 @@ implementation
              Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if current_objectdef.find_implemented_interface(intfdef)<>nil then
+        if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           begin
@@ -361,7 +361,7 @@ implementation
              Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if current_objectdef.find_implemented_interface(intfdef)<>nil then
+        if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           begin

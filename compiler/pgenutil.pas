@@ -63,7 +63,7 @@ uses
   { global }
   globals,tokens,verbose,finput,
   { symtable }
-  symconst,symsym,symtable,
+  symconst,symsym,symtable,defcmp,
   { modules }
   fmodule,
   { pass 1 }
@@ -238,7 +238,7 @@ uses
                             while assigned(objdef) do
                               begin
                                 intffound:=assigned(
-                                             objdef.find_implemented_interface(
+                                             find_implemented_interface(objdef,
                                                timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef
                                              )
                                            );

@@ -783,7 +783,7 @@ implementation
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.typ=objectdef) then
-             ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
+             ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected)
            else

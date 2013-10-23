@@ -152,6 +152,10 @@ interface
     { parentdef's resultdef                                                          }
     function compatible_childmethod_resultdef(parentretdef, childretdef: tdef): boolean;
 
+    { Checks whether the class impldef or one of its parent classes implements }
+    { the interface intfdef and returns the corresponding "implementation link }
+    function find_implemented_interface(impldef,intfdef:tobjectdef):timplementedinterface;
+
 
 implementation
 
@@ -1588,7 +1592,7 @@ implementation
                         hobjdef:=tobjectdef(def_from);
                         while assigned(hobjdef) do
                           begin
-                             if hobjdef.find_implemented_interface(tobjectdef(def_to))<>nil then
+                             if find_implemented_interface(hobjdef,tobjectdef(def_to))<>nil then
                                begin
                                   if is_interface(def_to) then
                                     doconv:=tc_class_2_intf
@@ -2192,5 +2196,28 @@ implementation
            (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
       end;
 
+
+    function find_implemented_interface(impldef,intfdef:tobjectdef):timplementedinterface;
+      var
+        implintf : timplementedinterface;
+        i : longint;
+      begin
+        if not assigned(impldef) then
+          internalerror(2013102301);
+        if not assigned(intfdef) then
+          internalerror(2013102302);
+        result:=nil;
+        if not assigned(impldef.implementedinterfaces) then
+          exit;
+        for i:=0 to impldef.implementedinterfaces.count-1 do
+          begin
+            implintf:=timplementedinterface(impldef.implementedinterfaces[i]);
+            if equal_defs(implintf.intfdef,intfdef) then
+              begin
+                result:=implintf;
+                exit;
+              end;
+          end;
+      end;
 
 end.

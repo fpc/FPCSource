@@ -396,7 +396,6 @@ interface
           function  alignment:shortint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
-          function  find_implemented_interface(aintfdef:tobjectdef):TImplementedInterface;
           { this should be called when this class implements an interface }
           procedure prepareguid;
           function  is_publishable : boolean;override;
@@ -1087,7 +1086,7 @@ implementation
       { target }
       systems,paramgr,
       { symtable }
-      symsym,symtable,defutil,objcdef,defcmp,
+      symsym,symtable,defutil,objcdef,
 {$ifdef jvm}
       jvmdef,
 {$endif}
@@ -6474,26 +6473,6 @@ implementation
     function tobjectdef.members_need_inittable : boolean;
       begin
         members_need_inittable:=tObjectSymtable(symtable).needs_init_final;
-      end;
-
-
-    function tobjectdef.find_implemented_interface(aintfdef:tobjectdef):TImplementedInterface;
-      var
-        ImplIntf : TImplementedInterface;
-        i : longint;
-      begin
-        result:=nil;
-        if not assigned(ImplementedInterfaces) then
-          exit;
-        for i:=0 to ImplementedInterfaces.Count-1 do
-          begin
-            ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
-            if equal_defs(implintf.intfdef,aintfdef) then
-              begin
-                result:=ImplIntf;
-                exit;
-              end;
-          end;
       end;
 
 
