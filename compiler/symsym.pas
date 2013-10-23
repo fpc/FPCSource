@@ -616,12 +616,32 @@ implementation
 ****************************************************************************}
 
     constructor tprocsym.create(const n : string);
+      var
+        i: longint;
       begin
          if not(ts_lowercase_proc_start in current_settings.targetswitches) or
             (n='') then
            inherited create(procsym,n)
          else
-           inherited create(procsym,lowercase(n[1])+copy(n,2,length(n)-1));
+           begin
+             { YToX -> yToX
+               RC64Encode -> rc64Encode
+               Test -> test
+             }
+             i:=2;
+             while i<=length(n) do
+               begin
+                 if not(n[i] in ['A'..'Z']) then
+                   begin
+                     if (i>2) and
+                        (n[i] in ['a'..'z']) then
+                       dec(i);
+                     break;
+                   end;
+                 inc(i);
+               end;
+             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)));
+           end;
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
