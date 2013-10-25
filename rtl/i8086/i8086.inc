@@ -18,6 +18,34 @@ procedure fpc_cpuinit;
   begin
   end;
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
+{$define FPC_SYSTEM_HAS_FILLCHAR}
+procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 4 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 6 + extra_param_offset]  // @x
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 6 + extra_param_offset]  // @x
+{$endif FPC_X86_DATA_NEAR}
+  mov al, ss:[bx + 2 + extra_param_offset]  // value
+  mov ah, al
+  shr cx, 1
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  rep stosw
+  adc cx, cx
+  rep stosb
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
