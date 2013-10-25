@@ -548,7 +548,7 @@ begin
 
     append;
     FieldByName('id').AsInteger := 1;
-    CheckEquals(0,RecNo);
+    CheckEquals(0,RecNo,'RecNo after 3rd Append');
     CheckEquals(1,RecordCount);
 
     Close;

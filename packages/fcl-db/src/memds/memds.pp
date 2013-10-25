@@ -176,6 +176,9 @@ type
 
 implementation
 
+uses
+  FmtBCD;
+
 ResourceString
   SErrFieldTypeNotSupported = 'Fieldtype of Field "%s" not supported.';
   SErrBookMarkNotFound      = 'Bookmark %d not found.';
@@ -317,10 +320,12 @@ begin
   ftBCD:      result:=SizeOf(currency);
   ftLargeInt: result:=SizeOf(int64);
   ftSmallInt: result:=SizeOf(SmallInt);
+  ftWord,
   ftInteger:  result:=SizeOf(longint);
   ftDateTime,
     ftTime,
     ftDate:   result:=SizeOf(TDateTime);
+  ftFmtBCD:   result:=SizeOf(TBCD);
  else
   RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
  end;
@@ -650,8 +655,9 @@ end;
 procedure TMemDataset.InternalPost;
 begin
   CheckActive;
-  if ((State<>dsEdit) and (State<>dsInsert)) then
+  if not (State in [dsEdit, dsInsert]) then
     Exit;
+  inherited InternalPost;
   if (State=dsEdit) then
     MDSWriteRecord(ActiveBuffer, FCurrRecNo)
   else
@@ -913,8 +919,8 @@ Function TMemDataset.GetRecNo: Longint;
 
 begin
   UpdateCursorPos;
-  if (FCurrRecNo<0) then
-    Result:=1
+  if (FCurrRecNo<0) or (FRecCount=0) or (State=dsInsert) then
+    Result:=0
   else
     Result:=FCurrRecNo+1;
 end;
