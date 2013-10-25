@@ -360,7 +360,7 @@ implementation
           if is_interfacecom_or_dispinterface(sourcedef) then
             begin
               { distinct IDispatch and IUnknown interfaces }
-              if tobjectdef(sourcedef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+              if def_is_related(tobjectdef(sourcedef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
                 result:=vardispatch
               else
                 result:=varunknown;

@@ -1472,7 +1472,7 @@ implementation
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        (fromdef.is_related(todef))) and
+                        (def_is_related(fromdef,todef))) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types. But the variable can't
@@ -1964,7 +1964,7 @@ implementation
                   (tobjectdef(def_from).objecttype=odt_object) and
                   (tobjectdef(def_to).objecttype=odt_object)
                  ) and
-                 (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
+                 (def_is_related(tobjectdef(def_from),tobjectdef(def_to))) then
                 eq:=te_convert_l1;
             end;
           filedef :
@@ -2728,7 +2728,7 @@ implementation
                   (def_from.typ=objectdef) and
                   (def_to.typ=objectdef) and
                   (tobjectdef(def_from).objecttype=tobjectdef(def_to).objecttype) and
-                  tobjectdef(def_from).is_related(tobjectdef(def_to)) then
+                  def_is_related(tobjectdef(def_from),tobjectdef(def_to)) then
                  begin
                    eq:=te_convert_l1;
                    objdef:=tobjectdef(def_from);
@@ -3226,7 +3226,7 @@ implementation
                   the struct in which the current best method was found }
                 if assigned(pd.struct) and
                    (pd.struct<>tprocdef(bestpd).struct) and
-                   tprocdef(bestpd).struct.is_related(pd.struct) then
+                   def_is_related(tprocdef(bestpd).struct,pd.struct) then
                   break;
                 if (pd.proctypeoption=bestpd.proctypeoption) and
                    ((pd.procoptions*[po_classmethod,po_methodpointer])=(bestpd.procoptions*[po_classmethod,po_methodpointer])) and

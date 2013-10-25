@@ -823,7 +823,7 @@ implementation
              if is_interface(p.propdef) then
                begin
                  { an interface type may delegate itself or one of its ancestors }
-                 if not p.propdef.is_related(def) then
+                 if not def_is_related(p.propdef,def) then
                    begin
                      message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;

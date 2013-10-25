@@ -127,7 +127,7 @@ implementation
            exit;
          { Java exceptions must descend from java.lang.Throwable }
          if assigned(left) and
-            not(left.resultdef).is_related(java_jlthrowable) then
+            not def_is_related(left.resultdef,java_jlthrowable) then
            MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'class(JLThrowable)');
          { Java exceptions cannot be raised "at" a specific location }
          if assigned(right) then

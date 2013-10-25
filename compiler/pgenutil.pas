@@ -182,7 +182,7 @@ uses
                           odt_interfacecorba,
                           odt_interfacejava,
                           odt_dispinterface:
-                            if not paraobjdef.is_related(formalobjdef.childof) then
+                            if not def_is_related(paraobjdef,formalobjdef.childof) then
                               begin
                                 MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                                 result:=false;
@@ -226,7 +226,7 @@ uses
                             continue;
                           end;
                         if assigned(formalobjdef.childof) and
-                            not paradef.is_related(formalobjdef.childof) then
+                            not def_is_related(paradef,formalobjdef.childof) then
                           begin
                             MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                             result:=false;

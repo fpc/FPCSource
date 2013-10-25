@@ -87,7 +87,6 @@ interface
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
-         function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
          procedure register_created_object_type;virtual;
       end;
@@ -328,12 +327,6 @@ implementation
     function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
       begin
         result:=nil;
-      end;
-
-
-    function tdef.is_related(def:tdef):boolean;
-      begin
-        result:=false;
       end;
 
 

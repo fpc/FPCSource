@@ -360,7 +360,7 @@ implementation
       { global }
       verbose,globals,
       { symtable }
-      symutil,defutil,
+      symutil,defutil,defcmp,
       { module }
       fmodule,
       { codegen }
@@ -2249,19 +2249,19 @@ implementation
                          { access from child class }
                          assigned(contextobjdef) and
                          assigned(current_structdef) and
-                         contextobjdef.is_related(symownerdef) and
-                         current_structdef.is_related(contextobjdef)
+                         def_is_related(contextobjdef,symownerdef) and
+                         def_is_related(current_structdef,contextobjdef)
                        ) or
                        (
                          { helpers can access strict protected symbols }
                          is_objectpascal_helper(contextobjdef) and
-                         tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                         def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                        ) or
                        (
                          { same as above, but from context of call node inside
                            helper method }
                          is_objectpascal_helper(current_structdef) and
-                         tobjectdef(current_structdef).extendeddef.is_related(symownerdef)
+                         def_is_related(tobjectdef(current_structdef).extendeddef,symownerdef)
                        );
             end;
           vis_protected :
@@ -2278,7 +2278,7 @@ implementation
                         assigned(contextobjdef) and
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
-                        contextobjdef.is_related(symownerdef)
+                        def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
                         (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
@@ -2296,7 +2296,7 @@ implementation
                         (
                           { helpers can access protected symbols }
                           is_objectpascal_helper(contextobjdef) and
-                          tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                          def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                         )
                        )
                       );
@@ -2681,11 +2681,11 @@ implementation
             { The contextclassh is used for visibility. The classh must be equal to
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
-            if not (contextclassh.is_related(classh) or
+            if not (def_is_related(contextclassh,classh) or
                 (is_classhelper(contextclassh) and
                  assigned(tobjectdef(contextclassh).extendeddef) and
                 (tobjectdef(contextclassh).extendeddef.typ=objectdef) and
-                tobjectdef(contextclassh).extendeddef.is_related(classh))) then
+                def_is_related(tobjectdef(contextclassh).extendeddef,classh))) then
               internalerror(200811161);
           end;
         result:=false;
@@ -3252,7 +3252,7 @@ implementation
                     }
                     defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
                     if (oo_is_classhelper in defowner.objectoptions) and
-                       pd.is_related(defowner.childof) then
+                       def_is_related(pd,defowner.childof) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be

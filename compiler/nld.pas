@@ -727,7 +727,7 @@ implementation
         if is_interfacecom_or_dispinterface(left.resultdef) then
          begin
 	   { Normal interface assignments are handled by the generic refcount incr/decr }
-           if not right.resultdef.is_related(left.resultdef) then
+           if not def_is_related(right.resultdef,left.resultdef) then
              begin
                { remove property flag to avoid errors, see comments for }
                { tf_winlikewidestring assignments below                 }

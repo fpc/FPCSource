@@ -750,7 +750,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         case node.nodetype of
           loadvmtaddrn:
             begin
-              if not Tobjectdef(tclassrefdef(node.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
+              if not def_is_related(tobjectdef(tclassrefdef(node.resultdef).pointeddef),tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
               list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)));
             end;

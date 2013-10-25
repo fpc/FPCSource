@@ -1679,7 +1679,7 @@ implementation
 
     function ttypeconvnode.typecheck_variant_to_interface : tnode;
       begin
-        if tobjectdef(resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+        if def_is_related(tobjectdef(resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_variant_to_idispatch',
               ccallparanode.create(left,nil)
@@ -1696,7 +1696,7 @@ implementation
 
     function ttypeconvnode.typecheck_interface_to_variant : tnode;
       begin
-        if tobjectdef(left.resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+        if def_is_related(tobjectdef(left.resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_idispatch_to_variant',
               ccallparanode.create(left,nil)
@@ -2294,8 +2294,8 @@ implementation
                        begin
                          { check if the types are related }
                          if not(nf_internal in flags) and
-                            (not(tobjectdef(left.resultdef).is_related(tobjectdef(resultdef)))) and
-                            (not(tobjectdef(resultdef).is_related(tobjectdef(left.resultdef)))) then
+                            (not(def_is_related(tobjectdef(left.resultdef),tobjectdef(resultdef)))) and
+                            (not(def_is_related(tobjectdef(resultdef),tobjectdef(left.resultdef)))) then
                            begin
                              { Give an error when typecasting class to interface, this is compatible
                                with delphi }
@@ -3823,9 +3823,9 @@ implementation
                     is_javaclass(left.resultdef) then
               begin
                 { the operands must be related }
-                if (not(tobjectdef(left.resultdef).is_related(
+                if (not(def_is_related(tobjectdef(left.resultdef),
                    tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
-                   (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
+                   (not(def_is_related(tobjectdef(tclassrefdef(right.resultdef).pointeddef),
                    tobjectdef(left.resultdef)))) then
                   CGMessage2(type_e_classes_not_related,
                      FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),

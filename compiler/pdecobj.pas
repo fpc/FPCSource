@@ -757,7 +757,7 @@ implementation
                       begin
                         if not is_class(current_objectdef.childof.extendeddef) then
                           Internalerror(2011021101);
-                        if not hdef.is_related(current_objectdef.childof.extendeddef) then
+                        if not def_is_related(hdef,current_objectdef.childof.extendeddef) then
                           Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
                       end;
                   end;

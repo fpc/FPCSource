@@ -1083,7 +1083,7 @@ implementation
             but do not allow records to be directly typecasted into class/
             pointer types (you have to use FpcBaseRecordType(@rec) instead) }
           if not is_record(fromdef) and
-             fromdef.is_related(todef) then
+             is_related(fromdef,todef) then
             exit;
           if check_type_equality(fromdef,todef) then
             exit;
@@ -1100,7 +1100,7 @@ implementation
             exit;
           if (fromdef.typ=classrefdef) and
              (todef.typ=classrefdef) and
-             tclassrefdef(fromdef).pointeddef.is_related(tclassrefdef(todef).pointeddef) then
+             def_is_related(tclassrefdef(fromdef).pointeddef,tclassrefdef(todef).pointeddef) then
             exit;
           { special case: "array of shortstring" to "array of ShortstringClass"
             and "array of <record>" to "array of FpcRecordBaseType" (normally

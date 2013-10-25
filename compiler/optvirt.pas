@@ -171,6 +171,7 @@ unit optvirt;
       symconst,
       symbase,
       symtable,
+      defcmp,
       nobj,
       verbose;
 
@@ -357,7 +358,7 @@ unit optvirt;
            write('   Checking for classrefdef inheritance of ',def.typename);
 {$endif debug_devirt}
            for i:=0 to classrefdefs.count-1 do
-             if tobjectdef(def).is_related(tobjectdef(classrefdefs[i])) then
+             if def_is_related(tobjectdef(def),tobjectdef(classrefdefs[i])) then
                begin
 {$ifdef debug_devirt}
                  writeln('... Found: inherits from Class Of ',tobjectdef(classrefdefs[i]).typename);

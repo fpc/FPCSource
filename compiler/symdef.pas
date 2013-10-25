@@ -291,8 +291,6 @@ interface
           { debug }
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti:boolean;override;
-          { jvm }
-          function  is_related(d : tdef) : boolean;override;
        end;
 
        tobjectdef = class;
@@ -399,7 +397,6 @@ interface
           { this should be called when this class implements an interface }
           procedure prepareguid;
           function  is_publishable : boolean;override;
-          function  is_related(d : tdef) : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
@@ -770,7 +767,6 @@ interface
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
           function  getvardef:longint;override;
-          function  is_related(d : tdef) : boolean;override;
        end;
 
        { tenumdef }
@@ -2156,18 +2152,6 @@ implementation
           varUndefined,varUndefined,varString,varOleStr,varUString);
       begin
         result:=vardef[stringtype];
-      end;
-
-    function tstringdef.is_related(d: tdef): boolean;
-      begin
-        result:=
-          (target_info.system in systems_jvm) and
-          (((stringtype in [st_unicodestring,st_widestring]) and
-            ((d=java_jlobject) or
-             (d=java_jlstring))) or
-           ((stringtype=st_ansistring) and
-            ((d=java_jlobject) or
-             (d=java_ansistring))));
       end;
 
 
@@ -3857,23 +3841,6 @@ implementation
     function trecorddef.needs_separate_initrtti : boolean;
       begin
         result:=true;
-      end;
-
-    function trecorddef.is_related(d: tdef): boolean;
-      begin
-        { records are implemented via classes in the JVM target, and are
-          all descendents of the java_fpcbaserecordtype class }
-        is_related:=false;
-        if (target_info.system in systems_jvm) then
-          begin
-            if d.typ=objectdef then
-              begin
-                d:=find_real_class_definition(tobjectdef(d),false);
-                if (d=java_jlobject) or
-                   (d=java_fpcbaserecordtype) then
-                  is_related:=true
-              end;
-          end;
       end;
 
 
@@ -6184,93 +6151,6 @@ implementation
      end;
 
 
-   { true if prot implements d (or if they are equal) }
-   function is_related_interface_multiple(prot: tobjectdef; d : tdef) : boolean;
-     var
-       i  : longint;
-     begin
-       { objcprotocols have multiple inheritance, all protocols from which
-         the current protocol inherits are stored in implementedinterfaces }
-       result:=prot=d;
-       if result then
-         exit;
-
-       for i:=0 to prot.ImplementedInterfaces.count-1 do
-         begin
-           result:=is_related_interface_multiple(TImplementedInterface(prot.ImplementedInterfaces[i]).intfdef,d);
-           if result then
-             exit;
-         end;
-     end;
-
-
-   { true, if self inherits from d (or if they are equal) }
-   function tobjectdef.is_related(d : tdef) : boolean;
-     var
-        realself,
-        hp : tobjectdef;
-     begin
-        if (d.typ=objectdef) then
-          d:=find_real_class_definition(tobjectdef(d),false);
-        realself:=find_real_class_definition(self,false);
-        if realself=d then
-          begin
-            is_related:=true;
-            exit;
-          end;
-
-        if (d.typ<>objectdef) then
-          begin
-            is_related:=false;
-            exit;
-          end;
-
-        { Objective-C protocols and Java interfaces can use multiple
-           inheritance }
-        if (realself.objecttype in [odt_objcprotocol,odt_interfacejava]) then
-          begin
-            is_related:=is_related_interface_multiple(realself,d);
-            exit
-          end;
-
-        { formally declared Objective-C and Java classes match Objective-C/Java
-          classes with the same name. In case of Java, the package must also
-          match (still required even though we looked up the real definitions
-          above, because these may be two different formal declarations that
-          cannot be resolved yet) }
-        if (realself.objecttype in [odt_objcclass,odt_javaclass]) and
-           (tobjectdef(d).objecttype=objecttype) and
-           ((oo_is_formal in objectoptions) or
-            (oo_is_formal in tobjectdef(d).objectoptions)) and
-           (objrealname^=tobjectdef(d).objrealname^) then
-          begin
-            { check package name for Java }
-            if objecttype=odt_objcclass then
-              is_related:=true
-            else
-              begin
-                is_related:=
-                  assigned(import_lib)=assigned(tobjectdef(d).import_lib);
-                if is_related and
-                   assigned(import_lib) then
-                  is_related:=import_lib^=tobjectdef(d).import_lib^;
-              end;
-            exit;
-          end;
-
-        hp:=realself.childof;
-        while assigned(hp) do
-          begin
-             if hp=d then
-               begin
-                  is_related:=true;
-                  exit;
-               end;
-             hp:=hp.childof;
-          end;
-        is_related:=false;
-     end;
-
    function tobjectdef.find_destructor: tprocdef;
      var
        objdef: tobjectdef;
@@ -6356,6 +6236,8 @@ implementation
 
 
     function tobjectdef.needs_inittable : boolean;
+      var
+        hp : tobjectdef;
       begin
          case objecttype of
             odt_helper,
@@ -6365,7 +6247,19 @@ implementation
             odt_interfacecom:
               needs_inittable:=true;
             odt_interfacecorba:
-              needs_inittable:=is_related(interface_iunknown);
+              begin
+                hp:=childof;
+                while assigned(hp) do
+                  begin
+                    if hp=interface_iunknown then
+                      begin
+                        needs_inittable:=true;
+                        exit;
+                      end;
+                    hp:=hp.childof;
+                  end;
+                needs_inittable:=false;
+              end;
             odt_object:
               needs_inittable:=
                 tObjectSymtable(symtable).needs_init_final or

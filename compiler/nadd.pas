@@ -1829,7 +1829,7 @@ implementation
               begin
                 if is_implicit_pointer_object_type(rd) and is_implicit_pointer_object_type(ld) then
                  begin
-                   if tobjectdef(rd).is_related(tobjectdef(ld)) then
+                   if def_is_related(tobjectdef(rd),tobjectdef(ld)) then
                     inserttypeconv(right,left.resultdef)
                    else
                     inserttypeconv(left,right.resultdef);
@@ -1847,7 +1847,7 @@ implementation
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
-                if tobjectdef(tclassrefdef(rd).pointeddef).is_related(
+                if def_is_related(tobjectdef(tclassrefdef(rd).pointeddef),
                         tobjectdef(tclassrefdef(ld).pointeddef)) then
                   inserttypeconv(right,left.resultdef)
                 else

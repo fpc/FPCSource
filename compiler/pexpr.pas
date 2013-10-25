@@ -1377,7 +1377,7 @@ implementation
                using "parentobject.methodname()" }
              if assigned(current_structdef) and
                 not(getaddr) and
-                current_structdef.is_related(hdef) then
+                def_is_related(current_structdef,hdef) then
                begin
                  result:=ctypenode.create(hdef);
                  ttypenode(result).typesym:=sym;
@@ -2976,7 +2976,7 @@ implementation
                                    to }
                                  if (srsym.Owner.defowner.typ=objectdef) and
                                      is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
-                                   if current_structdef.is_related(tdef(srsym.Owner.defowner)) and
+                                   if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
                                        assigned(tobjectdef(current_structdef).childof) then
                                      hdef:=tobjectdef(current_structdef).childof
                                    else
