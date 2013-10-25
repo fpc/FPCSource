@@ -2336,7 +2336,7 @@ implementation
         hp:=realself.childof;
         while assigned(hp) do
           begin
-             if hp=otherdef then
+             if equal_defs(hp,otherdef) then
                begin
                   result:=true;
                   exit;
