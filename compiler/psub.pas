@@ -156,6 +156,7 @@ implementation
        ncgutil,
 
        optbase,
+       opttree,
        opttail,
        optcse,
        optloop,
@@ -1301,7 +1302,13 @@ implementation
          end;
 
        if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
-         do_optdeadstoreelim(code);
+         begin
+           if normalize(code) then
+             begin
+               dfabuilder.redodfainfo(code);
+               do_optdeadstoreelim(code);
+             end;
+         end;
 
        if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
