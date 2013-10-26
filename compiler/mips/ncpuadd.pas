@@ -220,13 +220,10 @@ begin
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
   location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, (left.location.loc <> LOC_CFPUREGISTER));
+  location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
 
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  if left.location.loc <> LOC_CFPUREGISTER then
-    location.Register := left.location.Register
-  else
-    location.Register := right.location.Register;
+  location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
   case nodetype of
     addn:
