@@ -854,7 +854,7 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
-  if success then
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
 
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
