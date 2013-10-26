@@ -9,10 +9,10 @@ units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
       convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
       msmouse ports keyboard \
-      printer charset cpall fmtbcd
+      printer charset cpall fmtbcd ctypes
 #      cmem
 #      initc profile dxetype dxeload emu387 \
-#      cpu mmx lnfodwrf ctypes \
+#      cpu mmx lnfodwrf \
 #      video mouse vesamode \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 # implicitunits=exeinfo
