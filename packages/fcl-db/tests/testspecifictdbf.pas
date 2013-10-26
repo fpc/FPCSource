@@ -25,6 +25,7 @@ type
 
   TTestSpecificTDBF = class(TTestCase)
   private
+    // Writes data to dataset and verifies readback is correct
     procedure WriteReadbackTest(ADBFDataset: TDbf; AutoInc: boolean = false);
   protected
     procedure SetUp; override;
@@ -42,6 +43,7 @@ type
     procedure TestOpenNonExistingDataset_Fails;
     // Tests creating a new database with calculated/lookup fields
     procedure TestCreationDatasetWithCalcFields;
+    // Tests autoincrement field (only in tablelevels that support it)
     procedure TestAutoIncField;
     // Tests findfirst moves to first record
     procedure TestFindFirst;
@@ -92,6 +94,7 @@ begin
     ADBFDataset.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
     ADBFDataset.Post;
     end;
+  // Verify sample data is correct
   ADBFDataset.first;
   for i := 1 to MaxRecs do
     begin
