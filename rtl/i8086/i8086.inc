@@ -46,6 +46,32 @@ asm
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
+
+{$ifndef FPC_SYSTEM_HAS_FILLWORD}
+{$define FPC_SYSTEM_HAS_FILLWORD}
+procedure FillWord(var x;count : SizeInt;value : word);assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 4 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 6 + extra_param_offset]  // @x
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 6 + extra_param_offset]  // @x
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // value
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  rep stosw
+  @@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FILLWORD}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
