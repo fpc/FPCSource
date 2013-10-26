@@ -330,6 +330,10 @@ Unit AoptObj;
 
         function getlabelwithsym(sym: tasmlabel): tai;
 
+        { Removes an instruction following hp1 (possibly with reg.deallocations in between),
+          if its opcode is A_NOP. }
+        procedure RemoveDelaySlot(hp1: tai);
+
         { peephole optimizer }
         procedure PrePeepHoleOpts;
         procedure PeepHoleOptPass1;
@@ -1180,6 +1184,24 @@ Unit AoptObj;
       end;
 
 
+    procedure TAOptObj.RemoveDelaySlot(hp1:tai);
+      var
+        hp2: tai;
+      begin
+        hp2:=tai(hp1.next);
+        while assigned(hp2) and (hp2.typ in SkipInstr) do
+          hp2:=tai(hp2.next);
+        if assigned(hp2) and (hp2.typ=ait_instruction) and
+          (taicpu(hp2).opcode=A_NOP) then
+          begin
+            asml.remove(hp2);
+            hp2.free;
+          end;
+        { Anything except A_NOP must be left in place: these instructions
+          execute before branch, so code stays correct if branch is removed. }
+      end;
+
+
     function TAOptObj.GetFinalDestination(hp: taicpu; level: longint): boolean;
       {traces sucessive jumps to their final destination and sets it, e.g.
        je l1                je l3
@@ -1327,6 +1349,10 @@ Unit AoptObj;
                                   no-line-info-start/end etc }
                                 if hp1.typ<>ait_marker then
                                   begin
+{$if defined(SPARC) or defined(MIPS) }
+                                    if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
+                                      RemoveDelaySlot(hp1);
+{$endif SPARC or MIPS }
                                     asml.remove(hp1);
                                     hp1.free;
                                   end
@@ -1338,15 +1364,14 @@ Unit AoptObj;
                       { remove jumps to a label coming right after them }
                       if GetNextInstruction(p, hp1) then
                         begin
+                          SkipEntryExitMarker(hp1,hp1);
                           if FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
         { TODO: FIXME removing the first instruction fails}
                               (p<>blockstart) then
                             begin
                               tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
 {$if defined(SPARC) or defined(MIPS)}
-                              hp2:=tai(p.next);
-                              asml.remove(hp2);
-                              hp2.free;
+                              RemoveDelaySlot(p);
 {$endif SPARC or MIPS}
                               hp2:=tai(hp1.next);
                               asml.remove(p);
@@ -1378,19 +1403,7 @@ Unit AoptObj;
                                        taicpu(p).oper[0]^.ref^.symbol.increfs;
                                       }
 {$if defined(SPARC) or defined(MIPS)}
-                                      { Remove delay slot. Initially is is placed immediately after
-                                        branch, but RA can insert regallocs in between. }
-                                      hp2:=tai(hp1.next);
-                                      while assigned(hp2) and (hp2.typ in SkipInstr) do
-                                        hp2:=tai(hp2.next);
-                                      if assigned(hp2) and (hp2.typ=ait_instruction) and
-                                         (taicpu(hp2).opcode=A_NOP) then
-                                        begin
-                                          asml.remove(hp2);
-                                          hp2.free;
-                                        end
-                                      else
-                                        InternalError(2013070301);
+                                      RemoveDelaySlot(hp1);
 {$endif SPARC or MIPS}
                                       asml.remove(hp1);
                                       hp1.free;
