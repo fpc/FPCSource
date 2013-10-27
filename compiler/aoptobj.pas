@@ -1379,7 +1379,7 @@ Unit AoptObj;
                               p:=hp2;
                               continue;
                             end
-                          else
+                          else if assigned(hp1) then
                             begin
                               if hp1.typ = ait_label then
                                 SkipLabels(hp1,hp1);
