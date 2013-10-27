@@ -473,10 +473,12 @@ interface
 
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_secrel32_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[30]=(
         #9'FIXME_128BIT'#9,#9'FIXME_64BIT'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXME_SLEB128BIT'#9,#9'FIXME_ULEB128BIT'#9,
-        #9'RVA'#9,#9'SECREL32'#9
+        #9'RVA'#9,#9'SECREL32'#9,#9'FIXME_darwin_dwarf_delta64'#9,
+        #9'FIXME_darwin_dwarf_delta32'#9,#9'FIXME_half16bit'#9,
+        #9'DW'#9,#9'DD'#9,#9'FIXME_64BIT_UNALIGNED'#9
       );
 
     procedure T386NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
@@ -654,7 +656,8 @@ interface
              begin
                consttype:=tai_const(hp).consttype;
                case consttype of
-                 aitconst_64bit :
+                 aitconst_64bit,
+                 aitconst_64bit_unaligned:
                     begin
                       if assigned(tai_const(hp).sym) then
                         internalerror(200404292);
@@ -695,7 +698,9 @@ interface
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
-                 aitconst_secrel32_symbol :
+                 aitconst_secrel32_symbol,
+                 aitconst_16bit_unaligned,
+                 aitconst_32bit_unaligned:
                    begin
                      AsmWrite(ait_const2str[tai_const(hp).consttype]);
                      l:=0;
