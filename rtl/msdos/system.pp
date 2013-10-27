@@ -95,6 +95,7 @@ type
   PFarWord = ^Word;far;
 
 var
+  __stktop : pointer;public name '__stktop';
   __stkbottom : pointer;public name '__stkbottom';
   __nearheap_start: pointer;public name '__nearheap_start';
   __nearheap_end: pointer;public name '__nearheap_end';
@@ -329,8 +330,9 @@ begin
 end;
 
 begin
-  StackLength := CheckInitialStkLen(InitialStkLen);
+  StackTop := __stktop;
   StackBottom := __stkbottom;
+  StackLength := __stktop - __stkbottom;
   if DetectFPU then
     SysInitFPU;
   { To be set if this is a GUI or console application }

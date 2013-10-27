@@ -25,6 +25,7 @@
         extern _end    ; defined by WLINK, indicates end of BSS
 
         extern __stklen
+        extern __stktop
         extern __stkbottom
 
         extern __nearheap_start
@@ -141,6 +142,7 @@ skip_mem_realloc:
         sub bx, 2
         mov sp, bx
 
+        mov word [__stktop], sp
         add bx, 2
         sub bx, word [__stklen]
         and bl, 0FEh
