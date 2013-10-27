@@ -55,7 +55,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,jvmdef,
+      symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,jvmdef,defcmp,
       procinfo,cgbase,pass_1,pass_2,parabase,
       cpubase,cpuinfo,
       nbas,nld,ncon,ncnv,

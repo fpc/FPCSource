@@ -1083,7 +1083,7 @@ implementation
             but do not allow records to be directly typecasted into class/
             pointer types (you have to use FpcBaseRecordType(@rec) instead) }
           if not is_record(fromdef) and
-             is_related(fromdef,todef) then
+             def_is_related(fromdef,todef) then
             exit;
           if check_type_equality(fromdef,todef) then
             exit;
