@@ -62,9 +62,6 @@ var
   dos_argv0 : pchar; //!! public name 'dos_argv0';
 
   dos_psp:Word;public name 'dos_psp';
-  __stkbottom : pointer;public name '__stkbottom';
-  __nearheap_start: pointer;public name '__nearheap_start';
-  __nearheap_end: pointer;public name '__nearheap_end';
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -98,6 +95,9 @@ type
   PFarWord = ^Word;far;
 
 var
+  __stkbottom : pointer;public name '__stkbottom';
+  __nearheap_start: pointer;public name '__nearheap_start';
+  __nearheap_end: pointer;public name '__nearheap_end';
   dos_version:Word;public name 'dos_version';
 
 {$I registers.inc}
