@@ -280,7 +280,7 @@ interface
                  ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,left.location.register,right.location.register,tmpreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,tmpreg,right.location.register,NR_G0));
               location.resflags:=F_E;
