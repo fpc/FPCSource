@@ -2678,7 +2678,7 @@ end;
 procedure TOption.checkoptionscompatibility;
 begin
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     not(target_info.system in systems_darwin) then
+     not(target_info.system in (systems_darwin+[system_i8086_msdos])) then
     begin
       { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
