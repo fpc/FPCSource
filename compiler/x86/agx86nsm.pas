@@ -1139,6 +1139,13 @@ interface
           else
             AsmWriteLn('GROUP dgroup rodata data fpc bss');
         end;
+      if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+        begin
+          AsmWriteLn('SECTION .debug_frame  use32 class=DWARF');
+          AsmWriteLn('SECTION .debug_info   use32 class=DWARF');
+          AsmWriteLn('SECTION .debug_line   use32 class=DWARF');
+          AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF');
+        end;
       AsmWriteLn('SECTION ' + CodeSectionName);
 {$else i8086}
       AsmWriteLn('BITS 32');
