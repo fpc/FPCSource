@@ -239,6 +239,16 @@ interface
         DW_FORM_ref_sig8 := $20      { reference }
         );
 
+      { values of DW_AT_address_class }
+      Tdwarf_addr = (
+        DW_ADDR_none := 0,
+        DW_ADDR_near16 := 1,
+        DW_ADDR_far16 := 2,
+        DW_ADDR_huge16 := 3,
+        DW_ADDR_near32 := 4,
+        DW_ADDR_far32 := 5
+      );
+
       TDwarfFile = record
         Index: integer;
         Name: PChar;
