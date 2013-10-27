@@ -2449,7 +2449,7 @@ implementation
     { 8/16/32 bit value afterwards                               }
     function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
       var
-        gotmuldivmod: boolean;
+        gotdivmod: boolean;
 
       { checks whether a node is either an u32bit, or originally }
       { was one but was implicitly converted to s64bit           }
@@ -2510,8 +2510,8 @@ implementation
               end;
             addn,muln,divn,modn,andn:
               begin
-                if n.nodetype in [muln,divn,modn] then
-                  gotmuldivmod:=true;
+                if n.nodetype in [divn,modn] then
+                  gotdivmod:=true;
                 result:=
                   docheckremove64bittypeconvs(tbinarynode(n).left) and
                   docheckremove64bittypeconvs(tbinarynode(n).right);
@@ -2520,11 +2520,11 @@ implementation
         end;
 
       begin { checkremove64bittypeconvs }
-        gotmuldivmod:=false;
+        gotdivmod:=false;
         gotsint:=false;
         result:=
           docheckremove64bittypeconvs(n) and
-          not(gotmuldivmod and gotsint);
+          not(gotdivmod and gotsint);
       end;
 
 
