@@ -231,8 +231,6 @@ begin
       if not(cs_profile in current_settings.moduleswitches) then
         begin
           { 10.8 and later: no crt1.* }
-          if CompareVersionStrings(MacOSXVersionMin,'10.9')>=0 then
-            exit('');
           if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
             exit('');
           { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
