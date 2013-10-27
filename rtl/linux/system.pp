@@ -351,8 +351,9 @@ begin
 {$endif}
 {$endif}
   IsConsole := TRUE;
+  StackTop := initialstkptr;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := StackTop - StackLength;
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 {$if defined(cpui386) or defined(cpuarm)}
