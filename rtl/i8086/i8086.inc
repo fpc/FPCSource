@@ -132,12 +132,11 @@ asm
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lg_a_null
-  xchg ax, bx
-  mov bx, [bx+2]
+  xchg ax, bx  // 1 byte shorter than a mov
+  mov ax, [bx+2]
 {$ifdef FPC_X86_CODE_FAR}
   mov dx, [bx+4]
 {$endif FPC_X86_CODE_FAR}
-  xchg ax, bx
 @@Lg_a_null:
 end;
 
