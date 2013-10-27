@@ -147,9 +147,8 @@ asm
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lgnf_null
-  xchg ax, bx
-  mov bx, [bx]
-  xchg ax, bx
+  xchg ax, si  // 1 byte shorter than a mov
+  lodsw
 @@Lgnf_null:
 end;
 
