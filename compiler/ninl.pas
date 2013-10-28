@@ -82,7 +82,7 @@ interface
           { override these for Seg() support }
           function typecheck_seg: tnode; virtual;
           function first_seg: tnode; virtual;
-
+          function first_sar: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -3604,11 +3604,12 @@ implementation
          in_rol_x_y,
          in_ror_x,
          in_ror_x_y,
-         in_sar_x,
-         in_sar_x_y,
          in_bsf_x,
          in_bsr_x:
            expectloc:=LOC_REGISTER;
+         in_sar_x,
+         in_sar_x_y:
+           result:=first_sar;
          in_popcnt_x:
            result:=first_popcnt;
          in_new_x:
@@ -4041,6 +4042,23 @@ implementation
        begin
          internalerror(200104046);
          result:=nil;
+       end;
+
+
+     function tinlinenode.first_sar: tnode;
+       begin
+         result:=nil;
+         expectloc:=LOC_REGISTER;
+{$ifndef cpu64bitalu}
+         if is_64bitint(resultdef) then
+           begin
+             if (inlinenumber=in_sar_x) then
+               left:=ccallparanode.create(cordconstnode.create(1,u8inttype,false),
+                 ccallparanode.create(left,nil));
+             result:=ccallnode.createintern('fpc_sarint64',left);
+             left:=nil;
+           end;
+{$endif cpu64bitalu}
        end;
 
 
