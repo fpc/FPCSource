@@ -663,8 +663,8 @@ implementation
         location_reset(location,LOC_REGISTER,opsize);
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register))
+          emit_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register)
         else
-          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register));
+          emit_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register);
       end;
 end.
