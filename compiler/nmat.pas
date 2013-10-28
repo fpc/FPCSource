@@ -461,7 +461,7 @@ implementation
       var
         power,shiftval : longint;
         statements : tstatementnode;
-        temp : ttempcreatenode;
+        temp,resulttemp : ttempcreatenode;
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
@@ -470,7 +470,7 @@ implementation
           { for 64 bit, we leave the optimization to the cg }
             (not is_signed(resultdef)) and
 {$else cpu64bitalu}
-           ((nodetype=divn) and (is_64bit(resultdef)) or
+           (((nodetype=divn) and is_64bit(resultdef)) or
             not is_signed(resultdef)) and
 {$endif cpu64bitalu}
            ispowerof2(tordconstnode(right).value,power) then
@@ -491,24 +491,30 @@ implementation
 
                     result:=internalstatements(statements);
                     temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                    addstatement(statements,resulttemp);
                     addstatement(statements,temp);
                     addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),
                      left));
                     left:=nil;
 
-                    addstatement(statements,ccallnode.createintern('fpc_sarint64',
-                      ccallparanode.create(cordconstnode.create(power,u8inttype,false),
-                      ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
-                        caddnode.create(andn,
-                          ccallnode.createintern('fpc_sarint64',
-                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
-                            ccallparanode.create(ctemprefnode.create(temp),nil))
-                          ),
-                          cordconstnode.create(tordconstnode(right).value-1,
-                            right.resultdef,false)
-                        )),nil
-                      )))
+                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                      cinlinenode.create(in_sar_x_y,false,
+                        ccallparanode.create(cordconstnode.create(power,u8inttype,false),
+                        ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
+                          caddnode.create(andn,
+                            cinlinenode.create(in_sar_x_y,false,
+                              ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                              ccallparanode.create(ctemprefnode.create(temp),nil))
+                            ),
+                            cordconstnode.create(tordconstnode(right).value-1,
+                              right.resultdef,false)
+                          )),nil
+                        ))))
                     );
+                    addstatement(statements,ctempdeletenode.create(temp));
+                    addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
+                    addstatement(statements,ctemprefnode.create(resulttemp));
                   end
                 else
                   begin
