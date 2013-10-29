@@ -2226,7 +2226,7 @@ See test/tgadint64 in the test suite.
                        (taicpu(hp2).opcode = A_Jcc) or
                        (taicpu(hp2).opcode = A_CMOVcc)) then
                      case taicpu(hp1).opcode Of
-                       A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
+                       A_ADD, A_SUB, A_OR, A_XOR, A_AND:
                          begin
                            if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
                              { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
@@ -2234,6 +2234,25 @@ See test/tgadint64 in the test suite.
                               ((taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
                                ((taicpu(hp1).opcode <> A_ADD) and
                                 (taicpu(hp1).opcode <> A_SUB))) then
+                             begin
+                               hp1 := tai(p.next);
+                               asml.remove(p);
+                               p.free;
+                               p := tai(hp1);
+                               continue
+                             end;
+                         end;
+                       A_SHL, A_SAL, A_SHR, A_SAR:
+                         begin
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+                             { SHL/SAL/SHR/SAR with a value of 0 do not change the flags }
+                             { therefore, it's only safe to do this optimization for     }
+                             { shifts by a (nonzero) constant                            }
+                              (taicpu(hp1).oper[0]^.typ = top_const) and
+                              (taicpu(hp1).oper[0]^.val <> 0) and
+                             { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
+                             { and in case of carry for A(E)/B(E)/C/NC                  }
+                              (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                              begin
                                hp1 := tai(p.next);
                                asml.remove(p);
