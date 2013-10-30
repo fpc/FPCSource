@@ -353,9 +353,17 @@ unit cgcpu;
                         end;
                       OP_SAR:
                         begin
-                          a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),reg);
-                          a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg));
-                          a_op_const_reg(list,OP_SAR,OS_16,a-16,reg);
+                          if a=31 then
+                            begin
+                              a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg));
+                              a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),reg);
+                            end
+                          else
+                            begin
+                              a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),reg);
+                              a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg));
+                              a_op_const_reg(list,OP_SAR,OS_16,a-16,reg);
+                            end;
                         end;
                       else
                         internalerror(2013060201);
