@@ -26,7 +26,8 @@ sourcedir=src src/ptcwrapper
 packages=hermes fcl-base
 packages_linux=x11 opengl
 packages_freebsd=x11 opengl
-
+packages_win32=opengl
+packages_win64=opengl
 [default]
 fpcdir=../..
 
