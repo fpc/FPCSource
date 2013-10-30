@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2010 by Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (c) 2010, 2011 by Nikolay Nikolov (nickysn@users.sourceforge.net)
     Copyright (c) 2007 by Daniel Mantione
       member of the Free Pascal development team
 

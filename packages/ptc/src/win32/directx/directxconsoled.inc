@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 
 type
   TPrimaryModeEnum = (DIRECT, SECONDARY);
-  TDirectXConsole = class(TPTCBaseConsole)
+  TDirectXConsole = class(TPTCOpenGLLessConsole)
   private
     { title data }
 {    FTitle: array [0..1023] of Char;}

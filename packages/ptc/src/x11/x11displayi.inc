@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -350,6 +350,23 @@ begin
   FFunctionKeys[$FF and XK_KP_7] := Integer(PTCKEY_NUMPAD7);
   FFunctionKeys[$FF and XK_KP_8] := Integer(PTCKEY_NUMPAD8);
   FFunctionKeys[$FF and XK_KP_9] := Integer(PTCKEY_NUMPAD9);
+  FFunctionKeys[$FF and XK_KP_Home] := Integer(PTCKEY_HOME);
+  FFunctionKeys[$FF and XK_KP_Left] := Integer(PTCKEY_LEFT);
+  FFunctionKeys[$FF and XK_KP_Up] := Integer(PTCKEY_UP);
+  FFunctionKeys[$FF and XK_KP_Right] := Integer(PTCKEY_RIGHT);
+  FFunctionKeys[$FF and XK_KP_Down] := Integer(PTCKEY_DOWN);
+  FFunctionKeys[$FF and XK_KP_Page_Up] := Integer(PTCKEY_PAGEUP);
+  FFunctionKeys[$FF and XK_KP_Page_Down] := Integer(PTCKEY_PAGEDOWN);
+  FFunctionKeys[$FF and XK_KP_End] := Integer(PTCKEY_END);
+  FFunctionKeys[$FF and XK_KP_Begin] := Integer(PTCKEY_CLEAR);
+  FFunctionKeys[$FF and XK_KP_Insert] := Integer(PTCKEY_INSERT);
+  FFunctionKeys[$FF and XK_KP_Delete] := Integer(PTCKEY_DELETE);
+  FFunctionKeys[$FF and XK_KP_Multiply] := Integer(PTCKEY_MULTIPLY);
+  FFunctionKeys[$FF and XK_KP_Divide] := Integer(PTCKEY_DIVIDE);
+  FFunctionKeys[$FF and XK_KP_Add] := Integer(PTCKEY_ADD);
+  FFunctionKeys[$FF and XK_KP_Subtract] := Integer(PTCKEY_SUBTRACT);
+  FFunctionKeys[$FF and XK_KP_Decimal] := Integer(PTCKEY_DECIMAL);
+  FFunctionKeys[$FF and XK_KP_Enter] := Integer(PTCKEY_ENTER);
 
   FFunctionKeys[$FF and XK_F1] := Integer(PTCKEY_F1);
   FFunctionKeys[$FF and XK_F2] := Integer(PTCKEY_F2);
@@ -377,7 +394,7 @@ begin
   { Assign normal key indices }
   FNormalKeys[$FF and XK_space] := Integer(PTCKEY_SPACE);
   FNormalKeys[$FF and XK_comma] := Integer(PTCKEY_COMMA);
-  FNormalKeys[$FF and XK_minus] := Integer(PTCKEY_SUBTRACT);
+  FNormalKeys[$FF and XK_minus] := Integer(PTCKEY_MINUS);
   FNormalKeys[$FF and XK_period] := Integer(PTCKEY_PERIOD);
   FNormalKeys[$FF and XK_slash] := Integer(PTCKEY_SLASH);
   FNormalKeys[$FF and XK_0] := Integer(PTCKEY_ZERO);
@@ -392,6 +409,7 @@ begin
   FNormalKeys[$FF and XK_9] := Integer(PTCKEY_NINE);
   FNormalKeys[$FF and XK_semicolon] := Integer(PTCKEY_SEMICOLON);
   FNormalKeys[$FF and XK_equal] := Integer(PTCKEY_EQUALS);
+  FNormalKeys[$FF and XK_grave] := Integer(PTCKEY_BACKQUOTE);
 
   FNormalKeys[$FF and XK_bracketleft] := Integer(PTCKEY_OPENBRACKET);
   FNormalKeys[$FF and XK_backslash] := Integer(PTCKEY_BACKSLASH);
@@ -423,4 +441,20 @@ begin
   FNormalKeys[$FF and XK_x] := Integer(PTCKEY_X);
   FNormalKeys[$FF and XK_y] := Integer(PTCKEY_Y);
   FNormalKeys[$FF and XK_z] := Integer(PTCKEY_Z);
+end;
+
+procedure TX11Display.OpenGL_SwapBuffers;
+begin
+  raise TPTCError.Create('Not in OpenGL mode');
+end;
+
+procedure TX11Display.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  raise TPTCError.Create('Not in OpenGL mode');
+end;
+
+function TX11Display.OpenGL_GetSwapInterval: Integer;
+begin
+  Result := -1;
+  raise TPTCError.Create('Not in OpenGL mode');
 end;

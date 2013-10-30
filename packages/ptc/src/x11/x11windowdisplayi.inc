@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -46,19 +46,22 @@ begin
   inherited Destroy;
 end;
 
-procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat);
+procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes);
 var
   xgcv: TXGCValues;
   textprop: TXTextProperty;
   e: TXEvent;
   found: Boolean;
   attr: TXSetWindowAttributes;
+  AttrMask: culong;
   size_hints: PXSizeHints;
   tmppchar: PChar;
   tmpArrayOfCLong: array [1..1] of clong;
   tmpPixmap: TPixmap;
   BlackColor: TXColor;
   BlankCursorData: array [1..8] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
+  CreateWindow_Depth: cint;
+  CreateWindow_Visual: PVisual;
 begin
   FHeight := AHeight;
   FWidth := AWidth;
@@ -93,18 +96,46 @@ begin
     format conversion yet }
   FFormat := GetX11Format(AFormat);
 
+  attr.border_pixel := BlackPixel(FDisplay, FScreen);
+  attr.background_pixel := BlackPixel(FDisplay, FScreen);
+  AttrMask := CWBackPixel or CWBorderPixel;
+
+  CreateWindow_Depth := CopyFromParent;
+  CreateWindow_Visual := PVisual(CopyFromParent);
+  FVisual := DefaultVisual(FDisplay, FScreen);
+
+  if PTC_X11_USE_OPENGL in FFlags then
+  begin
+{$IFDEF ENABLE_X11_EXTENSION_GLX}
+    FGLXFBConfig := TX11GLXFBConfig.Create(FDisplay, FScreen, AOpenGLAttributes);
+    CreateWindow_Depth := FGLXFBConfig.FVisInfo.depth;
+    CreateWindow_Visual := FGLXFBConfig.FVisInfo.visual;
+    FVisual := CreateWindow_Visual;
+    FScreen := FGLXFBConfig.FVisInfo.screen; //?
+    attr.colormap := XCreateColormap(FDisplay, RootWindow(FDisplay, FScreen), CreateWindow_Visual, AllocNone);
+    AttrMask := AttrMask or CWColormap;
+{$ELSE ENABLE_X11_EXTENSION_GLX}
+    raise TPTCError.Create('Console does not support OpenGL');
+{$ENDIF ENABLE_X11_EXTENSION_GLX}
+  end;
+
   { Create a window }
-  FWindow := XCreateSimpleWindow(FDisplay, RootWindow(FDisplay, FScreen), 0, 0,
-                AWidth, AHeight, 0, BlackPixel(FDisplay, FScreen),
-                                    BlackPixel(FDisplay, FScreen));
+  FWindow := XCreateWindow(FDisplay, RootWindow(FDisplay, FScreen), 0, 0,
+                AWidth, AHeight, 0, CreateWindow_Depth, InputOutput, CreateWindow_Visual,
+                AttrMask, @attr);
   { Register the delete atom }
   FAtomClose := XInternAtom(FDisplay, 'WM_DELETE_WINDOW', False);
   X11Check(XSetWMProtocols(FDisplay, FWindow, @FAtomClose, 1), 'XSetWMProtocols');
-  { Get graphics context }
-  xgcv.graphics_exposures := Ord(False);
-  FGC := XCreateGC(FDisplay, FWindow, GCGraphicsExposures, @xgcv);
-  if FGC = nil then
-    raise TPTCError.Create('can''t create graphics context');
+
+  if not (PTC_X11_USE_OPENGL in FFlags) then
+  begin
+    { Get graphics context }
+    xgcv.graphics_exposures := Ord(False);
+    FGC := XCreateGC(FDisplay, FWindow, GCGraphicsExposures, @xgcv);
+    if FGC = nil then
+      raise TPTCError.Create('can''t create graphics context');
+  end;
+
   { Set window title }
   tmppchar := PChar(ATitle);
   X11Check(XStringListToTextProperty(@tmppchar, 1, @textprop), 'XStringListToTextProperty');
@@ -166,8 +197,12 @@ begin
                                   ButtonPressMask or ButtonReleaseMask or
                                   PointerMotionMask or ExposureMask);
   XSync(FDisplay, False);
-  { Create XImage using factory method }
-  FPrimary := CreateImage(FDisplay, FScreen, FWidth, FHeight, FFormat);
+
+  if not (PTC_X11_USE_OPENGL in FFlags) then
+  begin
+    { Create XImage using factory method }
+    FPrimary := CreateImage(FDisplay, FScreen, FWidth, FHeight, FFormat);
+  end;
 
   found := False;
   repeat
@@ -186,8 +221,18 @@ begin
   { Installs the right colour map for 8 bit modes }
   CreateColormap;
 
+{$IFDEF ENABLE_X11_EXTENSION_GLX}
+  if PTC_X11_USE_OPENGL in FFlags then
+  begin
+    FGLXFBConfig.AttachToWindow(FWindow);
+    FGLXFBConfig.MakeRenderingContextCurrent;
+  end;
+{$ENDIF ENABLE_X11_EXTENSION_GLX}
+
   if FFullScreen then
     EnterFullScreen;
+
+  FOpen := True;
 end;
 
 procedure TX11WindowDisplay.Open(AWindow: TWindow; AFormat: IPTCFormat);
@@ -200,7 +245,13 @@ end;
 
 procedure TX11WindowDisplay.Close;
 begin
+  FOpen := False;
+
   FreeAndNil(FModeSwitcher);
+
+{$IFDEF ENABLE_X11_EXTENSION_GLX}
+  FreeAndNil(FGLXFBConfig);
+{$ENDIF ENABLE_X11_EXTENSION_GLX}
 
   {pthreads?!}
   if FCMap <> 0 then
@@ -212,6 +263,12 @@ begin
   { Destroy XImage and buffer }
   FreeAndNil(FPrimary);
   FreeMemAndNil(FColours);
+
+  if FGC <> nil then
+  begin
+    XFreeGC(FDisplay, FGC);
+    FGC := nil;
+  end;
 
   { Hide and destroy window }
   if (FWindow <> 0) and (not (PTC_X11_LEAVE_WINDOW In FFlags)) then
@@ -385,6 +442,7 @@ var
   begin
     sym := XLookupKeySym(@e.xkey, 0);
     XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, nil);
+//    Writeln('sym_modded = ', sym_modded);
     uni := X11ConvertKeySymToUnicode(sym_modded);
     alt := (e.xkey.state and Mod1Mask) <> 0;
     shift := (e.xkey.state and ShiftMask) <> 0;
@@ -394,10 +452,18 @@ var
     else
       press := False;
 
+    // XK_ISO_Left_Tab is Shift-Tab
+    if sym_modded = XK_ISO_Left_Tab then
+    begin
+      sym_modded := XK_Tab;
+      uni := 9;
+      shift := True;
+    end;
+
     key := nil;
-    case sym shr 8 of
-      0: key := TPTCKeyEvent.Create(FNormalKeys[sym and $FF], uni, alt, shift, ctrl, press);
-      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym and $FF], uni, alt, shift, ctrl, press);
+    case sym_modded shr 8 of
+      0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
+      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
       else
         key := TPTCKeyEvent.Create;
     end;
@@ -538,7 +604,10 @@ end;
 
 procedure TX11WindowDisplay.Draw;
 begin
-  FPrimary.Put(FWindow, FGC, FDestX, FDestY);
+  if not (PTC_X11_USE_OPENGL in FFlags) then
+  begin
+    FPrimary.Put(FWindow, FGC, FDestX, FDestY);
+  end;
 end;
 
 procedure TX11WindowDisplay.Update;
@@ -610,7 +679,7 @@ end;
 
 procedure TX11WindowDisplay.GetModes(var AModes: TPTCModeList);
 var
-  current_desktop_format, tmpfmt: IPTCFormat;
+  current_desktop_format: IPTCFormat;
 begin
   if FModeSwitcher = nil then
     FModeSwitcher := CreateModeSwitcher;
@@ -709,6 +778,11 @@ begin
   Result := FFullScreen;
 end;
 
+function TX11WindowDisplay.IsOpen: Boolean;
+begin
+  Result := FOpen;
+end;
+
 procedure TX11WindowDisplay.CreateColormap; { Register colour maps }
 var
   i: Integer;
@@ -750,3 +824,20 @@ begin
     XStoreColors(FDisplay, FCMap, FColours, 256);
   end;
 end;
+
+{$IFDEF ENABLE_X11_EXTENSION_GLX}
+procedure TX11WindowDisplay.OpenGL_SwapBuffers;
+begin
+  FGLXFBConfig.SwapBuffers;
+end;
+
+procedure TX11WindowDisplay.OpenGL_SetSwapInterval(AInterval: Integer);
+begin
+  FGLXFBConfig.SetSwapInterval(AInterval);
+end;
+
+function TX11WindowDisplay.OpenGL_GetSwapInterval: Integer;
+begin
+  Result := FGLXFBConfig.GetSwapInterval;
+end;
+{$ENDIF ENABLE_X11_EXTENSION_GLX}

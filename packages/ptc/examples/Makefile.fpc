@@ -8,9 +8,13 @@ version=2.6.3
 
 [target]
 programs=area buffer clear clip con_info console fire  \
-         flower hicolor image keyboard keyboard2 land \
-         lights modes mojo palette pixel random save \
-         stretch texwarp timer tunnel3d tunnel
+         flower hicolor image keyboard keyboard2 keyboard3 \
+         land lights modes mojo palette pixel random save \
+         stretch texwarp timer tunnel3d tunnel keyboard3
+programs_win32=ptcgl ptcgl2
+programs_win64=ptcgl ptcgl2
+programs_linux=ptcgl ptcgl2
+programs_freebsd=ptcgl ptcgl2 
 
 [compiler]
 unitdir=../$(UNITTARGETDIRPREFIX)

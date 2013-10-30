@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -52,6 +52,8 @@ type
     function GetName: string; override;
     function GetTitle: string; override;
     function GetInformation: string; override;
+    function GetOpenGL_Enabled: Boolean; override;
+    procedure SetOpenGL_Enabled(AValue: Boolean); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -112,4 +114,8 @@ type
 
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
+
+    procedure OpenGL_SwapBuffers; override;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
+    function OpenGL_GetSwapInterval: Integer; override;
   end;

@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
 type
   TX11DGA2Display = class(TX11Display)
   private
+    FOpen: Boolean;
     FXDGAEventBase: cint;
     FXDGAErrorBase: cint;
   
@@ -52,15 +53,16 @@ type
     FModeIsSet: Boolean;
     FFramebufferIsOpen: Boolean;
 
+    procedure HandleEvents;
+
+  protected
     function NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent; override;
-
-    procedure HandleEvents;
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); override;
     destructor Destroy; override;
 
-    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat); override;
+    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); override;
     procedure Open(w: TWindow; _format: IPTCFormat); override;
     procedure Open(_window: TWindow; _format: IPTCFormat; x, y, w, h: Integer); override;
     procedure Close; override;
@@ -73,6 +75,7 @@ type
     function GetPitch: Integer; override;
     function getX11Window: TWindow; override;
     function isFullScreen: Boolean; override;
+    function IsOpen: Boolean; override;
     procedure SetCursor(visible: Boolean); override;
     procedure SetMouseGrab(AGrabMouse: Boolean); override;
   end;

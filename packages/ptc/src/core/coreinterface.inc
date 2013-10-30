@@ -11,6 +11,7 @@
 {$INCLUDE clipperd.inc}
 {$INCLUDE basesurfaced.inc}
 {$INCLUDE surfaced.inc}
+{$INCLUDE openglattributesd.inc}
 {$INCLUDE baseconsoled.inc}
 {$INCLUDE consoled.inc}
 {$INCLUDE errord.inc}

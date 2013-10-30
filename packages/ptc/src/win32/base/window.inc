@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -43,11 +43,86 @@ begin
   FManaged := False;
 end;
 
-constructor TWin32Window.Create(const AWndClass, ATitle: string; AExtra, AStyle: DWord;
-                                AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded: Boolean;
-				AData: Pointer);
+function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
+function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
+
+constructor TWin32Window.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
+                                AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded,
+                                ACursor: Boolean);
+var
+  program_instance{, library_instance}: DWord;
+  rectangle: RECT;
+  display_width, display_height: Integer;
+  wc: WNDCLASSEX;
 begin
-  internal_create(AWndClass, ATitle, AExtra, AStyle, AShow, AX, AY, AWidth, AHeight, ACenter, AMultithreaded, AData);
+  LOG('creating managed window');
+  Defaults;
+  FMultithreaded := AMultithreaded;
+  try
+    program_instance := GetModuleHandle(nil);
+{    library_instance := program_instance;}
+    wc.cbSize := SizeOf(WNDCLASSEX);
+    wc.hInstance := program_instance;
+    wc.lpszClassName := PChar(AWndClass);
+    wc.style := AClassStyle;
+    wc.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
+    wc.hIconSm := 0;
+    wc.lpszMenuName := nil;
+    wc.cbClsExtra := 0;
+    wc.cbWndExtra := 0;
+    wc.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
+    if AMultithreaded then
+      wc.lpfnWndProc := @WndProcMultiThreaded
+    else
+      wc.lpfnWndProc := @WndProcSingleThreaded;
+    if ACursor then
+      wc.hCursor := LoadCursor(0, IDC_ARROW)
+    else
+      wc.hCursor := 0;
+    RegisterClassEx(wc);
+    with rectangle do
+    begin
+      left := 0;
+      top := 0;
+      right := AWidth;
+      bottom := AHeight;
+    end;
+    AdjustWindowRectEx(rectangle, AStyle, False, AExtra);
+    if ACenter then
+    begin
+      LOG('centering window');
+      display_width := GetSystemMetrics(SM_CXSCREEN);
+      display_height := GetSystemMetrics(SM_CYSCREEN);
+      AX := (display_width - (rectangle.right - rectangle.left)) div 2;
+      AY := (display_height - (rectangle.bottom - rectangle.top)) div 2;
+    end;
+    FName := AWndClass;
+    FTitle := ATitle;
+    FExtra := AExtra;
+    FStyle := AStyle;
+    FShow := AShow;
+    FX := AX;
+    FY := AY;
+    FWidth := rectangle.right - rectangle.left;
+    FHeight := rectangle.bottom - rectangle.top;
+    if AMultithreaded then
+    begin
+      {...}
+    end
+    else
+    begin
+      FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
+      if not IsWindow(FWindow) then
+        raise TPTCError.Create('could not create window');
+      ShowWindow(FWindow, FShow);
+      SetFocus(FWindow);
+      SetActiveWindow(FWindow);
+      SetForegroundWindow(FWindow);
+    end;
+  except
+    on error: TPTCError do
+      raise TPTCError.Create('could not create window', error);
+  end;
 end;
 
 destructor TWin32Window.Destroy;
@@ -163,8 +238,23 @@ begin
 end;
 
 function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  WindowObject: TWin32Window;
+  pCreate: PCREATESTRUCT;
 begin
   case message of
+    WM_CREATE:
+      begin
+        pCreate := PCREATESTRUCT(lParam);
+        WindowObject := TWin32Window(pCreate^.lpCreateParams);
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, LONG_PTR(WindowObject));
+        Result := WindowObject.WMCreate(hWnd, message, wParam, lParam);
+      end;
+    WM_DESTROY:
+      begin
+        WindowObject := TWin32Window(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        Result := WindowObject.WMDestroy(hWnd, message, wParam, lParam);
+      end;
     WM_SYSCOMMAND:
       begin
         { this fixes the pausing of the application when the Alt or F10 key is pressed }
@@ -227,83 +317,6 @@ begin
   end;
 end;
 
-procedure TWin32Window.internal_create(const AWndClass, ATitle: string; AExtra, AStyle: DWord;
-                                       AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded: Boolean;
-				       AData: Pointer);
-var
-  program_instance{, library_instance}: DWord;
-  rectangle: RECT;
-  display_width, display_height: Integer;
-  wc: WNDCLASSEX;
-begin
-  LOG('creating managed window');
-  Defaults;
-  FMultithreaded := AMultithreaded;
-  try
-    program_instance := GetModuleHandle(nil);
-{    library_instance := program_instance;}
-    wc.cbSize := SizeOf(WNDCLASSEX);
-    wc.hInstance := program_instance;
-    wc.lpszClassName := PChar(AWndClass);
-    wc.style := CS_VREDRAW or CS_HREDRAW;
-    wc.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
-    wc.hIconSm := 0;
-    wc.lpszMenuName := nil;
-    wc.cbClsExtra := 0;
-    wc.cbWndExtra := 0;
-    wc.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
-    if AMultithreaded then
-      wc.lpfnWndProc := @WndProcMultiThreaded
-    else
-      wc.lpfnWndProc := @WndProcSingleThreaded;
-    wc.hCursor := LoadCursor(0, IDC_ARROW);
-    RegisterClassEx(wc);
-    with rectangle do
-    begin
-      left := 0;
-      top := 0;
-      right := AWidth;
-      bottom := AHeight;
-    end;
-    AdjustWindowRectEx(rectangle, AStyle, False, AExtra);
-    if ACenter then
-    begin
-      LOG('centering window');
-      display_width := GetSystemMetrics(SM_CXSCREEN);
-      display_height := GetSystemMetrics(SM_CYSCREEN);
-      AX := (display_width - (rectangle.right - rectangle.left)) div 2;
-      AY := (display_height - (rectangle.bottom - rectangle.top)) div 2;
-    end;
-    FName := AWndClass;
-    FTitle := ATitle;
-    FExtra := AExtra;
-    FStyle := AStyle;
-    FShow := AShow;
-    FX := AX;
-    FY := AY;
-    FWidth := rectangle.right - rectangle.left;
-    FHeight := rectangle.bottom - rectangle.top;
-    FData := AData;
-    if AMultithreaded then
-    begin
-      {...}
-    end
-    else
-    begin
-      FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, FData);
-      if not IsWindow(FWindow) then
-        raise TPTCError.Create('could not create window');
-      ShowWindow(FWindow, FShow);
-      SetFocus(FWindow);
-      SetActiveWindow(FWindow);
-      SetForegroundWindow(FWindow);
-    end;
-  except
-    on error: TPTCError do
-      raise TPTCError.Create('could not create window', error);
-  end;
-end;
-
 procedure TWin32Window.Defaults;
 begin
   FWindow := 0;
@@ -319,7 +332,6 @@ begin
   FY := 0;
   FWidth := 0;
   FHeight := 0;
-  FData := nil;
   FManaged := True;
   FMultithreaded := False;
 end;
@@ -367,7 +379,7 @@ var
 begin
   with AOwner do
   begin
-    FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, FData);
+    FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
     if IsWindow(FWindow) then
     begin
       ShowWindow(FWindow, FShow);
@@ -383,4 +395,14 @@ begin
     else
       SetEvent(FEvent);
   end;
+end;
+
+function TWin32Window.WMCreate(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
+begin
+  Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+end;
+
+function TWin32Window.WMDestroy(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
+begin
+  Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
 end;

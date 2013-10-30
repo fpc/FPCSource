@@ -279,11 +279,17 @@ graph_release: sdl_release
 endif
 
 ifneq ($(findstring $(OS_TARGET),linux win32 win64),)
-graph_all: ptc_all
-graph_shared: ptc_shared
-graph_smart: ptc_smart
-graph_debug: ptc_debug
-graph_release: ptc_release
+graph_all: ptc_all opengl_all
+graph_shared: ptc_shared opengl_shared
+graph_smart: ptc_smart opengl_smart
+graph_debug: ptc_debug opengl_debug
+graph_release: ptc_release opengl_release
+
+ptc_all: opengl_all
+ptc_shared: opengl_shared
+ptc_smart: opengl_smart
+ptc_debug: opengl_debug
+ptc_release: opengl_release
 endif
 
 ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
@@ -351,11 +357,11 @@ opengl_smart: x11_smart
 opengl_debug: x11_debug
 opengl_release: x11_release
 
-ptc_all: x11_all
-ptc_shared: x11_shared
-ptc_smart: x11_smart
-ptc_debug: x11_debug
-ptc_release: x11_release
+ptc_all: x11_all opengl_all
+ptc_shared: x11_shared opengl_shared
+ptc_smart: x11_smart opengl_smart
+ptc_debug: x11_debug opengl_debug
+ptc_release: x11_release opengl_release
 endif
 
 tcl_all: fcl-base_all

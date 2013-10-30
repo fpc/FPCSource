@@ -1,7 +1,6 @@
 {
-    Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
-    Original C++ version by Glenn Fiedler (ptc@gaffer.org)
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -37,6 +36,8 @@ type
     FWin32DIB: TWin32DIB;
     FKeyboard: TWin32Keyboard;
     FMouse: TWin32Mouse;
+    FWin32Cursor: TWin32Cursor;
+    FHook: TGDIHook;
 
     FCopy: TPTCCopy;
     FClear: TPTCClear;
@@ -45,6 +46,10 @@ type
     FClip: IPTCArea;
     FPalette: IPTCPalette;
     FModes: array of IPTCMode;
+
+    FFullscreen: Boolean;
+    FModeSetter: TWin32ModeSetter;
+    FGrabMouse: Boolean;
 
     FOpen: Boolean;
     FLocked: Boolean;
@@ -60,6 +65,8 @@ type
     FDefaultHeight: Integer;
     FDefaultFormat: IPTCFormat;
 
+    FUseOpenGL: Boolean;
+
     procedure UpdateCursor;
 
     function GetWidth: Integer; override;
@@ -71,6 +78,9 @@ type
     function GetName: string; override;
     function GetTitle: string; override;
     function GetInformation: string; override;
+
+    function GetOpenGL_Enabled: Boolean; override;
+    procedure SetOpenGL_Enabled(AValue: Boolean); override;
 
     procedure CheckOpen(const AMessage: string);
     procedure CheckUnlocked(const AMessage: string);
@@ -134,4 +144,8 @@ type
 
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
+
+    procedure OpenGL_SwapBuffers; override;
+	procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
+	function OpenGL_GetSwapInterval: Integer; override;
   end;

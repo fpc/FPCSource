@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009, 2010, 2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -44,26 +44,24 @@ type
     FShow: Integer;
     FX, FY: Integer;
     FWidth, FHeight: Integer;
-    FData: Pointer;
     FManaged: Boolean;
     FMultithreaded: Boolean;
     FCursorConfineInEffect: Boolean;
 
 {    class function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;
     class function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;}
-    procedure internal_create(const AWndClass, ATitle: string; AExtra, AStyle: DWord;
-                              AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded: Boolean;
-			      AData: Pointer);
 
     procedure Defaults;
     procedure Close;
     function GetThread: DWord;
     class procedure ThreadFunction(AOwner: TWin32Window);
+  protected
+    function WMCreate(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; virtual;
+    function WMDestroy(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; virtual;
   public
     constructor Create(window: HWND);
-    constructor Create(const AWndClass, ATitle: string; AExtra, AStyle: DWord;
-                       AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded: Boolean;
-		       AData: Pointer = nil);
+    constructor Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
+                       AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor: Boolean);
     destructor Destroy; override;
     procedure Cursor(AFlag: Boolean);
     procedure ConfineCursor(AFlag: Boolean);

@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009, 2010, 2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -62,9 +62,23 @@ begin
   FMessage := AError.FMessage;
 end;
 
-function TPTCError.Equals(const AError: TPTCError): Boolean;
+function TPTCError.Equals(Obj: TObject): Boolean;
+var
+  OtherError: TPTCError;
 begin
-  Equals := (FMessage = AError.FMessage);
+  if Obj = nil then
+    exit(False);
+
+  if Obj = Self then
+    exit(True);
+
+  if Obj is TPTCError then
+  begin
+    OtherError := TPTCError(Obj);
+    Equals := (FMessage = OtherError.FMessage);
+  end
+  else
+    Result := False;
 end;
 
 procedure TPTCError.Report;

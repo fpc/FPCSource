@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -38,12 +38,28 @@ begin
   if (sym >= $1000100) and (sym <= $110FFFF) then
     exit(sym - $1000000);
 
-{  case sym of
+  case sym of
     XK_BackSpace: exit(8);
     XK_Tab: exit(9);
     XK_Return: exit(13);
+    XK_KP_Enter: exit(13);
+    XK_KP_Multiply: exit($2A);
+    XK_KP_Divide: exit($2F);
+    XK_KP_Add: exit($2B);
+    XK_KP_Subtract: exit($2D);
+    XK_KP_Decimal: exit($2E);
+    XK_KP_0: exit($30);
+    XK_KP_1: exit($31);
+    XK_KP_2: exit($32);
+    XK_KP_3: exit($33);
+    XK_KP_4: exit($34);
+    XK_KP_5: exit($35);
+    XK_KP_6: exit($36);
+    XK_KP_7: exit($37);
+    XK_KP_8: exit($38);
+    XK_KP_9: exit($39);
     XK_Escape: exit(27);
-  End;}
+  End;
   case sym of
     XKc_Cyrillic_GHE_bar     : exit($492);
     XK_Cyrillic_ghe_bar      : exit($493);
