@@ -36,13 +36,13 @@ Unit System;
 function get_cmdline:Pchar; 
 property cmdline:Pchar read get_cmdline;
 
-{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
+{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
+{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
 
 {*****************************************************************************}
                                  implementation
@@ -55,7 +55,7 @@ var
 
 const calculated_cmdline:Pchar=nil;
 
-{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
+{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) }
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
@@ -73,7 +73,7 @@ const calculated_cmdline:Pchar=nil;
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) or defined(CPUMIPS)}
+{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC) }
 
 {$I system.inc}
 
