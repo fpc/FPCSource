@@ -32,7 +32,7 @@ begin
 {$ifdef cpui386}
   dbl1 := -1e-128;
   comp1 := comp(dbl1);
-  str(comp1,s);
+  str(comp1:23,s);
   if s<>' 0.00000000000000E+0000' then
     begin
       writeln('error: ',s);

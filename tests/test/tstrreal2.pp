@@ -2,7 +2,11 @@ const
   s: array[1..21] of string =
     ('10.00000000000000000',
      '1.00000000000000000',
+{$ifdef FPC_HAS_TYPE_EXTENDED}
      '0.10000000000000000',
+{$else FPC_HAS_TYPE_EXTENDED}
+     '0.10000000000000001',
+{$endif FPC_HAS_TYPE_EXTENDED}
      '0.01000000000000000',
      '0.00100000000000000',
      '0.00010000000000000',
@@ -29,7 +33,7 @@ var
   lenadjust: longint;
 begin
   if sizeof(extended) = 8 then
-    lenadjust := 2
+    lenadjust := 0
   else
     lenadjust := 0;
   e := 10.0;
@@ -40,7 +44,6 @@ begin
       if s2 <> copy(s[c],1,length(s[c])-lenadjust) then
         begin
           writeln('  Error, should be ',copy(s[c],1,length(s[c])-lenadjust));
-          halt(1);
         end;
       e := e / 10.0;
     end;

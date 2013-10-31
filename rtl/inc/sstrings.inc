@@ -471,7 +471,11 @@ end;
 { compilerproc name will fail (JM)                                       }
 
 {$ifndef FPUNONE}
+{$ifdef FLOAT_ASCII_FALLBACK}
 {$I real2str.inc}
+{$else not FLOAT_ASCII_FALLBACK}
+{$I flt_conv.inc}
+{$endif FLOAT_ASCII_FALLBACK}
 {$endif}
 
 {$ifndef FPUNONE}
@@ -1351,7 +1355,7 @@ end;
   end;
 {$endif CPU16 or CPU8}
 
-
+{$ifdef FLOAT_ASCII_FALLBACK}
 {$ifndef FPUNONE}
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1691,6 +1695,17 @@ begin
   code:=0;
 end;
 {$endif}
+
+{$else not FLOAT_ASCII_FALLBACK}
+
+{$ifndef FPUNONE}
+Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
+begin
+    fpc_Val_Real_ShortStr := val_real( s, code );
+end;
+{$endif FPUNONE}
+
+{$endif FLOAT_ASCII_FALLBACK}
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;

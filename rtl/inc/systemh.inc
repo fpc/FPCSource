@@ -110,6 +110,9 @@ Type
   Real = type Double;
 {$endif}
 
+{ Can be individually defined/undefined on a per-platform basis }
+{ define FLOAT_ASCII_FALLBACK}
+
 {$ifdef CPUI386}
   {$define CPU32}
 

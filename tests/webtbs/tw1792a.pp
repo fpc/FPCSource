@@ -4,7 +4,7 @@ var
   s : string;
 Begin
 {$ifdef FPC_HAS_TYPE_EXTENDED}
- str(intpower(2,63),s);
+ str(intpower(2,63):25,s);
  if s<>' 9.2233720368547758E+0018' then
    begin
      WriteLn(intpower(2,63));
@@ -13,7 +13,7 @@ Begin
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
- str(double(intpower(2,63)),s);
+ str(double(intpower(2,63)):22,s);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
  if s<>' 9.22337203685478E+018' then
 {$else FPC_HAS_TYPE_EXTENDED}
