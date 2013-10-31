@@ -610,12 +610,6 @@ implementation
       result:=cg.getmmregister(list,def_cgsize(size));
     end;
 
-(*
-  function thlcgobj.getmmregister(list: TAsmList; size: tdef): Tregister;
-    begin
-      result:=cg.getmmregister(list,def_cgsize(size));
-    end;
-*)
   function thlcgobj.getflagregister(list: TAsmList; size: tdef): Tregister;
     begin
       result:=cg.getflagregister(list,def_cgsize(size));
