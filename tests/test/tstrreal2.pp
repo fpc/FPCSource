@@ -44,6 +44,7 @@ begin
       if s2 <> copy(s[c],1,length(s[c])-lenadjust) then
         begin
           writeln('  Error, should be ',copy(s[c],1,length(s[c])-lenadjust));
+          halt(1);
         end;
       e := e / 10.0;
     end;
