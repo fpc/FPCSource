@@ -35,7 +35,7 @@ begin
 {$ifdef FPC_DOUBLE_HILO_SWAPPED}
   comp1:=swap(comp1);
 {$endif FPC_DOUBLE_HILO_SWAPPED}
-  str(comp1,s);
+  str(comp1:23,s);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   if s<>'-6.53142228756617E+0018' then
 {$else FPC_HAS_TYPE_EXTENDED}
