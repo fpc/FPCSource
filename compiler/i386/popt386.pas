@@ -1036,7 +1036,10 @@ begin
                             p := hp1;
                             continue;
                           end
-                        else
+                        { continue to use lea to adjust the stack pointer,
+                          it is the recommended way, but only if not optimizing for size }
+                        else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
+                          (cs_opt_size in current_settings.optimizerswitches) then
                           with taicpu(p).oper[0]^.ref^ do
                             if (base = taicpu(p).oper[1]^.reg) then
                               begin
@@ -1055,7 +1058,7 @@ begin
                                   end
                                 else
                                   begin
-                                    if (l<0) and (l<>$80000000) then
+                                    if (l<0) and (l<>-2147483648) then
                                       begin
                                         taicpu(p).opcode := A_SUB;
                                         taicpu(p).loadConst(0,-l);
