@@ -1911,6 +1911,17 @@ end;
 
 procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
 
+{$ifdef DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
+
   function CanBeCMOV(p : tai) : boolean;
     begin
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
@@ -2184,12 +2195,19 @@ begin
                   else if (taicpu(p).oper[0]^.typ = top_ref) and
                      GetNextInstruction(p,hp1) and
                      (hp1.typ = ait_instruction) and
-                     IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
+                     (IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) or
+                      ((taicpu(hp1).opcode=A_LEA) and
+                       (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+                       ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
+                        (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)) or
+                        (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) and
+                        (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg))
+                       )
+                      )
+                     ) and
                      GetNextInstruction(hp1,hp2) and
-                     (hp2.typ = ait_instruction) and
-                     (taicpu(hp2).opcode = A_MOV) and
-                     (taicpu(hp2).oper[0]^.typ = top_reg) and
-                     (taicpu(hp2).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
+                     MatchInstruction(hp2,A_MOV,[]) and
+                     MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
                      (taicpu(hp2).oper[1]^.typ = top_ref) then
                     begin
                       TmpUsedRegs := UsedRegs;
@@ -2205,7 +2223,17 @@ begin
                         begin
                           case taicpu(hp1).opcode of
                             A_INC,A_DEC:
-                              taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^)
+                              taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
+                            A_LEA:
+                              begin
+                                taicpu(hp1).opcode:=A_ADD;
+                                if taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg then
+                                  taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.index)
+                                else
+                                  taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base);
+                                taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
+                                DebugMsg('Peephole FoldLea done',hp1);
+                              end
                             else
                               taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
                           end;

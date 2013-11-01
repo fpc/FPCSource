@@ -282,6 +282,7 @@ interface
 
        { Invalid register number }
        RS_INVALID    = high(tsuperregister);
+       NR_INVALID    = tregister($fffffffff);
 
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
