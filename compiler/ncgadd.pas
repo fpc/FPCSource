@@ -176,49 +176,15 @@ interface
     procedure tcgaddnode.set_result_location_reg;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$ifdef x86}
-        if left.location.loc=LOC_REGISTER then
-          begin
-            if TCGSize2Size[left.location.size]<>TCGSize2Size[location.size] then
-              internalerror(200307041);
 {$ifndef cpu64bitalu}
-            if location.size in [OS_64,OS_S64] then
-              begin
-                location.register64.reglo := left.location.register64.reglo;
-                location.register64.reghi := left.location.register64.reghi;
-              end
-            else
-{$endif}
-              location.register := left.location.register;
-          end
-        else
-         if right.location.loc=LOC_REGISTER then
+        if location.size in [OS_64,OS_S64] then
           begin
-            if TCGSize2Size[right.location.size]<>TCGSize2Size[location.size] then
-              internalerror(200307042);
-{$ifndef cpu64bitalu}
-            if location.size in [OS_64,OS_S64] then
-              begin
-                location.register64.reglo := right.location.register64.reglo;
-                location.register64.reghi := right.location.register64.reghi;
-              end
-            else
-{$endif}
-              location.register := right.location.register;
+            location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
           end
         else
 {$endif}
-          begin
-{$ifndef cpu64bitalu}
-            if location.size in [OS_64,OS_S64] then
-              begin
-                location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-              end
-            else
-{$endif}
-            location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-          end;
+          location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
       end;
 
 
