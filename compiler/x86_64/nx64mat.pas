@@ -61,9 +61,11 @@ implementation
 
     procedure tx8664moddivnode.pass_generate_code;
       var
-        hreg1,hreg2:Tregister;
+        hreg1,hreg2,rega,regd:Tregister;
         power:longint;
         op:Tasmop;
+        cgsize:TCgSize;
+        opsize:topsize;
       begin
         secondpass(left);
         if codegenerror then
@@ -73,7 +75,24 @@ implementation
           exit;
 
         { put numerator in register }
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        cgsize:=def_cgsize(resultdef);
+        opsize:=TCGSize2OpSize[cgsize];
+        case cgsize of
+          OS_S64,OS_64:
+            begin
+              rega:=NR_RAX;
+              regd:=NR_RDX;
+            end;
+          OS_S32,OS_32:
+            begin
+              rega:=NR_EAX;
+              regd:=NR_EDX;
+            end;
+          else
+            internalerror(2013102702);
+        end;
+
+        location_reset(location,LOC_REGISTER,cgsize);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
@@ -88,60 +107,67 @@ implementation
                   { use a sequence without jumps, saw this in
                     comp.compilers (JM) }
                   { no jumps, but more operations }
-                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  emit_reg_reg(A_MOV,S_Q,hreg1,hreg2);
+                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                  emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
                   {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                  emit_const_reg(A_SAR,S_Q,63,hreg2);
+                  emit_const_reg(A_SAR,opsize,63,hreg2);
                   {If signed, hreg2=right value-1, otherwise 0.}
                   { (don't use emit_const_reg, because if value>high(longint)
                      then it must first be loaded into a register) }
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_S64,tordconstnode(right).value-1,hreg2);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
                   { add to the left value }
-                  emit_reg_reg(A_ADD,S_Q,hreg2,hreg1);
+                  emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
                   { do the shift }
-                  emit_const_reg(A_SAR,S_Q,power,hreg1);
+                  emit_const_reg(A_SAR,opsize,power,hreg1);
               end
             else
-              emit_const_reg(A_SHR,S_Q,power,hreg1);
+              emit_const_reg(A_SHR,opsize,power,hreg1);
             location.register:=hreg1;
           end
         else
           begin
             {Bring denominator to a register.}
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
-            emit_reg_reg(A_MOV,S_Q,hreg1,NR_RAX);
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
+            cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+            emit_reg_reg(A_MOV,opsize,hreg1,rega);
+            cg.getcpuregister(current_asmdata.CurrAsmList,regd);
             {Sign extension depends on the left type.}
-            if torddef(left.resultdef).ordtype=u64bit then
-              emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
+            if is_signed(left.resultdef) then
+              case left.resultdef.size of
+                8:
+                  emit_none(A_CQO,S_NO);
+                4:
+                  emit_none(A_CDQ,S_NO);
+                else
+                  internalerror(2013102701);
+              end
             else
-              emit_none(A_CQO,S_NO);
+              emit_reg_reg(A_XOR,opsize,regd,regd);
 
             {Division depends on the right type.}
-            if Torddef(right.resultdef).ordtype=u64bit then
-              op:=A_DIV
+            if is_signed(right.resultdef) then
+              op:=A_IDIV
             else
-              op:=A_IDIV;
+              op:=A_DIV;
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-              emit_ref(op,S_Q,right.location.reference)
+              emit_ref(op,opsize,right.location.reference)
             else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              emit_reg(op,S_Q,right.location.register)
+              emit_reg(op,opsize,right.location.register)
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u64inttype,right.location,hreg1);
-                emit_reg(op,S_Q,hreg1);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,hreg1);
+                emit_reg(op,opsize,hreg1);
               end;
 
-            { Copy the result into a new register. Release RAX & RDX.}
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RDX);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RAX);
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            { Copy the result into a new register. Release R/EAX & R/EDX.}
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
             if nodetype=divn then
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_RAX,location.register)
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,rega,location.register)
             else
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_RDX,location.register);
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
           end;
       end;
 
