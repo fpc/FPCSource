@@ -163,7 +163,24 @@ implementation
                       n:=0;
                       if ops=3 then
                         n:=1;
-                      if (oper[n+0]^.typ=top_reg) and
+                      { lea is tricky: part of operand 0 can be spilled and the instruction can converted into an
+                        add, if base or index shall be spilled and the other one is equal the destination }
+                      if (opcode=A_LEA) then
+                        begin
+                          if (oper[0]^.ref^.offset=0) and
+                             (oper[0]^.ref^.scalefactor in [0,1]) and
+                             (((getregtype(oper[0]^.ref^.base)=regtype) and
+                               (get_alias(getsupreg(oper[0]^.ref^.base))=orgreg) and
+                               (getregtype(oper[0]^.ref^.index)=getregtype(oper[1]^.reg)) and
+                               (get_alias(getsupreg(oper[0]^.ref^.index))=get_alias(getsupreg(oper[1]^.reg)))) or
+                              ((getregtype(oper[0]^.ref^.index)=regtype) and
+                               (get_alias(getsupreg(oper[0]^.ref^.index))=orgreg) and
+                               (getregtype(oper[0]^.ref^.base)=getregtype(oper[1]^.reg)) and
+                               (get_alias(getsupreg(oper[0]^.ref^.base))=get_alias(getsupreg(oper[1]^.reg))))
+                             ) then
+                             replaceoper:=0;
+                        end
+                      else if (oper[n+0]^.typ=top_reg) and
                          (oper[n+1]^.typ=top_reg) and
                          ((getregtype(oper[n+0]^.reg)<>regtype) or
                           (getregtype(oper[n+1]^.reg)<>regtype) or
@@ -296,23 +313,31 @@ implementation
             { Replace register with spill reference }
             if replaceoper<>-1 then
               begin
-                is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
-                oper[replaceoper]^.typ:=top_ref;
-                new(oper[replaceoper]^.ref);
-                oper[replaceoper]^.ref^:=spilltemp;
-                if is_subh then
-                  inc(oper[replaceoper]^.ref^.offset);
-                { memory locations aren't guaranteed to be aligned }
-                case opcode of
-                  A_MOVAPS:
-                    opcode:=A_MOVSS;
-                  A_MOVAPD:
-                    opcode:=A_MOVSD;
-                  A_VMOVAPS:
-                    opcode:=A_VMOVSS;
-                  A_VMOVAPD:
-                    opcode:=A_VMOVSD;
-                end;
+                if opcode=A_LEA then
+                  begin
+                    opcode:=A_ADD;
+                    oper[0]^.ref^:=spilltemp;
+                  end
+                else
+                  begin
+                    is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
+                    oper[replaceoper]^.typ:=top_ref;
+                    new(oper[replaceoper]^.ref);
+                    oper[replaceoper]^.ref^:=spilltemp;
+                    if is_subh then
+                      inc(oper[replaceoper]^.ref^.offset);
+                    { memory locations aren't guaranteed to be aligned }
+                    case opcode of
+                      A_MOVAPS:
+                        opcode:=A_MOVSS;
+                      A_MOVAPD:
+                        opcode:=A_MOVSD;
+                      A_VMOVAPS:
+                        opcode:=A_VMOVSS;
+                      A_VMOVAPD:
+                        opcode:=A_VMOVSD;
+                    end;
+                  end;
                 result:=true;
               end;
           end;
