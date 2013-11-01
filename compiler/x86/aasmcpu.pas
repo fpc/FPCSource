@@ -1667,10 +1667,11 @@ implementation
         else
         { it's an indirection }
          begin
-           { 16 bit or 32 bit address? }
-           if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
-              ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+           { 16 bit? }
+           if ((ir<>NR_NO) and (isub<>R_SUBADDR) and (isub<>R_SUBD)) or
+              ((br<>NR_NO) and (bsub<>R_SUBADDR) and (bsub<>R_SUBD)) then
              message(asmw_e_16bit_32bit_not_supported);
+
            { wrong, for various reasons }
            if (ir=NR_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (ir<>NR_NO)) then
             exit;
@@ -1681,21 +1682,37 @@ implementation
 
            { base }
            case br of
+             NR_R8D,
+             NR_EAX,
              NR_R8,
              NR_RAX : base:=0;
+             NR_R9D,
+             NR_ECX,
              NR_R9,
              NR_RCX : base:=1;
+             NR_R10D,
+             NR_EDX,
              NR_R10,
              NR_RDX : base:=2;
+             NR_R11D,
+             NR_EBX,
              NR_R11,
              NR_RBX : base:=3;
+             NR_R12D,
+             NR_ESP,
              NR_R12,
              NR_RSP : base:=4;
+             NR_R13D,
+             NR_EBP,
              NR_R13,
              NR_NO,
              NR_RBP : base:=5;
+             NR_R14D,
+             NR_ESI,
              NR_R14,
              NR_RSI : base:=6;
+             NR_R15D,
+             NR_EDI,
              NR_R15,
              NR_RDI : base:=7;
            else
@@ -1703,20 +1720,36 @@ implementation
            end;
            { index }
            case ir of
+             NR_R8D,
+             NR_EAX,
              NR_R8,
              NR_RAX : index:=0;
+             NR_R9D,
+             NR_ECX,
              NR_R9,
              NR_RCX : index:=1;
+             NR_R10D,
+             NR_EDX,
              NR_R10,
              NR_RDX : index:=2;
+             NR_R11D,
+             NR_EBX,
              NR_R11,
              NR_RBX : index:=3;
+             NR_R12D,
+             NR_ESP,
              NR_R12,
              NR_NO  : index:=4;
+             NR_R13D,
+             NR_EBP,
              NR_R13,
              NR_RBP : index:=5;
+             NR_R14D,
+             NR_ESI,
              NR_R14,
              NR_RSI : index:=6;
+             NR_R15D,
+             NR_EDI,
              NR_R15,
              NR_RDI : index:=7;
            else
@@ -1733,7 +1766,7 @@ implementation
            end;
            { If rbp or r13 is used we must always include an offset }
            if (br=NR_NO) or
-              ((br<>NR_RBP) and (br<>NR_R13) and (o=0) and (sym=nil)) then
+              ((br<>NR_RBP) and (br<>NR_R13) and (br<>NR_EBP) and (br<>NR_R13D) and (o=0) and (sym=nil)) then
             md:=0
            else
             if ((o>=-128) and (o<=127) and (sym=nil)) then
@@ -1745,7 +1778,7 @@ implementation
            else
             output.bytes:=md;
            { SIB needed ? }
-           if (ir=NR_NO) and (br<>NR_RSP) and (br<>NR_R12) then
+           if (ir=NR_NO) and (br<>NR_RSP) and (br<>NR_R12) and (br<>NR_ESP) and (br<>NR_R12D)  then
             begin
               output.sib_present:=false;
               output.modrm:=(md shl 6) or (rfield shl 3) or base;
@@ -2100,6 +2133,13 @@ implementation
                   exists_vex_extention := true;
                 end;
               end;
+            192,193,194:
+              begin
+{$ifdef x86_64}
+                if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
+                  inc(len);
+{$endif x86_64}
+              end;
             else
              InternalError(200603141);
           end;
@@ -2321,6 +2361,7 @@ implementation
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
            internalerror(200130121);
+
         { load data to write }
         codes:=insentry^.code;
 {$ifdef x86_64}
@@ -2655,6 +2696,16 @@ implementation
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
                   objdata.writebytes(currval,4);
+              end;
+            192,193,194:
+              begin
+{$ifdef x86_64}
+                if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
+                  begin
+                    bytes[0]:=$67;
+                    objdata.writebytes(bytes,1);
+                  end;
+{$endif x86_64}
               end;
             200 :   { fixed 16-bit addr }
 {$ifndef x86_64}

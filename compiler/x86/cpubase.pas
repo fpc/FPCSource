@@ -68,6 +68,7 @@ uses
 
    const
       { Integer Super registers }
+      RS_NO         = $ffffffff;
       RS_RAX        = $00;      {EAX}
       RS_RCX        = $01;      {ECX}
       RS_RDX        = $02;      {EDX}
