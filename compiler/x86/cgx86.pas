@@ -1556,7 +1556,7 @@ unit cgx86;
         power  : longint;
         href : treference;
       begin
-      {  if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+        if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
           begin
@@ -1565,7 +1565,16 @@ unit cgx86;
             href.scalefactor:=a-1;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
-        else } if (op=OP_ADD) and
+        else if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          not(cs_check_overflow in current_settings.localswitches) and
+          (a>1) and ispowerof2(int64(a),power) and (power in [1..3]) then
+          begin
+            reference_reset_base(href,src,0,0);
+            href.index:=src;
+            href.scalefactor:=a;
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else if (op=OP_ADD) and
           ((size in [OS_32,OS_S32]) or
            { lea supports only 32 bit signed displacments }
            ((size=OS_64) and (a>=0) and (a<=maxLongint)) or
