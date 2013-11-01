@@ -23,6 +23,8 @@ unit popt386;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_AOPTCPU}
+
 interface
 
 uses Aasmbase,aasmtai,aasmdata,aasmcpu,verbose;
@@ -35,7 +37,7 @@ procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 implementation
 
 uses
-  globtype,systems,
+  cutils,globtype,systems,
   globals,cgbase,procinfo,
   symsym,
 {$ifdef finaldestdebug}
@@ -502,8 +504,25 @@ function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
   end;
 
 
+{ First pass of peephole optimizations }
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
-{First pass of peepholeoptimizations}
+
+{$ifdef DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
+
+function WriteOk : Boolean;
+  begin
+    writeln('Ok');
+    Result:=True;
+  end;
 
 var
   l : longint;
