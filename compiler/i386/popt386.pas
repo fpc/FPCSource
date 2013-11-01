@@ -1409,6 +1409,7 @@ begin
                           insertllitem(asml,hp2,hp2.next,hp1);
                           asml.remove(p);
                           p.free;
+                          p:=hp1;
                         end;
                       if GetNextInstruction(p, hp1) and
                          MatchInstruction(hp1,A_LEA,[S_L]) and
@@ -1433,6 +1434,7 @@ begin
                               DebugMsg('Peephole MovLea2Add done',hp1);
                               asml.remove(p);
                               p.free;
+                              p:=hp1;
                             end;
                         end;
                     end;
