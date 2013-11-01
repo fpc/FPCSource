@@ -2437,15 +2437,12 @@ implementation
         result:=typecheck_call_helper(convtype);
       end;
 
-{ this is done in case of no cpu64bitaddr define rather than cpu64bitalu,
-  because whether or not expressions are evaluated as 64 bit by default depends
-  on cpu64bitaddr. Even on a cpu with a 64 bit alu, a 32 bit operations are
-  likely to be faster than 64 bit ones. }
+    { checks whether we can safely remove 64 bit typeconversions
+      in case range and overflow checking are off, and in case
+      the result of this node tree is downcasted again to a
+      8/16/32 bit value afterwards
 
-    { checks whether we can safely remove 64 bit typeconversions }
-    { in case range and overflow checking are off, and in case   }
-    { the result of this node tree is downcasted again to a      }
-    { 8/16/32 bit value afterwards                               }
+      We do this on 64 bit CPUs as well, they benefit from it as well }
     function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
       var
         gotdivmod: boolean;
