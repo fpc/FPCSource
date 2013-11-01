@@ -440,6 +440,67 @@ begin
 end;
 
 
+function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      (taicpu(instr).opcode = op) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchInstruction(const instr: tai; const op1,op2: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchInstruction(const instr: tai; const op1,op2,op3: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2) or
+       (taicpu(instr).opcode = op3)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
+  begin
+    result := (oper.typ = top_reg) and (oper.reg = reg);
+  end;
+
+
+function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
+  begin
+    result := (oper.typ = top_const) and (oper.val = a);
+  end;
+
+
+function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+  begin
+    result := oper1.typ = oper2.typ;
+
+    if result then
+      case oper1.typ of
+        top_const:
+          Result:=oper1.val = oper2.val;
+        top_reg:
+          Result:=oper1.reg = oper2.reg;
+        top_ref:
+          Result:=RefsEqual(oper1.ref^, oper2.ref^);
+        else
+          internalerror(2013102801);
+      end
+  end;
+
 
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
 {First pass of peepholeoptimizations}
@@ -1103,9 +1164,7 @@ begin
                                 end;
                     { Next instruction is also a MOV ? }
                       if GetNextInstruction(p, hp1) and
-                         (tai(hp1).typ = ait_instruction) and
-                         (taicpu(hp1).opcode = A_MOV) and
-                         (taicpu(hp1).opsize = taicpu(p).opsize) then
+                        MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
                         begin
                           if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
                              (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
@@ -1267,20 +1326,13 @@ begin
                                 end
                         end;
                       if GetNextInstruction(p, hp1) and
-                         (Tai(hp1).typ = ait_instruction) and
-                         ((Taicpu(hp1).opcode = A_BTS) or (Taicpu(hp1).opcode = A_BTR)) and
-                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
+                         MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
                          GetNextInstruction(hp1, hp2) and
-                         (Tai(hp2).typ = ait_instruction) and
-                         (Taicpu(hp2).opcode = A_OR) and
-                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
-                         (Taicpu(hp2).opsize = Taicpu(p).opsize) and
-                         (Taicpu(p).oper[0]^.typ = top_const) and (Taicpu(p).oper[0]^.val=0) and
+                         MatchInstruction(hp2,A_OR,[Taicpu(p).opsize]) and
+                         MatchOperand(Taicpu(p).oper[0]^,0) and
                          (Taicpu(p).oper[1]^.typ = top_reg) and
-                         (Taicpu(hp1).oper[1]^.typ = top_reg) and
-                         (Taicpu(p).oper[1]^.reg=Taicpu(hp1).oper[1]^.reg) and
-                         (Taicpu(hp2).oper[1]^.typ = top_reg) and
-                         (Taicpu(p).oper[1]^.reg=Taicpu(hp2).oper[1]^.reg) then
+                         MatchOperand(Taicpu(p).oper[1]^,Taicpu(hp1).oper[1]^) and
+                         MatchOperand(Taicpu(p).oper[1]^,Taicpu(hp2).oper[1]^) then
                          {mov reg1,0
                           bts reg1,operand1             -->      mov reg1,operand2
                           or  reg1,operand2                      bts reg1,operand1}
@@ -1290,6 +1342,37 @@ begin
                           insertllitem(asml,hp2,hp2.next,hp1);
                           asml.remove(p);
                           p.free;
+                        end;
+                      if GetNextInstruction(p, hp1) and
+                         MatchInstruction(hp1,A_LEA,[S_L]) and
+                         (Taicpu(p).oper[0]^.typ = top_ref) and
+                         (Taicpu(p).oper[1]^.typ = top_reg) and
+                         (Taicpu(hp1).oper[0]^.ref^.offset=0) and
+                         (Taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) and
+                         (Taicpu(hp1).oper[0]^.ref^.segment=NR_NO) and
+                         (Taicpu(hp1).oper[0]^.ref^.symbol=nil) and
+                         (((Taicpu(hp1).oper[0]^.ref^.index=Taicpu(p).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.base=Taicpu(hp1).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
+                          ) or
+                          ((Taicpu(hp1).oper[0]^.ref^.base=Taicpu(p).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.index=Taicpu(hp1).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
+                          )
+                         ) then
+                         {mov reg1,ref
+                          lea reg2,[reg1,reg2]          -->      add reg2,ref}
+                        begin
+                          TmpUsedRegs := UsedRegs;
+                          { reg1 may not be used afterwards }
+                          if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+                            begin
+                              Taicpu(hp1).opcode:=A_ADD;
+                              Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
+                              DebugMsg('Peephole MovLea2Add done',hp1);
+                              asml.remove(p);
+                              p.free;
+                            end;
                         end;
                     end;
 
