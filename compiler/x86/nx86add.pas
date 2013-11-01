@@ -85,6 +85,7 @@ unit nx86add;
         power : longint;
         hl4   : tasmlabel;
         r     : Tregister;
+        href  : treference;
       begin
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
@@ -156,6 +157,18 @@ unit nx86add;
                   begin
                     emit_const_reg(A_SHL,TCGSize2Opsize[opsize],power,left.location.register);
                   end
+                else if (op=A_IMUL) and
+                    (right.location.loc=LOC_CONSTANT) and
+                    (right.location.value>1) and (ispowerof2(int64(right.location.value)-1,power)) and
+                    (power in [1..3]) and
+                    not(cs_check_overflow in current_settings.localswitches) then
+                  begin
+                    reference_reset_base(href,left.location.register,0,0);
+                    href.index:=left.location.register;
+                    href.scalefactor:=int64(right.location.value)-1;
+                    left.location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[opsize],href,left.location.register));
+                  end
                else
                  begin
                    if extra_not then
@@ -210,7 +223,7 @@ unit nx86add;
               { maybe we can reuse a constant register when the
                 operation is a comparison that doesn't change the
                 value of the register }
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
             end;
           end;
         if (right.location.loc<>LOC_CONSTANT) and

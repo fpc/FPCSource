@@ -70,6 +70,9 @@ unit cgx86;
         procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
 
+        procedure a_op_const_reg_reg(list : TAsmList; op : Topcg; size : Tcgsize; a : tcgint; src,dst : Tregister); override;
+        procedure a_op_reg_reg_reg(list : TAsmList; op : TOpCg; size : tcgsize; src1,src2,dst : tregister); override;
+
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; tosize: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);override;
@@ -1547,11 +1550,71 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
+                                        a:tcgint;src,dst:Tregister);
+      var
+        power  : longint;
+        href : treference;
+      begin
+      {  if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          not(cs_check_overflow in current_settings.localswitches) and
+          (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
+          begin
+            reference_reset_base(href,src,0,0);
+            href.index:=src;
+            href.scalefactor:=a-1;
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else } if (op=OP_ADD) and
+          ((size in [OS_32,OS_S32]) or
+           { lea supports only 32 bit signed displacments }
+           ((size=OS_64) and (a>=0) and (a<=maxLongint)) or
+           ((size=OS_S64) and (a>=-maxLongint) and (a<=maxLongint))
+          ) and
+          not(cs_check_overflow in current_settings.localswitches) then
+          begin
+            reference_reset_base(href,src,a,0);
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else if (op=OP_SUB) and
+          ((size in [OS_32,OS_S32]) or
+           { lea supports only 32 bit signed displacments }
+           ((size=OS_64) and (a>=0) and (a<=maxLongint)) or
+           ((size=OS_S64) and (a>=-maxLongint) and (a<=maxLongint))
+          ) and
+          not(cs_check_overflow in current_settings.localswitches) then
+          begin
+            reference_reset_base(href,src,-a,0);
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else
+          inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+      end;
+
+
+    procedure tcgx86.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
+      size: tcgsize; src1, src2, dst: tregister);
+      var
+        href : treference;
+      begin
+        if (op=OP_ADD) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          not(cs_check_overflow in current_settings.localswitches) then
+          begin
+            reference_reset_base(href,src1,0,0);
+            href.index:=src2;
+            list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else
+          inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+      end;
+
+
     procedure tcgx86.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
 
       var
         opcode : tasmop;
         power  : longint;
+        href : treference;
 {$ifdef x86_64}
         tmpreg : tregister;
 {$endif x86_64}
@@ -1605,6 +1668,7 @@ unit cgx86;
                   list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
                   exit;
                 end;
+
               if op = OP_IMUL then
                 list.concat(taicpu.op_const_reg(A_IMUL,TCgSize2OpSize[size],a,reg))
               else
