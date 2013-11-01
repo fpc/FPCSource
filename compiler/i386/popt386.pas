@@ -1055,8 +1055,16 @@ begin
                                   end
                                 else
                                   begin
-                                    taicpu(p).opcode := A_ADD;
-                                    taicpu(p).loadConst(0,l);
+                                    if (l<0) and (l<>$80000000) then
+                                      begin
+                                        taicpu(p).opcode := A_SUB;
+                                        taicpu(p).loadConst(0,-l);
+                                      end
+                                    else
+                                      begin
+                                        taicpu(p).opcode := A_ADD;
+                                        taicpu(p).loadConst(0,l);
+                                      end;
                                   end;
                               end;
                     end;
