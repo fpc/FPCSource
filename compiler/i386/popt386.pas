@@ -504,6 +504,20 @@ function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
   end;
 
 
+function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
+  begin
+   Result:=(ref.offset=0) and
+     (ref.scalefactor in [0,1]) and
+     (ref.segment=NR_NO) and
+     (ref.symbol=nil) and
+     (ref.relsymbol=nil) and
+     ((base=NR_INVALID) or
+      (ref.base=base)) and
+     ((index=NR_INVALID) or
+      (ref.index=index));
+  end;
+
+
 { First pass of peephole optimizations }
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
 
@@ -1377,16 +1391,10 @@ begin
                          MatchInstruction(hp1,A_LEA,[S_L]) and
                          (Taicpu(p).oper[0]^.typ = top_ref) and
                          (Taicpu(p).oper[1]^.typ = top_reg) and
-                         (Taicpu(hp1).oper[0]^.ref^.offset=0) and
-                         (Taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) and
-                         (Taicpu(hp1).oper[0]^.ref^.segment=NR_NO) and
-                         (Taicpu(hp1).oper[0]^.ref^.symbol=nil) and
-                         (((Taicpu(hp1).oper[0]^.ref^.index=Taicpu(p).oper[1]^.reg) and
-                           (Taicpu(hp1).oper[0]^.ref^.base=Taicpu(hp1).oper[1]^.reg) and
+                         ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
                            (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
                           ) or
-                          ((Taicpu(hp1).oper[0]^.ref^.base=Taicpu(p).oper[1]^.reg) and
-                           (Taicpu(hp1).oper[0]^.ref^.index=Taicpu(hp1).oper[1]^.reg) and
+                          (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
                            (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
                           )
                          ) then
@@ -1415,8 +1423,7 @@ begin
                          IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
                          (getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX]) and
                          GetNextInstruction(hp1,hp2) and
-                         (hp2.typ = ait_instruction) and
-                         (taicpu(hp2).opcode = A_MOV) and
+                         MatchInstruction(hp2,A_MOV,[]) and
                          (taicpu(hp2).oper[0]^.typ = top_reg) and
                          OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
                          (((taicpu(hp1).ops=2) and
