@@ -720,6 +720,7 @@ begin
       case p.Typ Of
         ait_instruction:
           begin
+            current_filepos:=taicpu(p).fileinfo;
             if InsContainsSegRef(taicpu(p)) then
               begin
                 p := tai(p.next);
@@ -1045,36 +1046,36 @@ begin
                         else if (taicpu(p).oper[0]^.ref^.offset = 0) then
                           begin
                             hp1 := tai(p.Next);
-                            asml.remove(p);
-                            p.free;
-                            p := hp1;
-                            continue;
-                          end
-                        { continue to use lea to adjust the stack pointer,
-                          it is the recommended way, but only if not optimizing for size }
-                        else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
-                          (cs_opt_size in current_settings.optimizerswitches) then
-                          with taicpu(p).oper[0]^.ref^ do
-                            if (base = taicpu(p).oper[1]^.reg) then
-                              begin
-                                l := offset;
-                                if (l=1) and UseIncDec then
-                                  begin
-                                    taicpu(p).opcode := A_INC;
-                                    taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                    taicpu(p).ops := 1
-                                  end
-                                else if (l=-1) and UseIncDec then
-                                  begin
-                                    taicpu(p).opcode := A_DEC;
-                                    taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                    taicpu(p).ops := 1;
-                                  end
-                                else
-                                  begin
-                                    if (l<0) and (l<>-2147483648) then
-                                      begin
-                                        taicpu(p).opcode := A_SUB;
+                              asml.remove(p);
+                              p.free;
+                              p := hp1;
+                              continue;
+                            end
+                          { continue to use lea to adjust the stack pointer,
+                            it is the recommended way, but only if not optimizing for size }
+                          else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
+                            (cs_opt_size in current_settings.optimizerswitches) then
+                            with taicpu(p).oper[0]^.ref^ do
+                              if (base = taicpu(p).oper[1]^.reg) then
+                                begin
+                                  l := offset;
+                                  if (l=1) and UseIncDec then
+                                    begin
+                                      taicpu(p).opcode := A_INC;
+                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                                      taicpu(p).ops := 1
+                                    end
+                                  else if (l=-1) and UseIncDec then
+                                    begin
+                                      taicpu(p).opcode := A_DEC;
+                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                                      taicpu(p).ops := 1;
+                                    end
+                                  else
+                                    begin
+                                      if (l<0) and (l<>-2147483648) then
+                                        begin
+                                          taicpu(p).opcode := A_SUB;
                                         taicpu(p).loadConst(0,-l);
                                       end
                                     else
