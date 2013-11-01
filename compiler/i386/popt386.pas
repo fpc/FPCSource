@@ -1033,19 +1033,20 @@ begin
                          (getsupreg(taicpu(p).oper[0]^.ref^.base) in [RS_EAX..RS_ESP]) and
                          (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                          (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
-                        if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
-                           (taicpu(p).oper[0]^.ref^.offset = 0) then
-                          begin
-                            hp1 := taicpu.op_reg_reg(A_MOV, S_L,taicpu(p).oper[0]^.ref^.base,
-                              taicpu(p).oper[1]^.reg);
-                            InsertLLItem(asml,p.previous,p.next, hp1);
-                            p.free;
-                            p := hp1;
-                            continue;
-                          end
-                        else if (taicpu(p).oper[0]^.ref^.offset = 0) then
-                          begin
-                            hp1 := tai(p.Next);
+                        begin
+                          if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
+                             (taicpu(p).oper[0]^.ref^.offset = 0) then
+                            begin
+                              hp1 := taicpu.op_reg_reg(A_MOV, S_L,taicpu(p).oper[0]^.ref^.base,
+                                taicpu(p).oper[1]^.reg);
+                              InsertLLItem(asml,p.previous,p.next, hp1);
+                              p.free;
+                              p := hp1;
+                              continue;
+                            end
+                          else if (taicpu(p).oper[0]^.ref^.offset = 0) then
+                            begin
+                              hp1 := tai(p.Next);
                               asml.remove(p);
                               p.free;
                               p := hp1;
@@ -1076,15 +1077,36 @@ begin
                                       if (l<0) and (l<>-2147483648) then
                                         begin
                                           taicpu(p).opcode := A_SUB;
-                                        taicpu(p).loadConst(0,-l);
-                                      end
-                                    else
-                                      begin
-                                        taicpu(p).opcode := A_ADD;
-                                        taicpu(p).loadConst(0,l);
-                                      end;
-                                  end;
-                              end;
+                                          taicpu(p).loadConst(0,-l);
+                                        end
+                                      else
+                                        begin
+                                          taicpu(p).opcode := A_ADD;
+                                          taicpu(p).loadConst(0,l);
+                                        end;
+                                    end;
+                                end;
+                        end
+                      else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
+                        begin
+                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
+                            taicpu(p).oper[0]^.ref^.base);
+                          InsertLLItem(asml,p.previous,p.next, hp1);
+                          DebugMsg('Peephole Lea2AddBase done',hp1);
+                          p.free;
+                          p:=hp1;
+                          continue;
+                        end
+                      else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) then
+                        begin
+                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.base,
+                            taicpu(p).oper[0]^.ref^.index);
+                          InsertLLItem(asml,p.previous,p.next,hp1);
+                          DebugMsg('Peephole Lea2AddIndex done',hp1);
+                          p.free;
+                          p:=hp1;
+                          continue;
+                        end
                     end;
                   A_MOV:
                     begin
