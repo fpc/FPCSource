@@ -414,7 +414,7 @@ function aligntoptr(p : pointer) : pointer;inline;
 ****************************************************************************}
 
 { Needs to be before RTTI handling }
-
+{$define FLOAT_ASCII_FALLBACK}
 {$i sstrings.inc}
 
 { requires sstrings.inc for initval }
