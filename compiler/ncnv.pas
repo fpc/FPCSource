@@ -2456,9 +2456,9 @@ implementation
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
-          if (torddef(n.resultdef).ordtype in [s32bit,u32bit]) then
+          if (torddef(n.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit]) then
             begin
-              if (torddef(n.resultdef).ordtype=s32bit) then
+              if (torddef(n.resultdef).ordtype in [s8bit,s16bit,s32bit]) then
                 gotsint:=true;
               exit(true);
             end;
@@ -2469,14 +2469,14 @@ implementation
              { either a typeconversion node coming from u32bit }
              (((n.nodetype=typeconvn) and
                (ttypeconvnode(n).left.resultdef.typ=orddef) and
-               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s32bit,u32bit])) or
+               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit])) or
              { or an ordconstnode which was/is a valid cardinal }
               ((n.nodetype=ordconstn) and
                (tordconstnode(n).value>=int64(low(longint))) and
                (tordconstnode(n).value<=high(cardinal)))) then
             begin
               if ((n.nodetype=typeconvn) and
-                  (torddef(ttypeconvnode(n).left.resultdef).ordtype=s32bit)) or
+                  (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,s16bit,s32bit])) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
                 gotsint:=true;
