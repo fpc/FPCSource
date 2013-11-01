@@ -2441,7 +2441,6 @@ implementation
   because whether or not expressions are evaluated as 64 bit by default depends
   on cpu64bitaddr. Even on a cpu with a 64 bit alu, a 32 bit operations are
   likely to be faster than 64 bit ones. }
-{$ifndef cpu64bitaddr}
 
     { checks whether we can safely remove 64 bit typeconversions }
     { in case range and overflow checking are off, and in case   }
@@ -2557,15 +2556,12 @@ implementation
             end;
         end;
       end;
-{$endif not cpu64bitaddr}
 
 
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
-{$ifndef cpu64bitaddr}
         foundsint: boolean;
-{$endif not cpu64bitaddr}
       begin
         result := nil;
         { Constant folding and other node transitions to
@@ -2591,6 +2587,7 @@ implementation
                 left:=nil;
                 exit;
               end;
+
           realconstn :
             begin
               if (convtype = tc_real_2_currency) then
@@ -2613,6 +2610,7 @@ implementation
                   hp.free;
                 end;
             end;
+
           niln :
             begin
               { nil to ordinal node }
@@ -2738,7 +2736,6 @@ implementation
             end;
         end;
 
-{$ifndef cpu64bitaddr}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2757,8 +2754,6 @@ implementation
                 end;
             end;
         end;
-{$endif not cpu64bitaddr}
-
       end;
 
 
