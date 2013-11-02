@@ -124,9 +124,9 @@ end;
 
 function unpack_float( const f: ValReal; out minus: boolean ): TDIY_FP; {$ifdef grisu1_inline}inline;{$endif}
 begin
-    unpack_float.f := extractFloat64Frac( f );
-    unpack_float.e := extractFloat64Exp( f );
-    minus := ( extractFloat64Sign( f ) <> 0 );
+    unpack_float.f := extractFloat64Frac( float64( f ) );
+    unpack_float.e := extractFloat64Exp( float64( f ) );
+    minus := ( extractFloat64Sign( float64( f ) ) <> 0 );
 end;
 
 {$else not fpc_softfpu_implementation}
