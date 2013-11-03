@@ -16,13 +16,21 @@ options_i386_go32v2=-dI386_ASSEMBLER
 options_i386_freebsd=-dI386_ASSEMBLER
 options_i386_haiku=-dI386_ASSEMBLER
 options_i386_beos=-dI386_ASSEMBLER
+options_x86_64_linux=-dx86_64_ASSEMBLER
+options_x86_64_win32=-dx86_64_ASSEMBLER
+options_x86_64_go32v2=-dx86_64_ASSEMBLER
+options_x86_64_freebsd=-dx86_64_ASSEMBLER
+options_x86_64_haiku=-dx86_64_ASSEMBLER
+options_x86_64_beos=-dx86_64_ASSEMBLER
 
 unitdir=
 targetdir=.
-includedir=src
+includedir=src $(ARCHINC)
 sourcedir=src tests
 
 [install]
+ARCHINC=src/$(ARCH)
+
 fpcpackage=y
 
 [default]
