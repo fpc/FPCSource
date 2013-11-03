@@ -502,6 +502,15 @@ begin
     Raise EConvertError.Create(Msg);
 end;
 
+function StrToDate(const S: string; FormatSettings: TFormatSettings): TDateTime;
+var
+  Msg: AnsiString;
+begin
+  Result:=IntStrToDate(Msg,@S[1],Length(S),FormatSettings.ShortDateFormat,FormatSettings);
+  if Msg<>'' then
+    raise EConvertError.Create(Msg);
+end;
+
 function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;
 begin
     result := StrToDate(@S[1],Length(s),UseFormat,separator);
