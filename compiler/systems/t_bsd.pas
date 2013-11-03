@@ -295,9 +295,13 @@ var
   startupfile: TCmdStr;
 begin
   startupfile:=GetDarwinCrt1ObjName(isdll);
-  if (startupfile<>'') and
-     not librarysearchpath.FindFile(startupfile,false,result) then
-    result:='/usr/lib/'+startupfile;
+  if startupfile<>'' then
+    begin
+     if not librarysearchpath.FindFile(startupfile,false,result) then
+       result:='/usr/lib/'+startupfile
+    end
+  else
+    result:='';
   result:=maybequoted(result);
 end;    
 
