@@ -53,7 +53,7 @@ var
   program_instance{, library_instance}: DWord;
   rectangle: RECT;
   display_width, display_height: Integer;
-  wc: WNDCLASSEX;
+  wc: WNDCLASSEXA;
 begin
   LOG('creating managed window');
   Defaults;
@@ -79,7 +79,7 @@ begin
       wc.hCursor := LoadCursor(0, IDC_ARROW)
     else
       wc.hCursor := 0;
-    RegisterClassEx(wc);
+    RegisterClassExA(wc);
     with rectangle do
     begin
       left := 0;
@@ -111,7 +111,7 @@ begin
     end
     else
     begin
-      FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
+      FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
       if not IsWindow(FWindow) then
         raise TPTCError.Create('could not create window');
       ShowWindow(FWindow, FShow);
@@ -261,7 +261,7 @@ begin
         if wParam = SC_KEYMENU then
 	  Result := 0
 	else
-          Result := DefWindowProc(hWnd, message, wParam, lParam);
+          Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
       {$WARNING GCLP_HCURSOR not defined in windows unit}
@@ -271,14 +271,14 @@ begin
 	Result := 1;
       end
       else
-        Result := DefWindowProc(hWnd, message, wParam, lParam);
+        Result := DefWindowProcA(hWnd, message, wParam, lParam);
     end;
     WM_CLOSE: begin
       LOG('TWin32Window WM_CLOSE');
       Halt(0);
     end;
     else
-      Result := DefWindowProc(hWnd, message, wParam, lParam);
+      Result := DefWindowProcA(hWnd, message, wParam, lParam);
   end;
 end;
 
@@ -292,7 +292,7 @@ begin
         if wParam = SC_KEYMENU then
 	  Result := 0
 	else
-          Result := DefWindowProc(hWnd, message, wParam, lParam);
+          Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
       {$WARNING GCLP_HCURSOR not defined in windows unit}
@@ -302,7 +302,7 @@ begin
 	Result := 1;
       end
       else
-        Result := DefWindowProc(hWnd, message, wParam, lParam);
+        Result := DefWindowProcA(hWnd, message, wParam, lParam);
     end;
     WM_DESTROY: begin
       LOG('TWin32Window WM_DESTROY');
@@ -313,7 +313,7 @@ begin
       Halt(0);
     end;
     else
-      Result := DefWindowProc(hWnd, message, wParam, lParam);
+      Result := DefWindowProcA(hWnd, message, wParam, lParam);
   end;
 end;
 
@@ -369,7 +369,7 @@ begin
     FEvent := 0;
     FThread := 0;
     FID := 0;
-    UnregisterClass(PChar(FName), GetModuleHandle(Nil));
+    UnregisterClassA(PChar(FName), GetModuleHandle(Nil));
   end;
 end;
 
@@ -379,7 +379,7 @@ var
 begin
   with AOwner do
   begin
-    FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
+    FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
     if IsWindow(FWindow) then
     begin
       ShowWindow(FWindow, FShow);
@@ -399,10 +399,10 @@ end;
 
 function TWin32Window.WMCreate(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
-  Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+  Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
 end;
 
 function TWin32Window.WMDestroy(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
-  Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+  Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
 end;
