@@ -24,7 +24,7 @@ units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
 [target]
 dirs=
 units=
-units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) ptcgraph ptccrt
+units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) ptcgraph ptccrt ptcmouse
 units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
 units_win64=graph wincrt winmouse
@@ -36,8 +36,8 @@ units_i386_freebsd=sdlgraph
 units_win32=sdlgraph
 units_powerpc_darwin=sdlgraph
 units_i386_darwin=sdlgraph
-units_win32=ptcgraph ptccrt
-units_win64=ptcgraph ptccrt
+units_win32=ptcgraph ptccrt ptcmouse
+units_win64=ptcgraph ptccrt ptcmouse
 
 [compiler]
 options=-S2
