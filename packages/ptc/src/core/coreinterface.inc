@@ -4,6 +4,8 @@
 {$INCLUDE eventd.inc}
 {$INCLUDE keyeventd.inc}
 {$INCLUDE mouseeventd.inc}
+{$INCLUDE closeeventd.inc}
+{$INCLUDE resizeeventd.inc}
 {$INCLUDE moded.inc}
 {$INCLUDE paletted.inc}
 {$INCLUDE cleard.inc}

@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -65,10 +65,13 @@ var
 begin
   FHeight := AHeight;
   FWidth := AWidth;
+  FPreviousWidth := FWidth;
+  FPreviousHeight := FHeight;
   FDestX := 0;
   FDestY := 0;
 
-  FFullScreen := PTC_X11_FULLSCREEN In FFlags;
+  FFullScreen := PTC_X11_FULLSCREEN in FFlags;
+  FResizable := (PTC_X11_RESIZABLE_WINDOW in FFlags) and not FFullScreen;
 
   FFocus := True;
 
@@ -149,22 +152,33 @@ begin
   { Set normal hints }
   size_hints := XAllocSizeHints;
   try
-    size_hints^.flags := PMinSize or PBaseSize;
-    size_hints^.min_width := AWidth;
-    size_hints^.min_height := AHeight;
+    size_hints^.flags := PBaseSize;
     size_hints^.base_width := AWidth;
     size_hints^.base_height := AHeight;
     if FFullScreen then
     begin
-      size_hints^.flags := size_hints^.flags or PWinGravity;
+      size_hints^.flags := size_hints^.flags or PMinSize or PWinGravity;
+      size_hints^.min_width := AWidth;
+      size_hints^.min_height := AHeight;
       size_hints^.win_gravity := StaticGravity;
     end
     else
     begin
-      { not fullscreen - add maxsize limit=minsize, i.e. make window not resizable }
-      size_hints^.flags := size_hints^.flags or PMaxSize;
-      size_hints^.max_width := AWidth;
-      size_hints^.max_height := AHeight;
+      if FResizable then
+      begin
+        size_hints^.flags := size_hints^.flags or PMinSize;
+        size_hints^.min_width := 0;
+        size_hints^.min_height := 0;
+      end
+      else
+      begin
+        { not fullscreen and not resizable: maxsize=minsize=basesize }
+        size_hints^.flags := size_hints^.flags or PMinSize or PMaxSize;
+        size_hints^.min_width := AWidth;
+        size_hints^.min_height := AHeight;
+        size_hints^.max_width := AWidth;
+        size_hints^.max_height := AHeight;
+      end;
     end;
     XSetWMNormalHints(FDisplay, FWindow, size_hints);
     XFlush(FDisplay);
@@ -285,6 +299,32 @@ begin
     XFreeCursor(FDisplay, FX11InvisibleCursor);
     FX11InvisibleCursor := None;
   end;
+end;
+
+procedure TX11WindowDisplay.InternalResize(AWidth, AHeight: Integer);
+begin
+  if FFullScreen then
+    raise TPTCError.Create('Internal resize not supported in fullscreen mode');
+  if not FResizable then
+    raise TPTCError.Create('Internal resize cannot be used on a non-resizable window');
+
+  if not (PTC_X11_USE_OPENGL in FFlags) then
+  begin
+    { destroy previous XImage }
+    FreeAndNil(FPrimary);
+  end;
+
+  FWidth := AWidth;
+  FHeight := AHeight;
+
+  if not (PTC_X11_USE_OPENGL in FFlags) then
+  begin
+    { Create XImage using factory method }
+    FPrimary := CreateImage(FDisplay, FScreen, FWidth, FHeight, FFormat);
+  end;
+
+  { Set clipping area }
+  FClip := TPTCArea.Create(0, 0, FWidth, FHeight);
 end;
 
 procedure TX11WindowDisplay.internal_ShowCursor(AVisible: Boolean);
@@ -430,46 +470,6 @@ var
     Result := False;
   end;
 
-  procedure HandleKeyEvent;
-  var
-    sym: TKeySym;
-    sym_modded: TKeySym; { modifiers like shift are taken into account here }
-    press: Boolean;
-    alt, shift, ctrl: Boolean;
-    uni: Integer;
-    key: TPTCKeyEvent;
-    buf: array [1..16] of Char;
-  begin
-    sym := XLookupKeySym(@e.xkey, 0);
-    XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, nil);
-//    Writeln('sym_modded = ', sym_modded);
-    uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (e.xkey.state and Mod1Mask) <> 0;
-    shift := (e.xkey.state and ShiftMask) <> 0;
-    ctrl := (e.xkey.state and ControlMask) <> 0;
-    if e._type = KeyPress then
-      press := True
-    else
-      press := False;
-
-    // XK_ISO_Left_Tab is Shift-Tab
-    if sym_modded = XK_ISO_Left_Tab then
-    begin
-      sym_modded := XK_Tab;
-      uni := 9;
-      shift := True;
-    end;
-
-    key := nil;
-    case sym_modded shr 8 of
-      0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-      else
-        key := TPTCKeyEvent.Create;
-    end;
-    FEventQueue.AddEvent(key);
-  end;
-
   procedure HandleMouseEvent;
   var
     x, y: cint;
@@ -569,6 +569,18 @@ var
     end;
   end;
 
+  procedure HandleConfigureNotifyEvent;
+  begin
+    if FFullScreen or not FResizable then
+      exit;
+
+    if (FPreviousWidth <> e.xconfigure.width) or (FPreviousHeight <> e.xconfigure.height) then
+      FEventQueue.AddEvent(TPTCResizeEvent.Create(e.xconfigure.width, e.xconfigure.height));
+
+    FPreviousWidth := e.xconfigure.width;
+    FPreviousHeight := e.xconfigure.height;
+  end;
+
 begin
   NewFocusSpecified := False;
   while UsefulEventsPending do
@@ -585,13 +597,17 @@ begin
       end;
       ClientMessage: begin
         if (e.xclient.format = 32) and (TAtom(e.xclient.data.l[0]) = FAtomClose) then
-          Halt(0);
+          if InterceptClose then
+            FEventQueue.AddEvent(TPTCCloseEvent.Create)
+          else
+            Halt(0);
       end;
       Expose: begin
         if e.xexpose.count = 0 then
           Draw;
       end;
-      KeyPress, KeyRelease: HandleKeyEvent;
+      ConfigureNotify: HandleConfigureNotifyEvent;
+      KeyPress, KeyRelease: HandleKeyEvent(e.xkey);
       ButtonPress, ButtonRelease, MotionNotify: HandleMouseEvent;
     end;
   end;
@@ -738,7 +754,7 @@ end;
 function TX11WindowDisplay.CreateModeSwitcher: TX11Modes;
 begin
 {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
-  if PTC_X11_TRY_XRANDR In FFlags then
+  if PTC_X11_TRY_XRANDR in FFlags then
     try
       LOG('trying to initialize the Xrandr mode switcher');
       Result := TX11ModesXrandr.Create(FDisplay, FScreen);
@@ -749,7 +765,7 @@ begin
 {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
 
 {$IFDEF ENABLE_X11_EXTENSION_XF86VIDMODE}
-  if PTC_X11_TRY_XF86VIDMODE In FFlags then
+  if PTC_X11_TRY_XF86VIDMODE in FFlags then
     try
       LOG('trying to initialize the XF86VidMode mode switcher');
       Result := TX11ModesXF86VidMode.Create(FDisplay, FScreen);

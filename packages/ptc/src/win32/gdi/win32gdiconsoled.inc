@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@ type
     FWin32DIB: TWin32DIB;
     FKeyboard: TWin32Keyboard;
     FMouse: TWin32Mouse;
+    FResize: TWin32Resize;
     FWin32Cursor: TWin32Cursor;
     FHook: TGDIHook;
 
@@ -48,6 +49,7 @@ type
     FModes: array of IPTCMode;
 
     FFullscreen: Boolean;
+    FResizable: Boolean;
     FModeSetter: TWin32ModeSetter;
     FGrabMouse: Boolean;
 
@@ -64,6 +66,8 @@ type
     FDefaultWidth: Integer;
     FDefaultHeight: Integer;
     FDefaultFormat: IPTCFormat;
+
+    FInterceptClose: Boolean;
 
     FUseOpenGL: Boolean;
 
@@ -84,6 +88,9 @@ type
 
     procedure CheckOpen(const AMessage: string);
     procedure CheckUnlocked(const AMessage: string);
+
+    procedure SetInterceptClose(AInterceptClose: Boolean);
+    property InterceptClose: Boolean read FInterceptClose write SetInterceptClose;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -96,6 +103,8 @@ type
     procedure Open(const ATitle: string; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
+
+    procedure InternalResize(AWidth, AHeight: Integer); override;
 
     procedure Copy(ASurface: IPTCSurface); override;
     procedure Copy(ASurface: IPTCSurface;

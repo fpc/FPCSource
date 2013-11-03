@@ -30,8 +30,7 @@ Supported consoles:
              compatible.)
   X11 (on linux and other unix-like OSes, supports XRandR, XF86VidMode, XShm
        and xf86dga extensions)
-  Vesa 1.0+ (DOS. Supports LFB and banked video memory access. Video pages not
-             yet supported)
+  Vesa 1.0+ (DOS. Supports LFB and banked video memory access)
   VGA (DOS, fakemodes, mode13h, etc...)
   CGA (DOS, added by me just for fun ... and maybe some day I'll even add
        EGA :-) )

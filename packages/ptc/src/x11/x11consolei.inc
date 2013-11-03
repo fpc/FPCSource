@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -200,6 +200,23 @@ begin
     UpdateMouseGrab;
     exit;
   end;
+  if AOption = 'intercept window close' then
+  begin
+    FFlags := FFlags + [PTC_X11_INTERCEPT_WINDOW_CLOSE];
+    if Assigned(FX11Display) then
+      FX11Display.InterceptClose := True;
+    exit;
+  end;
+  if AOption = 'resizable window' then
+  begin
+    FFlags := FFlags + [PTC_X11_RESIZABLE_WINDOW];
+    exit;
+  end;
+  if AOption = 'fixed window' then
+  begin
+    FFlags := FFlags - [PTC_X11_RESIZABLE_WINDOW];
+    exit;
+  end;
   if AOption = 'enable logging' then
   begin
     LOG_enabled := True;
@@ -326,6 +343,11 @@ end;
 procedure TX11Console.Close;
 begin
   FreeAndNil(FX11Display);
+end;
+
+procedure TX11Console.InternalResize(AWidth, AHeight: Integer);
+begin
+  FX11Display.InternalResize(AWidth, AHeight);
 end;
 
 procedure TX11Console.Flush;

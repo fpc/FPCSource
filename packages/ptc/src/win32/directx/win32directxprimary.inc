@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -214,7 +214,6 @@ begin
     begin
       if FDDSPrimary <> nil then
       begin
-//        FDDSPrimary^.lpVtbl^.Release(FDDSPrimary);
         FDDSPrimary := nil;
       end;
       raise TPTCError.Create('could not create primary surface', error);
@@ -232,6 +231,18 @@ begin
   LOG('creating secondary surface');
   LOG('width', AWidth);
   LOG('height', AHeight);
+
+  if FDDC <> nil then
+  begin
+    LOG('releasing clipper');
+    FDDC := nil;
+  end;
+  if FDDSSecondary <> nil then
+  begin
+    LOG('releasing secondary surface');
+    FDDSSecondary := nil;
+  end;
+
   FillChar(descriptor, SizeOf(descriptor), 0);
   descriptor.dwSize := SizeOf(descriptor);
   descriptor.dwFlags := DDSD_CAPS or DDSD_HEIGHT or DDSD_WIDTH;
@@ -351,27 +362,23 @@ begin
   if FDDC <> nil then
   begin
     LOG('releasing clipper');
-//    FDDC^.lpVtbl^.Release(FDDC);
     FDDC := nil;
   end;
   if FDDSSecondary <> nil then
   begin
     LOG('releasing secondary surface');
-//    FDDSSecondary^.lpVtbl^.Release(FDDSSecondary);
     FDDSSecondary := nil;
   end;
   i := 0;
   while FDDSPrimaryPage[i] <> nil do
   begin
     LOG('releasing attached primary surface page');
-//    FDDSPrimaryPage[i]^.lpVtbl^.Release(FDDSPrimaryPage[i]);
     FDDSPrimaryPage[i] := nil;
     Inc(i);
   end;
   if FDDSPrimary <> nil then
   begin
     LOG('releasing primary surface');
-//    FDDSPrimary^.lpVtbl^.Release(FDDSPrimary);
     FDDSPrimary := nil;
   end;
 end;
@@ -805,4 +812,12 @@ end;
 function TDirectXPrimary.Clip: IPTCArea;
 begin
   Result := FClip;
+end;
+
+procedure TDirectXPrimary.InternalResize(AWidth, AHeight: Integer);
+begin
+  FWidth := AWidth;
+  FHeight := AHeight;
+  FArea := TPTCArea.Create(0, 0, FWidth, FHeight);
+  FClip := TPTCArea.Create(FArea);
 end;
