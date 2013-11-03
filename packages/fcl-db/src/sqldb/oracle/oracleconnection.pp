@@ -94,10 +94,16 @@ type
     constructor Create(AOwner : TComponent); override;
   end;
 
+  { TOracleConnectionDef }
+
   TOracleConnectionDef = Class(TConnectionDef)
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
+    Class Function DefaultLibraryName : String; override;
+    Class Function LoadFunction : TLibraryLoadFunction; override;
+    Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
+    Class Function LoadedLibraryName: string; override;
   end;
 
 implementation
@@ -1056,6 +1062,42 @@ end;
 class function TOracleConnectionDef.Description: String;
 begin
   Result:='Connect to an Oracle database directly via the client library';
+end;
+
+class function TOracleConnectionDef.DefaultLibraryName: String;
+begin
+  {$IfDef LinkDynamically}
+  Result:=ocilib;
+  {$else}
+  Result:='';
+  {$endif}
+end;
+
+class function TOracleConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  {$IfDef LinkDynamically}
+  Result:=@InitialiseOCI;
+  {$else}
+  Result:=Nil;
+  {$endif}
+end;
+
+class function TOracleConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  {$IfDef LinkDynamically}
+  Result:=@ReleaseOCI;
+  {$else}
+  Result:=Nil;
+  {$endif}
+end;
+
+class function TOracleConnectionDef.LoadedLibraryName: string;
+begin
+  {$IfDef LinkDynamically}
+  Result:=OCILoadedLibrary;
+  {$else}
+  Result:='';
+  {$endif}
 end;
 
 { TOracleTrans }
