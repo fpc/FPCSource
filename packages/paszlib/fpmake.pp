@@ -17,9 +17,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='paszlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     D:=P.Dependencies.Add('hash');
-      D.Version:='2.6.3';
+      D.Version:='2.6.4rc1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('paszlib.pas');

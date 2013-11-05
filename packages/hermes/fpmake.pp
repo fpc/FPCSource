@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='hermes';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
 
     P.Author := 'Nikolay Nikolov (translation to Pascal), Christian Nentwich (original C version)';
     P.License := 'LGPL with modification, ';

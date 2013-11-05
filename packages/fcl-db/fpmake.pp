@@ -34,7 +34,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-db';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox');

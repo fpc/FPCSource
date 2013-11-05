@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='univint';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.SourcePath.Add('src');
     P.OSes:=[darwin,iphonesim];
     P.Options.Add('-Mmacpas');

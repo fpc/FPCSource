@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-base';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
 
     P.Author := '<various>';

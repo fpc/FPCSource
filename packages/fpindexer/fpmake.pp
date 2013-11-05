@@ -20,7 +20,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpindexer';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');

@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libgbafpc';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.Author := 'Library: libgba and maxmod from devkitARM; headers: Francesco Lombardi';
     P.License := 'LGPL';
     P.HomepageURL := 'www.freepascal.org';

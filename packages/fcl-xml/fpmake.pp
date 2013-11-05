@@ -17,10 +17,10 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.6.3';
+      D.Version:='2.6.4rc1';
     D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';

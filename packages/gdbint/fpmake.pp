@@ -125,7 +125,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gdbint';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4rc1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

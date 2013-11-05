@@ -287,7 +287,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=hermes
-override PACKAGE_VERSION=2.6.3
+override PACKAGE_VERSION=2.6.4rc1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=hermes
 endif
