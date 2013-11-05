@@ -556,6 +556,11 @@ Unit raarmgas;
                oper.InitRef;
                oper.opr.ref.symbol:=hl;
                oper.opr.ref.base:=NR_PC;
+               if (actasmtoken in [AS_PLUS, AS_MINUS]) then
+                 begin
+                   l:=BuildConstExpression(true,false);
+                   oper.opr.ref.offset:=l;
+                 end;
              end;
           end;
 
