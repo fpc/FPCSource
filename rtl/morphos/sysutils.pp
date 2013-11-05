@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004-2006 by Karoly Balogh
+    Copyright (c) 2004-2013 by Karoly Balogh
 
     Sysutils unit for MorphOS
 
@@ -64,7 +64,7 @@ uses dos,sysconst;
 
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
-function PathConv(path: RawByteString): shortstring; external name 'PATHCONVRBS';
+function PathConv(path: RawByteString): RawByteString; external name 'PATHCONVRBS';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
 function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
 function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
@@ -72,16 +72,6 @@ function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKI
 var
   MOS_fileList: Pointer; external name 'MOS_FILELIST';
 
-
-function dosLock(const name: String;
-                 accessmode: Longint) : LongInt;
-var
-  buffer: array[0..255] of Char;
-begin
-  move(name[1],buffer,length(name));
-  buffer[length(name)]:=#0;
-  dosLock:=Lock(buffer,accessmode);
-end;
 
 function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
 var
@@ -335,7 +325,6 @@ end;
 
 function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpName: RawByteString;
   tmpLock: Longint;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -343,9 +332,8 @@ var
 
 begin
   validFile:=false;
-  tmpName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(tmpName, SHARED_LOCK);
-
+  tmpLock := Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(FileName))), SHARED_LOCK);
+  
   if (tmpLock <> 0) then begin
     new(tmpFIB);
     if Examine(tmpLock,tmpFIB) then begin
@@ -366,11 +354,9 @@ function FileExists (const FileName : RawByteString) : Boolean;
 var
   tmpLock: LongInt;
   tmpFIB : PFileInfoBlock;
-  SystemFileName: RawByteString;
 begin
   result:=false;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(PChar(SystemFileName), SHARED_LOCK);
+  tmpLock := Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(FileName))), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -545,13 +531,11 @@ function DirectoryExists(const Directory: RawByteString): Boolean;
 var
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
-  SystemFileName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
 
-  tmpLock:=dosLock(PChar(SystemFileName),SHARED_LOCK);
+  tmpLock:=Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(Directory))),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
