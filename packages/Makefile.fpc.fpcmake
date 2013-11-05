@@ -26,9 +26,9 @@ dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc p
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg  httpd22 pxlib numlib \
                users iconvenc gmp fcl-extra libxml
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
+               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint iosxlocale
 dirs_iphonesim=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
+               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint iosxlocale
 dirs_i386_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib objcrtl cocoaint opencl openal
 dirs_powerpc_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib objcrtl cocoaint
 dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint objcrtl
@@ -142,6 +142,14 @@ cocoaint_debug: univint_debug
 cocoaint_smart: univint_smart
 cocoaint_release: univint_release
 cocoaint_shared: univint_shared
+endif
+
+ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
+iosxlocale_all: univint_all
+iosxlocale_debug: univint_debug
+iosxlocale_smart: univint_smart
+iosxlocale_release: univint_release
+iosxlocle_shared: univint_shared
 endif
 
 ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux win32 win64 wince),)

@@ -52,6 +52,7 @@
   add_iconvenc(ADirectory+IncludeTrailingPathDelimiter('iconvenc'));
   add_imagemagick(ADirectory+IncludeTrailingPathDelimiter('imagemagick'));
   add_imlib(ADirectory+IncludeTrailingPathDelimiter('imlib'));
+  add_iosxlocale(ADirectory+IncludeTrailingPathDelimiter('iosxlocale'));
   add_jni(ADirectory+IncludeTrailingPathDelimiter('jni'));
   add_ldap(ADirectory+IncludeTrailingPathDelimiter('ldap'));
   add_libc(ADirectory+IncludeTrailingPathDelimiter('libc'));

@@ -302,6 +302,12 @@ begin
 {$include imlib/fpmake.pp}
 end;
 
+procedure add_iosxlocale(const ADirectory: string);
+begin
+  with Installer do
+{$include iosxlocale/fpmake.pp}
+end;
+
 procedure add_jni(const ADirectory: string);
 begin
   with Installer do
