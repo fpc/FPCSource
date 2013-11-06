@@ -1282,8 +1282,8 @@ begin
   // write guid 4662DAAF-D393-11D0-9A56-00C04FB68BF7
   ObjStream.WriteDWord(NtoLE($4662DAAF));
   ObjStream.WriteWord(NtoLE($D393));
-  ObjStream.WriteWord(NtoLE($11D0));
-  ObjStream.WriteWord(NtoLE($569A));
+  ObjStream.WriteWord(NtoLE(word($11D0)));
+  ObjStream.WriteWord(NtoLE(word($569A)));
   ObjStream.WriteByte($00);
   ObjStream.WriteByte($C0);
   ObjStream.WriteByte($4F);
@@ -1332,14 +1332,14 @@ begin
   ObjStream.WriteDWord(NtoLE($E66561C6));
   ObjStream.WriteDWord(NtoLE($73DF6561));
   ObjStream.WriteDWord(NtoLE($656F8C73));
-  ObjStream.WriteWord(NtoLE($6F9C));
-  ObjStream.WriteByte(NtoLE($65));
+  ObjStream.WriteWord(NtoLE(word($6F9C)));
+  ObjStream.WriteByte($65);
   // third bit of second entry
   // write guid 8FA0D5A8-DEDF-11D0-9A61-00C04FB68BF7
   ObjStream.WriteDWord(NtoLE($8FA0D5A8));
   ObjStream.WriteWord(NtoLE($DEDF));
-  ObjStream.WriteWord(NtoLE($11D0));
-  ObjStream.WriteWord(NtoLE($619A));
+  ObjStream.WriteWord(NtoLE(word($11D0)));
+  ObjStream.WriteWord(NtoLE(word($619A)));
   ObjStream.WriteByte($00);
   ObjStream.WriteByte($C0);
   ObjStream.WriteByte($4F);
@@ -1357,8 +1357,8 @@ begin
   // write guid 4662DAB0-D393-11D0-9A56-00C04FB68B66
   ObjStream.WriteDWord(NtoLE($4662DAB0));
   ObjStream.WriteWord(NtoLE($D393));
-  ObjStream.WriteWord(NtoLE($11D0));
-  ObjStream.WriteWord(NtoLE($569A));
+  ObjStream.WriteWord(NtoLE(word($11D0)));
+  ObjStream.WriteWord(NtoLE(word($569A)));
   ObjStream.WriteByte($00);
   ObjStream.WriteByte($C0);
   ObjStream.WriteByte($4F);
