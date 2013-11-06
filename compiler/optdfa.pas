@@ -206,40 +206,15 @@ unit optdfa;
           begin
             if assigned(n.successor) then
               begin
-                {
-                write('Successor Life: ');
-                printdfaset(output,n.successor.optinfo^.life);
-                writeln;
-                write('Def.');
-                printdfaset(output,n.optinfo^.def);
-                writeln;
-                }
                 { ensure we can access optinfo }
                 DFASetDiff(l,n.successor.optinfo^.life,n.optinfo^.def);
-                {
-                printdfaset(output,l);
-                writeln;
-                }
                 DFASetIncludeSet(l,n.optinfo^.use);
                 DFASetIncludeSet(l,n.optinfo^.life);
               end
             else
               begin
-                { last node, not exit or raise node and function? }
-                if assigned(resultnode) and
-                  not(n.nodetype=exitn) and
-                  not((n.nodetype=calln) and (cnf_call_never_returns in tcallnode(n).callnodeflags)) then
-                  begin
-                    { if yes, result lifes }
-                    DFASetDiff(l,resultnode.optinfo^.life,n.optinfo^.def);
-                    DFASetIncludeSet(l,n.optinfo^.use);
-                    DFASetIncludeSet(l,n.optinfo^.life);
-                  end
-                else
-                  begin
-                    l:=n.optinfo^.use;
-                    DFASetIncludeSet(l,n.optinfo^.life);
-                  end;
+                l:=n.optinfo^.use;
+                DFASetIncludeSet(l,n.optinfo^.life);
               end;
             updatelifeinfo(n,l);
           end;
@@ -261,7 +236,9 @@ unit optdfa;
             exit;
           include(node.flags,nf_processing);
 
-          if not(assigned(node.successor)) and (node<>resultnode) then
+          if not(assigned(node.successor)) and (node<>resultnode) and
+            not((node.nodetype=calln) and (cnf_call_never_returns in tcallnode(node).callnodeflags)) and
+            not(node.nodetype in [raisen,exitn]) then
             node.successor:=resultnode;
 
           if assigned(node.successor) then
@@ -602,7 +579,10 @@ unit optdfa;
             resultnode.optinfo^.life:=resultnode.optinfo^.use;
           end
         else
-          resultnode:=cnothingnode.create;
+          begin
+            resultnode:=cnothingnode.create;
+            resultnode.allocoptinfo;
+          end;
 
         repeat
           inc(runs);
