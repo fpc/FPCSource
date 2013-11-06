@@ -553,15 +553,15 @@ implementation
             exit;
           end;
 
-        { Add,Sub,Mul with constant 0, 1 or -1?  }
+        { Add,Sub,Mul,Or,Xor,Andn with constant 0, 1 or -1?  }
         if is_constintnode(right) and is_integer(left.resultdef) then
           begin
             if tordconstnode(right).value = 0 then
               begin
                 case nodetype of
-                  addn,subn:
+                  addn,subn,orn,xorn:
                    result := left.getcopy;
-                  muln:
+                  andn,muln:
                    result:=cordconstnode.create(0,resultdef,true);
                 end;
               end
@@ -591,11 +591,11 @@ implementation
             if tordconstnode(left).value = 0 then
               begin
                 case nodetype of
-                  addn:
+                  addn,orn,xorn:
                    result := right.getcopy;
                   subn:
                    result := cunaryminusnode.create(right.getcopy);
-                  muln:
+                  andn,muln:
                    result:=cordconstnode.create(0,right.resultdef,true);
                 end;
               end
@@ -2767,7 +2767,7 @@ implementation
          hp      : tnode;
 {$endif addstringopt}
          rd,ld   : tdef;
-         i       : longint;
+         i,i2    : longint;
          lt,rt   : tnodetype;
 {$ifdef cpuneedsmulhelper}
          procname : string[32];
@@ -2815,18 +2815,20 @@ implementation
                 (((left.nodetype = ordconstn) and
                   ispowerof2(tordconstnode(left).value,i)) or
                  ((right.nodetype = ordconstn) and
-                  ispowerof2(tordconstnode(right).value,i))) then
+                  ispowerof2(tordconstnode(right).value,i2))) then
                begin
-                 if left.nodetype = ordconstn then
+                 if ((left.nodetype = ordconstn) and
+                     ispowerof2(tordconstnode(left).value,i)) then
                    begin
                      tordconstnode(left).value := i;
                      result := cshlshrnode.create(shln,right,left);
                    end
                  else
                    begin
-                     tordconstnode(right).value := i;
+                     tordconstnode(right).value := i2;
                      result := cshlshrnode.create(shln,left,right);
                    end;
+                 result.resultdef := resultdef;
                  left := nil;
                  right := nil;
                  exit;
