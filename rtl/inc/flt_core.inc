@@ -926,6 +926,29 @@ begin
 end;
 
 (*-------------------------------------------------------
+ | do_fillchar [local]
+ |
+ | Fills string region with certain character.
+ |
+ *-------------------------------------------------------*)
+{$ifdef cpujvm}
+procedure do_fillchar( var str: shortstring; pos, count: integer; c: char );
+begin
+  while count>0 do
+    begin
+      str[pos]:=c;
+      inc(pos);
+      dec(count);
+    end;
+end;
+{$else not cpujvm}
+procedure do_fillchar( var str: shortstring; pos, count: integer; c: char ); {$ifdef grisu1_inline}inline;{$endif}
+begin
+  fillchar( str[pos], count, c );
+end;
+{$endif cpujvm}
+
+(*-------------------------------------------------------
  | try_return_fixed [local]
  |
  | This routine tries to format the number in the fixed-point representation.
@@ -963,8 +986,12 @@ begin
     if ( cut_digits_at < n_digits_have ) then
     begin
         // round digits
+{$ifdef cpujvm}
+        temp_round := digits;
+{$else not cpujvm}
         if ( n_digits_have > 0 ) then
             move( digits, temp_round, n_digits_have * sizeof( digits[0] ) );
+{$endif cpujvm}
         inc( fixed_dot_pos, round_digits( temp_round, n_digits_have, cut_digits_at {$ifdef GRISU1_F2A_HALF_ROUNDUP}, false {$endif} ) );
         rounded := true;
     end;
@@ -1016,7 +1043,7 @@ begin
     // Leading spaces
     if ( n_spaces > 0 ) then
     begin
-        fillchar( str[i], n_spaces, ' ' );
+        do_fillchar( str, i, n_spaces, ' ' );
         inc( i, n_spaces );
     end;
     // Sign
@@ -1046,7 +1073,7 @@ begin
     // Integer 0-padding
     if ( n_before_dot_pad0 > 0 ) then
     begin
-        fillchar( str[i], n_before_dot_pad0, '0' );
+        do_fillchar( str, i, n_before_dot_pad0, '0' );
         inc( i, n_before_dot_pad0 );
     end;
     //
@@ -1058,7 +1085,7 @@ begin
         // Pre-fraction 0-padding
         if ( n_after_dot_pad0 > 0 ) then
         begin
-            fillchar( str[i], n_after_dot_pad0, '0' );
+            do_fillchar( str, i, n_after_dot_pad0, '0' );
             inc( i, n_after_dot_pad0 );
         end;
         // Fraction significant digits
@@ -1081,7 +1108,7 @@ begin
         // Tail 0-padding
         if ( n_tail_pad0 > 0 ) then
         begin
-            fillchar( str[i], n_tail_pad0, '0' );
+            do_fillchar( str, i, n_tail_pad0, '0' );
 {$ifdef grisu1_debug}
             inc( i, n_tail_pad0 );
 {$endif grisu1_debug}
@@ -1137,7 +1164,7 @@ begin
     // Leading spaces
     if ( n_spaces > 0 ) then
     begin
-        fillchar( str[i], n_spaces, ' ' );
+        do_fillchar( str, i, n_spaces, ' ' );
         inc( i, n_spaces );
     end;
     // Sign
@@ -1170,7 +1197,7 @@ begin
     j := n_digits_req - j;
     if ( j > 0 ) then
     begin
-        fillchar( str[i], j, '0' );
+        do_fillchar( str, i, j, '0' );
         inc( i, j );
     end;
     // Exponent designator
@@ -1186,7 +1213,7 @@ begin
     j := n_digits_exp - n_exp;
     if ( j > 0 ) then
     begin
-        fillchar( str[i], j, '0' );
+        do_fillchar( str, i, j, '0' );
         inc( i, j );
     end;
     // Exponent digits
@@ -1228,7 +1255,7 @@ begin
     // Leading spaces
     if ( n_spaces > 0 ) then
     begin
-        fillchar( str[i], n_spaces, ' ' );
+        do_fillchar( str, i, n_spaces, ' ' );
         inc( i, n_spaces );
     end;
     // Sign
@@ -1241,7 +1268,11 @@ begin
         inc( i );
     end;
     // Special
-    move( spec[1], str[i], slen );
+    while slen>0 do
+      begin
+        str[i+slen-1] := spec[slen];
+        dec(slen);
+      end;
 end;
 
 {$if defined(VALREAL_80) or defined(VALREAL_128)}

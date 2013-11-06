@@ -220,10 +220,13 @@ type
         RT_S128REAL  // float128
     );
 
-const
-    float_format: array [ TReal_Type ] of record
+    // JVM target: explicitly define this record type to avoid "ie2011032601"
+    TFloatFormatProfile = record
         nDig_mantissa, nDig_exp10: integer;
-    end = (
+    end;
+
+const
+    float_format: array [ TReal_Type ] of TFloatFormatProfile = (
 {
     Number of mantissa digits is dictated by [2] "IEEE 754-2008", page 32.
     N = 1 + ceiling( p * log10(2) ), where p is the number of significant
