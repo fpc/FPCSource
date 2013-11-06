@@ -227,8 +227,8 @@ unit optdfa;
               begin
                 { last node, not exit or raise node and function? }
                 if assigned(resultnode) and
-                  not(node.nodetype=exitn) and
-                  not((node.nodetype=calln) and (cnf_call_never_returns in tcallnode(node).callnodeflags)) then
+                  not(n.nodetype=exitn) and
+                  not((n.nodetype=calln) and (cnf_call_never_returns in tcallnode(n).callnodeflags)) then
                   begin
                     { if yes, result lifes }
                     DFASetDiff(l,resultnode.optinfo^.life,n.optinfo^.def);
