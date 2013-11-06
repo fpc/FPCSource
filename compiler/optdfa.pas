@@ -342,9 +342,12 @@ unit optdfa;
                 CreateInfo(tfornode(node).t2);
 
                 { expect a blocknode as body because we need to push the life information
-                  of the counter variable into it }
+                  of the counter variable into it
                 if tfornode(node).t2.nodetype<>blockn then
-                  internalerror(2013110201);
+                  begin
+                    printnode(tfornode(node).t2);
+                    internalerror(2013110301);
+                  end;}
 
                 { first update the body }
                 l:=copy(tfornode(node).t2.optinfo^.life);
@@ -404,8 +407,11 @@ unit optdfa;
             blockn:
               begin
                 CreateInfo(tblocknode(node).statements);
-                if assigned(tblocknode(node).statements) then
-                  node.optinfo^.life:=tblocknode(node).statements.optinfo^.life;
+                { ensure that we don't remove life info }
+                l:=node.optinfo^.life;
+                if assigned(node.successor) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
+                UpdateLifeInfo(node,l);
               end;
 
             ifn:
