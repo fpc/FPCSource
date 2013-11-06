@@ -226,8 +226,11 @@ implementation
 {$ifdef jvm}
                        { for the JVM target, some constants need to be
                          initialized at run time (enums, sets) -> create fake
-                         typed const to do so }
-                       if assigned(tconstsym(sym).constdef) and
+                         typed const to do so (at least if they are visible
+                         outside this routine, since we won't directly access
+                         these symbols in the generated code) }
+                       if (symtablestack.top.symtablelevel<normal_function_level) and
+                          assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
                          jvm_add_typed_const_initializer(tconstsym(sym));
 {$endif}
