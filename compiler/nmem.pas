@@ -1001,8 +1001,6 @@ implementation
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      hightree.free;
                    end;
-
-
              end;
            pointerdef :
              begin
@@ -1065,11 +1063,12 @@ implementation
         end;
       end;
 
-    procedure Tvecnode.mark_write;
 
-    begin
-      include(flags,nf_write);
-    end;
+    procedure Tvecnode.mark_write;
+      begin
+        include(flags,nf_write);
+      end;
+
 
     function tvecnode.pass_1 : tnode;
       begin
