@@ -379,8 +379,6 @@ var
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
-  { Initialize out Rslt, this is a *MUST*, because of caller side magic in objpas/sysutils/filutil.inc }
-  fillchar(Rslt,sizeof(Rslt),0);
 
   tmpStr:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
 
