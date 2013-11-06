@@ -321,9 +321,6 @@ unit optdfa;
                   t1: to
                   t2: body
                 }
-                { take care of the sucessor if it's possible that we don't have one execution of the body }
-                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
-                  calclife(node);
                 node.allocoptinfo;
                 if not(assigned(node.optinfo^.def)) and
                    not(assigned(node.optinfo^.use)) then
@@ -335,19 +332,26 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,tfornode(node).right,@AddDefUse,@dfainfo);
                     foreachnodestatic(pm_postprocess,tfornode(node).t1,@AddDefUse,@dfainfo);
                   end;
-                { take care of the sucessor if it's possible that we don't have one execution of the body }
-                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
-                  calclife(node);
 
                 { create life for the body }
                 CreateInfo(tfornode(node).t2);
 
                 { update for node }
-                { life:=life+use+body }
+                { life:=life+body }
                 l:=copy(node.optinfo^.life);
                 DFASetIncludeSet(l,tfornode(node).t2.optinfo^.life);
-                { the for loop always updates its control variable }
-                DFASetDiff(l,l,node.optinfo^.def);
+
+                { take care of the sucessor as it's possible that we don't have one execution of the body }
+                DFASetIncludeSet(l,node.successor.optinfo^.life);
+
+                { the counter variable is living as well inside the for loop }
+                DFASetInclude(l,tfornode(node).left.optinfo^.index);
+
+                { force block node life info }
+                UpdateLifeInfo(tfornode(node).t2,l);
+
+                { the counter variable is not living at the entry of the for node }
+                DFASetExclude(l,tfornode(node).left.optinfo^.index);
 
                 { ... but it could be that left/right use it, so do it after
                   removing def }
