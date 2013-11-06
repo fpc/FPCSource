@@ -473,8 +473,7 @@ unit optdfa;
 
             exitn:
               begin
-                if not(is_void(current_procinfo.procdef.returndef)) and
-                  not(current_procinfo.procdef.proctypeoption=potype_constructor) then
+                if not(is_void(current_procinfo.procdef.returndef)) then
                   begin
                     if not(assigned(node.optinfo^.def)) and
                        not(assigned(node.optinfo^.use)) then
@@ -500,6 +499,7 @@ unit optdfa;
                   end;
               end;
 
+            inlinen,
             calln:
               begin
                 if not(assigned(node.optinfo^.def)) and
@@ -515,7 +515,6 @@ unit optdfa;
 
             tempcreaten,
             tempdeleten,
-            inlinen,
             nothingn,
             continuen,
             goton,
@@ -539,11 +538,13 @@ unit optdfa;
         dfarec : tdfainfo;
       begin
         runs:=0;
-        if not(is_void(current_procinfo.procdef.returndef)) and
-          not(current_procinfo.procdef.proctypeoption=potype_constructor) then
+        if not(is_void(current_procinfo.procdef.returndef)) then
           begin
             { create a fake node using the result }
-            resultnode:=load_result_node;
+            if current_procinfo.procdef.proctypeoption=potype_constructor then
+              resultnode:=load_self_node
+            else
+              resultnode:=load_result_node;
             resultnode.allocoptinfo;
             dfarec.use:=@resultnode.optinfo^.use;
             dfarec.def:=@resultnode.optinfo^.def;
