@@ -1278,14 +1278,23 @@ implementation
 
                         { Give warning/note for living locals }
                         if assigned(varsym.owner) and
+                          ((varsym.owner=procdef.localst) or
+                           ((varsym.owner=procdef.parast) and
+                            (varsym.typ=paravarsym) and
+                            (tparavarsym(varsym).varspez=vs_out)
+                           )
+                          ) and
                           not(vo_is_external in varsym.varoptions) then
                           begin
                             if (vo_is_funcret in varsym.varoptions) then
                               CGMessage(sym_w_function_result_uninitialized)
                             else
                               begin
-                                if (varsym.owner=procdef.localst) and not (vo_is_typed_const in varsym.varoptions) then
-                                  CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
+                                if not (vo_is_typed_const in varsym.varoptions) then
+                                  if varsym.typ=paravarsym then
+                                    CGMessage1(sym_w_uninitialized_variable,varsym.realname)
+                                  else
+                                    CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
                               end;
                           end;
                       end;
