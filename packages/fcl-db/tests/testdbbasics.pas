@@ -134,6 +134,7 @@ type
     procedure TestLocate;
     procedure TestLocateCaseIns;
     procedure TestLocateCaseInsInts;
+    procedure TestLookup;
 
     procedure TestOnFilter;
     procedure TestIntFilter; //Integer range filter
@@ -911,20 +912,25 @@ begin
   with DBConnector.GetNDataset(true,13) do
     begin
     open;
+    CheckTrue(Locate('id',3,[]));
+
     CheckTrue(Locate('id',vararrayof([5]),[]));
     CheckEquals(5,FieldByName('id').AsInteger);
+
     CheckFalse(Locate('id',vararrayof([15]),[]));
-    CheckTrue(Locate('id',vararrayof([12]),[]));
-    CheckEquals(12,FieldByName('id').AsInteger);
+
+    CheckTrue(Locate('id',vararrayof([13]),[]));
+    CheckEquals(13,FieldByName('id').AsInteger);
     close;
+
     open;
     CheckTrue(Locate('id',vararrayof([12]),[]));
     CheckEquals(12,FieldByName('id').AsInteger);
+
     CheckTrue(Locate('id;name',vararrayof([4,'TestName4']),[]));
     CheckEquals(4,FieldByName('id').AsInteger);
 
     CheckFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
-
     end;
 end;
 
@@ -981,6 +987,26 @@ begin
 
     close;
     end;
+end;
+
+procedure TTestCursorDBBasics.TestLookup;
+var v: variant;
+begin
+  // Lookup doesn't move the record pointer of the dataset
+  //  and no scroll events should be generated (only OnCalcFields when matched record is found)
+  with DBConnector.GetNDataset(13) do
+  begin
+    Open;
+    Next;
+    CheckEquals('TestName5', Lookup('id',5,'name'));
+    CheckTrue(Lookup('id',15,'name')=Null);
+    v:=Lookup('id',7,'id;name');
+    CheckEquals(7, v[0]);
+    CheckEquals('TestName7', v[1]);
+    // Lookup shouldn't change current record
+    CheckEquals(2, FieldByName('id').AsInteger);
+    Close;
+  end;
 end;
 
 procedure TTestDBBasics.TestSetFieldValues;
