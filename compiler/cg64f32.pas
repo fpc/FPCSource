@@ -522,7 +522,7 @@ unit cg64f32;
           LOC_MMREGISTER, LOC_CMMREGISTER:
             a_loadmm_intreg64_reg(list,l.size,reg,l.register);
           else
-            internalerror(200112293);
+            internalerror(200112294);
         end;
       end;
 
