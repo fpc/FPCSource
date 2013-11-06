@@ -189,7 +189,11 @@ unit optdfa;
             }
 {$ifdef DEBUG_DFA}
             if not(changed) and b then
-              writeln('Another DFA pass caused by: ',nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,')');
+              begin
+                writeln('Another DFA pass caused by: ',nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,')');
+                write('  Life info set was:     ');PrintDFASet(Output,n.optinfo^.life);writeln;
+                write('  Life info set will be: ');PrintDFASet(Output,l);writeln;
+              end;
 {$endif DEBUG_DFA}
 
             changed:=changed or b;
