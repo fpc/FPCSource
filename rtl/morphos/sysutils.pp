@@ -329,10 +329,11 @@ var
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
   validFile: boolean;
-
+  SystemFileName: RawByteString;
 begin
   validFile:=false;
-  tmpLock := Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(FileName))), SHARED_LOCK);
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
   
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -354,9 +355,11 @@ function FileExists (const FileName : RawByteString) : Boolean;
 var
   tmpLock: LongInt;
   tmpFIB : PFileInfoBlock;
+  SystemFileName: RawByteString;
 begin
   result:=false;
-  tmpLock := Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(FileName))), SHARED_LOCK);
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -376,6 +379,9 @@ var
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
+  { Initialize out Rslt, this is a *MUST*, because of caller side magic in objpas/sysutils/filutil.inc }
+  fillchar(Rslt,sizeof(Rslt),0);
+
   tmpStr:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
@@ -531,11 +537,13 @@ function DirectoryExists(const Directory: RawByteString): Boolean;
 var
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
+  SystemDirName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
 
-  tmpLock:=Lock(PChar(PathConv(ToSingleByteFileSystemEncodedFileName(Directory))),SHARED_LOCK);
+  SystemDirName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
+  tmpLock:=Lock(PChar(SystemDirName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
