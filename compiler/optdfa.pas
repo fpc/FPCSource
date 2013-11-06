@@ -245,7 +245,7 @@ unit optdfa;
           l : TDFASet;
           save: TDFASet;
           i : longint;
-
+          counteruse_after_loop : boolean;
         begin
           if node=nil then
             exit;
@@ -256,7 +256,6 @@ unit optdfa;
           if nf_processing in node.flags then
             exit;
           include(node.flags,nf_processing);
-
 
           if not(assigned(node.successor)) and (node<>resultnode) then
             node.successor:=resultnode;
@@ -327,6 +326,7 @@ unit optdfa;
                   t2: body
                 }
                 node.allocoptinfo;
+                tfornode(node).loopiteration.allocoptinfo;
                 if not(assigned(node.optinfo^.def)) and
                    not(assigned(node.optinfo^.use)) then
                   begin
@@ -341,37 +341,56 @@ unit optdfa;
                 { create life for the body }
                 CreateInfo(tfornode(node).t2);
 
-                { expect a blocknode as body because we need to push the life information
-                  of the counter variable into it
-                if tfornode(node).t2.nodetype<>blockn then
-                  begin
-                    printnode(tfornode(node).t2);
-                    internalerror(2013110301);
-                  end;}
+                { is the counter living after the loop?
 
-                { first update the body }
+                  if left is a record element, it might not be tracked by dfa, so
+                  optinfo might not be assigned
+                }
+                counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and
+                  DFASetIn(node.successor.optinfo^.life,tfornode(node).left.optinfo^.index);
+
+                { if yes, then we should warn }
+                { !!!!!! }
+
+                { first update the dummy node }
+
+                { get the life of the loop block }
+                l:=copy(tfornode(node).t2.optinfo^.life);
+
+                { take care of the sucessor }
+                DFASetIncludeSet(l,node.successor.optinfo^.life);
+
+                { the counter variable is living as well inside the for loop
+
+                  if left is a record element, it might not be tracked by dfa, so
+                  optinfo might not be assigned
+                }
+                if assigned(tfornode(node).left.optinfo) then
+                  DFASetInclude(l,tfornode(node).left.optinfo^.index);
+
+                { force block node life info }
+                UpdateLifeInfo(tfornode(node).loopiteration,l);
+
+                { now update the for node itself }
+
+                { get the life of the loop block }
                 l:=copy(tfornode(node).t2.optinfo^.life);
 
                 { take care of the sucessor as it's possible that we don't have one execution of the body }
-                DFASetIncludeSet(l,node.successor.optinfo^.life);
+                if not(tfornode(node).right.nodetype=ordconstn) or not(tfornode(node).t1.nodetype=ordconstn) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
 
-                { the counter variable is living as well inside the for loop }
-                DFASetInclude(l,tfornode(node).left.optinfo^.index);
+                {
+                  the counter variable is not living at the entry of the for node
 
-                { force block node life info }
-                UpdateLifeInfo(tfornode(node).t2,l);
+                  if left is a record element, it might not be tracked by dfa, so
+                    optinfo might not be assigned
+                }
+                if assigned(tfornode(node).left.optinfo) then
+                  DFASetExclude(l,tfornode(node).left.optinfo^.index);
 
-                { avoid to modify the life information set above for t2 }
-                l:=copy(l);
-
-                { update l for the for node itself }
-                DFASetIncludeSet(l,tfornode(node).t2.optinfo^.life);
-
-                { the counter variable is not living at the entry of the for node }
-                DFASetExclude(l,tfornode(node).left.optinfo^.index);
-
-                { ... but it could be that left/right use it, so do it after
-                  removing def }
+                { ... but it could be that left/right use it, so do this after
+                  removing the def of the counter variable }
                 DFASetIncludeSet(l,node.optinfo^.use);
 
                 UpdateLifeInfo(node,l);

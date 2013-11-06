@@ -96,7 +96,9 @@ interface
           { if count isn divisable by unrolls then
             the for loop must jump to this label to get the correct
             number of executions }
-          entrylabel : tnode;
+          entrylabel,
+          { this is a dummy node used by the dfa to store life information for the loop iteration }
+          loopiteration : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);

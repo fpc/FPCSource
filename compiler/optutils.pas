@@ -196,12 +196,14 @@ unit optutils;
                 Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                { the successor of the last node of the for body is the body itself }
-                DoSet(tfornode(p).t2,tfornode(p).t2);
+                { the successor of the last node of the for body is the dummy loop iteration node
+                  it allows the dfa to inject needed life information into the loop }
+                tfornode(p).loopiteration:=cnothingnode.create;
+
+                DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
-                p.successor:=succ;
               end;
             breakn:
               begin
