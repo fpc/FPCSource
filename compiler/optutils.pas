@@ -186,15 +186,18 @@ unit optutils;
               begin
                 result:=p;
                 DoSet(tblocknode(p).statements,succ);
-                p.successor:=succ;
+                if assigned(tblocknode(p).statements) then
+                  p.successor:=tblocknode(p).statements
+                else
+                  p.successor:=succ;
               end;
             forn:
               begin
                 Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                { the successor of the last node of the for body is the for node itself }
-                DoSet(tfornode(p).t2,p);
+                { the successor of the last node of the for body is the body itself }
+                DoSet(tfornode(p).t2,tfornode(p).t2);
                 p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
