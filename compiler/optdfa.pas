@@ -564,7 +564,7 @@ unit optdfa;
             resultnode.optinfo^.life:=resultnode.optinfo^.use;
           end
         else
-          resultnode:=nil;
+          resultnode:=cnothingnode.create;
 
         repeat
           inc(runs);
