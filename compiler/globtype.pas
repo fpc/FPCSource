@@ -274,7 +274,8 @@ interface
          }
          cs_opt_dead_values,
          { compiler checks for empty procedures/methods and removes calls to them if possible }
-         cs_opt_remove_emtpy_proc
+         cs_opt_remove_emtpy_proc,
+         cs_opt_constant_propagate
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -307,7 +308,8 @@ interface
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS'
+         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
+         'CONSTPROP'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -332,7 +334,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
