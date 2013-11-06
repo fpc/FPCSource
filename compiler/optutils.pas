@@ -38,7 +38,7 @@ unit optutils;
         function Remove(node : tnode) : boolean;
       end;
 
-    procedure SetNodeSucessors(p : tnode);
+    procedure SetNodeSucessors(p,last : tnode);
     procedure PrintDFAInfo(var f : text;p : tnode);
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
     { determines the optinfo.defsum field for the given node
@@ -141,7 +141,7 @@ unit optutils;
       end;
 
 
-    procedure SetNodeSucessors(p : tnode);
+    procedure SetNodeSucessors(p,last : tnode);
       var
         Continuestack : TFPList;
         Breakstack : TFPList;

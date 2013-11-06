@@ -595,7 +595,7 @@ unit optdfa;
         if not(assigned(nodemap)) then
           nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
-        SetNodeSucessors(node);
+        SetNodeSucessors(node,resultnode);
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
       end;
