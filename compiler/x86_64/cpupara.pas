@@ -935,7 +935,7 @@ unit cpupara;
                           end;
                         else
                           begin
-                            setsubreg(paraloc^.register,R_SUBQ);
+                            setsubreg(paraloc^.register,R_SUBMMWHOLE);
                             paraloc^.size:=OS_M64;
                           end;
                       end;
@@ -1124,7 +1124,7 @@ unit cpupara;
                               end;
                             else
                               begin
-                                subreg:=R_SUBQ;
+                                subreg:=R_SUBMMWHOLE;
                                 paraloc^.size:=OS_M64;
                               end;
                           end;
