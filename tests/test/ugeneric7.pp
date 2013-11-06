@@ -6,6 +6,7 @@ unit ugeneric7;
 
     type
       generic tgeneric<t> = class
+        l : longint;
         field : t;
         procedure test;
       end;
@@ -14,8 +15,6 @@ unit ugeneric7;
 
 {$R-}
     procedure tgeneric.test;
-      var
-        l : longint;
       begin
         l:=1234;
 {$R+}
