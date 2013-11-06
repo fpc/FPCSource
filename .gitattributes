@@ -461,6 +461,7 @@ compiler/optbase.pas svneol=native#text/plain
 compiler/optconstprop.pas svneol=native#text/pascal
 compiler/optcse.pas svneol=native#text/plain
 compiler/optdead.pas svneol=native#text/plain
+compiler/optdeadstore.pas svneol=native#text/pascal
 compiler/optdfa.pas svneol=native#text/plain
 compiler/options.pas svneol=native#text/plain
 compiler/optloop.pas svneol=native#text/plain

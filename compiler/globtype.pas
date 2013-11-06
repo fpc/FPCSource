@@ -275,7 +275,8 @@ interface
          cs_opt_dead_values,
          { compiler checks for empty procedures/methods and removes calls to them if possible }
          cs_opt_remove_emtpy_proc,
-         cs_opt_constant_propagate
+         cs_opt_constant_propagate,
+         cs_opt_dead_store_eliminate
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -309,7 +310,8 @@ interface
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
-         'CONSTPROP'
+         'CONSTPROP',
+         'DEADSTORE'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'

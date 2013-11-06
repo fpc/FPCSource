@@ -115,7 +115,8 @@ implementation
        opttail,
        optcse,
        optloop,
-       optconstprop
+       optconstprop,
+       optdeadstore
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
@@ -1253,7 +1254,7 @@ implementation
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
 
-        if (cs_opt_constant_propagate in current_settings.optimizerswitches) then
+        if cs_opt_constant_propagate in current_settings.optimizerswitches then
           do_optconstpropagate(code);
 
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
@@ -1292,6 +1293,9 @@ implementation
               end;
             include(flags,pi_dfaavailable);
           end;
+
+        if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
+          do_optdeadstoreelim(code);
 
         if (cs_opt_loopstrength in current_settings.optimizerswitches)
           { our induction variable strength reduction doesn't like
