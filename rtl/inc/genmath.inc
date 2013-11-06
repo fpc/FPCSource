@@ -737,22 +737,22 @@ invalid:
     }
     function fpc_exp_real(d: ValReal):ValReal;compilerproc;
       const
-        one   = 1.0;
+        one: double = 1.0;
         halF : array[0..1] of double = (0.5,-0.5);
-        huge	= 1.0e+300;
-        twom1000 = 9.33263618503218878990e-302;     { 2**-1000=0x01700000,0}
-        o_threshold =  7.09782712893383973096e+02;  { 0x40862E42, 0xFEFA39EF }
-        u_threshold = -7.45133219101941108420e+02;  { 0xc0874910, 0xD52D3051 }
+        huge: double = 1.0e+300;
+        twom1000: double = 9.33263618503218878990e-302;     { 2**-1000=0x01700000,0}
+        o_threshold: double =  7.09782712893383973096e+02;  { 0x40862E42, 0xFEFA39EF }
+        u_threshold: double = -7.45133219101941108420e+02;  { 0xc0874910, 0xD52D3051 }
         ln2HI  : array[0..1] of double = ( 6.93147180369123816490e-01,  { 0x3fe62e42, 0xfee00000 }
              -6.93147180369123816490e-01); { 0xbfe62e42, 0xfee00000 }
         ln2LO : array[0..1] of double = (1.90821492927058770002e-10,  { 0x3dea39ef, 0x35793c76 }
              -1.90821492927058770002e-10); { 0xbdea39ef, 0x35793c76 }
-        invln2 =  1.44269504088896338700e+00; { 0x3ff71547, 0x652b82fe }
-        P1   =  1.66666666666666019037e-01; { 0x3FC55555, 0x5555553E }
-        P2   = -2.77777777770155933842e-03; { 0xBF66C16C, 0x16BEBD93 }
-        P3   =  6.61375632143793436117e-05; { 0x3F11566A, 0xAF25DE2C }
-        P4   = -1.65339022054652515390e-06; { 0xBEBBBD41, 0xC5D26BF1 }
-        P5   =  4.13813679705723846039e-08; { 0x3E663769, 0x72BEA4D0 }
+        invln2: double =  1.44269504088896338700e+00; { 0x3ff71547, 0x652b82fe }
+        P1: double   =  1.66666666666666019037e-01; { 0x3FC55555, 0x5555553E }
+        P2: double   = -2.77777777770155933842e-03; { 0xBF66C16C, 0x16BEBD93 }
+        P3: double   =  6.61375632143793436117e-05; { 0x3F11566A, 0xAF25DE2C }
+        P4: double   = -1.65339022054652515390e-06; { 0xBEBBBD41, 0xC5D26BF1 }
+        P5: double   =  4.13813679705723846039e-08; { 0x3E663769, 0x72BEA4D0 }
       var
         c,hi,lo,t,y : double;
         k,xsb : longint;
@@ -786,21 +786,19 @@ invalid:
                   end
                 else
                   begin
-                    if xsb=0 then begin
-                      float_raise(float_flag_overflow);
+                    if xsb=0 then
                       result:=d
-                    end else
-                      result:=0.0;    { exp(+-inf)=begininf,0end }
+                    else
+                      result:=0.0;    { exp(+-inf)=(inf,0) }
                     exit;
                   end;
               end;
             if d > o_threshold then begin
-              float_raise(float_flag_overflow); { overflow }
+              result:=huge*huge;  { overflow }
               exit;
             end;
             if d < u_threshold then begin
-              float_raise(float_flag_underflow); { underflow }
-              result:=0; { Result if underflow masked }
+              result:=twom1000*twom1000; { underflow }
               exit;
             end;
           end;
@@ -815,7 +813,7 @@ invalid:
               end
             else
               begin
-               k  := round(invln2*d+halF[xsb]);
+               k  := trunc(invln2*d+halF[xsb]);
                t  := k;
                hi := d - t*ln2HI[0];    { t*ln2HI is exact here }
                lo := t*ln2LO[0];
