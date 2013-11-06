@@ -117,17 +117,16 @@ unit aoptbase;
 
 
   Function TAOptBase.RegInInstruction(Reg: TRegister; p1: tai): Boolean;
-    Var Count: AWord;
-        TmpResult: Boolean;
+    Var
+      Count: longint;
     Begin
-      TmpResult := False;
-      Count := 0;
-      If (p1.typ = ait_instruction) and assigned(TInstr(p1).oper[0]) Then
-        Repeat
-          TmpResult := RegInOp(Reg, TInstr(p1).oper[Count]^);
-          Inc(Count)
-        Until (TInstr(p1).oper[Count]=nil) or (Count = MaxOps) or TmpResult;
-      RegInInstruction := TmpResult
+      result:=false;
+      if p1.typ<>ait_instruction then
+        exit;
+      for Count:=0 to TInstr(p1).ops-1 do
+        if RegInOp(Reg, TInstr(p1).oper[Count]^) then
+          exit(true);
+      result:=false;
     End;
 
 
