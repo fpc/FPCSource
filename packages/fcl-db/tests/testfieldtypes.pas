@@ -788,7 +788,7 @@ begin
     if SQLServerType = ssSQLite then
       testIntervalValuesCount := 6
     else if SQLServerType = ssMySQL then
-      // MySQL ODBC driver does not correctly handles time values >= '100:00:00'
+      // MySQL ODBC driver prior 5.2.6 doesn't correctly handles time values >= '100:00:00'
       testIntervalValuesCount := 5
     else
       testIntervalValuesCount := 3;
