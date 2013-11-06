@@ -1135,8 +1135,13 @@ implementation
                      exclude(varstateflags,vsf_must_be_valid);
                    tc_pchar_2_string,
                    tc_pointer_2_array :
-                     include(varstateflags,vsf_must_be_valid);
-                 end;
+                     begin
+                       include(varstateflags,vsf_must_be_valid);
+                       { when a pointer is used for array access, the
+                         pointer itself is read and never written }
+                       newstate := vs_read;
+                     end;
+               end;
                  p:=tunarynode(p).left;
                end;
              subscriptn :
