@@ -2715,9 +2715,6 @@ type
 
     procedure tscannerfile.tokenwriteshortint(val : shortint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(shortint));
       end;
 
