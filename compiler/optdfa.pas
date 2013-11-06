@@ -193,7 +193,7 @@ unit optdfa;
 {$endif DEBUG_DFA}
 
             changed:=changed or b;
-            node.optinfo^.life:=l;
+            n.optinfo^.life:=l;
           end;
 
         procedure calclife(n : tnode);
