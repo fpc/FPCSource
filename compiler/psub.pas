@@ -113,7 +113,9 @@ implementation
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,optloop
+       optcse,
+       optloop,
+       optconstprop
 {$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
@@ -1250,6 +1252,9 @@ implementation
         if (cs_opt_tailrecursion in current_settings.optimizerswitches) and
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
+
+        if (cs_opt_constant_propagate in current_settings.optimizerswitches) then
+          do_optconstpropagate(code);
 
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
           { creating dfa is not always possible }
