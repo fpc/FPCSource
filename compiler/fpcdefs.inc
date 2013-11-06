@@ -136,6 +136,7 @@
   {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define fpc_compiler_has_fixup_jmps}
+  {$define cpuno32bitops}
 {$endif powerpc64}
 
 {$ifdef arm}
