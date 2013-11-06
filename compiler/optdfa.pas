@@ -113,6 +113,7 @@ unit optdfa;
     function AddDefUse(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         case n.nodetype of
+          temprefn,
           loadn:
             begin
               pdfainfo(arg)^.map.Add(n);
@@ -255,6 +256,10 @@ unit optdfa;
           if nf_processing in node.flags then
             exit;
           include(node.flags,nf_processing);
+
+
+          if not(assigned(node.successor)) and (node<>resultnode) then
+            node.successor:=resultnode;
 
           if assigned(node.successor) then
             CreateInfo(node.successor);
@@ -405,6 +410,7 @@ unit optdfa;
                     dfainfo.map:=map;
                     foreachnodestatic(pm_postprocess,tifnode(node).left,@AddDefUse,@dfainfo);
                   end;
+
                 { create life info for then and else node }
                 CreateInfo(tifnode(node).right);
                 CreateInfo(tifnode(node).t1);
@@ -528,10 +534,11 @@ unit optdfa;
                 calclife(node);
               end;
             else
-              begin
-                writeln(nodetype2str[node.nodetype]);
-                internalerror(2007050502);
-              end;
+              if node<>resultnode then
+                begin
+                  writeln(nodetype2str[node.nodetype]);
+                  internalerror(2007050502);
+                end;
           end;
 
           // exclude(node.flags,nf_processing);
