@@ -70,8 +70,10 @@ unit cgx86;
         procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
 
+{$ifndef i8086}
         procedure a_op_const_reg_reg(list : TAsmList; op : Topcg; size : Tcgsize; a : tcgint; src,dst : Tregister); override;
         procedure a_op_reg_reg_reg(list : TAsmList; op : TOpCg; size : tcgsize; src1,src2,dst : tregister); override;
+{$endif not i8086}
 
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; tosize: tcgsize; a : tcgint;reg : tregister);override;
@@ -1550,6 +1552,7 @@ unit cgx86;
       end;
 
 
+{$ifndef i8086}
     procedure tcgx86.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                         a:tcgint;src,dst:Tregister);
       var
@@ -1616,6 +1619,7 @@ unit cgx86;
         else
           inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
       end;
+{$endif not i8086}
 
 
     procedure tcgx86.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
