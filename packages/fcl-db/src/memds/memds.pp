@@ -311,12 +311,13 @@ end;
 
 function TMemDataset.MDSGetBufferSize(FieldNo: integer): integer;
 var
- dt1: tfieldtype;
+ FD: TFieldDef;
 begin
- dt1:= FieldDefs.Items[FieldNo-1].Datatype;
- case dt1 of
-  ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
-  ftFixedChar:result:=FieldDefs.Items[FieldNo-1].Size+1;
+ FD := FieldDefs.Items[FieldNo-1];
+ case FD.DataType of
+  ftString,
+    ftGuid:   result:=FD.Size+1;
+  ftFixedChar:result:=FD.Size+1;
   ftBoolean:  result:=SizeOf(Wordbool);
   ftCurrency,
   ftFloat:    result:=SizeOf(Double);
@@ -329,8 +330,12 @@ begin
     ftTime,
     ftDate:   result:=SizeOf(TDateTime);
   ftFmtBCD:   result:=SizeOf(TBCD);
+  ftWideString,
+  ftFixedWideChar: result:=(FD.Size+1)*SizeOf(WideChar);
+  ftBytes:    result := FD.Size;
+  ftVarBytes: result := FD.Size + SizeOf(Word);
  else
-  RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
+  RaiseError(SErrFieldTypeNotSupported,[FD.Name]);
  end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
  Result:=Align(Result,4);
@@ -872,9 +877,9 @@ begin
 {$ENDIF}
  for i:= 0 to Count-1 do
    begin
-   GetIntegerPointer(ffieldoffsets, i)^ := frecsize;
+   GetIntegerPointer(ffieldoffsets, i)^ := FRecSize;
    GetIntegerPointer(ffieldsizes,   i)^ := MDSGetbufferSize(i+1);
-   FRecSize:= FRecSize+GetIntegerPointeR(FFieldSizes, i)^;
+   FRecSize:= FRecSize+GetIntegerPointer(FFieldSizes, i)^;
    end;
 end;
 
