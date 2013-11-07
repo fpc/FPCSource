@@ -337,3 +337,9 @@ begin
   num_types:=0;
 end;
 
+Procedure ReReadLocalTime;
+
+begin
+  DoneLocalTime;
+  InitLocalTime;
+end;
