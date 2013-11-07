@@ -1966,7 +1966,7 @@ begin
   fillchar(Nullmask^,FNullmaskSize,0);
   inc(buffer,FNullmaskSize);
 
-  for x := 0 to FieldDefs.count-1 do
+  for x := 0 to FieldDefs.Count-1 do
     begin
     if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
       SetFieldIsNull(NullMask,x)
@@ -1983,9 +1983,11 @@ end;
 
 function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
-  if State = dsFilter then Result := FFilterBuffer
-  else if State = dsCalcFields then Result := CalcBuffer
-  else Result := ActiveBuffer;
+  case State of
+    dsFilter:     Result := FFilterBuffer;
+    dsCalcFields: Result := CalcBuffer;
+    else          Result := ActiveBuffer;
+  end;
 end;
 
 
@@ -2017,7 +2019,7 @@ begin
 
   if not assigned(CurrBuff) then Exit;
 
-  If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
+  If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
     if GetFieldIsNull(pbyte(CurrBuff),Field.FieldNo-1) then
       Exit;
@@ -2035,7 +2037,7 @@ begin
     if result and assigned(Buffer) then
       begin
       inc(CurrBuff);
-      Move(CurrBuff^, Buffer^, Field.Datasize);
+      Move(CurrBuff^, Buffer^, Field.DataSize);
       end;
     end;
 end;
@@ -2055,7 +2057,7 @@ begin
   if not (State in dsWriteModes) then
     DatabaseError(SNotEditing, Self);
   CurrBuff := GetCurrentBuffer;
-  If Field.Fieldno > 0 then // If = 0, then calculated field or something
+  If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
     if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);	
@@ -2078,7 +2080,7 @@ begin
     Boolean(CurrBuff^) := Buffer <> nil;
     inc(CurrBuff);
     if assigned(Buffer) then
-      Move(Buffer^, CurrBuff^, Field.Datasize);
+      Move(Buffer^, CurrBuff^, Field.DataSize);
     end;
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, Ptrint(Field));
@@ -2446,7 +2448,7 @@ procedure TCustomBufDataset.CalcRecordSize;
 var x : longint;
 
 begin
-  FNullmaskSize := 1+((FieldDefs.count-1) div 8);
+  FNullmaskSize := (FieldDefs.Count+7) div 8;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   FNullmaskSize:=Align(FNullmaskSize,4);
 {$ENDIF}
