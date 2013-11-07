@@ -287,30 +287,6 @@ invalid:
      end;
 
 
-{$ifndef FPC_SYSTEM_HAS_ExtractFloat32Frac}
-  Function ExtractFloat32Frac(a : Float32) : longint;
-    Begin
-       ExtractFloat32Frac := A AND $007FFFFF;
-    End;
-{$endif not FPC_SYSTEM_HAS_ExtractFloat32Frac}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat32Exp}
-  Function extractFloat32Exp( a: float32 ): smallint;
-    Begin
-      extractFloat32Exp := (a shr 23) AND $FF;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat32Exp}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat32Sign}
-  Function extractFloat32Sign( a: float32 ): Flag;
-    Begin
-      extractFloat32Sign := a shr 31;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat32Sign}
-
-
   Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     Var
        aSign : flag;
@@ -318,9 +294,9 @@ invalid:
        aSig : longint;
        z : longint;
     Begin
-       aSig := extractFloat32Frac( a );
-       aExp := extractFloat32Exp( a );
-       aSign := extractFloat32Sign( a );
+       aSig := a and $007FFFFF;
+       aExp := (a shr 23) and $FF;
+       aSign := a shr 31;
        shiftCount := aExp - $9E;
        if ( 0 <= shiftCount ) then
          Begin
