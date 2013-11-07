@@ -63,7 +63,6 @@ type
     FRecInfoOffset: integer;
     FRecCount: integer;
     FRecSize: integer;
-    FRecBufferSize: integer;
     FCurrRecNo: integer;
     FIsOpen: boolean;
     FTableIsCreated: boolean;
@@ -77,7 +76,7 @@ type
     function  MDSGetRecordOffset(ARecNo: integer): longint;
     function  MDSGetFieldOffset(FieldNo: integer): integer;
     function  MDSGetBufferSize(FieldNo: integer): integer;
-    function  MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
+    function  MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
     procedure MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);
     procedure MDSWriteRecord(Buffer:TRecordBuffer;ARecNo:Integer);
     procedure MDSAppendRecord(Buffer:TRecordBuffer);
@@ -99,6 +98,7 @@ type
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: TRecordBuffer); override;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
@@ -268,7 +268,6 @@ begin
   FStream:=TMemoryStream.Create;
   FRecCount:=0;
   FRecSize:=0;
-  FRecBufferSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
   BookmarkSize := sizeof(Longint);
@@ -325,6 +324,7 @@ begin
   ftLargeInt: result:=SizeOf(int64);
   ftSmallInt: result:=SizeOf(SmallInt);
   ftWord,
+  ftAutoInc,
   ftInteger:  result:=SizeOf(longint);
   ftDateTime,
     ftTime,
@@ -342,7 +342,7 @@ begin
 {$ENDIF}
 end;
 
-function TMemDataset.MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
+function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
@@ -387,7 +387,7 @@ end;
 //Abstract Overrides
 function TMemDataset.AllocRecordBuffer: TRecordBuffer;
 begin
-  GetMem(Result,FRecBufferSize);
+  GetMem(Result, FRecSize+CalcFieldsSize);
 end;
 
 procedure TMemDataset.FreeRecordBuffer (var Buffer: TRecordBuffer);
@@ -397,7 +397,12 @@ end;
 
 procedure TMemDataset.InternalInitRecord(Buffer: TRecordBuffer);
 begin
-  fillchar(Buffer^,FRecSize,0);
+  FillChar(Buffer^,FRecSize,0);
+end;
+
+procedure TMemDataset.ClearCalcFields(Buffer: TRecordBuffer);
+begin
+  FillChar(Buffer[RecordSize], CalcFieldsSize, 0);
 end;
 
 procedure TMemDataset.InternalDelete;
@@ -429,7 +434,7 @@ begin
       FStream.Position:=MDSGetRecordOffset(FCurrRecNo+1);
       TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
       end;
-    FStream.loadFromStream(TS);
+    FStream.LoadFromStream(TS);
     Dec(FRecCount);
     if FRecCount=0 then
       FCurrRecNo:=-1
@@ -483,7 +488,6 @@ begin
     B:=ReadInteger(F)<>0;
     TFieldDef.Create(FieldDefs,FN,ft,FS,B,I);
     end;
-  CreateTable;
 end;
 
 procedure TMemDataset.InternalFirst;
@@ -498,16 +502,16 @@ end;
 
 procedure TMemDataset.InternalOpen;
 
-
 begin
-  if not FTableIsCreated then CreateTable;
   If (FFileName<>'') then
     FOpenStream:=TFileStream.Create(FFileName,fmOpenRead);
   Try
     InternalInitFieldDefs;
     if DefaultFields then
       CreateFields;
-    BindFields(True);
+    BindFields(True); // BindFields computes CalcFieldsSize
+    if not FTableIsCreated then
+      CreateTable;
     FCurrRecNo:=-1;
     If (FOpenStream<>Nil) then
       begin
@@ -539,6 +543,7 @@ procedure TMemDataset.LoadFromStream(F: TStream);
 begin
   Close;
   ReadFieldDefsFromStream(F);
+  CreateTable;
   LoadDataFromStream(F);
   CheckMarker(F,smEOF);
   FFileModified:=False;
@@ -705,6 +710,7 @@ begin
       MDSReadRecord(Buffer, FCurrRecNo);
       PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=FCurrRecNo;
       PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag:=bfCurrent;
+      GetCalcFields(Buffer);
       if (Filtered) then
         Accepted:=MDSFilterRecord(Buffer) //Filtering
       else
@@ -721,11 +727,21 @@ var
  I: integer;
 begin
  I:= Field.FieldNo - 1;
- result:= (I >= 0) and MDSGetActiveBuffer(SrcBuffer) and 
-          not getfieldisnull(pointer(srcbuffer),I);
- if result and (buffer <> nil) then 
+ result := MDSGetActiveBuffer(SrcBuffer);
+ if not result then Exit;
+
+ if I >= 0 then
    begin
-   Move(GetRecordBufferPointer((SrcBuffer),getintegerpointer(ffieldoffsets,I)^)^, Buffer^,GetIntegerPointer(FFieldSizes, I)^);
+   result := not getfieldisnull(pointer(srcbuffer),I);
+   if result and assigned(Buffer) then
+     Move(GetRecordBufferPointer(SrcBuffer, GetIntegerPointer(ffieldoffsets,I)^)^, Buffer^, GetIntegerPointer(FFieldSizes, I)^);
+   end
+ else // Calculated, Lookup
+   begin
+   Inc(SrcBuffer, RecordSize + Field.Offset);
+   result := Boolean(SrcBuffer[0]);
+   if result and assigned(Buffer) then
+     Move(SrcBuffer[1], Buffer^, Field.DataSize);
    end;
 end;
 
@@ -736,22 +752,33 @@ var
 
 begin
  I:= Field.FieldNo - 1;
- if (I >= 0) and  MDSGetActiveBuffer(DestBuffer) then 
+ if not MDSGetActiveBuffer(DestBuffer) then Exit;
+
+ if I >= 0 then
    begin
    if State in [dsEdit, dsInsert, dsNewValue] then
-      Field.Validate(Buffer);
-   if buffer = nil then 
-     setfieldisnull(pointer(destbuffer),I)
-   else 
-     begin 
-     unsetfieldisnull(pointer(destbuffer),I);
+     Field.Validate(Buffer);
+   if Buffer = nil then
+     setfieldisnull(pointer(DestBuffer),I)
+   else
+     begin
+     unsetfieldisnull(pointer(DestBuffer),I);
      J:=GetIntegerPointer(FFieldSizes, I)^;
      if Field.DataType=ftString then
        Dec(J); // Do not move terminating 0, which is in the size.
-     Move(Buffer^,GetRecordBufferPointer((DestBuffer), getIntegerPointer(FFieldOffsets, I)^)^,J);
-     dataevent(defieldchange,ptrint(field));
+     Move(Buffer^, GetRecordBufferPointer(DestBuffer, getIntegerPointer(FFieldOffsets, I)^)^, J);
      end;
+   end
+ else // Calculated, Lookup
+   begin
+   Inc(DestBuffer, RecordSize + Field.Offset);
+   Boolean(DestBuffer[0]) := Buffer <> nil;
+   if assigned(Buffer) then
+     Move(Buffer^, DestBuffer[1], Field.DataSize);
    end;
+
+ if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+   DataEvent(deFieldChange, PtrInt(Field));
 end;
 
 function TMemDataset.GetRecordSize: Word;
@@ -881,6 +908,8 @@ begin
    GetIntegerPointer(ffieldsizes,   i)^ := MDSGetbufferSize(i+1);
    FRecSize:= FRecSize+GetIntegerPointer(FFieldSizes, i)^;
    end;
+ FRecInfoOffset:=FRecSize;
+ FRecSize:=FRecSize+SizeRecInfo;
 end;
 
 procedure TMemDataset.CreateTable;
@@ -892,9 +921,6 @@ begin
   FCurrRecNo:=-1;
   FIsOpen:=False;
   calcrecordlayout;
-  FRecInfoOffset:=FRecSize;
-  FRecSize:=FRecSize+SizeRecInfo;
-  FRecBufferSize:=FRecSize;
   FTableIsCreated:=True;
 end;
 
