@@ -2441,7 +2441,7 @@ implementation
   disable the following optimization in fpcdefs.inc. Currently the only CPU for which
   this applies is powerpc64
 }
-{$ifdef CPUNO32BITOPS}
+{$ifndef CPUNO32BITOPS}
     { checks whether we can safely remove 64 bit typeconversions
       in case range and overflow checking are off, and in case
       the result of this node tree is downcasted again to a
@@ -2558,14 +2558,14 @@ implementation
             end;
         end;
       end;
-{$endif CPUNO32BITOPS}
+{$endif not CPUNO32BITOPS}
 
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
-{$ifdef CPUNO32BITOPS}
+{$ifndef CPUNO32BITOPS}
         foundsint: boolean;
-{$endif CPUNO32BITOPS}
+{$endif not CPUNO32BITOPS}
       begin
         result := nil;
         { Constant folding and other node transitions to
@@ -2739,7 +2739,7 @@ implementation
                 end;
             end;
         end;
-{$ifdef CPUNO32BITOPS}
+{$ifndef CPUNO32BITOPS}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2758,7 +2758,7 @@ implementation
                 end;
             end;
         end;
-{$endif CPUNO32BITOPS}
+{$endif not CPUNO32BITOPS}
       end;
 
 
