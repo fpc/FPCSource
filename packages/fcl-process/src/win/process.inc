@@ -229,7 +229,6 @@ Var
   Cmd : String;
   
 begin
-  FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
