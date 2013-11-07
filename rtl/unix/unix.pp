@@ -71,6 +71,7 @@ procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
 procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
+Procedure ReReadLocalTime;
 {$ENDIF}
 
 {**  Process Handling  **}
