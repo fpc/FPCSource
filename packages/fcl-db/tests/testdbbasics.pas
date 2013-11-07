@@ -841,7 +841,7 @@ begin
     delete;
 
     GotoBookmark(BM2);
-    CheckEquals(3,FieldByName('id').AsInteger);
+    CheckEquals(3,FieldByName('id').AsInteger,'After #2 deleted');
     
     delete;delete;
 
@@ -2335,7 +2335,7 @@ begin
     next;
     CheckEquals(70000,FieldByName('CALCFLD').asinteger);
     next;
-    CheckEquals(true,FieldByName('CALCFLD').isnull);
+    CheckTrue(FieldByName('CALCFLD').IsNull, '#3 Null');
     next;
     CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
     if IsUniDirectional then
@@ -2346,7 +2346,7 @@ begin
       Edit;
       FieldByName('ID').AsInteger := 10;
       Post;
-      CheckEquals(true,FieldByName('CALCFLD').isnull);
+      CheckTrue(FieldByName('CALCFLD').IsNull, '#10 Null');
       end;
     close;
     AFld1.Free;
