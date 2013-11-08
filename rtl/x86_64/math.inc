@@ -102,6 +102,9 @@ const
       result:=0;
     end;
     {$endif FPC_SYSTEM_HAS_SQRT}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+
     {$ifndef FPC_SYSTEM_HAS_ARCTAN}
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
@@ -139,7 +142,6 @@ const
     end;
     {$endif FPC_SYSTEM_HAS_COS}
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;

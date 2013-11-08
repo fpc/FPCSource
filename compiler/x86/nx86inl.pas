@@ -91,15 +91,25 @@ implementation
 
      function tx86inlinenode.first_pi : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_pi := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_pi := nil;
+          end
+        else
+          result:=inherited;
       end;
 
 
      function tx86inlinenode.first_arctan_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_arctan_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_arctan_real := nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_abs_real : tnode;
@@ -113,20 +123,31 @@ implementation
 
      function tx86inlinenode.first_sqr_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
         first_sqr_real := nil;
       end;
 
      function tx86inlinenode.first_sqrt_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
         first_sqrt_real := nil;
       end;
 
      function tx86inlinenode.first_ln_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_ln_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_ln_real := nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_cos_real : tnode;
