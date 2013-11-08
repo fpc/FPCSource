@@ -167,6 +167,9 @@ Type
   {$else}
     {$fatal No memory model defined}
   {$endif}
+
+  { flt_conv.inc is still buggy on the i8086, so use the real2str.inc fallback }
+  {$define FLOAT_ASCII_FALLBACK}
 {$endif CPUI8086}
 
 {$ifdef CPUX86_64}
