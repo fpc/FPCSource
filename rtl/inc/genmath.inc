@@ -1273,75 +1273,156 @@ invalid:
 
 {$ifndef FPC_SYSTEM_HAS_ARCTAN}
     function fpc_ArcTan_real(d:ValReal):ValReal;compilerproc;
-    {*****************************************************************}
-    { Inverse circular tangent (arctangent)                           }
-    {*****************************************************************}
-    {                                                                 }
-    { SYNOPSIS:                                                       }
-    {                                                                 }
-    { double x, y, atan();                                            }
-    {                                                                 }
-    { y = atan( x );                                                  }
-    {                                                                 }
-    { DESCRIPTION:                                                    }
-    {                                                                 }
-    { Returns radian angle between -pi/2 and +pi/2 whose tangent      }
-    { is x.                                                           }
-    {                                                                 }
-    { Range reduction is from four intervals into the interval        }
-    { from zero to  tan( pi/8 ).  The approximant uses a rational     }
-    { function of degree 3/4 of the form x + x**3 P(x)/Q(x).          }
-    {*****************************************************************}
-    const P : TabCoef = (
-          -8.40980878064499716001E-1,
-          -8.83860837023772394279E0,
-          -2.18476213081316705724E1,
-          -1.48307050340438946993E1, 0, 0, 0);
-          Q : TabCoef = (
-          1.54974124675307267552E1,
-          6.27906555762653017263E1,
-          9.22381329856214406485E1,
-          4.44921151021319438465E1, 0, 0, 0);
+    {
+     This code was translated from uclibc code, the original code
+     had the following copyright notice:
 
-    { tan( 3*pi/8 ) }
-    T3P8 = 2.41421356237309504880;
-    { tan( pi/8 )   }
-    TP8 = 0.41421356237309504880;
+     *
+     * ====================================================
+     * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+     *
+     * Developed at SunPro, a Sun Microsystems, Inc. business.
+     * Permission to use, copy, modify, and distribute this
+     * software is freely granted, provided that this notice
+     * is preserved.
+     * ====================================================
+     *}
 
-    var y,z  : Real;
-        Sign : Integer;
+    {********************************************************************}
+    { Inverse circular tangent (arctangent)                              }
+    {********************************************************************}
+    {                                                                    }
+    { SYNOPSIS:                                                          }
+    {                                                                    }
+    { double x, y, atan();                                               }
+    {                                                                    }
+    { y = atan( x );                                                     }
+    {                                                                    }
+    { DESCRIPTION:                                                       }
+    {                                                                    }
+    { Returns radian angle between -pi/2 and +pi/2 whose tangent         }
+    { is x.                                                              }
+    {                                                                    }
+    { Method                                                             }
+    {   1. Reduce x to positive by atan(x) = -atan(-x).                  }
+    {   2. According to the integer k=4t+0.25 chopped, t=x, the argument }
+    {      is further reduced to one of the following intervals and the  }
+    {      arctangent of t is evaluated by the corresponding formula:    }
+    {                                                                    }
+    {   [0,7/16]      atan(x) = t-t^3*(a1+t^2*(a2+...(a10+t^2*a11)...)   }
+    {   [7/16,11/16]  atan(x) = atan(1/2) + atan( (t-0.5)/(1+t/2) )      }
+    {   [11/16.19/16] atan(x) = atan( 1 ) + atan( (t-1)/(1+t) )          }
+    {   [19/16,39/16] atan(x) = atan(3/2) + atan( (t-1.5)/(1+1.5t) )     }
+    {   [39/16,INF]   atan(x) = atan(INF) + atan( -1/t )                 }
+    {********************************************************************}
+    const
+      atanhi: array [0..3] of double = (
+        4.63647609000806093515e-01, { atan(0.5)hi 0x3FDDAC67, 0x0561BB4F }
+        7.85398163397448278999e-01, { atan(1.0)hi 0x3FE921FB, 0x54442D18 }
+        9.82793723247329054082e-01, { atan(1.5)hi 0x3FEF730B, 0xD281F69B }
+        1.57079632679489655800e+00  { atan(inf)hi 0x3FF921FB, 0x54442D18 }
+      );
 
+      atanlo: array [0..3] of double = (
+        2.26987774529616870924e-17, { atan(0.5)lo 0x3C7A2B7F, 0x222F65E2 }
+        3.06161699786838301793e-17, { atan(1.0)lo 0x3C81A626, 0x33145C07 }
+        1.39033110312309984516e-17, { atan(1.5)lo 0x3C700788, 0x7AF0CBBD }
+        6.12323399573676603587e-17  { atan(inf)lo 0x3C91A626, 0x33145C07 }
+      );
+
+      aT: array[0..10] of double = (
+         3.33333333333329318027e-01,  { 0x3FD55555, 0x5555550D }
+        -1.99999999998764832476e-01,  { 0xBFC99999, 0x9998EBC4 }
+         1.42857142725034663711e-01,  { 0x3FC24924, 0x920083FF }
+        -1.11111104054623557880e-01,  { 0xBFBC71C6, 0xFE231671 }
+         9.09088713343650656196e-02,  { 0x3FB745CD, 0xC54C206E }
+        -7.69187620504482999495e-02,  { 0xBFB3B0F2, 0xAF749A6D }
+         6.66107313738753120669e-02,  { 0x3FB10D66, 0xA0D03D51 }
+        -5.83357013379057348645e-02,  { 0xBFADDE2D, 0x52DEFD9A }
+         4.97687799461593236017e-02,  { 0x3FA97B4B, 0x24760DEB }
+        -3.65315727442169155270e-02,  { 0xBFA2B444, 0x2C6A6C2F }
+         1.62858201153657823623e-02   { 0x3F90AD3A, 0xE322DA11 }
+      );
+
+      one:  double  = 1.0;
+      huge: double  = 1.0e300;
+
+    var
+      w,s1,s2,z: double;
+      ix,hx,id: longint;
+      low: longword;
     begin
-      { make argument positive and save the sign }
-      sign := 1;
-      if( d < 0.0 ) then
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
+      hx:=float64(d).low;
+{$else}
+      hx:=float64(d).high;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
+      ix := hx and $7fffffff;
+      if (ix>=$44100000) then   { if |x| >= 2^66 }
       begin
-       sign := -1;
-       d := -d;
-      end;
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
+        low:=float64(d).high;
+{$else}
+        low:=float64(d).low;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
 
-      { range reduction }
-      if( d > T3P8 ) then
+        if (ix > $7ff00000) or ((ix = $7ff00000) and (low<>0)) then
+          exit(d+d);          { NaN }
+        if (hx>0) then
+          exit(atanhi[3]+atanlo[3])
+        else
+          exit(-atanhi[3]-atanlo[3]);
+      end;
+      if (ix < $3fdc0000) then  { |x| < 0.4375 }
       begin
-        y := PIO2;
-        d := -( 1.0/d );
-      end
-      else if( d > TP8 ) then
-      begin
-        y := PIO4;
-        d := (d-1.0)/(d+1.0);
+        if (ix < $3e200000) then  { |x| < 2^-29 }
+        begin
+          if (huge+d>one) then exit(d);    { raise inexact }
+        end;
+        id := -1;
       end
       else
-       y := 0.0;
-
-      { rational form in x**2 }
-
-      z := d * d;
-      y := y + ( polevl( z, P, 3 ) / p1evl( z, Q, 4 ) ) * z * d + d;
-
-      if( sign < 0 ) then
-        y := -y;
-      result := y;
+      begin
+        d := abs(d);
+        if (ix < $3ff30000) then    { |x| < 1.1875 }
+        begin
+          if (ix < $3fe60000) then  { 7/16 <=|x|<11/16 }
+          begin
+            id := 0; d := (2.0*d-one)/(2.0+d);
+          end
+          else                      { 11/16<=|x|< 19/16 }
+          begin
+            id := 1; d := (d-one)/(d+one);
+          end
+        end
+        else
+        begin
+          if (ix < $40038000) then   { |x| < 2.4375 }
+          begin
+            id := 2; d := (d-1.5)/(one+1.5*d);
+          end
+          else                       { 2.4375 <= |x| < 2^66 }
+          begin
+            id := 3; d := -1.0/d;
+          end;
+        end;
+      end;
+    { end of argument reduction }
+      z := d*d;
+      w := z*z;
+      { break sum from i=0 to 10 aT[i]z**(i+1) into odd and even poly }
+      s1 := z*(aT[0]+w*(aT[2]+w*(aT[4]+w*(aT[6]+w*(aT[8]+w*aT[10])))));
+      s2 := w*(aT[1]+w*(aT[3]+w*(aT[5]+w*(aT[7]+w*aT[9]))));
+      if (id<0) then
+        result := d - d*(s1+s2)
+      else
+      begin
+        z := atanhi[id] - ((d*(s1+s2) - atanlo[id]) - d);
+        if hx<0 then
+          result := -z
+        else
+          result := z;
+      end;
     end;
 {$endif}
 
