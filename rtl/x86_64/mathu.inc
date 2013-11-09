@@ -23,6 +23,25 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
+
+{$define FPC_MATH_HAS_TAN}
+function tan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fstp %st
+    fwait
+  end;
+
+
+{$define FPC_MATH_HAS_COTAN}
+function cotan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fdivp %st,%st(1)
+    fwait
+  end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 
