@@ -252,7 +252,8 @@ type
   //wavestream.h types
   PWAVStream = ^TWAVStream;
   TWAVStream = record
-    wavefp : Pointer;
+    rw : PSDL_RWops;
+    freerw : TSDL_Bool;
     start : longint;
     stop : longint;
     cvt : TSDL_AudioCVT;
