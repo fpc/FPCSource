@@ -201,10 +201,12 @@ implementation
     var
       r,tmpref: treference;
       is_sixbyterecord: Boolean;
+      is_fourbyterecord: Boolean;
       is_methodptr: Boolean;
       is_nestedprocptr: Boolean;
     begin
       is_sixbyterecord:=(size.typ=recorddef) and (size.size=6);
+      is_fourbyterecord:=(size.typ=recorddef) and (size.size=4);
       is_methodptr:=(size.typ=procvardef)
         and (po_methodpointer in tprocvardef(size).procoptions)
         and not(po_addressonly in tprocvardef(size).procoptions);
@@ -233,6 +235,25 @@ implementation
             cg.a_load_reg_ref(list,OS_32,OS_32,l.registerhi,tmpref)
           else
             cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref);
+
+          location_reset_ref(l,LOC_REFERENCE,l.size,0);
+          l.reference:=r;
+        end
+      { 4-byte records in registers need special handling as well. A record may
+        be located in registerhi:register if it was converted from a procvar or
+        in GetNextReg(register):register if it was converted from a longint.
+        We can tell between the two by checking whether registerhi has been set. }
+      else if is_fourbyterecord and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tg.gethltemp(list,size,size.size,tt_normal,r);
+          tmpref:=r;
+
+          cg.a_load_reg_ref(list,OS_16,OS_16,l.register,tmpref);
+          inc(tmpref.offset,2);
+          if l.registerhi<>tregister(0) then
+            cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref)
+          else
+            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(l.register),tmpref);
 
           location_reset_ref(l,LOC_REFERENCE,l.size,0);
           l.reference:=r;
