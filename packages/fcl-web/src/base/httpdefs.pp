@@ -59,8 +59,10 @@ const
   fieldSetCookie       = 'Set-Cookie';
   fieldUserAgent       = 'User-Agent';
   fieldWWWAuthenticate = 'WWW-Authenticate';
+  fieldHost            = 'Host';
+  fieldCacheControl    = 'Cache-Control';
 
-  NoHTTPFields = 24;
+  NoHTTPFields = 26;
 
   HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
   SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
@@ -89,7 +91,8 @@ Const
                 fieldContentType, fieldCookie, fieldDate, fieldExpires, 
                 fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
                 fieldPragma, fieldReferer, fieldRetryAfter, fieldServer, 
-                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate);
+                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate, fieldHost,
+                fieldCacheControl);
                 
 
 type
@@ -865,7 +868,7 @@ end;
 Procedure THttpHeader.SetFieldValue(Index : Integer; Value : String);
 
 begin
-  if (Index>1) and (Index<NoHTTPFields) then
+  if (Index>=1) and (Index<=NoHTTPFields) then
     begin
     FFields[Index]:=Value;
     If (Index=11) then
