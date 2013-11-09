@@ -1087,6 +1087,14 @@ begin
                                     end;
                                 end;
                         end
+(*
+                      This is unsafe, lea doesn't modify the flags but "add"
+                      does. This breaks webtbs/tw15694.pp. The above
+                      transformations are also unsafe, but they don't seem to
+                      be triggered by code that FPC generators (or that at
+                      least does not occur in the tests...). This needs to be
+                      fixed by checking for the liveness of the flags register.
+
                       else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
                         begin
                           hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
@@ -1107,6 +1115,7 @@ begin
                           p:=hp1;
                           continue;
                         end
+*)
                     end;
                   A_MOV:
                     begin
