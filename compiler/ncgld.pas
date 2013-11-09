@@ -913,8 +913,10 @@ implementation
                   else
 {$endif cpu64bitalu}
 {$ifdef i8086}
-                  { 6-byte method pointer support for the i8086 medium and compact memory models }
-                  if (left.resultdef.typ = procvardef) and (left.resultdef.size = 6) then
+                  { i8086 method pointer support (incl. 6-byte method pointers for the medium and compact memory models) }
+                  if (left.resultdef.typ = procvardef) and
+                     ((po_methodpointer in tprocvardef(left.resultdef).procoptions) or is_nested_pd(tprocvardef(left.resultdef))) and
+                     not(po_addressonly in tprocvardef(left.resultdef).procoptions) then
                     begin
                       case left.location.loc of
                         LOC_REFERENCE,LOC_CREFERENCE:
