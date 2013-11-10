@@ -352,7 +352,9 @@ type
       with a higher visibility on the JVM target }
     po_auto_raised_visibility,
     { procedure is far (x86 only) }
-    po_far
+    po_far,
+    { the procedure never returns, this information is usefull for dfa }
+    po_noreturn
   );
   tprocoptions=set of tprocoption;
 

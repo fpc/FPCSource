@@ -3209,6 +3209,10 @@ implementation
          if po_varargs in procdefinition.procoptions then
            include(callnodeflags,cnf_uses_varargs);
 
+         { set the appropriate node flag if the call never returns }
+         if po_noreturn in procdefinition.procoptions then
+           include(callnodeflags,cnf_call_never_returns);
+
          { Change loading of array of const to varargs }
          if assigned(left) and
             is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vardef) and

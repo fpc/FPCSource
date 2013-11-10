@@ -224,6 +224,7 @@ type
     _MULTIPLY,
     _MWPASCAL,
     _NEGATIVE,
+    _NORETURN,
     _NOTEQUAL,
     _OPERATOR,
     _OPTIONAL,
@@ -540,6 +541,7 @@ const
       (str:'MULTIPLY'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'MWPASCAL'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NEGATIVE'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
+      (str:'NORETURN'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NOTEQUAL'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'OPERATOR'      ;special:false;keyword:[m_fpc];op:NOTOKEN),
       (str:'OPTIONAL'      ;special:false;keyword:[m_none];op:NOTOKEN), { optional methods in an Objective-C protocol }

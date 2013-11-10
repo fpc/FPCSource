@@ -1189,7 +1189,7 @@ const
          str:' subroutine contains a nested subroutine which calls the exit of the current one '),
          (mask:pi_has_stack_allocs;
          str:' allocates memory on stack, so stack may be unbalanced on exit ')
-         
+
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1730,7 +1730,8 @@ const
      (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution'),
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
-     (mask:po_far;             str: 'Far')
+     (mask:po_far;             str: 'Far'),
+     (mask:po_noreturn;             str: 'No return')
   );
 var
   proctypeoption  : tproctypeoption;
