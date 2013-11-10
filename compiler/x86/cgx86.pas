@@ -1856,11 +1856,33 @@ unit cgx86;
                 TCgSize2OpSize[size],a,tmpref));
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
-              if (a and 31) <> 0 then
-                list.concat(taicpu.op_const_ref(
-                  TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,tmpref));
+{$if defined(x86_64)}
+              if (a and 63) <> 0 Then
+                list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 63,tmpref));
+              if (a shr 6) <> 0 Then
+                internalerror(2013111003);
+{$elseif defined(i386)}
+              if (a and 31) <> 0 Then
+                list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,tmpref));
               if (a shr 5) <> 0 Then
-                internalerror(68991);
+                internalerror(2013111002);
+{$elseif defined(i8086)}
+              if (a shr 5) <> 0 Then
+                internalerror(2013111001);
+              a := a and 31;
+              if a <> 0 Then
+                begin
+                  if (current_settings.cputype < cpu_186) and (a <> 1) then
+                    begin
+                      getcpuregister(list,NR_CL);
+                      a_load_const_reg(list,OS_8,a,NR_CL);
+                      list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],NR_CL,tmpref));
+                      ungetcpuregister(list,NR_CL);
+                    end
+                  else
+                    list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+                end;
+{$endif}
             end
           else internalerror(68992);
         end;
