@@ -4296,9 +4296,6 @@ implementation
     end;
 
 
-
-
-
 { generates the code for incrementing the reference count of parameters and
   initialize out parameters }
   { generates the code for incrementing the reference count of parameters and
@@ -4627,8 +4624,15 @@ implementation
               anything }
             if not reusepara then
               begin
-                reference_reset_base(href,para.location^.reference.index,para.location^.reference.offset,para.alignment);
-                a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
+                case para.location^.loc of
+                  LOC_REFERENCE,LOC_CREFERENCE:
+                    begin
+                      reference_reset_base(href,para.location^.reference.index,para.location^.reference.offset,para.alignment);
+                      a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
+                    end;
+                  else
+                    internalerror(2013102301);
+                end;
               end;
           end;
         { TODO other possible locations }
