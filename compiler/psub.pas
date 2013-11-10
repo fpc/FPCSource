@@ -37,6 +37,8 @@ interface
       tcgprocinfo = class(tprocinfo)
       private
         procedure CreateInlineInfo;
+        { returns the node which is the start of the user code, this is needed by the dfa }
+        function GetUserCode: tnode;
         procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
         procedure setup_tempgen;
@@ -1139,6 +1141,30 @@ implementation
        end;
 
 
+    function searchusercode(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if nf_usercode_entry in n.flags then
+          begin
+            pnode(arg)^:=n;
+            result:=fen_norecurse_true
+          end
+        else
+          result:=fen_false;
+      end;
+
+
+    function TCGProcinfo.GetUserCode : tnode;
+      var
+        n : tnode;
+      begin
+        n:=nil;
+        foreachnodestatic(code,@searchusercode,@n);
+        if not(assigned(n)) then
+          internalerror(2013111001);
+        result:=n;
+      end;
+
+
     procedure tcgprocinfo.generate_code;
       var
         old_current_procinfo : tprocinfo;
@@ -1178,6 +1204,10 @@ implementation
         current_procinfo:=self;
         current_filepos:=entrypos;
         current_structdef:=procdef.struct;
+
+        { store start of user code, it must be a block node, it will be used later one to
+          check variable lifeness }
+        include(code.flags,nf_usercode_entry);
 
         { add wrapping code if necessary (initialization of typed constants on
           some platforms, initing of local variables and out parameters with
@@ -1270,7 +1300,7 @@ implementation
             { iterate through life info of the first node }
             for i:=0 to dfabuilder.nodemap.count-1 do
               begin
-                if DFASetIn(code.optinfo^.life,i) then
+                if DFASetIn(GetUserCode.optinfo^.life,i) then
                   case tnode(dfabuilder.nodemap[i]).nodetype of
                     loadn:
                       begin

@@ -207,18 +207,26 @@ interface
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflag = (
-         nf_swapable,    { tbinop operands can be swaped }
-         nf_swapped,      { tbinop operands are swaped    }
+         { tbinop operands can be swaped }
+         nf_swapable,
+         { tbinop operands are swaped    }
+         nf_swapped,
          nf_error,
 
          { general }
          nf_pass1_done,
-         nf_write,       { Node is written to    }
-         nf_modify,      { Node is modified      }
+         { Node is written to    }
+         nf_write,
+         { Node is modified      }
+         nf_modify,
          nf_is_funcret,
          nf_isproperty,
          nf_processing,
-         nf_no_lvalue,   { Node cannot be assigned to }
+         { Node cannot be assigned to }
+         nf_no_lvalue,
+         { this node is the user code entry, if a node with this flag is removed
+           during simplify, the flag must be moved to another node }
+         nf_usercode_entry,
 
          { taddrnode }
          nf_typedaddr,
@@ -268,7 +276,7 @@ interface
          { tloadvmtaddrnode }
          nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
-         { WARNING: there are now 31 elements in this type, and a set of this
+         { WARNING: there are now 32 elements in this type, and a set of this
              type is written to the PPU. So before adding more than 32 elements,
              either move some flags to specific nodes, or stream a normalset
              to the ppu

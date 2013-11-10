@@ -547,7 +547,7 @@ implementation
             result:=tstatementnode(left).left;
             tstatementnode(left).left:=nil;
             { make sure the nf_block_with_exit flag is safeguarded }
-            result.flags:=result.flags+(flags * [nf_block_with_exit]);
+            result.flags:=result.flags+(flags*[nf_block_with_exit,nf_usercode_entry]);
             exit;
           end;
       end;
