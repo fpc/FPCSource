@@ -1251,6 +1251,10 @@ implementation
             else
               name:='fpc_setupwritestr_';
             name:=name+tstringdef(filepara.resultdef).stringtypname;
+            { the file para is a var parameter, but it is properly initialized,
+              so it should be actually an out parameter }
+            if not(do_read) then
+              set_varstate(filepara.left,vs_written,[]);
             { remove the source/destination string parameter from the }
             { parameter chain                                         }
             left:=filepara.right;
