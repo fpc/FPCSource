@@ -1289,8 +1289,7 @@ implementation
 
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
           { creating dfa is not always possible }
-          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                  pi_needs_implicit_finally,pi_has_implicit_finally])=[]) then
+          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler])=[]) then
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
