@@ -1387,7 +1387,7 @@ begin
     if ( one_e <= - 64 ) then
     begin
         l := qword( -1 );
-        h := ( {$ifdef VALREAL_128} qword {$endif} ( 1 ) shl ( - one_e - 64 ) ) - 1;
+        h := ( {$ifdef VALREAL_128} qword {$else} dword {$endif} ( 1 ) shl ( - one_e - 64 ) ) - 1;
     end
     else
     begin
@@ -1480,7 +1480,7 @@ begin
         if plus then
         begin
           {$if defined(VALREAL_32) or defined(VALREAL_64)}
-            mask_one := ( {$ifdef VALREAL_64} qword {$endif} ( 1 ) shl ( - z.e ) ) - 1;
+            mask_one := ( {$ifdef VALREAL_64} qword {$else} dword {$endif} ( 1 ) shl ( - z.e ) ) - 1;
             round_up := ( z.f and mask_one <> 0 );
           {$else VALREAL_80 | VALREAL_128}
             make_frac_mask( mask_oneh, mask_one, z.e );
