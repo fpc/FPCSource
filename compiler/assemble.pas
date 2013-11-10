@@ -891,7 +891,6 @@ Implementation
                   move(pstart^,hs[1],len);
                   hs[0]:=chr(len);
                   sym:=objdata.symbolref(hs);
-                  have_first_symbol:=true;
                   { Second symbol? }
                   if assigned(relocsym) then
                     begin
