@@ -25,7 +25,7 @@
 
 unit cghlcpu;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 
 interface
 
