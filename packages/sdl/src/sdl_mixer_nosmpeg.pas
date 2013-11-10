@@ -103,6 +103,7 @@ type
   TWAVStream = record
     rw : PSDL_RWops;
     freerw : TSDL_Bool;
+    start: longint;
     stop : longint;
     cvt : TSDL_AudioCVT;
   end;
