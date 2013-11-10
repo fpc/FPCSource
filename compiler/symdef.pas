@@ -3427,16 +3427,13 @@ implementation
          { alignment of dyn. arrays doesn't depend on the element size }
          if (ado_IsDynamicArray in arrayoptions) then
            alignment:=size_2_align(sizeof(pint))
+         { alignment is the target alignment for the used load size }
+         else if (ado_IsBitPacked in arrayoptions) and
+            (elementdef.typ in [enumdef,orddef]) then
+           alignment:=cgsize_orddef(int_cgsize(packedbitsloadsize(elepackedbitsize))).alignment
          { alignment is the alignment of the elements }
-         else if (elementdef.typ in [arraydef,recorddef,orddef,enumdef,floatdef]) or
-           ((elementdef.typ=objectdef) and
-             is_object(elementdef)) then
-           alignment:=elementdef.alignment
-         { alignment is the size of the elements }
-         else if not (ado_IsBitPacked in arrayoptions) then
-           alignment:=size_2_align(elesize)
          else
-           alignment:=packedbitsloadsize(elepackedbitsize);
+           alignment:=elementdef.alignment
       end;
 
 
