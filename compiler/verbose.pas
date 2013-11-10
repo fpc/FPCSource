@@ -89,7 +89,7 @@ interface
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
     procedure GenerateError;
-    procedure Internalerror(i:longint);
+    procedure Internalerror(i:longint);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     procedure Comment(l:longint;s:ansistring);
     function  MessagePchar(w:longint):pchar;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
@@ -538,7 +538,7 @@ implementation
                       { Enable writing of notes, to avoid getting errors without any message }
                       status.verbosity:=status.verbosity or V_Note;
                     end;
-                   
+
                 end;
               'h','H' :
                 begin
@@ -565,7 +565,7 @@ implementation
       end;
 
 
-    procedure internalerror(i : longint);
+    procedure internalerror(i : longint);{$ifndef VER2_6}noreturn;{$endif VER2_6}
       begin
         UpdateStatus;
         do_internalerror(i);
@@ -1017,7 +1017,7 @@ implementation
 
 
 initialization
-  constexp.internalerror:=@internalerror;
+  constexp.internalerrorproc:=@internalerror;
 finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;

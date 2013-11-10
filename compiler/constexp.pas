@@ -41,7 +41,7 @@ type  Tconstexprint=record
  build trouble when compiling the directory utils, since the cpu directory
  isn't searched there. Therefore we use a procvar and make verbose install
  the errorhandler. A dependency from verbose on this unit is no problem.}
-var   internalerror:errorproc;
+var   internalerrorproc:errorproc;
 
 {Same issue, avoid dependency on cpuinfo because the cpu directory isn't
  searched during utils building.}
@@ -87,7 +87,14 @@ function tostr(const i:Tconstexprint):shortstring;overload;
 implementation
 {****************************************************************************}
 
+{ use a separate procedure here instead of calling internalerrorproc directly because
+  - procedure variables cannot have a noreturn directive
+  - having a procedure and a procedure variable with the same name in the interfaces of different units is confusing }
+procedure internalerror(i:longint);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 
+begin
+  internalerrorproc(i);
+end;
 
 operator := (const u:qword):Tconstexprint;
 
