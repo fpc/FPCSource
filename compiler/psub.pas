@@ -1305,12 +1305,20 @@ implementation
                       begin
                         varsym:=tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry);
 
-                        { Give warning/note for living locals }
+                        { Give warning/note for living locals, result and parameters, but only about the current
+                          symtables }
                         if assigned(varsym.owner) and
-                          ((varsym.owner=procdef.localst) or
+                          (((varsym.owner=procdef.localst) and
+                            (procdef.localst.symtablelevel=varsym.owner.symtablelevel)
+                           ) or
                            ((varsym.owner=procdef.parast) and
                             (varsym.typ=paravarsym) and
+                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
+                            { all parameters except out parameters are initialized by the caller }
                             (tparavarsym(varsym).varspez=vs_out)
+                           ) or
+                           ((vo_is_funcret in varsym.varoptions) and
+                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel)
                            )
                           ) and
                           not(vo_is_external in varsym.varoptions) then
