@@ -2062,7 +2062,7 @@ implementation
                                TAI_LABEL
  ****************************************************************************}
 
-        constructor tai_label.Create(_labsym : tasmlabel);
+    constructor tai_label.Create(_labsym : tasmlabel);
       begin
         inherited Create;
         typ:=ait_label;
