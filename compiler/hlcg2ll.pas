@@ -78,9 +78,6 @@ unit hlcg2ll;
           procedure do_register_allocation(list:TAsmList;headertai:tai); inline;
           procedure translate_register(var reg : tregister); inline;
 
-          {# Emit a label to the instruction stream. }
-          procedure a_label(list : TAsmList;l : tasmlabel); inline;
-
           {# Allocates register r by inserting a pai_realloc record }
           procedure a_reg_alloc(list : TAsmList;r : tregister); inline;
           {# Deallocates register r by inserting a pa_regdealloc record}
@@ -412,11 +409,6 @@ implementation
   procedure thlcg2ll.translate_register(var reg: tregister);
     begin
       cg.translate_register(reg);
-    end;
-
-  procedure thlcg2ll.a_label(list: TAsmList; l: tasmlabel); inline;
-    begin
-      cg.a_label(list,l);
     end;
 
   procedure thlcg2ll.a_reg_alloc(list: TAsmList; r: tregister);
