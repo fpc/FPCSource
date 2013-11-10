@@ -42,14 +42,20 @@ type
 { also necessary for Int() on systems with 64bit floats (JM) }
 {$ifndef FPC_SYSTEM_HAS_float64}
 {$ifdef ENDIAN_LITTLE}
-  float64 = packed record
-    low: longint;
-    high: longint;
+  float64 = record
+{$ifndef FPC_DOUBLE_HILO_SWAPPED}
+    low,high: longint;
+{$else}
+    high,low: longint;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
   end;
 {$else}
-  float64 = packed record
-    high: longint;
-    low: longint;
+  float64 = record
+{$ifndef FPC_DOUBLE_HILO_SWAPPED}
+    high,low: longint;
+{$else}
+    low,high: longint;
+{$endif FPC_DOUBLE_HILO_SWAPPED}
   end;
 {$endif}
 {$endif FPC_SYSTEM_HAS_float64}
@@ -327,9 +333,6 @@ invalid:
 
   function fpc_trunc_real(d : ValReal) : int64;compilerproc;
     var
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-     l: longint;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
      f32 : float32;
      f64 : float64;
     Begin
@@ -341,12 +344,6 @@ invalid:
      if sizeof(D)=8 then
        begin
          move(d,f64,sizeof(f64));
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-         { the arm fpu has a strange opinion how a double has to be stored }
-         l:=f64.low;
-         f64.low:=f64.high;
-         f64.high:=l;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
          result:=genmath_float64_to_int64_round_to_zero(f64);
        end
      else
@@ -372,12 +369,6 @@ invalid:
         f64 : float64;
       begin
         f64:=float64(d);
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-        { the arm fpu has a strange opinion how a double has to be stored }
-        i0:=f64.low;
-        f64.low:=f64.high;
-        f64.high:=i0;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
         i0 := f64.high;
         i1 := cardinal(f64.low);
         sx := i0 and $80000000;
@@ -407,12 +398,6 @@ invalid:
             f64.high := i0;
             f64.low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
           end;
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-        { the arm fpu has a strange opinion how a double has to be stored }
-        i0:=f64.low;
-        f64.low:=f64.high;
-        f64.high:=i0;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
         result:=double(f64);
       end;
 
@@ -737,11 +722,7 @@ invalid:
         hi:=0.0;
         lo:=0.0;
         k:=0;
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-        hx:=float64(d).low;
-{$else}
         hx:=float64(d).high;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
         xsb := (hx shr 31) and 1;               { sign bit of d }
         hx := hx and $7fffffff;                 { high word of |d| }
 
@@ -750,11 +731,7 @@ invalid:
           begin                  { if |d|>=709.78... }
             if hx >= $7ff00000 then
               begin
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-                lx:=float64(d).high;
-{$else}
                 lx:=float64(d).low;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
                 if ((hx and $fffff) or lx)<>0 then
                   begin
                     result:=d+d; { NaN }
@@ -820,24 +797,14 @@ invalid:
 
         if k >= -1021 then
           begin
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-            hy:=float64(y).low;
-            float64(y).low:=longint(hy)+(k shl 20);        { add k to y's exponent }
-{$else}
             hy:=float64(y).high;
             float64(y).high:=longint(hy)+(k shl 20);        { add k to y's exponent }
-{$endif FPC_DOUBLE_HILO_SWAPPED}
             result:=y;
           end
         else
           begin
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-            hy:=float64(y).low;
-            float64(y).low:=longint(hy)+((k+1000) shl 20); { add k to y's exponent }
-{$else}
             hy:=float64(y).high;
             float64(y).high:=longint(hy)+((k+1000) shl 20); { add k to y's exponent }
-{$endif FPC_DOUBLE_HILO_SWAPPED}
             result:=y*twom1000;
           end;
       end;
@@ -1352,20 +1319,11 @@ invalid:
       ix,hx,id: longint;
       low: longword;
     begin
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-      hx:=float64(d).low;
-{$else}
       hx:=float64(d).high;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
       ix := hx and $7fffffff;
       if (ix>=$44100000) then   { if |x| >= 2^66 }
       begin
-{$ifdef FPC_DOUBLE_HILO_SWAPPED}
-        low:=float64(d).high;
-{$else}
         low:=float64(d).low;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
-
         if (ix > $7ff00000) or ((ix = $7ff00000) and (low<>0)) then
           exit(d+d);          { NaN }
         if (hx>0) then
