@@ -38,6 +38,8 @@ uses
   type
     thlbasecgcpu = class(tcg)
      public
+      procedure g_save_registers(list:TAsmList);override;
+      procedure g_restore_registers(list:TAsmList);override;
       procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
       procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean); override;
       procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean); override;
@@ -206,6 +208,15 @@ implementation
         internalerror(2012042822);
       end;
 
+    procedure thlbasecgcpu.g_save_registers(list: TAsmList);
+      begin
+        { do nothing }
+      end;
+
+    procedure thlbasecgcpu.g_restore_registers(list: TAsmList);
+      begin
+        { do nothing }
+      end;
 
     procedure thlbasecgcpu.g_stackpointer_alloc(list: TAsmList; size: longint);
       begin
