@@ -26,7 +26,7 @@ unit parabase;
 
     uses
        cclasses,globtype,
-       cpubase,cgbase,cgutils,
+       aasmbase,cpubase,cgbase,cgutils,
        symtype, ppu;
 
     type
@@ -41,6 +41,18 @@ unit parabase;
          Size : TCGSize; { size of this location }
          Def  : tdef;
          Loc  : TCGLoc;
+{$ifdef llvm}
+         { The following fields are used to determine the name and handling of
+           the location by the llvm code generator. They exist in parallel with
+           the regular information, because that original information is still
+           required for handling inline assembler routines }
+
+         { true if the llvmloc symbol is the value itself, rather than a
+           pointer to the value (~ named register) }
+         llvmvalueloc: boolean;
+         { nil if none corresponding to this particular paraloc }
+         llvmloc: tasmsymbol;
+{$endif llvm}
          case TCGLoc of
            LOC_REFERENCE : (reference : TCGParaReference);
            LOC_FPUREGISTER,
