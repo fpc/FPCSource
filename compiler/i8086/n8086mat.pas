@@ -61,7 +61,7 @@ implementation
                              ti8086moddivnode
 *****************************************************************************}
 
-    function log2(i : dword) : dword;
+    function log2(i : word) : word;
       begin
         result:=0;
         i:=i shr 1;
@@ -79,9 +79,9 @@ implementation
         power:longint;
         hl:Tasmlabel;
         op:Tasmop;
-        e : longint;
-        d,l,r,s,m,a,n,t : dword;
-        m_low,m_high,j,k : qword;
+        e : smallint;
+        d,l,r,s,m,a,n,t : word;
+        m_low,m_high,j,k : dword;
       begin
         secondpass(left);
         if codegenerror then
@@ -90,7 +90,7 @@ implementation
         if codegenerror then
           exit;
 
-        if is_64bitint(resultdef) then
+        if is_64bitint(resultdef) or is_32bitint(resultdef) then
           { should be handled in pass_1 (JM) }
           internalerror(200109052);
         { put numerator in register }
@@ -107,39 +107,39 @@ implementation
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resultdef) Then
                   begin
-                    if (current_settings.optimizecputype <> cpu_386) and
+                    if (current_settings.optimizecputype > cpu_386) and
                        not(cs_opt_size in current_settings.optimizerswitches) then
                       { use a sequence without jumps, saw this in
                         comp.compilers (JM) }
                       begin
                         { no jumps, but more operations }
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                        emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
-                        {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                        emit_const_reg(A_SAR,S_L,31,hreg2);
+                        emit_reg_reg(A_MOV,S_W,hreg1,hreg2);
+                        {If the left value is signed, hreg2=$ffff, otherwise 0.}
+                        emit_const_reg(A_SAR,S_W,15,hreg2);
                         {If signed, hreg2=right value-1, otherwise 0.}
-                        emit_const_reg(A_AND,S_L,tordconstnode(right).value.svalue-1,hreg2);
+                        emit_const_reg(A_AND,S_W,tordconstnode(right).value.svalue-1,hreg2);
                         { add to the left value }
-                        emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+                        emit_reg_reg(A_ADD,S_W,hreg2,hreg1);
                         { do the shift }
-                        emit_const_reg(A_SAR,S_L,power,hreg1);
+                        emit_const_reg(A_SAR,S_W,power,hreg1);
                       end
                     else
                       begin
                         { a jump, but less operations }
-                        emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
+                        emit_reg_reg(A_TEST,S_W,hreg1,hreg1);
                         current_asmdata.getjumplabel(hl);
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NS,hl);
                         if power=1 then
-                          emit_reg(A_INC,S_L,hreg1)
+                          emit_reg(A_INC,S_W,hreg1)
                         else
-                          emit_const_reg(A_ADD,S_L,tordconstnode(right).value.svalue-1,hreg1);
+                          emit_const_reg(A_ADD,S_W,tordconstnode(right).value.svalue-1,hreg1);
                         cg.a_label(current_asmdata.CurrAsmList,hl);
-                        emit_const_reg(A_SAR,S_L,power,hreg1);
+                        emit_const_reg(A_SAR,S_W,power,hreg1);
                       end
                   end
                 else
-                  emit_const_reg(A_SHR,S_L,power,hreg1);
+                  emit_const_reg(A_SHR,S_W,power,hreg1);
                 location.register:=hreg1;
               end
             else
@@ -148,85 +148,85 @@ implementation
                   begin
                     e:=tordconstnode(right).value.svalue;
                     d:=abs(e);
-                    { Determine algorithm (a), multiplier (m), and shift factor (s) for 32-bit
+                    { Determine algorithm (a), multiplier (m), and shift factor (s) for 16-bit
                       signed integer division. Based on: Granlund, T.; Montgomery, P.L.:
                       "Division by Invariant Integers using Multiplication". SIGPLAN Notices,
                       Vol. 29, June 1994, page 61.
                     }
 
                     l:=log2(d);
-                    j:=qword($80000000) mod qword(d);
-                    k:=(qword(1) shl (32+l)) div (qword($80000000-j));
-                    m_low:=((qword(1)) shl (32+l)) div d;
-                    m_high:=(((qword(1)) shl (32+l)) + k) div d;
+                    j:=dword($8000) mod dword(d);
+                    k:=(dword(1) shl (16+l)) div (dword($8000-j));
+                    m_low:=((dword(1)) shl (16+l)) div d;
+                    m_high:=(((dword(1)) shl (16+l)) + k) div d;
                     while ((m_low shr 1) < (m_high shr 1)) and (l > 0) do
                       begin
                         m_low:=m_low shr 1;
                         m_high:=m_high shr 1;
                         dec(l);
                       end;
-                    m:=dword(m_high);
+                    m:=word(m_high);
                     s:=l;
-                    if (m_high shr 31)<>0 then
+                    if (m_high shr 15)<>0 then
                       a:=1
                     else
                       a:=0;
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-                    emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-                    emit_reg(A_IMUL,S_L,hreg1);
-                    emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
+                    emit_const_reg(A_MOV,S_W,aint(m),NR_AX);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+                    emit_reg(A_IMUL,S_W,hreg1);
+                    emit_reg_reg(A_MOV,S_W,hreg1,NR_AX);
                     if a<>0 then
                       begin
-                        emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
+                        emit_reg_reg(A_ADD,S_W,NR_AX,NR_DX);
                         {
-                          printf ("; dividend: memory location or register other than EAX or EDX\n");
+                          printf ("; dividend: memory location or register other than AX or DX\n");
                           printf ("\n");
-                          printf ("MOV EAX, 0%08LXh\n", m);
+                          printf ("MOV AX, 0%08LXh\n", m);
                           printf ("IMUL dividend\n");
-                          printf ("MOV EAX, dividend\n");
-                          printf ("ADD EDX, EAX\n");
-                          if (s) printf ("SAR EDX, %d\n", s);
-                          printf ("SHR EAX, 31\n");
-                          printf ("ADD EDX, EAX\n");
-                          if (e < 0) printf ("NEG EDX\n");
+                          printf ("MOV AX, dividend\n");
+                          printf ("ADD DX, AX\n");
+                          if (s) printf ("SAR DX, %d\n", s);
+                          printf ("SHR AX, 15\n");
+                          printf ("ADD DX, AX\n");
+                          if (e < 0) printf ("NEG DX\n");
                           printf ("\n");
-                          printf ("; quotient now in EDX\n");
+                          printf ("; quotient now in DX\n");
                         }
                       end;
                       {
-                        printf ("; dividend: memory location of register other than EAX or EDX\n");
+                        printf ("; dividend: memory location of register other than AX or DX\n");
                         printf ("\n");
-                        printf ("MOV EAX, 0%08LXh\n", m);
+                        printf ("MOV AX, 0%08LXh\n", m);
                         printf ("IMUL dividend\n");
-                        printf ("MOV EAX, dividend\n");
-                        if (s) printf ("SAR EDX, %d\n", s);
-                        printf ("SHR EAX, 31\n");
-                        printf ("ADD EDX, EAX\n");
-                        if (e < 0) printf ("NEG EDX\n");
+                        printf ("MOV AX, dividend\n");
+                        if (s) printf ("SAR DX, %d\n", s);
+                        printf ("SHR AX, 15\n");
+                        printf ("ADD DX, AX\n");
+                        if (e < 0) printf ("NEG DX\n");
                         printf ("\n");
-                        printf ("; quotient now in EDX\n");
+                        printf ("; quotient now in DX\n");
                       }
                     if s<>0 then
-                      emit_const_reg(A_SAR,S_L,s,NR_EDX);
-                    emit_const_reg(A_SHR,S_L,31,NR_EAX);
-                    emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
+                      emit_const_reg(A_SAR,S_W,s,NR_DX);
+                    emit_const_reg(A_SHR,S_W,15,NR_AX);
+                    emit_reg_reg(A_ADD,S_W,NR_AX,NR_DX);
                     if e<0 then
-                      emit_reg(A_NEG,S_L,NR_EDX);
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                      emit_reg(A_NEG,S_W,NR_DX);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
                     location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EDX,location.register)
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,location.register)
                   end
                 else
                   begin
                     d:=tordconstnode(right).value.svalue;
-                    if d>=$80000000 then
+                    if d>=$8000 then
                       begin
-                        emit_const_reg(A_CMP,S_L,aint(d),hreg1);
+                        emit_const_reg(A_CMP,S_W,aint(d),hreg1);
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                        emit_const_reg(A_MOV,S_L,0,location.register);
-                        emit_const_reg(A_SBB,S_L,-1,location.register);
+                        emit_const_reg(A_MOV,S_W,0,location.register);
+                        emit_const_reg(A_SBB,S_W,-1,location.register);
                       end
                     else
                       begin
@@ -243,19 +243,19 @@ implementation
                         SIGPLAN Notices, Vol. 29, June 1994, page 61.
                         }
                         l:=log2(t)+1;
-                        j:=qword($ffffffff) mod qword(t);
-                        k:=(qword(1) shl (32+l)) div (qword($ffffffff-j));
-                        m_low:=((qword(1)) shl (32+l)) div t;
-                        m_high:=(((qword(1)) shl (32+l)) + k) div t;
+                        j:=dword($ffff) mod dword(t);
+                        k:=(dword(1) shl (16+l)) div (dword($ffff-j));
+                        m_low:=((dword(1)) shl (16+l)) div t;
+                        m_high:=(((dword(1)) shl (16+l)) + k) div t;
                         while ((m_low shr 1) < (m_high shr 1)) and (l>0) do
                           begin
                             m_low:=m_low shr 1;
                             m_high:=m_high shr 1;
                             l:=l-1;
                           end;
-                        if (m_high shr 32)=0 then
+                        if (m_high shr 16)=0 then
                           begin
-                            m:=dword(m_high);
+                            m:=word(m_high);
                             s:=l;
                             a:=0;
                           end
@@ -267,12 +267,12 @@ implementation
                         else
                           begin
                             s:=log2(t);
-                            m_low:=(qword(1) shl (32+s)) div qword(t);
-                            r:=dword(((qword(1)) shl (32+s)) mod qword(t));
+                            m_low:=(dword(1) shl (16+s)) div dword(t);
+                            r:=word(((dword(1)) shl (16+s)) mod dword(t));
                             if (r < ((t>>1)+1)) then
-                              m:=dword(m_low)
+                              m:=word(m_low)
                             else
-                              m:=dword(m_low)+1;
+                              m:=word(m_low)+1;
                             a:=1;
                           end;
                         { Reduce multiplier for either algorithm to smallest possible }
@@ -283,72 +283,72 @@ implementation
                           end;
                         { Adjust multiplier for reduction of even divisors }
                         inc(s,n);
-                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-                        emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
-                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-                        emit_reg(A_MUL,S_L,hreg1);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
+                        emit_const_reg(A_MOV,S_W,aint(m),NR_AX);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+                        emit_reg(A_MUL,S_W,hreg1);
                         if a<>0 then
                           begin
                             {
-                            printf ("; dividend: register other than EAX or memory location\n");
+                            printf ("; dividend: register other than AX or memory location\n");
                             printf ("\n");
-                            printf ("MOV EAX, 0%08lXh\n", m);
+                            printf ("MOV AX, 0%08lXh\n", m);
                             printf ("MUL dividend\n");
-                            printf ("ADD EAX, 0%08lXh\n", m);
-                            printf ("ADC EDX, 0\n");
-                            if (s) printf ("SHR EDX, %d\n", s);
+                            printf ("ADD AX, 0%08lXh\n", m);
+                            printf ("ADC DX, 0\n");
+                            if (s) printf ("SHR DX, %d\n", s);
                             printf ("\n");
-                            printf ("; quotient now in EDX\n");
+                            printf ("; quotient now in DX\n");
                             }
-                            emit_const_reg(A_ADD,S_L,aint(m),NR_EAX);
-                            emit_const_reg(A_ADC,S_L,0,NR_EDX);
+                            emit_const_reg(A_ADD,S_W,aint(m),NR_AX);
+                            emit_const_reg(A_ADC,S_W,0,NR_DX);
                           end;
                         if s<>0 then
-                          emit_const_reg(A_SHR,S_L,aint(s),NR_EDX);
-                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                          emit_const_reg(A_SHR,S_W,aint(s),NR_DX);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EDX,location.register)
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,location.register)
                       end;
                   end
               end
           end
         else
           begin
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-            emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
+            emit_reg_reg(A_MOV,S_W,hreg1,NR_AX);
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
             {Sign extension depends on the left type.}
-            if torddef(left.resultdef).ordtype=u32bit then
-              emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
+            if torddef(left.resultdef).ordtype=u16bit then
+              emit_reg_reg(A_XOR,S_W,NR_DX,NR_DX)
             else
-              emit_none(A_CDQ,S_NO);
+              emit_none(A_CWD,S_NO);
 
             {Division depends on the right type.}
-            if Torddef(right.resultdef).ordtype=u32bit then
+            if Torddef(right.resultdef).ordtype=u16bit then
               op:=A_DIV
             else
               op:=A_IDIV;
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-              emit_ref(op,S_L,right.location.reference)
+              emit_ref(op,S_W,right.location.reference)
             else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              emit_reg(op,S_L,right.location.register)
+              emit_reg(op,S_W,right.location.register)
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,hreg1);
-                emit_reg(op,S_L,hreg1);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,hreg1);
+                emit_reg(op,S_W,hreg1);
               end;
 
-            {Copy the result into a new register. Release EAX & EDX.}
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+            {Copy the result into a new register. Release AX & DX.}
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             if nodetype=divn then
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register)
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register)
             else
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EDX,location.register);
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,location.register);
           end;
       end;
 
