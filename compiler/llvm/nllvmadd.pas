@@ -47,7 +47,7 @@ implementation
      uses
        verbose,globtype,
        aasmdata,
-       symdef,defutil,
+       symtype,symdef,defutil,
        llvmbase,aasmllvm,
        cgbase,cgutils,
        hlcgobj,
@@ -179,6 +179,7 @@ implementation
     var
       op    : tllvmop;
       llvmfpcmp : tllvmfpcmp;
+      size : tdef;
       cmpop,
       singleprec : boolean;
     begin
@@ -219,16 +220,16 @@ implementation
           internalerror(2013102401);
       end;
 
-      // get the operands in the correct order, there are no special cases
-      // here, everything is register-based
+      { get the operands in the correct order; there are no special cases here,
+        everything is register-based }
       if nf_swapped in flags then
         swapleftright;
 
-      // put both operands in a register
+      { put both operands in a register }
       hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
       hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
-      // initialize the result
+      { initialize the result location }
       if not cmpop then
         begin
           location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
@@ -240,16 +241,22 @@ implementation
           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
         end;
 
-      // emit the actual operation
+      { see comment in thlcgllvm.a_loadfpu_ref_reg }
+      if tfloatdef(left.resultdef).floattype in [s64comp,s64currency] then
+        size:=sc80floattype
+      else
+        size:=left.resultdef;
+
+      { emit the actual operation }
       if not cmpop then
         begin
-          current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_reg(op,location.register,resultdef,
+          current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_reg(op,location.register,size,
             left.location.register,right.location.register))
         end
       else
         begin
           current_asmdata.CurrAsmList.concat(taillvm.op_reg_fpcond_size_reg_reg(op,
-            location.register,llvmfpcmp,left.resultdef,left.location.register,right.location.register))
+            location.register,llvmfpcmp,size,left.location.register,right.location.register))
         end;
     end;
 

@@ -445,20 +445,33 @@ implementation
     var
        tmpreg: tregister;
        href: treference;
+       fromcompcurr,
+       tocompcurr: boolean;
      begin
+       { comp and currency are handled by the x87 in this case. They cannot
+         be represented directly in llvm, and llvmdef translates them into i64
+         (since that's their storage size and internally they also are int64).
+         Solve this by changing the type to s80real once they are loaded into
+         a register. }
+       fromcompcurr:=tfloatdef(fromsize).floattype in [s64comp,s64currency];
+       tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
+       if tocompcurr then
+         tosize:=s80floattype;
        href:=make_simple_ref(list,ref,fromsize);
        { don't generate different code for loading e.g. extended into cextended,
          but to take care of loading e.g. comp (=int64) into double }
-       if (fromsize.size<>tosize.size) or
-          ((tfloatdef(fromsize).floattype in [s64currency,s64comp])<>
-           (tfloatdef(tosize).floattype in [s64currency,s64comp])) then
+       if (fromsize.size<>tosize.size) then
          tmpreg:=getfpuregister(list,fromsize)
        else
          tmpreg:=reg;
        { %tmpreg = load size* %ref }
        list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,getpointerdef(fromsize),href));
        if tmpreg<>reg then
-         a_loadfpu_reg_reg(list,fromsize,tosize,tmpreg,reg);
+         if fromcompcurr then
+           { treat as extended as long as it's in a register }
+           list.concat(taillvm.op_reg_size_reg_size(la_sitofp,reg,fromsize,tmpreg,tosize))
+         else
+           a_loadfpu_reg_reg(list,fromsize,tosize,tmpreg,reg);
      end;
 
 
@@ -466,16 +479,25 @@ implementation
     var
        tmpreg: tregister;
        href: treference;
+       fromcompcurr,
+       tocompcurr: boolean;
      begin
+       { see comment in a_loadfpu_ref_reg }
+       fromcompcurr:=tfloatdef(fromsize).floattype in [s64comp,s64currency];
+       tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
+       if fromcompcurr then
+         fromsize:=s80floattype;
        href:=make_simple_ref(list,ref,tosize);
        { don't generate different code for loading e.g. extended into cextended,
          but to take care of storing e.g. comp (=int64) into double  }
-       if (fromsize.size<>tosize.size) or
-          ((tfloatdef(fromsize).floattype in [s64currency,s64comp])<>
-           (tfloatdef(tosize).floattype in [s64currency,s64comp])) then
+       if (fromsize.size<>tosize.size) then
          begin
            tmpreg:=getfpuregister(list,tosize);
-           a_loadfpu_reg_reg(list,fromsize,tosize,reg,tmpreg);
+           if tocompcurr then
+             { store back an int64 rather than an extended }
+             list.concat(taillvm.op_reg_size_reg_size(la_fptosi,tmpreg,fromsize,reg,tosize))
+           else
+             a_loadfpu_reg_reg(list,fromsize,tosize,reg,tmpreg);
          end
        else
          tmpreg:=reg;
@@ -489,9 +511,13 @@ implementation
       op: tllvmop;
       intfromsize,
       inttosize: longint;
-      fromcompcurr,
-      tocompcurr: boolean;
     begin
+      { treat comp and currency as extended in registers (see comment at start
+        of a_loadfpu_ref_reg) }
+      if tfloatdef(fromsize).floattype in [s64comp,s64currency] then
+        fromsize:=sc80floattype;
+      if tfloatdef(tosize).floattype in [s64comp,s64currency] then
+        tosize:=sc80floattype;
       { at the value level, s80real and sc80real are the same }
       if fromsize<>s80floattype then
         intfromsize:=fromsize.size
@@ -502,23 +528,12 @@ implementation
       else
         inttosize:=sc80floattype.size;
 
-      { s64comp and s64real are handled as int64 by llvm, which complicates
-        things here for us }
-      fromcompcurr:=tfloatdef(fromsize).floattype in [s64comp,s64currency];
-      tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
-      if fromcompcurr=tocompcurr then
-        begin
-          if intfromsize<inttosize then
-            op:=la_fpext
-           else if intfromsize>inttosize then
-            op:=la_fptrunc
-          else
-            op:=la_bitcast
-        end
-      else if fromcompcurr then
-        op:=la_sitofp
+      if intfromsize<inttosize then
+        op:=la_fpext
+       else if intfromsize>inttosize then
+        op:=la_fptrunc
       else
-        op:=la_fptosi;
+        op:=la_bitcast;
       { reg2 = bitcast fromllsize reg1 to tollsize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
     end;
