@@ -30,6 +30,8 @@ interface
 
     type
       ti8086moddivnode = class(tmoddivnode)
+         function use_moddiv32bit_helper: boolean;
+         function first_moddivint: tnode; override;
          procedure pass_generate_code;override;
       end;
 
@@ -60,6 +62,25 @@ implementation
 {*****************************************************************************
                              ti8086moddivnode
 *****************************************************************************}
+
+
+    function ti8086moddivnode.use_moddiv32bit_helper: boolean;
+      begin
+        result:=is_32bit(left.resultdef) or
+                is_64bit(left.resultdef) or
+                is_32bit(right.resultdef) or
+                is_64bit(right.resultdef);
+      end;
+
+
+    function ti8086moddivnode.first_moddivint: tnode;
+      begin
+        if use_moddiv32bit_helper then
+          result:=inherited first_moddivint
+        else
+          result:=nil;
+      end;
+
 
     function log2(i : word) : word;
       begin
@@ -116,13 +137,13 @@ implementation
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                         emit_reg_reg(A_MOV,S_W,hreg1,hreg2);
                         {If the left value is signed, hreg2=$ffff, otherwise 0.}
-                        emit_const_reg(A_SAR,S_W,15,hreg2);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,hreg2);
                         {If signed, hreg2=right value-1, otherwise 0.}
                         emit_const_reg(A_AND,S_W,tordconstnode(right).value.svalue-1,hreg2);
                         { add to the left value }
                         emit_reg_reg(A_ADD,S_W,hreg2,hreg1);
                         { do the shift }
-                        emit_const_reg(A_SAR,S_W,power,hreg1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,power,hreg1);
                       end
                     else
                       begin
@@ -135,11 +156,11 @@ implementation
                         else
                           emit_const_reg(A_ADD,S_W,tordconstnode(right).value.svalue-1,hreg1);
                         cg.a_label(current_asmdata.CurrAsmList,hl);
-                        emit_const_reg(A_SAR,S_W,power,hreg1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,power,hreg1);
                       end
                   end
                 else
-                  emit_const_reg(A_SHR,S_W,power,hreg1);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,power,hreg1);
                 location.register:=hreg1;
               end
             else
@@ -208,8 +229,8 @@ implementation
                         printf ("; quotient now in DX\n");
                       }
                     if s<>0 then
-                      emit_const_reg(A_SAR,S_W,s,NR_DX);
-                    emit_const_reg(A_SHR,S_W,15,NR_AX);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,s,NR_DX);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,15,NR_AX);
                     emit_reg_reg(A_ADD,S_W,NR_AX,NR_DX);
                     if e<0 then
                       emit_reg(A_NEG,S_W,NR_DX);
@@ -304,7 +325,7 @@ implementation
                             emit_const_reg(A_ADC,S_W,0,NR_DX);
                           end;
                         if s<>0 then
-                          emit_const_reg(A_SHR,S_W,aint(s),NR_DX);
+                          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,aint(s),NR_DX);
                         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
                         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
