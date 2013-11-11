@@ -1254,6 +1254,10 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+{$ifdef llvm}
+        { in LLVM, all non-procedure local symbols have to start with an '@' }
+        result:='@'+result;
+{$endif llvm}
       end;
 
     function make_dllmangledname(const dllname,importname:TSymStr;import_nr : word; pco : tproccalloption):TSymStr;
