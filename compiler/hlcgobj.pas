@@ -2778,7 +2778,7 @@ implementation
     var
       tmpreg: tregister;
     begin
-      tmpreg:=getintregister(list,size);
+      tmpreg:=getregisterfordef(list,size);
       a_load_const_reg(list,size,a,tmpreg);
       a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
     end;
@@ -2787,7 +2787,7 @@ implementation
     var
       tmpreg: tregister;
     begin
-      tmpreg:=getintregister(list,size);
+      tmpreg:=getregisterfordef(list,size);
       a_load_ref_reg(list,size,size,ref,tmpreg);
       a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
     end;
@@ -4035,19 +4035,14 @@ implementation
             end;
         end;
 
-      { TODO: create high level version (create compilerprocs in system unit,
-          look up procdef, use hlcgobj.a_call_name()) }
-
       { call startup helpers from main program }
       if (current_procinfo.procdef.proctypeoption=potype_proginit) then
        begin
          { initialize units }
-         cg.allocallcpuregisters(list);
          if not(current_module.islibrary) then
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+           g_call_system_proc(list,'fpc_initializeunits',nil)
          else
-           cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
-         cg.deallocallcpuregisters(list);
+           g_call_system_proc(list,'fpc_libinitializeunits',nil);
        end;
 
       list.concat(Tai_force_line.Create);

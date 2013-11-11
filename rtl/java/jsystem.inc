@@ -878,7 +878,7 @@ end;
 
 procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
 
-procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
+procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];compilerproc;
 begin
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary:=true;
