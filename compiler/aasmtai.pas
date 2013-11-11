@@ -35,6 +35,10 @@ interface
        cutils,cclasses,
        globtype,systems,
        cpuinfo,cpubase,
+{$ifdef llvm}
+       { overrides max_operands }
+       llvmbase,
+{$endif llvm}
        cgbase,cgutils,
        symtype,
        aasmbase,aasmdata,ogbase
@@ -98,6 +102,12 @@ interface
           ait_jvar,    { debug information for a local variable }
           ait_jcatch,  { exception catch clause }
 {$endif JVM}
+{$ifdef llvm}
+          ait_llvmins, { llvm instruction }
+          ait_llvmprocdef, { start of an llvm procedure }
+          ait_llvmvarsym, { global variable }
+          ait_llvmalias, { alias for a symbol }
+{$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive
           );
@@ -209,6 +219,12 @@ interface
           'jvar',
           'jcatch',
 {$endif JVM}
+{$ifdef llvm}
+          'llvmins', { llvm instruction }
+          'llvmprocdef',
+          'llvmvarsym',
+          'llvmalias',
+{$endif}
           'seh_directive'
           );
 
@@ -236,6 +252,16 @@ interface
        ,top_string
        ,top_wstring
 {$endif jvm}
+{$ifdef llvm}
+       { llvm only }
+       ,top_double
+{$ifdef cpuextended}
+       ,top_extended80
+{$endif cpuextended}
+       ,top_def
+       ,top_fpcond
+       ,top_cond
+{$endif llvm}
        );
 
       { kinds of operations that an instruction can perform on an operand }
@@ -281,6 +307,15 @@ interface
           top_string : (pcvallen: aint; pcval: pchar);
           top_wstring : (pwstrval: pcompilerwidestring);
       {$endif jvm}
+      {$ifdef llvm}
+          top_double : (dval:double);
+        {$ifdef cpuextended}
+          top_extended80 : (eval:extended);
+        {$endif cpuextended}
+          top_def    : (def: tdef);
+          top_cond   : (cond: topcmp);
+          top_fpcond : (fpcond: tllvmfpcmp);
+      {$endif llvm}
       end;
       poper=^toper;
 
