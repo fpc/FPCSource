@@ -35,8 +35,8 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
        end;
 
        trgintcpu = class(trgcpu)
@@ -53,7 +53,7 @@ unit rgcpu;
       procinfo;
 
 
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         tmpref : treference;
         helplist : TAsmList;
@@ -100,11 +100,11 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
-    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         tmpref : treference;
         helplist : TAsmList;
@@ -147,7 +147,7 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 {$ifdef user0}

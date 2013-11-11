@@ -41,8 +41,8 @@ unit rgcpu;
        private
          procedure spilling_create_load_store(list: TAsmList; pos: tai; const spilltemp:treference;tempreg:tregister; is_store: boolean);
        public
-         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
          procedure add_constraints(reg:tregister);override;
          function  get_spill_subreg(r:tregister) : tsubregister;override;
        end;
@@ -51,8 +51,8 @@ unit rgcpu;
        private
          procedure SplitITBlock(list:TAsmList;pos:tai);
        public
-         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
        end;
 
        trgintcputhumb2 = class(trgcputhumb2)
@@ -247,7 +247,7 @@ unit rgcpu;
      end;
 
 
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       begin
         { don't load spilled register between
           mov lr,pc
@@ -266,16 +266,16 @@ unit rgcpu;
         if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, false)
         else
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
-    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       begin
         if fix_spilling_offset(spilltemp.offset) then
           spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
@@ -368,7 +368,7 @@ unit rgcpu;
           list.InsertAfter(taicpu.op_cond(remOp,taicpu(hp).oper[0]^.cc), pos);
       end;
 
-    procedure trgcputhumb2.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcputhumb2.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
         tmpref : treference;
         helplist : TAsmList;
@@ -436,11 +436,11 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
-    procedure trgcputhumb2.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcputhumb2.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
         tmpref : treference;
         helplist : TAsmList;
@@ -494,7 +494,7 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 

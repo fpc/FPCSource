@@ -31,7 +31,7 @@ unit rgobj;
 
     uses
       cutils, cpubase,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
       cclasses,globtype,cgbase,cgutils,
       cpuinfo
       ;
@@ -177,12 +177,14 @@ unit rgobj;
         function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
-        function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
-        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
-        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
+        function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
+        { the orgrsupeg parameter is only here for the llvm target, so it can
+          discover the def to use for the load }
+        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
+        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
 
         function instr_spill_register(list:TAsmList;
-                                      instr:taicpu;
+                                      instr:tai_cpu_abstract_sym;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
         procedure insert_regalloc_info_all(list:TAsmList);
@@ -1974,11 +1976,11 @@ unit rgobj;
                       end;
                   end;
               ait_instruction:
-                with Taicpu(p) do
+                with tai_cpu_abstract_sym(p) do
                   begin
-//                    writeln(gas_op2str[taicpu(p).opcode]);
+//                    writeln(gas_op2str[tai_cpu_abstract_sym(p).opcode]);
                     current_filepos:=fileinfo;
-                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
+                    if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
             end;
@@ -1993,15 +1995,15 @@ unit rgobj;
       end;
 
 
-    function trgobj.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgobj.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
       begin
         result:=false;
       end;
 
 
-    procedure trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
-        ins:Taicpu;
+        ins:tai_cpu_abstract_sym;
       begin
         ins:=spilling_create_load(spilltemp,tempreg);
         add_cpu_interferences(ins);
@@ -2012,9 +2014,9 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
-        ins:Taicpu;
+        ins:tai_cpu_abstract_sym;
       begin
         ins:=spilling_create_store(tempreg,spilltemp);
         add_cpu_interferences(ins);
@@ -2032,7 +2034,7 @@ unit rgobj;
 
 
     function trgobj.instr_spill_register(list:TAsmList;
-                                         instr:taicpu;
+                                         instr:tai_cpu_abstract_sym;
                                          const r:Tsuperregisterset;
                                          const spilltemplist:Tspill_temp_list): boolean;
       var
@@ -2233,7 +2235,7 @@ unit rgobj;
               if mustbespilled and regread then
                 begin
                   tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
-                  do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],tempreg);
+                  do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],tempreg,orgreg);
                 end;
             end;
 
@@ -2273,7 +2275,7 @@ unit rgobj;
             begin
               if mustbespilled and regwritten then
                 begin
-                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg);
+                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg,orgreg);
                   ungetregisterinline(list,tempreg);
                 end;
             end;
