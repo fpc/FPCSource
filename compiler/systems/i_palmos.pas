@@ -89,6 +89,7 @@ unit i_palmos;
             stacksize    : 8192;
             stackalign   : 2;
             abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        res_m68k_palmos_info : tresinfo =
@@ -162,6 +163,7 @@ unit i_palmos;
             stacksize    : 8192;
             stackalign   : 4;
             abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        res_arm_palmos_info : tresinfo =

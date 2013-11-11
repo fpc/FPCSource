@@ -90,6 +90,7 @@ unit i_msdos;
             stacksize    : 4096;
             stackalign   : 2;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
   implementation

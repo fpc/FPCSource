@@ -107,6 +107,7 @@ unit i_jvm;
             stacksize   : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
 
@@ -172,6 +173,7 @@ unit i_jvm;
             stacksize   : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
 

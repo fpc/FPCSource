@@ -3381,6 +3381,12 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('CPUTHUMB');
       if not option.FPUSetExplicitly then
         init_settings.fputype:=fpu_soft;
+{$if defined(FPC_ARMEL) or defined(FPC_ARMHF)}
+      target_info.llvmdatalayout:='e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:32-n32-S64';
+{$else FPC_ARMAL or FPC_ARMHF}
+      if target_info.endian=endian_little then
+        target_info.llvmdatalayout:='e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:32:64-v128:32:128-a0:0:32-n32-S32';
+{$endif FPC_ARMAL or FPC_ARMHF}
     end;
 
   if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
