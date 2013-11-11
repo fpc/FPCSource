@@ -183,7 +183,7 @@ const
       hint_reloadmodifiedfile= 'Reload file modified on disk';
       hint_tools             = 'Create or change tools';
       hint_environmentmenu   = 'Specify environment settins';
-      hint_preferences       = 'Specify desktop settings';
+      hint_preferences       = 'Specify preferences settings';
       hint_editoroptions     = 'Specify default editor settings';
       hint_codecomplete      = 'Specify CodeComplete keywords';
       hint_codetemplates     = 'Specify CodeTemplates';
