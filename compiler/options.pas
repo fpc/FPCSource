@@ -3241,6 +3241,10 @@ begin
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
 
+{$ifdef llvm}
+  { force llvm assembler writer }
+  paratargetasm:=as_llvm;
+{$endif llvm}
   { maybe override assembler }
   if (paratargetasm<>as_none) then
     begin
@@ -3401,6 +3405,11 @@ if (target_info.abi = abi_eabihf) then
         init_settings.cputype:=cpu_dalvik;
     end;
 {$endif jvm}
+
+{$ifdef llvm}
+  { standard extension for llvm bitcode files }
+  target_info.asmext:='.ll';
+{$endif llvm}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);

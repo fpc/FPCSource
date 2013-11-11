@@ -56,6 +56,9 @@ uses
 {$endif}
   { cpu targets }
   ,cputarg
+{$ifdef llvm}
+  ,llvmtarg
+{$endif llvm}
   { system information for source system }
   { the information about the target os  }
   { are pulled in by the t_* units       }

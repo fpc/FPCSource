@@ -195,6 +195,7 @@
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
              ,as_jvm_jasmin
+             ,as_llvm
        );
 
        tlink = (ld_none,
