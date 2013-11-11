@@ -26,14 +26,15 @@ uses
   SdfDSToolsUnit,
   tcsdfdata,
   // DB unittest
-  testbasics,
-  TestFieldTypes,
+  TestBasics,
   TestDBBasics,
+  TestFieldTypes,
   TestDatasources,
   TestBufDatasetStreams,
   TestSQLDB,
   TestSpecificTBufDataset,
   TestSpecificTDBF,
+  TestSpecificTMemDataset,
   TestDBExport;
 
 {$R *.res}

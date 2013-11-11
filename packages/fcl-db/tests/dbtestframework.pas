@@ -20,13 +20,14 @@ uses
   tcsdfdata,
 // Units wich contain the tests
   TestBasics,
+  TestDBBasics,
   TestFieldTypes,
   TestDatasources,
-  TestDBBasics,
   TestBufDatasetStreams,
   TestSQLDB,
   TestSpecificTBufDataset,
   TestSpecificTDBF,
+  TestSpecificTMemDataset,
   TestDBExport,
   consoletestrunner;
 

@@ -488,6 +488,7 @@ begin
     B:=ReadInteger(F)<>0;
     TFieldDef.Create(FieldDefs,FN,ft,FS,B,I);
     end;
+  FTableIsCreated:=False;
 end;
 
 procedure TMemDataset.InternalFirst;
@@ -880,17 +881,18 @@ begin
     begin
     Close;
     FieldDefs.Clear;
+    FTableIsCreated:=False;
     end;
 end;
 
 procedure TMemDataset.calcrecordlayout;
 var
-  i,count : integer;
+  i,Count : integer;
 begin
- Count := fielddefs.count;
+ Count := FieldDefs.Count;
  // Avoid mem-leak if CreateTable is called twice
- FreeMem(ffieldoffsets);
- Freemem(ffieldsizes);
+ FreeMem(FFieldOffsets);
+ Freemem(FFieldSizes);
  {$IFDEF FPC}
  FFieldOffsets:=getmem(Count*sizeof(integer));
  FFieldSizes:=getmem(Count*sizeof(integer));
@@ -904,8 +906,8 @@ begin
 {$ENDIF}
  for i:= 0 to Count-1 do
    begin
-   GetIntegerPointer(ffieldoffsets, i)^ := FRecSize;
-   GetIntegerPointer(ffieldsizes,   i)^ := MDSGetbufferSize(i+1);
+   GetIntegerPointer(FFieldOffsets, i)^ := FRecSize;
+   GetIntegerPointer(FFieldSizes,   i)^ := MDSGetbufferSize(i+1);
    FRecSize:= FRecSize+GetIntegerPointer(FFieldSizes, i)^;
    end;
  FRecInfoOffset:=FRecSize;
@@ -975,7 +977,7 @@ Var
 
 begin
   Clear(True);
-  // NOT from fielddefs. The data may not be available in buffers !!
+  // NOT from FieldDefs. The data may not be available in buffers !!
   For I:=0 to Dataset.FieldCount-1 do
     begin
     F:=Dataset.Fields[I];

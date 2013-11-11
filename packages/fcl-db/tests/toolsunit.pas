@@ -99,6 +99,8 @@ type
     protected
       procedure SetUp; override;
       procedure TearDown; override;
+      procedure CheckFieldDatasetValues(ADataSet: TDataSet);
+      procedure CheckNDatasetValues(ADataSet: TDataSet; n: integer);
   end;
 
 
@@ -390,6 +392,40 @@ procedure TDBBasicsTestCase.TearDown;
 begin
   DBConnector.StopTest;
   inherited TearDown;
+end;
+
+procedure TDBBasicsTestCase.CheckFieldDatasetValues(ADataSet: TDataSet);
+var i: integer;
+begin
+  with ADataSet do
+  begin
+    First;
+    for i := 0 to testValuesCount-1 do
+    begin
+      CheckEquals(i, FieldByName('ID').AsInteger, 'ID');
+      CheckEquals(testStringValues[i], FieldByName('FSTRING').AsString, 'FSTRING');
+      CheckEquals(testIntValues[i], FieldByName('FINTEGER').AsInteger, 'FINTEGER');
+      CheckEquals(testLargeIntValues[i], FieldByName('FLARGEINT').AsLargeInt, 'FLARGEINT');
+      Next;
+    end;
+    CheckTrue(Eof, 'Eof');
+  end;
+end;
+
+procedure TDBBasicsTestCase.CheckNDatasetValues(ADataSet: TDataSet; n: integer);
+var i: integer;
+begin
+  with ADataSet do
+  begin
+    First;
+    for i := 1 to n do
+    begin
+      CheckEquals(i, FieldByName('ID').AsInteger, 'ID');
+      CheckEquals('TestName' + inttostr(i), FieldByName('NAME').AsString, 'NAME');
+      Next;
+    end;
+    CheckTrue(Eof, 'Eof');
+  end;
 end;
 
 
