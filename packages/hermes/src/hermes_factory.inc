@@ -34,11 +34,10 @@ var
   Processor: Integer;
 
 procedure Hermes_Factory_Init;
-{$IFDEF I386_ASSEMBLER}
 var
-  res: Integer = 0;
-{$ENDIF I386_ASSEMBLER}
+  res: Integer;
 begin
+  res := 0;
   Processor := PROC_GENERIC;
 
   {$IFDEF I386_ASSEMBLER}
@@ -51,9 +50,6 @@ begin
 {      Writeln('mmx!');}
     end;
   {$ENDIF I386_ASSEMBLER}
-  {$IFDEF X86_64_ASSEMBLER}
-    Processor := Processor or PROC_X86_64;
-  {$ENDIF X86_64_ASSEMBLER}
 end;
 
 function Hermes_Factory_getClearer(bits: Uint32): PHermesClearer;
@@ -263,9 +259,7 @@ end;
 function Hermes_Factory_getEqualConverter(bits: Integer): PHermesConverter;
 var
   found: Boolean;
-{$IFDEF I386_ASSEMBLER}
   asm_found: Integer;
-{$ENDIF I386_ASSEMBLER}
   c_found: Integer;
 begin
   found := False;
