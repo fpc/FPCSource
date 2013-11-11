@@ -844,7 +844,14 @@ function artanh(x : float) : float;
 
 function hypot(x,y : float) : float;
   begin
-     hypot:=Sqrt(x*x+y*y)
+    x:=abs(x);
+    y:=abs(y);
+    if (x>y) then
+      hypot:=x*sqrt(1.0+sqr(y/x))
+    else if (x>0.0) then
+      hypot:=y*sqrt(1.0+sqr(x/y))
+    else
+      hypot:=y;
   end;
 
 function log10(x : float) : float;
