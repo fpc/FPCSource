@@ -31,7 +31,7 @@ unit cpupara;
        symconst,symbase,symtype,symdef,paramgr;
 
     type
-       talphaparamanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
@@ -45,7 +45,7 @@ unit cpupara;
        cpuinfo,cginfo,cgbase,
        defbase;
 
-    function talphaparamanager.getintparaloc(nr : longint) : tparalocation;
+    function tcpuparamanager.getintparaloc(nr : longint) : tparalocation;
 
       begin
          fillchar(result,sizeof(tparalocation),0);
@@ -119,7 +119,7 @@ unit cpupara;
          end;
       end;
 
-    procedure talphaparamanager.create_param_loc_info(p : tabstractprocdef);
+    procedure tcpuparamanager.create_param_loc_info(p : tabstractprocdef);
 
       var
          nextintreg,nextfloatreg,nextmmreg : tregister;
@@ -246,7 +246,7 @@ unit cpupara;
            end;
       end;
 
-    function talphaparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
+    function tcpuparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
          case p.returndef.typ of
             orddef,
@@ -286,5 +286,5 @@ unit cpupara;
 
 
 begin
-   paramanager:=talphaparamanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

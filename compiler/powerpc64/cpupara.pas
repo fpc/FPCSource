@@ -32,7 +32,7 @@ uses
   paramgr, parabase, cgbase, cgutils;
 
 type
-  tppcparamanager = class(tparamanager)
+  tcpuparamanager = class(tparamanager)
     function get_volatile_registers_int(calloption: tproccalloption):
       tcpuregisterset; override;
     function get_volatile_registers_fpu(calloption: tproccalloption):
@@ -63,7 +63,7 @@ uses
   defutil,symtable,
   procinfo, cpupi;
 
-function tppcparamanager.get_volatile_registers_int(calloption:
+function tcpuparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_R0,RS_R3..RS_R12];
@@ -71,13 +71,13 @@ begin
     include(result,RS_R2);
 end;
 
-function tppcparamanager.get_volatile_registers_fpu(calloption:
+function tcpuparamanager.get_volatile_registers_fpu(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tppcparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
+procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
   psym: tparavarsym;
@@ -160,7 +160,7 @@ begin
   end;
 end;
 
-function tppcparamanager.push_addr_param(varspez: tvarspez; def: tdef;
+function tcpuparamanager.push_addr_param(varspez: tvarspez; def: tdef;
   calloption: tproccalloption): boolean;
 begin
   result := false;
@@ -198,7 +198,7 @@ begin
   end;
 end;
 
-procedure tppcparamanager.init_values(var curintreg, curfloatreg, curmmreg:
+procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
   { register parameter save area begins at 48(r2) }
@@ -208,7 +208,7 @@ begin
   curmmreg := RS_M2;
 end;
 
-function tppcparamanager.get_funcretloc(p : tabstractprocdef; side:
+function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side:
   tcallercallee; forcetempdef: tdef): tcgpara;
 var
   paraloc : pcgparalocation;
@@ -239,7 +239,7 @@ begin
      end;
 end;
 
-function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:
+function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side:
   tcallercallee): longint;
 var
   cur_stack_offset: aword;
@@ -253,7 +253,7 @@ begin
   create_funcretloc_info(p, side);
 end;
 
-function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
+function tcpuparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
@@ -485,7 +485,7 @@ begin
   result := stack_offset;
 end;
 
-function tppcparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
+function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
   varargspara: tvarargsparalist): longint;
 var
   cur_stack_offset: aword;
@@ -527,7 +527,7 @@ begin
     include(varargspara.varargsinfo, va_uses_float_reg);
 end;
 
-function tppcparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
+function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
 begin
   { not supported/required for PowerPC64-linux target }
   internalerror(200404182);
@@ -536,6 +536,6 @@ end;
 
 
 begin
-  paramanager := tppcparamanager.create;
+  paramanager := tcpuparamanager.create;
 end.
 

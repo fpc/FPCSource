@@ -40,7 +40,7 @@ unit cpupara;
          and if the calling conventions for the helper routines of the
          rtl are used.
        }
-       tm68kparamanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -66,7 +66,7 @@ unit cpupara;
        cpuinfo,
        defutil;
 
-    procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym: tparavarsym;
@@ -158,7 +158,7 @@ unit cpupara;
 
 
 { TODO: copied from ppc cg, needs work}
-    function tm68kparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         { var,out,constref always require address }
@@ -189,14 +189,14 @@ unit cpupara;
         end;
       end;
 
-    procedure tm68kparamanager.init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
       begin
         cur_stack_offset:=8;
         curintreg:=RS_D0;
         curfloatreg:=RS_FP0;
       end;
 
-    function tm68kparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
@@ -250,7 +250,7 @@ unit cpupara;
           end;
       end;
 
-    function tm68kparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg: tsuperregister;
@@ -262,7 +262,7 @@ unit cpupara;
         create_funcretloc_info(p,side);
       end;
 
-    function tm68kparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
         paraloc      : pcgparalocation;
@@ -445,7 +445,7 @@ unit cpupara;
       end;
 }
 
-    function tm68kparamanager.parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;
+    function tcpuparamanager.parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;
       begin
         result:=false;
         case target_info.system of
@@ -494,7 +494,7 @@ unit cpupara;
         end;
       end;
 
-    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
       begin
         { d0 and d1 are considered volatile (ToDo: results in "procedure too
           complex when compiling unicodedata.pas) }
@@ -503,14 +503,14 @@ unit cpupara;
       end;
 
 
-    function tm68kparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
       begin
         { a0 and a1 are considered volatile }
         Result:=[RS_A0,RS_A1];
       end;
 
 
-    function tm68kparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
+    function tcpuparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -570,7 +570,7 @@ unit cpupara;
       end;
 
 
-    procedure tm68kparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
+    procedure tcpuparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       var
         paraloc : pcgparalocation;
       begin
@@ -582,7 +582,7 @@ unit cpupara;
         inherited createtempparaloc(list,calloption,parasym,can_use_final_stack_loc,cgpara);
       end;
 
-    function tm68kparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg: tsuperregister;
@@ -599,5 +599,5 @@ unit cpupara;
 
 
 begin
-  paramanager:=tm68kparamanager.create;
+  paramanager:=tcpuparamanager.create;
 end.

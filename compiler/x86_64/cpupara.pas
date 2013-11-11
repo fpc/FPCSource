@@ -33,7 +33,7 @@ unit cpupara;
       parabase,paramgr;
 
     type
-       tx86_64paramanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
        private
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
@@ -742,7 +742,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
@@ -765,7 +765,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+    function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -787,7 +787,7 @@ unit cpupara;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tx86_64paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
@@ -865,7 +865,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_R8,RS_R9,RS_R10,RS_R11]
@@ -874,7 +874,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=[RS_XMM0..RS_XMM5]
@@ -883,13 +883,13 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[RS_ST0..RS_ST7];
       end;
 
 
-    procedure tx86_64paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -945,7 +945,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
@@ -1093,7 +1093,7 @@ unit cpupara;
       end;
 
 
-    procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+    procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
       var
         hp         : tparavarsym;
@@ -1363,7 +1363,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1384,7 +1384,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1404,5 +1404,5 @@ unit cpupara;
 
 
 begin
-   paramanager:=tx86_64paramanager.create;
+   paramanager:=tcpuparamanager.create;
 end.
