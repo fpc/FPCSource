@@ -116,6 +116,7 @@ unit rgobj;
       end;
       tspillregsinfo = array[0..3] of tspillreginfo;
 
+      Pspill_temp_list=^Tspill_temp_list;
       Tspill_temp_list=array[tsuperregister] of Treference;
 
       {#------------------------------------------------------------------
@@ -168,6 +169,8 @@ unit rgobj;
         { default subregister used }
         defaultsub        : tsubregister;
         live_registers:Tsuperregisterworklist;
+        spillednodes: tsuperregisterworklist;
+
         { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
@@ -183,17 +186,19 @@ unit rgobj;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
         procedure insert_regalloc_info_all(list:TAsmList);
+        procedure determine_spill_registers(list:TAsmList;headertail:tai); virtual;
+        procedure get_spill_temp(list:TAsmlist;spill_temps: Pspill_temp_list; supreg: tsuperregister);virtual;
+      strict protected
+        { Highest register allocated until now.}
+        reginfo           : PReginfo;
       private
         int_live_range_direction: TRADirection;
         { First imaginary register.}
         first_imaginary   : Tsuperregister;
-        { Highest register allocated until now.}
-        reginfo           : PReginfo;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
         usable_register_set : tcpuregisterset;
         ibitmap           : Tinterferencebitmap;
-        spillednodes,
         simplifyworklist,
         freezeworklist,
         spillworklist,
@@ -566,9 +571,7 @@ unit rgobj;
         {Do register allocation.}
         spillingcounter:=0;
         repeat
-          prepare_colouring;
-          colour_registers;
-          epilogue_colouring;
+          determine_spill_registers(list,headertai);
           endspill:=true;
           if spillednodes.length<>0 then
             begin
@@ -1614,6 +1617,34 @@ unit rgobj;
       end;
 
 
+    procedure trgobj.determine_spill_registers(list: TAsmList; headertail: tai);
+      begin
+        prepare_colouring;
+        colour_registers;
+        epilogue_colouring;
+      end;
+
+
+    procedure trgobj.get_spill_temp(list: TAsmlist; spill_temps: Pspill_temp_list; supreg: tsuperregister);
+      var
+        size: ptrint;
+      begin
+        {Get a temp for the spilled register, the size must at least equal a complete register,
+         take also care of the fact that subreg can be larger than a single register like doubles
+         that occupy 2 registers }
+        { only force the whole register in case of integers. Storing a register that contains
+          a single precision value as a double can cause conversion errors on e.g. ARM VFP }
+        if (regtype=R_INTREGISTER) then
+          size:=max(tcgsize2size[reg_cgsize(newreg(regtype,supreg,R_SUBWHOLE))],
+                         tcgsize2size[reg_cgsize(newreg(regtype,supreg,reginfo[supreg].subreg))])
+        else
+          size:=tcgsize2size[reg_cgsize(newreg(regtype,supreg,reginfo[supreg].subreg))];
+        tg.gettemp(list,
+                   size,size,
+                   tt_noreuse,spill_temps^[supreg]);
+      end;
+
+
     procedure trgobj.add_cpu_interferences(p : tai);
       begin
       end;
@@ -1888,7 +1919,6 @@ unit rgobj;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : TAsmList;
-        size: ptrint;
       begin
         spill_registers:=false;
         live_registers.clear;
@@ -1907,19 +1937,7 @@ unit rgobj;
               supregset_include(regs_to_spill_set,t);
               {Clear all interferences of the spilled register.}
               clear_interferences(t);
-              {Get a temp for the spilled register, the size must at least equal a complete register,
-               take also care of the fact that subreg can be larger than a single register like doubles
-               that occupy 2 registers }
-              { only force the whole register in case of integers. Storing a register that contains
-                a single precision value as a double can cause conversion errors on e.g. ARM VFP }
-              if (regtype=R_INTREGISTER) then
-                size:=max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
-                               tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))])
-              else
-                size:=tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))];
-              tg.gettemp(templist,
-                         size,size,
-                         tt_noreuse,spill_temps^[t]);
+              get_spill_temp(templist,spill_temps,t);
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
