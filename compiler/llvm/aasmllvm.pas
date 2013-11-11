@@ -100,6 +100,10 @@ interface
 {$endif cpuextended}
         procedure loadcond(opidx: longint; _cond: topcmp);
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
+
+        { register spilling code }
+        function spilling_get_operation_type(opnr: longint): topertype;override;
+        function spilling_get_reg_type(opnr: longint): tdef;
       end;
 
 
@@ -249,6 +253,160 @@ uses
            fpcond:=_fpcond;
            typ:=top_fpcond;
          end;
+      end;
+
+
+    function taillvm.spilling_get_operation_type(opnr: longint): topertype;
+      begin
+        case llvmopcode of
+          la_ret, la_br, la_switch, la_indirectbr,
+          la_invoke, la_resume,
+          la_unreachable,
+          la_store,
+          la_fence,
+          la_cmpxchg,
+          la_atomicrmw:
+            begin
+              { instructions that never have a result }
+              result:=operand_read;
+            end;
+          la_alloca,
+          la_trunc, la_zext, la_sext, la_fptrunc, la_fpext,
+          la_fptoui, la_fptosi, la_uitofp, la_sitofp,
+          la_ptrtoint, la_inttoptr,
+          la_bitcast,
+          la_add, la_fadd, la_sub, la_fsub, la_mul, la_fmul,
+          la_udiv,la_sdiv, la_fdiv, la_urem, la_srem, la_frem,
+          la_shl, la_lshr, la_ashr, la_and, la_or, la_xor,
+          la_extractelement, la_insertelement, la_shufflevector,
+          la_extractvalue, la_insertvalue,
+          la_getelementptr,
+          la_load,
+          la_icmp, la_fcmp,
+          la_phi, la_select, la_call,
+          la_va_arg, la_landingpad:
+            begin
+              if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            end;
+          else
+            internalerror(2013103101)
+        end;
+      end;
+
+
+    function taillvm.spilling_get_reg_type(opnr: longint): tdef;
+      begin
+        case llvmopcode of
+          la_trunc, la_zext, la_sext, la_fptrunc, la_fpext,
+          la_fptoui, la_fptosi, la_uitofp, la_sitofp,
+          la_ptrtoint, la_inttoptr,
+          la_bitcast:
+            begin
+              { toreg = bitcast fromsize fromreg to tosize }
+              case opnr of
+                0: result:=oper[3]^.def;
+                2: result:=oper[1]^.def
+                else
+                  internalerror(2013103102);
+              end;
+            end;
+          la_ret, la_switch, la_indirectbr,
+          la_resume:
+            begin
+              { ret size reg }
+              if opnr=1 then
+                result:=oper[0]^.def
+              else
+                internalerror(2013110101);
+            end;
+          la_invoke, la_call:
+            begin
+              internalerror(2013110102);
+            end;
+          la_br,
+          la_unreachable:
+            internalerror(2013110103);
+          la_store:
+            begin
+              case opnr of
+                1: result:=oper[0]^.def;
+                { type of the register in the reference }
+                3: result:=oper[2]^.def;
+                else
+                  internalerror(2013110104);
+              end;
+            end;
+          la_load,
+          la_getelementptr:
+            begin
+              { dst = load ptrdef srcref }
+              case opnr of
+                0: result:=tpointerdef(oper[1]^.def).pointeddef;
+                2: result:=oper[1]^.def;
+                else
+                  internalerror(2013110105);
+              end;
+            end;
+          la_fence,
+          la_cmpxchg,
+          la_atomicrmw:
+            begin
+              internalerror(2013110610);
+            end;
+          la_add, la_fadd, la_sub, la_fsub, la_mul, la_fmul,
+          la_udiv,la_sdiv, la_fdiv, la_urem, la_srem, la_frem,
+          la_shl, la_lshr, la_ashr, la_and, la_or, la_xor:
+            begin
+              case opnr of
+                0,2,3:
+                  result:=oper[1]^.def;
+                else
+                  internalerror(2013110106);
+              end;
+            end;
+          la_extractelement, la_insertelement, la_shufflevector,
+          la_extractvalue:
+            begin
+              { todo }
+              internalerror(2013110107);
+            end;
+          la_insertvalue:
+            begin
+              case opnr of
+                0,2: result:=oper[1]^.def;
+                else
+                  internalerror(2013110108);
+              end;
+            end;
+          la_icmp, la_fcmp:
+            begin
+              case opnr of
+                0: result:=pasbool8type;
+                3,4: result:=oper[2]^.def;
+                else
+                  internalerror(2013110801);
+              end
+            end;
+          la_alloca:
+            begin
+              { shouldn't be spilled, the result of alloca should be read-only }
+              internalerror(2013110109);
+            end;
+          la_select:
+            begin
+              case opnr of
+                0,4,6: result:=oper[3]^.def;
+                2: result:=oper[1]^.def;
+                else
+                  internalerror(2013110110);
+              end;
+            end;
+          else
+            internalerror(2013103101)
+        end;
       end;
 
 
