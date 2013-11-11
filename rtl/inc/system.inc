@@ -1019,11 +1019,13 @@ Begin
 End;
 
 
-Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
 begin
   InternalExit;
   System_exit;
 end;
+
+procedure internal_do_exit; external name 'FPC_DO_EXIT';
 
 
 Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
@@ -1042,7 +1044,7 @@ Begin
 {$endif FPC_LIMITED_EXITCODE}
     ExitCode:=ErrNum;
 {$endif FPC_HAS_FEATURE_EXITCODE}
-  Do_Exit;
+  internal_do_exit;
 end;
 
 

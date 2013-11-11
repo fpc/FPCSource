@@ -4060,7 +4060,7 @@ implementation
       { call __EXIT for main program }
       if (not DLLsource) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        cg.a_call_name(list,'FPC_DO_EXIT',false);
+        g_call_system_proc(list,'fpc_do_exit',nil);
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
