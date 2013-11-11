@@ -27,7 +27,7 @@ interface
 
 uses
   cfileutl,
-  globtype,globals,verbose,systems,cpuinfo, comprsrc;
+  globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
   TOption=class
@@ -91,6 +91,10 @@ uses
   comphook,
   symtable,scanner,rabase,
   symconst,
+{$ifdef llvm}
+  { override supported optimizer transformations at the compiler level }
+  llvminfo,
+{$endif llvm}
   dirparse,
   i_bsd;
 
