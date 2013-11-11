@@ -50,10 +50,6 @@ unit Hermes;
   {$ENDIF}
 {$ENDIF}
 
-{$IF defined(cpux86_64) and not defined(noassembler)}
-  {$DEFINE X86_64_ASSEMBLER}
-{$ENDIF}
-
 interface
 
 const
@@ -468,9 +464,6 @@ var
   {$I i386/headi386.inc}
   {$I i386/headmmx.inc}
 {$ENDIF I386_ASSEMBLER}
-{$IFDEF X86_64_ASSEMBLER}
-  {$I x86_64/headx86_64.inc}
-{$ENDIF X86_64_ASSEMBLER}
 {$I factconv.inc}
 {$I hermes_list.inc}
 {$I hermes_utility.inc}
