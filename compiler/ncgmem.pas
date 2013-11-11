@@ -27,7 +27,8 @@ unit ncgmem;
 interface
 
     uses
-      globtype,cgbase,cpuinfo,cpubase,
+      globtype,cgbase,cgutils,cpuinfo,cpubase,
+      symtype,
       node,nmem;
 
     type
@@ -70,8 +71,9 @@ interface
            This routine should update location.reference correctly,
            so it points to the correct address.
          }
-         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);virtual;
-         procedure update_reference_reg_packed(maybe_const_reg:tregister;l:aint);virtual;
+         procedure update_reference_reg_mul(maybe_const_reg: tregister;regsize: tdef; l: aint);virtual;
+         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint);virtual;
+         procedure update_reference_offset(var ref: treference; index, mulsize: aint); virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
        public
@@ -84,11 +86,11 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,ncnv,nutils,
-      cgutils,cgobj,hlcgobj,
+      cgobj,hlcgobj,
       tgobj,ncgutil,objcgutl,
       defcmp
       ;
@@ -514,8 +516,8 @@ implementation
              }
              sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
              reference_reset_symbol(tmpref,sym,0,sizeof(pint));
-             location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
+             location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end
@@ -602,7 +604,7 @@ implementation
      { the live range of the LOC_CREGISTER will most likely overlap the   }
      { the live range of the target LOC_(C)REGISTER)                      }
      { The passed register may be a LOC_CREGISTER as well.                }
-     procedure tcgvecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+     procedure tcgvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
        var
          hreg: tregister;
        begin
@@ -632,7 +634,7 @@ implementation
 
 
      { see remarks for tcgvecnode.update_reference_reg_mul above }
-     procedure tcgvecnode.update_reference_reg_packed(maybe_const_reg:tregister;l:aint);
+     procedure tcgvecnode.update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint);
        var
          sref: tsubsetreference;
          offsetreg, hreg: tregister;
@@ -650,7 +652,7 @@ implementation
 {$endif not cpu64bitalu}
              ) then
            begin
-             update_reference_reg_mul(maybe_const_reg,l div 8);
+             update_reference_reg_mul(maybe_const_reg,regsize,l div 8);
              exit;
            end;
          if (l > 8*sizeof(aint)) then
@@ -661,7 +663,7 @@ implementation
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
-         if not ispowerof2(sref.ref.alignment,temp) then
+         if not ispowerof2(packedbitsloadsize(l),temp) then
            internalerror(2006081201);
          alignpower:=temp;
          offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -685,6 +687,12 @@ implementation
          else
            location.loc := LOC_CSUBSETREF;
          location.sref := sref;
+       end;
+
+
+     procedure tcgvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+       begin
+         inc(ref.offset,index*mulsize);
        end;
 
 
@@ -880,8 +888,8 @@ implementation
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
+                    location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
+                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.reference.base);
                   end;
                 else
                   internalerror(2002032218);
@@ -895,7 +903,7 @@ implementation
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
               if not(cs_zerobasedstrings in current_settings.localswitches) then
-                dec(location.reference.offset,offsetdec);
+                update_reference_offset(location.reference,-1,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
            begin
@@ -907,7 +915,7 @@ implementation
                 LOC_CREFERENCE :
                   begin
                      location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
+                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                       left.location.reference,location.reference.base);
                   end;
                 else
@@ -948,7 +956,7 @@ implementation
               or is_64bitint(resultdef)
 {$endif not cpu64bitalu}
               ) then
-           dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
+           update_reference_offset(location.reference,-tarraydef(left.resultdef).lowrange,bytemulsize);
 
          if right.nodetype=ordconstn then
            begin
@@ -969,10 +977,10 @@ implementation
                    { only orddefs are bitpacked }
                    not is_ordinal(resultdef))) then
                 begin
-                  extraoffset:=bytemulsize*tordconstnode(right).value.svalue;
-                  inc(location.reference.offset,extraoffset);
-                  { adjust alignment after to this change }
-                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset);
+                  extraoffset:=tordconstnode(right).value.svalue;
+                  update_reference_offset(location.reference,extraoffset,bytemulsize);
+                  { adjust alignment after this change }
+                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset*bytemulsize);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }
@@ -985,10 +993,10 @@ implementation
                 begin
                   subsetref.ref := location.reference;
                   subsetref.ref.alignment := left.resultdef.alignment;
-                  if not ispowerof2(subsetref.ref.alignment,temp) then
+                  if not ispowerof2(packedbitsloadsize(resultdef.packedbitsize),temp) then
                     internalerror(2006081212);
                   alignpow:=temp;
-                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow)) shl alignpow);
+                  update_reference_offset(subsetref.ref,(mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow),1 shl alignpow);
                   subsetref.bitindexreg := NR_NO;
                   subsetref.startbit := (mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
                   subsetref.bitlen := resultdef.packedbitsize;
@@ -1033,8 +1041,7 @@ implementation
                             replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
-                   inc(location.reference.offset,
-                       mulsize*extraoffset);
+                   update_reference_offset(location.reference,extraoffset,mulsize);
                 end;
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -1072,9 +1079,9 @@ implementation
               { insert the register and the multiplication factor in the
                 reference }
               if not is_packed_array(left.resultdef) then
-                update_reference_reg_mul(right.location.register,mulsize)
+                update_reference_reg_mul(right.location.register,right.resultdef,mulsize)
               else
-                update_reference_reg_packed(right.location.register,mulsize);
+                update_reference_reg_packed(right.location.register,right.resultdef,mulsize);
            end;
 
         location.size:=newsize;
