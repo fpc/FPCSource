@@ -256,6 +256,7 @@ implementation
         endrelocatelab,
         norelocatelab : tasmlabel;
         paraloc1 : tcgpara;
+        vd,
         pvd : tdef;
       begin
         { we don't know the size of all arrays }
@@ -452,10 +453,11 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                        vd:=getpointerdef(resultdef);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
                         { we need to load only an address }
                         location.size:=OS_ADDR;
-                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,location,hregister);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,vd,vd,location,hregister);
                       end;
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
