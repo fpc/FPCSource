@@ -323,6 +323,7 @@ compiler/llvm/llvmdef.pas svneol=native#text/plain
 compiler/llvm/llvminfo.pas svneol=native#text/plain
 compiler/llvm/llvmpara.pas svneol=native#text/plain
 compiler/llvm/llvmsym.pas svneol=native#text/plain
+compiler/llvm/nllvmcon.pas svneol=native#text/plain
 compiler/llvm/rgllvm.pas svneol=native#text/plain
 compiler/llvm/tgllvm.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
