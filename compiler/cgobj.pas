@@ -85,6 +85,7 @@ unit cgobj;
           function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
+          function gettempregister(list:TAsmList):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -658,6 +659,12 @@ implementation
               internalerror(200312121);
             result:=rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
           end;
+      end;
+
+
+    function tcg.gettempregister(list: TAsmList): Tregister;
+      begin
+        result:=rg[R_TEMPREGISTER].getregister(list,R_SUBWHOLE);
       end;
 
 

@@ -112,7 +112,7 @@ unit tgobj;
              The freed space can later be reallocated and reused. If this reference
              is not in the temporary memory, it is simply not freed.
           }
-          procedure ungetiftemp(list: TAsmList; const ref : treference);
+          procedure ungetiftemp(list: TAsmList; const ref : treference); virtual;
 
           { Allocate space for a local }
           procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);

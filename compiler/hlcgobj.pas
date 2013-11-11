@@ -72,6 +72,7 @@ unit hlcgobj;
           { warning: only works correctly for fpu types currently }
           function getmmregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getflagregister(list:TAsmList;size:tdef):Tregister;virtual;
+          function gettempregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getregisterfordef(list: TAsmList;size:tdef):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
@@ -613,6 +614,13 @@ implementation
   function thlcgobj.getflagregister(list: TAsmList; size: tdef): Tregister;
     begin
       result:=cg.getflagregister(list,def_cgsize(size));
+    end;
+
+  function thlcgobj.gettempregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      { doesn't make sense to try to translate this size to tcgsize, temps
+        can have any size }
+      result:=cg.gettempregister(list);
     end;
 
     function thlcgobj.getregisterfordef(list: TAsmList; size: tdef): Tregister;
