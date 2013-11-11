@@ -48,6 +48,9 @@ interface
        end;
 
        tcgsubscriptnode = class(tsubscriptnode)
+         protected
+          function handle_platform_subscript: boolean; virtual;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -313,6 +316,11 @@ implementation
                           TCGSUBSCRIPTNODE
 *****************************************************************************}
 
+    function tcgsubscriptnode.handle_platform_subscript: boolean;
+      begin
+        result:=false;
+      end;
+
     procedure tcgsubscriptnode.pass_generate_code;
       var
         sym: tasmsymbol;
@@ -359,7 +367,7 @@ implementation
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
                       begin
-                         location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
@@ -511,15 +519,9 @@ implementation
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end
-         else if is_java_class_or_interface(left.resultdef) or
-                 ((target_info.system in systems_jvm) and
-                  (left.resultdef.typ=recorddef)) then
+         else if handle_platform_subscript then
            begin
-             if (location.loc<>LOC_REFERENCE) or
-                (location.reference.index<>NR_NO) or
-                assigned(location.reference.symbol) then
-               internalerror(2011011301);
-             location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             { done }
            end
          else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin

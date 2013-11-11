@@ -46,6 +46,11 @@ interface
           procedure pass_generate_code; override;
        end;
 
+       tjvmsubscriptnode = class(tcgsubscriptnode)
+        protected
+         function handle_platform_subscript: boolean; override;
+       end;
+
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
          procedure pass_generate_code; override;
        end;
@@ -122,6 +127,27 @@ implementation
               location.reference.checkcast:=true;
           end
       end;
+
+
+{*****************************************************************************
+                            TJVMSUBSCRIPTNODE
+*****************************************************************************}
+
+    function tjvmsubscriptnode.handle_platform_subscript: boolean;
+      begin
+        result:=false;
+        if is_java_class_or_interface(left.resultdef) or
+           (left.resultdef.typ=recorddef) then
+          begin
+            if (location.loc<>LOC_REFERENCE) or
+               (location.reference.index<>NR_NO) or
+               assigned(location.reference.symbol) then
+              internalerror(2011011301);
+            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+            result:=true;
+          end
+      end;
+
 
 {*****************************************************************************
                               TJVMADDRNODE
@@ -471,6 +497,7 @@ implementation
 
 begin
    cderefnode:=tjvmderefnode;
+   csubscriptnode:=tjvmsubscriptnode;
    caddrnode:=tjvmaddrnode;
    cvecnode:=tjvmvecnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;
