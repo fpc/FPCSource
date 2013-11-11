@@ -37,7 +37,7 @@ unit hlcgobj;
        cclasses,globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symtype,symdef,
+       symconst,symbase,symtype,symsym,symdef,
        node
        ;
 
@@ -504,6 +504,10 @@ unit hlcgobj;
           { generates the code for decrementing the reference count of parameters }
           procedure final_paras(p:TObject;arg:pointer);
          public
+          { helper called by gen_alloc_symtable }
+          procedure varsym_set_localloc(list: TAsmList; vs:tabstractnormalvarsym); virtual;
+          { helper called by gen_alloc_symtable }
+          procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); virtual;
 
           procedure gen_load_para_value(list:TAsmList);virtual;
          protected
@@ -557,7 +561,7 @@ implementation
        globals,systems,
        fmodule,export,
        verbose,defutil,paramgr,
-       symbase,symsym,symtable,
+       symtable,
        ncon,nld,ncgrtti,pass_1,pass_2,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
        ncgutil,ngenutil;
@@ -4024,6 +4028,29 @@ implementation
          not(po_assembler in current_procinfo.procdef.procoptions) then
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
       current_procinfo:=old_current_procinfo;
+    end;
+
+  procedure thlcgobj.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
+    begin
+      if cs_asm_source in current_settings.globalswitches then
+        begin
+          case vs.initialloc.loc of
+            LOC_REFERENCE :
+              begin
+                if not assigned(vs.initialloc.reference.symbol) then
+                  list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
+                     std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
+              end;
+          end;
+        end;
+      vs.localloc:=vs.initialloc;
+      FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
+    end;
+
+  procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
+    begin
+      reference_reset_base(vs.initialloc.reference,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
+          tparavarsym(vs).paraloc[calleeside].location^.reference.offset,tparavarsym(vs).paraloc[calleeside].alignment);
     end;
 
   procedure thlcgobj.gen_entry_code(list: TAsmList);

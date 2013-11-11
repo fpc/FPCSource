@@ -150,7 +150,11 @@ implementation
     regvars,dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nmem,nutils,ngenutil,
-    tgobj,cgobj,cgcpu,hlcgobj,hlcgcpu
+    tgobj,cgobj,hlcgobj,hlcgcpu
+{$ifdef llvm}
+    { override create_hlcodegen from hlcgcpu }
+    , hlcgllvm
+{$endif}
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -1504,23 +1508,6 @@ implementation
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
 
-      procedure setlocalloc(vs:tabstractnormalvarsym);
-        begin
-          if cs_asm_source in current_settings.globalswitches then
-            begin
-              case vs.initialloc.loc of
-                LOC_REFERENCE :
-                  begin
-                    if not assigned(vs.initialloc.reference.symbol) then
-                      list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
-                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
-                  end;
-              end;
-            end;
-          vs.localloc:=vs.initialloc;
-          FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
-        end;
-
       var
         i       : longint;
         sym     : tsym;
@@ -1544,7 +1531,7 @@ implementation
                       vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
                       vs.initialloc.size:=def_cgsize(vs.vardef);
                       gen_alloc_regvar(list,vs,true);
-                      setlocalloc(vs);
+                      hlcg.varsym_set_localloc(list,vs);
                     end;
                 end;
               paravarsym :
@@ -1575,21 +1562,20 @@ implementation
                         begin
                           vs.initialloc.loc:=LOC_REFERENCE;
                           { Reuse the parameter location for values to are at a single location on the stack }
-                          if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
+                          if paramanager.param_use_paraloc(tparavarsym(vs).paraloc[calleeside]) then
                             begin
-                              reference_reset_base(vs.initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
-                                  tparavarsym(sym).paraloc[calleeside].location^.reference.offset,tparavarsym(sym).paraloc[calleeside].alignment);
+                              hlcg.paravarsym_set_initialloc_to_paraloc(tparavarsym(vs));
                             end
                           else
                             begin
                               if isaddr then
-                                tg.GetLocal(list,sizeof(pint),voidpointertype,vs.initialloc.reference)
+                                tg.GetLocal(list,sizeof(pint),getpointerdef(vs.vardef),vs.initialloc.reference)
                               else
-                                tg.GetLocal(list,vs.getsize,tparavarsym(sym).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
+                                tg.GetLocal(list,vs.getsize,tparavarsym(vs).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
                         end;
                     end;
-                  setlocalloc(vs);
+                  hlcg.varsym_set_localloc(list,vs);
                 end;
               localvarsym :
                 begin
@@ -1629,7 +1615,7 @@ implementation
                       vs.initialloc.loc:=LOC_REFERENCE;
                       tg.GetLocal(list,vs.getsize,vs.vardef,vs.initialloc.reference);
                     end;
-                  setlocalloc(vs);
+                  hlcg.varsym_set_localloc(list,vs);
                 end;
             end;
           end;

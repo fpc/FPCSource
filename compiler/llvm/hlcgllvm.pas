@@ -99,7 +99,10 @@ uses
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
       procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
       procedure g_local_unwind(list: TAsmList; l: TAsmLabel); override;
-     protected
+
+      procedure varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym); override;
+      procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
+    protected
       { def is the type of the data stored in memory pointed to by ref, not
         a pointer to this type }
       function make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
@@ -819,6 +822,38 @@ implementation
       hreg2:=getaddressregister(list,getpointerdef(def));
       a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
       reference_reset_base(result,hreg2,0,ref.alignment);
+    end;
+
+
+  procedure thlcgllvm.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
+    begin
+      if cs_asm_source in current_settings.globalswitches then
+        begin
+          case vs.initialloc.loc of
+            LOC_REFERENCE :
+              begin
+                if assigned(vs.initialloc.reference.symbol) then
+                  list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
+                     vs.initialloc.reference.symbol.name)))
+                else
+                  list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at %tmp.'+
+                     tostr(getsupreg(vs.initialloc.reference.base)))));
+              end;
+          end;
+        end;
+      vs.localloc:=vs.initialloc;
+      FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
+    end;
+
+
+  procedure thlcgllvm.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
+    var
+      parasym : tasmsymbol;
+    begin
+      parasym:=vs.paraloc[calleeside].location^.llvmloc;
+      reference_reset_symbol(vs.initialloc.reference,parasym,0,vs.paraloc[calleeside].alignment);
+      if vs.paraloc[calleeside].location^.llvmvalueloc then
+        vs.initialloc.reference.refaddr:=addr_full;
     end;
 
 
