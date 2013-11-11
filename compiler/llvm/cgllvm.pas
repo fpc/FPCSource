@@ -28,11 +28,13 @@ interface
     uses
        globtype,parabase,
        cgbase,cgutils,cgobj,cghlcpu,
-       llvmbase,llvminfo,aasmtai,aasmdata,aasmllvm;
+       llvmbase,llvminfo,aasmbase,aasmtai,aasmdata,aasmllvm;
 
     type
       tcgllvm=class(thlbasecgcpu)
      public
+        procedure a_label(list : TAsmList;l : tasmlabel);override;
+        procedure a_jmp_always(list: TAsmList; l: tasmlabel); override;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
         function  getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
@@ -53,6 +55,26 @@ implementation
 {****************************************************************************
                               Assembler code
 ****************************************************************************}
+
+    procedure tcgllvm.a_label(list: TAsmList; l: tasmlabel);
+      begin
+        { in llvm, every block must end with a terminator instruction, such as
+          a branch -> if the previous instruction is not a terminator instruction,
+          add an unconditional branch to the next block (= the one starting with
+          this label) }
+        if not assigned(list.last) or
+           (tai(list.Last).typ<>ait_llvmins) or
+           not(taillvm(list.Last).llvmopcode in llvmterminatoropcodes) then
+          a_jmp_always(list,l);
+        inherited;
+      end;
+
+
+    procedure tcgllvm.a_jmp_always(list: TAsmList; l: tasmlabel);
+      begin
+        list.concat(taillvm.op_lab(la_br,l));
+      end;
+
 
     procedure tcgllvm.init_register_allocators;
       begin

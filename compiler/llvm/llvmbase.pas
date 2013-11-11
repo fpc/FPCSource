@@ -69,6 +69,11 @@ interface
       la_type { type definition }
     );
 
+  const
+    llvmterminatoropcodes = [la_ret, la_br, la_switch, la_indirectbr,
+      la_invoke, la_resume,
+      la_unreachable];
+
   type
     tllvmfpcmp = (
       lfc_false,
