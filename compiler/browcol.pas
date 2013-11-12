@@ -1673,6 +1673,8 @@ end;
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
                       if tobjectdef(typedef).objecttype=odt_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
+                      if tobjectdef(typedef).objecttype=odt_class then
+                      if not(df_generic in typedef.defoptions) then
                       ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
                     end;
                   recorddef :
