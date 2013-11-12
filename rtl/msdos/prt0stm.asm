@@ -31,6 +31,10 @@
         extern __nearheap_start
         extern __nearheap_end
 
+        extern __SaveInt00
+
+        extern FPC_HANDLEERROR
+
 %ifdef __TINY__
         resb 0100h
 %endif
@@ -174,6 +178,109 @@ error_msg:
         int 21h
         mov ax, 4CFFh
         int 21h
+
+FPC_INT00_HANDLER:
+        sub sp, 4  ; reserve space on the stack for the retf
+
+        push bx
+        push cx
+        push ds
+
+        ; init ds
+%ifdef __TINY__
+        mov bx, cs
+%else
+        mov bx, dgroup
+%endif
+        mov ds, bx
+
+        ; check whether we're running on the same stack
+        mov cx, ss
+        cmp bx, cx
+        jne .call_previous_handler
+
+%ifndef __MEDIUM__
+        ; check whether we're coming from the same code segment
+        mov bx, sp
+        mov cx, [bx + 3*2 + 6]  ; get caller segment
+        mov bx, cs
+        cmp bx, cx
+        jne .call_previous_handler
+%endif
+
+        ; runerror 200
+        mov bx, sp
+        mov cx, [bx + 3*2 + 4]  ; get caller offset
+%ifdef __MEDIUM__
+        mov dx, [bx + 3*2 + 6]  ; get caller segment
+%endif
+        add sp, 3*2 + 4 + 6
+        xor ax, ax
+        push ax
+        mov ax, 200
+        push ax
+%ifdef __MEDIUM__
+        push dx
+%endif
+        push cx
+        jmp FPC_HANDLEERROR
+
+.call_previous_handler:
+        mov bx, sp
+        mov cx, [__SaveInt00]
+        mov [ss:bx + 3*2], cx
+        mov cx, [__SaveInt00+2]
+        mov [ss:bx + 3*2 + 2], cx
+        pop ds
+        pop cx
+        pop bx
+        retf  ; jumps to the previous handler with all registers and stack intact
+
+
+
+        global FPC_INSTALL_INTERRUPT_HANDLERS
+FPC_INSTALL_INTERRUPT_HANDLERS:
+        push ds
+
+        ; save old int 00 handler
+        mov ax, 3500h
+        int 21h
+        mov [__SaveInt00], bx
+        mov bx, es
+        mov [__SaveInt00+2], bx
+
+        ; install the new int 00 handler
+%ifndef __TINY__
+        push cs
+        pop ds
+%endif
+        mov dx, FPC_INT00_HANDLER
+        mov ax, 2500h
+        int 21h
+
+        pop ds
+%ifdef __FAR_CODE__
+        retf
+%else
+        ret
+%endif
+
+
+        global FPC_RESTORE_INTERRUPT_HANDLERS
+FPC_RESTORE_INTERRUPT_HANDLERS:
+        push ds
+
+        mov ax, 2500h
+        lds dx, [__SaveInt00]
+        int 21h
+
+        pop ds
+%ifdef __FAR_CODE__
+        retf
+%else
+        ret
+%endif
+
 
         global FPC_MSDOS_CARRY
 FPC_MSDOS_CARRY:
