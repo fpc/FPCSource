@@ -884,7 +884,7 @@ implementation
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin
-                objreloc.orgsize:=data;
+                objreloc.orgsize:=aword(data);
                 data:=0;
               end;
           end;
@@ -1076,7 +1076,9 @@ implementation
 
             rel.address:=objreloc.dataoffset;
             rel.info:=ELF_R_INFO(relsym,ElfTarget.encodereloc(objreloc));
+{$push}{$r-}
             rel.addend:=objreloc.orgsize;
+{$pop}
 
             { write reloc }
             { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
@@ -3114,7 +3116,9 @@ implementation
       begin
         rel.address:=dataofs;
         rel.info:=ELF_R_INFO(symidx,typ);
+{$push}{$r-}
         rel.addend:=addend;
+{$pop}
         MaybeSwapElfReloc(rel);
         dynrelocsec.write(rel,dynrelocsec.shentsize);
       end;
