@@ -35,6 +35,7 @@ uses
     the processor specific nodes must be included
     after the generic one (FK)
   }
+{$ifndef llvm}
   nppcadd,
   nppccal,
   //       nppccon,
@@ -46,6 +47,9 @@ uses
   nppcmat,
   nppccnv,
   nppcld
+{$else not llvm}
+  llvmnode
+{$endif not llvm}
   ;
 
 end.

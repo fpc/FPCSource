@@ -797,7 +797,7 @@ implementation
           idtxt  : 'LLVM-AS';
           asmbin : 'llc';
           asmcmd: '$OPT -o $OBJ $ASM';
-          supported_targets : [system_x86_64_linux,system_x86_64_darwin];
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_powerpc64_darwin];
           flags : [af_smartlink_sections];
           labelprefix : 'L';
           comment : '; ';
