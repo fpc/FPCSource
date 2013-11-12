@@ -136,122 +136,18 @@ end;
 type
   float32 = longint;
 {$endif FPC_SYSTEM_HAS_float32}
-{$ifndef FPC_SYSTEM_HAS_flag}
-type
-  flag = byte;
-{$endif FPC_SYSTEM_HAS_flag}
 
-{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
-  Function extractFloat64Frac0(const a: float64): longint;
-    Begin
-      extractFloat64Frac0 := a.high and $000FFFFF;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat64Frac0}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac1}
-  Function extractFloat64Frac1(const a: float64): longint;
-    Begin
-      extractFloat64Frac1 := a.low;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat64Frac1}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat64Exp}
-  Function extractFloat64Exp(const a: float64): smallint;
-    Begin
-       extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat64Exp}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac}
-  Function extractFloat64Frac(const a: float64): int64;
-    Begin
-      extractFloat64Frac:=int64(a) and $000FFFFFFFFFFFFF;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat64Frac}
-
-
-{$ifndef FPC_SYSTEM_HAS_extractFloat64Sign}
-  Function extractFloat64Sign(const a: float64) : flag;
-    Begin
-       extractFloat64Sign := a.high shr 31;
-    End;
-{$endif not FPC_SYSTEM_HAS_extractFloat64Sign}
-
-
-  Procedure shortShift64Left(a0:longint; a1:longint; count:smallint; VAR z0Ptr:longint; VAR z1Ptr:longint );
-    Begin
-        z1Ptr := a1 shl count;
-        if count = 0 then
-          z0Ptr := a0
-        else
-          z0Ptr := ( a0 shl count ) OR ( a1 shr ( ( - count ) AND 31 ) );
-    End;
-
-   function float64_to_int32_round_to_zero(a: float64 ): longint;
-     Var
-       aSign: flag;
-       aExp, shiftCount: smallint;
-       aSig0, aSig1, absZ, aSigExtra: longint;
-       z: longint;
-     label
-       invalid;
-     Begin
-       aSig1 := extractFloat64Frac1( a );
-       aSig0 := extractFloat64Frac0( a );
-       aExp := extractFloat64Exp( a );
-       aSign := extractFloat64Sign( a );
-       shiftCount := aExp - $413;
-       if 0<=shiftCount then
-       Begin
-          if (aExp=$7FF)  and ((aSig0 or aSig1)<>0) then
-            goto invalid;
-          shortShift64Left(aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
-       End
-       else
-       Begin
-           if aExp<$3FF then
-             begin
-               float64_to_int32_round_to_zero := 0;
-               exit;
-             end;
-           aSig0 := aSig0 or $00100000;
-           aSigExtra := ( aSig0 shl ( shiftCount and 31 ) ) OR  aSig1;
-           absZ := aSig0 shr ( - shiftCount );
-       End;
-       if aSign<>0 then
-         z:=-absZ
-       else
-         z:=absZ;
-       if ((aSign<>0) xor (z<0)) AND  (z<>0) then
-         begin
-invalid:
-           float_raise(float_flag_invalid);
-           if (aSign <> 0) then
-             float64_to_int32_round_to_zero:=longint($80000000)
-           else
-             float64_to_int32_round_to_zero:=$7FFFFFFF;
-           exit;
-         end;
-       if ( aSigExtra <> 0) then
-         float_raise(float_flag_inexact);
-
-       float64_to_int32_round_to_zero := z;
-     End;
-
-
-   function genmath_float64_to_int64_round_to_zero(a : float64) : int64;
+{$ifdef SUPPORT_DOUBLE}
+   { based on softfloat float64_to_int64_round_to_zero }
+   function fpc_trunc_real(d : valreal) : int64; compilerproc;
      var
-       aSign : flag;
        aExp, shiftCount : smallint;
        aSig : int64;
        z : int64;
+       a: float64 absolute d;
      begin
-       aSig:=extractFloat64Frac(a);
-       aExp:=extractFloat64Exp(a);
-       aSign:=extractFloat64Sign(a);
+       aSig:=(int64(a.high and $000fffff) shl 32) or longword(a.low);
+       aExp:=(a.high shr 20) and $7FF;
        if aExp<>0 then
          aSig:=aSig or $0010000000000000;
        shiftCount:= aExp-$433;
@@ -259,10 +155,10 @@ invalid:
          begin
            if aExp>=$43e then
              begin
-               if int64(a)<>$C3E0000000000000 then
+               if (a.high<>$C3E00000) or (a.low<>0) then
                  begin
                    float_raise(float_flag_invalid);
-                   if (aSign=0) or ((aExp=$7FF) and
+                   if (a.high>=0) or ((aExp=$7FF) and
                       (aSig<>$0010000000000000 )) then
                      begin
                        result:=$7FFFFFFFFFFFFFFF;
@@ -287,71 +183,50 @@ invalid:
              float_exception_flags |= float_flag_inexact;
            }
          end;
-       if aSign<>0 then
+       if a.high<0 then
          z:=-z;
        result:=z;
      end;
 
-
-  Function float32_to_int32_round_to_zero( a: Float32 ): longint;
+{$else SUPPORT_DOUBLE}
+  { based on softfloat float32_to_int64_round_to_zero }
+  Function fpc_trunc_real( d: valreal ): int64; compilerproc;
     Var
-       aSign : flag;
+       a : float32 absolute d;
        aExp, shiftCount : smallint;
        aSig : longint;
-       z : longint;
+       aSig64, z : int64;
     Begin
        aSig := a and $007FFFFF;
        aExp := (a shr 23) and $FF;
-       aSign := a shr 31;
-       shiftCount := aExp - $9E;
+       shiftCount := aExp - $BE;
        if ( 0 <= shiftCount ) then
          Begin
-           if ( a <> Float32($CF000000) ) then
+           if ( a <> Float32($DF000000) ) then
              Begin
                float_raise( float_flag_invalid );
-               if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
+               if ( (a>=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
                  Begin
-                   float32_to_int32_round_to_zero:=$7fffffff;
+                   result:=$7fffffffffffffff;
                    exit;
                  end;
              End;
-           float32_to_int32_round_to_zero:=longint($80000000);
+           result:=$8000000000000000;
            exit;
          End
        else
          if ( aExp <= $7E ) then
          Begin
-           float32_to_int32_round_to_zero := 0;
+           result := 0;
            exit;
          End;
-       aSig := ( aSig or $00800000 ) shl 8;
-       z := aSig shr ( - shiftCount );
-       if ( aSign<>0 ) then z := - z;
-       float32_to_int32_round_to_zero := z;
+       aSig64 := int64( aSig or $00800000 ) shl 40;
+       z := aSig64 shr ( - shiftCount );
+       if ( a<0 ) then z := - z;
+       result := z;
     End;
+{$endif SUPPORT_DOUBLE}
 
-
-  function fpc_trunc_real(d : ValReal) : int64;compilerproc;
-    var
-     f32 : float32;
-     f64 : float64;
-    Begin
-     { in emulation mode the real is equal to a single }
-     { otherwise in fpu mode, it is equal to a double  }
-     { extended is not supported yet. }
-     if sizeof(D) > 8 then
-        HandleError(255);
-     if sizeof(D)=8 then
-       begin
-         move(d,f64,sizeof(f64));
-         result:=genmath_float64_to_int64_round_to_zero(f64);
-       end
-     else
-       begin
-         move(d,f32,sizeof(f32));
-         result:=float32_to_int32_round_to_zero(f32);
-       end;
-    end;
 {$endif not FPC_SYSTEM_HAS_TRUNC}
 
 
