@@ -2558,6 +2558,7 @@ implementation
             if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
               segprefix:=ref^.segment;
 {$endif}
+{$ifndef llvm}
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
@@ -2567,6 +2568,7 @@ implementation
 {$endif ARM}
               then
               internalerror(200502052);
+{$endif not llvm}
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
               begin
