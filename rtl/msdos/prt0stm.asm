@@ -223,7 +223,11 @@ FPC_INT00_HANDLER:
         push dx
 %endif
         push cx
+%ifdef __FAR_CODE__
+        jmp far FPC_HANDLEERROR
+%else
         jmp FPC_HANDLEERROR
+%endif
 
 .call_previous_handler:
         mov bx, sp
