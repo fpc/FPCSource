@@ -143,6 +143,7 @@ function create_pd: tprocdef;
   var
     st:TSymTable;
     checkstack: psymtablestackitem;
+    oldsymtablestack: tsymtablestack;
     sym:tprocsym;
   begin
     { get actual procedure symtable (skip withsymtables, etc.) }
@@ -155,8 +156,16 @@ function create_pd: tprocdef;
             break;
           checkstack:=checkstack^.next;
       end;
-    { Create a nested procedure, even from main_program_level. }
+    { Create a nested procedure, even from main_program_level.
+      Furthermore, force procdef and procsym into the same symtable
+      (by default, defs are registered with symtablestack.top which may be
+      something temporary like exceptsymtable - in that case, procdef can be
+      destroyed before procsym, leaving invalid pointers). }
+    oldsymtablestack:=symtablestack;
+    symtablestack:=nil;
     result:=tprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+    symtablestack:=oldsymtablestack;
+    st.insertdef(result);
     result.struct:=current_procinfo.procdef.struct;
     result.proctypeoption:=potype_exceptfilter;
     handle_calling_convention(result);
