@@ -538,13 +538,23 @@ unit optdfa;
                 calclife(node);
               end;
 
+            labeln:
+              begin
+                calclife(node);
+
+                if assigned(tlabelnode(node).left) then
+                  begin
+                    l:=node.optinfo^.life;
+                    DFASetIncludeSet(l,tlabelnode(node).optinfo^.life);
+                    UpdateLifeInfo(node,l);
+                  end;
+              end;
             tempcreaten,
             tempdeleten,
             nothingn,
             continuen,
             goton,
-            breakn,
-            labeln:
+            breakn:
               begin
                 calclife(node);
               end;
