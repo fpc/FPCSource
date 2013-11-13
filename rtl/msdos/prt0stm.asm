@@ -223,6 +223,7 @@ FPC_INT00_HANDLER:
         push dx
 %endif
         push cx
+        cld
 %ifdef __FAR_CODE__
         jmp far FPC_HANDLEERROR
 %else
