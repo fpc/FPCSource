@@ -875,7 +875,7 @@ begin
 {$endif DebugUndo}
       NewLine(
       NewItem(menu_edit_cut,menu_key_edit_cut, cut_key, cmCut, hcCut,
-      NewItem(menu_edit_copy,menu_key_edit_copy, copy_key, cmCopy, hcCut,
+      NewItem(menu_edit_copy,menu_key_edit_copy, copy_key, cmCopy, hcCopy,
       NewItem(menu_edit_paste,menu_key_edit_paste, paste_key, cmPaste, hcPaste,
       NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
       NewItem(menu_edit_selectall,'', kbNoKey, cmSelectAll, hcSelectAll,
@@ -934,7 +934,7 @@ begin
       NewItem('~E~valuate...','Ctrl+F4', kbCtrlF4, cmEvaluate, hcEvaluate,
       NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStackWindow,
       NewLine(
-      NewItem(menu_debug_disassemble,'', kbNoKey, cmDisassemble, hcStackWindow,
+      NewItem(menu_debug_disassemble,'', kbNoKey, cmDisassemble, hcDisassemblyWindow,
       NewItem(menu_debug_registers,'', kbNoKey, cmRegisters, hcRegistersWindow,
       NewItem(menu_debug_fpu_registers,'', kbNoKey, cmFPURegisters, hcFPURegisters,
       NewItem(menu_debug_vector_registers,'', kbNoKey, cmVectorRegisters, hcVectorRegisters,

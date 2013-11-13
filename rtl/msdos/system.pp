@@ -63,6 +63,8 @@ var
 
   dos_psp:Word;public name 'dos_psp';
 
+  SaveInt00: FarPointer;public name '__SaveInt00';
+
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
 { System info }
@@ -110,6 +112,9 @@ procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
   to ensure that the carry flag is set on exit on older DOS versions which don't
   support them }
 procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
+
+procedure InstallInterruptHandlers; external name 'FPC_INSTALL_INTERRUPT_HANDLERS';
+procedure RestoreInterruptHandlers; external name 'FPC_RESTORE_INTERRUPT_HANDLERS';
 
 {$I system.inc}
 
@@ -264,6 +269,7 @@ procedure system_exit;
 var
   h : byte;
 begin
+  RestoreInterruptHandlers;
   for h:=0 to max_files-1 do
     if openfiles[h] then
       begin
@@ -333,6 +339,7 @@ begin
   StackTop := __stktop;
   StackBottom := __stkbottom;
   StackLength := __stktop - __stkbottom;
+  InstallInterruptHandlers;
   if DetectFPU then
     SysInitFPU;
   { To be set if this is a GUI or console application }
