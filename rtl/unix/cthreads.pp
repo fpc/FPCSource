@@ -627,7 +627,9 @@ begin
     { the process exits                                              }
     sem_unlink(name)
   else
-    cIntSemaphoreOpen:=NIL;
+    { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+      be valid anywhere, even for sem_init }
+    cIntSemaphoreOpen:=pointer(-1);
 end;
 {$endif}
 
@@ -644,7 +646,9 @@ begin
   if sem_init(PSemaphore(cIntSemaphoreInit), 0, ord(initvalue)) <> 0 then
     begin
       FreeMem(cIntSemaphoreInit);
-      cIntSemaphoreInit:=NIL;
+      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+        be valid anywhere, even for sem_init }
+      cIntSemaphoreInit:=pointer(-1);
     end;
 {$else}
 {$ifdef has_sem_open}
@@ -658,7 +662,9 @@ begin
   if (fppipe(PFilDes(cIntSemaphoreInit)^) <> 0) then
     begin
       FreeMem(cIntSemaphoreInit);
-      cIntSemaphoreInit:=nil;
+      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+        be valid anywhere, even for sem_init }
+      cIntSemaphoreInit:=pointer(-1);
     end
   else if initvalue then
     cSemaphorePost(cIntSemaphoreInit);

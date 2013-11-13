@@ -178,7 +178,7 @@ begin
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
   FSem := CurrentTM.SemaphoreInit();
-  if FSem = nil then
+  if FSem = pointer(-1) then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
   WRITE_DEBUG('thread ', ptruint(self), ' created semaphore ', ptruint(FSem));
   FSuspended := CreateSuspended;
