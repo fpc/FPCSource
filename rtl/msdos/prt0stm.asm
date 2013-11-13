@@ -308,9 +308,9 @@ FPC_MSDOS:
 FPC_INTR:
         push bp
         mov bp, sp
-        mov al, byte [ss:bp + 6 + extra_param_offset]
+        mov al, byte [bp + 6 + extra_param_offset]
         mov byte [cs:int_number], al
-        mov si, [ss:bp + 4 + extra_param_offset]
+        mov si, [bp + 4 + extra_param_offset]
         push ds
         mov ax, word [si + 16]
         mov es, ax
@@ -334,9 +334,9 @@ int_number:
         push si
         push bp
         mov bp, sp
-        mov si, word [ss:bp + 8]
+        mov si, word [bp + 8]
         mov ds, si
-        mov si, word [ss:bp + 14 + extra_param_offset]
+        mov si, word [bp + 14 + extra_param_offset]
         mov word [si], ax
         mov word [si + 2], bx
         mov word [si + 4], cx
