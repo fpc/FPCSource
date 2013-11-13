@@ -4926,16 +4926,16 @@ implementation
       begin
          inherited buildderefimpl;
 
-         { Localst is not available for main/unit init }
-         if assigned(localst) then
-           begin
-             tlocalsymtable(localst).buildderef;
-             tlocalsymtable(localst).buildderefimpl;
-           end;
-
          { inline tree }
          if (po_has_inlininginfo in procoptions) then
            begin
+             { Localst is not available for main/unit init }
+             if assigned(localst) then
+               begin
+                 tlocalsymtable(localst).buildderef;
+                 tlocalsymtable(localst).buildderefimpl;
+               end;
+
              funcretsymderef.build(funcretsym);
              inlininginfo^.code.buildderefimpl;
            end;
