@@ -199,7 +199,7 @@ FPC_INT00_HANDLER:
         cmp bx, cx
         jne .call_previous_handler
 
-%ifndef __MEDIUM__
+%ifndef __FAR_CODE__
         ; check whether we're coming from the same code segment
         mov bx, sp
         mov cx, [bx + 3*2 + 6]  ; get caller segment
@@ -211,7 +211,7 @@ FPC_INT00_HANDLER:
         ; runerror 200
         mov bx, sp
         mov cx, [bx + 3*2 + 4]  ; get caller offset
-%ifdef __MEDIUM__
+%ifdef __FAR_CODE__
         mov dx, [bx + 3*2 + 6]  ; get caller segment
 %endif
         add sp, 3*2 + 4 + 6
@@ -219,7 +219,7 @@ FPC_INT00_HANDLER:
         push ax
         mov ax, 200
         push ax
-%ifdef __MEDIUM__
+%ifdef __FAR_CODE__
         push dx
 %endif
         push cx
