@@ -64,14 +64,13 @@ implementation
       var
         power  : longint;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) and
-           (right.nodetype=ordconstn) and
-           (nodetype=divn) and
-           (ispowerof2(tordconstnode(right).value,power) or
-            (tordconstnode(right).value=1) or
-            (tordconstnode(right).value=int64(-1))
-           ) and
-           not(is_64bitint(resultdef)) then
+        if (right.nodetype=ordconstn) and
+          (nodetype=divn) and
+          (ispowerof2(tordconstnode(right).value,power) or
+           (tordconstnode(right).value=1) or
+           (tordconstnode(right).value=int64(-1))
+          ) and
+          not(is_64bitint(resultdef)) then
           result:=nil
         else
           result:=inherited first_moddivint;
