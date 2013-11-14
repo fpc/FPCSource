@@ -854,12 +854,12 @@ function hypot(x,y : float) : float;
 
 function log10(x : float) : float;
   begin
-     log10:=ln(x)/ln(10);
+    log10:=ln(x)*0.43429448190325182765;  { 1/ln(10) }
   end;
 
 function log2(x : float) : float;
   begin
-     log2:=ln(x)/ln(2)
+    log2:=ln(x)*1.4426950408889634079;    { 1/ln(2) }
   end;
 
 function logn(n,x : float) : float;
