@@ -827,7 +827,6 @@ function arctanh(x : float) : float;inline;
 
 function arcosh(x : float) : float;
   begin
-     if x<1 then InvalidArgument;
      arcosh:=Ln(x+Sqrt(x*x-1));
   end;
 
@@ -838,7 +837,6 @@ function arsinh(x : float) : float;
 
 function artanh(x : float) : float;
   begin
-    If abs(x)>1 then InvalidArgument;
     artanh:=(Ln((1+x)/(1-x)))*0.5;
   end;
 
@@ -866,7 +864,6 @@ function log2(x : float) : float;
 
 function logn(n,x : float) : float;
   begin
-     if n<0 then InvalidArgument;
      logn:=ln(x)/ln(n);
   end;
 
@@ -895,10 +892,8 @@ function power(base,exponent : float) : float;
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
       result:=intpower(base,trunc(exponent))
-    else if base>0.0 then
-      result:=exp(exponent * ln (base))
     else
-      InvalidArgument;
+      result:=exp(exponent * ln (base));
   end;
 
 function intpower(base : float;const exponent : Integer) : float;
