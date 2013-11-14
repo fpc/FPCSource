@@ -309,7 +309,7 @@ function log10(x : float) : float;
 function log2(x : float) : float;
 function logn(n,x : float) : float;
 
-{ returns natural logarithm of x+1 }
+{ returns natural logarithm of x+1, accurate for x values near zero }
 function lnxp1(x : float) : float;
 
 { exponential functions }
@@ -871,10 +871,19 @@ function logn(n,x : float) : float;
   end;
 
 function lnxp1(x : float) : float;
+  var
+    y: float;
   begin
-     if x<-1 then
-       InvalidArgument;
-     lnxp1:=ln(1+x);
+    if (x>=4.0) then
+      lnxp1:=ln(1.0+x)
+    else
+      begin
+        y:=1.0+x;
+        if (y=1.0) then
+          lnxp1:=x
+        else
+          lnxp1:=ln(y)+(x-(y-1.0))/y;
+      end;
   end;
 
 function power(base,exponent : float) : float;
