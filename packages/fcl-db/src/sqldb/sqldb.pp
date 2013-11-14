@@ -351,6 +351,7 @@ type
     function Fetch : boolean; override;
     Function Cursor : TSQLCursor;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     // abstract & virtual methods of TDataset
     procedure UpdateServerIndexDefs; virtual;
     procedure SetDatabase(Value : TDatabase); override;
@@ -367,7 +368,6 @@ type
     procedure SetServerFilterText(const Value: string); virtual;
     Function GetDataSource : TDataSource; override;
     Procedure SetDataSource(AValue : TDataSource);
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
     Function LogEvent(EventType : TDBEventType) : Boolean;
@@ -549,13 +549,14 @@ type
 
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
-
-    procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+    procedure FreeFldBuffers(cursor : TSQLCursor); override;
+
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -564,7 +565,6 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     Property Proxy : TSQLConnection Read FProxy;
   Published
     Property ConnectorType : String Read FConnectorType Write SetConnectorType;
@@ -1225,7 +1225,8 @@ function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObject
 
 begin
   case SchemaType of
-    stSchemata: Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
+    stProcedures: Result := 'SELECT * FROM INFORMATION_SCHEMA.ROUTINES';
+    stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
     else DatabaseError(SMetadataUnavailable);
   end;
 end;
@@ -1612,15 +1613,20 @@ begin
   FStatement.Execute;
 end;
 
-function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TCustomSQLQuery.RowsAffected: TRowsCount;
+begin
+  Result:=Fstatement.RowsAffected;
+end;
 
+function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 begin
   result := TSQLConnection(Database).LoadField(Cursor,FieldDef,buffer, Createblob)
 end;
 
-function TCustomSQLQuery.RowsAffected: TRowsCount;
+procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBufBlobField);
 begin
-  Result:=Fstatement.RowsAffected;
+  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, Cursor,(Transaction as TSQLTransaction));
 end;
 
 procedure TCustomSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -2274,12 +2280,6 @@ begin
   FSchemaPattern:=ASchemaPattern;
 end;
 
-procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
-  ABlobBuf: PBufBlobField);
-begin
-  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, Cursor,(Transaction as TSQLTransaction));
-end;
-
 procedure TCustomSQLQuery.BeforeRefreshOpenCursor;
 begin
   // This is only necessary because TIBConnection can not re-open a
@@ -2694,6 +2694,13 @@ begin
   Result:=FProxy.LoadField(cursor, FieldDef, buffer, CreateBlob);
 end;
 
+procedure TSQLConnector.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+begin
+  CheckProxy;
+  FProxy.LoadBlobIntoBuffer(FieldDef, ABlobBuf, cursor, ATransaction);
+end;
+
 function TSQLConnector.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
   CheckProxy;
@@ -2752,16 +2759,8 @@ begin
     );
 end;
 
-procedure TSQLConnector.LoadBlobIntoBuffer(FieldDef: TFieldDef;
-  ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
-begin
-  CheckProxy;
-  FProxy.LoadBlobIntoBuffer(FieldDef, ABlobBuf, cursor, ATransaction);
-end;
-
 
 { TConnectionDef }
-
 
 class function TConnectionDef.TypeName: String;
 begin
