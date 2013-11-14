@@ -743,21 +743,20 @@ begin
 end;
 
 
-{ ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
-
-
 function arcsin(x : float) : float;
 begin
-  if abs(x) > 1 then InvalidArgument
-  else if abs(x) < 0.5 then
-    arcsin := arctan(x/sqrt(1-sqr(x)))
-  else
-    arcsin := sign(x) * (pi*0.5 - arctan(sqrt(1 / sqr(x) - 1)));
+  arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
 
 function Arccos(x : Float) : Float;
 begin
-  arccos := pi*0.5 - arcsin(x);
+  if abs(x)=1.0 then
+    if x<0.0 then
+      arccos:=Pi
+    else
+      arccos:=0
+  else
+    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 
 
@@ -827,7 +826,8 @@ function arctanh(x : float) : float;inline;
 
 function arcosh(x : float) : float;
   begin
-     arcosh:=Ln(x+Sqrt(x*x-1));
+    { Provides accuracy about 4*eps near 1.0 }
+    arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
   end;
 
 function arsinh(x : float) : float;
@@ -837,7 +837,7 @@ function arsinh(x : float) : float;
 
 function artanh(x : float) : float;
   begin
-    artanh:=(Ln((1+x)/(1-x)))*0.5;
+    artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
 
 function hypot(x,y : float) : float;
