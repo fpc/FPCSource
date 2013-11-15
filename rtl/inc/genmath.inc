@@ -158,7 +158,7 @@ type
                if (a.high<>$C3E00000) or (a.low<>0) then
                  begin
                    float_raise(float_flag_invalid);
-                   if (a.high>=0) or ((aExp=$7FF) and
+                   if (longint(a.high)>=0) or ((aExp=$7FF) and
                       (aSig<>$0010000000000000 )) then
                      begin
                        result:=$7FFFFFFFFFFFFFFF;
@@ -183,7 +183,7 @@ type
              float_exception_flags |= float_flag_inexact;
            }
          end;
-       if a.high<0 then
+       if longint(a.high)<0 then
          z:=-z;
        result:=z;
      end;
@@ -205,7 +205,7 @@ type
            if ( a <> Float32($DF000000) ) then
              Begin
                float_raise( float_flag_invalid );
-               if ( (a>=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
+               if ( (longint(a)>=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
                  Begin
                    result:=$7fffffffffffffff;
                    exit;
@@ -222,7 +222,7 @@ type
          End;
        aSig64 := int64( aSig or $00800000 ) shl 40;
        z := aSig64 shr ( - shiftCount );
-       if ( a<0 ) then z := - z;
+       if ( longint(a)<0 ) then z := - z;
        result := z;
     End;
 {$endif SUPPORT_DOUBLE}
