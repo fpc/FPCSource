@@ -160,8 +160,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_cos_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
@@ -174,8 +179,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_sin_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
 
