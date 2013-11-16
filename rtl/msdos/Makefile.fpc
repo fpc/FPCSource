@@ -66,11 +66,11 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 prt0s$(OEXT) : prt0s.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
 prt0t$(OEXT) : prt0t.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
 prt0m$(OEXT) : prt0m.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
 #
 # System Units (System, Objpas, Strings)
 #
