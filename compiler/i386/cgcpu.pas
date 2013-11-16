@@ -648,13 +648,21 @@ unit cgcpu;
           i: Integer;
           hp: tparavarsym;
           paraloc: PCGParaLocation;
+          side: tcallercallee;
         begin
           if not (RS_ECX in paramanager.get_volatile_registers_int(procdef.proccalloption)) then
             exit(true);
           for i:=0 to procdef.paras.count-1 do
            begin
              hp:=tparavarsym(procdef.paras[i]);
-             paraloc:=hp.paraloc[calleeside].Location;
+             if procdef.has_paraloc_info in [calleeside,callbothsides] then
+               side:=calleeside
+             { in the case of virtual abstract methods, we only have callerside }
+             else if procdef.has_paraloc_info=callerside then
+               side:=callerside
+             else
+               internalerror(2013111601);
+             paraloc:=hp.paraloc[side].Location;
              while paraloc<>nil do
                begin
                  if (paraloc^.Loc=LOC_REGISTER) and (getsupreg(paraloc^.register)=RS_ECX) then
