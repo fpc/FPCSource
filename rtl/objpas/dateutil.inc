@@ -261,6 +261,7 @@ Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
+Procedure PeriodBetween(const ANow, AThen: TDateTime; Out Years, months, days : Word); 
 
 { ---------------------------------------------------------------------
     Timespan in xxx functions.
@@ -1325,6 +1326,37 @@ begin
   Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MSecsPerDay);
 end;
 
+Procedure PeriodBetween(Const ANow, AThen: TDateTime; Out Years, months, days : Word); 
+
+var
+  Y1, Y2, M1, M2, D1, D2: word;
+
+begin
+  if (AThen>ANow) then
+    begin
+    DecodeDate(ANow,Y1,M1,D1);
+    DecodeDate(AThen,Y2,M2,D2);
+    end
+  else
+    begin  
+    DecodeDate(AThen,Y1,M1,D1);
+    DecodeDate(ANow,Y2,M2,D2);
+    end;
+  Years:=Y2-Y1;
+  if (M1>M2) or ((M1=M2) and (D1>D2)) then Dec(Years);
+  if (M1>M2) then Inc(M2,12); //already adjusted Years in that case
+  Months:=M2-M1;
+  if (D2>=D1) then
+    Days:=D2-D1
+  else
+    begin
+    if (Months=0) then
+      Months:=11
+    else
+      Dec(Months);
+    Days:=(DaysInAMonth(Y1,M1)-D1)+D2;
+    end;
+end;                    
 
 { ---------------------------------------------------------------------
     Timespan in xxx functions.
