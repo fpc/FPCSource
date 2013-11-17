@@ -35,8 +35,6 @@
 {       Copyright (c) 1997 Carl Eric Codere                               }
 {-------------------------------------------------------------------------}
 
-{$goto on}
-
 type
   TabCoef = array[0..6] of Real;
 { also necessary for Int() on systems with 64bit floats (JM) }
@@ -879,7 +877,6 @@ type
     var e : Integer;
        z, y : Real;
 
-    Label Ldone;
     begin
        if( d <= 0.0 ) then
          begin
@@ -911,26 +908,24 @@ type
          { /* rational form */ }
          z := d*d;
          z := d + d * ( z * polevl( z, R, 2 ) / p1evl( z, S, 3 ) );
-         goto ldone;
-       end;
-
-    { logarithm using log(1+x) = x - .5x**2 + x**3 P(x)/Q(x) }
-
-       if( d < SQRTH ) then
-       begin
-         Dec(e, 1);
-         d := ldexp( d, 1 ) - 1.0; {  2x - 1  }
        end
        else
-         d := d - 1.0;
+       begin
+       { logarithm using log(1+x) = x - .5x**2 + x**3 P(x)/Q(x) }
+         if( d < SQRTH ) then
+         begin
+           Dec(e, 1);
+           d := ldexp( d, 1 ) - 1.0; {  2x - 1  }
+         end
+         else
+           d := d - 1.0;
 
-       { rational form  }
-       z := d*d;
-       y := d * ( z * polevl( d, P, 6 ) / p1evl( d, Q, 6 ) );
-       y := y - ldexp( z, -1 );   {  y - 0.5 * z  }
-       z := d + y;
-
-    ldone:
+         { rational form  }
+         z := d*d;
+         y := d * ( z * polevl( d, P, 6 ) / p1evl( d, Q, 6 ) );
+         y := y - ldexp( z, -1 );   {  y - 0.5 * z  }
+         z := d + y;
+       end;
        { recombine with exponent term }
        if( e <> 0 ) then
        begin
