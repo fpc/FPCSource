@@ -293,6 +293,12 @@ uses
 {$ifdef i8086}
     { returns the next virtual register }
     function GetNextReg(const r : TRegister) : TRegister;
+
+    { return whether we need to add an extra FWAIT instruction before the given
+      instruction, when we're targeting the i8087. This includes almost all x87
+      instructions, but certain ones, which always have or have not a built in
+      FWAIT prefix are excluded (e.g. FINIT,FNINIT,etc.). }
+    function requires_fwait_on_8087(op: TAsmOp): boolean;
 {$endif i8086}
 
 implementation
@@ -605,6 +611,24 @@ implementation
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
         result:=TRegister(longint(r)+1);
+      end;
+
+    function requires_fwait_on_8087(op: TAsmOp): boolean;
+      begin
+        case op of
+            A_F2XM1,A_FABS,A_FADD,A_FADDP,A_FBLD,A_FBSTP,A_FCHS,A_FCOM,A_FCOMP,
+            A_FCOMPP,A_FCOS,A_FDECSTP,A_FDISI,A_FDIV,A_FDIVP,A_FDIVR,A_FDIVRP,
+            A_FENI,A_FFREE,A_FIADD,A_FICOM,A_FICOMP,A_FIDIV,A_FIDIVR,A_FILD,
+            A_FIMUL,A_FINCSTP,A_FIST,A_FISTP,A_FISUB,A_FISUBR,A_FLD,A_FLD1,
+            A_FLDCW,A_FLDENV,A_FLDL2E,A_FLDL2T,A_FLDLG2,A_FLDLN2,A_FLDPI,A_FLDZ,
+            A_FMUL,A_FMULP,A_FNOP,A_FPATAN,A_FPREM,A_FPREM1,A_FPTAN,A_FRNDINT,
+            A_FRSTOR,A_FSAVE,A_FSCALE,A_FSIN,A_FSINCOS,A_FSQRT,A_FST,A_FSTCW,
+            A_FSTENV,A_FSTP,A_FSTSW,A_FSUB,A_FSUBP,A_FSUBR,A_FSUBRP,A_FTST,
+            A_FUCOM,A_FUCOMP,A_FUCOMPP,A_FXAM,A_FXCH,A_FXTRACT,A_FYL2X,A_FYL2XP1:
+              result:=true;
+          else
+            result:=false;
+        end;
       end;
 {$endif i8086}
 
