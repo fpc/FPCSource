@@ -336,6 +336,24 @@ implementation
          result:=cwhilerepeatnode.create(p_e,p_a,true,false);
       end;
 
+    { a helper function which is used both by "with" and "for-in loop" nodes }
+    function skip_nodes_before_load(p: tnode): tnode;
+      begin
+        { ignore nodes that don't add instructions in the tree }
+        while assigned(p) and
+           { equal type conversions }
+           (
+            (p.nodetype=typeconvn) and
+            (ttypeconvnode(p).convtype=tc_equal)
+           ) or
+           { constant array index }
+           (
+            (p.nodetype=vecn) and
+            (tvecnode(p).right.nodetype=ordconstn)
+           ) do
+          p:=tunarynode(p).left;
+        result:=p;
+      end;
 
     function for_statement : tnode;
 
@@ -487,8 +505,18 @@ implementation
 
           function for_in_loop_create(hloopvar: tnode): tnode;
             var
-              expr: tnode;
+              expr,hloopbody,hp: tnode;
+              loopvarsym: tabstractvarsym;
             begin
+              hp:=skip_nodes_before_load(hloopvar);
+              if assigned(hp)and(hp.nodetype=loadn) then
+                begin
+                  loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                  include(loopvarsym.varoptions,vo_is_loop_counter);
+                end
+              else
+                loopvarsym:=nil;
+
               expr:=comp_expr(true,false);
 
               consume(_DO);
@@ -496,7 +524,10 @@ implementation
               set_varstate(hloopvar,vs_written,[]);
               set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
-              result:=create_for_in_loop(hloopvar,statement,expr);
+              hloopbody:=statement;
+              if assigned(loopvarsym) then
+                exclude(loopvarsym.varoptions,vo_is_loop_counter);
+              result:=create_for_in_loop(hloopvar,hloopbody,expr);
 
               expr.free;
             end;
@@ -585,19 +616,7 @@ implementation
             valuenode:=nil;
             tempnode:=nil;
 
-            { ignore nodes that don't add instructions in the tree }
-            hp:=p;
-            while { equal type conversions }
-                  (
-                   (hp.nodetype=typeconvn) and
-                   (ttypeconvnode(hp).convtype=tc_equal)
-                  ) or
-                  { constant array index }
-                  (
-                   (hp.nodetype=vecn) and
-                   (tvecnode(hp).right.nodetype=ordconstn)
-                  ) do
-              hp:=tunarynode(hp).left;
+            hp:=skip_nodes_before_load(p);
             if (hp.nodetype=loadn) and
                (
                 (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
