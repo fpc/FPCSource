@@ -708,8 +708,13 @@ unit cgx86;
          floatstoreops(t,op,s);
          list.concat(Taicpu.Op_ref(op,s,tmpref));
          { storing non extended floats can cause a floating point overflow }
-         if (t<>OS_F80) and
-            (cs_fpu_fwait in current_settings.localswitches) then
+         if ((t<>OS_F80) and (cs_fpu_fwait in current_settings.localswitches))
+{$ifdef i8086}
+           { 8087 and 80287 need a FWAIT after a memory store, before it can be
+             read with the integer unit }
+           or (current_settings.cputype<=cpu_286)
+{$endif i8086}
+           then
            list.concat(Taicpu.Op_none(A_FWAIT,S_NO));
          dec_fpu_stack;
       end;
