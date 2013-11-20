@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2004 by Joost van der Sluis
+    Copyright (c) 2004-2013 by Joost van der Sluis, FPC contributors
 
     SQL database & dataset
 
@@ -1763,7 +1763,7 @@ begin
     if Separator <> sepNone then
       begin
       if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
-        PhraseP := CurrentP;  // skip comments(but not parentheses) and white spaces
+        PhraseP := CurrentP;  // skip comments (but not parentheses) and white spaces
 
       if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
         begin
@@ -1805,7 +1805,7 @@ begin
           ppTableName:
                      begin
                      // Meta-data requests are never updateable
-                     //  and select-statements from more then one table
+                     //  and select statements from more than one table
                      //  and/or derived tables are also not updateable
                      if (ASchema = stNoSchema) and
                         (Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd]) then
@@ -2420,6 +2420,7 @@ constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FQuery := TCustomSQLQuery.Create(nil);
+  FQuery.ParamCheck := false; // Do not parse for parameters; breaks use of e.g. select bla into :bla in Firebird procedures
 end;
 
 destructor TSQLScript.Destroy;
