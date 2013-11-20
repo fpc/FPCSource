@@ -325,6 +325,52 @@ type
 
 
 {$ifndef SYSTEM_HAS_LDEXP}
+{$ifdef SUPPORT_DOUBLE}
+    function ldexp( x: Real; N: Integer):Real;
+    {* ldexp() multiplies x by 2**n.                                    *}
+    var
+      i: integer;
+    const
+      H2_54: double = 18014398509481984.0;  {2^54}
+      huge: double = 1e300;
+    begin
+      i := (float64(x).high and $7ff00000) shr 20;
+      {if +-INF, NaN, 0 or if e=0 return d}
+      if (i=$7FF) or (N=0) or (x=0.0) then
+        ldexp := x
+      else if i=0 then    {Denormal: result = d*2^54*2^(e-54)}
+        ldexp := ldexp(x*H2_54, N-54)
+      else
+      begin
+        N := N+i;
+        if N>$7FE then  { overflow }
+        begin
+          if x>0.0 then
+            ldexp := 2.0*huge
+          else
+            ldexp := (-2.0)*huge;
+        end
+        else if N<1 then
+        begin
+          {underflow or denormal}
+          if N<-53 then
+            ldexp := 0.0
+          else
+          begin
+            {Denormal: result = d*2^(e+54)/2^54}
+            inc(N,54);
+            float64(x).high := (float64(x).high and $800FFFFF) or (N shl 20);
+            ldexp := x/H2_54;
+          end;
+        end
+        else
+        begin
+          float64(x).high := (float64(x).high and $800FFFFF) or (N shl 20);
+          ldexp := x;
+        end;
+      end;
+    end;
+{$else SUPPORT_DOUBLE}
     function ldexp( x: Real; N: Integer):Real;
     {* ldexp() multiplies x by 2**n.                                    *}
     var r : Real;
@@ -344,6 +390,7 @@ type
         end;
       ldexp := x * R;
     end;
+{$endif SUPPORT_DOUBLE}
 {$endif not SYSTEM_HAS_LDEXP}
 
 
@@ -408,6 +455,447 @@ type
       for i:=1 to N-1 do
         ans := ans * x + Coef[i];
       p1evl := ans;
+    end;
+
+
+    function floord(x: double): double;
+    var
+      t: double;
+    begin
+      t := int(x);
+      if (x>=0.0) or (x=t) then
+        floord := t
+      else
+        floord := t - 1.0;
+    end;
+
+   {*
+    * ====================================================
+    * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+    *
+    * Developed at SunPro, a Sun Microsystems, Inc. business.
+    * Permission to use, copy, modify, and distribute this
+    * software is freely granted, provided that this notice
+    * is preserved.
+    * ====================================================
+    *
+    * Pascal port of this routine comes from DAMath library
+    * (C) Copyright 2013 Wolfgang Ehrhardt
+    *
+    * k_rem_pio2 return the last three bits of N with y = x - N*pi/2
+    * so that |y| < pi/2.
+    *
+    * The method is to compute the integer (mod 8) and fraction parts of
+    * (2/pi)*x without doing the full multiplication. In general we
+    * skip the part of the product that are known to be a huge integer
+    * (more accurately, = 0 mod 8 ). Thus the number of operations are
+    * independent of the exponent of the input.
+    *
+    * (2/pi) is represented by an array of 24-bit integers in ipio2[].
+    *
+    * Input parameters:
+    *      x[]     The input value (must be positive) is broken into nx
+    *              pieces of 24-bit integers in double precision format.
+    *              x[i] will be the i-th 24 bit of x. The scaled exponent
+    *              of x[0] is given in input parameter e0 (i.e., x[0]*2^e0
+    *              match x's up to 24 bits.
+    *
+    *              Example of breaking a double positive z into x[0]+x[1]+x[2]:
+    *                      e0 = ilogb(z)-23
+    *                      z  = scalbn(z,-e0)
+    *              for i = 0,1,2
+    *                      x[i] = floor(z)
+    *                      z    = (z-x[i])*2**24
+    *
+    *
+    *      y[]     output result in an array of double precision numbers.
+    *              The dimension of y[] is:
+    *                      24-bit  precision       1
+    *                      53-bit  precision       2
+    *                      64-bit  precision       2
+    *                      113-bit precision       3
+    *              The actual value is the sum of them. Thus for 113-bit
+    *              precison, one may have to do something like:
+    *
+    *              long double t,w,r_head, r_tail;
+    *              t = (long double)y[2] + (long double)y[1];
+    *              w = (long double)y[0];
+    *              r_head = t+w;
+    *              r_tail = w - (r_head - t);
+    *
+    *      e0      The exponent of x[0]. Must be <= 16360 or you need to
+    *              expand the ipio2 table.
+    *
+    *      nx      dimension of x[]
+    *
+    *      prec    an integer indicating the precision:
+    *                      0       24  bits (single)
+    *                      1       53  bits (double)
+    *                      2       64  bits (extended)
+    *                      3       113 bits (quad)
+    *
+    * Here is the description of some local variables:
+    *
+    *      jk      jk+1 is the initial number of terms of ipio2[] needed
+    *              in the computation. The recommended value is 2,3,4,
+    *              6 for single, double, extended,and quad.
+    *
+    *      jz      local integer variable indicating the number of
+    *              terms of ipio2[] used.
+    *
+    *      jx      nx - 1
+    *
+    *      jv      index for pointing to the suitable ipio2[] for the
+    *              computation. In general, we want
+    *                      ( 2^e0*x[0] * ipio2[jv-1]*2^(-24jv) )/8
+    *              is an integer. Thus
+    *                      e0-3-24*jv >= 0 or (e0-3)/24 >= jv
+    *              Hence jv = max(0,(e0-3)/24).
+    *
+    *      jp      jp+1 is the number of terms in PIo2[] needed, jp = jk.
+    *
+    *      q[]     double array with integral value, representing the
+    *              24-bits chunk of the product of x and 2/pi.
+    *
+    *      q0      the corresponding exponent of q[0]. Note that the
+    *              exponent for q[i] would be q0-24*i.
+    *
+    *      PIo2[]  double precision array, obtained by cutting pi/2
+    *              into 24 bits chunks.
+    *
+    *      f[]     ipio2[] in floating point
+    *
+    *      iq[]    integer array by breaking up q[] in 24-bits chunk.
+    *
+    *      fq[]    final product of x*(2/pi) in fq[0],..,fq[jk]
+    *
+    *      ih      integer. If >0 it indicates q[] is >= 0.5, hence
+    *              it also indicates the *sign* of the result.
+    *}
+
+    {PIo2[] double array, obtained by cutting pi/2 into 24 bits chunks.}
+    const
+      PIo2chunked: array[0..7] of double = (
+        1.57079625129699707031e+00, { 0x3FF921FB, 0x40000000 }
+        7.54978941586159635335e-08, { 0x3E74442D, 0x00000000 }
+        5.39030252995776476554e-15, { 0x3CF84698, 0x80000000 }
+        3.28200341580791294123e-22, { 0x3B78CC51, 0x60000000 }
+        1.27065575308067607349e-29, { 0x39F01B83, 0x80000000 }
+        1.22933308981111328932e-36, { 0x387A2520, 0x40000000 }
+        2.73370053816464559624e-44, { 0x36E38222, 0x80000000 }
+        2.16741683877804819444e-51  { 0x3569F31D, 0x00000000 }
+      );
+
+    {Table of constants for 2/pi, 396 Hex digits (476 decimal) of 2/pi }
+      ipio2: array[0..65] of longint = (
+        $A2F983, $6E4E44, $1529FC, $2757D1, $F534DD, $C0DB62,
+        $95993C, $439041, $FE5163, $ABDEBB, $C561B7, $246E3A,
+        $424DD2, $E00649, $2EEA09, $D1921C, $FE1DEB, $1CB129,
+        $A73EE8, $8235F5, $2EBB44, $84E99C, $7026B4, $5F7E41,
+        $3991D6, $398353, $39F49C, $845F8B, $BDF928, $3B1FF8,
+        $97FFDE, $05980F, $EF2F11, $8B5A0A, $6D1F6D, $367ECF,
+        $27CB09, $B74F46, $3F669E, $5FEA2D, $7527BA, $C7EBE5,
+        $F17B3D, $0739F7, $8A5292, $EA6BFB, $5FB11F, $8D5D08,
+        $560330, $46FC7B, $6BABF0, $CFBC20, $9AF436, $1DA9E3,
+        $91615E, $E61B08, $659985, $5F14A0, $68408D, $FFD880,
+        $4D7327, $310606, $1556CA, $73A8C9, $60E27B, $C08C6B);
+
+      init_jk: array[0..3] of integer = (2,3,4,6); {initial value for jk}
+      two24:  double = 16777216.0;                 {2^24}
+      twon24: double = 5.9604644775390625e-08;     {1/2^24}
+
+    type
+      TDA02 = array[0..2] of double; { 3 elements is enough for float128 }
+
+    function k_rem_pio2(const x: TDA02; out y: TDA02; e0, nx, prec: integer): sizeint;
+    var
+      i,ih,j,jz,jx,jv,jp,jk,carry,k,n,q0: longint;
+      t: longint;
+      iq: array[0..19] of longint;
+      f,fq,q: array[0..19] of double;
+      z,fw: double;
+    begin
+      {initialize jk}
+      jk := init_jk[prec];
+      jp := jk;
+
+      {determine jx,jv,q0, note that 3>q0}
+      jx := nx-1;
+      jv := (e0-3) div 24; if jv<0 then jv := 0;
+      q0 := e0-24*(jv+1);
+
+      {set up f[0] to f[jx+jk] where f[jx+jk] = ipio2[jv+jk]}
+      j := jv-jx;
+      for i:=0 to jx+jk do
+      begin
+        if j<0 then f[i] := 0.0 else f[i] := ipio2[j];
+        inc(j);
+      end;
+
+      {compute q[0],q[1],...q[jk]}
+      for i:=0 to jk do
+      begin
+        fw := 0.0;
+        for j:=0 to jx do
+          fw := fw + x[j]*f[jx+i-j];
+        q[i] := fw;
+      end;
+      jz := jk;
+
+      repeat
+        {distill q[] into iq[] reversingly}
+        i := 0;
+        z := q[jz];
+        for j:=jz downto 1 do
+        begin
+          fw    := trunc(twon24*z);
+          iq[i] := trunc(z-two24*fw);
+          z     := q[j-1]+fw;
+          inc(i);
+        end;
+
+        {compute n}
+        z  := ldexp(z,q0);              {actual value of z}
+        z  := z - 8.0*floord(z*0.125);  {trim off integer >= 8}
+        n  := trunc(z);
+        z  := z - n;
+        ih := 0;
+        if q0>0 then
+        begin
+          {need iq[jz-1] to determine n}
+          t  := (iq[jz-1] shr (24-q0));
+          inc(n,t);
+          dec(iq[jz-1], t shl (24-q0));
+          ih := iq[jz-1] shr (23-q0);
+        end
+        else if q0=0 then
+          ih := iq[jz-1] shr 23
+        else if z>=0.5 then
+          ih := 2;
+
+        if ih>0 then    {q > 0.5}
+        begin
+          inc(n);
+          carry := 0;
+          for i:=0 to jz-1 do
+          begin
+            {compute 1-q}
+            t := iq[i];
+            if carry=0 then
+            begin
+              if t<>0 then
+              begin
+                carry := 1;
+                iq[i] := $1000000 - t;
+              end
+            end
+            else
+              iq[i] := $ffffff - t;
+          end;
+          if q0>0 then
+          begin
+            {rare case: chance is 1 in 12}
+            case q0 of
+              1: iq[jz-1] := iq[jz-1] and $7fffff;
+              2: iq[jz-1] := iq[jz-1] and $3fffff;
+            end;
+          end;
+          if ih=2 then
+          begin
+            z := 1.0 - z;
+            if carry<>0 then
+              z := z - ldexp(1.0,q0);
+          end;
+        end;
+
+        {check if recomputation is needed}
+        if z<>0.0 then
+          break;
+        t := 0;
+        for i:=jz-1 downto jk do
+          t := t or iq[i];
+        if t<>0 then
+          break;
+
+        {need recomputation}
+        k := 1;
+        while iq[jk-k]=0 do    {k = no. of terms needed}
+          inc(k);
+        for i:=jz+1 to jz+k do
+        begin
+          {add q[jz+1] to q[jz+k]}
+          f[jx+i] := ipio2[jv+i];
+          fw := 0.0;
+          for j:=0 to jx do
+            fw := fw + x[j]*f[jx+i-j];
+          q[i] := fw;
+        end;
+        inc(jz,k);
+      until False;
+
+      {chop off zero terms}
+      if z=0.0 then
+      begin
+        repeat
+          dec(jz);
+          dec(q0,24);
+        until iq[jz]<>0;
+      end
+      else
+      begin
+        {break z into 24-bit if necessary}
+        z := ldexp(z,-q0);
+        if z>=two24 then
+        begin
+          fw := trunc(twon24*z);
+          iq[jz] := trunc(z-two24*fw);
+          inc(jz);
+          inc(q0,24);
+          iq[jz] := trunc(fw);
+        end
+        else
+          iq[jz] := trunc(z);
+      end;
+
+      {convert integer "bit" chunk to floating-point value}
+      fw := ldexp(1.0,q0);
+      for i:=jz downto 0 do
+      begin
+        q[i] := fw*iq[i];
+        fw := fw*twon24;
+      end;
+
+      {compute PIo2[0,...,jp]*q[jz,...,0]}
+      for i:=jz downto 0 do
+      begin
+        fw :=0.0;
+        k := 0;
+        while (k<=jp) and (k<=jz-i) do
+        begin
+          fw := fw + double(PIo2chunked[k])*(q[i+k]);
+          inc(k);
+        end;
+        fq[jz-i] := fw;
+      end;
+
+      {compress fq[] into y[]}
+      case prec of
+        0:
+        begin
+          fw := 0.0;
+          for i:=jz downto 0 do
+            fw := fw + fq[i];
+          if ih=0 then
+            y[0] := fw
+          else
+            y[0] := -fw;
+        end;
+
+        1, 2:
+        begin
+          fw := 0.0;
+          for i:=jz downto 0 do
+            fw := fw + fq[i];
+          if ih=0 then
+            y[0] := fw
+          else
+            y[0] := -fw;
+          fw := fq[0]-fw;
+          for i:=1 to jz do
+            fw := fw + fq[i];
+          if ih=0 then
+            y[1] := fw
+          else
+            y[1] := -fw;
+        end;
+
+        3:
+        begin
+          {painful}
+          for i:=jz downto 1 do
+          begin
+            fw     := fq[i-1]+fq[i];
+            fq[i]  := fq[i]+(fq[i-1]-fw);
+            fq[i-1]:= fw;
+          end;
+          for i:=jz downto 2 do
+          begin
+            fw     := fq[i-1]+fq[i];
+            fq[i]  := fq[i]+(fq[i-1]-fw);
+            fq[i-1]:= fw;
+          end;
+          fw := 0.0;
+          for i:=jz downto 2 do
+            fw := fw + fq[i];
+          if ih=0 then
+          begin
+            y[0] := fq[0];
+            y[1] := fq[1];
+            y[2] := fw;
+          end
+          else
+          begin
+            y[0] := -fq[0];
+            y[1] := -fq[1];
+            y[2] := -fw;
+          end;
+        end;
+      end;
+      k_rem_pio2 := n and 7;
+    end;
+
+
+    { Argument reduction of x:  z = x - n*Pi/2, |z| <= Pi/4, result = n mod 8.}
+    { Uses Payne/Hanek if |x| >= lossth, Cody/Waite otherwise}
+    function rem_pio2(x: double; out z: double): sizeint;
+    const
+      tol: double = 2.384185791015625E-7;  {lossth*eps_d}
+    var
+      i,e0,nx: longint;
+      y: double;
+      tx,ty: TDA02;
+    begin
+      y := abs(x);
+      if (y < PIO4) then
+      begin
+        z := x;
+        result := 0;
+        exit;
+      end
+      else if (y < lossth) then
+      begin
+        y := floord(x/PIO4);
+        i := trunc(y - 16.0*floord(y*0.0625));
+        if odd(i) then
+        begin
+          inc(i);
+          y := y + 1.0;
+        end;
+        z := ((x - y * DP1) - y * DP2) - y * DP3;
+        result := (i shr 1) and 7;
+
+        {If x is near a multiple of Pi/2, the C/W relative error may be large.}
+        {In this case redo the calculation with the Payne/Hanek algorithm.    }
+        if abs(z) > tol then
+          exit;
+      end;
+      z := abs(x);
+      e0 := (float64(z).high shr 20)-1046;
+      float64(z).high := float64(z).high - (e0 shl 20);
+      tx[0] := trunc(z);
+      z := (z-tx[0])*two24;
+      tx[1] := trunc(z);
+      tx[2] := (z-tx[1])*two24;
+      nx := 3;
+      while (tx[nx-1]=0.0) do dec(nx);  { skip zero terms }
+      result := k_rem_pio2(tx,ty,e0,nx,2);
+      if (x<0) then
+      begin
+        result := (-result) and 7;
+        z := -ty[0] - ty[1];
+      end
+      else
+        z := ty[0] + ty[1];
     end;
 
 
@@ -964,62 +1452,23 @@ type
     {      1  -  x**2 Q(x**2).                                        }
     {*****************************************************************}
     var  y, z, zz : Real;
-         j, sign : Integer;
+         j : sizeint;
 
     begin
-      { make argument positive but save the sign }
-      sign := 1;
-      if( d < 0 ) then
-      begin
-         d := -d;
-         sign := -1;
-      end;
-
-      { above this value, approximate towards 0 }
-      if( d > lossth ) then
-      begin
-        result := 0.0;
-        exit;
-      end;
-
-      y := Trunc( d/PIO4 ); { integer part of x/PIO4 }
-
-      { strip high bits of integer part to prevent integer overflow }
-      z := ldexp( y, -4 );
-      z := Trunc(z);           { integer part of y/8 }
-      z := y - ldexp( z, 4 );  { y - 16 * (y/16) }
-
-      j := Trunc(z); { convert to integer for tests on the phase angle }
-      { map zeros to origin }
-      { typecast is to avoid "can't determine which overloaded function }
-      { to call"                                                        }
-      if odd( longint(j) ) then
-      begin
-         inc(j);
-         y := y + 1.0;
-      end;
-      j := j and 7; { octant modulo 360 degrees }
-      { reflect in x axis }
-      if( j > 3) then
-      begin
-        sign := -sign;
-        dec(j, 4);
-      end;
-
-      { Extended precision modular arithmetic }
-      z := ((d - y * DP1) - y * DP2) - y * DP3;
+      j := rem_pio2(d,z) and 3;
 
       zz := z * z;
 
-      if( (j=1) or (j=2) ) then
+      if( (j=1) or (j=3) ) then
         y := 1.0 - ldexp(zz,-1) + zz * zz * polevl( zz, coscof, 5 )
       else
       { y = z  +  z * (zz * polevl( zz, sincof, 5 )); }
         y := z  +  z * z * z * polevl( zz, sincof, 5 );
 
-      if(sign < 0) then
-      y := -y;
-      result := y;
+      if (j > 1) then
+        result := -y
+      else
+        result := y;
     end;
 {$endif}
 
@@ -1052,57 +1501,22 @@ type
     {      x  +  x**3 P(x**2).                                        }
     {*****************************************************************}
     var  y, z, zz : Real;
-         j, sign : Integer;
-         i : LongInt;
+         j : sizeint;
     begin
-    { make argument positive }
-      sign := 1;
-      if( d < 0 ) then
-        d := -d;
-
-      { above this value, round towards zero }
-      if( d > lossth ) then
-      begin
-        result := 0.0;
-        exit;
-      end;
-
-      y := Trunc( d/PIO4 );
-      z := ldexp( y, -4 );
-      z := Trunc(z);  { integer part of y/8 }
-      z := y - ldexp( z, 4 );  { y - 16 * (y/16) }
-
-      { integer and fractional part modulo one octant }
-      i := Trunc(z);
-      if odd( i ) then { map zeros to origin }
-      begin
-        inc(i);
-        y := y + 1.0;
-      end;
-      j := i and 07;
-      if( j > 3) then
-      begin
-        dec(j,4);
-        sign := -sign;
-      end;
-      if( j > 1 ) then
-        sign := -sign;
-
-      { Extended precision modular arithmetic  }
-      z := ((d - y * DP1) - y * DP2) - y * DP3;
+      j := rem_pio2(d,z) and 3;
 
       zz := z * z;
 
-      if( (j=1) or (j=2) ) then
+      if( (j=1) or (j=3) ) then
       { y = z  +  z * (zz * polevl( zz, sincof, 5 )); }
         y := z  +  z * z * z * polevl( zz, sincof, 5 )
       else
         y := 1.0 - ldexp(zz,-1) + zz * zz * polevl( zz, coscof, 5 );
 
-      if(sign < 0) then
-        y := -y;
-
-      result := y ;
+      if (j = 1) or (j = 2) then
+        result := -y
+      else
+        result := y ;
     end;
 {$endif}
 
