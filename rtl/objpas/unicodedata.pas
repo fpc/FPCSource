@@ -17,6 +17,69 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+-------------------------------------------------------------------------------
+
+  Overview of the Unicode Collation Algorithm(UCA) data layout :
+  ============================================================
+
+    The UCA data(see “TUCA_DataBook”) are organized into index data
+    (see the “TUCA_DataBook” fields “BMP_Table1”, “BMP_Table2”,
+    “OBMP_Table1” and “OBMP_Table2”) and actual properties data(see
+    the “Props” field of  “TUCA_DataBook”). The index is a 3 level
+    tables designed to minimize the overhaul data size. The
+    properties’ data contain the actual (used) UCA’s properties
+    for the customized code points(or sequence of code points)
+    data (see TUCA_PropItemRec).
+    To get the properties’ record of a code point, one goes
+    through the index data to get its offset into the “Props”
+    serialized data, see the “GetPropUCA” procedure.
+    The “TUCA_PropItemRec” record, that represents the actual
+    properties, contains a fixed part and a variable part. The
+    fixed part is directly expressed as fields of the record :
+      “WeightLength”, “ChildCount”, “Size”, “Flags”. The
+    variable part depends on some values of the fixed part; For
+    example “WeightLength” specify the number of weight[1] item,
+    it can be zero or not null; The “Flags” fields does contains
+    some bit states to indicate for example if the record’s owner,
+    that is the target code point, is present(it is not always
+    necessary to store the code point as you are required to have
+    this information in the first place in order to get the
+    “TUCA_PropItemRec” record).
+
+    The data, as it is organized now, is as follow for each code point :
+      * the fixed part is serialized,
+      * if there are weight item array, they are serialized
+          (see the "WeigthLength")
+      * the code point is serialized (if needed)
+      * the context[2] array is serialized
+      * The children[3] record are serialized.
+
+    The “Size” represent the size of the whole record, including its
+    children records(see [3]). The “GetSelfOnlySize” returns the size
+    of the queried record, excluding the size of its children.
+
+
+    Notes :
+
+    [1] : A weight item is an array of 3 words. A code point/sequence of code
+          point may have zero or multiple items.
+
+    [2] :  There are characters(mostly japanese ones) that do not have their
+           own weighs; There inherit the weights of the preceding character
+           in the string that you will be evaluating.
+    [3] :  Some unicode characters are expressed using more than one code point.
+           In that case the properties records are serialized as a trie. The
+           trie data structure is useful when many characters’ expression have
+           the same starting code point(s).
+
+    [4] TUCA_PropItemRec serialization :
+            TUCA_PropItemRec :
+              WeightLength, ChildCount, Size, Flags [weight item array]
+    [Code Point] [Context data]
+              [Child 0] [Child 1] .. [Child n]
+
+        each [Child k] is a TUCA_PropItemRec.
 }
 
 unit unicodedata;
