@@ -10,7 +10,7 @@ uses
 {$IFNDEF FPC}
   ,TestFrameWork
 {$ENDIF}
-  , test_suite_utils, sdo, sdo_types, sdo_convert_helper ;
+  , test_suite_utils, sdo, sdo_types;
 
 type
 
@@ -570,14 +570,17 @@ var
   i : Integer;
 begin
   locObj := getObject();
+
+  buff := nil;
+  strBuff := locObj.BytesToString(buff);
+  CheckEquals('', strBuff);
+
   SetLength(buff,LEN);
   for i := 0 to Pred(LEN) do
     buff[i] := ( i mod High(TSDOByte) );
 
-  CheckEquals('', locObj.BytesToString(nil));
-
   SetLength(ansiStrBuff,LEN * 2);
-  BinToHex(PAnsiChar(buff),PAnsiChar(ansiStrBuff),LEN);
+  BinToHex(PAnsiChar(@buff[Low(buff)]),PAnsiChar(@ansiStrBuff[1]),LEN);
   strBuff := ansiStrBuff;
   CheckEquals(strBuff,locObj.BytesToString(buff));
 end;

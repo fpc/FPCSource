@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="job">
+        <xsd:sequence>
+          <xsd:element name="title" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="MaxEmployeeCount" type="xsd:byte" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="EmployeeType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="SN" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="manager" type="xsd:boolean" minOccurs="0"/>
+          <xsd:element name="jobs" type="tns:job" maxOccurs="unbounded" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="location" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="number" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="list_object" type="tns:EmployeeType" maxOccurs="unbounded" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary create="#/DepartmentType/list_object[2] #/DepartmentType/list_object[1] #/DepartmentType/list_object[3] #/DepartmentType/list_object[0] #/DepartmentType/list_object[4]" delete="#/changeSummary/EmployeeType[0] #/changeSummary/EmployeeType[1] #/changeSummary/EmployeeType[2]">
+    <DepartmentType sdo:ref="#/DepartmentType">
+      <name>R &amp; D</name>
+      <location>Ouaga, BF</location>
+      <list_object>
+        <listChanges kind="change" index="0">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[0]"/>
+        </listChanges>
+        <listChanges kind="append" index="3"/>
+        <listChanges kind="insert" index="3"/>
+        <listChanges kind="append" index="5"/>
+        <listChanges kind="change" index="1">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[1]"/>
+        </listChanges>
+        <listChanges kind="delete" index="0">
+          <dataValues xsi:nil="true"/>
+        </listChanges>
+        <listChanges kind="delete" index="1">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[2]"/>
+        </listChanges>
+        <listChanges kind="append" index="4"/>
+      </list_object>
+    </DepartmentType>
+    <EmployeeType>
+      <name>Inoussa O.</name>
+      <SN>0001</SN>
+      <manager>1</manager>
+      <jobs>
+        <title>Inoussa O.'s job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>Inoussa O.'s job #1</title>
+        <MaxEmployeeCount>3</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>Inoussa O.'s job #2</title>
+        <MaxEmployeeCount>6</MaxEmployeeCount>
+      </jobs>
+    </EmployeeType>
+    <EmployeeType>
+      <name>Kis O.</name>
+      <SN>0002</SN>
+      <manager>0</manager>
+      <jobs>
+        <title>Kis O.'s job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>Kis O.'s job #1</title>
+        <MaxEmployeeCount>2</MaxEmployeeCount>
+      </jobs>
+    </EmployeeType>
+    <EmployeeType>
+      <name>WST</name>
+      <SN>0003</SN>
+      <manager>0</manager>
+      <jobs>
+        <title>WST's job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>WST's job #1</title>
+        <MaxEmployeeCount>4</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>WST's job #2</title>
+        <MaxEmployeeCount>8</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>WST's job #3</title>
+        <MaxEmployeeCount>12</MaxEmployeeCount>
+      </jobs>
+    </EmployeeType>
+  </changeSummary>
+  <ns1:DepartmentType>
+    <name>R &amp; D Department</name>
+    <location>Ouaga 01, BF</location>
+    <number>1210</number>
+    <list_object>
+      <name>Lazarus</name>
+      <SN>0011</SN>
+      <manager>0</manager>
+      <jobs>
+        <title>Lazarus's job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>Lazarus's job #1</title>
+        <MaxEmployeeCount>3</MaxEmployeeCount>
+      </jobs>
+      <jobs>
+        <title>Lazarus's job #2</title>
+        <MaxEmployeeCount>6</MaxEmployeeCount>
+      </jobs>
+    </list_object>
+    <list_object>
+      <name>FPC 5</name>
+      <SN>0050</SN>
+      <manager>0</manager>
+      <jobs>
+        <title>FPC 5's job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+    </list_object>
+    <list_object>
+      <name>FPC 2 </name>
+      <SN>0020</SN>
+      <manager>1</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 3</name>
+      <SN>0030</SN>
+      <manager>0</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 4</name>
+      <SN>0040</SN>
+      <manager>1</manager>
+      <jobs>
+        <title>FPC 4's job #0</title>
+        <MaxEmployeeCount>0</MaxEmployeeCount>
+      </jobs>
+    </list_object>
+  </ns1:DepartmentType>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="job">
+        <xsd:attribute name="title" type="xsd:string"/>
+        <xsd:attribute name="MaxEmployeeCount" type="xsd:byte"/>
+      </xsd:complexType>
+      <xsd:complexType name="EmployeeType">
+        <xsd:sequence>
+          <xsd:element name="jobs" type="tns:job" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="SN" type="xsd:string"/>
+        <xsd:attribute name="manager" type="xsd:boolean"/>
+      </xsd:complexType>
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="list_object" type="tns:EmployeeType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="location" type="xsd:string"/>
+        <xsd:attribute name="number" type="xsd:int"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary create="#/DepartmentType/list_object[2] #/DepartmentType/list_object[1] #/DepartmentType/list_object[3] #/DepartmentType/list_object[0] #/DepartmentType/list_object[4]" delete="#/changeSummary/EmployeeType[0] #/changeSummary/EmployeeType[1] #/changeSummary/EmployeeType[2]">
+    <DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF">
+      <list_object>
+        <listChanges index="0" kind="change">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[0]"/>
+        </listChanges>
+        <listChanges index="3" kind="append"/>
+        <listChanges index="3" kind="insert"/>
+        <listChanges index="5" kind="append"/>
+        <listChanges index="1" kind="change">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[1]"/>
+        </listChanges>
+        <listChanges index="0" kind="delete">
+          <dataValues xsi:nil="true"/>
+        </listChanges>
+        <listChanges index="1" kind="delete">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[2]"/>
+        </listChanges>
+        <listChanges index="4" kind="append"/>
+      </list_object>
+    </DepartmentType>
+    <EmployeeType name="Inoussa O." SN="0001" manager="1">
+      <jobs title="Inoussa O.'s job #0" MaxEmployeeCount="0"/>
+      <jobs title="Inoussa O.'s job #1" MaxEmployeeCount="3"/>
+      <jobs title="Inoussa O.'s job #2" MaxEmployeeCount="6"/>
+    </EmployeeType>
+    <EmployeeType name="Kis O." SN="0002" manager="0">
+      <jobs title="Kis O.'s job #0" MaxEmployeeCount="0"/>
+      <jobs title="Kis O.'s job #1" MaxEmployeeCount="2"/>
+    </EmployeeType>
+    <EmployeeType name="WST" SN="0003" manager="0">
+      <jobs title="WST's job #0" MaxEmployeeCount="0"/>
+      <jobs title="WST's job #1" MaxEmployeeCount="4"/>
+      <jobs title="WST's job #2" MaxEmployeeCount="8"/>
+      <jobs title="WST's job #3" MaxEmployeeCount="12"/>
+    </EmployeeType>
+  </changeSummary>
+  <ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" number="1210">
+    <list_object name="Lazarus" SN="0011" manager="0">
+      <jobs title="Lazarus's job #0" MaxEmployeeCount="0"/>
+      <jobs title="Lazarus's job #1" MaxEmployeeCount="3"/>
+      <jobs title="Lazarus's job #2" MaxEmployeeCount="6"/>
+    </list_object>
+    <list_object name="FPC 5" SN="0050" manager="0">
+      <jobs title="FPC 5's job #0" MaxEmployeeCount="0"/>
+    </list_object>
+    <list_object name="FPC 2 " SN="0020" manager="1"/>
+    <list_object name="FPC 3" SN="0030" manager="0"/>
+    <list_object name="FPC 4" SN="0040" manager="1">
+      <jobs title="FPC 4's job #0" MaxEmployeeCount="0"/>
+    </list_object>
+  </ns1:DepartmentType>
+</sdo:datagraph>

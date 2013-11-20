@@ -1,0 +1,32 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="Employee">
+        <xsd:sequence>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+        <xsd:attribute name="sampleProperty" type="xsd:dateTime"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <Employee sdo:ref="#/Employee" sampleProperty="2023-07-15T23:55:00Z"/>
+  </changeSummary>
+  <ns1:Employee sampleProperty="2006-10-10T08:00:00Z"/>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="Employee">
+        <xsd:sequence>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+        <xsd:attribute name="sampleProperty" type="xsd:dateTime"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <Employee sdo:ref="#/Employee" sampleProperty="2023-07-15T23:55:00Z"/>
+  </changeSummary>
+  <ns1:Employee sampleProperty="2006-10-10T08:00:00Z"/>
+</sdo:datagraph>

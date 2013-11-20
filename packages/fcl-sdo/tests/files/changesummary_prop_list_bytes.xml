@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="location" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="birthDate" type="xsd:dateTime" minOccurs="0"/>
+          <xsd:element name="list_bytes" type="xsd:hexBinary" maxOccurs="unbounded" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <DepartmentType sdo:ref="#/DepartmentType">
+      <name>R &amp; D</name>
+      <location>Ouaga, BF</location>
+      <list_bytes>
+        <listChanges kind="change" index="0" dataValues="00010203040506070809"/>
+        <listChanges kind="append" index="3"/>
+        <listChanges kind="append" index="4"/>
+        <listChanges kind="change" index="1" dataValues=""/>
+        <listChanges kind="delete" index="0" dataValues="0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F525558"/>
+        <listChanges kind="delete" index="1" dataValues="0104070A0D101316191C1F2225282B2E3134373A"/>
+        <listChanges kind="insert" index="2"/>
+        <listChanges kind="append" index="4"/>
+      </list_bytes>
+    </DepartmentType>
+  </changeSummary>
+  <ns1:DepartmentType>
+    <name>R &amp; D Department</name>
+    <location>Ouaga 01, BF</location>
+    <birthDate>1899-12-30T00:00:00Z</birthDate>
+    <list_bytes></list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F5255585B5E6164676A6D707376</list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A</list_bytes>
+    <list_bytes>00010203040506070809</list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F525558</list_bytes>
+  </ns1:DepartmentType>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="list_bytes" type="xsd:hexBinary" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="location" type="xsd:string"/>
+        <xsd:attribute name="birthDate" type="xsd:dateTime"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF">
+      <list_bytes>
+        <listChanges index="0" kind="change" dataValues="00010203040506070809"/>
+        <listChanges index="3" kind="append"/>
+        <listChanges index="4" kind="append"/>
+        <listChanges index="1" kind="change" dataValues=""/>
+        <listChanges index="0" kind="delete" dataValues="0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F525558"/>
+        <listChanges index="1" kind="delete" dataValues="0104070A0D101316191C1F2225282B2E3134373A"/>
+        <listChanges index="2" kind="insert"/>
+        <listChanges index="4" kind="append"/>
+      </list_bytes>
+    </DepartmentType>
+  </changeSummary>
+  <ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" birthDate="1899-12-30T00:00:00Z">
+    <list_bytes></list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F5255585B5E6164676A6D707376</list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A</list_bytes>
+    <list_bytes>00010203040506070809</list_bytes>
+    <list_bytes>0104070A0D101316191C1F2225282B2E3134373A3D404346494C4F525558</list_bytes>
+  </ns1:DepartmentType>
+</sdo:datagraph>

@@ -1,0 +1,16 @@
+<schema targetNamespace="urn_sample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn_sample" xmlns:wst="urn:wst_base">
+  <xsd:complexType name="TSampleClass">
+    <xsd:sequence>
+      <xsd:element name="one-prop" type="xsd:string" />
+    </xsd:sequence>
+    <xsd:attribute name="one-two-prop" type="xsd:string"/>
+  </xsd:complexType>
+</schema>
+<schema targetNamespace="urn_sample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn_sample" xmlns:wst="urn:wst_base">
+  <xsd:complexType name="TSampleClass">
+    <xsd:sequence>
+      <xsd:element name="one-prop" type="xsd:string" />
+    </xsd:sequence>
+    <xsd:attribute name="one-two-prop" type="xsd:string"/>
+  </xsd:complexType>
+</schema>

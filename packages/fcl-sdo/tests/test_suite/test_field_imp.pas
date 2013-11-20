@@ -284,8 +284,7 @@ type
 implementation
 
 uses
-  sdo_imp_utils, sdo_datafactory, sdo_changesummary, sdo_date_utils, DateUtils,
-  sdo_convert_helper;
+  sdo_imp_utils, sdo_datafactory, sdo_changesummary, sdo_date_utils, DateUtils;
 
 const s_URI_1  = 'uri:1'; s_URI_3 = 'uri:3';
       s_TYPE_1 = 'type1'; s_TYPE_2 = 'type2'; s_TYPE_3 = 'type3';
@@ -8975,6 +8974,7 @@ var
   trueBuffer : array[0..100] of Byte;
   buffer, tmpBuffer, attributeBuffer : PByte;
   valBuffer : PPSDOBytes;
+  s : TSDOString;
 begin
   SetConstants();
 
@@ -9001,7 +9001,9 @@ begin
     valBuffer^^ := VAL_2;
       SetBit(attributeBuffer^,BIT_ORDER_SET,True);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
-        CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0));
+        s := obj.getString(buffer,F_OFFSET_0);
+        CheckEquals(BytesToString(VAL_2),s,'x1');
+        //CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0),'1');
       SetBit(attributeBuffer^,BIT_ORDER_SET,False);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
         CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0));
@@ -9039,7 +9041,9 @@ begin
     valBuffer^^ := VAL_2;
       SetBit(attributeBuffer^,BIT_ORDER_SET,True);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
-        CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));
+        s := obj.getString(buffer,F_OFFSET_0);
+        CheckEquals(BytesToString(VAL_2),s);
+        //CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));
       SetBit(attributeBuffer^,BIT_ORDER_SET,False);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
         CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));

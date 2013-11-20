@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <xsd:schema  
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="urn:wst-test">
+  
+    <xsd:complexType name="TClassSampleType">
+	    <xsd:sequence>
+		    <xsd:element name="intField" type="xsd:int" default="1210"/>
+        <xsd:element name="strField" type="xsd:string" minOccurs="1" maxOccurs="1" default="azerty"/>
+        <xsd:element name="floatField" type="xsd:float" minOccurs="0" maxOccurs="1" default="1234"/>
+        <xsd:element name="byteField" type="xsd:byte" maxOccurs="1" default="23"/>
+        <xsd:element name="charField" type="xsd:char" minOccurs="1" default="i"/>
+        <xsd:element name="longField" type="xsd:long" minOccurs="0" default="567"/>
+	    </xsd:sequence>
+	    <xsd:attribute name="strAtt" type="xsd:string" default="attribute azerty"/>
+	    <xsd:attribute name="intAtt" type="xsd:int" default="789"/>
+    </xsd:complexType>
+       
+</xsd:schema>
+<?xml version="1.0" encoding="UTF-8"?>
+ <xsd:schema  
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="urn:wst-test">
+  
+    <xsd:complexType name="TClassSampleType">
+	    <xsd:sequence>
+		    <xsd:element name="intField" type="xsd:int" default="1210"/>
+        <xsd:element name="strField" type="xsd:string" minOccurs="1" maxOccurs="1" default="azerty"/>
+        <xsd:element name="floatField" type="xsd:float" minOccurs="0" maxOccurs="1" default="1234"/>
+        <xsd:element name="byteField" type="xsd:byte" maxOccurs="1" default="23"/>
+        <xsd:element name="charField" type="xsd:char" minOccurs="1" default="i"/>
+        <xsd:element name="longField" type="xsd:long" minOccurs="0" default="567"/>
+	    </xsd:sequence>
+	    <xsd:attribute name="strAtt" type="xsd:string" default="attribute azerty"/>
+	    <xsd:attribute name="intAtt" type="xsd:int" default="789"/>
+    </xsd:complexType>
+       
+</xsd:schema>

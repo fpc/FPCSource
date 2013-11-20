@@ -9,7 +9,7 @@ uses SysUtils
 {$IFNDEF FPC}
   ,TestFrameWork
 {$ENDIF}
-  ,test_suite_utils, sdo, sdo_type, sdo_types, sdo_property ;
+  ,test_suite_utils, sdo, sdo_type, sdo_types;
 
 type
 

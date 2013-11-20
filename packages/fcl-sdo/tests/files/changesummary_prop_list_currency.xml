@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="location" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="number" type="xsd:byte" minOccurs="0"/>
+          <xsd:element name="list_currency" type="xsd:decimal" maxOccurs="unbounded" minOccurs="0" sdo:propertyType="sdo:Currency"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <DepartmentType sdo:ref="#/DepartmentType">
+      <name>R &amp; D</name>
+      <location>Ouaga, BF</location>
+      <list_currency>
+        <listChanges kind="change" index="0" dataValues="1111111111111.1111"/>
+        <listChanges kind="append" index="3"/>
+        <listChanges kind="append" index="4"/>
+        <listChanges kind="change" index="1" dataValues="-222222222222.2222"/>
+        <listChanges kind="delete" index="0" dataValues="444444444444444.4444"/>
+        <listChanges kind="delete" index="1" dataValues="33333333333333.3333"/>
+        <listChanges kind="insert" index="2"/>
+        <listChanges kind="append" index="4"/>
+      </list_currency>
+    </DepartmentType>
+  </changeSummary>
+  <ns1:DepartmentType>
+    <name>R &amp; D Department</name>
+    <location>Ouaga 01, BF</location>
+    <number>123</number>
+    <list_currency>777777777777777.7777</list_currency>
+    <list_currency>555555555555555.5555</list_currency>
+    <list_currency>8.0000</list_currency>
+    <list_currency>-666666666666666.6666</list_currency>
+    <list_currency>-9.0000</list_currency>
+  </ns1:DepartmentType>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="list_currency" type="xsd:decimal"
+		  minOccurs="0" maxOccurs="unbounded" 
+          sdo:propertyType="sdo:Currency"/>
+          <xsd:element name="changeSummary"
+          type="sdo:ChangeSummary" />
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:attribute name="location" type="xsd:string" />
+        <xsd:attribute name="number" type="xsd:byte" />
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D"
+    location="Ouaga, BF">
+      <list_currency>
+        <listChanges index="0" kind="change"
+        dataValues="1111111111111.1111" />
+        <listChanges index="3" kind="append" />
+        <listChanges index="4" kind="append" />
+        <listChanges index="1" kind="change"
+        dataValues="-222222222222.2222" />
+        <listChanges index="0" kind="delete"
+        dataValues="444444444444444.4444" />
+        <listChanges index="1" kind="delete"
+        dataValues="33333333333333.3333" />
+        <listChanges index="2" kind="insert" />
+        <listChanges index="4" kind="append" />
+      </list_currency>
+    </DepartmentType>
+  </changeSummary>
+  <ns1:DepartmentType name="R &amp; D Department"
+  location="Ouaga 01, BF" number="123">
+    <list_currency>777777777777777.7777</list_currency>
+    <list_currency>555555555555555.5555</list_currency>
+    <list_currency>8.0000</list_currency>
+    <list_currency>-666666666666666.6666</list_currency>
+    <list_currency>-9.0000</list_currency>
+  </ns1:DepartmentType>
+</sdo:datagraph>

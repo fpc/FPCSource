@@ -1,0 +1,82 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="uri:sample">
+  <xsd>
+    <schema targetNamespace="uri:sample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="uri:sample" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="ProjectList">
+        <xsd:sequence>
+          <xsd:element name="Project" type="tns:ProjectType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ProjectType">
+        <xsd:sequence>
+          <xsd:element name="Member" type="tns:Person" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="ProjectLeader" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
+        </xsd:sequence>
+        <xsd:attribute name="ProjectName" type="xsd:string"/>
+      </xsd:complexType>
+      <xsd:complexType name="Person">
+        <xsd:sequence>
+          <xsd:element name="Manager" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string"/>
+        <xsd:attribute name="IsManager" type="xsd:boolean"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary />
+  <ns1:ProjectList>
+    <Project ProjectName="WST">
+      <Member Name="wst user 1" IsManager="false">
+        <Manager xsi:nil="true"/>
+      </Member>   
+      <Member Name="Inoussa O." IsManager="true">
+        <Manager xsi:nil="true"/>
+      </Member>  
+      <Member Name="wst user 2" IsManager="false">
+        <Manager>#/ProjectList/Project[0]/Member[1]</Manager>
+      </Member>        
+      <ProjectLeader>#/ProjectList/Project[0]/Member[1]</ProjectLeader>
+    </Project>    
+  </ns1:ProjectList>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="uri:sample">
+  <xsd>
+    <schema targetNamespace="uri:sample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="uri:sample" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="ProjectList">
+        <xsd:sequence>
+          <xsd:element name="Project" type="tns:ProjectType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ProjectType">
+        <xsd:sequence>
+          <xsd:element name="Member" type="tns:Person" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="ProjectLeader" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
+        </xsd:sequence>
+        <xsd:attribute name="ProjectName" type="xsd:string"/>
+      </xsd:complexType>
+      <xsd:complexType name="Person">
+        <xsd:sequence>
+          <xsd:element name="Manager" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string"/>
+        <xsd:attribute name="IsManager" type="xsd:boolean"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary />
+  <ns1:ProjectList>
+    <Project ProjectName="WST">
+      <Member Name="wst user 1" IsManager="false">
+        <Manager xsi:nil="true"/>
+      </Member>   
+      <Member Name="Inoussa O." IsManager="true">
+        <Manager xsi:nil="true"/>
+      </Member>  
+      <Member Name="wst user 2" IsManager="false">
+        <Manager>#/ProjectList/Project[0]/Member[1]</Manager>
+      </Member>        
+      <ProjectLeader>#/ProjectList/Project[0]/Member[1]</ProjectLeader>
+    </Project>    
+  </ns1:ProjectList>
+</sdo:datagraph>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="Employee">
+        <xsd:sequence>
+          <xsd:element name="sampleProperty" type="xsd:long" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <Employee sdo:ref="#/Employee">
+      <sampleProperty>123987456321456987</sampleProperty>
+    </Employee>
+  </changeSummary>
+  <ns1:Employee>
+    <sampleProperty>-458215687422</sampleProperty>
+  </ns1:Employee>
+</sdo:datagraph>
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+      <xsd:complexType name="Employee">
+        <xsd:sequence>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+        <xsd:attribute name="sampleProperty" type="xsd:long"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <Employee sdo:ref="#/Employee" sampleProperty="123987456321456987"/>
+  </changeSummary>
+  <ns1:Employee sampleProperty="-458215687422"/>
+</sdo:datagraph>
