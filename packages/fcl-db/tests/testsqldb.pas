@@ -44,6 +44,8 @@ type
   TTestTSQLScript = class(TSQLDBTestCase)
   published
     procedure TestExecuteScript;
+    procedure TestScriptColon; //bug 25334
+    procedure TestUseCommit; //E.g. Firebird cannot use COMMIT RETAIN if mixing DDL and DML in a script
   end;
 
 implementation
@@ -168,6 +170,92 @@ begin
     AScript.Free;
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+  end;
+end;
+
+procedure TTestTSQLScript.TestScriptColon;
+// Bug 25334: TSQLScript incorrectly treats : in scripts as sqldb query parameter markers
+// Firebird-only test; can be extended for other dbs that use : in SQL
+var
+  Ascript : TSQLScript;
+begin
+  if not(SQLConnType in [interbase]) then Ignore(STestNotApplicable);
+  Ascript := TSQLScript.Create(nil);
+  try
+    with Ascript do
+      begin
+      DataBase := TSQLDBConnector(DBConnector).Connection;
+      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      Script.Clear;
+      UseSetTerm := true;
+      // Example procedure that selects table names
+      Script.Append(
+        'SET TERM ^ ; '+LineEnding+
+        'CREATE PROCEDURE TESTCOLON '+LineEnding+
+        'RETURNS (tblname VARCHAR(31)) '+LineEnding+
+        'AS '+LineEnding+
+        'begin '+LineEnding+
+        '/*  Show tables. Note statement uses colon */ '+LineEnding+
+        'FOR '+LineEnding+
+        '  SELECT RDB$RELATION_NAME  '+LineEnding+
+        '    FROM RDB$RELATIONS '+LineEnding+
+        '    ORDER BY RDB$RELATION_NAME '+LineEnding+
+        '    INTO :tblname '+LineEnding+
+        'DO  '+LineEnding+
+        '  SUSPEND; '+LineEnding+
+        'end^ '+LineEnding+
+        'SET TERM ; ^'
+        );
+      ExecuteScript;
+      // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+      TSQLDBConnector(DBConnector).CommitDDL;
+      end;
+  finally
+    AScript.Free;
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('DROP PROCEDURE TESTCOLON');
+    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).CommitDDL;
+  end;
+end;
+
+procedure TTestTSQLScript.TestUseCommit;
+// E.g. Firebird needs explicit COMMIT sometimes, e.g. if mixing DDL and DML
+// statements in a script.
+// Probably same as bug 17829 Error executing SQL script
+const
+  TestValue='Some text';
+var
+  Ascript : TSQLScript;
+  CheckQuery : TSQLQuery;
+begin
+  Ascript := TSQLScript.Create(nil);
+  try
+    with Ascript do
+      begin
+      DataBase := TSQLDBConnector(DBConnector).Connection;
+      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      Script.Clear;
+      UseCommit:=true;
+      // Example procedure that selects table names
+      Script.Append('CREATE TABLE scriptusecommit (logmessage VARCHAR(255));');
+      Script.Append('COMMIT'); //needed for table to show up
+      Script.Append('INSERT INTO scriptusecommit (logmessage) VALUES ('+TestValue+');');
+      Script.Append('COMMIT');
+      ExecuteScript;
+      // This line should not run, as the commit above should have taken care of it:
+      //TSQLDBConnector(DBConnector).CommitDDL;
+      // Test whether second line of script executed, just to be sure
+      CheckQuery:=TSQLDBConnector(DBConnector).Query;
+      CheckQuery.SQL.Text:='SELECT logmessage from scriptusecommit ';
+      CheckQuery.Open;
+      CheckEquals(TestValue,CheckQuery.Fields[0].AsString,'Insert script line should have inserted '+TestValue);
+      CheckQuery.Close;
+      end;
+  finally
+    AScript.Free;
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('DROP TABLE SCRIPTUSECOMMIT');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
   end;
