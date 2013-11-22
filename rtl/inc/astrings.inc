@@ -314,13 +314,18 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  DestCP:=TranslatePlaceholderCP(DestCP);
-  sameCP:=true;
   lowstart:=low(sarr);
   { skip empty strings }
   while (lowstart<=high(sarr)) and
         (sarr[lowstart]='') do
     inc(lowstart);
+  if lowstart>high(sarr) then
+    begin
+      DestS:=''; { All source strings empty }
+      exit;
+    end;
+  DestCP:=TranslatePlaceholderCP(DestCP);
+  sameCP:=true;
   tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
   for i:=lowstart+1 to high(sarr) do
     begin
