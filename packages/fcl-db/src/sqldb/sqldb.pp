@@ -500,7 +500,7 @@ type
   protected
     procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
-    procedure ExecuteCommit; override;
+    procedure ExecuteCommit(CommitRetaining: boolean=true); override;
     Procedure SetDatabase (Value : TDatabase); virtual;
     Procedure SetTransaction(Value : TDBTransaction); virtual;
     Procedure CheckDatabase;
@@ -2389,10 +2389,16 @@ begin
     FOnDirective (Self, Directive, Argument, StopExecution);
 end;
 
-procedure TSQLScript.ExecuteCommit;
+procedure TSQLScript.ExecuteCommit(CommitRetaining: boolean=true);
 begin
   if FTransaction is TSQLTransaction then
-    TSQLTransaction(FTransaction).CommitRetaining
+    if CommitRetaining then
+      TSQLTransaction(FTransaction).CommitRetaining
+    else
+      begin
+      TSQLTransaction(FTransaction).Commit;
+      TSQLTransaction(FTransaction).StartTransaction;
+      end
   else
     begin
     FTransaction.Active := false;

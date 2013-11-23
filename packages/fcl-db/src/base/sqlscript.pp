@@ -63,12 +63,14 @@ type
     function Available: Boolean;
     procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean);
     procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean);
-    procedure InternalCommit;
+    // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
+    procedure InternalCommit(CommitRetaining: boolean=true);
   protected
     procedure DefaultDirectives; virtual;
     procedure ExecuteStatement (Statement: TStrings; var StopExecution: Boolean); virtual; abstract;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); virtual; abstract;
-    procedure ExecuteCommit; virtual; abstract;
+    // Executes commit. If possible and CommitRetaining, use CommitRetaining, else
+    procedure ExecuteCommit(CommitRetaining: boolean=true); virtual; abstract;
   public
     constructor Create (AnOwner: TComponent); override;
     destructor Destroy; override;
@@ -100,7 +102,7 @@ type
   protected
     procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
-    procedure ExecuteCommit; override;
+    procedure ExecuteCommit(CommitRetaining: boolean=true); override;
   public
     procedure Execute; override;
     property Aborted;
@@ -344,7 +346,7 @@ begin
   end;
 end;
 
-procedure TCustomSQLScript.InternalCommit;
+procedure TCustomSQLScript.InternalCommit(CommitRetaining: boolean=true);
 
 var 
   cont : boolean;
@@ -352,7 +354,7 @@ var
   
 begin
   try
-    ExecuteCommit;
+    ExecuteCommit(CommitRetaining);
   except
     on E : Exception do
       begin
@@ -404,9 +406,16 @@ begin
     else If Not FIsSkipping then
       begin
       // If AutoCommit, skip any explicit commits.
-      if FUseCommit and (Directive = 'COMMIT') and not FAutoCommit then
-        InternalCommit
-      else if FUseSetTerm and (Directive = 'SET TERM') then
+      if FUseCommit
+        and ((Directive = 'COMMIT') or (Directive = 'COMMIT WORK' {SQL standard}))
+        and not FAutoCommit then
+        InternalCommit(false) //explicit commit, no commit retaining
+      else if FUseCommit
+        and (Directive = 'COMMIT RETAIN') {at least Firebird syntax}
+        and not FAutoCommit then
+        InternalCommit(true)
+      else if FUseSetTerm
+        and (Directive = 'SET TERM' {Firebird/Interbase only}) then
         FTerminator:=S
       else
         InternalDirective (Directive,S,FAborted)
@@ -543,7 +552,11 @@ begin
     if FUseSetTerm then
       Add('SET TERM');
     if FUseCommit then
-      Add('COMMIT');
+    begin
+      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
+      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
+      Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
+    end;
     if FUseDefines then
       begin
       Add('#IFDEF');
@@ -650,7 +663,7 @@ begin
     FOnDirective (Self, Directive, Argument, StopExecution);
 end;
 
-procedure TEventSQLScript.ExecuteCommit;
+procedure TEventSQLScript.ExecuteCommit(CommitRetaining: boolean=true);
 begin
   if assigned (FOnCommit) then
     FOnCommit (Self);
