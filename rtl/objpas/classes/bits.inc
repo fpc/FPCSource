@@ -212,10 +212,9 @@ procedure TBits.orbits(bitset : TBits);
 var
    loop : longint;
 begin
-   if FBSize < bitset.Size then
-     grow(bitset.Size);
+   grow(bitset.Size);
 
-   for loop := 0 to FSize-1 do
+   for loop := 0 to bitset.getFSize-1 do
       FBits^[loop] := FBits^[loop] or bitset.FBits^[loop];
 end;
 
@@ -223,10 +222,9 @@ procedure TBits.xorbits(bitset : TBits);
 var
    loop : longint;
 begin
-   if FBSize < bitset.Size then
-     grow(bitset.Size);
+   grow(bitset.Size);
 
-   for loop := 0 to FSize-1 do
+   for loop := 0 to bitset.getFSize-1 do
       FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
 end;
 
