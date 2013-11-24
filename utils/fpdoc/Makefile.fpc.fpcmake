@@ -38,14 +38,11 @@ fpdoc$(EXEEXT): fpdoc.pp dglobals.pp dwriter.pp dw_xml.pp sh_pas.pp dw_html.pp\
 
 makeskel$(EXEEXT): makeskel.pp dglobals.pp
 
-css.inc: fpdoc.css ../bin2obj$(EXEEXT)
-	../bin2obj$(EXEEXT) -o css.inc -c DefaultCSS fpdoc.css
+css.inc: fpdoc.css
+	$(BIN2OBJ) -o css.inc -c DefaultCSS fpdoc.css
 
-plusimage.inc: images/plus.png ../bin2obj$(EXEEXT)
-	../bin2obj$(EXEEXT) -o plusimage.inc -c PlusImageData images/plus.png
+plusimage.inc: images/plus.png
+	$(BIN2OBJ) -o plusimage.inc -c PlusImageData images/plus.png
 
-minusimage.inc: images/minus.png ../bin2obj$(EXEEXT)
-	../bin2obj$(EXEEXT) -o minusimage.inc -c MinusImageData images/minus.png
-
-../bin2obj$(EXEEXT):
-	$(MAKE) -C .. bin2obj$(EXEEXT)
+minusimage.inc: images/minus.png
+	$(BIN2OBJ) -o minusimage.inc -c MinusImageData images/minus.png
