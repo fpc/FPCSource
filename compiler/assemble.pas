@@ -297,7 +297,7 @@ Implementation
         var
           dir : TRawByteSearchRec;
         begin
-          if findfirst(s+source_info.dirsep+'*'+AExt,faAnyFile,dir) = 0 then
+          if findfirst(FixPath(s,false)+'*'+AExt,faAnyFile,dir) = 0 then
             begin
               repeat
                 DeleteFile(s+source_info.dirsep+dir.name);
