@@ -117,6 +117,24 @@
         fstp st(1)
      end;
 
+    {$define FPC_SYSTEM_HAS_FRAC}
+    function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
+      asm
+        sub sp, 2
+        fnstcw [bp-2]
+        fwait
+        mov cx, [bp-2]
+        or word [bp-2], $0f00
+        fldcw [bp-2]
+        fld tbyte [d]
+        frndint
+        fld tbyte [d]
+        fsub st, st(1)
+        fstp st(1)
+        mov [bp-2], cx
+        fldcw [bp-2]
+      end;
+
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
