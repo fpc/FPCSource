@@ -50,7 +50,7 @@ unit i_morph;
             resobjext    : '.or';
             sharedlibext : '.library';
             staticlibext : '.a';
-            staticlibprefix : 'lib';
+            staticlibprefix : 'libp';
             sharedlibprefix : '';
             sharedClibext : '.library';
             staticClibext : '.a';
