@@ -2103,8 +2103,8 @@ implementation
         if (nf_absolute in flags) then
           begin
             convtype:=tc_equal;
-            if not(tstoreddef(resultdef).is_intregable) and
-               not(tstoreddef(resultdef).is_fpuregable) then
+            if (tstoreddef(resultdef).is_intregable<>tstoreddef(left.resultdef).is_intregable) or
+            (tstoreddef(resultdef).is_fpuregable<>tstoreddef(left.resultdef).is_fpuregable) then
               make_not_regable(left,[ra_addr_regable]);
             exit;
           end;
