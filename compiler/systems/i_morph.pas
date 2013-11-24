@@ -37,7 +37,7 @@ unit i_morph;
             flags        : [tf_files_case_aware,tf_smartlink_library];
             cpu          : cpu_powerpc;
             unit_env     : '';
-            extradefines : '';
+            extradefines : 'HASAMIGA';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
