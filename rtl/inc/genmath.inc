@@ -142,8 +142,9 @@ type
        aExp, shiftCount : smallint;
        aSig : int64;
        z : int64;
-       a: float64 absolute d;
+       a: float64;
      begin
+       a:=float64(d);
        aSig:=(int64(a.high and $000fffff) shl 32) or longword(a.low);
        aExp:=(a.high shr 20) and $7FF;
        if aExp<>0 then
@@ -190,11 +191,12 @@ type
   { based on softfloat float32_to_int64_round_to_zero }
   Function fpc_trunc_real( d: valreal ): int64; compilerproc;
     Var
-       a : float32 absolute d;
+       a : float32;
        aExp, shiftCount : smallint;
        aSig : longint;
        aSig64, z : int64;
     Begin
+       a := float32(d);
        aSig := a and $007FFFFF;
        aExp := (a shr 23) and $FF;
        shiftCount := aExp - $BE;
