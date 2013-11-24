@@ -7129,8 +7129,6 @@ function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
   if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
     Result := Name+LibExt
-  else if AOS in [amiga,morphos] then
-    Result:='lib'+Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'
   else if AOS in [macos] then
