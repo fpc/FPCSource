@@ -134,3 +134,22 @@
         fldcw [bp-2]
       end;
 
+    {$define FPC_SYSTEM_HAS_TRUNC}
+    function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
+      asm
+        sub sp, 10
+        fld tbyte [d]
+        fnstcw [bp-10]
+        mov cx, [bp-10]
+        or word [bp-10], $0f00
+        fldcw [bp-10]
+        mov [bp-10], cx
+        fistp qword [bp-8]
+        fldcw [bp-10]
+        fwait
+        mov dx, [bp-8]
+        mov cx, [bp-6]
+        mov bx, [bp-4]
+        mov ax, [bp-2]
+      end;
+
