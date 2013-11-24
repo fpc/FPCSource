@@ -10,6 +10,7 @@ version=2.7.1
 packages=fcl-base fcl-xml fcl-passrc chm
 packages_darwin=univint
 packages_iphonesim=univint
+tools=bin2obj
 
 [target]
 programs=fpdoc makeskel unitdiff fpclasschart
