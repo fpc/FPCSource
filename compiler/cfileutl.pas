@@ -1546,18 +1546,18 @@ end;
         result := Unix.fpsystem(command);
       end;
 {$else hasunix}
-  {$ifdef amigashell}
+  {$ifdef hasamiga}
       begin
         result := RequotedExecuteProcess('',command);
       end;
-  {$else amigashell}
+  {$else hasamiga}
       var
         comspec : string;
       begin
         comspec:=GetEnvironmentVariable('COMSPEC');
         result := RequotedExecuteProcess(comspec,' /C '+command);
       end;
-   {$endif amigashell}
+   {$endif hasamiga}
 {$endif hasunix}
 
 
