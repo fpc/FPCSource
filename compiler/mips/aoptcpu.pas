@@ -32,7 +32,7 @@ unit aoptcpu;
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
-        function TryRemoveMov(var p: tai): boolean;
+        function TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
       End;
 
@@ -65,21 +65,22 @@ unit aoptcpu;
     end;
 
 
-  function TCpuAsmOptimizer.TryRemoveMov(var p: tai): boolean;
+  function TCpuAsmOptimizer.TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
     var
       next,hp1: tai;
       alloc,dealloc: tai_regalloc;
     begin
       { Fold
-          op   $reg1,...
-          move $reg2,$reg1
+          op      $reg1,...
+          opcode  $reg2,$reg1
           dealloc $reg1
         into
           op   $reg2,...
+        opcode may be A_MOVE, A_MOV_s, A_MOV_d, etc.
       }
       result:=false;
       if GetNextInstruction(p,next) and
-         MatchInstruction(next,A_MOVE) and
+         MatchInstruction(next,opcode) and
          MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
         begin
           dealloc:=FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.Next));
@@ -155,7 +156,7 @@ unit aoptcpu;
                       next.free;
                     end
                   else
-                    TryRemoveMov(p);
+                    TryRemoveMov(p,A_MOVE);
                 end;
 
               A_ANDI:
@@ -185,7 +186,7 @@ unit aoptcpu;
                       next2.free;
                     end
                   else
-                    TryRemoveMov(p);
+                    TryRemoveMov(p,A_MOVE);
                 end;
 
               A_ADD,A_ADDU,
@@ -195,7 +196,17 @@ unit aoptcpu;
               A_SRLV,
               A_SLL,A_SLLV,
               A_AND,A_OR,A_XOR,A_ORI,A_XORI:
-                TryRemoveMov(p);
+                TryRemoveMov(p,A_MOVE);
+
+              A_ADD_s, A_SUB_s, A_MUL_s, A_DIV_s,
+              A_ABS_s, A_NEG_s, A_SQRT_s,
+              A_CVT_s_w, A_CVT_s_l, A_CVT_s_d:
+                TryRemoveMov(p,A_MOV_s);
+
+              A_ADD_d, A_SUB_d, A_MUL_d, A_DIV_d,
+              A_ABS_d, A_NEG_d, A_SQRT_d,
+              A_CVT_d_w, A_CVT_d_l, A_CVT_d_s:
+                TryRemoveMov(p,A_MOV_d);
             end;
           end;
       end;
