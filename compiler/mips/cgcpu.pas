@@ -1761,7 +1761,6 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  { Override this function to prevent loading the reference twice }
   if target_info.endian = endian_big then
     begin
       tmpreg := reg.reglo;
@@ -1769,9 +1768,10 @@ begin
       reg.reghi := tmpreg;
     end;
   tmpref := ref;
-  cg.a_load_reg_ref(list, OS_S32, OS_S32, reg.reglo, tmpref);
+  tcgmips(cg).make_simple_ref(list,tmpref);
+  list.concat(taicpu.op_reg_ref(A_SW,reg.reglo,tmpref));
   Inc(tmpref.offset, 4);
-  cg.a_load_reg_ref(list, OS_S32, OS_S32, reg.reghi, tmpref);
+  list.concat(taicpu.op_reg_ref(A_SW,reg.reghi,tmpref));
 end;
 
 
@@ -1780,7 +1780,6 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  { Override this function to prevent loading the reference twice }
   if target_info.endian = endian_big then
     begin
       tmpreg := reg.reglo;
@@ -1788,9 +1787,10 @@ begin
       reg.reghi := tmpreg;
     end;
   tmpref := ref;
-  cg.a_load_ref_reg(list, OS_S32, OS_S32, tmpref, reg.reglo);
+  tcgmips(cg).make_simple_ref(list,tmpref);
+  list.concat(taicpu.op_reg_ref(A_LW,reg.reglo,tmpref));
   Inc(tmpref.offset, 4);
-  cg.a_load_ref_reg(list, OS_S32, OS_S32, tmpref, reg.reghi);
+  list.concat(taicpu.op_reg_ref(A_LW,reg.reghi,tmpref));
 end;
 
 
