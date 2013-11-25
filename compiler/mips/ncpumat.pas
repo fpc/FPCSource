@@ -46,7 +46,7 @@ type
   end;
 
   TMIPSunaryminusnode = class(tcgunaryminusnode)
-    procedure emit_float_sign_change(r: tregister; _size : tcgsize);override;
+    procedure second_float; override;
   end;
 
 implementation
@@ -315,13 +315,17 @@ end;
                                TMIPSunaryminusnode
 *****************************************************************************}
 
-procedure TMIPSunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
+procedure TMIPSunaryminusnode.second_float;
 begin
-  case _size of
+  secondpass(left);
+  location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+  location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+  case location.size of
     OS_F32:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_s,r,r));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_s,location.register,left.location.register));
     OS_F64:
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_d,r,r));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG_d,location.register,left.location.register));
   else
     internalerror(2013030501);
   end;
