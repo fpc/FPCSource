@@ -681,6 +681,16 @@ begin
     ansistring (encoding names are always ascii) }
   SetCodePage(cpname,$ffff,false);
 
+  { Linux uses cpXXXX instead of CPXXXX }
+  if (length(cpname)>2) and
+     (cpname[1]='c') and
+     (cpname[2]='p') and
+     (cpname[3] in ['0'..'9']) then
+    begin
+      cpname[1]:='C';
+      cpname[2]:='P';
+    end;
+
   { simple linear scan, not a common operation and hence not worth
     building a separate array for -- start from index 1 rather than
     0, because 0 = fake "code page 0" that maps to UTF-8 as default

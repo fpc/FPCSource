@@ -12314,6 +12314,7 @@ tests/tstunits/Makefile.fpc svneol=native#text/plain
 tests/tstunits/erroru.pp svneol=native#text/plain
 tests/tstunits/popuperr.pp svneol=native#text/plain
 tests/tstunits/win32err.pp svneol=native#text/plain
+tests/tw15169.pp svneol=native#text/plain
 tests/utils/Makefile svneol=native#text/plain
 tests/utils/Makefile.fpc svneol=native#text/plain
 tests/utils/avx/asmtestgenerator.pas svneol=native#text/plain
