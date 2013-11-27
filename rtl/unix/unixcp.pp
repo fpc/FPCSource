@@ -728,9 +728,11 @@ begin
     begin
       // clean up, for example en_US.UTF-8 => UTF-8
       p:=Pos('.',lang);
-      if p>0 then Delete(lang,1,p);
+      if p>0 then
+        Delete(lang,1,p);
       p:=Pos('@',lang);
-      if p>0 then Delete(lang,p,length(lang)-p+1);
+      if p>0 then
+        Delete(lang,p,length(lang)-p+1);
       cp:=GetCodepageByName(lang);
       if cp <> CP_NONE then
         Result:=cp;
