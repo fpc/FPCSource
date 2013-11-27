@@ -160,16 +160,16 @@ begin
       DataBase := TSQLDBConnector(DBConnector).Connection;
       Transaction := TSQLDBConnector(DBConnector).Transaction;
       Script.Clear;
-      Script.Append('create table a (id int);');
-      Script.Append('create table b (id int);');
+      Script.Append('create table FPDEV_A (id int);');
+      Script.Append('create table FPDEV_B (id int);');
       ExecuteScript;
       // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
       TSQLDBConnector(DBConnector).CommitDDL;
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table a');
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('drop table b');
+    TSQLDBConnector(DBConnector).ExecuteDirect('drop table FPDEV_A');
+    TSQLDBConnector(DBConnector).ExecuteDirect('drop table FPDEV_B');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
   end;
@@ -193,7 +193,7 @@ begin
       // Example procedure that selects table names
       Script.Append(
         'SET TERM ^ ; '+LineEnding+
-        'CREATE PROCEDURE TESTCOLON '+LineEnding+
+        'CREATE PROCEDURE FPDEV_TESTCOLON '+LineEnding+
         'RETURNS (tblname VARCHAR(31)) '+LineEnding+
         'AS '+LineEnding+
         'begin '+LineEnding+
@@ -214,7 +214,7 @@ begin
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('DROP PROCEDURE TESTCOLON');
+    TSQLDBConnector(DBConnector).ExecuteDirect('DROP PROCEDURE FPDEV_TESTCOLON');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
   end;
@@ -239,25 +239,24 @@ begin
       Script.Clear;
       UseCommit:=true;
       // Example procedure that selects table names
-      Script.Append('CREATE TABLE scriptusecommit (logmessage VARCHAR(255));');
-      Script.Append('COMMIT'); //needed for table to show up
-      Script.Append('INSERT INTO scriptusecommit (logmessage) VALUES ('+TestValue+');');
-      Script.Append('COMMIT');
+      Script.Append('CREATE TABLE fpdev_scriptusecommit (logmessage VARCHAR(255));');
+      Script.Append('COMMIT;'); //needed for table to show up
+      Script.Append('INSERT INTO fpdev_scriptusecommit (logmessage) VALUES('''+TestValue+''');');
+      Script.Append('COMMIT;');
       ExecuteScript;
       // This line should not run, as the commit above should have taken care of it:
       //TSQLDBConnector(DBConnector).CommitDDL;
       // Test whether second line of script executed, just to be sure
       CheckQuery:=TSQLDBConnector(DBConnector).Query;
-      CheckQuery.SQL.Text:='SELECT logmessage from scriptusecommit ';
+      CheckQuery.SQL.Text:='SELECT logmessage FROM fpdev_scriptusecommit ';
       CheckQuery.Open;
-      CheckEquals(TestValue,CheckQuery.Fields[0].AsString,'Insert script line should have inserted '+TestValue);
+      CheckEquals(TestValue, CheckQuery.Fields[0].AsString, 'Insert script line should have inserted '+TestValue);
       CheckQuery.Close;
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('DROP TABLE SCRIPTUSECOMMIT');
-    // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
+    TSQLDBConnector(DBConnector).ExecuteDirect('DROP TABLE fpdev_scriptusecommit');
+    TSQLDBConnector(DBConnector).Transaction.Commit;
   end;
 end;
 
