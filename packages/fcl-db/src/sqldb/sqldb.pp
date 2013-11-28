@@ -1747,7 +1747,7 @@ begin
         until (CurrentP^ = #0) or (BracketCount = 0);
         if CurrentP^ <> #0 then inc(CurrentP);
         end;
-      '"':
+      '"','`':
         if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
           Separator := sepDoubleQuote;
       else
