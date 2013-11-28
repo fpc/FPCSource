@@ -68,29 +68,20 @@ uses
 {*****************************************************************************
                                tmipsaddnode
 *****************************************************************************}
-const
-  swapped_nodetype: array[ltn..unequaln] of tnodetype =
-    //lt  lte  gt  gte
-    (gtn, gten,ltn,lten, equaln, unequaln);
-
-  nodetype2opcmp: array[boolean,ltn..unequaln] of TOpCmp = (
-    (OC_LT, OC_LTE, OC_GT, OC_GTE, OC_EQ, OC_NE),
-    (OC_B,  OC_BE,  OC_A,  OC_AE,  OC_EQ, OC_NE)
-  );
 
 procedure tmipsaddnode.second_generic_cmp32(unsigned: boolean);
 var
-  ntype: tnodetype;
+  cond: TOpCmp;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
   location_reset(location,LOC_FLAGS,OS_NO);
 
-  ntype:=nodetype;
+  cond:=cmpnode2topcmp(unsigned);
   if nf_swapped in flags then
-    ntype:=swapped_nodetype[nodetype];
+    cond:=swap_opcmp(cond);
 
-  location.resflags.cond:=nodetype2opcmp[unsigned,ntype];
+  location.resflags.cond:=cond;
   location.resflags.reg1:=left.location.register;
   location.resflags.use_const:=(right.location.loc=LOC_CONSTANT);
   if location.resflags.use_const then

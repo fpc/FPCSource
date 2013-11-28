@@ -26,7 +26,7 @@ unit ncgadd;
 interface
 
     uses
-       node,nadd,cpubase;
+       node,nadd,cpubase,cgbase;
 
     type
        tcgaddnode = class(taddnode)
@@ -39,6 +39,8 @@ interface
           procedure set_result_location_reg;
           { load left and right nodes into registers }
           procedure force_reg_left_right(allow_swap,allow_constant:boolean);
+
+          function cmpnode2topcmp(unsigned: boolean): TOpCmp;
 
           procedure second_opfloat;
           procedure second_opboolean;
@@ -73,7 +75,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,defutil,
-      cgbase,procinfo,pass_2,tgobj,
+      procinfo,pass_2,tgobj,
       nutils,ncon,nset,ncgutil,cgobj,cgutils,
       hlcgobj
       ;
@@ -215,6 +217,32 @@ interface
           end;
       end;
 
+
+    function tcgaddnode.cmpnode2topcmp(unsigned: boolean): TOpCmp;
+      begin
+        if unsigned then
+          case nodetype of
+            gtn:      result:=OC_A;
+            gten:     result:=OC_AE;
+            ltn:      result:=OC_B;
+            lten:     result:=OC_BE;
+            equaln:   result:=OC_EQ;
+            unequaln: result:=OC_NE;
+          else
+            internalerror(2011010412);
+          end
+        else
+          case nodetype of
+            gtn:      result:=OC_GT;
+            gten:     result:=OC_GTE;
+            ltn:      result:=OC_LT;
+            lten:     result:=OC_LTE;
+            equaln:   result:=OC_EQ;
+            unequaln: result:=OC_NE;
+          else
+            internalerror(2011010412);
+          end
+      end;
 
 {*****************************************************************************
                                 Smallsets

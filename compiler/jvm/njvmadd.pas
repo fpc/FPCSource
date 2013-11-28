@@ -38,8 +38,6 @@ interface
        protected
           function jvm_first_addset: tnode;
 
-          function cmpnode2topcmp(unsigned: boolean): TOpCmp;
-
           procedure second_generic_compare(unsigned: boolean);
 
           procedure pass_left_right;override;
@@ -330,33 +328,6 @@ interface
         { left and right are reused as parameters }
         left:=nil;
         right:=nil;
-      end;
-
-
-    function tjvmaddnode.cmpnode2topcmp(unsigned: boolean): TOpCmp;
-      begin
-        if not unsigned then
-          case nodetype of
-            gtn: result:=OC_GT;
-            gten: result:=OC_GTE;
-            ltn: result:=OC_LT;
-            lten: result:=OC_LTE;
-            equaln: result:=OC_EQ;
-            unequaln: result:=OC_NE;
-            else
-              internalerror(2011010412);
-          end
-        else
-        case nodetype of
-          gtn: result:=OC_A;
-          gten: result:=OC_AE;
-          ltn: result:=OC_B;
-          lten: result:=OC_BE;
-          equaln: result:=OC_EQ;
-          unequaln: result:=OC_NE;
-          else
-            internalerror(2011010412);
-        end;
       end;
 
 
