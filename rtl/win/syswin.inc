@@ -81,9 +81,22 @@ const
   STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
 
+  { Exceptions raised by RTL use this code }
+  FPC_EXCEPTION_CODE                      = $E0465043;
+
   EXCEPTION_EXECUTE_HANDLER               = 1;
   EXCEPTION_CONTINUE_EXECUTION            = -1;
   EXCEPTION_CONTINUE_SEARCH               = 0;
+
+  { exception flags (not everything applies to Win32!) }
+  EXCEPTION_NONCONTINUABLE  = $01;
+  EXCEPTION_UNWINDING       = $02;
+  EXCEPTION_EXIT_UNWIND     = $04;
+  EXCEPTION_STACK_INVALID   = $08;
+  EXCEPTION_NESTED_CALL     = $10;
+  EXCEPTION_TARGET_UNWIND   = $20;
+  EXCEPTION_COLLIDED_UNWIND = $40;
+
 
   CONTEXT_X86                             = $00010000;
   CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
@@ -96,6 +109,24 @@ const
   CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
   MAXIMUM_SUPPORTED_EXTENSION             = 512;
+
+type
+  EXCEPTION_DISPOSITION=(
+    ExceptionContinueExecution,
+    ExceptionContinueSearch,
+    ExceptionNestedException,
+    ExceptionCollidedUnwind
+  );
+
+  TUnwindProc=procedure(frame: PtrUInt);
+
+procedure RaiseException(
+  dwExceptionCode: DWORD;
+  dwExceptionFlags: DWORD;
+  dwArgCount: DWORD;
+  lpArguments: Pointer);  // msdn: *ULONG_PTR
+  stdcall; external 'kernel32.dll' name 'RaiseException';
+
 
   {*****************************************************************************
                                 Parameter Handling

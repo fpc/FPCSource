@@ -15,14 +15,8 @@
 
 { exception flags }
 const
-  EXCEPTION_NONCONTINUABLE  = $01;
-  EXCEPTION_UNWINDING       = $02;
-  EXCEPTION_EXIT_UNWIND     = $04;
-  EXCEPTION_STACK_INVALID   = $08;
-  EXCEPTION_NESTED_CALL     = $10;
-  EXCEPTION_TARGET_UNWIND   = $20;
-  EXCEPTION_COLLIDED_UNWIND = $40;
-  EXCEPTION_UNWIND          = $66;
+  EXCEPTION_UNWIND          = EXCEPTION_UNWINDING or EXCEPTION_EXIT_UNWIND or
+                              EXCEPTION_TARGET_UNWIND or EXCEPTION_COLLIDED_UNWIND;
 
   UNWIND_HISTORY_TABLE_SIZE = 12;
 
@@ -109,12 +103,6 @@ type
     IntegerContext: array[0..15] of PQWord;
   end;
 
-  EXCEPTION_DISPOSITION=(
-    ExceptionContinueExecution,
-    ExceptionContinueSearch,
-    ExceptionNestedException,
-    ExceptionCollidedUnwind
-  );
 
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = record
@@ -204,17 +192,10 @@ procedure RtlUnwindEx(
   HistoryTable: PUNWIND_HISTORY_TABLE);
   external 'kernel32.dll' name 'RtlUnwindEx';
 
-procedure RaiseException(
-  dwExceptionCode: DWORD;
-  dwExceptionFlags: DWORD;
-  dwArgCount: DWORD;
-  lpArguments: Pointer);  // msdn: *ULONG_PTR
-  external 'kernel32.dll' name 'RaiseException';
 
 { FPC specific stuff }
 {$ifdef FPC_USE_WIN64_SEH}
 const
-  FPC_EXCEPTION_CODE=$E0465043;
   SCOPE_FINALLY=0;
   SCOPE_CATCHALL=1;
   SCOPE_IMPLICIT=2;
@@ -237,7 +218,7 @@ type
     RvaHandler: DWord;
   end;
 
-  TUnwindProc=procedure(frame: QWord);
+
   TExceptObjProc=function(code: Longint; const rec: TExceptionRecord): Pointer; { Exception }
   TExceptClsProc=function(code: Longint): Pointer; { ExceptClass }
 
