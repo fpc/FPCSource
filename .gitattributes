@@ -7787,7 +7787,6 @@ rtl/fpmake.inc svneol=native#text/plain
 rtl/fpmake.pp svneol=native#text/plain
 rtl/freebsd/Makefile svneol=native#text/plain
 rtl/freebsd/Makefile.fpc svneol=native#text/plain
-rtl/freebsd/bsdport.txt svneol=native#text/plain
 rtl/freebsd/buildrtl.lpi svneol=native#text/plain
 rtl/freebsd/buildrtl.pp svneol=native#text/plain
 rtl/freebsd/console.pp svneol=native#text/plain
