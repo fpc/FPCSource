@@ -13,14 +13,14 @@
 **********************************************************************}
 
 {$ASMMODE intel}
-{//$define FPC_MATH_HAS_ARCTAN2}
-{function arctan2(y,x : float) : float;assembler;
+{$define FPC_MATH_HAS_ARCTAN2}
+function arctan2(y,x : float) : float;assembler;
   asm
-     fldt y
-     fldt x
-     fpatan
-     fwait
-  end;}
+    fld tbyte [y]
+    fld tbyte [x]
+    fpatan
+    fwait
+  end;
 
 
 {//$define FPC_MATH_HAS_SINCOS}
