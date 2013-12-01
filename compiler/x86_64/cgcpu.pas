@@ -57,7 +57,7 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
        symsym,symtable,defutil,paramgr,fmodule,cpupi,
-       rgobj,tgobj,rgcpu;
+       rgobj,tgobj,rgcpu,ncgutil;
 
 
     procedure Tcgx86_64.init_register_allocators;
@@ -140,7 +140,6 @@ unit cgcpu;
         frame_offset: longint;
         suppress_endprologue: boolean;
         stackmisalignment: longint;
-        para: tparavarsym;
         xmmsize: longint;
 
       procedure push_one_reg(reg: tregister);
@@ -196,15 +195,7 @@ unit cgcpu;
                 else
                   begin
                     push_regs;
-                    { load framepointer from hidden $parentfp parameter }
-                    para:=tparavarsym(current_procinfo.procdef.paras[0]);
-                    if not (vo_is_parentfp in para.varoptions) then
-                      InternalError(201201142);
-                    if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
-                       (para.paraloc[calleeside].location^.next<>nil) then
-                      InternalError(201201143);
-                    list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],
-                      para.paraloc[calleeside].location^.register,NR_FRAME_POINTER_REG));
+                    gen_load_frame_for_exceptfilter(list);
                     { Need only as much stack space as necessary to do the calls.
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.

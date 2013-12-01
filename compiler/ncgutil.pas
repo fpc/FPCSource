@@ -138,6 +138,7 @@ interface
     function getprocalign : shortint;
 
     procedure gen_fpc_dummy(list : TAsmList);
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
 
 implementation
 
@@ -2212,5 +2213,19 @@ implementation
 {$endif i386}
       end;
 
+
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
+      var
+        para: tparavarsym;
+      begin
+        para:=tparavarsym(current_procinfo.procdef.paras[0]);
+        if not (vo_is_parentfp in para.varoptions) then
+          InternalError(201201142);
+        if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+          (para.paraloc[calleeside].location^.next<>nil) then
+          InternalError(201201143);
+        cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,para.paraloc[calleeside].location^.register,
+          NR_FRAME_POINTER_REG);
+      end;
 
 end.
