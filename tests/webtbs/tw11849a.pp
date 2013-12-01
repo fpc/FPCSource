@@ -1,5 +1,4 @@
 { %OPT=-Sew -vw -Oodfa }
-{ %fail }
 {$mode objfpc}
 procedure GiveMe(var i: integer);
 begin
