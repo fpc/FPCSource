@@ -812,10 +812,9 @@ unit optdfa;
           i : longint;
           touchesnode : Boolean;
 
-        procedure MaybeDoCheck(n : tnode);
+        procedure MaybeDoCheck(n : tnode);inline;
           begin
-            if not(Result) then
-              Result:=Result or DoCheck(n);
+            Result:=Result or DoCheck(n);
           end;
 
         procedure MaybeSearchIn(n : tnode);
@@ -834,11 +833,16 @@ unit optdfa;
             exit;
           include(node.flags,nf_processing);
 
-          touchesnode:=DFASetIn(node.optinfo^.use,nodetosearch.optinfo^.index) or
-            DFASetIn(node.optinfo^.def,nodetosearch.optinfo^.index);
-
           if not(DFASetIn(node.optinfo^.life,nodetosearch.optinfo^.index)) then
             exit;
+
+          { we do not need this info always, so try to safe some time here, CheckAndWarn
+            takes a lot of time anyways }
+          if not(node.nodetype in [statementn,blockn]) then
+            touchesnode:=DFASetIn(node.optinfo^.use,nodetosearch.optinfo^.index) or
+              DFASetIn(node.optinfo^.def,nodetosearch.optinfo^.index)
+          else
+            touchesnode:=false;
 
           case node.nodetype of
             whilerepeatn:
