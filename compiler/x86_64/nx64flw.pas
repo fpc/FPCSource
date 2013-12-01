@@ -219,6 +219,8 @@ constructor tx64tryfinallynode.create(l, r: TNode);
     finalizepi.entryswitches:=r.localswitches;
     finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
     finalizepi.exitswitches:=current_settings.localswitches;
+    { the init/final code is messing with asm nodes, so inform the compiler about this }
+    include(finalizepi.flags,pi_has_assembler_block);
     { Regvar optimization for symbols is suppressed when using exceptions, but
       temps may be still placed into registers. This must be fixed. }
     foreachnodestatic(r,@reset_regvars,finalizepi);
@@ -243,6 +245,8 @@ constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
     finalizepi.entryswitches:=r.localswitches;
     finalizepi.exitswitches:=current_settings.localswitches;
     include(finalizepi.flags,pi_do_call);
+    { the init/final code is messing with asm nodes, so inform the compiler about this }
+    include(finalizepi.flags,pi_has_assembler_block);
     finalizepi.allocate_push_parasize(32);
   end;
 
