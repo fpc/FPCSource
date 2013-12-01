@@ -48,17 +48,19 @@ unit optdfa;
         destructor destroy;override;
       end;
 
+    procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
+
   implementation
 
     uses
       globtype,globals,
       verbose,
       cpuinfo,
-      symconst,symdef,
+      symconst,symdef,symsym,
       defutil,
       procinfo,
       nutils,
-      nbas,nflw,ncon,ninl,ncal,nset,
+      nbas,nflw,ncon,ninl,ncal,nset,nld,nadd,
       optbase;
 
 
@@ -126,13 +128,6 @@ unit optdfa;
                 DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
-              {
-              write('Use Set: ');
-              PrintDFASet(output,pdfainfo(arg)^.use^);
-              write(' Def Set: ');
-              PrintDFASet(output,pdfainfo(arg)^.def^);
-              writeln;
-              }
             end;
         end;
         result:=fen_false;
@@ -177,16 +172,6 @@ unit optdfa;
             b : boolean;
           begin
             b:=DFASetNotEqual(l,n.optinfo^.life);
-            {
-            if b then
-              begin
-                printnode(output,n);
-                printdfaset(output,l);
-                writeln;
-                printdfaset(output,n.optinfo^.life);
-                writeln;
-              end;
-            }
 {$ifdef DEBUG_DFA}
             if not(changed) and b then
               begin
@@ -235,11 +220,6 @@ unit optdfa;
           if nf_processing in node.flags then
             exit;
           include(node.flags,nf_processing);
-
-          if not(assigned(node.successor)) and (node<>resultnode) and
-            not((node.nodetype=calln) and (cnf_call_never_returns in tcallnode(node).callnodeflags)) and
-            not(node.nodetype in [raisen,exitn]) then
-            node.successor:=resultnode;
 
           if assigned(node.successor) then
             CreateInfo(node.successor);
@@ -327,7 +307,7 @@ unit optdfa;
                   if left is a record element, it might not be tracked by dfa, so
                   optinfo might not be assigned
                 }
-                counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and
+                counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and assigned(node.successor) and
                   DFASetIn(node.successor.optinfo^.life,tfornode(node).left.optinfo^.index);
 
                 { if yes, then we should warn }
@@ -339,7 +319,8 @@ unit optdfa;
                 l:=copy(tfornode(node).t2.optinfo^.life);
 
                 { take care of the sucessor }
-                DFASetIncludeSet(l,node.successor.optinfo^.life);
+                if assigned(node.successor) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
 
                 { the counter variable is living as well inside the for loop
 
@@ -358,7 +339,8 @@ unit optdfa;
                 l:=copy(tfornode(node).t2.optinfo^.life);
 
                 { take care of the sucessor as it's possible that we don't have one execution of the body }
-                if not(tfornode(node).right.nodetype=ordconstn) or not(tfornode(node).t1.nodetype=ordconstn) then
+                if (not(tfornode(node).right.nodetype=ordconstn) or not(tfornode(node).t1.nodetype=ordconstn)) and
+                  assigned(node.successor) then
                   DFASetIncludeSet(l,node.successor.optinfo^.life);
 
                 {
@@ -436,19 +418,19 @@ unit optdfa;
                 { get life info from then branch }
                 if assigned(tifnode(node).right) then
                   DFASetIncludeSet(l,tifnode(node).right.optinfo^.life);
+
                 { get life info from else branch }
                 if assigned(tifnode(node).t1) then
                   DFASetIncludeSet(l,tifnode(node).t1.optinfo^.life)
-                else
-                  if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life)
-                  { last node and function? }
-                else
-                  if assigned(resultnode) then
-                    DFASetIncludeSet(l,resultnode.optinfo^.life);
+                else if assigned(node.successor) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
+
+                { remove def info from the cond. expression }
+                DFASetExcludeSet(l,tifnode(node).optinfo^.def);
 
                 { add use info from the cond. expression }
                 DFASetIncludeSet(l,tifnode(node).optinfo^.use);
+
                 { finally, update the life info of the node }
                 UpdateLifeInfo(node,l);
               end;
@@ -481,13 +463,8 @@ unit optdfa;
                 { get life info from else branch or the succesor }
                 if assigned(tcasenode(node).elseblock) then
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
-                else
-                  if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life)
-                  { last node and function? }
-                else
-                  if assigned(resultnode) then
-                    DFASetIncludeSet(l,resultnode.optinfo^.life);
+                else if assigned(node.successor) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
 
                 { add use info from the "case" expression }
                 DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
@@ -559,46 +536,21 @@ unit optdfa;
                 calclife(node);
               end;
             else
-              if node<>resultnode then
-                begin
-                  writeln(nodetype2str[node.nodetype]);
-                  internalerror(2007050502);
-                end;
+              internalerror(2007050502);
           end;
-
-          // exclude(node.flags,nf_processing);
         end;
 
       var
         runs : integer;
-        dfarec : tdfainfo;
       begin
         runs:=0;
-        if not(is_void(current_procinfo.procdef.returndef)) then
-          begin
-            { create a fake node using the result }
-            if current_procinfo.procdef.proctypeoption=potype_constructor then
-              resultnode:=load_self_node
-            else
-              resultnode:=load_result_node;
-            resultnode.allocoptinfo;
-            dfarec.use:=@resultnode.optinfo^.use;
-            dfarec.def:=@resultnode.optinfo^.def;
-            dfarec.map:=map;
-            AddDefUse(resultnode,@dfarec);
-            resultnode.optinfo^.life:=resultnode.optinfo^.use;
-          end
-        else
-          begin
-            resultnode:=cnothingnode.create;
-            resultnode.allocoptinfo;
-          end;
-
         repeat
           inc(runs);
           changed:=false;
           CreateInfo(node);
           foreachnodestatic(pm_postprocess,node,@ResetProcessing,nil);
+          { the result node is not reached by foreachnodestatic }
+          exclude(resultnode.flags,nf_processing);
 {$ifdef DEBUG_DFA}
           PrintIndexedNodeSet(output,map);
           PrintDFAInfo(output,node);
@@ -619,11 +571,35 @@ unit optdfa;
 
 
     procedure TDFABuilder.createdfainfo(node : tnode);
+      var
+        dfarec : tdfainfo;
       begin
         if not(assigned(nodemap)) then
           nodemap:=TIndexedNodeSet.Create;
+
+        { create a fake node using the result which will be the last node }
+        if not(is_void(current_procinfo.procdef.returndef)) then
+          begin
+            if current_procinfo.procdef.proctypeoption=potype_constructor then
+              resultnode:=load_self_node
+            else
+              resultnode:=load_result_node;
+            resultnode.allocoptinfo;
+            dfarec.use:=@resultnode.optinfo^.use;
+            dfarec.def:=@resultnode.optinfo^.def;
+            dfarec.map:=nodemap;
+            AddDefUse(resultnode,@dfarec);
+            resultnode.optinfo^.life:=resultnode.optinfo^.use;
+          end
+        else
+          begin
+            resultnode:=cnothingnode.create;
+            resultnode.allocoptinfo;
+          end;
+
         { add controll flow information }
         SetNodeSucessors(node,resultnode);
+
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
       end;
@@ -636,4 +612,318 @@ unit optdfa;
         inherited destroy;
       end;
 
+    var
+      { we have to pass the address of SearchNode in a call inside of SearchNode:
+        @SearchNode does not work because the compiler thinks we take the address of the result
+        so store the address from outside }
+      SearchNodeProcPointer : function(var n: tnode; arg: pointer): foreachnoderesult;
+
+    type
+      { helper structure to be able to pass more than one variable to the iterator function }
+      TSearchNodeInfo = record
+        nodetosearch : tnode;
+        { this contains a list of all file locations where a warning was thrown already,
+          the same location might appear multiple times because nodes might have been copied }
+        warnedfilelocs : array of tfileposinfo;
+      end;
+
+      PSearchNodeInfo = ^TSearchNodeInfo;
+
+    { searches for a given node n and warns if the node is found as being uninitialized. If a node is
+      found, searching is stopped so each call issues only one warning/hint }
+    function SearchNode(var n: tnode; arg: pointer): foreachnoderesult;
+
+      function WarnedForLocation(f : tfileposinfo) : boolean;
+        var
+          i : longint;
+        begin
+          result:=true;
+          for i:=0 to high(PSearchNodeInfo(arg)^.warnedfilelocs) do
+            with PSearchNodeInfo(arg)^.warnedfilelocs[i] do
+              begin
+                if (f.column=column) and (f.fileindex=fileindex) and (f.line=line) and (f.moduleindex=moduleindex) then
+                  exit;
+              end;
+          result:=false;
+        end;
+
+
+      procedure AddFilepos(const f : tfileposinfo);
+        begin
+          Setlength(PSearchNodeInfo(arg)^.warnedfilelocs,length(PSearchNodeInfo(arg)^.warnedfilelocs)+1);
+          PSearchNodeInfo(arg)^.warnedfilelocs[high(PSearchNodeInfo(arg)^.warnedfilelocs)]:=f;
+        end;
+
+      var
+        varsym : tabstractnormalvarsym;
+        methodpointer,
+        hpt : tnode;
+      begin
+        result:=fen_false;
+        case n.nodetype of
+          callparan:
+            begin
+              { do not warn about variables passed by var, just issue a hint, this
+                is a workaround for old code e.g. using fillchar }
+              if assigned(tcallparanode(n).parasym) and (tcallparanode(n).parasym.varspez in [vs_var,vs_out]) then
+                begin
+                  hpt:=tcallparanode(n).left;
+                  while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn,typeconvn]) do
+                    hpt:=tunarynode(hpt).left;
+                  if assigned(hpt) and (hpt.nodetype=loadn) and not(WarnedForLocation(hpt.fileinfo)) and
+                    { warn only on the current symtable level }
+                    (((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.localst) and
+                      (current_procinfo.procdef.localst.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
+                     ) or
+                     ((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.parast) and
+                      (current_procinfo.procdef.parast.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
+                     )
+                    ) and
+                    PSearchNodeInfo(arg)^.nodetosearch.isequal(hpt) then
+                    begin
+                      { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
+                      if tcallparanode(n).parasym.varspez=vs_var then
+                        MessagePos1(hpt.fileinfo,sym_h_uninitialized_local_variable,tloadnode(hpt).symtableentry.RealName);
+                      AddFilepos(hpt.fileinfo);
+                      result:=fen_norecurse_true;
+                    end
+                end;
+            end;
+          orn,
+          andn:
+            begin
+              { take care of short boolean evaluation: if the expression to be search is found in left,
+                we do not need to search right }
+              if foreachnodestatic(pm_postprocess,taddnode(n).left,SearchNodeProcPointer,arg) or
+                foreachnodestatic(pm_postprocess,taddnode(n).right,SearchNodeProcPointer,arg) then
+                result:=fen_norecurse_true
+              else
+                result:=fen_norecurse_false;
+            end;
+          calln:
+            begin
+              methodpointer:=tcallnode(n).methodpointer;
+              if assigned(methodpointer) and (methodpointer.nodetype<>typen) then
+               begin
+                  { Remove all postfix operators }
+                  hpt:=methodpointer;
+                  while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
+                    hpt:=tunarynode(hpt).left;
+
+                 { skip (absolute and other simple) type conversions -- only now,
+                   because the checks above have to take type conversions into
+                   e.g. class reference types account }
+                 hpt:=actualtargetnode(@hpt)^;
+
+                  { R.Init then R will be initialized by the constructor,
+                    Also allow it for simple loads }
+                  if (tcallnode(n).procdefinition.proctypeoption=potype_constructor) or
+                     (PSearchNodeInfo(arg)^.nodetosearch.isequal(hpt) and
+                      (((methodpointer.resultdef.typ=objectdef) and
+                        not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)) or
+                       (methodpointer.resultdef.typ=recorddef)
+                      )
+                     ) then
+                    begin
+                      { don't warn about the method pointer }
+                      AddFilepos(hpt.fileinfo);
+
+                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,SearchNodeProcPointer,arg)) then
+                        foreachnodestatic(pm_postprocess,tcallnode(n).right,SearchNodeProcPointer,arg);
+                      result:=fen_norecurse_true
+                    end;
+                 end;
+            end;
+          loadn:
+            begin
+              if (tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
+                PSearchNodeInfo(arg)^.nodetosearch.isequal(n) and ((nf_modify in n.flags) or not(nf_write in n.flags)) then
+                begin
+                  varsym:=tabstractnormalvarsym(tloadnode(n).symtableentry);
+
+                  { Give warning/note for living locals, result and parameters, but only about the current
+                    symtables }
+                  if assigned(varsym.owner) and
+                    (((varsym.owner=current_procinfo.procdef.localst) and
+                      (current_procinfo.procdef.localst.symtablelevel=varsym.owner.symtablelevel)
+                     ) or
+                     ((varsym.owner=current_procinfo.procdef.parast) and
+                      (varsym.typ=paravarsym) and
+                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
+                      { all parameters except out parameters are initialized by the caller }
+                      (tparavarsym(varsym).varspez=vs_out)
+                     ) or
+                     ((vo_is_funcret in varsym.varoptions) and
+                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel)
+                     )
+                    ) and
+                    not(vo_is_external in varsym.varoptions) then
+                    begin
+                      if (vo_is_funcret in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
+                        begin
+                          MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
+                          AddFilepos(n.fileinfo);
+                          result:=fen_norecurse_true;
+                        end
+                      else
+                        begin
+                          { typed consts are initialized, further, warn only once per location }
+                          if not (vo_is_typed_const in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
+                            begin
+                              if varsym.typ=paravarsym then
+                                MessagePos1(n.fileinfo,sym_w_uninitialized_variable,varsym.realname)
+                              else
+                                MessagePos1(n.fileinfo,sym_w_uninitialized_local_variable,varsym.realname);
+                              AddFilepos(n.fileinfo);
+                              result:=fen_norecurse_true;
+                            end;
+                        end;
+                    end
+{$ifdef dummy}
+                  { if a the variable we are looking for is passed as a var parameter, we stop searching }
+                  else if assigned(varsym.owner) and
+                     (varsym.owner=current_procinfo.procdef.parast) and
+                     (varsym.typ=paravarsym) and
+                     (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
+                     (tparavarsym(varsym).varspez=vs_var) then
+                    result:=fen_norecurse_true;
+{$endif dummy}
+                end;
+            end;
+        end;
+      end;
+
+
+    procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
+
+      var
+        SearchNodeInfo : TSearchNodeInfo;
+
+      function DoCheck(node : tnode) : boolean;
+        var
+          i : longint;
+          touchesnode : Boolean;
+
+        procedure MaybeDoCheck(n : tnode);
+          begin
+            if not(Result) then
+              Result:=Result or DoCheck(n);
+          end;
+
+        procedure MaybeSearchIn(n : tnode);
+          begin
+            if touchesnode then
+              Result:=Result or foreachnodestatic(pm_postprocess,n,@SearchNode,@SearchNodeInfo);
+          end;
+
+        begin
+          result:=false;
+
+          if node=nil then
+            exit;
+
+          if nf_processing in node.flags then
+            exit;
+          include(node.flags,nf_processing);
+
+          touchesnode:=DFASetIn(node.optinfo^.use,nodetosearch.optinfo^.index) or
+            DFASetIn(node.optinfo^.def,nodetosearch.optinfo^.index);
+
+          if not(DFASetIn(node.optinfo^.life,nodetosearch.optinfo^.index)) then
+            exit;
+
+          case node.nodetype of
+            whilerepeatn:
+              begin
+                MaybeSearchIn(twhilerepeatnode(node).left);
+                MaybeDoCheck(twhilerepeatnode(node).right);
+              end;
+
+            forn:
+              begin
+                MaybeSearchIn(tfornode(node).right);
+                MaybeSearchIn(tfornode(node).t1);
+                MaybeDoCheck(tfornode(node).t2);
+              end;
+
+            statementn:
+              MaybeDoCheck(tstatementnode(node).statement);
+
+            blockn:
+              MaybeDoCheck(tblocknode(node).statements);
+
+            ifn:
+              begin
+                MaybeSearchIn(tifnode(node).left);
+                MaybeDoCheck(tifnode(node).right);
+                MaybeDoCheck(tifnode(node).t1);
+              end;
+
+            casen:
+              begin
+                MaybeSearchIn(tcasenode(node).left);
+                for i:=0 to tcasenode(node).blocks.count-1 do
+                  MaybeDoCheck(pcaseblock(tcasenode(node).blocks[i])^.statement);
+
+                MaybeDoCheck(tcasenode(node).elseblock);
+              end;
+
+            labeln:
+              MaybeDoCheck(tlabelnode(node).left);
+
+            { we are aware of the following nodes so if new node types are added to the compiler
+              and pop up in the search, the ie below kicks in as a reminder }
+            exitn:
+              begin
+                MaybeSearchIn(texitnode(node).left);
+                { exit uses the resultnode implicitly, so searching for a matching node is
+                  useless, if we reach the exit node and found the living node not in left, then
+                  it can be only the resultnode  }
+                if not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
+                  not(assigned(texitnode(node).resultexpr)) and
+                  { don't warn about constructors }
+                  not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
+                  begin
+                    MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
+
+                    Setlength(SearchNodeInfo.warnedfilelocs,length(SearchNodeInfo.warnedfilelocs)+1);
+                    SearchNodeInfo.warnedfilelocs[high(SearchNodeInfo.warnedfilelocs)]:=node.fileinfo;
+                  end
+              end;
+            { could be the implicitly generated load node for the result }
+            loadn,
+            assignn,
+            calln,
+            temprefn,
+            typeconvn,
+            inlinen,
+            tempcreaten,
+            tempdeleten:
+              MaybeSearchIn(node);
+            nothingn,
+            continuen,
+            goton,
+            breakn:
+              ;
+            else
+              internalerror(2013111301);
+          end;
+
+          { if already a warning has been issued, then stop }
+          if Result then
+            exit;
+
+          if assigned(node.successor) then
+            MaybeDoCheck(node.successor);
+        end;
+
+      begin
+        SearchNodeInfo.nodetosearch:=nodetosearch;
+        DoCheck(code);
+        foreachnodestatic(pm_postprocess,code,@ResetProcessing,nil);
+      end;
+
+
+begin
+  SearchNodeProcPointer:=@SearchNode;
 end.

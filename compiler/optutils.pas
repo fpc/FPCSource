@@ -55,7 +55,7 @@ unit optutils;
     uses
       verbose,
       optbase,
-      ncal,nbas,nflw,nutils,nset;
+      ncal,nbas,nflw,nutils,nset,ncon;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -129,6 +129,10 @@ unit optutils;
             PrintDFASet(text(arg^),n.optinfo^.def);
             write(text(arg^),' Use: ');
             PrintDFASet(text(arg^),n.optinfo^.use);
+            if assigned(n.successor) then
+              write(text(arg^),' Successor: ',nodetype2str[n.successor.nodetype],'(',n.successor.fileinfo.line,',',n.successor.fileinfo.column,')')
+            else
+              write(text(arg^),' Successor: nil');
             writeln(text(arg^));
           end;
         result:=fen_false;
@@ -222,7 +226,18 @@ unit optutils;
                 result:=p;
                 { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
+
                 p.successor:=succ;
+
+                { special case: we do not do a dyn. dfa, but we should handle endless loops }
+                if is_constboolnode(twhilerepeatnode(p).left) then
+                  begin
+                    if ((lnf_testatbegin in twhilerepeatnode(p).loopflags) and
+                      getbooleanvalue(twhilerepeatnode(p).left)) or (not(lnf_testatbegin in twhilerepeatnode(p).loopflags) and
+                      not(getbooleanvalue(twhilerepeatnode(p).left))) then
+                      p.successor:=nil;
+                  end;
+
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
               end;
@@ -306,7 +321,7 @@ unit optutils;
       begin
         Breakstack:=TFPList.Create;
         Continuestack:=TFPList.Create;
-        DoSet(p,nil);
+        DoSet(p,last);
         Continuestack.Free;
         Breakstack.Free;
       end;

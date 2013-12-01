@@ -1160,7 +1160,7 @@ implementation
         n:=nil;
         foreachnodestatic(code,@searchusercode,@n);
         if not(assigned(n)) then
-          internalerror(2013111001);
+          internalerror(2013111004);
         result:=n;
       end;
 
@@ -1293,51 +1293,19 @@ implementation
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
-            { when life info is available, we can give more sophisticated warning about unintialized
-              variables }
-
-            { iterate through life info of the first node }
-            for i:=0 to dfabuilder.nodemap.count-1 do
-              begin
-                if DFASetIn(GetUserCode.optinfo^.life,i) then
-                  case tnode(dfabuilder.nodemap[i]).nodetype of
-                    loadn:
-                      begin
-                        varsym:=tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry);
-
-                        { Give warning/note for living locals, result and parameters, but only about the current
-                          symtables }
-                        if assigned(varsym.owner) and
-                          (((varsym.owner=procdef.localst) and
-                            (procdef.localst.symtablelevel=varsym.owner.symtablelevel)
-                           ) or
-                           ((varsym.owner=procdef.parast) and
-                            (varsym.typ=paravarsym) and
-                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
-                            { all parameters except out parameters are initialized by the caller }
-                            (tparavarsym(varsym).varspez=vs_out)
-                           ) or
-                           ((vo_is_funcret in varsym.varoptions) and
-                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel)
-                           )
-                          ) and
-                          not(vo_is_external in varsym.varoptions) then
-                          begin
-                            if (vo_is_funcret in varsym.varoptions) then
-                              CGMessage(sym_w_function_result_uninitialized)
-                            else
-                              begin
-                                if not (vo_is_typed_const in varsym.varoptions) then
-                                  if varsym.typ=paravarsym then
-                                    CGMessage1(sym_w_uninitialized_variable,varsym.realname)
-                                  else
-                                    CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
-                              end;
-                          end;
-                      end;
-                  end;
-              end;
             include(flags,pi_dfaavailable);
+
+            { when life info is available, we can give more sophisticated warning about uninitialized
+              variables ...
+              ... but not for the finalization section of a unit, we would need global dfa to handle
+              it properly }
+            if potype_unitfinalize<>procdef.proctypeoption then
+              { iterate through life info of the first node }
+              for i:=0 to dfabuilder.nodemap.count-1 do
+                begin
+                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                    CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                end;
           end;
 
         if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
@@ -1898,6 +1866,7 @@ implementation
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
+        oldfailtokenmode:=[];
 
         { create a new procedure }
         current_procinfo:=cprocinfo.create(old_current_procinfo);

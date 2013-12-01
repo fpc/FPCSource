@@ -201,6 +201,8 @@ interface
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
 
+    function getbooleanvalue(p : tnode) : boolean;
+
 implementation
 
     uses
@@ -329,6 +331,15 @@ implementation
             internalerror(200205103);
         end;
         genconstsymtree:=p1;
+      end;
+
+
+    function getbooleanvalue(p : tnode) : boolean;
+      begin
+        if is_constboolnode(p) then
+          result:=tordconstnode(p).value<>0
+        else
+          internalerror(2013111601);
       end;
 
 

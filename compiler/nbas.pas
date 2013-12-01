@@ -442,14 +442,17 @@ implementation
             exit;
           end;
 
-        { if the current statement contains a block with one statement, }
-        { replace the current statement with that block's statement     }
-        { (but only if the block does not have nf_block_with_exit set   }
-        {  or has no exit statement, because otherwise it needs an own  }
-        {  exit label, see tests/test/tinline10)                        }
+        { if the current statement contains a block with one statement,
+          replace the current statement with that block's statement
+          (but only if the block does not have nf_block_with_exit set
+           or has no exit statement, because otherwise it needs an own
+           exit label, see tests/test/tinline10)
+
+           Further, it might not be the user code entry
+        }
         if (left.nodetype = blockn) and
-           (not(nf_block_with_exit in left.flags) or
-            no_exit_statement_in_block(left)) and
+           ((left.flags*[nf_block_with_exit,nf_usercode_entry]=[]) or
+            ((left.flags*[nf_block_with_exit,nf_usercode_entry]=[nf_block_with_exit]) and no_exit_statement_in_block(left))) and
            assigned(tblocknode(left).left) and
            not assigned(tstatementnode(tblocknode(left).left).right) then
           begin

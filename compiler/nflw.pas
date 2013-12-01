@@ -114,6 +114,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          property resultexpr : tnode read left write left;
        end;
        texitnodeclass = class of texitnode;
 

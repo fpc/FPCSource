@@ -572,11 +572,7 @@ implementation
                    result := left.getcopy;
                 end;
               end
-{$ifdef VER2_2}
-            else if (tordconstnode(right).value.svalue = -1) and (tordconstnode(right).value.signed) then
-{$else}
             else if tordconstnode(right).value = -1 then
-{$endif}
               begin
                 case nodetype of
                   muln:
