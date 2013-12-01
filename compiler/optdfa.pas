@@ -137,7 +137,15 @@ unit optdfa;
     function ResetProcessing(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         exclude(n.flags,nf_processing);
-        result:=fen_false;
+        { dfa works only on normalized trees, so do not recurse into expressions, because
+          ResetProcessing eats a signififcant amount of time of CheckAndWarn
+
+          the following set contains (hopefully) most of the expression nodes }
+        if n.nodetype in [calln,inlinen,assignn,callparan,andn,addn,orn,subn,muln,divn,slashn,notn,equaln,unequaln,gtn,ltn,lten,gten,loadn,
+          typeconvn,vecn,subscriptn,addrn,derefn] then
+          result:=fen_norecurse_false
+        else
+          result:=fen_false;
       end;
 
 
