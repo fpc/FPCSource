@@ -336,7 +336,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
