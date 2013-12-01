@@ -431,6 +431,8 @@ implementation
          case nodetype of
            shln: op:=OP_SHL;
            shrn: op:=OP_SHR;
+           else
+             internalerror(2013120102);
          end;
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;

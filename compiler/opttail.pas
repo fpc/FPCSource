@@ -82,6 +82,7 @@ unit opttail;
           result:=false;
           if n=nil then
             exit;
+          usedcallnode:=nil;
           case n.nodetype of
             statementn:
               begin

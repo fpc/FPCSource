@@ -427,6 +427,7 @@ implementation
         def : tdef;
         b   : byte;
       begin
+         def:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
            Message(unit_f_ppu_read_error);
@@ -469,7 +470,8 @@ implementation
         b   : byte;
         sym : tsym;
       begin
-      { load start of definition section, which holds the amount of defs }
+         sym:=nil;
+         { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
          { now read the symbols }
@@ -1087,6 +1089,7 @@ implementation
                   while space>0 do
                     begin
                       bestfieldindex:=-1;
+                      bestinsertfieldoffset:=-1;
                       for j:=i+1 to list.count-1 do
                         begin
                           insertfieldvs:=tfieldvarsym(list[j]);
@@ -3107,6 +3110,7 @@ implementation
         srsymtable: tsymtable;
         sym: tsym;
       begin
+        sym:=nil;
         if searchsym_in_named_module(unitname,typename,sym,srsymtable) and
            (sym.typ=typesym) then
           begin

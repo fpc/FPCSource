@@ -1168,6 +1168,8 @@ implementation
         freetemp,
         dovariant: boolean;
       begin
+        otlabel:=nil;
+        oflabel:=nil;
         if is_packed_array(resultdef) then
           internalerror(200608042);
         dovariant:=

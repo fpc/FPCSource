@@ -93,6 +93,7 @@ implementation
 
       begin
          first:=nil;
+         last:=nil;
          while token<>_END do
            begin
               if first=nil then
@@ -297,8 +298,9 @@ implementation
 
       begin
          consume(_REPEAT);
-         first:=nil;
 
+         first:=nil;
+         last:=nil;
          while token<>_UNTIL do
            begin
               if first=nil then
@@ -547,7 +549,10 @@ implementation
          else if try_to_consume(_IN) then
            result:=for_in_loop_create(hloopvar)
          else
-           consume(_ASSIGNMENT); // fail
+           begin
+             consume(_ASSIGNMENT); // fail
+             result:=cerrornode.create;
+           end;
       end;
 
 
@@ -598,6 +603,7 @@ implementation
 
 
       begin
+         calltempnode:=nil;
          p:=comp_expr(true,false);
          do_typecheckpass(p);
 
@@ -636,7 +642,6 @@ implementation
               end
             else
               begin
-                calltempnode:=nil;
                 { complex load, load in temp first }
                 newblock:=internalstatements(newstatement);
                 { when we can't take the address of p, load it in a temp }
@@ -872,6 +877,8 @@ implementation
       begin
          p_default:=nil;
          p_specific:=nil;
+         excepTSymtable:=nil;
+         last:=nil;
 
          { read statements to try }
          consume(_TRY);
@@ -1040,6 +1047,7 @@ implementation
         entrypos : tfileposinfo;
       begin
          Inside_asm_statement:=true;
+         asmstat:=nil;
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
@@ -1116,6 +1124,7 @@ implementation
          s          : TIDString;
       begin
          filepos:=current_tokenpos;
+         code:=nil;
          case token of
            _GOTO :
              begin
@@ -1343,6 +1352,7 @@ implementation
 
       begin
          first:=nil;
+         last:=nil;
          filepos:=current_tokenpos;
          consume(starttoken);
 

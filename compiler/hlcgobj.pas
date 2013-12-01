@@ -1550,6 +1550,8 @@ implementation
                   tmpreg:=getintregister(list,locsize);
                   a_load_const_reg(list,locsize,loc.value,tmpreg);
                 end;
+              else
+                internalerror(2013112909);
             end;
             a_bit_test_reg_reg_reg(list,bitnumbersize,locsize,destsize,bitnumber,tmpreg,destreg);
           end;
@@ -2217,7 +2219,9 @@ implementation
       tmpreg: tregister;
       subsetregdef: torddef;
       stopbit: byte;
+
     begin
+      tmpreg:=NR_NO;
       subsetregdef:=cgsize_orddef(sreg.subsetregsize);
       stopbit:=sreg.startbit+sreg.bitlen;
       // on x86(64), 1 shl 32(64) = 1 instead of 0
@@ -3553,6 +3557,8 @@ implementation
           toreg:=getaddressregister(list,regsize);
         R_FPUREGISTER:
           toreg:=getfpuregister(list,regsize);
+        else
+          internalerror(2013112910);
       end;
       a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
     end;
@@ -3568,6 +3574,8 @@ implementation
             toreg:=getaddressregister(list,regsize);
           R_FPUREGISTER:
             toreg:=getfpuregister(list,regsize);
+        else
+          internalerror(2013112915);
         end;
         a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
       end;

@@ -359,6 +359,8 @@ interface
         oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
+        oldflowcontrol:=[];
+        oldexitlabel:=nil;
 
         { replace exitlabel? }
         if nf_block_with_exit in flags then

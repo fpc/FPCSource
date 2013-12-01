@@ -102,7 +102,9 @@ implementation
          else if location.reference.base=NR_NO then
           begin
             if (location.reference.scalefactor > 1) then
-              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+              hreg:=cg.getaddressregister(current_asmdata.CurrAsmList)
+            else
+              hreg:=NR_NO;
             case location.reference.scalefactor of
              0,1 : hreg:=location.reference.index;
              2 : cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,1,location.reference.index,hreg);

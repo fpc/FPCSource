@@ -952,6 +952,7 @@ var
   i,asize : longint;
   ai   : taicpu;
 begin
+  ConcatInstruction:=nil;
   if (OpOrder=op_intel) then
     SwapOperands;
 

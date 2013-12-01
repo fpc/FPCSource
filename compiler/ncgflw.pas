@@ -234,6 +234,7 @@ implementation
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         hl:=nil;
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
@@ -435,6 +436,9 @@ implementation
          isjump: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         ofl:=nil;
+         otl:=nil;
+
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
          current_asmdata.getjumplabel(current_procinfo.CurrContinueLabel);
@@ -1007,6 +1011,11 @@ implementation
          errorexit;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         exceptflowcontrol:=[];
+         continuetrylabel:=nil;
+         breaktrylabel:=nil;
+         continueexceptlabel:=nil;
+         breakexceptlabel:=nil;
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
@@ -1244,6 +1253,10 @@ implementation
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
+         oldCurrExitLabel:=nil;
+         continueonlabel:=nil;
+         breakonlabel:=nil;
+         exitonlabel:=nil;
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
@@ -1402,6 +1415,11 @@ implementation
          excepttemps : texceptiontemps;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         tryflowcontrol:=[];
+         oldBreakLabel:=nil;
+         oldContinueLabel:=nil;
+         continuefinallylabel:=nil;
+         breakfinallylabel:=nil;
 
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;

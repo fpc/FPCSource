@@ -223,6 +223,7 @@ implementation
         hp2 : tnode;
         extraoffset : tcgint;
       begin
+         sym:=nil;
          { assume natural alignment, except for packed records }
          if not(resultdef.typ in [recorddef,objectdef]) or
             (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
@@ -315,15 +316,16 @@ implementation
 
     procedure tcgsubscriptnode.pass_generate_code;
       var
-        sym: tasmsymbol;
+        asmsym: tasmsymbol;
         paraloc1 : tcgpara;
         tmpref: treference;
         sref: tsubsetreference;
         offsetcorrection : aint;
         pd : tprocdef;
-        srym : tsym;
+        sym : tsym;
         st : tsymtable;
       begin
+         sym:=nil;
          secondpass(left);
          if codegenerror then
            exit;
@@ -375,10 +377,10 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',srym,st) or
-                       (srym.typ<>procsym) then
+                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+                       (sym.typ<>procsym) then
                       internalerror(2012010602);
-                    pd:=tprocdef(tprocsym(srym).ProcdefList[0]);
+                    pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                     paramanager.getintparaloc(pd,1,paraloc1);
                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -504,8 +506,8 @@ implementation
                classes can be changed without breaking programs compiled against
                earlier versions)
              }
-             sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
-             reference_reset_symbol(tmpref,sym,0,sizeof(pint));
+             asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
              location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
@@ -1038,6 +1040,8 @@ implementation
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 internalerror(200304237);
               isjump:=(right.expectloc=LOC_JUMP);
+              otl:=nil;
+              ofl:=nil;
               if isjump then
                begin
                  otl:=current_procinfo.CurrTrueLabel;

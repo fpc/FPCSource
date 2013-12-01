@@ -369,6 +369,10 @@ implementation
         b       : boolean;
       begin
         result:=nil;
+        l1:=0;
+        l2:=0;
+        s1:=nil;
+        s2:=nil;
 
         { load easier access variables }
         rd:=right.resultdef;
@@ -1000,6 +1004,11 @@ implementation
 
       begin
          result:=nil;
+         rlow:=0;
+         llow:=0;
+         rhigh:=0;
+         lhigh:=0;
+
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
            begin
@@ -2144,6 +2153,7 @@ implementation
         cmpfuncname: string;
         para: tcallparanode;
       begin
+        result:=nil;
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
         case nodetype of
@@ -2391,6 +2401,8 @@ implementation
                         right := tempn;
                       end;
                     end;
+                  else
+                    internalerror(2013112911);
                 end;
                 result := ccallnode.createinternres(procname,
                   ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
@@ -2628,6 +2640,7 @@ implementation
       begin
         result := nil;
         notnode := false;
+        fdef := nil;
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
@@ -2716,7 +2729,10 @@ implementation
               unequaln:
                 procname:='NE';
               else
-                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                begin
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                  exit;
+                end;
             end;
             case tfloatdef(left.resultdef).floattype of
               s32real:

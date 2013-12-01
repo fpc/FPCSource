@@ -819,6 +819,9 @@ const
 
         usesgpr := false;
         usesfpr := false;
+        firstregint := RS_NO;
+        firstregfpu := RS_NO;
+
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { save link register? }
@@ -961,6 +964,8 @@ const
          localsize: tcgint;
       begin
         { AltiVec context restore, not yet implemented !!! }
+        firstregint:=RS_NO;
+        firstregfpu:=RS_NO;
 
         usesfpr:=false;
         usesgpr:=false;
@@ -1085,6 +1090,8 @@ const
          regcounter2, firstfpureg: Tsuperregister;
     begin
       usesfpr:=false;
+      firstreggpr:=RS_NO;
+      firstregfpu:=RS_NO;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
@@ -1165,6 +1172,9 @@ const
 
     begin
       usesfpr:=false;
+      firstreggpr:=RS_NO;
+      firstregfpu:=RS_NO;
+
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }

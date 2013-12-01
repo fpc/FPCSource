@@ -2060,6 +2060,8 @@ implementation
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
+                     else
+                       internalerror(2013112903);
                    end;
                    if try_type_helper(p1,strdef) then
                      goto skippointdefcheck;
@@ -2424,6 +2426,7 @@ implementation
                srsym:=generrorsym;
                srsymtable:=nil;
                consume(_ID);
+               unit_found:=false;
              end
            else
              begin
@@ -2764,6 +2767,7 @@ implementation
            old_allow_array_constructor : boolean;
          begin
            buildp:=nil;
+           lastp:=nil;
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
            if token=_RECKKLAMMER then
@@ -2838,6 +2842,7 @@ implementation
         p1:=nil;
         filepos:=current_tokenpos;
         again:=false;
+        pd:=nil;
         if token=_ID then
          begin
            again:=true;

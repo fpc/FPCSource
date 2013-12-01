@@ -154,6 +154,7 @@ unit cpupi;
                 begin
                   { save floating point registers? }
                   firstfloatreg:=RS_NO;
+                  lastfloatreg:=RS_NO;
                   regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
                   for r:=RS_F0 to RS_F7 do
                     if r in regs then

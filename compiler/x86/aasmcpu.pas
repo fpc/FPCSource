@@ -2362,6 +2362,13 @@ implementation
         if objdata.currobjsec.size<>longword(insoffset) then
            internalerror(200130121);
 
+        { those variables are initialized inside local procedures, the dfa cannot handle this yet }
+        currsym:=nil;
+        currabsreloc:=RELOC_NONE;
+        currabsreloc32:=RELOC_NONE;
+        currrelreloc:=RELOC_NONE;
+        currval:=0;
+
         { load data to write }
         codes:=insentry^.code;
 {$ifdef x86_64}

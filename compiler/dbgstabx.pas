@@ -274,6 +274,7 @@ implementation
       if vo_is_external in sym.varoptions then
         exit;
       ismem:=not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]);
+      isglobal:=false;
       if ismem then
         isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname).bind=AB_GLOBAL;
 

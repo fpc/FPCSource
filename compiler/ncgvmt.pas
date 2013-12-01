@@ -800,6 +800,12 @@ implementation
          dmtlabel:=gendmt;
 {$endif WITHDMT}
          templist:=TAsmList.Create;
+         strmessagetable:=nil;
+         interfacetable:=nil;
+         fieldtablelabel:=nil;
+         methodnametable:=nil;
+         intmessagetable:=nil;
+         classnamelabel:=nil;
 
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }

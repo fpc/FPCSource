@@ -44,7 +44,7 @@ Type
 Implementation
 
   uses
-    cutils, cgbase, cgcpu, cgobj;
+    cutils, verbose, cgbase, cgcpu, cgobj;
 
 const
   calculation_target_op0: array[tasmop] of tasmop = (a_none,
@@ -232,7 +232,7 @@ const
               A_CMPLWI:
                 begin
                   if (taicpu(p).oper[1]^.typ = top_const) and
-                     (taicpu(p).oper[1]^.val = 0) and 
+                     (taicpu(p).oper[1]^.val = 0) and
                      getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
                      (taicpu(next1).opcode = A_MFCR) and
@@ -354,6 +354,8 @@ const
                             shlcount := 32-taicpu(next1).oper[2]^.val;
                             l2 := (-1) shr taicpu(next1).oper[2]^.val;
                           end;
+                        else
+                          internalerror(2013113008);
                       end;
                       l1 := rlwinm2mask((taicpu(p).oper[3]^.val-shlcount) and 31,(taicpu(p).oper[4]^.val-shlcount) and 31);
                       l1 := l1 and l2;

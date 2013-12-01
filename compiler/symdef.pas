@@ -1160,6 +1160,7 @@ implementation
         hp  : tparavarsym;
       begin
         prefix:='';
+        hp:=nil;
         if not assigned(st) then
          internalerror(200204212);
         { sub procedures }
@@ -2787,6 +2788,8 @@ implementation
          ft_typed,
          ft_untyped :
            savesize:=search_system_type('FILEREC').typedef.size;
+           else
+             internalerror(2013113001);
          end;
       end;
 
@@ -2810,6 +2813,8 @@ implementation
              GetTypeName:='File Of '+typedfiledef.typename;
            ft_text:
              GetTypeName:='Text'
+           else
+             internalerror(2013113002);
          end;
       end;
 
@@ -2823,6 +2828,8 @@ implementation
              getmangledparaname:='FILE$OF$'+typedfiledef.mangledparaname;
            ft_text:
              getmangledparaname:='TEXT'
+           else
+             internalerror(2013113003);
          end;
       end;
 
@@ -2884,6 +2891,8 @@ implementation
              GetTypeName:='Variant';
            vt_olevariant:
              GetTypeName:='OleVariant';
+           else
+             internalerror(2013113004);
          end;
       end;
 
@@ -5052,6 +5061,7 @@ implementation
         oldlen,
         i    : integer;
       begin
+        hp:=nil;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
@@ -6354,6 +6364,8 @@ implementation
                           internalerror(2009092501);
                       end;
                     end;
+                  else
+                    internalerror(2013113005);
                 end;
               end;
             result:=result+objextname^;

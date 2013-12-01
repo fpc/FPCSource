@@ -1071,7 +1071,7 @@ implementation
                   pw:=pcompilerwidestring(value_str);
                   l2:=len;
                   l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),l2);
-                  getmem(pc,l);   
+                  getmem(pc,l);
                   UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),l2);
                   len:=l-1;
                   donewidestring(pw);
@@ -1086,7 +1086,7 @@ implementation
                   value_str:=pc;
                 end;
             end
-        else 
+        else
           if (tstringdef(def).stringtype = st_ansistring) and
              not(cst_type in [cst_widestring,cst_unicodestring]) then
             begin
@@ -1100,8 +1100,10 @@ implementation
                     cp2:=current_settings.sourcecodepage;
                 end
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
-                cp2:=current_settings.sourcecodepage;
-              { don't change string if codepages are equal or string length is 0 }  
+                cp2:=current_settings.sourcecodepage
+              else
+                internalerror(2013112916);
+              { don't change string if codepages are equal or string length is 0 }
               if (cp1<>cp2) and (len>0) then
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then

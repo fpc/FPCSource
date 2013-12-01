@@ -1752,6 +1752,7 @@ unit cgcpu;
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
         tarmprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
+        lastfloatreg:=RS_NO;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
@@ -1978,7 +1979,9 @@ unit cgcpu;
           begin
             stackmisalignment:=0;
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             mmregs:=[];
+            saveregs:=[];
             case current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
@@ -2271,6 +2274,7 @@ unit cgcpu;
         cg.a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
         piclabel:=nil;
+        tmpreg:=NR_NO;
 
         indirection_done:=false;
         if assigned(ref.symbol) then
@@ -4712,6 +4716,7 @@ unit cgcpu;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             { save floating point registers? }
             for r:=RS_F0 to RS_F7 do
               if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
@@ -4816,6 +4821,7 @@ unit cgcpu;
             stackmisalignment:=0;
             { restore floating point register }
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             { save floating point registers? }
             for r:=RS_F0 to RS_F7 do
               if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then

@@ -278,6 +278,7 @@ implementation
 
               hasread:=true;
               haswrite:=true;
+              hdispid:=0;
 
               if try_to_consume(_READONLY) then
                 haswrite:=false
@@ -348,6 +349,7 @@ implementation
           wrongvisibility : boolean;
  {$endif}
       begin
+         result:=nil;
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
@@ -703,6 +705,7 @@ implementation
                        { make sure we don't let constants mask class fields/
                          methods
                        }
+                       sym:=nil;
                        if (not assigned(astruct) or
                            (search_struct_member(astruct,pattern)=nil)) and
                           searchsym(pattern,sym,srsymtable) and
@@ -872,6 +875,7 @@ implementation
                  exit;
                end;
              found:=false;
+             ImplIntf:=nil;
              for i:=0 to tobjectdef(astruct).ImplementedInterfaces.Count-1 do
                begin
                  ImplIntf:=TImplementedInterface(tobjectdef(astruct).ImplementedInterfaces[i]);
@@ -995,6 +999,7 @@ implementation
       is_external_var:=false;
       is_public_var:=false;
       section_name := '';
+      dll_name := '';
       C_name:=vs.realname;
 
       { macpas specific handling due to some switches}

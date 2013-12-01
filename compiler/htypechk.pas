@@ -870,6 +870,8 @@ implementation
       begin
         isbinaryoverloaded:=false;
         operpd:=nil;
+        ppn:=nil;
+
         { load easier access variables }
         ld:=tbinarynode(t).left.resultdef;
         rd:=tbinarynode(t).right.resultdef;

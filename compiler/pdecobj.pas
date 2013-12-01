@@ -1240,6 +1240,7 @@ implementation
                           types_dec(true)
                         else if object_member_blocktype=bt_const then
                           begin
+                            typedconstswritable:=false;
                             if final_fields then
                               begin
                                 { the value of final fields cannot be changed

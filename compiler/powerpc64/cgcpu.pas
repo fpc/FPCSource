@@ -267,6 +267,7 @@ var
   i : longint;
   hl : aInt;
 begin
+  result := false;
   neg := false;
   { also try to find negative power of two's by negating if the
    value is negative. low(aInt) is special because it can not be
@@ -651,6 +652,8 @@ begin
         instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[tosize])*8);
       OS_S64, OS_64:
         instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
+      else
+        internalerror(2013113007);
     end;
   end else
     instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
@@ -1273,11 +1276,11 @@ var
     if (cs_opt_size in current_settings.optimizerswitches) and
        (target_info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
+      if target_info.system=system_powerpc64_aix then
+        opc:=A_BLA
+      else
+        opc:=A_BL;
       if ((fprcount > 0) and (gprcount > 0)) then begin
-        if target_info.system=system_powerpc64_aix then
-          opc:=A_BLA
-        else
-          opc:=A_BL;
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
         a_call_name_direct(list, opc, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
         a_call_name_direct(list, opc, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);

@@ -1518,6 +1518,7 @@ implementation
 
       begin
         pos:=0;
+        instring:=false;
         for i:=1 to hp.len do
           begin
             if pos=0 then

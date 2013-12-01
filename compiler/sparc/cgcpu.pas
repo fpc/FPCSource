@@ -351,7 +351,7 @@ implementation
            (a>simm13hi) then
           begin
             if g1_used then
-              GetIntRegister(list,OS_INT)
+              tmpreg:=GetIntRegister(list,OS_INT)
             else
               begin
                 tmpreg:=NR_G1;
@@ -469,7 +469,7 @@ implementation
                       reference_reset_base(ref,index,offset,paraloc.alignment);
                     end;
                   if g1_used then
-                    GetIntRegister(list,OS_INT)
+                    tmpreg:=GetIntRegister(list,OS_INT)
                   else
                     begin
                       tmpreg:=NR_G1;
@@ -825,7 +825,7 @@ implementation
                  tmpref.symbol:=nil;
                  tmpref.base:=hreg;
                  tmpref.refaddr:=addr_no;
-                 list.concat(taicpu.op_ref_reg(A_LD,tmpref,hreg)); 
+                 list.concat(taicpu.op_ref_reg(A_LD,tmpref,hreg));
                  need_got_load:=false;
                 if (href.offset<simm13lo) or
                    (href.offset>simm13hi) then
@@ -891,7 +891,7 @@ implementation
         if need_got then
           list.concat(taicpu.op_reg_reg_reg(A_ADD,r,current_procinfo.got,r));
         if need_got_load then
-          list.concat(taicpu.op_reg_reg(A_LD,r,r)); 
+          list.concat(taicpu.op_reg_reg(A_LD,r,r));
 {$endif}
       end;
 
@@ -922,6 +922,7 @@ implementation
        var
          tmpreg: tregister;
        begin
+         tmpreg:=NR_NO;
          if (fromsize<>tosize) then
            begin
              tmpreg:=reg;
@@ -1591,7 +1592,7 @@ implementation
                 reference_reset_base(href,NR_G1,0,sizeof(pint));
                 list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
               end;
-              
+
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
 	    g1_used:=false;
           end;

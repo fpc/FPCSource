@@ -364,6 +364,8 @@ implementation
                           pc[len]:=#0;
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
+                      else
+                        internalerror(2013120103);
                    end;
                    lab_str:=lastlabel.lab;
                    entry^.Data:=lastlabel.lab;

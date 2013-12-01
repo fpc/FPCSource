@@ -1197,6 +1197,8 @@ unit cgcpu;
                   swapped:=true;
                   cmp_op:=OC_A;
                 end;
+              else
+                internalerror(2013113006);
             end;
 
             if swapped then
@@ -1249,6 +1251,8 @@ unit cgcpu;
               swapped:=true;
               cmp_op:=OC_A;
             end;
+          else
+            internalerror(2013113007);
         end;
         if swapped then
           begin

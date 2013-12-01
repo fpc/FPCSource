@@ -367,6 +367,11 @@ implementation
         begin
           { set defaults }
           addconstant:=true;
+          hregister:=NR_NO;
+{$ifndef cpu64bitalu}
+          hregisterhi:=NR_NO;
+{$endif not cpu64bitalu}
+
           { first secondpass second argument, because if the first arg }
           { is used in that expression then SSL may move it to another }
           { register                                                   }
@@ -606,6 +611,8 @@ implementation
       use_frame_pointer:boolean;
 
     begin
+      frame_reg:=NR_NO;
+
       if left<>nil then
         begin
           secondpass(left);
@@ -687,6 +694,8 @@ implementation
           in_sar_x,
           in_sar_x_y:
             op:=OP_SAR;
+          else
+            internalerror(2013120110);
         end;
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);

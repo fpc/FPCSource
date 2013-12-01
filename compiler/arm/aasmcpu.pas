@@ -770,8 +770,7 @@ implementation
             else
               result:=operand_read;
           A_STREX:
-            if opnr in [0,1,2] then
-              result:=operand_write;
+            result:=operand_write;
           else
             internalerror(200403151);
         end;
@@ -1057,20 +1056,28 @@ implementation
                             inc(penalty,multiplier);
                             hp:=tai(hp.next);
                           end;
-                      end;
+                      end
+                    else
+                      penalty:=0;
                   A_IT:
                     if GenerateThumb2Code then
-                      penalty:=multiplier;
+                      penalty:=multiplier
+                    else
+                      internalerror(2013112920);
                   A_ITE,
                   A_ITT:
                     if GenerateThumb2Code then
-                      penalty:=2*multiplier;
+                      penalty:=2*multiplier
+                    else
+                      internalerror(2013112919);
                   A_ITEE,
                   A_ITTE,
                   A_ITET,
                   A_ITTT:
                     if GenerateThumb2Code then
-                      penalty:=3*multiplier;
+                      penalty:=3*multiplier
+                    else
+                      internalerror(2013112918);
                   A_ITEEE,
                   A_ITTEE,
                   A_ITETE,
@@ -1080,7 +1087,9 @@ implementation
                   A_ITETT,
                   A_ITTTT:
                     if GenerateThumb2Code then
-                      penalty:=4*multiplier;
+                      penalty:=4*multiplier
+                    else
+                      internalerror(2013112917);
                   else
                     penalty:=0;
                 end;
@@ -2102,6 +2111,7 @@ implementation
 
       begin
         bytes:=$0;
+        i_field:=0;
         { evaluate and set condition code }
 
         { condition code allowed? }

@@ -853,6 +853,8 @@ begin
                         S_B: v:=$80;
                         S_W: v:=$8000;
                         S_L: v:=aint($80000000);
+                        else
+                          internalerror(2013112905);
                       end;
                       if (taicpu(p).oper[0]^.typ=Top_const) and
                          (taicpu(p).oper[0]^.val=v) and
@@ -1973,10 +1975,9 @@ procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
     end;
 
 var
-  p,hp1,hp2: tai;
+  p,hp1,hp2,hp3: tai;
   l : longint;
   condition : tasmcond;
-  hp3: tai;
   UsedRegs, TmpUsedRegs: TRegSet;
   carryadd_opcode: Tasmop;
 

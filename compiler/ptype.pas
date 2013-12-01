@@ -390,6 +390,7 @@ implementation
          srsymtable : tsymtable;
        begin
          dospecialize:=false;
+         srsym:=nil;
          repeat
            again:=false;
              case token of
@@ -1434,6 +1435,8 @@ implementation
         st: tsymtable;
       begin
          def:=nil;
+         v:=0;
+         l:=0;
          if assigned(newsym) then
            name:=newsym.RealName
          else

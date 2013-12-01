@@ -1038,6 +1038,8 @@ implementation
                     elementdef:=cansichartype;
                   st_shortstring :
                     elementdef:=cansichartype;
+                  else
+                    internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin

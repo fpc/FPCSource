@@ -1711,7 +1711,9 @@ implementation
               if tprocsym(sym).procdeflist.Count<>1 then
                 internalerror(2011071713);
               pd:=tprocdef(tprocsym(sym).procdeflist[0]);
-            end;
+            end
+          else
+            internalerror(2013113008);
           a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
           a_call_name(list,pd,pd.mangledname,nil,false);
           { parameter removed, no result }

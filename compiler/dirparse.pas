@@ -255,6 +255,7 @@ implementation
         opt   : ttargetswitch;
       begin
         result:=true;
+        value:='';
         repeat
           tok:=GetToken(s,',');
           if tok='' then

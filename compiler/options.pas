@@ -477,6 +477,8 @@ begin
                  ident:=9;
                  outline:=11;
                end;
+         else
+           internalerror(2013112906);
         end;
         j:=pos('_',s);
         opt:=Copy(s,4,j-4);
@@ -1071,6 +1073,7 @@ begin
                         if l=0 then
                           l:=256;
                         dllmajor:=1;
+                        major:=0;
                         if error=0 then
                           val(copy(dllversion,1,l-1),major,error);
                         if (error=0) and (major>=0) and (major<=$ffff) then

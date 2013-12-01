@@ -45,7 +45,7 @@ Type
       reloaded with a new value or it is deallocated afterwards }
     function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
     { gets the next tai object after current that contains info relevant
-      to the optimizer in p1 which used the given register or does a 
+      to the optimizer in p1 which used the given register or does a
       change in program flow.
       If there is none, it returns false and
       sets p1 to nil                                                     }
@@ -605,7 +605,7 @@ Implementation
                           begin
                             DebugMsg('Peephole StrLdr2StrMov 1 done', hp1);
                             asml.remove(hp1);
-                            hp1.free;                            
+                            hp1.free;
                           end
                         else
                           begin
@@ -1103,9 +1103,9 @@ Implementation
                                         [taicpu(p).condition], [PF_None]) and
                        (not ((GenerateThumb2Code) and
                              (taicpu(hp1).opcode in [A_SBC]) and
-                             (((taicpu(hp1).ops=3) and 
+                             (((taicpu(hp1).ops=3) and
                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^.reg)) or
-                              ((taicpu(hp1).ops=2) and 
+                              ((taicpu(hp1).ops=2) and
                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg))))) and
                        (assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) or
                          regLoadedWithNewValue(taicpu(p).oper[0]^.reg, hp1)) and
@@ -1259,7 +1259,7 @@ Implementation
                       Often we see shifts and then a superfluous mov to another register
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
                     }
-                    if (taicpu(p).opcode = A_MOV) and 
+                    if (taicpu(p).opcode = A_MOV) and
                         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
                       RemoveSuperfluousMove(p, hp1, 'MovMov2Mov');
                   end;
@@ -1526,7 +1526,7 @@ Implementation
                         p:=hp1;
                       end;
                   end;
-{$ifdef dummy}                  
+{$ifdef dummy}
                 A_MVN:
                   begin
                     {
@@ -1568,7 +1568,7 @@ Implementation
                         p:=hp1;
                       end;
                   end;
-{$endif dummy}                                    
+{$endif dummy}
                 A_UXTB:
                   begin
                     {

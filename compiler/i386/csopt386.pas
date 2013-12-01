@@ -353,6 +353,7 @@ var
 
   function getNextRegToTest(var prev: tai; currentReg: tsuperregister): tsuperregister;
   begin
+    getNextRegToTest := RS_INVALID;
     if not checkingPrevSequences then
       begin
         if (currentreg = RS_INVALID) then
@@ -423,9 +424,13 @@ begin {CheckSequence}
   TmpResult := False;
   FillChar(OrgRegInfo, Sizeof(OrgRegInfo), 0);
   FillChar(startRegInfo, sizeof(startRegInfo), 0);
+  FillChar(HighRegInfo, sizeof(HighRegInfo), 0);
+  FillChar(prevreginfo, sizeof(prevreginfo), 0);
   OrgRegFound := 0;
   HighFound := 0;
   OrgRegResult := False;
+  highPrev := nil;
+  orgPrev := nil;
   with startRegInfo do
     begin
       newRegsEncountered := [RS_EBP, RS_ESP];
@@ -1074,6 +1079,7 @@ var
   prev: tai;
   newOrgRegRState, newOrgRegWState: byte;
 begin
+  newOrgRegwState := 0;
   if getLastInstruction(hp,prev) then
     with ptaiprop(prev.optinfo)^ do
       begin
@@ -1429,6 +1435,7 @@ var
 
 begin
   replacereg := false;
+  readStateChanged := false;
   if canreplacereg(orgsupreg,newsupreg,p,orgregcanbemodified,newregmodified, orgregread, removelast,endp) then
     begin
 {$ifdef replaceregdebug}
@@ -1595,12 +1602,12 @@ var
   regcounter: tsuperregister;
   optimizable: boolean;
 begin
+  memtoreg := NR_NO;
+
   if not getlastinstruction(t,hp) or
      not issimplememloc(ref) then
-    begin
-      memtoreg := NR_NO;
-      exit;
-    end;
+    exit;
+
   p := ptaiprop(hp.optinfo);
   optimizable := false;
   for regcounter := RS_EAX to RS_EDI do
@@ -1832,15 +1839,18 @@ procedure doCSE(asml: TAsmList; First, Last: tai; findPrevSeqs, doSubOpts: boole
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
 var cnt, cnt2, {cnt3,} orgNrofMods: longint;
-    p, hp1, hp2, prevSeq: tai;
-    hp4: tai;
-    hp5 : tai;
+    p, hp1, hp2, hp4, hp5, prevSeq: tai;
     reginfo: toptreginfo;
     memreg: tregister;
     regcounter: tsuperregister;
 begin
   p := First;
   SkipHead(p);
+  hp1 := nil;
+  hp2 := nil;
+  hp4 := nil;
+  hp5 := nil;
+  cnt := 0;
   while (p <> Last) do
     begin
       case p.typ of

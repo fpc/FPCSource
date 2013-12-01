@@ -325,6 +325,9 @@ implementation
           end;
 
         begin
+          implabel:=nil;
+          idata5label:=nil;
+          textobjsection:=nil;
           objdata:=CreateObjData(cut_normal);
           if not isvar then
             textobjsection:=objdata.createsection(sec_code,'');

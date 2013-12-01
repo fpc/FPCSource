@@ -404,6 +404,7 @@ unit cgx86;
         add_hreg: boolean;
 {$endif not  x86_64}
       begin
+        hreg:=NR_NO;
         { make_simple_ref() may have already been called earlier, and in that
           case make sure we don't perform the PIC-simplifications twice }
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
@@ -1564,6 +1565,7 @@ unit cgx86;
         power  : longint;
         href : treference;
       begin
+        power:=0;
         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
@@ -1670,6 +1672,8 @@ unit cgx86;
                       opcode := A_SHR;
                     OP_IDIV:
                       opcode := A_SAR;
+                    else
+                      internalerror(2013112907);
                   end;
                   list.concat(taicpu.op_const_reg(opcode,TCgSize2OpSize[size],power,reg));
                   exit;
@@ -1802,6 +1806,8 @@ unit cgx86;
                       opcode := A_SHR;
                     OP_IDIV:
                       opcode := A_SAR;
+                    else
+                      internalerror(2013112908);
                   end;
                   list.concat(taicpu.op_const_ref(opcode,
                     TCgSize2OpSize[size],power,tmpref));
@@ -2266,6 +2272,9 @@ unit cgx86;
             dstref:=dest;
             srcref:=source;
             r0:=getmmxregister(list);
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
             a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r0,nil);
             if len>=16 then
               begin

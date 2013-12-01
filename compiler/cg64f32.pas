@@ -861,7 +861,11 @@ unit cg64f32;
                begin
                  current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
-               end;
+               end
+             else
+               { we do not have dynamic dfa, so avoid a warning below about the unused
+                 neglabel }
+               neglabel:=nil;
              { For all other values we have a range check error }
              cg.a_call_name(list,'fpc_rangeerror',false);
 

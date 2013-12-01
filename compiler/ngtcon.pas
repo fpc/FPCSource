@@ -442,6 +442,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         winlike   : boolean;
         hsym      : tconstsym;
       begin
+        strval:='';
         { load strval and strlength of the constant tree }
         if (node.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(node) or
           ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) then
@@ -709,6 +710,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         value : bestreal;
       begin
+        value:=0.0;
         if is_constrealnode(node) then
           value:=trealconstnode(node).value_real
         else if is_constintnode(node) then
@@ -888,14 +890,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        case hp.nodetype of
                          vecn :
                            begin
+                             len:=1;
+                             base:=0;
                              case tvecnode(hp).left.resultdef.typ of
                                stringdef :
-                                 begin
-                                    { this seems OK for shortstring and ansistrings PM }
-                                    { it is wrong for widestrings !! }
-                                    len:=1;
-                                    base:=0;
-                                 end;
+                                 ;
                                arraydef :
                                  begin
                                     if not is_packed_array(tvecnode(hp).left.resultdef) then
@@ -904,12 +903,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                         base:=tarraydef(tvecnode(hp).left.resultdef).lowrange;
                                       end
                                     else
-                                      begin
-                                        Message(parser_e_packed_dynamic_open_array);
-                                        len:=1;
-                                        base:=0;
-                                      end;
-                                 end
+                                      Message(parser_e_packed_dynamic_open_array);
+                                 end;
                                else
                                  Message(parser_e_illegal_expression);
                              end;
@@ -1085,6 +1080,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         int_const: tai_const;
         char_size: integer;
         oldoffset: asizeint;
+        dummy : byte;
       begin
         { dynamic array nil }
         if is_dynamic_array(def) then
@@ -1194,6 +1190,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                begin
                  Message(parser_e_illegal_expression);
                  len:=0;
+                 { avoid crash later on }
+                 dummy:=0;
+                 ca:=@dummy;
                end;
              if len>(def.highrange-def.lowrange+1) then
                Message(parser_e_string_larger_array);

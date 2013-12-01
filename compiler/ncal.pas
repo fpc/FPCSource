@@ -372,6 +372,7 @@ implementation
       begin
         variantdispatch:=selfnode.resultdef.typ=variantdef;
         result:=internalstatements(statements);
+        result_data:=nil;
 
         useresult := assigned(resultdef) and not is_void(resultdef);
         if useresult then
@@ -1132,6 +1133,7 @@ implementation
          srsym: tsym;
          srsymtable: tsymtable;
        begin
+         srsym:=nil;
          if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
@@ -2043,6 +2045,7 @@ implementation
           msgsendname:='OBJC_MSGSENDSUPER';
 
         { get the mangled name }
+        srsym:=nil;
         if not searchsym_in_named_module('OBJC',msgsendname,srsym,srsymtable) or
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
@@ -3793,6 +3796,7 @@ implementation
       begin
         { parameters }
         para := tcallparanode(left);
+        pushconstaddr := false;
         while assigned(para) do
           begin
             if (para.parasym.typ = paravarsym) and

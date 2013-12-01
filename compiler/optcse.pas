@@ -269,6 +269,7 @@ unit optcse;
         hp2 : tnode;
       begin
         result:=fen_false;
+        nodes:=nil;
         if n.nodetype in cseinvariant then
           begin
             csedomain:=true;

@@ -94,6 +94,9 @@ interface
         isjump     : boolean;
         otl,ofl    : tasmlabel;
       begin
+        otl:=nil;
+        ofl:=nil;
+
         { calculate the operator which is more difficult }
         firstcomplex(self);
 
@@ -739,6 +742,8 @@ interface
               checkoverflow:=true;
               cgop:=OP_SUB;
             end;
+          else
+            internalerror(2013120104);
         end;
 
        checkoverflow:=

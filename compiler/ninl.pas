@@ -645,6 +645,7 @@ implementation
       para:=Tcallparanode(params);
       found_error:=false;
       do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
+      name:='';
       while assigned(para) do
         begin
           { is this parameter faulty? }
@@ -1055,6 +1056,7 @@ implementation
       para:=Tcallparanode(params);
       do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
       is_rwstr := inlinenumber in [in_readstr_x,in_writestr_x];
+      temp:=nil;
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
         filepara.right := ccallparanode.create(cordconstnode.create(
@@ -1430,6 +1432,8 @@ implementation
            exit;
          end;
 
+         suffix:='';
+
          { in case we are in a generic definition, we cannot
            do all checks, the parameters might be type parameters }
          if df_generic in current_procinfo.procdef.defoptions then
@@ -1645,7 +1649,9 @@ implementation
               inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
-         end;
+         end
+        else
+         internalerror(2013112912);
         if dims=0 then
          begin
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');

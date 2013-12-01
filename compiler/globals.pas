@@ -1295,6 +1295,7 @@ implementation
 {$endif need_path_search}
      begin
        localexepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
+       exeName := '';
        if localexepath='' then
          begin
            exeName := FixFileName(system.paramstr(0));

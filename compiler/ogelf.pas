@@ -1705,6 +1705,7 @@ implementation
         FReader:=AReader;
         InputFileName:=AReader.FileName;
         result:=false;
+        strndx:=0;
 
         if not LoadHeader(objData) then
           exit;

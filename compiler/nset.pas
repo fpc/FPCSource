@@ -995,6 +995,7 @@ implementation
                begin
                  dispose(hcaselabel);
                  Message(parser_e_double_caselabel);
+                 result:=nil;
                end
           end;
 
@@ -1032,6 +1033,7 @@ implementation
               hcaselabel^._high_str.free;
               dispose(hcaselabel);
               Message(parser_e_double_caselabel);
+              result:=nil;
             end;
         end;
 

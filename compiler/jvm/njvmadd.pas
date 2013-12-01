@@ -213,6 +213,8 @@ interface
                       end;
                       procname:='CONTAINSALL'
                     end;
+                  else
+                    internalerror(2013120114);
                 end;
               result:=ccallnode.createinternmethod(left,procname,ccallparanode.create(right,nil));
               { for an unequaln, we have to negate the result of equals }

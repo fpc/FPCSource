@@ -521,7 +521,10 @@ unit cpupara;
         num: longint;
         isbitpacked: boolean;
       begin
+        size:=0;
+        bitoffset:=0;
         result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
+
         if (words=0) then
           exit;
 

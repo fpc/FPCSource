@@ -84,6 +84,7 @@ var
   checklength: boolean;
   len : integer;
 begin
+  l:=nil;
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_generate_code                                     }
   secondpass(left);

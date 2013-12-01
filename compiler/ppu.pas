@@ -793,6 +793,7 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
+  result:=4;
   case sizeof(aint) of
     8: result:=getint64;
     4: result:=getlongint;
@@ -846,6 +847,7 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
+  result:=4;
   case sizeof(aword) of
     8: result:=getqword;
     4: result:=getdword;
@@ -954,6 +956,7 @@ begin
   if entryidx+len>entry.size then
    begin
      error:=true;
+     result:='';
      exit;
    end;
   setlength(result,len);

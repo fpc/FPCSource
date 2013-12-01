@@ -1357,6 +1357,8 @@ Implementation
         relative_reloc: boolean;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
+        fillchar(objsym,sizeof(objsym),0);
+        fillchar(objsymend,sizeof(objsymend),0);
         { main loop }
         while assigned(hp) do
          begin

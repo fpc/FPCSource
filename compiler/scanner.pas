@@ -1143,6 +1143,12 @@ type
                     result:=texprvalue.create_ord(lv shl rv);
                   _OP_SHR:
                     result:=texprvalue.create_ord(lv shr rv);
+                  else
+                    begin
+                      { actually we should never get here but this avoids a warning }
+                      Message(parser_e_illegal_expression);
+                      result:=texprvalue.create_error;
+                    end;
                 end;
               end
             else
@@ -1214,6 +1220,8 @@ type
           end
         else
           result:=texprvalue.create_error;
+        else
+          result:=texprvalue.create_error;
       end;
     end;
 
@@ -1267,6 +1275,8 @@ type
               if b in pconstset(value.valueptr)^ then
                 result:=result+tostr(b)+',';
           end;
+        else
+          internalerror(2013112801);
       end;
     end;
 
@@ -1284,6 +1294,10 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
+        constord :
+          ;
+        else
+          internalerror(2013112802);
       end;
       inherited destroy;
     end;
@@ -1542,6 +1556,7 @@ type
            ns:tnormalset;
         begin
           result:=nil;
+          hasKlammer:=false;
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
@@ -2598,6 +2613,7 @@ type
 
     function tscannerfile.tempopeninputfile:boolean;
       begin
+        tempopeninputfile:=false;
         if inputfile.is_macro then
           exit;
         tempopeninputfile:=inputfile.tempopen;
@@ -2812,7 +2828,9 @@ type
      else if size=2 then
        result:=tokenreadword
      else if size=4 then
-       result:=tokenreadlongword;
+       result:=tokenreadlongword
+     else
+       internalerror(2013112901);
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
@@ -3255,14 +3273,12 @@ type
                         mesgnb:=tokenreadsizeint;
                         if mesgnb>0 then
                           Comment(V_Error,'Message recordind not yet supported');
+                        prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
                             new(pmsg);
                             if i=1 then
-                              begin
-                                current_settings.pmessage:=pmsg;
-                                prevmsg:=nil;
-                              end
+                              current_settings.pmessage:=pmsg
                             else
                               prevmsg^.next:=pmsg;
                             pmsg^.value:=tokenreadlongint;
@@ -5337,7 +5353,10 @@ exit_label:
                checkpreprocstack;
              end;
            else
-             Illegal_Char(c);
+             begin
+               Illegal_Char(c);
+               readpreproc:=NOTOKEN;
+             end;
          end;
       end;
 

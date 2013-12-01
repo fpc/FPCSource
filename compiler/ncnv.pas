@@ -1584,7 +1584,9 @@ implementation
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
-          end;
+          end
+        else
+          internalerror(2013112913);
       end;
 
 
@@ -1595,7 +1597,9 @@ implementation
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
-          end;
+          end
+        else
+          internalerror(2013112914);
       end;
 
 

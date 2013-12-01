@@ -375,6 +375,10 @@ implementation
 {$endif i8086}
 
        begin
+         ranges:=false;
+         numparts:=0;
+         fillchar(setparts,sizeof(setparts),0);
+
          { We check first if we can generate jumps, this can be done
            because the resultdef is already set in firstpass }
 

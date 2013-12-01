@@ -2873,6 +2873,7 @@ const pemagic : array[0..3] of byte = (
 {$endif win32}
       begin
         result:=false;
+        fillchar(sechdr,sizeof(sechdr),0);
 {$ifdef win32}
         if (target_info.system=system_x86_64_win64) and
           assigned(Wow64DisableWow64FsRedirection) then

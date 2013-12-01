@@ -381,6 +381,7 @@ const
 
 
     begin { twpodeadcodeinfofromexternallinker }
+      objdumpfullname:='';
       fuseaixextractstrings:=false;
       { gnu-nm (e.g., on solaris) }
       symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);

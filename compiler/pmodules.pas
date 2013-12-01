@@ -1028,6 +1028,7 @@ type
         globalstate : tglobalstate;
         waitingmodule : tmodule;
       begin
+         fillchar(globalstate,sizeof(tglobalstate),0);
          if not immediate then
            begin
 {$ifdef DEBUG_UNITWAITING}

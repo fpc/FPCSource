@@ -317,6 +317,8 @@ unit nx86add;
                      lten : getresflags:=F_GE;
                      gtn : getresflags:=F_L;
                      gten : getresflags:=F_LE;
+                     else
+                       internalerror(2013120105);
                   end
                 else
                   case nodetype of
@@ -324,6 +326,8 @@ unit nx86add;
                      lten : getresflags:=F_LE;
                      gtn : getresflags:=F_G;
                      gten : getresflags:=F_GE;
+                     else
+                       internalerror(2013120106);
                   end;
              end
            else
@@ -334,6 +338,8 @@ unit nx86add;
                      lten : getresflags:=F_AE;
                      gtn : getresflags:=F_B;
                      gten : getresflags:=F_BE;
+                     else
+                       internalerror(2013120107);
                   end
                 else
                   case nodetype of
@@ -341,6 +347,8 @@ unit nx86add;
                      lten : getresflags:=F_BE;
                      gtn : getresflags:=F_A;
                      gten : getresflags:=F_AE;
+                     else
+                       internalerror(2013120108);
                   end;
              end;
          end;

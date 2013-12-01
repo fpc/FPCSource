@@ -764,6 +764,7 @@ end;
   begin
     oldpos := 1;
     slashPos := Pos('/', path);
+    TranslatePathToMac:='';
     if (slashPos <> 0) then   {its a unix path}
       begin
         if slashPos = 1 then
@@ -1479,6 +1480,7 @@ end;
         inquotes:=false;
         result:='';
         i:=1;
+        temp:='';
         while i<=length(QuotedStr) do
           begin
             case QuotedStr[i] of

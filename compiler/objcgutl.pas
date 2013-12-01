@@ -1016,6 +1016,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
     vis     : TAsmsymbind;
   begin
     ivarslabel:=nil;
+    prefix:='';
 
     vcnt:=0;
     setLength(vars,objccls.symtable.SymList.Count);
