@@ -135,7 +135,7 @@ begin
 {$endif x86_64}
 
 {$ifdef arm}
-  { some newver Debian have the crt*.o files at uncommon locations,
+  { some newer Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
   if not Dontlinkstdlibpath Then
 {$ifdef FPC_ARMHF}
@@ -145,6 +145,9 @@ begin
     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
 {$endif}
 {$endif arm}
+{$ifdef x86_64}
+    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
+{$endif x86_64}
 end;
 
 {$ifdef m68k}
