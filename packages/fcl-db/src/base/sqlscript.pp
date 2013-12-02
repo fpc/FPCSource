@@ -549,13 +549,14 @@ procedure TCustomSQLScript.DefaultDirectives;
 begin
   With FDirectives do
     begin
+    // Insertion order matters as testing for directives will be done with StartsWith
     if FUseSetTerm then
       Add('SET TERM');
     if FUseCommit then
     begin
-      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
-      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
       Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
+      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
+      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
     end;
     if FUseDefines then
       begin
