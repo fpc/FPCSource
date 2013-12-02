@@ -2859,6 +2859,9 @@ type
 {$endif}
    begin
 {$ifdef FPC_BIG_ENDIAN}
+     { satisfy DFA because it assumes that size may be 0 and doesn't know that
+       recordtokenbuf.write wouldn't use tmpset in that case }
+     tmpset[0]:=0;
      for i:=0 to size-1 do
        tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
      recordtokenbuf.write(tmpset,size);
