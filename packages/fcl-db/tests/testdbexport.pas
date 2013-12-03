@@ -31,7 +31,7 @@ type
 const
   TDetailedExportExtensions: array [TDetailedExportFormats] of string[5] =
     ('.dbf','.dbf','.dbf','.csv','.txt','.dbf','.json','.rtf','.sql','.tex',
-    '.xml','.xml','.xml','.xml','.xml'); //File extension for the corresponding TExportFormat
+    '.xml','.xml','.xml','.xml','.xml'); //File extension for the corresponding TDetailedExportFormats
 type
   { TTestDBExport }
   TTestDBExport = class(TTestCase)
@@ -73,8 +73,15 @@ implementation
 function TTestDBExport.FieldSupported(const FieldType: TFieldType;
   const ExportSubFormat: TDetailedExportFormats): boolean;
 const
-  DBaseVIIUnsupported=[ftUnknown,ftCurrency,ftBCD,ftTime,ftBytes,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
-  FoxProUnsupported=[ftUnknown,ftTime,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
+  // Alphabetically sorted for quick review:
+  DBaseVIIUnsupported=[ftADT,ftArray,ftBCD,ftBytes,ftCurrency,ftCursor,ftDataSet,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
+    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftUnknown,ftVarBytes,ftVariant];
+  FoxProUnsupported=  [ftADT,ftArray,                         ftCursor,ftDataSet,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
+    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftUnknown,ftVarBytes,ftVariant];
 begin
   result:=true;
   case ExportSubFormat of
