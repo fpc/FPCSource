@@ -482,7 +482,7 @@ function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; var CPinfoEx:TCPINFOEX):WINBO
 {$ifndef NO_SMART_LINK}
 function GetCursorInfo(var pci: TCursorInfo): BOOL;external 'user32' name 'GetCursorInfo';
 {$endif NO_SMART_LINK}
-function GetCursorPos(var lpPoint: TPoint): BOOL; external 'user32' name 'GetCursorPos';
+function GetCursorPos(out lpPoint: TPoint): BOOL; external 'user32' name 'GetCursorPos';
 function GetDCOrgEx(DC: HDC; var Origin: TPoint): BOOL; external 'gdi32' name 'GetDCOrgEx';
 function GetDefaultCommConfig(lpszName: PChar; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL;external 'kernel32' name 'GetDefaultCommConfigA';
 function GetDefaultCommConfigA(lpszName: LPCSTR; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL; external 'kernel32' name 'GetDefaultCommConfigA';
