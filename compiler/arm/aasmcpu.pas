@@ -1031,6 +1031,7 @@ implementation
                 end;
             end;
             { special case for case jump tables }
+            penalty:=0;
             if SimpleGetNextInstruction(curtai,hp) and
               (tai(hp).typ=ait_instruction) then
               begin
@@ -1056,28 +1057,20 @@ implementation
                             inc(penalty,multiplier);
                             hp:=tai(hp.next);
                           end;
-                      end
-                    else
-                      penalty:=0;
+                      end;
                   A_IT:
                     if GenerateThumb2Code then
-                      penalty:=multiplier
-                    else
-                      internalerror(2013112920);
+                      penalty:=multiplier;
                   A_ITE,
                   A_ITT:
                     if GenerateThumb2Code then
-                      penalty:=2*multiplier
-                    else
-                      internalerror(2013112919);
+                      penalty:=2*multiplier;
                   A_ITEE,
                   A_ITTE,
                   A_ITET,
                   A_ITTT:
                     if GenerateThumb2Code then
-                      penalty:=3*multiplier
-                    else
-                      internalerror(2013112918);
+                      penalty:=3*multiplier;
                   A_ITEEE,
                   A_ITTEE,
                   A_ITETE,
@@ -1087,15 +1080,9 @@ implementation
                   A_ITETT,
                   A_ITTTT:
                     if GenerateThumb2Code then
-                      penalty:=4*multiplier
-                    else
-                      internalerror(2013112917);
-                  else
-                    penalty:=0;
+                      penalty:=4*multiplier;
                 end;
-              end
-            else
-              penalty:=0;
+              end;
 
             { FLD/FST VFP instructions have a limit of +/- 1024, not 4096 }
             if SimpleGetNextInstruction(curtai,hp) and
