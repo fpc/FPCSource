@@ -75,13 +75,15 @@ function TTestDBExport.FieldSupported(const FieldType: TFieldType;
 const
   // Alphabetically sorted for quick review:
   DBaseVIIUnsupported=[ftADT,ftArray,ftBCD,ftBytes,ftCurrency,ftCursor,ftDataSet,
+    ftFixedWideChar,
     ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
     ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
-    ftUnknown,ftVarBytes,ftVariant];
+    ftUnknown,ftVarBytes,ftVariant,ftWidememo,ftWideString];
   FoxProUnsupported=  [ftADT,ftArray,                         ftCursor,ftDataSet,
+    ftFixedWideChar,
     ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
     ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
-    ftUnknown,ftVarBytes,ftVariant];
+    ftUnknown,ftVarBytes,ftVariant,ftWideMemo,ftWideString];
 begin
   result:=true;
   case ExportSubFormat of
