@@ -279,6 +279,9 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
+  TPpuPropOption = (poDefault);
+  TPpuPropOptions = set of TPpuPropOption;
+
   { TPpuPropDef }
   TPpuPropDef = class(TPpuContainerDef)
   protected
@@ -286,6 +289,7 @@ type
   public
     PropType: TPpuRef;
     Getter, Setter: TPpuRef;
+    Options: TPpuPropOptions;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
   end;
@@ -455,6 +459,9 @@ const
 
   ObjOptionNames: array[TPpuObjOption] of string =
     ('abstract','copied');
+
+  PropOptionNames: array[TPpuPropOption] of string =
+    ('default');
 
   ArrayOptionNames: array[TPpuArrayOption] of string =
     ('dynamic');
@@ -807,11 +814,20 @@ end;
 { TPpuPropDef }
 
 procedure TPpuPropDef.BeforeWriteItems(Output: TPpuOutput);
+var
+  opt: TPpuPropOption;
 begin
   inherited BeforeWriteItems(Output);
   PropType.Write(Output, 'PropType');
   Getter.Write(Output, 'Getter');
   Setter.Write(Output, 'Setter');
+  if Options <> [] then begin
+    Output.WriteArrayStart('Options');
+    for opt:=Low(opt) to High(opt) do
+      if opt in Options then
+        Output.WriteStr('', PropOptionNames[opt]);
+    Output.WriteArrayEnd('Options');
+  end;
 end;
 
 constructor TPpuPropDef.Create(AParent: TPpuContainerDef);

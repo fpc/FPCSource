@@ -2509,6 +2509,8 @@ begin
                  write  ([space,' OverrideProp : ']);
                  readderef('');
                end;
+             if ppo_defaultproperty in propoptions then
+               Include(TPpuPropDef(def).Options, poDefault);
              write  ([space,'    Prop Type : ']);
              readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
