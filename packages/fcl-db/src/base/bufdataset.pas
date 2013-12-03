@@ -1716,7 +1716,7 @@ begin
 end;
 
 procedure TCustomBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
-                               const ACaseInsFields: string = '');
+  const ACaseInsFields: string = '');
 begin
   CheckBiDirectional;
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
