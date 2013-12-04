@@ -181,7 +181,7 @@ implementation
       begin
          if handle_common_ret_in_param(def,pd,result) then
            exit;
-         ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
+         ret_in_param:=(def.typ=arraydef) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or

@@ -105,10 +105,10 @@ procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;
   end;
 
 
-function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : fpc_stub_dynarray;compilerproc;
   begin
-    result:=nil;
-    variantmanager.vartodynarray(result,v,typeinfo);
+    fpc_dynarray_clear(pointer(result),typeinfo);
+    variantmanager.vartodynarray(pointer(result),v,typeinfo);
   end;
 
 

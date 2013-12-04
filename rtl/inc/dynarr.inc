@@ -243,17 +243,17 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
 { provide local access to dynarr_copy }
 function int_dynarray_copy(psrc : pointer;ti : pointer;
-    lowidx,count:tdynarrayindex) : pointer;[external name 'FPC_DYNARR_COPY'];
+    lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[external name 'FPC_DYNARR_COPY'];
 
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
-    lowidx,count:tdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
+    lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
   var
     realpsrc : pdynarray;
     i,size : sizeint;
     elesize : sizeint;
     eletype : pointer;
   begin
-     result:=nil;
+     fpc_dynarray_clear(pointer(result),ti);
      if psrc=nil then
        exit;
 {$ifndef FPC_DYNARRAYCOPY_FIXED}
@@ -286,17 +286,17 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
      { create new array }
      size:=elesize*count;
-     getmem(result,size+sizeof(tdynarray));
+     getmem(pointer(result),size+sizeof(tdynarray));
      pdynarray(result)^.refcount:=1;
      pdynarray(result)^.high:=count-1;
-     inc(result,sizeof(tdynarray));
+     inc(pointer(result),sizeof(tdynarray));
      { copy data }
-     move(pointer(psrc+elesize*lowidx)^,result^,size);
+     move(pointer(psrc+elesize*lowidx)^,pointer(result)^,size);
 
      { increment ref. count of members? }
      if PByte(eletype)^ in tkManagedTypes then
        for i:=0 to count-1 do
-         int_addref(pointer(result+elesize*i),eletype);
+         int_addref(pointer(pointer(result)+elesize*i),eletype);
   end;
 
 
