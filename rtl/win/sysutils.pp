@@ -1393,11 +1393,10 @@ end;
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
-{$ifdef win64}          { Nothing win64-specific here, just keeping exe size down
-                          as these procedures aren't used in generic exception handling }
+{$ifdef mswindows}      { Keeps exe size down for systems that do not use SEH }
   ExceptObjProc:=@WinExceptionObject;
   ExceptClsProc:=@WinExceptionClass;
-{$endif win64}
+{$endif mswindows}
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;

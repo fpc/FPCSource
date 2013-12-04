@@ -120,6 +120,16 @@ type
 
   TUnwindProc=procedure(frame: PtrUInt);
 
+  PFilterRec=^TFilterRec;
+  TFilterRec=record
+    RvaClass: DWord;
+    RvaHandler: DWord;
+  end;
+
+  TExceptObjProc=function(code: Longint; const rec: TExceptionRecord): Pointer; { Exception }
+  TExceptClsProc=function(code: Longint): Pointer; { ExceptClass }
+
+
 procedure RaiseException(
   dwExceptionCode: DWORD;
   dwExceptionFlags: DWORD;
@@ -127,6 +137,59 @@ procedure RaiseException(
   lpArguments: Pointer);  // msdn: *ULONG_PTR
   stdcall; external 'kernel32.dll' name 'RaiseException';
 
+
+function RunErrorCode(const rec: TExceptionRecord): longint;
+begin
+  { negative result means 'FPU reset required' }
+  case rec.ExceptionCode of
+    STATUS_INTEGER_DIVIDE_BY_ZERO:      result := 200;    { reDivByZero }
+    STATUS_FLOAT_DIVIDE_BY_ZERO:        result := -208;   { !!reZeroDivide }
+    STATUS_ARRAY_BOUNDS_EXCEEDED:       result := 201;    { reRangeError }
+    STATUS_STACK_OVERFLOW:              result := 202;    { reStackOverflow }
+    STATUS_FLOAT_OVERFLOW:              result := -205;   { reOverflow }
+    STATUS_FLOAT_DENORMAL_OPERAND,
+    STATUS_FLOAT_UNDERFLOW:             result := -206;   { reUnderflow }
+    STATUS_FLOAT_INEXACT_RESULT,
+    STATUS_FLOAT_INVALID_OPERATION,
+    STATUS_FLOAT_STACK_CHECK:           result := -207;   { reInvalidOp }
+    STATUS_INTEGER_OVERFLOW:            result := 215;    { reIntOverflow }
+    STATUS_ILLEGAL_INSTRUCTION:         result := -216;
+    STATUS_ACCESS_VIOLATION:            result := 216;    { reAccessViolation }
+    STATUS_CONTROL_C_EXIT:              result := 217;    { reControlBreak }
+    STATUS_PRIVILEGED_INSTRUCTION:      result := 218;    { rePrivilegedInstruction }
+  else
+    result := 255;                                        { reExternalException }
+  end;
+end;
+
+
+function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord): Pointer;
+var
+  ExClass: TClass;
+  i: Longint;
+  Filter: Pointer;
+  curFilt: PFilterRec;
+begin
+  result:=nil;
+  if rec.ExceptionCode=FPC_EXCEPTION_CODE then
+    ExClass:=TObject(rec.ExceptionInformation[1]).ClassType
+  else if Assigned(ExceptClsProc) then
+    ExClass:=TClass(TExceptClsProc(ExceptClsProc)(abs(RunErrorCode(rec))))
+  else
+    Exit; { if we cannot determine type of exception, don't handle it }
+  Filter:=Pointer(imagebase+filterRva);
+  for i:=0 to PLongint(Filter)^-1 do
+  begin
+    CurFilt:=@PFilterRec(Filter+sizeof(Longint))[i];
+    if (CurFilt^.RvaClass=$FFFFFFFF) or
+      { TODO: exception might be coming from another module, need more advanced comparing }
+      (ExClass.InheritsFrom(TClass(imagebase+CurFilt^.RvaClass))) then
+    begin
+      result:=Pointer(imagebase+CurFilt^.RvaHandler);
+      exit;
+    end;
+  end;
+end;
 
   {*****************************************************************************
                                 Parameter Handling
