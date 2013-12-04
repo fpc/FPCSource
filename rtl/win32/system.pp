@@ -515,31 +515,8 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
   end;
 
 procedure install_exception_handlers;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-  var
-    oldexceptaddr,
-    newexceptaddr : Longint;
-{$endif SYSTEMEXCEPTIONDEBUG}
-
   begin
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,oldexceptaddr
-    end;
-{$endif SYSTEMEXCEPTIONDEBUG}
     SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,newexceptaddr
-    end;
-    if IsConsole then
-      writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-                     ' new exception  ',hexstr(newexceptaddr,8));
-{$endif SYSTEMEXCEPTIONDEBUG}
   end;
 
 procedure remove_exception_handlers;
