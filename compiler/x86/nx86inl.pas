@@ -398,8 +398,19 @@ implementation
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
-                emit_ref(A_FNSTCW,S_NO,newcw);
-                emit_ref(A_FNSTCW,S_NO,oldcw);
+{$ifdef i8086}
+                if current_settings.cputype<=cpu_286 then
+                  begin
+                    emit_ref(A_FSTCW,S_NO,newcw);
+                    emit_ref(A_FSTCW,S_NO,oldcw);
+                    emit_none(A_FWAIT,S_NO);
+                  end
+                else
+{$endif i8086}
+                  begin
+                    emit_ref(A_FNSTCW,S_NO,newcw);
+                    emit_ref(A_FNSTCW,S_NO,oldcw);
+                  end;
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location(left);
                 emit_ref(A_FLDCW,S_NO,newcw);
