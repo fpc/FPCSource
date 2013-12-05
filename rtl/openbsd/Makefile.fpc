@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
       $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
-      charset cpall ucomplex getopts heaptrc lineinfo lnfodwrf \
+      charset cpall buildcollations character ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
       video mouse keyboard  serial variants types sysctl sysconst \
       fpintres convutils stdconvs dynlibs cwstring cmem dl termio \
@@ -23,7 +23,9 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
 rsts=math varutils typinfo variants classes sysconst dateutils
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
+      unicodedata unicodeducet unicodenumtable \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
 [require]
 nortl=y
@@ -246,6 +248,9 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
+# let it depend on buildcollations to prevent simultaneous building of unicodedata
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Mac Pascal Model
@@ -280,6 +285,10 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
+buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
+
+matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
