@@ -582,6 +582,7 @@ interface
       e        : extended;
 {$endif cpuextended}
       fixed_opcode: TAsmOp;
+      prefix   : string;
     begin
       if not assigned(p) then
        exit;
@@ -972,12 +973,13 @@ interface
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
                 begin
+                  prefix:='';
 {$ifdef i8086}
                   { nickysn note: I don't know if the 187 requires FWAIT before
                     every instruction like the 8087, so I'm including it just in case }
                   if (current_settings.cputype<=cpu_186) and
                       requires_fwait_on_8087(fixed_opcode) then
-                    AsmWriteln(#9#9'DB'#9'09bh');
+                    prefix:='wait '+prefix;
 {$endif i8086}
 {$ifndef i8086}
                   { We need to explicitely set
@@ -990,7 +992,7 @@ interface
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
 {$endif not i8086}
-                  AsmWrite(#9#9+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
+                  AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
                      if is_calljmp(fixed_opcode) then
