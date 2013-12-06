@@ -537,7 +537,7 @@ uses
     function my_net_init(net:PNET; vio:PVio):my_bool;cdecl;external mysqllib name 'my_net_init';
     procedure my_net_local_init(net:PNET);cdecl;external mysqllib name 'my_net_local_init';
     procedure net_end(net:PNET);cdecl;external mysqllib name 'net_end';
-    procedure net_clear(net:PNET;{$IFDEF mysql51}check_buffer:my_bool{$ENDIF});cdecl;external mysqllib name 'net_clear';
+    procedure net_clear(net:PNET{$IFDEF mysql51};check_buffer:my_bool{$ENDIF});cdecl;external mysqllib name 'net_clear';
     function net_realloc(net:PNET; length:culong):my_bool;cdecl;external mysqllib name 'net_realloc';
     function net_flush(net:PNET):my_bool;cdecl;external mysqllib name 'net_flush';
     function my_net_write(net:PNET; packet:Pchar; len:culong):my_bool;cdecl;external mysqllib name 'my_net_write';
