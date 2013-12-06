@@ -479,7 +479,7 @@ unit cgcpu;
         a_loadaddr_ref_cgpara(list,href,para2);
         paramanager.freecgpara(list,para2);
         paramanager.freecgpara(list,para1);
-        g_call(current_asmdata.CurrAsmList,'_FPC_local_unwind');
+        g_call(list,'_FPC_local_unwind');
         para2.done;
         para1.done;
       end;
