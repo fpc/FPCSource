@@ -31,7 +31,7 @@ uses
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.'+sharedsuffix;
-  {$IF DEFINED(mysql55)}
+  {$IF DEFINED(mysql55) or DEFINED(mysql56)}
     mysqlvlib = mysqllib+'.18';
   {$ELSEIF DEFINED(mysql51)}
     mysqlvlib = mysqllib+'.16';
@@ -49,6 +49,11 @@ uses
     mysqllib = 'libmysql.dll';
     mysqlvlib = 'libmysql.dll';
 {$ENDIF}
+
+
+{$IFDEF mysql56}
+  {$DEFINE mysql55}
+{$ENDIF mysql56}
 
 {$IFDEF mysql55}
   {$DEFINE mysql51}
@@ -103,14 +108,30 @@ uses
   { Field/table name length  }
 
   const
-     NAME_LEN = 64;
      HOSTNAME_LENGTH = 60;
+{$IFDEF mysql51}
+     SYSTEM_CHARSET_MBMAXLEN = 3;
+     NAME_CHAR_LEN = 64;              // Field/table name length
+     USERNAME_CHAR_LENGTH = 16;
+     NAME_LEN = (NAME_CHAR_LEN*SYSTEM_CHARSET_MBMAXLEN);
+     USERNAME_LENGTH = (USERNAME_CHAR_LENGTH*SYSTEM_CHARSET_MBMAXLEN);
+{$ELSE}
+     NAME_LEN = 64;
      USERNAME_LENGTH = 16;
+{$ENDIF}
      MYSQL_AUTODETECT_CHARSET_NAME = 'auto';
      SERVER_VERSION_LENGTH = 60;
      SQLSTATE_LENGTH = 5;
      LOCAL_HOST = 'localhost';
      LOCAL_HOST_NAMEDPIPE = '.';
+
+  { Maximum length of comments }
+  const
+     TABLE_COMMENT_INLINE_MAXLEN = 180;
+     TABLE_COMMENT_MAXLEN = 2048;
+     COLUMN_COMMENT_MAXLEN = 1024;
+     INDEX_COMMENT_MAXLEN = 1024;
+     TABLE_PARTITION_COMMENT_MAXLEN = 1024;
 
   const
      MYSQL_NAMEDPIPE = 'MySQL';
@@ -127,7 +148,12 @@ uses
 {$IFDEF mysql50}
        COM_STMT_PREPARE, COM_STMT_EXECUTE, COM_STMT_SEND_LONG_DATA, COM_STMT_CLOSE,
        COM_STMT_RESET, COM_SET_OPTION, COM_STMT_FETCH,
-       {$IFDEF mysql51}COM_DAEMON,{$ENDIF}
+ {$IFDEF mysql51}
+       COM_DAEMON,
+  {$IFDEF mysql56}
+       COM_BINLOG_DUMP_GTID,
+  {$ENDIF}
+ {$ENDIF}
 {$ELSE}
   {$IFDEF mysql41}
        COM_PREPARE,COM_EXECUTE,COM_LONG_DATA,COM_CLOSE_STMT,
@@ -178,6 +204,22 @@ uses
        GROUP_FLAG = 32768;         // Intern: Group field
        UNIQUE_FLAG = 65536;        // Intern: Used by sql_yacc
        BINCMP_FLAG = 131072;       // Intern: Used by sql_yacc
+{$IFDEF mysql51}
+       GET_FIXED_FIELDS_FLAG = (1 shl 18);    // Used to get fields in item tree
+       FIELD_IN_PART_FUNC_FLAG = (1 shl 19);  // Field part of partition func
+       FIELD_IN_ADD_INDEX = (1 shl 20);       // Intern: Field in TABLE object for new version of altered table,
+                                              //         which participates in a newly added index.
+       FIELD_IS_RENAMED = (1 shl 21);         // Intern: Field is being renamed
+ {$IFDEF mysql55}
+       FIELD_FLAGS_STORAGE_MEDIA = 22;        // Field storage media, bit 22-23
+       FIELD_FLAGS_STORAGE_MEDIA_MASK = (3 shl FIELD_FLAGS_STORAGE_MEDIA);
+       FIELD_FLAGS_COLUMN_FORMAT = 24;        // Field column format, bit 24-25
+       FIELD_FLAGS_COLUMN_FORMAT_MASK = (3 shl FIELD_FLAGS_COLUMN_FORMAT);
+  {$IFDEF mysql56}
+       FIELD_IS_DROPPED = (1 shl 26);         // Intern: Field is being dropped
+  {$ENDIF}
+ {$ENDIF}
+{$ENDIF}
 
        REFRESH_GRANT = 1;          // Refresh grant tables
        REFRESH_LOG = 2;            // Start on new log file
@@ -202,6 +244,7 @@ uses
 
        REFRESH_DES_KEY_FILE = $40000;
        REFRESH_USER_RESOURCES = $80000;
+       REFRESH_FOR_EXPORT = $100000;       // FLUSH TABLES ... FOR EXPORT
 
        CLIENT_LONG_PASSWORD = 1;           // new more secure passwords
        CLIENT_FOUND_ROWS = 2;              // Found instead of affected rows
@@ -223,6 +266,9 @@ uses
        CLIENT_MULTI_RESULTS = 131072;      // Enable/disable multi-results
        CLIENT_PS_MULTI_RESULTS : cardinal = 1 shl 18; // Multi-results in PS-protocol
        CLIENT_PLUGIN_AUTH : cardinal = 1 shl 19;      // Client supports plugin authentication
+       CLIENT_CONNECT_ATTRS : cardinal = (1 shl 20);  // Client supports connection attributes
+       CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA : cardinal = (1 shl 21);  // Enable authentication response packet to be larger than 255 bytes.
+       CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS : cardinal = (1 shl 22);    // Don't close the connection for a connection with expired password.
        CLIENT_SSL_VERIFY_SERVER_CERT : cardinal = 1 shl 30;
        CLIENT_REMEMBER_OPTIONS : cardinal = 1 shl 31;
 
@@ -261,6 +307,9 @@ uses
        SERVER_QUERY_WAS_SLOW = 2048;
        SERVER_PS_OUT_PARAMS = 4096; // To mark ResultSet containing output parameter values.
 {$ENDIF}
+{$IFDEF mysql56}
+       SERVER_STATUS_IN_TRANS_READONLY = 8192;
+{$ENDIF}
 
 {$IFDEF mysql41}
        MYSQL_ERRMSG_SIZE = 512;
@@ -282,38 +331,78 @@ uses
        MAX_INT_WIDTH = 10;              // Max width for a LONG w.o. sign
        MAX_BIGINT_WIDTH = 20;           // Max width for a LONGLONG
        MAX_CHAR_WIDTH = 255;            // Max length for a CHAR colum
+{$IFDEF mysql51}
+       MAX_BLOB_WIDTH = 16777216;       // Default width for blob
+{$ELSE}
        MAX_BLOB_WIDTH = 8192;           // Default width for blob
+{$ENDIF}
 
     type
        Pst_net = ^st_net;
        st_net = record
-{ $if !defined(CHECK_EMBEDDED_DIFFERENCES) || !defined(EMBEDDED_LIBRARY)}
+{ $if !defined(CHECK_EMBEDDED_DIFFERENCES) || !defined(EMBEDDED_LIBRARY) }
             vio : PVio;
             buff : pcuchar;
             buff_end : pcuchar;
             write_pos : pcuchar;
             read_pos : pcuchar;
             fd : my_socket;     // For Perl DBI/dbd
+            { The following variable is set if we are doing several queries in one
+              command ( as in LOAD TABLE ... FROM MASTER ),
+              and do not want to confuse the client with OK at the wrong time }
+{$IFDEF mysql51}
+            remain_in_buf,length, buf_length, where_b: culong;
+            max_packet,max_packet_size: culong;
+            pkt_nr,compress_pkt_nr: cuint;
+            write_timeout, read_timeout, retry_count: cuint;
+            fcntl: cint;
+            return_status: pcuint;
+            reading_or_writing: cuchar;
+            save_char: cchar;
+            unused1: my_bool;  // Please remove with the next incompatible ABI change
+            unused2: my_bool;  // Please remove with the next incompatible ABI change
+            compress: my_bool;
+            unused3: my_bool;  // Please remove with the next incompatible ABI change
+            { Pointer to query object in query cache, do not equal NULL (0) for
+              queries in cache that have not stored its results yet }
+{ $endif }
+            unused: pcuchar;
+            last_errno: cuint;
+            error: cuchar;
+            unused4: my_bool;  // Please remove with the next incompatible ABI change
+            unused5: my_bool;  // Please remove with the next incompatible ABI change
+            { Client library error message buffer. Actually belongs to struct MYSQL. }
+            last_error: array[0..MYSQL_ERRMSG_SIZE-1] of cchar;
+            { Client library sqlstate buffer. Set along with the error message. }
+            sqlstate: array[0..SQLSTATE_LENGTH] of cchar;
+            { Extension pointer, for the caller private use.
+              Any program linking with the networking library can use this pointer,
+              which is handy when private connection specific data needs to be
+              maintained.
+              The mysqld server process uses this pointer internally,
+              to maintain the server internal instrumentation for the connection. }
+            extension: Pointer;
+{$ELSE} // pre 5.1 version ?
             max_packet : culong;
             max_packet_size : culong;
-{$IFNDEF mysql41}
+            {$IFNDEF mysql41}
             last_errno : cuint;
-{$ENDIF}
+            {$ENDIF}
             pkt_nr : cuint;
             compress_pkt_nr : cuint;
             write_timeout : cuint;
             read_timeout : cuint;
             retry_count : cuint;
             fcntl : cint;
-{$IFNDEF mysql41}
+            {$IFNDEF mysql41}
             last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
             error : cuchar;
             return_errno : my_bool;
-{$ENDIF}
+            {$ENDIF}
             compress : my_bool;
-    {   The following variable is set if we are doing several queries in one
-        command ( as in LOAD TABLE ... FROM MASTER ),
-        and do not want to confuse the client with OK at the wrong time }
+            {   The following variable is set if we are doing several queries in one
+            command ( as in LOAD TABLE ... FROM MASTER ),
+            and do not want to confuse the client with OK at the wrong time }
             remain_in_buf : culong;
             length : culong;
             buf_length : culong;
@@ -322,25 +411,25 @@ uses
             reading_or_writing : cuchar;
             save_char : cchar;
             no_send_ok : my_bool;     // For SPs and other things that do multiple stmts
-{$IFDEF mysql50}
+            {$IFDEF mysql50}
             no_send_eof : my_bool;    // For SPs' first version read-only cursors
             no_send_error : my_bool;  // Set if OK packet is already sent, and
                                       // we do not need to send error messages
-{$ENDIF}
-    {   Pointer to query object in query cache, do not equal NULL (0) for
-        queries in cache that have not stored its results yet }
-{ $endif}
-{$IFDEF mysql41}
+            {$ENDIF}
+            {   Pointer to query object in query cache, do not equal NULL (0) for
+                queries in cache that have not stored its results yet }
+            {$IFDEF mysql41}
             last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
             sqlstate : array[0..(SQLSTATE_LENGTH+1)-1] of char;
             last_errno : cuint;
             error : cuchar;
-{$ENDIF}
+            {$ENDIF}
             query_cache_query : gptr;
-{$IFDEF mysql41}
+            {$IFDEF mysql41}
             report_error : my_bool;   // We should report error (we have unreported error)
             return_errno : my_bool;
-{$ENDIF}
+            {$ENDIF}
+{$ENDIF} // pre 5.1 version ?
          end;
        NET = st_net;
        PNET = ^NET;
@@ -357,7 +446,11 @@ uses
          MYSQL_TYPE_DATETIME,MYSQL_TYPE_YEAR,
          MYSQL_TYPE_NEWDATE,
 {$IFDEF mysql50}
-         MYSQL_TYPE_VARCHAR, MYSQL_TYPE_BIT, MYSQL_TYPE_NEWDECIMAL=246,
+         MYSQL_TYPE_VARCHAR, MYSQL_TYPE_BIT,
+ {$IFDEF mysql56}
+         MYSQL_TYPE_TIMESTAMP2, MYSQL_TYPE_DATETIME2, MYSQL_TYPE_TIME2,
+ {$ENDIF}
+         MYSQL_TYPE_NEWDECIMAL := 246,
 {$ENDIF}
          MYSQL_TYPE_ENUM := 247,
          MYSQL_TYPE_SET := 248,MYSQL_TYPE_TINY_BLOB := 249,
@@ -444,13 +537,17 @@ uses
     function my_net_init(net:PNET; vio:PVio):my_bool;cdecl;external mysqllib name 'my_net_init';
     procedure my_net_local_init(net:PNET);cdecl;external mysqllib name 'my_net_local_init';
     procedure net_end(net:PNET);cdecl;external mysqllib name 'net_end';
-    procedure net_clear(net:PNET);cdecl;external mysqllib name 'net_clear';
+    procedure net_clear(net:PNET;{$IFDEF mysql51}check_buffer:my_bool{$ENDIF});cdecl;external mysqllib name 'net_clear';
     function net_realloc(net:PNET; length:culong):my_bool;cdecl;external mysqllib name 'net_realloc';
     function net_flush(net:PNET):my_bool;cdecl;external mysqllib name 'net_flush';
     function my_net_write(net:PNET; packet:Pchar; len:culong):my_bool;cdecl;external mysqllib name 'my_net_write';
     function net_write_command(net:PNET; command:cuchar; header:Pchar; head_len:culong; packet:Pchar;
                len:culong):my_bool;cdecl;external mysqllib name 'net_write_command';
+ {$IFDEF mysql56}
+    function net_write_packet(net:PNET; packet:Pchar; length:culong):my_bool;cdecl;external mysqllib name 'net_write_packet';
+ {$ELSE}
     function net_real_write(net:PNET; packet:Pchar; len:culong):cint;cdecl;external mysqllib name 'net_real_write';
+ {$ENDIF}
     function my_net_read(net:PNET):culong;cdecl;external mysqllib name 'my_net_read';
 {$ENDIF}
     { The following function is not meant for normal usage
@@ -494,6 +591,9 @@ uses
 {$IFDEF mysql50}
             attributes : PPChar;         // Pointer to attribute name
             attribute_lengths : pculong;  // Length of attribute arguments
+ {$IFDEF mysql51}
+            extension: pointer;
+ {$ENDIF}
 {$ENDIF}
          end;
        UDF_ARGS = st_udf_args;
@@ -508,6 +608,9 @@ uses
             max_length : culong;          // For string functions
             ptr : Pchar;                 // free pointer for function data
             const_item : my_bool;        // free pointer for function data
+{$IFDEF mysql51}
+            extension: pointer;
+{$ENDIF}
          end;
        UDF_INIT = st_udf_init;
        PUDF_INIT = ^UDF_INIT;
@@ -739,21 +842,33 @@ uses
 {  ------------ Stop of declaration in "my_alloc.h"    ----------------------  }
 
     type
+       embedded_query_result = record end;
+
        Pst_mysql_data = ^st_mysql_data;
        st_mysql_data = record
+{$IFDEF mysql51}
+            data: PMYSQL_ROWS;
+            embedded_info: ^embedded_query_result;
+            alloc: MEM_ROOT;
+            rows: my_ulonglong;
+            fields: cuint;
+            // extra info for embedded library
+            extension: pointer;
+{$ELSE}
             rows : my_ulonglong;
             fields : cuint;
             data : PMYSQL_ROWS;
             alloc : MEM_ROOT;
-{ $if !defined(CHECK_EMBEDDED_DIFFERENCES) || defined(EMBEDDED_LIBRARY)}
-{$IFDEF mysql41}
+  { $if !defined(CHECK_EMBEDDED_DIFFERENCES) || defined(EMBEDDED_LIBRARY)}
+  {$IFDEF mysql41}
             prev_ptr : ^PMYSQL_ROWS;
-{$ENDIF}
-{ $endif}
+  {$ENDIF}
+  { $endif}
+ {$ENDIF}
          end;
-         
        MYSQL_DATA = st_mysql_data;
        PMYSQL_DATA = ^MYSQL_DATA;
+
        mysql_option = (MYSQL_OPT_CONNECT_TIMEOUT,MYSQL_OPT_COMPRESS,
          MYSQL_OPT_NAMED_PIPE,MYSQL_INIT_COMMAND,
          MYSQL_READ_DEFAULT_FILE,MYSQL_READ_DEFAULT_GROUP,
@@ -766,12 +881,20 @@ uses
          MYSQL_SECURE_AUTH
 {$IFDEF MYSQL50}
          ,MYSQL_REPORT_DATA_TRUNCATION, MYSQL_OPT_RECONNECT
-{$IFDEF mysql51}
+ {$IFDEF mysql51}
          ,MYSQL_OPT_SSL_VERIFY_SERVER_CERT
-{$IFDEF mysql55}
+  {$IFDEF mysql55}
          ,MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH
-{$ENDIF}
-{$ENDIF}
+   {$IFDEF mysql56}
+         ,MYSQL_OPT_BIND
+         ,MYSQL_OPT_SSL_KEY, MYSQL_OPT_SSL_CERT, MYSQL_OPT_SSL_CA, MYSQL_OPT_SSL_CAPATH, MYSQL_OPT_SSL_CIPHER, MYSQL_OPT_SSL_CRL, MYSQL_OPT_SSL_CRLPATH
+         ,MYSQL_OPT_CONNECT_ATTR_RESET, MYSQL_OPT_CONNECT_ATTR_ADD, MYSQL_OPT_CONNECT_ATTR_DELETE
+         ,MYSQL_SERVER_PUBLIC_KEY
+         ,MYSQL_ENABLE_CLEARTEXT_PLUGIN
+         ,MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS
+   {$ENDIF}
+  {$ENDIF}
+ {$ENDIF}
 {$ENDIF}
          );
 
@@ -853,7 +976,19 @@ uses
             separate_thread : my_bool;
 { $endif}
             methods_to_use : mysql_option;
+{$IFDEF mysql56}
+            ci: record case integer of  // C union
+                {The ip/hostname to use when authenticating
+                 client against embedded server built with
+                 grant tables - only used in embedded server}
+              0: (client_ip: PChar;);
+                {The local address to bind when connecting to
+                 remote server - not used in embedded server}
+              1: (bind_address: PChar;);
+            end;
+{$ELSE}
             client_ip : Pchar;
+{$ENDIF}
             secure_auth : my_bool;           // Refuse client connecting to server if it uses old (pre-4.1.1) protocol
 {$IFDEF mysql50}
             report_data_truncation : my_bool;// 0 - never report, 1 - always report (default)
@@ -870,8 +1005,11 @@ uses
 {$ENDIF}
          end;
 
-       mysql_status = (MYSQL_STATUS_READY,MYSQL_STATUS_GET_RESULT,
-         MYSQL_STATUS_USE_RESULT);
+       mysql_status = (MYSQL_STATUS_READY,MYSQL_STATUS_GET_RESULT, MYSQL_STATUS_USE_RESULT
+{$IFDEF mysql51}
+                       ,MYSQL_STATUS_STATEMENT_GET_RESULT
+{$ENDIF}
+       );
 
        mysql_protocol_type = (MYSQL_PROTOCOL_DEFAULT,MYSQL_PROTOCOL_TCP,
          MYSQL_PROTOCOL_SOCKET,MYSQL_PROTOCOL_PIPE,
@@ -981,6 +1119,12 @@ uses
     {   Points to boolean flag in MYSQL_RES  or MYSQL_STMT. We set this flag
         from mysql_stmt_close if close had to cancel result set of this object.       }
             unbuffered_fetch_owner : Pmy_bool;
+ {$IFDEF mysql50}
+            info_buffer: ^cchar;
+  {$IFDEF mysql51}
+            extension: pointer;
+  {$ENDIF}
+ {$ENDIF}
 {$ENDIF}
          end;
        MYSQL = st_mysql;
@@ -993,18 +1137,28 @@ uses
             fields : PMYSQL_FIELD;
             data : PMYSQL_DATA;
             data_cursor : PMYSQL_ROWS;
-            lengths : pculong;            // column lengths of current row
+            lengths : pculong;           // column lengths of current row
             handle : PMYSQL;             // for unbuffered reads
+{$IFDEF mysql51}
+            methods : Pst_mysql_methods;
+            row : MYSQL_ROW;             // If unbuffered read
+            current_row : MYSQL_ROW;     // buffer to current row
+            field_alloc : MEM_ROOT;
+            field_count, current_field : cuint;
+            eof : my_bool;               // Used by mysql_fetch_row
+            unbuffered_fetch_cancelled : my_bool;  // mysql_stmt_close() had to cancel this result
+            extension : pointer;
+{$ELSE}
             field_alloc : MEM_ROOT;
             field_count : cuint;
             current_field : cuint;
             row : MYSQL_ROW;             // If unbuffered read
             current_row : MYSQL_ROW;     // buffer to current row
             eof : my_bool;               // Used by mysql_fetch_row
-{$IFDEF mysql41}
+ {$IFDEF mysql41}
             unbuffered_fetch_cancelled : my_bool;  // mysql_stmt_close() had to cancel this result
-
             methods : Pst_mysql_methods;
+ {$ENDIF}
 {$ENDIF}
          end;
        MYSQL_RES = st_mysql_res;
@@ -1015,7 +1169,7 @@ uses
 
        st_mysql_methods = record
             read_query_result : function (mysql:PMYSQL):my_bool;cdecl;
-            advanced_command : function (mysql:PMYSQL; command:enum_server_command; header:Pchar; header_length:culong; arg:Pchar;
+            advanced_command : function (mysql:PMYSQL; command:enum_server_command; header:Pcuchar; header_length:culong; arg:Pcuchar;
                          arg_length:culong; skip_check:my_bool):my_bool;
             read_rows : function (mysql:PMYSQL; mysql_fields:PMYSQL_FIELD; fields:cuint):PMYSQL_DATA;
             use_result : function (mysql:PMYSQL):PMYSQL_RES;
@@ -1046,6 +1200,17 @@ uses
             host : Pchar;
             user : Pchar;
             passwd : Pchar;
+{$IFDEF mysql51}
+            net_buf, net_buf_pos, net_data_end : pcchar;
+            port : cuint;
+            cmd_status : cint;
+            last_errno : cint;
+            net_buf_size : cint;
+            free_me : my_bool;
+            eof : my_bool;
+            last_error : array[0..(MAX_MYSQL_MANAGER_ERR)-1] of cchar;
+            extension : pointer;
+{$ELSE}
             port : cuint;
             free_me : my_bool;
             eof : my_bool;
@@ -1055,7 +1220,8 @@ uses
             net_buf_pos : Pchar;
             net_data_end : Pchar;
             net_buf_size : cint;
-            last_error : array[0..(MAX_MYSQL_MANAGER_ERR)-1] of char;
+            last_error : array[0..(MAX_MYSQL_MANAGER_ERR)-1] of cchar;
+{$ENDIF}
          end;
        MYSQL_MANAGER = st_mysql_manager;
        PMYSQL_MANAGER = ^MYSQL_MANAGER;
@@ -1064,6 +1230,9 @@ uses
        st_mysql_parameters = record
             p_max_allowed_packet : pculong;
             p_net_buffer_length : pculong;
+{$IFDEF mysql51}
+            extension : pointer;
+{$ENDIF}
          end;
        MYSQL_PARAMETERS = st_mysql_parameters;
        PMYSQL_PARAMETERS = ^MYSQL_PARAMETERS;
@@ -1143,8 +1312,8 @@ uses
     }
        Pst_mysql_bind = ^st_mysql_bind;
 
-{$IFDEF mysql51}
        st_mysql_bind = record
+{$IFDEF mysql51}
             length : pculong;               // output length pointer
             is_null : Pmy_bool;             // Pointer to null indicator
             buffer : pointer;               // buffer to get/put data
@@ -1164,66 +1333,78 @@ uses
             long_data_used : my_bool;       // If used with mysql_send_long_data
             is_null_value : my_bool;        // Used if is_null is 0
             extension : Pointer;
-       end;
 {$ELSE}
-       st_mysql_bind = record
             length : pculong;               // output length pointer
             is_null : Pmy_bool;             // Pointer to null indicator
             buffer : pointer;               // buffer to get/put data
-{$IFDEF mysql50}
+ {$IFDEF mysql50}
             error: pmy_bool;                // set this if you want to track data truncations happened during fetch
-{$ENDIF}
+ {$ENDIF}
             buffer_type : enum_field_types; // buffer type
             buffer_length : culong;         // buffer length, must be set for str/binary
     { Following are for internal use. Set by mysql_stmt_bind_param  }
-{$IFNDEF mysql50}
+ {$IFNDEF mysql50}
             inter_buffer : Pbyte;           // for the current data position
-{$ELSE}
+ {$ELSE}
             row_ptr : PByte;                // for the current data position
-{$ENDIF}
+ {$ENDIF}
             offset : culong;                // offset position for char/binary fetch
-{$IFNDEF mysql50}
+ {$IFNDEF mysql50}
             internal_length : culong;       //  Used if length is 0
-{$ELSE}
+ {$ELSE}
             length_value : culong;          //  Used if length is 0
-{$ENDIF}
+ {$ENDIF}
             param_number : cuint;           // For null count and error messages
             pack_length : cuint;            // Internal length for packed data
-{$IFDEF mysql50}
+ {$IFDEF mysql50}
             error_value : my_bool;         // used if error is 0
-{$ENDIF}
+ {$ENDIF}
             is_unsigned : my_bool;          // set if integer type is unsigned
             long_data_used : my_bool;       // If used with mysql_send_long_data
-{$IFNDEF mysql50}
+ {$IFNDEF mysql50}
             internal_is_null : my_bool;     // Used if is_null is 0
-{$ELSE}
+ {$ELSE}
             is_null_value : my_bool;        // Used if is_null is 0
-{$ENDIF}
+ {$ENDIF}
             store_param_func : procedure (net:PNET; param:Pst_mysql_bind);cdecl;
             fetch_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
             skip_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
-         end;
 {$ENDIF}
+         end;
        MYSQL_BIND = st_mysql_bind;
        PMYSQL_BIND = ^MYSQL_BIND;
 
-    { statement handler  }
+       { From  "my_list.h" }
+       st_list = record
+         prev, next : ^st_list;
+         data : pointer;
+       end;
+       LIST = st_list;
+
+       { statement handler  }
+
        st_mysql_stmt_extension = record end;
 
        st_mysql_stmt = record
             mem_root : MEM_ROOT;            // root allocations
-//            list : LIST;                    // list to keep track of all stmts
+            list : LIST;                    // list to keep track of all stmts
             mysql : PMYSQL;                 // connection handle
             params : PMYSQL_BIND;           // input parameters
             bind : PMYSQL_BIND;             // input parameters
             fields : PMYSQL_FIELD;          // result set metadata
             result : MYSQL_DATA;            // cached result set
             data_cursor : PMYSQL_ROWS;      // current row in cached result
+{$IFDEF mysql51}
+            read_row_func : function (stmt:Pst_mysql_stmt; row:PPbyte):cint;cdecl;
+            affected_rows : my_ulonglong;   // copy of mysql->affected_rows after statement execution
+            insert_id : my_ulonglong;       // copy of mysql->insert_id
+{$ELSE}
             affected_rows : my_ulonglong;   // copy of mysql->affected_rows after statement execution
             insert_id : my_ulonglong;       // copy of mysql->insert_id
     {   mysql_stmt_fetch() calls this function to fetch one row (it's different
         for buffered, unbuffered and cursor fetch).       }
             read_row_func : function (stmt:Pst_mysql_stmt; row:PPbyte):cint;cdecl;
+{$ENDIF}
             stmt_id : culong;               // Id for prepared statement
 {$IFDEF mysql50}
             flags : culong;                 // i.e. type of cursor to open
@@ -1513,6 +1694,9 @@ uses
       mysql_list_tables: function (mysql:PMYSQL; wild:Pchar):PMYSQL_RES;extdecl;
       mysql_list_processes: function (mysql:PMYSQL):PMYSQL_RES;extdecl;
       mysql_options: function (mysql:PMYSQL; option:mysql_option; arg:Pchar):cint;extdecl;
+{$IFDEF mysql56}
+      mysql_options4: function (mysql:PMYSQL; option:mysql_option; arg1,arg2:Pointer):cint;extdecl;
+{$ENDIF}
       mysql_free_result: procedure (result:PMYSQL_RES);extdecl;
       mysql_data_seek: procedure (result:PMYSQL_RES; offset:my_ulonglong);extdecl;
       mysql_row_seek: function (result:PMYSQL_RES; offset:MYSQL_ROW_OFFSET):MYSQL_ROW_OFFSET;extdecl;
