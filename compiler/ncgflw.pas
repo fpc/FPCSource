@@ -1401,7 +1401,6 @@ implementation
 
     procedure tcgtryfinallynode.pass_generate_code;
       var
-         reraiselabel,
          finallylabel,
          endfinallylabel,
          exitfinallylabel,
@@ -1411,7 +1410,6 @@ implementation
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
-         decconst : longint;
          excepttemps : texceptiontemps;
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -1426,7 +1424,6 @@ implementation
          flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(finallylabel);
          current_asmdata.getjumplabel(endfinallylabel);
-         current_asmdata.getjumplabel(reraiselabel);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
@@ -1513,34 +1510,13 @@ implementation
          else
            begin
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
-             if (tryflowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
-               begin
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
-                 if fc_exit in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
-                     decconst:=1;
-                   end
-                 else
-                   decconst:=2;
-                 if fc_break in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldBreakLabel);
-                     decconst:=1;
-                   end
-                 else
-                   inc(decconst);
-                 if fc_continue in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldContinueLabel);
-                   end;
-               end;
+             if fc_exit in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,2,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
+             if fc_break in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,3,NR_FUNCTION_RESULT_REG,oldBreakLabel);
+             if fc_continue in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,4,NR_FUNCTION_RESULT_REG,oldContinueLabel);
              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-             cg.a_label(current_asmdata.CurrAsmList,reraiselabel);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
              { do some magic for exit,break,continue in the try block }
              if fc_exit in tryflowcontrol then
