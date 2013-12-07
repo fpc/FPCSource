@@ -102,6 +102,7 @@ interface
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
+          function wrap_to_value:tnode;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -1465,6 +1466,40 @@ implementation
       end;
 
 
+    function has_exceptions(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if (n.nodetype in [tryfinallyn,tryexceptn]) then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
+    function tfornode.wrap_to_value:tnode;
+      var
+        statements: tstatementnode;
+        temp: ttempcreatenode;
+        allowreg: boolean;
+      begin
+        allowreg:=not foreachnodestatic(t2,@has_exceptions,nil);
+        result:=internalstatements(statements);
+        temp:=ctempcreatenode.create(t1.resultdef,t1.resultdef.size,tt_persistent,allowreg);
+        addstatement(statements,temp);
+        addstatement(statements,cassignmentnode.create(
+          ctemprefnode.create(temp),
+          t1));
+        { create a new for node, it is cheaper than cloning entire loop body }
+        addstatement(statements,cfornode.create(
+          left,right,ctemprefnode.create(temp),t2,lnf_backward in loopflags));
+        addstatement(statements,ctempdeletenode.create(temp));
+        { all child nodes are reused }
+        left:=nil;
+        right:=nil;
+        t1:=nil;
+        t2:=nil;
+      end;
+
+
     function tfornode.pass_typecheck:tnode;
       var
         res : tnode;
@@ -1532,11 +1567,14 @@ implementation
          firstpass(t1);
 
          if assigned(t2) then
-          begin
-            firstpass(t2);
-            if codegenerror then
-             exit;
-          end;
+           firstpass(t2);
+         if codegenerror then
+           exit;
+
+         { 'to' value must be evaluated once before loop, so its possible modifications
+           inside loop body do not affect the number of iterations (see webtbs/tw8883). }
+         if not (t1.nodetype in [ordconstn,temprefn]) then
+           result:=wrap_to_value;
       end;
 
 

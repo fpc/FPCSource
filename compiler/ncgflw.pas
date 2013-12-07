@@ -405,8 +405,8 @@ implementation
                  get_used_regvars(left,usedregvars);
                  { loop body }
                  get_used_regvars(t2,usedregvars);
-                 { end value (t1) is not necessary (it cannot be a regvar, }
-                 { see webtbs/tw8883)                                      }
+                 { end value can't be a regvar, but may be a temp in register }
+                 get_used_regvars(t1,usedregvars);
 
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                end
@@ -479,7 +479,6 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.resultdef,t1.resultdef,false);
               temptovalue:=true;
            end
          else
@@ -545,8 +544,16 @@ implementation
 
          if temptovalue then
            begin
-             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
-               t1.location.register,left.location,current_procinfo.CurrBreakLabel);
+             case t1.location.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
+                   t1.location.register,left.location,current_procinfo.CurrBreakLabel);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
+                   t1.location.reference,left.location,current_procinfo.CurrBreakLabel);
+             else
+               InternalError(2013051601);
+             end;
            end
          else
            begin
@@ -646,8 +653,16 @@ implementation
          { jump                                     }
          if temptovalue then
            begin
-             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.register,
-               left.location,l3);
+             case t1.location.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.register,
+                   left.location,l3);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.reference,
+                   left.location,l3);
+             else
+               InternalError(2013051602);
+             end;
            end
          else
            begin
@@ -822,8 +837,6 @@ implementation
          hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
 
          sync_regvars(false);
-         if temptovalue then
-           hlcg.a_reg_sync(current_asmdata.CurrAsmList,t1.location.register);
 
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
