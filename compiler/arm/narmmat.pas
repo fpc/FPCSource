@@ -80,11 +80,11 @@ implementation
            ) and
            not(is_64bitint(resultdef)) then
           result:=nil
-        else if ((GenerateThumbCode) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=divn) and
           not(is_64bitint(resultdef)) then
           result:=nil
-        else if ((GenerateThumbCode) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=modn) and
           not(is_64bitint(resultdef)) then
           begin
@@ -221,7 +221,7 @@ implementation
         secondpass(left);
         secondpass(right);
 
-        if ((GenerateThumbCode) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
            (nodetype=divn) and
            not(is_64bitint(resultdef)) then
           begin
