@@ -2093,8 +2093,8 @@ begin
   AFldName:=Adataset.Fields[1];
   for i := 1 to 5 do
     begin
-    AssertEquals(i,AFldID.asinteger);
-    AssertEquals('TestName'+inttostr(i),AFldName.asstring);
+    AssertEquals(i, AFldID.AsInteger);
+    AssertEquals('TestName'+inttostr(i), AFldName.AsString);
     ADataset.Next;
     end;
 
@@ -2107,11 +2107,11 @@ begin
   ADataset.First;
   for i := 1 to 5 do
     begin
-    AssertEquals(i,AFldID.AsInteger);
+    AssertEquals('ID', i, AFldID.AsInteger);
     if i = 2 then
-      AssertEquals('test',AFldName.AsString)
+      AssertEquals('NAME', 'test', AFldName.AsString)
     else
-      AssertEquals('TestName'+inttostr(i),AFldName.AsString);
+      AssertEquals('NAME', 'TestName'+inttostr(i), AFldName.AsString);
     ADataset.Next;
     end;
   ADataset.Next;
