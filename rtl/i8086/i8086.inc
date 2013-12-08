@@ -216,7 +216,7 @@ const
   fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
   }
 
-{ Detects the FPU and initializes the Test8087 variable:
+{ Detects the FPU and initializes the Test8087 variable (and Default8087CW):
   0 = NO FPU
   1 = 8087
   2 = 80287
@@ -262,6 +262,10 @@ procedure DetectFPU;
 @@Done:
       mov Test8087, bl
     end ['AX','BX'];
+    if Test8087<=2 then
+      Default8087CW:=$1330
+    else
+      Default8087CW:=$1332;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
