@@ -509,6 +509,7 @@ unit optdfa;
                   end;
               end;
 
+            asn,
             inlinen,
             calln:
               begin
