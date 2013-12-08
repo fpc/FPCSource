@@ -605,8 +605,9 @@ const
   { will be detected at startup }
   { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
   Test8086 : byte = 0; public name '__Test8086';
-  { Always 387 or newer. Emulated if needed. }
-  Test8087 : byte = 3;
+  { will be detected at startup }
+  { 0=NO FPU, 1=8087, 2=80287, 3=80387 or newer }
+  Test8087 : byte = 0;
   { will be detected at startup }
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;

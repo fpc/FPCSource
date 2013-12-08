@@ -340,7 +340,8 @@ begin
   StackBottom := __stkbottom;
   StackLength := __stktop - __stkbottom;
   InstallInterruptHandlers;
-  if DetectFPU then
+  DetectFPU;
+  if Test8087>0 then
     SysInitFPU;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;

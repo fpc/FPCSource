@@ -216,17 +216,52 @@ const
   fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
   }
 
-{ returns true if FPU is present }
-function DetectFPU: boolean;
+{ Detects the FPU and initializes the Test8087 variable:
+  0 = NO FPU
+  1 = 8087
+  2 = 80287
+  3 = 80387+ }
+procedure DetectFPU;
   var
     localfpucw: word;
   begin
     asm
+      xor bx, bx  { initialization, 0=NO FPU }
+
+      { FPU presence detection }
       fninit
       mov byte [localfpucw + 1], 0
+      nop
       fnstcw localfpucw
-    end;
-    DetectFPU:=(localfpucw and $FF00)=$0300;
+      cmp byte [localfpucw + 1], 3
+      jne @@Done  { No FPU? }
+      inc bx
+
+      { FPU found; now test if it's a 8087 }
+      and byte [localfpucw], $7F  { clear the interrupt enable mask (IEM) }
+      fldcw localfpucw
+      fdisi                       { try to set the interrupt enable mask }
+      fstcw localfpucw
+      test byte [localfpucw], $80 { IEM set? }
+      jnz @@Done  { if yes, we have an 8087 }
+      inc bx
+
+      { we have a 287+; now test if it's a 80287 }
+      finit
+      fld1
+      fldz
+      fdiv                        { calculate 1/0 }
+      fld st                      { copy the value }
+      fchs                        { change the sign }
+      fcompp  { compare. if the FPU distinguishes +inf from -inf, it's a 387+ }
+      fstsw localfpucw
+      mov ah, byte [localfpucw + 1]
+      sahf
+      je @@Done
+      inc bx  { 387+ }
+@@Done:
+      mov Test8087, bl
+    end ['AX','BX'];
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
