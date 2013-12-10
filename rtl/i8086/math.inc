@@ -139,15 +139,15 @@
         sub sp, 2
         fnstcw [bp-2]
         fwait
-        mov cx, [bp-2]
-        or word [bp-2], $0f00
+        mov cl, [bp-1]
+        or byte [bp-1], $0f
         fldcw [bp-2]
         fld tbyte [d]
         frndint
         fld tbyte [d]
         fsub st, st(1)
         fstp st(1)
-        mov [bp-2], cx
+        mov [bp-1], cl
         fldcw [bp-2]
       end;
 
@@ -157,14 +157,14 @@
         sub sp, 2
         fnstcw [bp-2]
         fwait
-        mov cx, word [bp-2]
-        or word [bp-2], $0f00
+        mov cl, byte [bp-1]
+        or byte [bp-1], $0f
         fldcw [bp-2]
         fwait
         fld tbyte [d]
         frndint
         fwait
-        mov word [bp-2], cx
+        mov byte [bp-1], cl
         fldcw [bp-2]
       end;
 
@@ -174,10 +174,10 @@
         sub sp, 10
         fld tbyte [d]
         fnstcw [bp-10]
-        mov cx, [bp-10]
-        or word [bp-10], $0f00
+        mov cl, [bp-9]
+        or byte [bp-9], $0f
         fldcw [bp-10]
-        mov [bp-10], cx
+        mov [bp-9], cl
         fistp qword [bp-8]
         fldcw [bp-10]
         fwait
