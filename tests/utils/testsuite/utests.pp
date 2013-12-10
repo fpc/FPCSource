@@ -4,23 +4,8 @@ unit utests;
 
 interface
 
-{$ifdef FPC}
-  {$ifdef VER2_4}
-    {$define USE_FPCGI}
-  {$endif VER2_4}
-  {$ifdef VER2_5}
-    {$define USE_FPCGI}
-  {$endif VER2_5}
-{$endif FPC}
-
-{$undef USE_FPCGI}
-
 uses
-{$ifdef USE_FPCGI}
-     fpcgi,
-{$else not USE_FPCGI}
      cgiapp,
-{$endif not USE_FPCGI}
      sysutils,mysql55conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
@@ -113,6 +98,9 @@ Type
 
 implementation
 
+
+  uses
+    dateutils;
 
 Const
 {$i utests.cfg}
@@ -582,7 +570,7 @@ begin
     EmitResetButton('','Reset form');
     FormEnd;
     end;
-  ShowRunOverview;
+//  ShowRunOverview;
 end;
 
 Procedure TTestSuite.EmitHistoryForm;
@@ -934,6 +922,7 @@ Const
   SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
                 'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION,'+
                 'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION,TU_SVNRTLREVISION,'+
+                'TU_COMPILERDATE,'+
                 'TU_SVNPACKAGESREVISION,TU_SVNTESTSREVISION,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
@@ -953,6 +942,7 @@ Var
   F : TField;
   SC : string;
   Date1, Date2: TDateTime;
+  CompilerDate1, CompilerDate2: TDateTime;
 begin
   Result:=(FRunID<>'');
   If Result then
@@ -1090,12 +1080,28 @@ begin
               F := Q1.FieldByName('TU_DATE');
               Date1 := F.AsDateTime;
               Write(F.AsString);
+              F := Q1.FieldByName('TU_COMPILERDATE');
+              Try
+                CompilerDate1 := F.AsDateTime;
+                if not SameDate(Date1,CompilerDate1) then
+                  Write(' <> '+F.AsString);
+              Except
+                { Not a valid date, do nothing }
+              end;
             CellNext;
               if Q2 <> nil then
                 begin
                 F := Q2.FieldByName('TU_DATE');
                 Date2 := F.AsDateTime;
                 Write(F.AsString);
+                F := Q2.FieldByName('TU_COMPILERDATE');
+                Try
+                  CompilerDate2 := F.AsDateTime;
+                  if not SameDate(Date2,CompilerDate2) then
+                    Write(' <> '+F.AsString);
+                Except
+                  { Not a valid date, do nothing }
+                end;
                 end;
             CellEnd;
           RowEnd;
@@ -2701,4 +2707,5 @@ begin
     TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+TestsuiteBin;
 
   SDetailsURL := TestsuiteCGIURL + '?action=1&run1id=%s';
+  ShortDateFormat:='yyyy/mm/dd';
 end.
