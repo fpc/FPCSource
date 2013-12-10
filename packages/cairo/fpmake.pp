@@ -34,6 +34,7 @@ begin
     P.Dependencies.Add('fcl-image');
 
     T:=P.Targets.AddUnit('cairo.pp');
+    T:=P.Targets.AddUnit('cairogobject.pp');
     T:=P.Targets.AddUnit('cairoft.pp');
     with T.Dependencies do
       begin

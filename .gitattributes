@@ -1132,6 +1132,7 @@ packages/cairo/examples/getversion.pp svneol=native#text/pascal
 packages/cairo/fpmake.pp svneol=native#text/plain
 packages/cairo/src/cairo.pp svneol=native#text/plain
 packages/cairo/src/cairoft.pp svneol=native#text/plain
+packages/cairo/src/cairogobject.pp svneol=native#text/plain
 packages/cairo/src/cairowin32.pp svneol=native#text/plain
 packages/cairo/src/cairoxlib.pp svneol=native#text/plain
 packages/cdrom/Makefile svneol=native#text/plain
