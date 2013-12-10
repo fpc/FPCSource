@@ -26,6 +26,8 @@ Function AddTestResult(TestID,RunID,TestRes : Integer;
                        Log : String;var is_new : boolean) : Integer;
 Function RequireTestID(Name : String): Integer;
 Function CleanTestRun(ID : Integer) : Boolean;
+function GetTestRunHistoryID(TestRunID : Integer) : Integer;
+function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
 
 { ---------------------------------------------------------------------
     Low-level DB access.
@@ -507,6 +509,28 @@ Var
 begin
   Result:=RunQuery(Format(SDeleteRun,[ID]),Res);
   FreeQueryResult(Res);
+end;
+
+function GetTestRunHistoryID(TestRunID : Integer) : Integer;
+begin
+  GetTestRunHistoryID:=IDQuery(
+    format('SELECT TH_PREVIOUS_FK FROM TESTRUNHISTORY WHERE TH_ID_FK=%d',[TestRunID]));
+end;
+
+function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
+var
+  qry : string;
+  res : TQueryResult;
+begin
+  qry:=format('INSERT INTO TESTRUNHISTORY (TH_ID_FK,TH_PREVIOUS_FK) '+
+              ' VALUES (%d,%d)',[TestRunID,TestPreviousID]);
+  If RunQuery(qry,res) then
+    begin
+      FreeQueryResult(res);
+      AddTestHistoryEntry:=true;
+    end
+  else
+    AddTestHistoryEntry:=false;
 end;
 
 begin
