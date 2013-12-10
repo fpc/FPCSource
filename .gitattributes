@@ -12343,6 +12343,7 @@ tests/utils/avx/options.pas svneol=native#text/plain
 tests/utils/avx/readme.txt svneol=native#text/plain
 tests/utils/bench.pp svneol=native#text/plain
 tests/utils/concat.pp svneol=native#text/plain
+tests/utils/dbconfig.pp svneol=native#text/plain
 tests/utils/dbdigest.pp svneol=native#text/plain
 tests/utils/dbtests.pp svneol=native#text/plain
 tests/utils/digest.pp svneol=native#text/plain
