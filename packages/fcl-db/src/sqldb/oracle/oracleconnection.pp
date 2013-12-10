@@ -81,7 +81,7 @@ type
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
-    // - Result retrieving
+    // - Result retrieval
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
@@ -258,7 +258,7 @@ begin
     scale:=result.Precision-(exp*2+2);
     if scale>=0 then
       begin
-      if (scale>result.Precision) then  // need to add leading 0's
+      if (scale>result.Precision) then  // need to add leading 0s
         begin
         for i:=0 to (scale-result.Precision+1) div 2 do
           result.Fraction[i]:=0;
@@ -284,7 +284,7 @@ begin
       result.SignSpecialPlaces:=result.SignSpecialPlaces or scale;
       end
     else
-      begin // add trailing zero's, increase precision to take them into account
+      begin // add trailing zeroes, increase precision to take them into account
       i:=0;
       while i<=result.Precision do // copy nibbles
         begin
@@ -401,7 +401,7 @@ begin
   if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
     HandleError();
 
-  // Create temporary service-context handle for user-authentication
+  // Create temporary service-context handle for user authentication
   if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
     DatabaseError(SErrHandleAllocFailed,self);
 
@@ -472,15 +472,15 @@ end;
 
 procedure TOracleConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 
-var tel : word;
+var counter : word;
 
 begin
   with cursor as TOracleCursor do
     begin
     if Length(FieldBuffers) > 0 then
-      for tel := 0 to high(FieldBuffers) do freemem(FieldBuffers[tel].buffer);
+      for counter := 0 to high(FieldBuffers) do freemem(FieldBuffers[counter].buffer);
     if Length(ParamBuffers) > 0 then
-      for tel := 0 to high(ParamBuffers) do freemem(ParamBuffers[tel].buffer);
+      for counter := 0 to high(ParamBuffers) do freemem(ParamBuffers[counter].buffer);
     end;
   FreeAndNil(cursor);
 end;
@@ -517,7 +517,7 @@ end;
 procedure TOracleConnection.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
   
-var tel      : integer;
+var counter  : integer;
     FOcibind : POCIDefine;
     
     OFieldType   : ub2;
@@ -530,7 +530,7 @@ begin
     begin
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
-    //get statement type
+    // get statement type
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@stmttype,nil,OCI_ATTR_STMT_TYPE,FOciError) = OCI_ERROR then
       HandleError;
     case stmttype of
@@ -550,35 +550,35 @@ begin
     if assigned(AParams) then
       begin
       setlength(ParamBuffers,AParams.Count);
-      for tel := 0 to AParams.Count-1 do
+      for counter := 0 to AParams.Count-1 do
         begin
 
-        case AParams[tel].DataType of
+        case AParams[counter].DataType of
           ftInteger : begin OFieldType := SQLT_INT; OFieldSize := sizeof(integer); end;
           ftFloat : begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
           ftDate, ftDateTime : begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
           ftString  : begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
           ftFMTBcd,ftBCD : begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
         else
-          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[tel].DataType]],self);
+          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[counter].DataType]],self);
         end;
-        parambuffers[tel].buffer := getmem(OFieldSize);
-        parambuffers[tel].Len := OFieldSize;
-        parambuffers[tel].Size := OFieldSize;
+        parambuffers[counter].buffer := getmem(OFieldSize);
+        parambuffers[counter].Len := OFieldSize;
+        parambuffers[counter].Size := OFieldSize;
 
 
         FOciBind := nil;
 
-        if AParams[tel].ParamType=ptInput then
+        if AParams[counter].ParamType=ptInput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[tel].Name),length(AParams[tel].Name),ParamBuffers[tel].buffer,OFieldSize,OFieldType,@ParamBuffers[tel].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[counter].Name),length(AParams[counter].Name),ParamBuffers[counter].buffer,OFieldSize,OFieldType,@ParamBuffers[counter].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
             HandleError;
           end
-        else if AParams[tel].ParamType=ptOutput then
+        else if AParams[counter].ParamType=ptOutput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[tel].Name),length(AParams[tel].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[counter].Name),length(AParams[counter].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
             HandleError;
-          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[tel], @cbf_get_data) <> OCI_SUCCESS then
+          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[counter], @cbf_get_data) <> OCI_SUCCESS then
             HandleError;
           end;
         end;
@@ -741,7 +741,7 @@ end;
 procedure TOracleConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 
 var Param      : POCIParam;
-    tel        : ub4;
+    counter    : ub4;
 
     FieldType  : TFieldType;
     FieldName  : string;
@@ -763,10 +763,10 @@ begin
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@numcols,nil,OCI_ATTR_PARAM_COUNT,FOciError) = OCI_ERROR then
       HandleError;
 
-    // Let op, moet gewist worden. En in een keer gealloceerd
+    // Note: needs to be cleared then allocated in one go.
     Setlength(FieldBuffers,numcols);
 
-    for tel := 1 to numcols do
+    for counter := 1 to numcols do
       begin
       // Clear OFieldSize. Oracle 9i, 10g doc says *ub4 but some clients use *ub2 leaving
       // high 16 bit untouched resulting in huge values and ORA-01062
@@ -774,7 +774,7 @@ begin
       // To be tested if BE systems have this *ub2<->*ub4 problem
       OFieldSize:=0;
 
-      if OCIParamGet(FOciStmt,OCI_HTYPE_STMT,FOciError,Param,tel) = OCI_ERROR then
+      if OCIParamGet(FOciStmt,OCI_HTYPE_STMT,FOciError,Param,counter) = OCI_ERROR then
         HandleError;
 
       if OCIAttrGet(Param,OCI_DTYPE_PARAM,@OFieldType,nil,OCI_ATTR_DATA_TYPE,FOciError) = OCI_ERROR then
@@ -827,7 +827,7 @@ begin
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
                                   end
-                                else //approximation with double, best can do
+                                else // approximation with double, best we can do
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
@@ -848,10 +848,10 @@ begin
         FieldType := ftUnknown;
       end;
 
-      FieldBuffers[tel-1].buffer := getmem(OFieldSize);
+      FieldBuffers[counter-1].buffer := getmem(OFieldSize);
 
       FOciDefine := nil;
-      if OciDefineByPos(FOciStmt,FOciDefine,FOciError,tel,fieldbuffers[tel-1].buffer,OFieldSize,OFieldType,@(fieldbuffers[tel-1].ind),nil,nil,OCI_DEFAULT) = OCI_ERROR then
+      if OciDefineByPos(FOciStmt,FOciDefine,FOciError,counter,fieldbuffers[counter-1].buffer,OFieldSize,OFieldType,@(fieldbuffers[counter-1].ind),nil,nil,OCI_DEFAULT) = OCI_ERROR then
         HandleError;
 
       if OCIAttrGet(Param,OCI_DTYPE_PARAM,@OFieldName,@OFNameLength,OCI_ATTR_NAME,FOciError) <> OCI_SUCCESS then
@@ -860,7 +860,7 @@ begin
       setlength(Fieldname,OFNameLength);
       move(OFieldName^,Fieldname[1],OFNameLength);
 
-      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, tel);
+      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
       end;
   end;
 end;
