@@ -37,12 +37,14 @@ Type
 
 Function  ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
 Procedure DisconnectDatabase;
+Function  InsertQuery(const Query : string) : Integer;
 Function  RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 Procedure FreeQueryResult (Res : TQueryResult);
 Function  GetResultField (Res : TQueryResult; Id : Integer) : String;
 Function  IDQuery(Qry : String) : Integer;
+Function  StringQuery(Qry : String) : String;
 Function  EscapeSQL( S : String) : String;
-Function SQLDate(D : TDateTime) : String;
+Function  SQLDate(D : TDateTime) : String;
 
 var
   RelSrcDir,
@@ -166,6 +168,20 @@ begin
     end;
 end;
 
+Function StringQuery(Qry : String) : String;
+
+Var
+  Res : TQueryResult;
+
+begin
+  Result:='';
+  If RunQuery(Qry,Res) then
+    begin
+    Result:=GetResultField(Res,0);
+    FreeQueryResult(Res);
+    end;
+end;
+
 Function EscapeSQL( S : String) : String;
 
 begin
@@ -245,6 +261,20 @@ begin
   Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
 end;
 
+Function InsertQuery(const Query : string) : Integer;
+Var
+  Res : TQueryResult;
+
+begin
+  If RunQuery(Query,Res) then
+    begin
+      Result:=mysql_insert_id(connection);
+      FreeQueryResult(Res);
+    end
+  else
+    Result:=-1;
+end;
+
 Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
 
 Const
@@ -252,15 +282,11 @@ Const
                '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_CATEGORY_FK,TU_DATE)'+
                ' VALUES '+
                '(%d,%d,%d,%d,"%s")';
-
-Var
-  Res : TQueryResult;
-
+var
+  Qry : string;
 begin
-  If RunQuery(Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]),Res) then
-    Result:=mysql_insert_id(connection)
-  else
-    Result:=-1;
+  qry:=Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]);
+  Result:=InsertQuery(Qry);
 end;
 
 function posr(c : Char; const s : AnsiString) : integer;
@@ -361,6 +387,7 @@ begin
     begin
     If RunQuery(Format(SInsertTest,[Name]),Res) then
       begin
+      FreeQueryResult(Res);
       Result:=GetTestID(Name);
       If Result=-1 then
         Verbose(V_WARNING,'Could not find newly added test!')
@@ -411,7 +438,8 @@ begin
                              Source,
                              ID
      ]);
-  Result:=RunQuery(Qry,res)
+  Result:=RunQuery(Qry,res);
+  FreeQueryResult(Res);
 end;
 
 Function AddTestResult(TestID,RunID,TestRes : Integer;
@@ -452,6 +480,7 @@ begin
         begin
           Verbose(V_Warning,'Insert Log failed');
         end;
+      FreeQueryResult(Res);
     end;
   { If test already existed, return false for is_new to avoid double counting }
   is_new:=not updateValues;
@@ -477,6 +506,7 @@ Var
 
 begin
   Result:=RunQuery(Format(SDeleteRun,[ID]),Res);
+  FreeQueryResult(Res);
 end;
 
 begin
