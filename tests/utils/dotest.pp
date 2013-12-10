@@ -304,6 +304,16 @@ begin
   SplitFileBase:=n;
 end;
 
+Function SplitFileExt(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileExt:=e;
+end;
+
 
 function ForceExtension(Const HStr,ext:String):String;
 {
@@ -1154,13 +1164,15 @@ begin
   LibraryExists:=false;
 end;
 
-function ExecuteRemote(const prog,args:string;out StartTicks,EndTicks : int64):boolean;
+function ExecuteRemote(prog,args:string;out StartTicks,EndTicks : int64):boolean;
 const
   MaxTrials = 5;
 var
   Trials : longint;
   Res : boolean;
 begin
+  if SplitFileExt(prog)='' then
+    prog:=prog+SrcExeExt;
   Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
   StartTicks:=GetMicroSTicks;
   Res:=false;
