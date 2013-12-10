@@ -112,7 +112,6 @@
         fsub st, st(1)                 // l2e*d-round(l2e*d)    round(l2e*d)
         ftst                           // l2e*d-round(l2e*d)<0?
         fstsw sw1
-        fwait
         mov ah, [sw1 + 1]
         sahf
         jb @@negative
