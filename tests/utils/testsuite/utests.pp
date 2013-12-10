@@ -162,6 +162,10 @@ type
     ver_2_4_4,
     ver_2_4_5,
     ver_2_5_1,
+    ver_2_6_0,
+    ver_2_6_1,
+    ver_2_6_2,
+    ver_2_6_3,
     ver_2_7_1);
 
 const
@@ -194,6 +198,10 @@ const
    '2.4.4',
    '2.4.5',
    '2.5.1',
+   '2.6.0',
+   '2.6.1',
+   '2.6.2',
+   '2.6.3',
    '2.7.1'
   );
 
@@ -222,6 +230,10 @@ const
    'tags/release_2_4_4',
    'tags/release_2_4_4',
    'branches/fixes_2_4',
+   'tags/release_2_6_0',
+   'tags/release_2_6_0',
+   'tags/release_2_6_2',
+   'tags/release_2_6_2',
    'branches/fixes_2_6',
    'trunk'
   );
