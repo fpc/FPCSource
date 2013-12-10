@@ -1466,24 +1466,13 @@ implementation
       end;
 
 
-    function has_exceptions(var n: tnode; arg: pointer): foreachnoderesult;
-      begin
-        if (n.nodetype in [tryfinallyn,tryexceptn]) then
-          result:=fen_norecurse_true
-        else
-          result:=fen_false;
-      end;
-
-
     function tfornode.wrap_to_value:tnode;
       var
         statements: tstatementnode;
         temp: ttempcreatenode;
-        allowreg: boolean;
       begin
-        allowreg:=not foreachnodestatic(t2,@has_exceptions,nil);
         result:=internalstatements(statements);
-        temp:=ctempcreatenode.create(t1.resultdef,t1.resultdef.size,tt_persistent,allowreg);
+        temp:=ctempcreatenode.create(t1.resultdef,t1.resultdef.size,tt_persistent,true);
         addstatement(statements,temp);
         addstatement(statements,cassignmentnode.create(
           ctemprefnode.create(temp),
