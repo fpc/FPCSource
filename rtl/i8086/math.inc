@@ -93,28 +93,45 @@
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
       var
-        cw1,cw2: word;
+        sw1: word;
       asm
         // comes from DJ GPP
-        fld tbyte[d]
-        fldl2e
-        fmulp st(1), st
-        fstcw CW1
-        fstcw CW2
+        { fixed for 8087 and 80287 by nickysn
+          notable differences between 8087/80287 and 80387:
+            f2xm1  on 8087/80287  requires that  0<=st(0)<=0.5
+            f2xm1  on      80387+ requires that -1<=st(0)<=1
+            fscale on 8087/80287  requires that -2**15<=st(1)<=0 or 1<=st(1)<2**15
+            fscale on      80387+ has no restrictions
+        }
+        fld tbyte[d]                   // d
+        fldl2e                         // l2e                   d
+        fmulp st(1), st                // l2e*d
+        fld st(0)                      // l2e*d                 l2e*d
+        frndint                        // round(l2e*d)          l2e*d
+        fxch st(1)                     // l2e*d                 round(l2e*d)
+        fsub st, st(1)                 // l2e*d-round(l2e*d)    round(l2e*d)
+        ftst                           // l2e*d-round(l2e*d)<0?
+        fstsw sw1
         fwait
-        and CW2, $f3ff
-        or CW2, $0400
-        fldcw CW2
-        fld st(0)
-        frndint
-        fldcw CW1
-        fxch st(1)
-        fsub st, st(1)
-        f2xm1
-        fld1
-        faddp st(1), st
-        fscale
-        fstp st(1)
+        mov ah, [sw1 + 1]
+        sahf
+        jb @@negative
+
+        f2xm1                          // 2**(l2e*d-round(l2e*d))-1   round(l2e*d)
+        fld1                           // 1 2**(l2e*d-round(l2e*d))-1 round(l2e*d)
+        faddp st(1), st                // 2**(l2e*d-round(l2e*d))     round(l2e*d)
+        jmp @@common
+
+@@negative:
+        fchs                           // -l2e*d+round(l2e*d)           round(l2e*d)
+        f2xm1                          // 2**(-l2e*d+round(l2e*d))-1    round(l2e*d)
+        fld1                           // 1  2**(-l2e*d+round(l2e*d))-1 round(l2e*d)
+        fadd st(1), st                 // 1  2**(-l2e*d+round(l2e*d))   round(l2e*d)
+        fdivrp st(1), st               // 2**(l2e*d-round(l2e*d))       round(l2e*d)
+
+@@common:
+        fscale                         // (2**(l2e*d-round(l2e*d)))*(2**round(l2e*d))  round(l2e*d)
+        fstp st(1)                     // (2**(l2e*d-round(l2e*d)))*(2**round(l2e*d))
      end;
 
     {$define FPC_SYSTEM_HAS_FRAC}
