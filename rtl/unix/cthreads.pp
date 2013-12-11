@@ -357,6 +357,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
           threadid := TThreadID(0);
         end;
       CBeginThread:=threadid;
+      pthread_attr_destroy(@thread_attr);
 {$ifdef DEBUG_MT}
       writeln('BeginThread returning ',ptrint(CBeginThread));
 {$endif DEBUG_MT}
