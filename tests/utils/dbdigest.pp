@@ -2,8 +2,8 @@
     This file is part of the Free Pascal test suite.
     Copyright (c) 2002 by the Free Pascal development team.
 
-    This program generates a digest
-    of the last tests run.
+    This program inserts the last tests run 
+    into TESTSUITE database.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,7 +20,7 @@
   {$linklib pthread}
 {$endif}
 
-program digest;
+program dbdigest;
 
 uses
   sysutils,teststr,testu,tresults,dbtests;
@@ -136,7 +136,7 @@ ConfigOpts : Array[TConfigOpt] of char =(
  'C', {  coComment }
  'S', {  coTestSrcDir }
  'r', {  coRelSrcDir }
- 'V' {  coVerbose }
+ 'V'  {  coVerbose }
 );
 
 ConfigAddStrings : Array [TConfigAddOpt] of string = (
@@ -389,6 +389,7 @@ Var
   TestVersionID  : Integer;
   TestCategoryID : Integer;
   TestRunID : Integer;
+  ConfigID : Integer;
 
 Procedure GetIDs;
 
@@ -623,13 +624,113 @@ procedure UpdateTestRun;
       FreeQueryResult(Res);
   end;
 
+function GetTestConfigId : Integer;
+var
+  qry : string;
+begin
+  qry:='SELECT TCONF_ID FROM TESTCONFIG WHERE ' +
+       'TCONF_CPU_FK=%d AND ' +
+       'TCONF_OS_FK=%d AND ' +
+       'TCONF_VERSION_FK=%d AND ' +
+       'TCONF_CATEGORY_FK=%d AND ' +
+       'TCONF_SUBMITTER="%s" AND ' +
+       'TCONF_MACHINE="%s" AND ' +
+       'TCONF_COMMENT="%s" ';
+  ConfigID:=IDQuery(format(qry,[TestCPUID, TestOSID, TestVersionID, TestCategoryID,
+                                Submitter, Machine, Comment]));
+  GetTestConfigID:=ConfigID;
+end;
+
+function UpdateTestConfigID : boolean;
+var
+  qry : string;
+  firstRunID, lastRunID,PrevRunID : Integer;
+  RunCount : Integer;
+  res : TQueryResult;
+  AddCount : boolean;
+
+begin
+  AddCount:=false;
+  UpdateTestConfigID:=false;
+  qry:=format('SELECT TCONF_FIRST_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
+  FirstRunID:=IDQuery(qry);
+  if TestRunID<FirstRunID then
+    begin
+      Verbose(V_Warning,format('FirstRunID changed from %d to %d',[FirstRunID,TestRunID]));
+      qry:=format('UPDATE TESTCONFIG SET TCONF_FIRST_RUN_FK=%d WHERE TCONF_ID=%d',
+                  [TestRunID,ConfigID]);
+      if RunQuery(qry,res) then
+        FreeQueryResult(res)
+      else
+        Verbose(V_Warning,'Update of LastRunID failed');
+    end;
+  qry:=format('SELECT TCONF_LAST_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
+  LastRunID:=IDQuery(qry);
+  if TestRunID>LastRunID then
+    begin
+      qry:=format('UPDATE TESTCONFIG SET TCONF_LAST_RUN_FK=%d WHERE TCONF_ID=%d',
+                  [TestRunID,ConfigID]);
+      if RunQuery(qry,res) then
+        FreeQueryResult(res)
+      else
+        Verbose(V_Warning,'Update of LastRunID failed');
+    end
+   else
+    Verbose(V_Warning,format('LastRunID %di,new %d',[LastRunID,TestRunID]));
+  qry:=format('SELECT TCONF_NEW_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
+  PrevRunID:=IDQuery(qry);
+  if TestRunID<>PrevRunID then
+    begin
+      qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
+                  [TestRunID,ConfigID]);
+      if RunQuery(qry,res) then
+        FreeQueryResult(res)
+      else
+        Verbose(V_Warning,'Update of LastRunID failed');
+      AddTestHistoryEntry(TestRunID,PrevRunID);
+      AddCount:=true;
+    end
+  else
+    Verbose(V_Warning,'TestRunID is equal to last!');
+  qry:=format('SELECT TCONF_COUNT_RUNS FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
+  RunCount:=IDQuery(qry);
+  { Add one to run count }
+  if AddCount then
+    begin
+      Inc(RunCount);
+      qry:=format('UPDATE TESTCONFIG SET TCONF_COUNT_RUNS=%d WHERE TCONF_ID=%d',
+                  [RunCount,ConfigID]);
+      if RunQuery(qry,res) then
+        FreeQueryResult(res)
+      else
+        Verbose(V_Warning,'Update of TU_COUNT_RUNS failed');
+    end;
+  UpdateTestConfigID:=true;
+end;
+
+function InsertNewTestConfigId : longint;
+var
+  qry : string;
+begin
+  qry:='INSERT INTO TESTCONFIG '+
+        '(TCONF_NEW_RUN_FK,TCONF_FIRST_RUN_FK,TCONF_LAST_RUN_FK,' +
+         'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
+         'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,'+
+         'TCONF_NEW_DATE,TCONF_FIRST_DATE,TCONF_LAST_DATE) ';
+    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s","%s") ',
+                    [TestRunID, TestRunID, TestRunID, TestCPUID, 
+                     TestOSID, TestVersionID, TestCategoryID,
+                     Submitter, Machine, Comment,
+                     TestDate, TestDate, TestDate]);
+  Result:=InsertQuery(qry);
+  AddTestHistoryEntry(TestRunID,0);
+end;
+
 procedure UpdateTestConfig;
 
   var
-     i : TTestStatus;
      qry : string;
      res : TQueryResult;
-
   begin
     qry:='SHOW TABLES LIKE ''TESTCONFIG''';
     if not RunQuery(Qry,Res) then
@@ -637,18 +738,22 @@ procedure UpdateTestConfig;
     { Row_Count is zero if table does not exist }
     if Res^.Row_Count=0 then exit;
     FreeQueryResult(Res);
-    qry:='INSERT INTO TESTCONFIG (TCONF_NEW_RUN_FK,' +
-         'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
-         'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,TCONF_NEW_DATE) ';
-    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,"%s","%s","%s","%s") ',
-    [TestRunID,TestCPUID,TestOSID,TestVersionID,TestCategoryID,
-     Submitter,Machine,Comment,SqlDate(TestDate)]);
-    qry:=qry+'ON DUPLICATE KEY UPDATE '+
-            format('TCONF_NEW_RUN_FK = %d, TCONF_NEW_DATE = "%s",'+
-            'TCONF_COUNT_RUNS = TCONF_COUNT_RUNS + 1',
-            [TestRunID,SqlDate(TestDate)]);
-    if RunQuery(Qry,res) then
-      FreeQueryResult(Res);
+    if GetTestRunHistoryID(TestRunID) <> -1 then
+      begin
+        Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
+        exit;
+      end;
+
+    if GetTestConfigID >= 0 then
+      begin
+        if not UpdateTestConfigID then
+          Verbose(V_Warning, ' Update of TESTCONFIG table failed');
+      end
+    else
+      begin
+        if InsertNewTestConfigID = -1 then
+          Verbose(V_Warning, ' Insert of new entry into TESTCONFIG table failed');
+      end;
   end;
 
 
@@ -675,7 +780,11 @@ begin
     UpdateTestRun;
     UpdateTestConfig;
     if UseLongLog then
-      Close(LongLogFile);
+      begin
+        Close(LongLogFile);
+        if LongLogOpenCount>1 then
+          Verbose(V_Warning,format('LongLog file was read %d times.',[LongLogOpenCount]));
+      end
     end
   else
     Verbose(V_ERROR,'Missing log file name');
