@@ -16,7 +16,9 @@
 
 {$mode objfpc}
 {$h+}
-{$linklib pthread}
+{$ifndef win32}
+  {$linklib pthread}
+{$endif}
 
 program digest;
 
@@ -63,7 +65,7 @@ Type
 
 TConfigOpt = (
   coDatabaseName,
-  soHost,
+  coHost,
   coUserName,
   coPassword,
   coPort,
@@ -116,6 +118,27 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'verbose'
 );
 
+ConfigOpts : Array[TConfigOpt] of char =(
+ 'd', {  coDatabaseName }
+ 'h', {  coHost }
+ 'u', {  coUserName }
+ 'p', {  coPassword }
+ 'P', {  coPort }
+ 'l', {  coLogFile }
+ 'L', {  coLongLogFile }
+ 'o', {  coOS }
+ 'c', {  coCPU }
+ 'a', {  coCategory }
+ 'v', {  coVersion }
+ 't', {  coDate }
+ 's', {  coSubmitter }
+ 'm', {  coMachine }
+ 'C', {  coComment }
+ 'S', {  coTestSrcDir }
+ 'r', {  coRelSrcDir }
+ 'V' {  coVerbose }
+);
+
 ConfigAddStrings : Array [TConfigAddOpt] of string = (
   'compilerdate',
   'compilerfullversion',
@@ -134,8 +157,6 @@ ConfigAddCols : Array [TConfigAddOpt] of string = (
   'TU_SVNPACKAGESREVISION'
  );
 
-ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','P','l','L','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
@@ -184,7 +205,7 @@ var
 begin
   Case O of
     coDatabaseName : DatabaseName:=Value;
-    soHost         : HostName:=Value;
+    coHost         : HostName:=Value;
     coUserName     : UserName:=Value;
     coPassword     : Password:=Value;
     coPort         : Port:=Value;
@@ -307,15 +328,15 @@ Var
   I : Integer;
   O : String;
   c,co : TConfigOpt;
-  Found : Boolean;
+  ShortOptFound, Found : Boolean;
 
 begin
   I:=1;
   While I<=ParamCount do
     begin
     O:=Paramstr(I);
-    Found:=Length(O)=2;
-    If Found then
+    ShortOptFound:=(Length(O)=2) and (O[1]='-');
+    If ShortOptFound then
       For co:=low(TConfigOpt) to high(TConfigOpt) do
         begin
         Found:=(O[2]=ConfigOpts[co]);
@@ -325,7 +346,26 @@ begin
           Break;
           end;
         end;
-    If Not Found then
+    If not ShortOptFound then
+      begin
+        Found:=false;
+        { accept long options }
+        if (copy(O,1,2)='--') then
+          begin
+            { remove -- }
+            O:=copy(O,3,length(O));
+            For co:=low(TConfigOpt) to high(TConfigOpt) do
+              begin
+              Found:=(O=ConfigStrings[co]);
+              If Found then
+                begin
+                c:=co;
+                Break;
+                end;
+              end;
+          end
+      end;
+    if not Found then
       Verbose(V_ERROR,'Illegal command-line option : '+O)
     else
       begin
@@ -386,6 +426,8 @@ var
   LongLogFile : Text;
 const
   UseLongLog : boolean = false;
+  LongLogOpenCount : longint = 0;
+  FirstLongLogLine : boolean = true;
 
 Function GetContentsFromLongLog(Line : String) : String;
 var
@@ -398,6 +440,13 @@ begin
   While Not(EOF(LongLogFile)) do
     begin
       ReadLn(LongLogFile,S);
+      if FirstLongLogLine then
+        begin
+          { At start of file there is a separation line }
+          if (pos('>>>>>>>>>>>',S)=1) then
+            Readln(LongLogFile,S);
+          FirstLongLogLine:=false;
+        end;
       if pos(Line,S)=1 then
         begin
           IsFound:=true;
@@ -424,6 +473,7 @@ begin
         begin
           Close(LongLogFile);
           Reset(LongLogFile);
+          inc(LongLogOpenCount);
         end;
     end;
 end;
@@ -569,7 +619,36 @@ procedure UpdateTestRun;
 
     qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
-    RunQuery(Qry,res)
+    if RunQuery(Qry,res) then
+      FreeQueryResult(Res);
+  end;
+
+procedure UpdateTestConfig;
+
+  var
+     i : TTestStatus;
+     qry : string;
+     res : TQueryResult;
+
+  begin
+    qry:='SHOW TABLES LIKE ''TESTCONFIG''';
+    if not RunQuery(Qry,Res) then
+      exit;
+    { Row_Count is zero if table does not exist }
+    if Res^.Row_Count=0 then exit;
+    FreeQueryResult(Res);
+    qry:='INSERT INTO TESTCONFIG (TCONF_NEW_RUN_FK,' +
+         'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
+         'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,TCONF_NEW_DATE) ';
+    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,"%s","%s","%s","%s") ',
+    [TestRunID,TestCPUID,TestOSID,TestVersionID,TestCategoryID,
+     Submitter,Machine,Comment,SqlDate(TestDate)]);
+    qry:=qry+'ON DUPLICATE KEY UPDATE '+
+            format('TCONF_NEW_RUN_FK = %d, TCONF_NEW_DATE = "%s",'+
+            'TCONF_COUNT_RUNS = TCONF_COUNT_RUNS + 1',
+            [TestRunID,SqlDate(TestDate)]);
+    if RunQuery(Qry,res) then
+      FreeQueryResult(Res);
   end;
 
 
@@ -585,12 +664,16 @@ begin
         Assign(LongLogFile,LongLogFileName);
         Reset(LongLogFile);
         If IOResult=0 then
-          UseLongLog:=true;
+          begin
+            UseLongLog:=true;
+            inc(LongLogOpenCount);
+          end;
 {$I+}
       end;
     GetIDs;
     ProcessFile(LogFileName);
     UpdateTestRun;
+    UpdateTestConfig;
     if UseLongLog then
       Close(LongLogFile);
     end
