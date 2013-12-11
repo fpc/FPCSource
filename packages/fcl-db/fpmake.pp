@@ -646,6 +646,17 @@ begin
           AddUnit('dbconst');
         end;
 
+    T:=P.Targets.AddUnit('mysql56conn.pas', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddInclude('mysqlconn.inc');
+          AddUnit('bufdataset');
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+        end;
+
     T:=P.Targets.AddUnit('odbcconn.pas', SqldbConnectionOSes);
       with T.Dependencies do
         begin
