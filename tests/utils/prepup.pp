@@ -20,6 +20,9 @@ program prepup;
 uses
   sysutils,libtar,zstream;
 
+const
+  use_longlog : boolean = false;
+
 var
   tarwriter : ttarwriter;
   c : tgzfilestream;
@@ -64,18 +67,32 @@ Begin
   domask('*.log');
 End;
 
+var
+  index : longint;
 begin
+  index:=1;
   if paramcount<>1 then
     begin
-      writeln('Usage: prepup <name of .tar.gz>');
-      halt(1);
+      if paramstr(1)='-ll' then
+        begin
+          use_longlog:=true;
+          index:=2;
+        end
+      else
+        begin
+          writeln('Usage: prepup [-ll] <name of .tar.gz>');
+          Writeln('Optional -ll parameter is used to specify use of longlog');
+          halt(1);
+        end
     end;
-    C:=TGZFileStream.Create(paramstr(1),gzOpenWrite);
+    C:=TGZFileStream.Create(paramstr(index),gzOpenWrite);
     TarWriter := TTarWriter.Create (C);
-  dosearch('.');
+  if not use_longlog then
+    dosearch('.');
   TarWriter.AddFile('dbdigest.cfg');
   TarWriter.AddFile('log');
-
+  if use_longlog then
+    TarWriter.AddFile('longlog');
   TarWriter.free;
   c.free;
 end.
