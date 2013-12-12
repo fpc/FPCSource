@@ -103,6 +103,15 @@ implementation
 
      function tx86inlinenode.first_arctan_real : tnode;
       begin
+{$ifdef i8086}
+        { FPATAN's range is limited to (0 <= value < 1) on the 8087 and 80287,
+          so we need to use the RTL helper on these FPUs }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         if (tfloatdef(pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
