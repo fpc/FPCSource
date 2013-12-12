@@ -583,6 +583,7 @@ begin
         begin
           AddUnit('db');
         end;
+
     T:=P.Targets.AddUnit('mysql40conn.pas', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -603,16 +604,7 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('mysql4conn.pas', SqldbConnectionOSes);
-    T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddInclude('mysqlconn.inc');
-          AddUnit('bufdataset');
-          AddUnit('sqldb');
-          AddUnit('db');
-          AddUnit('dbconst');
-        end;
+
     T:=P.Targets.AddUnit('mysql50conn.pas', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do

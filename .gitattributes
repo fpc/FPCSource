@@ -2149,7 +2149,6 @@ packages/fcl-db/src/sqldb/mysql/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql40conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql41conn.pas svneol=native#text/plain
-packages/fcl-db/src/sqldb/mysql/mysql4conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql50conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql51conn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/mysql/mysql55conn.pas svneol=native#text/plain
