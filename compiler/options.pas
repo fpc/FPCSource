@@ -3449,6 +3449,11 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_USE_WIN64_SEH');
 {$endif DISABLE_WIN64_SEH}
 
+{$ifdef TEST_WIN32_SEH}
+    if target_info.system=system_i386_win32 then
+      def_system_macro('FPC_USE_WIN32_SEH');
+{$endif TEST_WIN32_SEH}
+
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
   if (init_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and

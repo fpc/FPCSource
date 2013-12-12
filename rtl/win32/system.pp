@@ -29,6 +29,13 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
 
+{$ifdef FPC_USE_WIN32_SEH}
+  {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
+  {$define FPC_SYSTEM_HAS_RERAISE}
+  {$define FPC_SYSTEM_HAS_DONEEXCEPTION}
+  {$define FPC_SYSTEM_HAS_SAFECALLHANDLER}
+{$endif FPC_USE_WIN32_SEH}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -138,6 +145,11 @@ const
     valgrind_used : false;
     );
 
+{$ifdef FPC_USE_WIN32_SEH}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
+procedure OutermostHandler; external name '__FPC_DEFAULT_HANDLER';
+{$endif FPC_USE_WIN32_SEH}
+
 { include system independent routines }
 {$I system.inc}
 
@@ -177,8 +189,10 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
+{$ifndef FPC_USE_WIN32_SEH}
   if not IsLibrary then
     remove_exception_handlers;
+{$endif FPC_USE_WIN32_SEH}
 
   { do cleanup required by the startup code }
   EntryInformation.asm_exit();
@@ -194,24 +208,30 @@ var
 
 procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
   var
-    ST : pointer;
+    xframe: TEXCEPTION_FRAME;
   begin
      EntryInformation:=info;
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
+{$ifndef FPC_USE_WIN32_SEH}
      install_exception_handlers;
+{$endif FPC_USE_WIN32_SEH}
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
-         { allocate space for an exception frame }
-        pushl $0
-        pushl %fs:(0)
         { movl  %esp,%fs:(0)
           but don't insert it as it doesn't
           point to anything yet
           this will be used in signals unit }
-        movl %esp,%eax
+        leal xframe,%eax
+{$ifndef FPC_USE_WIN32_SEH}
+        movl $0,TException_Frame.handler(%eax)
+{$else}
+        movl $OutermostHandler,TException_Frame.handler(%eax)
+{$endif FPC_USE_WIN32_SEH}
+        movl %fs:(0),%ecx
+        movl %ecx,TException_Frame.next(%eax)
         movl %eax,System_exception_frame
         pushl %ebp
         xorl %eax,%eax
@@ -347,6 +367,8 @@ type
 
 { type of functions that should be used for exception handling }
   TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
+
+{$i seh32.inc}
 
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
         stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';

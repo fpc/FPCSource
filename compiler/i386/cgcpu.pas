@@ -294,13 +294,13 @@ unit cgcpu;
 
     procedure tcg386.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
 
-      procedure increase_fp(a : tcgint);
+      procedure increase_sp(a : tcgint);
         var
           href : treference;
         begin
-          reference_reset_base(href,current_procinfo.framepointer,a,0);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
           { normally, lea is a better choice than an add }
-          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,current_procinfo.framepointer));
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
 
       var
@@ -314,7 +314,8 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
-            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
                 if (target_info.stackalign>4) and
@@ -325,9 +326,11 @@ unit cgcpu;
                     (po_assembler in current_procinfo.procdef.procoptions)) then
                   stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
                 if stacksize<>0 then
-                  increase_fp(stacksize);
+                  increase_sp(stacksize);
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,true);
+                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                  list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end
             else
               begin

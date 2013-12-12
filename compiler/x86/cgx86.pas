@@ -2569,7 +2569,6 @@ unit cgx86;
     procedure tcgx86.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
         stackmisalignment: longint;
-        para: tparavarsym;
         regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
@@ -2651,7 +2650,18 @@ unit cgx86;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
+                else
+                  begin
+                    push_regs;
+                    gen_load_frame_for_exceptfilter(list);
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    //localsize:=current_procinfo.maxpushedparasize;
+                  end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
 
@@ -2672,7 +2682,8 @@ unit cgx86;
 
 {$ifdef i386}
             if (not paramanager.use_fixed_stack) and
-               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
+               (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
               begin
                 regsize:=0;
                 push_regs;

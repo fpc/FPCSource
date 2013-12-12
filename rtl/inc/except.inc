@@ -397,10 +397,12 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_DONEEXCEPTION}
 procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
 begin
   Internal_PopObjectStack.Free;
 end;
+{$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
 
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
@@ -408,6 +410,7 @@ begin
   Internal_Reraise;
 end;
 
+{$ifndef FPC_SYSTEM_HAS_SAFECALLHANDLER}
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;
 var
   raiselist: PExceptObject;
@@ -426,4 +429,5 @@ begin
     result:=E_UNEXPECTED;
   exc.Free;
 end;
+{$endif FPC_SYSTEM_HAS_SAFECALLHANDLER}
 

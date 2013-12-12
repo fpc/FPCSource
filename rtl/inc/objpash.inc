@@ -333,6 +333,10 @@
          refcount   : Longint;
          Framecount : Longint;
          Frames     : PCodePointer;
+{$ifdef FPC_USE_WIN32_SEH}
+         SEHFrame   : Pointer;
+         ReraiseBuf : jmp_buf;
+{$endif FPC_USE_WIN32_SEH}
        end;
 
     Const
