@@ -132,7 +132,7 @@
 
 @@greater_than_one:
         { d > 1 }
-        fdivr st(1), st            // 1                1/d
+        fxch st(1)                 // d                1
         fpatan                     // arctan(1/d)
         fld tbyte [Extended_PIO2]  // pi/2             arctan(1/d)
         fsubrp st(1), st           // pi/2-arctan(1/d)
@@ -171,7 +171,7 @@
 
 @@less_than_minus_one:
         { d < -1; -d > 1 }
-        fdivr st(1), st            // 1                 -1/d
+        fxch st(1)                 // -d                1
         fpatan                     // arctan(-1/d)
         fld tbyte [Extended_PIO2]  // pi/2              arctan(-1/d)
         fsubp st(1), st            // arctan(-1/d)-pi/2
