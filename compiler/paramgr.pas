@@ -589,8 +589,10 @@ implementation
     function tparamanager.handle_common_ret_in_param(def: tdef;
       pd: tabstractprocdef; out retinparam: boolean): boolean;
       begin
-        { this must be system independent safecall and record constructor result
-          is always return in param }
+        { This must be system independent: safecall and record constructor result
+          is always returned in param.
+          Furthermore, any managed type is returned in param, in order to avoid
+          its finalization on exception at callee side. }
         if (tf_safecall_exceptions in target_info.flags) and
            (pd.proccalloption=pocall_safecall) or
            (
@@ -603,7 +605,7 @@ implementation
                  is_objectpascal_helper(tdef(pd.owner.defowner))
                )
              )
-           ) then
+           ) or is_managed_type(def) then
           begin
             retinparam:=true;
             exit(true);

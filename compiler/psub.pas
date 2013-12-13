@@ -651,28 +651,6 @@ implementation
       end;
 
 
-    function generate_except_block:tnode;
-      var
-        newstatement : tstatementnode;
-      begin
-        generate_except_block:=internalstatements(newstatement);
-
-        { a constructor needs call destructor (if available) when it
-          is not inherited }
-        if not assigned(current_structdef) or
-           (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-          begin
-            { no constructor }
-            { must be the return value finalized before reraising the exception? }
-            if (not is_void(current_procinfo.procdef.returndef)) and
-               is_managed_type(current_procinfo.procdef.returndef) and
-               (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
-               (not is_class(current_procinfo.procdef.returndef)) then
-              addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
-          end;
-      end;
-
-
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -820,7 +798,6 @@ implementation
         finalcode,
         bodyentrycode,
         bodyexitcode,
-        exceptcode,
         wrappedbody,
         newblock     : tnode;
         codestatement,
@@ -864,10 +841,15 @@ implementation
            not(po_assembler in procdef.procoptions) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
+            { Any result of managed type must be returned in parameter }
+            if is_managed_type(procdef.returndef) and
+               (not paramanager.ret_in_param(procdef.returndef,procdef)) and
+               (not is_class(procdef.returndef)) then
+               InternalError(2013121301);
+
             { Generate special exception block only needed when
               implicit finaly is used }
             current_filepos:=exitpos;
-            exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
@@ -877,7 +859,7 @@ implementation
             wrappedbody:=ctryfinallynode.create_implicit(
                code,
                finalcode,
-               exceptcode);
+               cnothingnode.create);
             { afterconstruction must be called after final_asmnode, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount
