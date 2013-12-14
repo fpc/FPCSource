@@ -188,17 +188,17 @@ begin
     T.Directory:='compiler';
     T.Install:=false;
 
-    P.InstallFiles.Add('fp.ans','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('gplprog.pt','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('gplunit.pt','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('program.pt','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('unit.pt','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('cvsco.tdf','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('cvsdiff.tdf','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('cvsup.tdf','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('grep.tdf','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('tpgrep.tdf','$(BASEINSTALLDIR)ide');
-    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BASEINSTALLDIR)ide');
+    P.InstallFiles.Add('fp.ans','$(BININSTALLDIR)');
+    P.InstallFiles.Add('gplprog.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('gplunit.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('program.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('unit.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsco.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsdiff.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsup.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('grep.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('tpgrep.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BININSTALLDIR)');
 
     P.Sources.AddDoc('readme.ide');
 
