@@ -24,7 +24,7 @@ type
     procedure TestClear;
     procedure TestFileName;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
-    procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical?
+    procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
   end;
 
 implementation
@@ -106,15 +106,20 @@ begin
 end;
 
 procedure TTestSpecificTMemDataset.TestCopyFromDatasetMoved;
-var memds1, memds2: TMemDataset;
+var
+  memds1, memds2: TMemDataset;
+  CurrentID,NewID: integer;
 begin
   memds1:=DBConnector.GetFieldDataset as TMemDataset;
   memds2:=DBConnector.GetNDataset(0) as TMemDataset;
 
   memds1.Open;
   memds1.Next; //this should not influence the copydataset step.
+  CurrentID:=memds1.FieldByName('ID').AsInteger;
   memds2.CopyFromDataset(memds1);
   CheckFieldDatasetValues(memds2);
+  NewID:=memds1.FieldByName('ID').AsInteger;
+  CheckEquals(CurrentID,NewID,'Mismatch between ID field contents - the record has moved.');
 end;
 
 
