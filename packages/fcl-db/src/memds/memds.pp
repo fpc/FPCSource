@@ -974,6 +974,7 @@ Var
   F,F1,F2 : TField;
   L1,L2  : TList;
   N : String;
+  OriginalPosition: TBookMark;
 
 begin
   Clear(True);
@@ -987,6 +988,7 @@ begin
   If CopyData then
     begin
     Open;
+    OriginalPosition:=Dataset.GetBookmark;
     L1:=TList.Create;
     Try
       L2:=TList.Create;
@@ -1041,6 +1043,7 @@ begin
     finally
       l1.Free;
     end;
+    DataSet.GotoBookmark(OriginalPosition); //Return to original record
     end;
 end;
 
