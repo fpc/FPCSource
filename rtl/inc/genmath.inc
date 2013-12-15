@@ -361,13 +361,13 @@ type
           begin
             {Denormal: result = d*2^(e+54)/2^54}
             inc(N,54);
-            float64(x).high := (float64(x).high and $800FFFFF) or (N shl 20);
+            float64(x).high := (float64(x).high and $800FFFFF) or (longint(N) shl 20);
             ldexp := x/H2_54;
           end;
         end
         else
         begin
-          float64(x).high := (float64(x).high and $800FFFFF) or (N shl 20);
+          float64(x).high := (float64(x).high and $800FFFFF) or (longint(N) shl 20);
           ldexp := x;
         end;
       end;
