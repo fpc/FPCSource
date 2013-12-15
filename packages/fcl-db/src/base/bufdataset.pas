@@ -1183,9 +1183,9 @@ begin
     IntLoadFielddefsFromFile;
     end;
 
-  // This is to check if the dataset is actually created (By calling CreateDataset,
-  // reading from a stream in some other way implemented by a descendent)
-  // If there are less fields then FieldDefs we know for sure that the dataset
+  // This checks if the dataset is actually created (by calling CreateDataset,
+  // or reading from a stream in some other way implemented by a descendent)
+  // If there are less fields than FieldDefs we know for sure that the dataset
   // is not (correctly) created.
 
   // If there are constant expressions in the select statement (for PostgreSQL)
