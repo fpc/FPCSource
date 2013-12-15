@@ -1002,6 +1002,7 @@ begin
         Dataset.DisableControls;
         Try
           Dataset.Open;
+          Dataset.First; //make sure we copy from the beginning
           While not Dataset.EOF do
             begin
             Append;
