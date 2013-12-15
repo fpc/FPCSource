@@ -23,7 +23,8 @@ type
   published
     procedure TestClear;
     procedure TestFileName;
-    procedure TestCopyFromDataset;
+    procedure TestCopyFromDataset; //is copied dataset identical to original?
+    procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical?
   end;
 
 implementation
@@ -100,6 +101,18 @@ begin
   memds2:=DBConnector.GetNDataset(0) as TMemDataset;
 
   memds1.Open;
+  memds2.CopyFromDataset(memds1);
+  CheckFieldDatasetValues(memds2);
+end;
+
+procedure TTestSpecificTMemDataset.TestCopyFromDatasetMoved;
+var memds1, memds2: TMemDataset;
+begin
+  memds1:=DBConnector.GetFieldDataset as TMemDataset;
+  memds2:=DBConnector.GetNDataset(0) as TMemDataset;
+
+  memds1.Open;
+  memds1.Next; //this should not influence the copydataset step.
   memds2.CopyFromDataset(memds1);
   CheckFieldDatasetValues(memds2);
 end;

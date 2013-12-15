@@ -99,7 +99,9 @@ type
     protected
       procedure SetUp; override;
       procedure TearDown; override;
+      // Verify whether all values in FieldDataset are present and correct
       procedure CheckFieldDatasetValues(ADataSet: TDataSet);
+      // Verify whether all values in NDataset are present and correct
       procedure CheckNDatasetValues(ADataSet: TDataSet; n: integer);
   end;
 
