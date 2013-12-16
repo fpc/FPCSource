@@ -23,6 +23,10 @@ asm
   movl %edi,Jmp_buf.sp(%eax)
   movl (%esp),%edi
   movl %edi,Jmp_buf.pc(%eax)
+{$ifdef FPC_USE_WIN32_SEH}
+  movl %fs:(0),%edi
+  movl %edi,Jmp_buf.exhead(%eax)
+{$endif FPC_USE_WIN32_SEH}
   movl Jmp_buf.edi(%eax),%edi
   xorl %eax,%eax
 end;
@@ -31,10 +35,12 @@ end;
 Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
   xchgl %edx,%eax
-  testl %eax,%eax
-  jnz   .L1
-  incl  %eax
-.L1:
+  cmpl  $1,%eax
+  adcl  $0,%eax                  // if result<1 then inc(result) -- never return zero.
+{$ifdef FPC_USE_WIN32_SEH}
+  movl  Jmp_buf.exhead(%edx),%edi
+  movl  %edi,%fs:(0)
+{$endif FPC_USE_WIN32_SEH}
   movl Jmp_buf.ebx(%edx),%ebx
   movl Jmp_buf.esi(%edx),%esi
   movl Jmp_buf.edi(%edx),%edi
