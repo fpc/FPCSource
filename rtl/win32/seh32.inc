@@ -75,6 +75,15 @@ var
 begin
   hp:=ExceptObjectStack;
   ExceptObjectStack:=hp^.next;
+  { Since we're going to 'reraise' the original OS exception (or, more exactly, pretend
+    it wasn't handled), we must revert action of CommonHandler. }
+  if TExceptionRecord(hp^.ExceptRec^).ExceptionCode<>FPC_EXCEPTION_CODE then
+  begin
+    if assigned(hp^.frames) then
+      freemem(hp^.frames);
+    if hp^.refcount=0 then
+      hp^.FObject.Free;
+  end;
   TSEHFrame(hp^.SEHFrame^).Addr:=@NullHandler;
   longjmp(hp^.ReraiseBuf,1);
 end;
@@ -224,6 +233,7 @@ begin
 
   Exc.Refcount:=0;
   Exc.SEHFrame:=@frame;
+  Exc.ExceptRec:=@rec;
   { link to ExceptObjectStack }
   Exc.Next:=ExceptObjectStack;
   ExceptObjectStack:=@Exc;
