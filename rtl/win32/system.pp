@@ -225,14 +225,15 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
           point to anything yet
           this will be used in signals unit }
         leal xframe,%eax
+        movl %fs:(0),%ecx
+        movl %ecx,TException_Frame.next(%eax)
+        movl %eax,System_exception_frame
 {$ifndef FPC_USE_WIN32_SEH}
         movl $0,TException_Frame.handler(%eax)
 {$else}
         movl $OutermostHandler,TException_Frame.handler(%eax)
+        movl %eax,%fs:(0)
 {$endif FPC_USE_WIN32_SEH}
-        movl %fs:(0),%ecx
-        movl %ecx,TException_Frame.next(%eax)
-        movl %eax,System_exception_frame
         pushl %ebp
         xorl %eax,%eax
         movw %ss,%ax
