@@ -1243,7 +1243,6 @@ unit nx86add;
               begin
                 tg.gettemp(current_asmdata.CurrAsmList,2,2,tt_normal,tmpref);
                 emit_ref(A_FSTSW,S_NO,tmpref);
-                emit_none(A_FWAIT,S_NO);
                 cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
                 emit_ref_reg(A_MOV,S_W,tmpref,NR_AX);
                 emit_none(A_SAHF,S_NO);
