@@ -114,11 +114,12 @@ type
     function GetRecNo: Integer; override;
 
     // Own.
+    procedure SetFilterText(AValue: string); //silently drops filter
     Procedure RaiseError(Fmt : String; Args : Array of const);
     Procedure CheckMarker(F : TStream; Marker : Integer);
     Procedure WriteMarker(F : TStream; Marker : Integer);
-    procedure ReadFieldDefsFromStream(F : TStream);
-    procedure SaveFieldDefsToStream(F : TStream);
+    Procedure ReadFieldDefsFromStream(F : TStream);
+    Procedure SaveFieldDefsToStream(F : TStream);
     // These should be overridden if you want to load more data.
     // E.g. index defs.
     Procedure LoadDataFromStream(F : TStream); virtual;
@@ -136,8 +137,8 @@ type
 
     Function  DataSize : Integer;
 
-    procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
-    procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToFile(AFileName : String);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToFile(AFileName : String; SaveData : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToStream(F : TStream); {$IFNDEF FPC} overload; {$ENDIF}
@@ -148,6 +149,8 @@ type
     Procedure CopyFromDataset(DataSet : TDataSet; CopyData : Boolean); {$IFNDEF FPC} overload; {$ENDIF}
 
     Property FileModified : Boolean Read FFileModified;
+    // TMemDataset does not implement Filter. Please use OnFilter instead.
+    Property Filter: string; unimplemented;
 
   published
     Property FileName : String Read FFileName Write FFileName;
@@ -1130,6 +1133,11 @@ begin
     lstKeyFields.Free;
     RestoreState(SaveState);
   end;
+end;
+
+procedure TMemDataset.SetFilterText(AValue: string);
+begin
+  // Just do nothing; filter is not implemented
 end;
 
 function TMemDataset.Locate(const KeyFields: string; const KeyValues: Variant;
