@@ -13,14 +13,19 @@
 **********************************************************************}
 
 {$ASMMODE intel}
-{$define FPC_MATH_HAS_ARCTAN2}
-function arctan2(y,x : float) : float;assembler;
+
+{NOTE: the fpatan instruction on the 8087 and 80287 has the following restrictions:
+            0 <= ST(1) < ST(0) < +inf
+       so the following code requires a 387+ and is therefore disabled, so that we use the
+       generic implementation, until an asm optimized version, compatible with 8087/80287 is written }
+{//$define FPC_MATH_HAS_ARCTAN2}
+{function arctan2(y,x : float) : float;assembler;
   asm
     fld tbyte [y]
     fld tbyte [x]
     fpatan
     fwait
-  end;
+  end;}
 
 
 {//$define FPC_MATH_HAS_SINCOS}
