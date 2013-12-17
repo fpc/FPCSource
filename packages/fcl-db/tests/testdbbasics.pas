@@ -1368,6 +1368,7 @@ begin
     next;
     CheckTrue(EOF);
 
+    // Valid data with partial compare
     Filter := '(name=''*name*'')';
     first;
     CheckFalse(EOF);
@@ -1378,9 +1379,52 @@ begin
     CheckEquals(2,FieldByName('ID').asinteger);
     CheckEquals('TestName2',FieldByName('NAME').asstring);
 
+    // Invalid data with partial compare
     Filter := '(name=''*neme*'')';
     first;
     CheckTrue(EOF);
+
+    // Modify so we can use some tricky data
+    Filter := ''; //show all records again and allow edits
+    First;
+    Edit;
+    // Record 1=O'Malley
+    FieldByName('NAME').AsString := 'O''Malley';
+    Post;
+
+    Next;
+    Edit;
+    // Record 2="Magic" Mushroom
+    FieldByName('NAME').AsString := '"Magic" Mushroom';
+    Post;
+
+    Next;
+    Edit;
+    // Record 3=O'Malley's "Magic" Mushroom
+    FieldByName('NAME').AsString := 'O''Malley''s "Magic" Mushroom';
+    Post;
+
+    // Test searching on " which can be a delimiter
+    Filter := '(name=''*"Magic"*'')'; //should give record 2 and 3
+    first;
+    CheckFalse(EOF);
+    CheckEquals(2,FieldByName('ID').asinteger,'Search for strings with ", partial compare');
+    CheckEquals('"Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with ", partial compare');
+    next;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger,'Search for strings with ", partial compare');
+    CheckEquals('O''Malley''s "Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with ", partial compare');
+
+    // Search for strings with ' escaped, partial compare delimited by '
+    Filter := '(name=''O''''Malley*'')'; //should give record 1 and 3
+    first;
+    CheckFalse(EOF);
+    CheckEquals(1,FieldByName('ID').asinteger,'Search for strings with '' escaped, partial compare delimited by ''');
+    CheckEquals('O''Malley',FieldByName('NAME').asstring,'Search for strings with '' escaped, partial compare delimited by ''');
+    next;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger,'Search for strings with '' escaped, partial compare delimited by ''');
+    CheckEquals('O''Malley''s "Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with '' escaped, partial compare delimited by ''');
 
     Close;
     end;
