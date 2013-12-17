@@ -24,7 +24,7 @@ type
     procedure TestFieldDefWithoutDS;
     procedure TestGetParamList;
     procedure TestGetFieldList;
-    procedure TestExtractFieldName;
+    procedure TestExtractFieldName; //move record then copy. Is copy identical? Has record position changed?
   end;
 
 implementation
