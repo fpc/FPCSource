@@ -110,7 +110,7 @@ type
           end;
           5:
           begin
-            NewDBF.FieldByName('CUSTOMER').AsString := 'Felipe Bank';
+            NewDBF.FieldByName('CUSTOMER').AsString := 'Felipe''s Bank';
             NewDBF.FieldByName('CITY').AsString := 'Manchester';
             NewDBF.FieldByName('COUNTRY').AsString := 'England';
           end;
@@ -125,7 +125,7 @@ type
     NewDBF := TDBF.Create(nil);
     try
       if Directory = '' then
-        NewDBF.FilePath := '' { application directory}
+        NewDBF.FilePath := '' {application directory}
       else
         NewDBF.FilePathFull := ExpandFileName(Directory) {full absolute path};
       if TableLevel <= 0 then
@@ -288,7 +288,7 @@ type
     Exporter: TCustomFileExporter;
   begin
     try
-      case ExportFormat of
+      case UpperCase(ExportFormat) of
         'ACCESS', 'MSACCESS':
         begin
           Exporter := TXMLXSDExporter.Create(nil);
@@ -497,7 +497,7 @@ type
             if HasOption('exportformat') then
             begin
               try
-                ExportDBF(MyDbf,UpperCase(GetOptionValue('exportformat')));
+                ExportDBF(MyDbf,GetOptionValue('exportformat'));
               except
                 on E: Exception do
                 begin
