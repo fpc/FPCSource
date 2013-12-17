@@ -36,7 +36,7 @@ type
 
   TDBFTool = class(TCustomApplication)
   private
-    procedure ExportDBF(var MyDbf: TDbf);
+    procedure ExportDBF(var MyDbf: TDbf; ExportFormat: string);
   protected
     procedure DoRun; override;
   public
@@ -48,7 +48,6 @@ type
   procedure CreateDemoDBFs(Directory: string; TableLevel: integer);
   // Creates 2 demonstration DBFs in Directory with dbase compatibility level
   // TableLevel
-  // and specified codepage (if not CODEPAGE_NOT_SPECIFIED)
   var
     NewDBF: TDBF;
     i: integer;
@@ -282,16 +281,14 @@ type
 
   { TDBFTool }
 
-  procedure TDBFTool.ExportDBF(var MyDbf: TDbf);
-  // Exports recordset to another format depending on user selection
+  procedure TDBFTool.ExportDBF(var MyDbf: TDbf; ExportFormat: string);
+  // Exports recordset to specified format
   var
-    ExportFormatText: string;
     ExportSettings: TCustomExportFormatSettings;
     Exporter: TCustomFileExporter;
   begin
-    ExportFormatText := UpperCase(GetOptionValue('exportformat'));
     try
-      case ExportFormatText of
+      case ExportFormat of
         'ACCESS', 'MSACCESS':
         begin
           Exporter := TXMLXSDExporter.Create(nil);
@@ -390,7 +387,7 @@ type
         end
         else
         begin
-          writeln('***Error: Unknown export format ' + ExportFormatText + ' specified' + '. Aborting');
+          writeln('***Error: Unknown export format ' + ExportFormat + ' specified' + '. Aborting');
           Exporter := nil;
           ExportSettings := nil;
           Terminate;
@@ -422,7 +419,7 @@ type
     TableLevel: integer; //todo: use it
   begin
     // quick check parameters
-    ErrorMsg := CheckOptions('h', 'codepage: createdemo exportformat: help tablelevel:');
+    ErrorMsg := CheckOptions('h', 'createdemo exportformat: help tablelevel:');
     if ErrorMsg <> '' then
     begin
       ShowException(Exception.Create(ErrorMsg));
@@ -500,7 +497,7 @@ type
             if HasOption('exportformat') then
             begin
               try
-                ExportDBF(MyDbf);
+                ExportDBF(MyDbf,UpperCase(GetOptionValue('exportformat')));
               except
                 on E: Exception do
                 begin
@@ -551,7 +548,7 @@ type
     writeln(' 30                    Visual FoxPro');
     writeln(' --exportformat=<text> export dbfs to format. Format can be:');
     writeln(' access                Microsoft Access XML');
-    writeln(' adonet                ADO.Net dataset');
+    writeln(' adonet                ADO.Net dataset XML');
     writeln(' csvexcel              Excel/Creativyst format CSV text file (with locale dependent output)');
     writeln(' csvRFC4180            LibreOffice/RFC4180 format CSV text file');
     writeln(' dataset               Delphi dataset XML');
