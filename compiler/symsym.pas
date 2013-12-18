@@ -683,6 +683,8 @@ implementation
          d : tderef;
       begin
          inherited ppuwrite(ppufile);
+         if fprocdefdereflist=nil then
+           internalerror(2013121801);
          ppufile.putword(FProcdefDerefList.Count);
          for i:=0 to FProcdefDerefList.Count-1 do
            begin

@@ -283,6 +283,7 @@ interface
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure deref;override;
           function  size:asizeint;override;
           function  alignment : shortint;override;
@@ -3857,6 +3858,14 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
+      end;
+
+
+    procedure trecorddef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
       end;
 
 
