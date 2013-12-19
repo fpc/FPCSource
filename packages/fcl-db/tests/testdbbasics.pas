@@ -1320,7 +1320,7 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestStringFilter;
-// Tests a string expression filter
+// Tests string expression filters
 var
   Counter : byte;
 begin
@@ -1331,58 +1331,69 @@ begin
     // Check equality
     Filter := '(name=''TestName3'')';
     Filtered := True;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Simple equality');
+    CheckEquals(3,FieldByName('ID').asinteger,'Simple equality');
+    CheckEquals('TestName3',FieldByName('NAME').asstring,'Simple equality');
     next;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Simple equality');
 
     // Check partial compare
     Filter := '(name=''*Name5'')';
-    CheckFalse(EOF);
-    CheckEquals(5,FieldByName('ID').asinteger);
-    CheckEquals('TestName5',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Partial compare');
+    CheckEquals(5,FieldByName('ID').asinteger,'Partial compare');
+    CheckEquals('TestName5',FieldByName('NAME').asstring,'Partial compare');
     next;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Partial compare');
 
     // Check case-sensitivity
     Filter := '(name=''*name3'')';
     first;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Case-sensitive search');
 
     FilterOptions:=[foCaseInsensitive];
     Filter := '(name=''testname3'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Case-insensitive search');
+    CheckEquals(3,FieldByName('ID').asinteger,'Case-insensitive search');
+    CheckEquals('TestName3',FieldByName('NAME').asstring,'Case-insensitive search');
     next;
     CheckTrue(EOF);
 
     // Check case-insensitive partial compare
     Filter := '(name=''*name3'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Case-insensitive partial compare');
+    CheckEquals(3,FieldByName('ID').asinteger, 'Case-insensitive partial compare');
+    CheckEquals('TestName3',FieldByName('NAME').asstring, 'Case-insensitive partial compare');
     next;
     CheckTrue(EOF);
 
-    // Valid data with partial compare
+    // Multiple records with partial compare
     Filter := '(name=''*name*'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(1,FieldByName('ID').asinteger);
-    CheckEquals('TestName1',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Partial compare multiple records');
+    CheckEquals(1,FieldByName('ID').asinteger,'Partial compare multiple records');
+    CheckEquals('TestName1',FieldByName('NAME').asstring,'Partial compare multiple records');
     next;
-    CheckFalse(EOF);
-    CheckEquals(2,FieldByName('ID').asinteger);
-    CheckEquals('TestName2',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Partial compare multiple records');
+    CheckEquals(2,FieldByName('ID').asinteger,'Partial compare multiple records');
+    CheckEquals('TestName2',FieldByName('NAME').asstring,'Partial compare multiple records');
 
     // Invalid data with partial compare
     Filter := '(name=''*neme*'')';
     first;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Invalid data, partial compare');
+
+    // Multiple string filters
+    Filter := '(name=''*a*'') and (name=''*m*'')';
+    first;
+    CheckFalse(EOF,'Multiple string filters');
+    CheckEquals(1,FieldByName('ID').asinteger,'Multiple string filters');
+    CheckEquals('TestName1',FieldByName('NAME').asstring,'Multiple string filters');
+    next;
+    CheckFalse(EOF,'Multiple string filters');
+    CheckEquals(2,FieldByName('ID').asinteger,'Multiple string filters');
+    CheckEquals('TestName2',FieldByName('NAME').asstring,'Multiple string filters');
 
     // Modify so we can use some tricky data
     Filter := ''; //show all records again and allow edits
