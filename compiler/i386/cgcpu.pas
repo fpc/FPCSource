@@ -303,8 +303,6 @@ unit cgcpu;
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
 
-      var
-        stacksize : longint;
       begin
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
@@ -317,16 +315,8 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
-                stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.stackalign>4) and
-                   ((stacksize <> 0) or
-                    (pi_do_call in current_procinfo.flags) or
-                    { can't detect if a call in this case -> use nostackframe }
-                    { if you (think you) know what you are doing              }
-                    (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
-                if stacksize<>0 then
-                  increase_sp(stacksize);
+                if current_procinfo.final_localsize<>0 then
+                  increase_sp(current_procinfo.final_localsize);
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,true);
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then

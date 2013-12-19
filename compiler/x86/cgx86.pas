@@ -2660,7 +2660,7 @@ unit cgx86;
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.
                       maxpushedparasize is already aligned at least on x86_64. }
-                    //localsize:=current_procinfo.maxpushedparasize;
+                    localsize:=current_procinfo.maxpushedparasize;
                   end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
