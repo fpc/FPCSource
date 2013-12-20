@@ -1286,6 +1286,7 @@ implementation
         tmpreg,
         tmpreg2 : tregister;
         i : longint;
+        hisize : tcgsize;
       begin
         if ref.alignment in [1,2] then
           begin
@@ -1298,14 +1299,18 @@ implementation
                   a_load_ref_reg(list,fromsize,tosize,tmpref,register)
                 else
                   begin
+                    if FromSize=OS_16 then
+                      hisize:=OS_8
+                    else
+                      hisize:=OS_S8;
                     { first load in tmpreg, because the target register }
                     { may be used in ref as well                        }
                     if target_info.endian=endian_little then
                       inc(tmpref.offset);
                     tmpreg:=getintregister(list,OS_8);
-                    a_load_ref_reg(list,OS_8,OS_8,tmpref,tmpreg);
-                    tmpreg:=makeregsize(list,tmpreg,OS_16);
-                    a_op_const_reg(list,OP_SHL,OS_16,8,tmpreg);
+                    a_load_ref_reg(list,hisize,hisize,tmpref,tmpreg);
+                    tmpreg:=makeregsize(list,tmpreg,FromSize);
+                    a_op_const_reg(list,OP_SHL,FromSize,8,tmpreg);
                     if target_info.endian=endian_little then
                       dec(tmpref.offset)
                     else
