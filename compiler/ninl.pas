@@ -3238,7 +3238,8 @@ implementation
          tempnode: ttempcreatenode;
          newstatement: tstatementnode;
          newblock: tblocknode;
-
+         addrnode: taddrnode;
+         hdef: tdef;
       begin
          result:=nil;
          { if we handle writeln; left contains no valid address }
@@ -3409,10 +3410,13 @@ implementation
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
                      begin
-                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                       hdef:=getpointerdef(tcallparanode(left).left.resultdef);
+                       tempnode := ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);
+                       addrnode:=caddrnode.create_internal(tcallparanode(left).left.getcopy);
+                       include(addrnode.flags,nf_typedaddr);
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                         caddrnode.create_internal(tcallparanode(left).left.getcopy)));
+                         addrnode));
                        hp := cderefnode.create(ctemprefnode.create(tempnode));
                        inserttypeconv_internal(hp,tcallparanode(left).left.resultdef);
                      end
