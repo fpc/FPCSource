@@ -699,7 +699,10 @@ implementation
              OS_8 :
                a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
              OS_16 :
-               a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,16,reg2));
+               end;
              OS_32,
              OS_S32 :
                begin
