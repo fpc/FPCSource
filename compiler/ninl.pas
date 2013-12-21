@@ -3238,8 +3238,7 @@ implementation
          tempnode: ttempcreatenode;
          newstatement: tstatementnode;
          newblock: tblocknode;
-         addrnode: taddrnode;
-         hdef: tdef;
+
       begin
          result:=nil;
          { if we handle writeln; left contains no valid address }
@@ -3408,15 +3407,18 @@ implementation
 
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
-                   if node_complexity(tcallparanode(left).left) > 1 then
+                   { Storing address is not always an optimization: alignment of left is not known
+                     at this point, so we must assume the worst and use an unaligned pointer.
+                     This results in larger and slower code on alignment-sensitive targets.
+                     Therefore the complexity condition below is questionable, maybe just filtering
+                     out calls with "= NODE_COMPLEXITY_INF" is sufficient.
+                     Value of 3 corresponds to subscript nodes, i.e. record field. }
+                   if node_complexity(tcallparanode(left).left) > 3 then
                      begin
-                       hdef:=getpointerdef(tcallparanode(left).left.resultdef);
-                       tempnode := ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
+                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);
-                       addrnode:=caddrnode.create_internal(tcallparanode(left).left.getcopy);
-                       include(addrnode.flags,nf_typedaddr);
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                         addrnode));
+                         caddrnode.create_internal(tcallparanode(left).left.getcopy)));
                        hp := cderefnode.create(ctemprefnode.create(tempnode));
                        inserttypeconv_internal(hp,tcallparanode(left).left.resultdef);
                      end
