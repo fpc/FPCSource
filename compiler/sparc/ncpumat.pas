@@ -43,6 +43,10 @@ interface
          procedure second_boolean;override;
       end;
 
+      tsparcunaryminusnode = class(tcgunaryminusnode)
+         procedure second_float; override;
+      end;
+
 implementation
 
     uses
@@ -334,8 +338,31 @@ implementation
       end;
 
 
+{*****************************************************************************
+                                   TSPARCUNARYMINUSNODE
+*****************************************************************************}
+
+    procedure tsparcunaryminusnode.second_float;
+      begin
+        secondpass(left);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        case location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEGs,left.location.register,location.register));
+          OS_F64:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEGd,left.location.register,location.register));
+          OS_F128:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEGq,left.location.register,location.register));
+        else
+          internalerror(2013030501);
+        end;
+      end;
+
 begin
    cmoddivnode:=tSparcmoddivnode;
    cshlshrnode:=tSparcshlshrnode;
    cnotnode:=tSparcnotnode;
+   cunaryminusnode:=tsparcunaryminusnode;
 end.

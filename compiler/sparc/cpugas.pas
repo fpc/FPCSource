@@ -194,6 +194,23 @@ implementation
 
 
     procedure TSPARCInstrWriter.WriteInstruction(hp:Tai);
+
+      procedure writePseudoInstruction(opc: TAsmOp);
+        begin
+          if (taicpu(hp).ops<>2) or
+             (taicpu(hp).oper[0]^.typ<>top_reg) or
+             (taicpu(hp).oper[1]^.typ<>top_reg) then
+            internalerror(200401045);
+          { Fxxxs %f<even>,%f<even> }
+          owner.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          { FMOVs %f<odd>,%f<odd> }
+          inc(taicpu(hp).oper[0]^.reg);
+          inc(taicpu(hp).oper[1]^.reg);
+          owner.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          dec(taicpu(hp).oper[0]^.reg);
+          dec(taicpu(hp).oper[1]^.reg);
+        end;
+
       var
         Op:TAsmOp;
         s:String;
@@ -206,39 +223,14 @@ implementation
           peephole optimization }
         case op of
           A_FABSd:
-            begin
-              if (taicpu(hp).ops<>2) or
-                 (taicpu(hp).oper[0]^.typ<>top_reg) or
-                 (taicpu(hp).oper[1]^.typ<>top_reg) then
-                internalerror(200401045);
-              { FABSs %f<even>,%f<even> }
-              s:=#9+std_op2str[A_FABSs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              owner.AsmWriteLn(s);
-              { FMOVs %f<odd>,%f<odd> }
-              inc(taicpu(hp).oper[0]^.reg);
-              inc(taicpu(hp).oper[1]^.reg);
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              dec(taicpu(hp).oper[0]^.reg);
-              dec(taicpu(hp).oper[1]^.reg);
-              owner.AsmWriteLn(s);
-            end;
+            writePseudoInstruction(A_FABSs);
+
           A_FMOVd:
-            begin
-              if (taicpu(hp).ops<>2) or
-                 (taicpu(hp).oper[0]^.typ<>top_reg) or
-                 (taicpu(hp).oper[1]^.typ<>top_reg) then
-                internalerror(200401045);
-              { FMOVs %f<even>,%f<even> }
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              owner.AsmWriteLn(s);
-              { FMOVs %f<odd>,%f<odd> }
-              inc(taicpu(hp).oper[0]^.reg);
-              inc(taicpu(hp).oper[1]^.reg);
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              dec(taicpu(hp).oper[0]^.reg);
-              dec(taicpu(hp).oper[1]^.reg);
-              owner.AsmWriteLn(s);
-            end
+            writePseudoInstruction(A_FMOVs);
+
+          A_FNEGd:
+            writePseudoInstruction(A_FNEGs);
+
           else
             begin
               { call maybe not translated to call }
