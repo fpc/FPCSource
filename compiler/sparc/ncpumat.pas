@@ -33,8 +33,8 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      tSparcshlshrnode = class(tshlshrnode)
-         procedure pass_generate_code;override;
+      tSparcshlshrnode = class(tcgshlshrnode)
+         procedure second_64bit;override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
@@ -183,103 +183,66 @@ implementation
       end;
 
 
-    procedure tSparcshlshrnode.pass_generate_code;
+    procedure tSparcshlshrnode.second_64bit;
       var
-        hregister,resultreg,hregister1,
-        hreg64hi,hreg64lo : tregister;
+        hregister,hreg64hi,hreg64lo : tregister;
         op : topcg;
         shiftval: aword;
+      const
+        ops: array [boolean] of topcg = (OP_SHR,OP_SHL);
       begin
         { 64bit without constants need a helper, and is
           already replaced in pass1 }
-        if is_64bit(left.resultdef) and
-           (right.nodetype<>ordconstn) then
+        if (right.nodetype<>ordconstn) then
           internalerror(200405301);
 
-        secondpass(left);
-        secondpass(right);
-        if is_64bit(left.resultdef) then
+        location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
+
+        { load left operator in a register }
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+        hreg64hi:=left.location.register64.reghi;
+        hreg64lo:=left.location.register64.reglo;
+
+        shiftval := tordconstnode(right).value.svalue and 63;
+        op := ops[nodetype=shln];
+        if shiftval > 31 then
           begin
-            location_reset(location,LOC_REGISTER,OS_64);
-
-            { load left operator in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u64inttype,false);
-            hreg64hi:=left.location.register64.reghi;
-            hreg64lo:=left.location.register64.reglo;
-
-            shiftval := tordconstnode(right).value.svalue and 63;
-            if shiftval > 31 then
+            if nodetype = shln then
               begin
-                if nodetype = shln then
-                  begin
-                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64hi);
-                    if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
-                  end
-                else
-                  begin
-                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64lo);
-                    if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
-                  end;
-                location.register64.reglo:=hreg64hi;
-                location.register64.reghi:=hreg64lo;
+                location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
+                location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                { if shiftval and 31 = 0, it will optimize to MOVE }
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, shiftval and 31, hreg64lo, location.register64.reghi);
               end
             else
               begin
-                { shr 0 or shl 0 are noops, but generate wrong code below,
-                  so only add code if shift val is non-zero }
-                if (shiftval <> 0) then
-                  begin
-                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                    if nodetype = shln then
-                      begin
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
-                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
-                      end
-                    else
-                      begin
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
-                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
-                      end;
-                  end;
-                location.register64.reghi:=hreg64hi;
-                location.register64.reglo:=hreg64lo;
+                location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+                location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, shiftval and 31, hreg64hi, location.register64.reglo);
               end;
           end
         else
           begin
-            { load left operators in a register }
-            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            location_copy(location,left.location);
-            resultreg := location.register;
-            hregister1 := location.register;
-            if (location.loc = LOC_CREGISTER) then
+            location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+            hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
+
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64hi, location.register64.reghi);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64lo, location.register64.reglo);
+            if shiftval <> 0 then
               begin
-                location.loc := LOC_REGISTER;
-                resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-                location.register := resultreg;
-              end;
-            { determine operator }
-            if nodetype=shln then
-              op:=OP_SHL
-            else
-              op:=OP_SHR;
-            { shifting by a constant directly coded: }
-            if (right.nodetype=ordconstn) then
-              begin
-                if tordconstnode(right).value and 31<>0 then
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value.svalue and 31,hregister1,resultreg)
-              end
-            else
-              begin
-                { load shift count in a register if necessary }
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
-                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
+                if nodetype = shln then
+                  begin
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, 32-shiftval, hreg64lo, hregister);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reghi, location.register64.reghi);
+                  end
+                else
+                  begin
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, 32-shiftval, hreg64hi, hregister);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hregister, location.register64.reglo, location.register64.reglo);
+                  end;
               end;
           end;
       end;
