@@ -79,6 +79,16 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
   end;}
 
 
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fld tbyte [x]
+    fyl2x
+    fwait
+  end;
+
+
 {//$define FPC_MATH_HAS_DIVMOD}
 {procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);assembler;
 asm

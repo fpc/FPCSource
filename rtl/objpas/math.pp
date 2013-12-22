@@ -851,10 +851,12 @@ function log10(x : float) : float;
     log10:=ln(x)*0.43429448190325182765;  { 1/ln(10) }
   end;
 
+{$ifndef FPC_MATH_HAS_LOG2}
 function log2(x : float) : float;
   begin
     log2:=ln(x)*1.4426950408889634079;    { 1/ln(2) }
   end;
+{$endif FPC_MATH_HAS_LOG2}
 
 function logn(n,x : float) : float;
   begin
