@@ -1262,23 +1262,27 @@ implementation
     procedure TCgSparc.g_maybe_got_init(list : TAsmList);
       var
         ref : treference;
+        hl : tasmlabel;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
            (pi_needs_got in current_procinfo.flags) then
           begin
             current_procinfo.got:=NR_L7;
-            { Set register $l7 to _GLOBAL_OFFSET_TABLE_ at function entry }
-            { The offsets -8 for %hi and -4 for %lo correspnod to the
-              code distance from the call to FPC_GETGOT inxtruction }
-            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8,sizeof(pint));
+            current_asmdata.getjumplabel(hl);
+            list.concat(taicpu.op_sym(A_CALL,hl));
+            { ABI recommends the following sequence:
+            1:   call   2f
+                 sethi  %hi(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
+            2:   or     %l7, %lo(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
+                 add    %l7, %o7, %l7 }
+            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),4,sizeof(pint));
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
+            cg.a_label(list,hl);
             ref.refaddr:=addr_low;
-            ref.offset:=-4;
+            ref.offset:=8;
             list.concat(Taicpu.Op_reg_ref_reg(A_OR,NR_L7,ref,NR_L7));
-            list.concat(Taicpu.Op_sym(A_CALL,current_asmdata.RefAsmSymbol('FPC_GETGOT')));
-            { Delay slot }
-            list.concat(Taicpu.Op_none(A_NOP));
+            list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_L7,NR_O7,NR_L7));
           end;
       end;
 
