@@ -966,13 +966,19 @@ implementation
 
     procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:tcgint;reg:TRegister);
       begin
-        if Op in [OP_NEG,OP_NOT] then
-          internalerror(200306011);
-        if (a=0) then
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],reg,NR_G0,reg))
+        optimize_op_const(op,a);
+        case op of
+          OP_NONE:
+            exit;
+
+          OP_MOVE:
+            a_load_const_reg(list,size,a,reg);
+
+          OP_NEG,OP_NOT:
+            internalerror(200306011);
         else
-          handle_reg_const_reg(list,TOpCG2AsmOp[op],reg,a,reg);
-        maybeadjustresult(list,op,size,reg);
+          a_op_const_reg_reg(list,op,size,a,reg,reg);
+        end;
       end;
 
 
@@ -1004,31 +1010,9 @@ implementation
 
     procedure TCgSparc.a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:tcgint;src, dst:tregister);
       var
-        power : longInt;
+        l: TLocation;
       begin
-        case op of
-          OP_MUL,
-          OP_IMUL:
-            begin
-              if ispowerof2(a,power) then
-                begin
-                  { can be done with a shift }
-                  inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-                  exit;
-                end;
-            end;
-          OP_SUB,
-          OP_ADD :
-            begin
-              if (a=0) then
-                begin
-                  a_load_reg_reg(list,size,size,src,dst);
-                  exit;
-                end;
-            end;
-        end;
-        handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
-        maybeadjustresult(list,op,size,dst);
+        a_op_const_reg_reg_checkoverflow(list,op,size,a,src,dst,false,l);
       end;
 
 
@@ -1041,19 +1025,21 @@ implementation
 
     procedure tcgsparc.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
-        power : longInt;
         tmpreg1,tmpreg2 : tregister;
       begin
         ovloc.loc:=LOC_VOID;
+        optimize_op_const(op,a);
         case op of
-          OP_SUB,
-          OP_ADD :
+          OP_NONE:
             begin
-              if (a=0) then
-                begin
-                  a_load_reg_reg(list,size,size,src,dst);
-                  exit;
-                end;
+              a_load_reg_reg(list,size,size,src,dst);
+              exit;
+            end;
+
+          OP_MOVE:
+            begin
+              a_load_const_reg(list,size,a,dst);
+              exit;
             end;
         end;
         if setflags then
