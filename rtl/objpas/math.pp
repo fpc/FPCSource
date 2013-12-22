@@ -58,43 +58,37 @@ interface
        { natural size for the processor                          }
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
-{$ifdef FPC_HAS_TYPE_FLOAT128}
+{$if defined(FPC_HAS_TYPE_FLOAT128)}
       type
          float = float128;
 
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
-{$else FPC_HAS_TYPE_FLOAT128}
-  {$ifdef FPC_HAS_TYPE_EXTENDED}
+{$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
          float = extended;
 
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
-  {$else FPC_HAS_TYPE_EXTENDED}
-    {$ifdef FPC_HAS_TYPE_DOUBLE}
+{$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
          float = double;
 
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
-    {$else FPC_HAS_TYPE_DOUBLE}
-      {$ifdef FPC_HAS_TYPE_SINGLE}
+{$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
          float = single;
 
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
-      {$else FPC_HAS_TYPE_SINGLE}
+{$else}
         {$fatal At least one floating point type must be supported}
-      {$endif FPC_HAS_TYPE_SINGLE}
-    {$endif FPC_HAS_TYPE_DOUBLE}
-  {$endif FPC_HAS_TYPE_EXTENDED}
-{$endif FPC_HAS_TYPE_FLOAT128}
+{$endif}
 
     type
        PFloat = ^Float;
