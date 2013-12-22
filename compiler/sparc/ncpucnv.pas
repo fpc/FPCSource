@@ -78,7 +78,20 @@ implementation
         if is_64bitint(left.resultdef) or
           is_currency(left.resultdef) then
           begin
-            result:=inherited first_int_to_real;
+            { hack to avoid double division by 10000, as it's
+              already done by typecheckpass.resultdef_int_to_real }
+            if is_currency(left.resultdef) then
+              left.resultdef := s64inttype;
+            if is_signed(left.resultdef) then
+              fname := 'fpc_int64_to_double'
+            else
+              fname := 'fpc_qword_to_double';
+            result := ccallnode.createintern(fname,ccallparanode.create(
+              left,nil));
+            left:=nil;
+            if (tfloatdef(resultdef).floattype=s32real) then
+              inserttypeconv(result,s32floattype);
+            firstpass(result);
             exit;
           end
         else
