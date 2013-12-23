@@ -111,7 +111,7 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
        ncgutil,regvars,
        optbase,
        opttail,
@@ -917,14 +917,8 @@ implementation
                end;
              if cs_asm_source in current_settings.globalswitches then
                begin
-                 if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
-                   begin
-                     TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                       std_regname(tabstractnormalvarsym(p).localloc.registerhi)+':'+std_regname(tabstractnormalvarsym(p).localloc.register))));
-                   end
-                 else
-                   TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                     std_regname(tabstractnormalvarsym(p).localloc.register))));
+                 TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                   location_reg2string(tabstractnormalvarsym(p).localloc))));
                end;
            end;
       end;
