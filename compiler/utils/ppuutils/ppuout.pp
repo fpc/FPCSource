@@ -109,6 +109,7 @@ type
 
   protected
     procedure WriteDef(Output: TPpuOutput); virtual;
+    procedure Done; virtual;
 
   public
     DefType: TPpuDefType;
@@ -140,6 +141,7 @@ type
   protected
     procedure WriteDef(Output: TPpuOutput); override;
     procedure BeforeWriteItems(Output: TPpuOutput); virtual;
+    procedure Done; override;
 
   public
     ItemsName: string;
@@ -1233,6 +1235,7 @@ procedure TPpuUnitDef.WriteDef(Output: TPpuOutput);
 var
   i: integer;
 begin
+  Done;
   with Output do begin
     if Version <> 0 then
       WriteInt('Version', Version);
@@ -1332,6 +1335,21 @@ procedure TPpuContainerDef.BeforeWriteItems(Output: TPpuOutput);
 begin
 end;
 
+procedure TPpuContainerDef.Done;
+var
+  i: integer;
+  d: TPpuDef;
+begin
+  i:=0;
+  while i < Count do begin
+    d:=Items[i];
+    d.Done;
+    if d.Parent = Self then
+      Inc(i);
+  end;
+  inherited Done;
+end;
+
 constructor TPpuContainerDef.Create(AParent: TPpuContainerDef);
 begin
   inherited Create(AParent);
@@ -1420,6 +1438,27 @@ end;
 procedure TPpuDef.SetSymId(AId: integer);
 begin
   Id:=cardinal(AId) or SymIdBit;
+end;
+
+procedure TPpuDef.Done;
+var
+  symdef: TPpuDef;
+begin
+  if IsSymId(FId) then
+    exit;
+  if not Ref.IsNull and Ref.IsCurUnit and (Name = '') then begin
+    // If there is no definition name, but there is a symbol ref -
+    // get the name from the symbol and move the def to the symbol container
+    symdef:=ParentUnit.FindById(Ref.Id, True);
+    if symdef <> nil then begin
+      Name:=symdef.Name;
+      Visibility:=symdef.Visibility;
+      Parent.FItems.Remove(Self);
+      symdef.Parent.FItems.Add(Self);
+      // Hide the symbol, since it is not needed anymore
+      symdef.Visibility:=dvHidden;
+    end;
+  end;
 end;
 
 procedure TPpuDef.WriteDef(Output: TPpuOutput);
