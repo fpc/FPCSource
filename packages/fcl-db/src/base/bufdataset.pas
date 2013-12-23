@@ -434,8 +434,7 @@ type
 
     procedure FetchAll;
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
-      const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
-    procedure BuildIndex(var AIndex : TBufIndex);
+      const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);    
     function BufferOffset: integer;
     function GetIndexDefs : TIndexDefs;
     function  GetCurrentBuffer: TRecordBuffer;
@@ -460,6 +459,9 @@ type
     procedure CurrentRecordToBuffer(Buffer: TRecordBuffer);
     procedure SetBufUniDirectional(const AValue: boolean);
     procedure InitDefaultIndexes;
+    procedure BuildIndex(var AIndex : TBufIndex);
+    procedure BuildIndexes;
+    procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
   protected
     function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
@@ -494,7 +496,7 @@ type
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); virtual;
-    procedure SetOnUpdateError(const aValue: TResolverErrorEvent);
+    procedure SetOnUpdateError(const AValue: TResolverErrorEvent);
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
@@ -1050,6 +1052,22 @@ begin
   DblLinkIndex.FLastRecBuf[DblLinkIndex.IndNr].prior:=l;
 end;
 
+procedure TCustomBufDataset.BuildIndexes;
+var i: integer;
+begin
+ for i:=1 to FIndexesCount-1 do
+	 if (i<>1) or (FIndexes[i]=FCurrentIndex) then
+		 BuildIndex(FIndexes[i]);
+end;
+
+procedure TCustomBufDataset.RemoveRecordFromIndexes(const ABookmark: TBufBookmark);
+var i: integer;
+begin
+ for i:=0 to FIndexesCount-1 do
+	 if (i<>1) or (FIndexes[i]=FCurrentIndex) then
+		 FIndexes[i].RemoveRecordFromIndex(ABookmark);
+end;
+
 function TCustomBufDataset.GetIndexDefs : TIndexDefs;
 
 begin
@@ -1070,7 +1088,7 @@ begin
     end;
 end;
 
-Function TCustomBufDataset.GetCanModify: Boolean;
+function TCustomBufDataset.GetCanModify: Boolean;
 begin
   Result:=not (UniDirectional or ReadOnly);
 end;
@@ -1915,11 +1933,7 @@ begin
     FAllPacketsFetched := True;
     // This code has to be placed elsewhere. At least it should also run when
     // the datapacket is loaded from file ... see IntLoadRecordsFromFile
-    if FIndexesCount>0 then for x := 1 to FIndexesCount-1 do
-      begin
-      if not ((x=1) and (FIndexes[1].FieldsName='')) then
-        BuildIndex(FIndexes[x]);
-      end;
+    BuildIndexes;
     Exit;
     end;
 
@@ -2054,9 +2068,7 @@ begin
   // Remove the record from all active indexes
   FCurrentIndex.StoreCurrentRecIntoBookmark(@RemRecBookmrk);
   RemRec := FCurrentIndex.CurrentBuffer;
-  for i := 0 to FIndexesCount-1 do
-    if (i<>1) or (FIndexes[i]=FCurrentIndex) then
-      FIndexes[i].RemoveRecordFromIndex(RemRecBookmrk);
+  RemoveRecordFromIndexes(RemRecBookmrk);
 
   if not GetActiveRecordUpdateBuffer then
     begin
@@ -2135,9 +2147,7 @@ var StoreRecBM     : TBufBookmark;
           begin
           repeat
           if (FCurrentUpdateBuffer<>StoreUpdBuf) then
-            begin
             CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
-            end;
           until not GetRecordUpdateBuffer(Bm,True,True);
           end;
         FCurrentUpdateBuffer:=StoreUpdBuf;
@@ -2153,7 +2163,7 @@ var StoreRecBM     : TBufBookmark;
               ScrollLast;  // last record will be removed from index, so move to spare record
           StoreCurrentRecIntoBookmark(@StoreRecBM);
           end;
-        FCurrentIndex.RemoveRecordFromIndex(Bm);
+        RemoveRecordFromIndexes(Bm);
         FreeRecordBuffer(TmpBuf);
         dec(FBRecordCount);
         end;
@@ -2519,13 +2529,13 @@ begin
   Result := FOpen;
 end;
 
-Function TCustomBufDataset.GetRecordCount: Longint;
+function TCustomBufDataset.GetRecordCount: Longint;
 
 begin
   Result := FBRecordCount;
 end;
 
-Function TCustomBufDataset.UpdateStatus: TUpdateStatus;
+function TCustomBufDataset.UpdateStatus: TUpdateStatus;
 
 begin
   Result:=usUnmodified;
@@ -2991,9 +3001,7 @@ begin
     end;
 
   // rebuild indexes
-  for x:=1 to FIndexesCount-1 do
-    if (x<>1) or (FIndexes[x]=FCurrentIndex) then
-      BuildIndex(FIndexes[x]);
+  BuildIndexes;
 end;
 
 procedure TCustomBufDataset.DoFilterRecord(out Acceptable: Boolean);
@@ -3104,7 +3112,7 @@ begin
   end;
 end;
 
-Function TCustomBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
+function TCustomBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
 
 var CurrLinkItem    : PBufRecLinkItem;
     bm              : TBufBookmark;
@@ -3741,6 +3749,7 @@ procedure TUniDirectionalBufIndex.EndUpdate;
 begin
   // Do nothing
 end;
+
 
 initialization
   setlength(RegisteredDatapacketReaders,0);
