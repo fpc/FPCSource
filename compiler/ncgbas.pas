@@ -554,14 +554,56 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-{$ifndef cpu64bitalu}
+{$if defined(cpu32bitalu)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
                     end
                   else
-{$endif not cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                  if tempinfo^.location.size in [OS_64,OS_S64] then
+                    begin
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reghi));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reglo));
+                    end
+                  else
+                  if tempinfo^.location.size in [OS_32,OS_S32] then
+                    begin
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
+                    end
+                  else
+{$elseif defined(cpu8bitalu)}
+                  if tempinfo^.location.size in [OS_64,OS_S64] then
+                    begin
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reghi));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register64.reghi)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register64.reghi))));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reglo));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register64.reglo)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register64.reglo))));
+                    end
+                  else
+                  if tempinfo^.location.size in [OS_32,OS_S32] then
+                    begin
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register))));
+                    end
+                  else
+                  if tempinfo^.location.size in [OS_16,OS_S16] then
+                    begin
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
+                    end
+                  else
+{$endif}
                     cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
