@@ -1080,6 +1080,15 @@ interface
              end;
            ait_seh_directive :
              { Ignore for now };
+           ait_varloc:
+             begin
+               if tai_varloc(hp).newlocationhi<>NR_NO then
+                 AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation))
+               else
+                 AsmWriteLn(target_asm.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                   std_regname(tai_varloc(hp).newlocation));
+             end;
            else
              internalerror(10000);
          end;
