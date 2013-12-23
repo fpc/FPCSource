@@ -936,6 +936,11 @@ begin
     exit;
   first:=true;
   idx:=ppufile.getlongint;
+  if idx = -1 then
+    begin
+      writeln('Nil');
+      exit;
+    end;
   if (idx>derefdatalen) then
     begin
       WriteError('!! Error: Deref idx '+IntToStr(idx)+' > '+IntToStr(derefdatalen));
