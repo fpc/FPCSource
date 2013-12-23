@@ -8,7 +8,9 @@ var
   InLen, OutLen, Offset: size_t;
   Src, Dst: pchar;
   H: iconv_t;
+  {$ifndef noerrnoiconv}
   lerr: cint;
+  {$endif}
   iconvres: size_t;
 begin
   H := iconv_open(PChar(ToEncoding), PChar(FromEncoding));
@@ -81,7 +83,7 @@ begin
     end;
    
     // iconv has a buffer that needs flushing, specially if the last char is not #0
-    iconv(H, nil, nil, @Dst, @Outlen);
+    iconvres:=iconv(H, nil, nil, @Dst, @Outlen);
     lerr:=cerrno;
     if (iconvres=size_t(-1)) and (lerr=ESysE2BIG) then
       begin
@@ -94,12 +96,13 @@ begin
    {$endif}
     // trim output buffer
     SetLength(Res, Length(Res) - Outlen);
-  finally Offset:=Dst-PChar(Res);
+  finally 
+        Offset:=Dst-PChar(Res);
         SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 char
         Dst:=PChar(Res)+Offset;
         OutLen:=Length(Res)-Offset;
-        iconv(H, nil, nil, @Dst, @Outlen);
-
+        iconvres:=iconv(H, nil, nil, @Dst, @Outlen);
+        setlength(Res,Length(Res) - Outlen);
     iconv_close(H);
   end;
   
