@@ -1077,7 +1077,6 @@ implementation
                           gen_alloc_regloc(list,destloc);
                           cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
-                          gen_alloc_regloc(list,destloc);
                           {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
                           {$else}
