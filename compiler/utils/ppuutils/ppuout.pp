@@ -319,7 +319,7 @@ type
   TPpuArrayOptions = set of TPpuArrayOption;
 
   { TPpuArrayDef }
-  TPpuArrayDef = class(TPpuDef)
+  TPpuArrayDef = class(TPpuContainerDef)
   protected
     procedure WriteDef(Output: TPpuOutput); override;
   public
@@ -760,6 +760,7 @@ end;
 constructor TPpuArrayDef.Create(AParent: TPpuContainerDef);
 begin
   inherited Create(AParent);
+  ItemsName:='Types';
   DefType:=dtArray;
   ElType:=TPpuRef.Create;
   RangeType:=TPpuRef.Create;

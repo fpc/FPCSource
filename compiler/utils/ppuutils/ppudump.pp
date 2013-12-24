@@ -2824,7 +2824,7 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
-             readsymtable('symbols');
+             readsymtable('symbols', arrdef);
            end;
 
          ibprocdef :
