@@ -1569,29 +1569,19 @@ implementation
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
 	    g1_used:=false;
+            { Delay slot }
+            list.Concat(TAiCpu.Op_none(A_NOP));
           end
         else
           begin
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-            href.refaddr := addr_high;
-            list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
-	    g1_used:=true;
-            href.refaddr := addr_low;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G1,href,NR_G1));
-            { FIXME: this assumes for now that %l7 already has the correct value }
-            if (cs_create_pic in current_settings.moduleswitches) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_G1,NR_L7,NR_G1));
-                reference_reset_base(href,NR_G1,0,sizeof(pint));
-                list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
-              end;
-
-            list.concat(taicpu.op_reg(A_JMP,NR_G1));
-	    g1_used:=false;
+            { Emit a branch, which is PIC-safe, but limited to 8 MByte range on SPARC.
+              Since interface wrappers are always located in the same unit with
+              their target methods, this limit applies (roughly) to code size of single
+              unit, not to entire program. It looks like a reasonable tradeoff.
+              If distance limit is ever exceeded, consider changing high-level compiler
+              logic to emit wrappers near target methods, not at the end of unit. }
+            a_jmp_name(list,procdef.mangledname);
           end;
-        { Delay slot }
-        list.Concat(TAiCpu.Op_none(A_NOP));
-
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
