@@ -1381,6 +1381,14 @@ implementation
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aint;
+
+        function reference_is_reusable(const ref: treference): boolean;
+          begin
+            result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
+              (ref.symbol=nil) and
+              (ref.offset>=simm13lo) and (ref.offset+len<=simm13hi);
+          end;
+
       begin
         if len>high(longint) then
           internalerror(2002072704);
@@ -1389,27 +1397,27 @@ implementation
           g_concatcopy_move(list,source,dest,len)
         else
           begin
-            reference_reset(src,source.alignment);
-            reference_reset(dst,dest.alignment);
-            { load the address of source into src.base }
-            src.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,source,src.base);
-            { load the address of dest into dst.base }
-            dst.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,dest,dst.base);
-            { generate a loop }
             count:=len div 4;
+            if (count<=4) and reference_is_reusable(source) then
+              src:=source
+            else
+              begin
+                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint));
+                a_loadaddr_ref_reg(list,source,src.base);
+              end;
+            if (count<=4) and reference_is_reusable(dest) then
+              dst:=dest
+            else
+              begin
+                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint));
+                a_loadaddr_ref_reg(list,dest,dst.base);
+              end;
+            { generate a loop }
             if count>4 then
               begin
-                { the offsets are zero after the a_loadaddress_ref_reg and just }
-                { have to be set to 8. I put an Inc there so debugging may be   }
-                { easier (should offset be different from zero here, it will be }
-                { easy to notice in the generated assembler                     }
                 countreg:=GetIntRegister(list,OS_INT);
                 tmpreg1:=GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_INT,count,countreg);
-                { explicitely allocate R_O0 since it can be used safely here }
-                { (for holding date that's being copied)                    }
                 current_asmdata.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
@@ -1418,11 +1426,6 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
                 a_jmp_cond(list,OC_NE,lab);
-                list.concat(taicpu.op_none(A_NOP));
-                { keep the registers alive }
-                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
-                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
                 len := len mod 4;
               end;
             { unrolled loop }
@@ -1489,15 +1492,9 @@ implementation
             { generate a loop }
             if len>4 then
               begin
-                { the offsets are zero after the a_loadaddress_ref_reg and just }
-                { have to be set to 8. I put an Inc there so debugging may be   }
-                { easier (should offset be different from zero here, it will be }
-                { easy to notice in the generated assembler                     }
                 countreg:=GetIntRegister(list,OS_INT);
                 tmpreg1:=GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_INT,len,countreg);
-                { explicitely allocate R_O0 since it can be used safely here }
-                { (for holding date that's being copied)                    }
                 current_asmdata.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
@@ -1506,11 +1503,6 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,1,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
                 a_jmp_cond(list,OC_NE,lab);
-                list.concat(taicpu.op_none(A_NOP));
-                { keep the registers alive }
-                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
-                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
               end
             else
               begin
