@@ -334,7 +334,7 @@ function GetTextFaceW(_para1:HDC; _para2:longint; _para3:LPWSTR):longint; extern
 function GetKerningPairsW(_para1:HDC; _para2:DWORD; _para3:LPKERNINGPAIR):DWORD; external 'gdi32' name 'GetKerningPairsW';
 function GetLogColorSpaceW(_para1:HCOLORSPACE; _para2:LPLOGCOLORSPACE; _para3:DWORD):WINBOOL; external 'gdi32' name 'GetLogColorSpaceW';
 function CreateColorSpaceW(_para1:LPLOGCOLORSPACE):HCOLORSPACE; external 'gdi32' name 'CreateColorSpaceW';
-function GetICMProfileW(_para1:HDC; _para2:DWORD; _para3:LPWSTR):WINBOOL; external 'gdi32' name 'GetICMProfileW';
+function GetICMProfileW(_para1:HDC; _para2:LPDWORD; _para3:LPWSTR):WINBOOL; external 'gdi32' name 'GetICMProfileW';
 function SetICMProfileW(_para1:HDC; _para2:LPWSTR):WINBOOL; external 'gdi32' name 'SetICMProfileW';
 function UpdateICMRegKeyW(_para1:DWORD; _para2:DWORD; _para3:LPWSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyW';
 function EnumICMProfilesW(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesW';
