@@ -24,8 +24,21 @@
 	.global _dynamic_start
 	.type _dynamic_start,#function
 _dynamic_start:
-        /* TODO: need to set __dl_fini here */
-        b _start
+.ifdef PIC
+        call   1f
+        sethi  %hi(_GLOBAL_OFFSET_TABLE_+4),%o0
+1:      or     %o0,%lo(_GLOBAL_OFFSET_TABLE_+8),%o0
+        add    %o0,%o7,%o0
+        sethi  %hi(__dl_fini),%o1
+        or     %o0,%lo(__dl_fini),%o1
+        ld     [%o0+%o1],%o0
+        b      _start
+        st     %g1,[%o0]
+.else
+        sethi  %hi(__dl_fini),%o0
+        b      _start
+        st     %g1,[%o0+%lo(__dl_fini)]
+.endif
 
 	.align 4
 	.global _start
@@ -86,18 +99,38 @@ _start:
 	/* Die very horribly if main returns.  */
 	unimp
 
+.size _start, .-_start
+
 .globl  _haltproc
 .type   _haltproc,@function
 _haltproc:
-        /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
+        save    %o6,-96,%o6
+.ifdef PIC
+        call   1f
+        sethi  %hi(_GLOBAL_OFFSET_TABLE_+4),%l7
+1:      or     %l7,%lo(_GLOBAL_OFFSET_TABLE_+8),%l7
+        add    %l7,%o7,%l7
+.endif
+        mov     %i0,%l0  
+        sethi   %hi(__dl_fini),%o0
+        or      %o0,%lo(__dl_fini),%o0
+.ifdef PIC
+        ld      [%o0+%l7],%o0
+.endif
+        ld      [%o0],%o0
+        subcc   %o0,%g0,%g0
+        beq     2f
+        nop
+        call    %o0
+        nop
+2:
+        mov     %i0,%o0                 /* i0 contains the exitcode */
+        mov     188, %g1                /* "exit_group" system call */
+        ta      0x10                    /* do the system call */
+        unimp                           /* Die very horribly if exit returns.  */
 
-	mov	188, %g1		/* "exit_group" system call */
-	ta	0x10			/* dot the system call */
-	nop				/* delay slot */
-	/* Die very horribly if exit returns.  */
-	unimp
+.size _haltproc,.-_haltproc
 
-	.size _start, .-_start
 
         .comm __stkptr,4
         .comm __dl_fini,4
@@ -105,3 +138,5 @@ _haltproc:
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
+
+.section .note.GNU-stack,"",@progbits
