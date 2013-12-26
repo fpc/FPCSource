@@ -92,6 +92,7 @@ interface
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -1576,6 +1577,16 @@ implementation
           end;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
+
+
+    procedure tcgsparc.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
+      begin
+        { CALL overwrites %o7 with its own address, we use delay slot to restore it. }
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_O7,NR_G1));
+        list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname)));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
+      end;
+
 
     procedure tcgsparc.g_stackpointer_alloc(list : TAsmList;localsize : longint);
       begin
