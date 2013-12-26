@@ -26,7 +26,7 @@ uses
   Classes, Sysutils, chmfilewriter, GetOpts;
 
 Const
-  CHMCMDVersion = '2.6.0';
+  CHMCMDVersion = '2.6.1';
 
 Procedure Usage;
 
@@ -101,7 +101,7 @@ var
 
 procedure OnError (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String;detailevel:integer=0);
 begin
-  if detailevel<=alloweddetaillevel then
+  if (detailevel<=alloweddetaillevel) or (errorkind < chmnote) then
     if errorkind<>chmnone then
       writeln(ChmErrorKindText[errorkind],': ',msg)
     else
@@ -150,6 +150,8 @@ begin
     end;
   OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
   Project.WriteChm(OutStream);
+  if Project.ScanHtmlContents then
+    Project.ShowUndefinedAnchors;
   if ishhp and GenerateXMLForHHP then
     begin
       Writeln('Generating XML ',xmlname,'.');
