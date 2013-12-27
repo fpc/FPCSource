@@ -83,91 +83,53 @@ implementation
 
 
     function TSPARCInstrWriter.GetReferenceString(var ref:TReference):string;
-      var
-        asm_comment : string;
       begin
-        GetReferenceString:='';
-        asm_comment:='';
-        with ref do
+        result:='';
+        if assigned(ref.symbol) then
+          result:=ref.symbol.name;
+        if (ref.offset<0) then
+          result:=result+tostr(ref.offset)
+        else if (ref.offset>0) then
           begin
-            if (base=NR_NO) and (index=NR_NO) then
+            if assigned(ref.symbol) then
+              result:=result+'+';
+            result:=result+tostr(ref.offset);
+          end
+        { asmreader appears to treat literal numbers as references }
+        else if (ref.symbol=nil) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:='0';
+
+        case ref.refaddr of
+          addr_high:
+            result:='%hi('+result+')';
+          addr_low:
+            result:='%lo('+result+')';
+        end;
+
+        if assigned(ref.symbol) or (ref.offset<>0) then
+          begin
+            if (ref.base<>NR_NO) then
               begin
-                 if assigned(symbol) then
-                   GetReferenceString:=symbol.name;
-                 if offset>0 then
-                   GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
-                 else if offset<0 then
-                   GetReferenceString:=GetReferenceString+ToStr(offset);
-                 case refaddr of
-                   addr_high:
-                     GetReferenceString:='%hi('+GetReferenceString+')';
-                   addr_low:
-                     GetReferenceString:='%lo('+GetReferenceString+')';
-                   addr_pic:
-                     begin
-                       asm_comment:='addr_pic should use %l7 register as base or index: '+GetReferenceString;
-                       Comment(V_Warning,asm_comment);
-                       GetReferenceString:='%l7+'+GetReferenceString;
-                     end;
-                 end;
-              end
-            else
-              begin
-                if (base=NR_NO) and (index<>NR_NO) then
-                  begin
-                    base:=index;
-                    index:=NR_NO;
-                  end;
-{$ifdef extdebug}
-                if assigned(symbol) and
-                  not(refaddr in [addr_pic,addr_low]) then
-                  internalerror(2003052601);
-{$endif extdebug}
-                GetReferenceString:=GetReferenceString+gas_regname(base);
-                if index=NR_NO then
-                  begin
-                    { if (Offset<simm13lo) or (Offset>simm13hi) then
-                      internalerror(2003053008); }
-                    if offset>0 then
-                      GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
-                    else if offset<0 then
-                      GetReferenceString:=GetReferenceString+ToStr(offset);
-                    {
-                    else if (offset=0) and not(assigned(symbol)) then
-                      GetReferenceString:=GetReferenceString+ToStr(offset);
-                    }
-                    if assigned(symbol) then
-                      begin
-                        if refaddr=addr_low then
-                          GetReferenceString:='%lo('+symbol.name+')+'+GetReferenceString
-                        else if refaddr=addr_pic then
-                          begin
-                            if assigned(current_procinfo) and (base <> current_procinfo.got) then
-                              begin
-                                asm_comment:=' pic address should use %l7 register: '+GetReferenceString; 
-                                Comment(V_Warning,asm_comment);
-                              end;
-                            GetReferenceString:=GetReferenceString+'+'+symbol.name;
-                          end
-                        else
-                          GetReferenceString:=symbol.name+'+'+GetReferenceString;
-                      end;
-                  end
+                if (ref.index<>NR_NO) then
+                  InternalError(2013013001);
+                if (result[1]='-') then
+                  result:=gas_regname(ref.base)+result
                 else
-                  begin
-{$ifdef extdebug}
-                    if (Offset<>0) or assigned(symbol) then
-                      internalerror(2003052603);
-{$endif extdebug}
-                    GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
-                    
-                  end;
-              end;
-          end;
-        if asm_comment <> '' then
+                  result:=gas_regname(ref.base)+'+'+result;
+              end
+            else if (ref.index<>NR_NO) then
+              InternalError(2013122501);
+          end
+        else
           begin
-            owner.AsmWrite(target_asm.comment+' '+asm_comment);
-            owner.AsmLn;
+            if (ref.base<>NR_NO) then
+              begin
+                result:=gas_regname(ref.base);
+                if (ref.index<>NR_NO) then
+                  result:=result+'+'+gas_regname(ref.index);
+              end
+            else if (ref.index<>NR_NO) then
+              result:=gas_regname(ref.index);
           end;
       end;
 
