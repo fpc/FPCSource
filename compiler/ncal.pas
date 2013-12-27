@@ -698,6 +698,19 @@ implementation
            (left.nodetype<>nothingn) then
           handlemanagedbyrefpara(left.resultdef);
 
+        { does it need to load RTTI? }
+        if assigned(parasym) and (parasym.varspez=vs_out) and
+           (cs_create_pic in current_settings.moduleswitches) and
+           (
+             is_rtti_managed_type(left.resultdef) or
+             (
+               is_open_array(resultdef) and
+               is_managed_type(tarraydef(resultdef).elementdef)
+             )
+           ) and
+           not(target_info.system in systems_garbage_collected_managed_types) then
+          include(current_procinfo.flags,pi_needs_got);
+
         if assigned(fparainit) then
           firstpass(fparainit);
         firstpass(left);
@@ -3567,6 +3580,11 @@ implementation
             (tprocdef(procdefinition).proctypeoption=potype_constructor) and
             ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
            current_procinfo.ConstructorCallingConstructor:=true;
+
+         { object check helper will load VMT -> needs GOT }
+         if (cs_check_object in current_settings.localswitches) and
+            (cs_create_pic in current_settings.moduleswitches) then
+           include(current_procinfo.flags,pi_needs_got);
 
          { Continue with checking a normal call or generate the inlined code }
          if cnf_do_inline in callnodeflags then
