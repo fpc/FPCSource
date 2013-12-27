@@ -1159,13 +1159,8 @@ implementation
     procedure TCgSparc.a_jmp_flags(list:TAsmList;const f:TResFlags;l:tasmlabel);
       var
         ai : taicpu;
-        op : tasmop;
       begin
-        if f in [F_FE,F_FNE,F_FG,F_FL,F_FGE,F_FLE] then
-          op:=A_FBxx
-        else
-          op:=A_Bxx;
-        ai := Taicpu.op_sym(op,l);
+        ai:=Taicpu.op_sym(A_Bxx,l);
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         { Delay slot }

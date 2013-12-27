@@ -219,6 +219,8 @@ implementation
         if hp.typ<>ait_instruction then
           exit;
         op:=taicpu(hp).opcode;
+        if (op=A_Bxx) and (taicpu(hp).condition in floatAsmConds) then
+          op:=A_FBxx;
         { translate pseudoops, this should be move to a separate pass later, so it's done before
           peephole optimization }
         case op of
