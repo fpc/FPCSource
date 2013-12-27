@@ -2267,10 +2267,12 @@ var
 begin
   if FCursor <> nil then
   begin
-    if State = dsCalcFields then
-      pBuffer := CalcBuffer
+    case State of
+      dsFilter: pBuffer := FFilterBuffer;
+      dsCalcFields: pBuffer := CalcBuffer;
     else
       pBuffer := ActiveBuffer;
+    end;
     Result := pDbfRecord(pBuffer)^.SequentialRecNo;
   end else
     Result := 0;
