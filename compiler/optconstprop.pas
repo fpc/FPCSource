@@ -249,14 +249,20 @@ unit optconstprop;
 
                     l:=a.left;
 
-                    if (((l.nodetype=loadn) and
-                         (tloadnode(l).symtableentry.typ=localvarsym) and
-                         (tloadnode(l).symtable=current_procinfo.procdef.localst)
-                        ) or
-                        ((l.nodetype=loadn) and
-                         (tloadnode(l).symtableentry.typ=paravarsym) and
-                         (tloadnode(l).symtable=current_procinfo.procdef.parast)
-                        ) or
+                    if ((((l.nodetype=loadn) and
+                         { its address cannot have escaped the current routine }
+                         not(tabstractvarsym(tloadnode(l).symtableentry).addr_taken)) and
+                         ((
+                           (tloadnode(l).symtableentry.typ=localvarsym) and
+                           (tloadnode(l).symtable=current_procinfo.procdef.localst)
+                          ) or
+                          ((tloadnode(l).symtableentry.typ=paravarsym) and
+                           (tloadnode(l).symtable=current_procinfo.procdef.parast)
+                          ) or
+                          ((tloadnode(l).symtableentry.typ=staticvarsym) and
+                           (tloadnode(l).symtable.symtabletype=staticsymtable)
+                          )
+                         )) or
                         (l.nodetype = temprefn)) and
                        (is_constintnode(a.right) or
                         is_constboolnode(a.right) or
