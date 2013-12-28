@@ -35,7 +35,7 @@ unit optdeadstore;
   implementation
 
     uses
-      verbose,globtype,
+      verbose,globtype,globals,
       fmodule,
       procinfo,pass_1,
       nutils,
@@ -61,15 +61,25 @@ unit optdeadstore;
                 if assigned(a.left.optinfo) and
                    (a.left.optinfo^.index<>aword(-1)) and
                    { node must be either a local or parameter load node }
-                   (((a.left.nodetype=loadn) and
+                   (a.left.nodetype=loadn) and
+                   { its address cannot have escaped the current routine }
+                   not(tabstractvarsym(tloadnode(a.left).symtableentry).addr_taken) and
+                   ((
                      (tloadnode(a.left).symtableentry.typ=localvarsym) and
                      (tloadnode(a.left).symtable=current_procinfo.procdef.localst)) or
-                    ((a.left.nodetype=loadn) and
-                     (tloadnode(a.left).symtableentry.typ=paravarsym) and
+                    ((tloadnode(a.left).symtableentry.typ=paravarsym) and
                      (tloadnode(a.left).symtable=current_procinfo.procdef.parast) and
-                     (tparavarsym(tloadnode(a.left).symtableentry).varspez in [vs_const,vs_value]))
-                    ) and
-                    not(might_have_sideeffects(a.right)) then
+                     (tparavarsym(tloadnode(a.left).symtableentry).varspez in [vs_const,vs_value])) or
+                    ((tloadnode(a.left).symtableentry.typ=staticvarsym) and
+                     (tloadnode(a.left).symtable.symtabletype=staticsymtable) and
+                     (current_procinfo.procdef.proctypeoption<>potype_unitinit)
+                    )
+                   ) and
+                    ((a.right.nodetype in [niln,stringconstn,pointerconstn,setconstn,guidconstn]) or
+                     ((a.right.nodetype=ordconstn) and not(cs_check_range in current_settings.localswitches)) or
+                     ((a.right.nodetype=realconstn) and not(cs_ieee_errors in current_settings.localswitches)) or
+                    ((cs_opt_dead_values in current_settings.optimizerswitches) and not(might_have_sideeffects(a.right)))
+                   ) then
                   begin
                     redundant:=not(assigned(a.successor)) or not(DFASetIn(a.successor.optinfo^.life,a.left.optinfo^.index));
 
