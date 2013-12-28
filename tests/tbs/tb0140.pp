@@ -1,3 +1,4 @@
+{ %OPT=-Oonoconstprop }
 { Old file: tbs0165.pp }
 { missing range check code for enumerated types.            OK 0.99.9 (PFV) }
 

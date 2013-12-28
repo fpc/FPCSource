@@ -1,4 +1,4 @@
-{ %version=1.1 }
+{ %opt=-Oonoconstprop }
 {$mode objfpc}
 {$r+}
 uses
