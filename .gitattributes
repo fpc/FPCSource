@@ -7945,6 +7945,7 @@ rtl/i386/strings.inc svneol=native#text/plain
 rtl/i386/stringss.inc svneol=native#text/plain
 rtl/i386/strpas.inc svneol=native#text/plain
 rtl/i8086/i8086.inc svneol=native#text/plain
+rtl/i8086/int32p.inc svneol=native#text/plain
 rtl/i8086/int64p.inc svneol=native#text/plain
 rtl/i8086/makefile.cpu svneol=native#text/plain
 rtl/i8086/math.inc svneol=native#text/plain
