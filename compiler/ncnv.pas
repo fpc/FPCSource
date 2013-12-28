@@ -3045,21 +3045,11 @@ implementation
       begin
          first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+           be accepted for var parameters }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
-         { when converting to 64bit, first convert to a 32bit int and then   }
-         { convert to a 64bit int (only necessary for 32bit processors) (JM) }
-         if resultdef.size > sizeof(aint) then
-           begin
-             result := ctypeconvnode.create_internal(left,sinttype);
-             result := ctypeconvnode.create(result,resultdef);
-             left := nil;
-             firstpass(result);
-             exit;
-           end;
          expectloc:=LOC_REGISTER;
       end;
 
