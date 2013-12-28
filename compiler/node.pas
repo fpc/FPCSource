@@ -659,7 +659,7 @@ implementation
 
     function is_constnode(p : tnode) : boolean;
       begin
-        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
+        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,pointerconstn,guidconstn]);
       end;
 
 
