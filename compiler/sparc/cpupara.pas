@@ -304,6 +304,12 @@ implementation
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
+
+                    if (target_info.endian=endian_big) and
+                       (paralen<tcgsize2size[OS_INT]) and
+                       (paradef.typ<>recorddef) then
+                      inc(paraloc^.reference.offset,4-paralen);
+
                     { Parameters are aligned at 4 bytes }
                     inc(parasize,align(tcgsize2size[paraloc^.size],sizeof(pint)));
                   end;
