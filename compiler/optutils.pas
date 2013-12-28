@@ -297,6 +297,7 @@ unit optutils;
                 result:=p;
                 p.successor:=succ;
               end;
+            loadn,
             tempcreaten,
             tempdeleten,
             nothingn:
