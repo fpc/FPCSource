@@ -573,16 +573,44 @@ implementation
  ****************************************************************************}
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
+      var
+        lvalue,rvalue : Tconstexprint;
       begin
         result:=nil;
         { constant folding }
         if is_constintnode(left) and is_constintnode(right) then
           begin
+             { x86 wraps around }
+             { shl/shr are unsigned operations, so cut off upper bits }
+             case resultdef.size of
+               1:
+                 begin
+                   rvalue:=tordconstnode(right).value and byte($7);
+                   lvalue:=tordconstnode(left).value and byte($ff);
+                 end;
+               2:
+                 begin
+                   rvalue:=tordconstnode(right).value and byte($f);
+                   lvalue:=tordconstnode(left).value and word($ffff);
+                 end;
+               4:
+                 begin
+                   rvalue:=tordconstnode(right).value and byte($1f);
+                   lvalue:=tordconstnode(left).value and dword($ffffffff);
+                 end;
+               8:
+                 begin
+                   rvalue:=tordconstnode(right).value and byte($3f);
+                   lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                 end;
+               else
+                 internalerror(2013122301);
+             end;
              case nodetype of
                 shrn:
-                  result:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
                 shln:
-                  result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
              end;
           end;
       end;
