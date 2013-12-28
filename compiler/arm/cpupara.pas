@@ -714,16 +714,25 @@ unit cpupara;
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
-                if (result.intsize<>3) then
-                  begin
-                    paraloc^.size:=retcgsize;
-                    paraloc^.def:=result.def;
-                  end
-                else
-                  begin
-                    paraloc^.size:=OS_32;
-                    paraloc^.def:=u32inttype;
-                  end;
+                case result.IntSize of
+                  0:
+                    begin
+                      paraloc^.loc:=LOC_VOID;
+                      paraloc^.register:=NR_NO;
+                      paraloc^.size:=OS_NO;
+                      paraloc^.def:=voidpointertype;
+                    end;
+                  3:
+                    begin
+                      paraloc^.size:=OS_32;
+                      paraloc^.def:=u32inttype;
+                    end;
+                  else
+                    begin
+                      paraloc^.size:=retcgsize;
+                      paraloc^.def:=result.def;
+                    end;
+                end;
               end;
           end;
       end;
