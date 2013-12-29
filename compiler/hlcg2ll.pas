@@ -1051,18 +1051,18 @@ implementation
 {$ifdef cpuflags}
               LOC_FLAGS :
                 begin
-                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+                  cg.g_flags2reg(list,OS_32,l.resflags,hregister);
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
 {$endif cpuflags}
               LOC_JUMP :
                 begin
                   cg.a_label(list,current_procinfo.CurrTrueLabel);
-                  cg.a_load_const_reg(list,OS_INT,1,hregister);
+                  cg.a_load_const_reg(list,OS_32,1,hregister);
                   current_asmdata.getjumplabel(hl);
                   cg.a_jmp_always(list,hl);
                   cg.a_label(list,current_procinfo.CurrFalseLabel);
-                  cg.a_load_const_reg(list,OS_INT,0,hregister);
+                  cg.a_load_const_reg(list,OS_32,0,hregister);
                   cg.a_label(list,hl);
                 end;
               else
