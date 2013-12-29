@@ -46,9 +46,6 @@ interface
         procedure handle_load_store(list:TAsmList;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:tcgint;dst:tregister);
         { parameter }
-        procedure a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);override;
-        procedure a_load_ref_cgpara(list:TAsmList;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
-        procedure a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
         procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
@@ -338,100 +335,6 @@ implementation
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
         else
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFS);
-      end;
-
-
-    procedure TCgSparc.a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);
-      var
-        Ref:TReference;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-              { Code conventions need the parameters being allocated in %o6+92 }
-              with paraloc.location^.Reference do
-                begin
-                  if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
-                    InternalError(2002081104);
-                  reference_reset_base(ref,index,offset,paraloc.alignment);
-                end;
-              a_load_const_ref(list,size,a,ref);
-            end;
-          else
-            InternalError(2002122200);
-        end;
-      end;
-
-
-    procedure TCgSparc.a_load_ref_cgpara(list:TAsmList;sz:TCgSize;const r:TReference;const paraloc:TCGPara);
-      var
-        ref: treference;
-        tmpreg:TRegister;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        with paraloc.location^ do
-          begin
-            case loc of
-              LOC_REGISTER,LOC_CREGISTER :
-                a_load_ref_reg(list,sz,paraloc.location^.size,r,Register);
-              LOC_REFERENCE:
-                begin
-                  { Code conventions need the parameters being allocated in %o6+92 }
-                  with Reference do
-                    begin
-                      if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
-                        InternalError(2002081104);
-                      reference_reset_base(ref,index,offset,paraloc.alignment);
-                    end;
-                  if g1_used then
-                    tmpreg:=GetIntRegister(list,OS_INT)
-                  else
-                    begin
-                      tmpreg:=NR_G1;
-                      g1_used:=true;
-                    end;
-                  a_load_ref_reg(list,sz,sz,r,tmpreg);
-                  a_load_reg_ref(list,sz,sz,tmpreg,ref);
-                  if tmpreg=NR_G1 then
-                    g1_used:=false;
-                end;
-              else
-                internalerror(2002081103);
-            end;
-          end;
-      end;
-
-
-    procedure TCgSparc.a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);
-      var
-        Ref:TReference;
-        TmpReg:TRegister;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        with paraloc.location^ do
-          begin
-            case loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                a_loadaddr_ref_reg(list,r,register);
-              LOC_REFERENCE:
-                begin
-                  reference_reset(ref,paraloc.alignment);
-                  ref.base := reference.index;
-                  ref.offset := reference.offset;
-                  tmpreg:=GetAddressRegister(list);
-                  a_loadaddr_ref_reg(list,r,tmpreg);
-                  a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                end;
-              else
-                internalerror(2002080701);
-            end;
-          end;
       end;
 
 
