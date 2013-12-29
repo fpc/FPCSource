@@ -307,7 +307,7 @@ Begin
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   dstchangeable:=false;
   pdst:=PAnsiChar(s);
-  if StringCodePage(s)<>DefaultFileSystemCodePage then
+  if TranslatePlaceholderCP(StringCodePage(s))<>DefaultFileSystemCodePage then
     begin
       fs:=ToSingleByteFileSystemEncodedFileName(s);
       pdst:=PAnsiChar(fs);
@@ -598,7 +598,7 @@ end;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  TextRec(T).CodePage:=CodePage;
+  TextRec(T).CodePage:=TranslatePlaceholderCP(CodePage);
 {$endif}
 end;
 
@@ -845,7 +845,7 @@ begin
         if SLen > 0 then
           begin
             {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-            if TextRec(f).CodePage<>StringCodePage(S) then
+            if TextRec(f).CodePage<>TranslatePlaceholderCP(StringCodePage(S)) then
               begin
                 a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
                 fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
