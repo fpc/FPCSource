@@ -1345,7 +1345,7 @@ end;
                   HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
-            f1overflowed:=f1overflowed or ((f1 and (1 shl 31))<>0);
+            f1overflowed:=f1overflowed or ((f1 and (dword(1) shl 31))<>0);
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
@@ -1383,7 +1383,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
          if z>=n then
            begin
               z:=z-n;
-              result:=result+dword(1 shl shift);
+              result:=result+dword(dword(1) shl shift);
            end;
          n:=n shr 1;
        end;

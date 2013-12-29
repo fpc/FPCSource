@@ -284,7 +284,7 @@
                   HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
-            f1overflowed:=f1overflowed or ((f1 and (1 shl 63))<>0);
+            f1overflowed:=f1overflowed or ((f1 and (qword(1) shl 63))<>0);
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
