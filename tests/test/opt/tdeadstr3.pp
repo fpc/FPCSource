@@ -1,4 +1,5 @@
-{ %OPT=-O3 -Oodeadstore }
+{ %fail% }
+{ %OPT=-O3 -Oodeadstore -Cr }
 var
   i : longint;
   b : byte;
