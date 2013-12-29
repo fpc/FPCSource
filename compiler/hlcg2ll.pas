@@ -1021,7 +1021,7 @@ implementation
       hl: tasmlabel;
       oldloc : tlocation;
       const_location: boolean;
-      dst_cgsize: tcgsize;
+      dst_cgsize,tmpsize: tcgsize;
     begin
       oldloc:=l;
       dst_cgsize:=def_cgsize(dst_size);
@@ -1152,13 +1152,21 @@ implementation
 {$endif cpuflags}
             LOC_JUMP :
               begin
+                tmpsize:=dst_cgsize;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                if TCGSize2Size[dst_cgsize]>TCGSize2Size[OS_INT] then
+                  tmpsize:=OS_INT;
+{$endif}
                 cg.a_label(list,current_procinfo.CurrTrueLabel);
-                cg.a_load_const_reg(list,dst_cgsize,1,hregister);
+                cg.a_load_const_reg(list,tmpsize,1,hregister);
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
                 cg.a_label(list,current_procinfo.CurrFalseLabel);
-                cg.a_load_const_reg(list,dst_cgsize,0,hregister);
+                cg.a_load_const_reg(list,tmpsize,0,hregister);
                 cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                cg.a_load_reg_reg(list,tmpsize,dst_cgsize,hregister,hregister);
+{$endif}
               end;
             else
               begin
