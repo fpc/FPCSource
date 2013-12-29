@@ -311,15 +311,20 @@ unit optconstprop;
     function do_optconstpropagate(var rootnode: tnode): tnode;
       var
         changed: boolean;
+        runsimplify : Boolean;
       begin
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ before constant propagation ***************************');
         printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
+        runsimplify:=false;
         repeat
           changed:=false;
           foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
+          runsimplify:=runsimplify or changed;
         until changed=false;
+        if runsimplify then
+          doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ after constant propagation ***************************');
         printnode(rootnode);

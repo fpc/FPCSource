@@ -10841,6 +10841,7 @@ tests/test/opt/tarmsa1.pp svneol=native#text/plain
 tests/test/opt/tarmshift.pp svneol=native#text/plain
 tests/test/opt/tcaseopt1.pp svneol=native#text/plain
 tests/test/opt/tcmov.pp svneol=native#text/plain
+tests/test/opt/tconstprop1.pp svneol=native#text/pascal
 tests/test/opt/tcse1.pp svneol=native#text/plain
 tests/test/opt/tcse2.pp svneol=native#text/plain
 tests/test/opt/tcse3.pp svneol=native#text/plain
