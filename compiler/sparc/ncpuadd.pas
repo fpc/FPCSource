@@ -359,17 +359,27 @@ interface
 
       begin
         pass_left_right;
-        force_reg_left_right(false,false);
+        force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
         location_reset(location,LOC_JUMP,OS_NO);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-        firstjmp64bitcmp;
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-        secondjmp64bitcmp;
+        if (right.location.loc<>LOC_CONSTANT) then
+          begin
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+            firstjmp64bitcmp;
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+            secondjmp64bitcmp;
+          end
+        else
+          begin
+            tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register64.reghi,hi(right.location.value64),NR_G0);
+            firstjmp64bitcmp;
+            tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register64.reglo,lo(right.location.value64),NR_G0);
+            secondjmp64bitcmp;
+          end;
       end;
 
 
