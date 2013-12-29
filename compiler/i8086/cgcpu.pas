@@ -1246,12 +1246,15 @@ unit cgcpu;
             fromsize:=tosize;
           end;
 
-        if (reg1<>reg2) then
+        if (reg1<>reg2) or (fromsize<>tosize) then
           begin
             case tosize of
               OS_8,OS_S8:
                 if fromsize in [OS_8,OS_S8] then
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2))
+                  begin
+                    if reg1<>reg2 then
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
+                  end
                 else
                   internalerror(2013030210);
               OS_16,OS_S16:
@@ -1259,7 +1262,8 @@ unit cgcpu;
                   OS_8:
                     begin
                       reg2 := makeregsize(list, reg2, OS_8);
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
+                      if reg1<>reg2 then
+                        add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
                       setsubreg(reg2,R_SUBH);
                       list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg2));
                     end;
@@ -1272,7 +1276,10 @@ unit cgcpu;
                       ungetcpuregister(list, NR_AX);
                     end;
                   OS_16,OS_S16:
-                    add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
+                    begin
+                      if reg1<>reg2 then
+                        add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
+                    end
                   else
                     internalerror(2013030212);
                 end;
@@ -1282,7 +1289,8 @@ unit cgcpu;
                     begin
                       list.concat(taicpu.op_const_reg(A_MOV, S_W, 0, GetNextReg(reg2)));
                       reg2 := makeregsize(list, reg2, OS_8);
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
+                      if reg1<>reg2 then
+                        add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
                       setsubreg(reg2,R_SUBH);
                       list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg2));
                     end;
@@ -1300,7 +1308,8 @@ unit cgcpu;
                     end;
                   OS_16:
                     begin
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
+                      if reg1<>reg2 then
+                        add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
                       list.concat(taicpu.op_const_reg(A_MOV,S_W,0,GetNextReg(reg2)));
                     end;
                   OS_S16:
@@ -1309,15 +1318,19 @@ unit cgcpu;
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, NR_AX));
                       getcpuregister(list, NR_DX);
                       list.concat(taicpu.op_none(A_CWD));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
+                      if reg1<>reg2 then
+                        add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
                       ungetcpuregister(list, NR_AX);
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_DX);
                     end;
                   OS_32,OS_S32:
                     begin
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, GetNextReg(reg1), GetNextReg(reg2)));
+                      if reg1<>reg2 then
+                        begin
+                          add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
+                          add_mov(taicpu.op_reg_reg(A_MOV, S_W, GetNextReg(reg1), GetNextReg(reg2)));
+                        end;
                     end;
                   else
                     internalerror(2013030213);
