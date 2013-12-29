@@ -1058,12 +1058,15 @@ implementation
               LOC_JUMP :
                 begin
                   cg.a_label(list,current_procinfo.CurrTrueLabel);
-                  cg.a_load_const_reg(list,OS_32,1,hregister);
+                  cg.a_load_const_reg(list,OS_INT,1,hregister);
                   current_asmdata.getjumplabel(hl);
                   cg.a_jmp_always(list,hl);
                   cg.a_label(list,current_procinfo.CurrFalseLabel);
-                  cg.a_load_const_reg(list,OS_32,0,hregister);
+                  cg.a_load_const_reg(list,OS_INT,0,hregister);
                   cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                  cg.a_load_reg_reg(list,OS_INT,OS_32,hregister,hregister);
+{$endif}
                 end;
               else
                 a_load_loc_reg(list,src_size,u32inttype,l,hregister);
