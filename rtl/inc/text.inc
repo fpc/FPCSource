@@ -2209,25 +2209,104 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-procedure WriteStrUnicode(var t: textrec);
+function UTF8CodePointLength(firstbyte: byte): SizeInt;
 var
-  temp: ansistring;
+  firstzerobit: SizeInt;
+begin
+  result:=1;
+  { bsr searches for the leftmost 1 bit. We are interested in the
+    leftmost 0 bit, so first invert the value
+  }
+  firstzerobit:=BsrByte(not(firstbyte));
+  { if there is no zero bit or the first zero bit is the rightmost bit
+    (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+    UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+  }
+  if (firstzerobit=0) or (firstzerobit=255)  then
+    exit;
+  { the number of bytes belonging to this code point is
+    7-(pos first 0-bit).
+  }
+  result:=7-firstzerobit;
+end;
+
+
+function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
+var
+  i, lenfound, codepointlen: SizeInt;
+  b: byte;
+begin
+  lenfound:=0;
+  for i:=t.bufpos-1 downto 0 do
+    begin
+      b:=byte(t.bufptr^[i]);
+      if b<=127 then
+        begin
+          if lenfound = 0 then
+            { valid simple code point }
+            result:=i+1
+          else
+            { valid simple code point followed by a bunch of invalid data ->
+              handle everything since it can't become valid by adding more
+              bytes }
+            result:=t.bufpos;
+          exit;
+        end;
+      { start of a complex character }
+      if (b and %11000000)<>0 then
+        begin
+          codepointlen:=UTF8CodePointLength(b);
+          { we did not yet get all bytes of the last code point -> handle
+            everything until the start of this character }
+          if codepointlen>lenfound+1 then
+            result:=i
+          { the last code point is invalid -> handle everything since it can't
+            become valid by adding more bytes; in case it's complete, we also
+            handle everything, of course}
+          else
+            result:=t.bufpos;
+          exit;
+        end;
+      inc(lenfound);
+    end;
+  { all invalid data, or the buffer is too small to be able to deal with the
+    complete utf8char -> nothing else to do but to handle the entire buffer }
+  result:=t.bufpos;
+end;
+
+
+procedure WriteStrUnicodeIntern(var t: textrec; flush: boolean);
+var
+  temp: unicodestring;
   str: punicodestring;
+  validend: SizeInt;
 begin
   if (t.bufpos=0) then
     exit;
   str:=punicodestring(@t.userdata[TempWriteStrDestIndex]);
-  setlength(temp,t.bufpos);
-  move(t.bufptr^,temp[1],t.bufpos);
+  if not flush then
+    validend:=EndOfLastCompleteUTF8CodePoint(t)
+  else
+    validend:=t.bufpos;
+  widestringmanager.Ansi2UnicodeMoveProc(@t.bufptr^[0],CP_UTF8,temp,validend);
   str^:=str^+temp;
-  t.bufpos:=0;
+  dec(t.bufpos,validend);
+  { move remainder to the start }
+  if t.bufpos<>0 then
+    move(t.bufptr^[validend],t.bufptr^[0],t.bufpos);
+end;
+
+
+procedure WriteStrUnicode(var t: textrec);
+begin
+  WriteStrUnicodeIntern(t,false);
 end;
 
 
 procedure WriteStrUnicodeFlush(var t: textrec);
 begin
   { see comment in WriteStrShortFlush }
-  WriteStrUnicode(t);
+  WriteStrUnicodeIntern(t,true);
   punicodestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
     punicodestring(@t.userdata[TempWriteStrDestIndex])^;
   { free memory/finalize temp }
@@ -2236,25 +2315,38 @@ end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-procedure WriteStrWide(var t: textrec);
+procedure WriteStrWideIntern(var t: textrec; flush: boolean);
 var
-  temp: ansistring;
+  temp: unicodestring;
   str: pwidestring;
+  validend: SizeInt;
 begin
   if (t.bufpos=0) then
     exit;
   str:=pwidestring(@t.userdata[TempWriteStrDestIndex]);
-  setlength(temp,t.bufpos);
-  move(t.bufptr^,temp[1],t.bufpos);
+  if not flush then
+    validend:=EndOfLastCompleteUTF8CodePoint(t)
+  else
+    validend:=t.bufpos;
+  widestringmanager.Ansi2UnicodeMoveProc(@t.bufptr^[0],CP_UTF8,temp,validend);
   str^:=str^+temp;
-  t.bufpos:=0;
+  dec(t.bufpos,validend);
+  { move remainder to the start }
+  if t.bufpos<>0 then
+    move(t.bufptr^[validend],t.bufptr^[0],t.bufpos);
+end;
+
+
+procedure WriteStrWide(var t: textrec);
+begin
+  WriteStrUnicodeIntern(t,false);
 end;
 
 
 procedure WriteStrWideFlush(var t: textrec);
 begin
   { see comment in WriteStrShortFlush }
-  WriteStrWide(t);
+  WriteStrWideIntern(t,true);
   pwidestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
     pwidestring(@t.userdata[TempWriteStrDestIndex])^;
   { free memory/finalize temp }
@@ -2262,7 +2354,7 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-procedure SetupWriteStrCommon(out t: textrec);
+procedure SetupWriteStrCommon(out t: textrec; cp: TSystemCodePage);
 begin
   // initialise
   Assign(text(t),'');
@@ -2270,14 +2362,14 @@ begin
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
   {$ifdef FPC_HAS_CPSTRING}
-  t.CodePage:=DefaultSystemCodePage;
+  t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
 end;
 
 
 procedure fpc_SetupWriteStr_Shortstr(var ReadWriteStrText: text; var s: shortstring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),DefaultSystemCodePage);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temporary destination (see comments for TempWriteStrDestIndex) }
@@ -2291,9 +2383,12 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring); compilerproc;
+procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring; cp: TSystemCodePage); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  { destination rawbytestring -> use CP_ACP }
+  if cp=CP_NONE then
+    cp:=CP_ACP;
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),cp);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination ansistring, nil = empty string }
@@ -2308,7 +2403,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_SetupWriteStr_Unicodestr(var ReadWriteStrText: text; var s: unicodestring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),CP_UTF8);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination unicodestring, nil = empty string }
@@ -2323,7 +2418,7 @@ end;
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure fpc_SetupWriteStr_Widestr(var ReadWriteStrText: text; var s: widestring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),CP_UTF8);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination widestring }
@@ -2370,7 +2465,7 @@ begin
 end;
 
 
-procedure SetupReadStrCommon(out t: textrec);
+procedure SetupReadStrCommon(out t: textrec; cp: TSystemCodePage);
 begin
   // initialise
   Assign(text(t),'');
@@ -2378,7 +2473,7 @@ begin
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
   {$ifdef FPC_HAS_CPSTRING}
-  t.CodePage:=DefaultSystemCodePage;
+  t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
   PSizeInt(@t.userdata[BytesReadIndex])^:=0;
 end;
@@ -2387,7 +2482,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure fpc_SetupReadStr_Ansistr(var ReadWriteStrText: text; const s: ansistring); [public, alias: 'FPC_SETUPREADSTR_ANSISTR']; compilerproc;
 begin
-  setupreadstrcommon(TextRec(ReadWriteStrText));
+  SetupReadStrCommon(TextRec(ReadWriteStrText),StringCodePage(s));
   { we need a reference, because 's' may be a temporary expression }
   PAnsiString(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=s;
   TextRec(ReadWriteStrText).InOutFunc:=@ReadStrAnsi;
@@ -2395,7 +2490,7 @@ begin
   TextRec(ReadWriteStrText).FlushFunc:=@ReadAnsiStrFinal;
 end;
 
-procedure fpc_SetupReadStr_Ansistr_Intern(var ReadWriteStrText: text; const s: ansistring); [external name 'FPC_SETUPREADSTR_ANSISTR'];
+procedure fpc_SetupReadStr_Ansistr_Intern(var ReadWriteStrText: text; const s: rawbytestring); [external name 'FPC_SETUPREADSTR_ANSISTR'];
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -2436,9 +2531,8 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unicodestring); compilerproc;
 begin
-  { we use an ansistring to avoid code duplication, and let the    }
-  { assignment convert the widestring to an equivalent ansistring  }
-  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,s);
+  { we use an utf8string to avoid code duplication }
+  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,utf8string(s));
 end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
@@ -2446,9 +2540,8 @@ end;
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 begin
-  { we use an ansistring to avoid code duplication, and let the    }
-  { assignment convert the widestring to an equivalent ansistring  }
-  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,s);
+  { we use an utf8string to avoid code duplication }
+  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,utf8string(s));
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 

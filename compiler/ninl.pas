@@ -1261,6 +1261,11 @@ implementation
             { parameter chain                                         }
             left:=filepara.right;
             filepara.right:=ccallparanode.create(ctemprefnode.create(filetemp),nil);
+            { in case of a writestr() to an ansistring, also pass the string's
+              code page }
+            if not do_read and
+               is_ansistring(filepara.left.resultdef) then
+              filepara:=ccallparanode.create(genintconstnode(tstringdef(filepara.left.resultdef).encoding),filepara);
             { pass the temp text file and the source/destination string to the
               setup routine, which will store the string's address in the
               textrec }

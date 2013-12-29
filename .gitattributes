@@ -12041,6 +12041,7 @@ tests/test/twrstr5.pp svneol=native#text/plain
 tests/test/twrstr6.pp svneol=native#text/plain
 tests/test/twrstr7.pp svneol=native#text/plain
 tests/test/twrstr8.pp svneol=native#text/plain
+tests/test/twrstr9.pp svneol=native#text/plain
 tests/test/uabstrcl.pp svneol=native#text/plain
 tests/test/uchlp12.pp svneol=native#text/pascal
 tests/test/uchlp18.pp svneol=native#text/pascal
