@@ -1154,9 +1154,11 @@ unit cgcpu;
             case fromsize of
               OS_8:
                 begin
-                  list.concat(taicpu.op_const_reg(A_MOV, S_W, 0, reg));
                   reg := makeregsize(list, reg, OS_8);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
+                  setsubreg(reg, R_SUBH);
+                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                  makeregsize(list, reg, OS_16);
                 end;
               OS_S8:
                 begin
@@ -1176,9 +1178,11 @@ unit cgcpu;
               OS_8:
                 begin
                   list.concat(taicpu.op_const_reg(A_MOV,S_W,0,GetNextReg(reg)));
-                  list.concat(taicpu.op_const_reg(A_MOV, S_W, 0, reg));
                   reg := makeregsize(list, reg, OS_8);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
+                  setsubreg(reg, R_SUBH);
+                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                  makeregsize(list, reg, OS_16);
                 end;
               OS_S8:
                 begin
@@ -1266,6 +1270,7 @@ unit cgcpu;
                         add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
                       setsubreg(reg2,R_SUBH);
                       list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg2));
+                      makeregsize(list, reg2, OS_16);
                     end;
                   OS_S8:
                     begin
@@ -1293,6 +1298,7 @@ unit cgcpu;
                         add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
                       setsubreg(reg2,R_SUBH);
                       list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg2));
+                      makeregsize(list, reg2, OS_16);
                     end;
                   OS_S8:
                     begin
