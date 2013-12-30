@@ -128,6 +128,40 @@ Begin
      HandleError(207);
 end;
 
+{$ifdef SUPPORT_DOUBLE}
+
+{$ifndef FPC_HAS_FLOAT64HIGH}
+{$define FPC_HAS_FLOAT64HIGH}
+function float64high(d: double): longint; inline;
+begin
+  result:=float64(d).high;
+end;
+
+
+procedure float64sethigh(var d: double; l: longint); inline;
+begin
+  float64(d).high:=l;
+end;
+
+{$endif FPC_HAS_FLOAT64HIGH}
+
+{$ifndef FPC_HAS_FLOAT64LOW}
+{$define FPC_HAS_FLOAT64LOW}
+function float64low(d: double): longint; inline;
+begin
+  result:=float64(d).low;
+end;
+
+
+procedure float64setlow(var d: double; l: longint); inline;
+begin
+  float64(d).low:=l;
+end;
+
+{$endif FPC_HAS_FLOAT64LOW}
+
+{$endif SUPPORT_DOUBLE}
+
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
 {$ifndef FPC_SYSTEM_HAS_float32}
@@ -336,7 +370,7 @@ type
       H2_54: double = 18014398509481984.0;  {2^54}
       huge: double = 1e300;
     begin
-      i := (float64(x).high and $7ff00000) shr 20;
+      i := (float64high(x) and $7ff00000) shr 20;
       {if +-INF, NaN, 0 or if e=0 return d}
       if (i=$7FF) or (N=0) or (x=0.0) then
         ldexp := x
@@ -361,13 +395,13 @@ type
           begin
             {Denormal: result = d*2^(e+54)/2^54}
             inc(N,54);
-            float64(x).high := (float64(x).high and $800FFFFF) or (longint(N) shl 20);
+            float64sethigh(x,(float64high(x) and $800FFFFF) or (longint(N) shl 20));
             ldexp := x/H2_54;
           end;
         end
         else
         begin
-          float64(x).high := (float64(x).high and $800FFFFF) or (longint(N) shl 20);
+          float64sethigh(x,(float64high(x) and $800FFFFF) or (longint(N) shl 20));
           ldexp := x;
         end;
       end;
@@ -882,8 +916,8 @@ type
           exit;
       end;
       z := abs(x);
-      e0 := (float64(z).high shr 20)-1046;
-      float64(z).high := float64(z).high - (e0 shl 20);
+      e0 := (float64high(z) shr 20)-1046;
+      float64sethigh(z,float64high(z) - (e0 shl 20));
       tx[0] := trunc(z);
       z := (z-tx[0])*two24;
       tx[1] := trunc(z);
@@ -1085,7 +1119,7 @@ type
         hi:=0.0;
         lo:=0.0;
         k:=0;
-        hx:=float64(d).high;
+        hx:=float64high(d);
         xsb := (hx shr 31) and 1;               { sign bit of d }
         hx := hx and $7fffffff;                 { high word of |d| }
 
@@ -1094,7 +1128,7 @@ type
           begin                  { if |d|>=709.78... }
             if hx >= $7ff00000 then
               begin
-                lx:=float64(d).low;
+                lx:=float64low(d);
                 if ((hx and $fffff) or lx)<>0 then
                   begin
                     result:=d+d; { NaN }
@@ -1160,14 +1194,14 @@ type
 
         if k >= -1021 then
           begin
-            hy:=float64(y).high;
-            float64(y).high:=longint(hy)+(k shl 20);        { add k to y's exponent }
+            hy:=float64high(y);
+            float64sethigh(y,longint(hy)+(k shl 20));        { add k to y's exponent }
             result:=y;
           end
         else
           begin
-            hy:=float64(y).high;
-            float64(y).high:=longint(hy)+((k+1000) shl 20); { add k to y's exponent }
+            hy:=float64high(y);
+            float64sethigh(y,longint(hy)+((k+1000) shl 20)); { add k to y's exponent }
             result:=y*twom1000;
           end;
       end;
@@ -1605,11 +1639,11 @@ type
       ix,hx,id: longint;
       low: longword;
     begin
-      hx:=float64(d).high;
+      hx:=float64high(d);
       ix := hx and $7fffffff;
       if (ix>=$44100000) then   { if |x| >= 2^66 }
       begin
-        low:=float64(d).low;
+        low:=float64low(d);
         if (ix > $7ff00000) or ((ix = $7ff00000) and (low<>0)) then
           exit(d+d);          { NaN }
         if (hx>0) then

@@ -112,3 +112,28 @@ function real2double(r : real48) : double;
      real2double:=JLDouble.longBitsToDouble(res);
   end;
 
+
+  {$define FPC_HAS_FLOAT64HIGH}
+  function float64high(d: double): longint;
+    begin
+      result:=JLDouble.doubleToRawLongBits(d) shr 32;
+    end;
+
+
+  procedure float64sethigh(var d: double; l: longint);
+    begin
+      d:=JLDouble.longBitsToDouble((JLDouble.doubleToRawLongBits(d) and $ffffffff) or (jlong(l) shl 32));
+    end;
+
+
+  {$define FPC_HAS_FLOAT64LOW}
+  function float64low(d: double): longint;
+  begin
+    result:=longint(JLDouble.doubleToRawLongBits(d));
+  end;
+
+
+  procedure float64setlow(var d: double; l: longint);
+    begin
+      d:=JLDouble.longBitsToDouble((JLDouble.doubleToRawLongBits(d) and $ffffffff00000000) or cardinal(l));
+    end;
