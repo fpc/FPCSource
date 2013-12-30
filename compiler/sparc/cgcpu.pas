@@ -1308,15 +1308,7 @@ implementation
             list.Concat(TAiCpu.Op_none(A_NOP));
           end
         else
-          begin
-            { Emit a branch, which is PIC-safe, but limited to 8 MByte range on SPARC.
-              Since interface wrappers are always located in the same unit with
-              their target methods, this limit applies (roughly) to code size of single
-              unit, not to entire program. It looks like a reasonable tradeoff.
-              If distance limit is ever exceeded, consider changing high-level compiler
-              logic to emit wrappers near target methods, not at the end of unit. }
-            a_jmp_name(list,procdef.mangledname);
-          end;
+          g_external_wrapper(list,procdef,procdef.mangledname);
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
