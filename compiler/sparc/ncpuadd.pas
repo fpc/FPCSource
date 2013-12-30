@@ -40,6 +40,9 @@ interface
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
           procedure second_cmpordinal;override;
+          procedure second_addordinal;override;
+       public
+          function use_generic_mul32to64: boolean; override;
        end;
 
   implementation
@@ -400,6 +403,36 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+      end;
+
+
+    const
+      multops: array[boolean] of TAsmOp = (A_SMUL, A_UMUL);
+
+    procedure tsparcaddnode.second_addordinal;
+      var
+        unsigned: boolean;
+      begin
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+        if (nodetype=muln) and is_64bit(resultdef) then
+          begin
+            pass_left_right;
+            force_reg_left_right(true,false);
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],left.location.register,right.location.register,location.register64.reglo));
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV,NR_Y,location.register64.reghi));
+          end
+        else
+          inherited second_addordinal;
+      end;
+
+
+    function tsparcaddnode.use_generic_mul32to64: boolean;
+      begin
+        result:=false;
       end;
 
 begin
