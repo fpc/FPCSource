@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, toolsunit
   ,db, sqldb
-  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn,ibconnection
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn
+  ,ibconnection
   {$IFNDEF WIN64}
   {See packages\fcl-db\src\sqldb\postgres\fpmake.pp: postgres connector won't be present on Win64}
   ,pqconnection
@@ -25,13 +26,13 @@ uses
   ;
 
 type
-  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
 const
-  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56];
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
   STestNotApplicable = 'This test does not apply to this sqldb-connection type';
 
@@ -140,7 +141,7 @@ const
 
   // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
   SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
-    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
 { TSQLDBConnector }
@@ -158,6 +159,7 @@ begin
   if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
   if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
   if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
+  if SQLConnType = MYSQL56 then Fconnection := TMySQL56Connection.Create(nil);
   if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
   if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
   if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
@@ -230,8 +232,9 @@ begin
       end;
     ssMySQL:
       begin
+      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES"
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
-      //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
+      // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
