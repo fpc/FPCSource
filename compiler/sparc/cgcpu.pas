@@ -756,6 +756,20 @@ implementation
 
     procedure TCgSparc.a_op_reg_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);
       begin
+        if (TOpcg2AsmOp[op]=A_NONE) then
+          InternalError(2013070305);
+        if (op=OP_SAR) then
+          begin
+            if (size in [OS_S8,OS_S16]) then
+              begin
+                { Sign-extend before shifting }
+                list.concat(taicpu.op_reg_const_reg(A_SLL,src2,32-(tcgsize2size[size]*8),dst));
+                list.concat(taicpu.op_reg_const_reg(A_SRA,dst,32-(tcgsize2size[size]*8),dst));
+                src2:=dst;
+              end
+            else if not (size in [OS_32,OS_S32]) then
+              InternalError(2013070306);
+          end;
         list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
         maybeadjustresult(list,op,size,dst);
       end;
@@ -778,6 +792,18 @@ implementation
             begin
               a_load_const_reg(list,size,a,dst);
               exit;
+            end;
+
+          OP_SAR:
+            begin
+              if (size in [OS_S8,OS_S16]) then
+                begin
+                  list.concat(taicpu.op_reg_const_reg(A_SLL,src,32-(tcgsize2size[size]*8),dst));
+                  inc(a,32-tcgsize2size[size]*8);
+                  src:=dst;
+                end
+              else if not (size in [OS_32,OS_S32]) then
+                InternalError(2013070303);
             end;
         end;
         if setflags then
