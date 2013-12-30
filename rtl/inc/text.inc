@@ -2259,7 +2259,15 @@ begin
           { we did not yet get all bytes of the last code point -> handle
             everything until the start of this character }
           if codepointlen>lenfound+1 then
-            result:=i
+            if i<>0 then
+              result:=i
+            { the buffer is too small to contain the entire utf-8 code point
+              -> nothing else to do but handle the entire buffer (and end up
+              with an invalid character) -- since writestr uses the default
+              buffer size of 32 bytes, this can only happen for invalid utf-8
+              encodings }
+            else
+              result:=t.bufpos
           { the last code point is invalid -> handle everything since it can't
             become valid by adding more bytes; in case it's complete, we also
             handle everything, of course}
