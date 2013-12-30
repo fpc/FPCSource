@@ -87,13 +87,13 @@ interface
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
        private
-        g1_used : boolean;
         use_unlimited_pic_mode : boolean;
       end;
 
@@ -131,7 +131,7 @@ implementation
   uses
     globals,verbose,systems,cutils,
     paramgr,fmodule,
-    symtable,
+    symtable,symsym,
     tgobj,
     procinfo,cpupi;
 
@@ -277,17 +277,9 @@ implementation
         if (a<simm13lo) or
            (a>simm13hi) then
           begin
-            if g1_used then
-              tmpreg:=GetIntRegister(list,OS_INT)
-            else
-              begin
-                tmpreg:=NR_G1;
-                g1_used:=true;
-              end;
+            tmpreg:=GetIntRegister(list,OS_INT);
             a_load_const_reg(list,OS_INT,a,tmpreg);
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
-            if tmpreg=NR_G1 then
-              g1_used:=false;
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -992,9 +984,7 @@ implementation
         if LocalSize>4096 then
           begin
             a_load_const_reg(list,OS_ADDR,-LocalSize,NR_G1);
-            g1_used:=true;
             list.concat(Taicpu.Op_reg_reg_reg(A_SAVE,NR_STACK_POINTER_REG,NR_G1,NR_STACK_POINTER_REG));
-            g1_used:=false;
           end
         else
           list.concat(Taicpu.Op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-LocalSize,NR_STACK_POINTER_REG));
@@ -1263,10 +1253,19 @@ implementation
       end;
 
 
+    procedure tcgsparc.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      begin
+        { This method is integrated into g_intf_wrapper and shouldn't be called separately }
+        InternalError(2013020102);
+      end;
+
+
     procedure tcgsparc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       var
         make_global : boolean;
         href : treference;
+        hsym : tsym;
+        paraloc : pcgparalocation;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
@@ -1288,7 +1287,29 @@ implementation
           List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+          (hsym.typ=paravarsym)) then
+          internalerror(2010103101);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        if assigned(paraloc^.next) then
+          InternalError(2013020101);
+
+        case paraloc^.loc of
+          LOC_REGISTER:
+            begin
+              if ((ioffset>=simm13lo) and (ioffset<=simm13hi)) then
+                a_op_const_reg(list,OP_SUB,paraloc^.size,ioffset,paraloc^.register)
+              else
+                begin
+                  a_load_const_reg(list,paraloc^.size,ioffset,NR_G1);
+                  a_op_reg_reg(list,OP_SUB,paraloc^.size,NR_G1,paraloc^.register);
+                end;
+            end;
+        else
+          internalerror(2010103102);
+        end;
 
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
@@ -1296,14 +1317,12 @@ implementation
             if (procdef.extnumber=$ffff) then
               Internalerror(200006139);
             { mov  0(%rdi),%rax ; load vmt}
-            reference_reset_base(href,NR_O0,0,sizeof(pint));
+            reference_reset_base(href,paraloc^.register,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
-            g1_used:=true;
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
-	    g1_used:=false;
             { Delay slot }
             list.Concat(TAiCpu.Op_none(A_NOP));
           end
