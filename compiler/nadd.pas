@@ -2882,21 +2882,7 @@ implementation
                     expectloc:=LOC_JUMP;
                end
 {$endif cpu64bitalu}
-{$ifndef cpuneedsmulhelper}
-             { is there a cardinal? }
-             else if (torddef(ld).ordtype=u32bit) then
-               begin
-                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    expectloc:=LOC_REGISTER
-                  else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
-                    expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
-               end
-{$endif cpuneedsmulhelper}
-             { generic s32bit conversion }
+             { generic 32bit conversion }
              else
                begin
 {$ifdef cpuneedsmulhelper}
