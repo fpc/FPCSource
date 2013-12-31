@@ -1382,10 +1382,15 @@ unit cgcpu;
     procedure tcg8086.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
       var
         tmpreg : tregister;
+        tmpregsize: TCgSize;
       begin
-        tmpreg:=getintregister(list,size);
-        g_flags2reg(list,size,f,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        if size in [OS_8,OS_S8,OS_16,OS_S16] then
+          tmpregsize:=size
+        else
+          tmpregsize:=OS_16;
+        tmpreg:=getintregister(list,tmpregsize);
+        g_flags2reg(list,tmpregsize,f,tmpreg);
+        a_load_reg_ref(list,tmpregsize,size,tmpreg,ref);
       end;
 
 
