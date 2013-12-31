@@ -1792,7 +1792,10 @@ implementation
               end;
             sec_objc_image_info:
               begin
-                result:='.section __OBJC, __image_info, regular, no_dead_strip';
+                if (target_info.system in systems_objc_nfabi) then
+                  result:='.section __DATA,__objc_imageinfo,regular,no_dead_strip'
+                else
+                  result:='.section __OBJC, __image_info, regular, no_dead_strip';
                 exit;
               end;
             sec_objc_cstring_object:
@@ -1821,12 +1824,27 @@ implementation
                     exit;
                   end;
               end;
-            sec_objc_meth_var_names,
+            sec_objc_meth_var_types:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methtype,cstring_literals';
+                    exit
+                  end;
+              end;
+            sec_objc_meth_var_names:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methname,cstring_literals';
+                    exit
+                  end;
+              end;
             sec_objc_class_names:
               begin
                 if (target_info.system in systems_objc_nfabi) then
                   begin
-                    result:='.cstring';
+                    result:='.section __TEXT,__objc_classname,cstring_literals';
                     exit
                   end;
               end;
