@@ -2914,12 +2914,10 @@ implementation
 {$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
+                  else if torddef(ld).size>sizeof(aint) then
+                    expectloc:=LOC_JUMP
                   else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
               end;
            end
 
