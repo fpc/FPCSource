@@ -1032,7 +1032,7 @@ implementation
                     begin
                       case left.location.loc of
                         LOC_REGISTER,LOC_CREGISTER:
-{$ifdef cpu32bitalu}
+{$ifndef cpu64bitalu}
                           if left.location.size in [OS_S64,OS_64] then
                             begin
                               cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,left.location.register64.reglo);
@@ -1040,15 +1040,15 @@ implementation
                               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,left.location.register64.reghi);
                             end
                           else
-{$endif cpu32bitalu}
+{$endif not cpu64bitalu}
                             begin
                               cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             end;
                         LOC_REFERENCE:
-                        { i386 has a hack in its code generator so that it can
+                        { i8086 and i386 have hacks in their code generators so that they can
                           deal with 64 bit locations in this parcticular case }
-{$if defined(cpu32bitalu) and not defined(x86)}
+{$if not defined(cpu64bitalu) and not defined(x86)}
                           if left.location.size in [OS_S64,OS_64] then
                             begin
                               r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -1059,7 +1059,7 @@ implementation
                               cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,r64,left.location.reference);
                             end
                           else
-{$endif cpu32bitalu}
+{$endif not cpu64bitalu}
                             begin
                               cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -1077,7 +1077,7 @@ implementation
                     end
                   else
                     begin
-{$ifdef cpu32bitalu}
+{$ifndef cpu64bitalu}
                       if left.location.size in [OS_S64,OS_64] then
                         begin
                           r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -1090,7 +1090,7 @@ implementation
                           cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,r64,left.location);
                         end
                       else
-{$endif cpu32bitalu}
+{$endif not cpu64bitalu}
                         begin
                           r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
                           cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);

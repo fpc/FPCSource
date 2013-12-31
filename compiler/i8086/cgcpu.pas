@@ -1383,6 +1383,7 @@ unit cgcpu;
       var
         tmpreg : tregister;
         tmpregsize: TCgSize;
+        tmpref: treference;
       begin
         if size in [OS_8,OS_S8,OS_16,OS_S16] then
           tmpregsize:=size
@@ -1390,7 +1391,17 @@ unit cgcpu;
           tmpregsize:=OS_16;
         tmpreg:=getintregister(list,tmpregsize);
         g_flags2reg(list,tmpregsize,f,tmpreg);
-        a_load_reg_ref(list,tmpregsize,size,tmpreg,ref);
+
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+        if size in [OS_64,OS_S64] then
+          begin
+            a_load_reg_ref(list,tmpregsize,OS_32,tmpreg,tmpref);
+            inc(tmpref.offset,4);
+            a_load_const_ref(list,OS_32,0,tmpref);
+          end
+        else
+          a_load_reg_ref(list,tmpregsize,size,tmpreg,tmpref);
       end;
 
 
