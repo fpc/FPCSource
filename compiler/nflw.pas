@@ -1453,6 +1453,21 @@ implementation
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
+         { Can we spare the first comparision? }
+         if (t1.nodetype=ordconstn) and
+            (right.nodetype=ordconstn) and
+            (
+             (
+              (lnf_backward in loopflags) and
+              (Tordconstnode(right).value>=Tordconstnode(t1).value)
+             ) or
+             (
+               not(lnf_backward in loopflags) and
+               (Tordconstnode(right).value<=Tordconstnode(t1).value)
+             )
+            ) then
+           exclude(loopflags,lnf_testatbegin);
+
         if (t1.nodetype=ordconstn) and
            (right.nodetype=ordconstn) and
            (
@@ -1520,21 +1535,6 @@ implementation
                  exit;
                end;
            end;
-
-         { Can we spare the first comparision? }
-         if (t1.nodetype=ordconstn) and
-            (right.nodetype=ordconstn) and
-            (
-             (
-              (lnf_backward in loopflags) and
-              (Tordconstnode(right).value>=Tordconstnode(t1).value)
-             ) or
-             (
-               not(lnf_backward in loopflags) and
-               (Tordconstnode(right).value<=Tordconstnode(t1).value)
-             )
-            ) then
-           exclude(loopflags,lnf_testatbegin);
 
          { Make sure that the loop var and the
            from and to values are compatible types }
