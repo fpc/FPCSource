@@ -60,7 +60,7 @@ implementation
       catdefs: tfpobjectlist;
       classsyms,
       catsyms: tfpobjectlist;
-      procedure gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmlabel; classmethods, iscategory: Boolean);
+      procedure gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmsymbol; classmethods, iscategory: Boolean);
       procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
       procedure gen_objc_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel);
       procedure gen_objc_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;const sectname: string; out listsym: TAsmLabel);
@@ -252,12 +252,13 @@ end;
 
 { generate a method list, either of class methods or of instance methods,
   and both for obj-c classes and categories. }
-procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmlabel; classmethods, iscategory: Boolean);
+procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmsymbol; classmethods, iscategory: Boolean);
   const
     clsSectType : array [Boolean] of tasmsectiontype = (sec_objc_inst_meth, sec_objc_cls_meth);
     clsSectName : array [Boolean] of string = ('_OBJC_INST_METH','_OBJC_CLS_METH');
     catSectType : array [Boolean] of tasmsectiontype = (sec_objc_cat_inst_meth, sec_objc_cat_cls_meth);
     catSectName : array [Boolean] of string = ('_OBJC_CAT_INST_METH','_OBJC_CAT_CLS_METH');
+    instclsName : array [Boolean] of string = ('INSTANCE','CLASS');
   type
     method_data = record
       def     : tprocdef;
@@ -292,12 +293,17 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
       exit;
 
     if iscategory then
-      new_section(list,catSectType[classmethods],catSectName[classmethods],sizeof(ptrint))
+      begin
+        new_section(list,catSectType[classmethods],catSectName[classmethods],sizeof(ptrint));
+        methodslabel:=current_asmdata.DefineAsmSymbol('l_OBJC_$_CATEGORY_'+instclsName[classmethods]+'_METHODS_'+objccls.objextname^+'_$_'+objccls.childof.objextname^,AB_LOCAL,AT_DATA);
+      end
     else
-      new_section(list,clsSectType[classmethods],clsSectName[classmethods],sizeof(ptrint));
+      begin
+        new_section(list,clsSectType[classmethods],clsSectName[classmethods],sizeof(ptrint));
+        methodslabel:=current_asmdata.DefineAsmSymbol('l_OBJC_$_'+instclsName[classmethods]+'_METHODS_'+objccls.objextname^,AB_LOCAL,AT_DATA);
+      end;
 
-    current_asmdata.getlabel(methodslabel,alt_data);
-    list.Concat(tai_label.Create(methodslabel));
+    list.Concat(tai_symbol.Create(methodslabel,0));
 
     if (abi=oa_fragile) then
       { not used, always zero }
@@ -685,9 +691,9 @@ From Clang:
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol);
   var
+    protolistsym  : TAsmLabel;
     instmthdlist,
     clsmthdlist,
-    protolistsym  : TAsmLabel;
     catstrsym,
     clsstrsym,
     catsym        : TAsmSymbol;
@@ -758,8 +764,8 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     classStrSym,
     metaisaStrSym,
     metasym,
-    clssym        : TAsmSymbol;
     mthdlist,
+    clssym        : TAsmSymbol;
     ivarslist,
     protolistsym  : TAsmLabel;
     hiddenflag    : cardinal;
@@ -1172,9 +1178,9 @@ From Clang:
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol);
   var
+    protolistsym  : TAsmLabel;
     instmthdlist,
     clsmthdlist,
-    protolistsym  : TAsmLabel;
     catstrsym,
     clssym,
     catsym        : TAsmSymbol;
@@ -1323,8 +1329,8 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
     CLS_EXCEPTION    = $20;
   var
     classStrSym,
+    methodssym,
     rosym        : TAsmSymbol;
-    methodslab,
     ivarslab     : TAsmLabel;
     class_type   : tdef;
     start,
@@ -1375,7 +1381,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
 
     classStrSym:=objcreatestringpoolentry(objclss.objextname^,sp_objcclassnames,sec_objc_class_names);
     { generate methods list }
-    gen_objc_methods(list,objclss,methodslab,metaclass,false);
+    gen_objc_methods(list,objclss,methodssym,metaclass,false);
     { generate ivars (nil for metaclass) }
     if metaclass then
       ivarslab:=nil
@@ -1398,7 +1404,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
     { TODO: strong ivar layout for garbage collection }
     list.concat(tai_const.Create_pint(0));
     list.concat(tai_const.Create_sym(classStrSym));
-    ConcatSymOrNil(list,methodslab);
+    ConcatSymOrNil(list,methodssym);
     ConcatSymOrNil(list,protolistsym);
     ConcatSymOrNil(list,ivarslab);
     { TODO: weak ivar layout for garbage collection }
