@@ -1371,6 +1371,7 @@ unit cgcpu;
         { 16-bit INC is shorter than 8-bit }
         hreg16:=makeregsize(list,reg,OS_16);
         list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
+        makeregsize(list,hreg16,tmpsize);
 
         a_label(list,hl_skip);
 
