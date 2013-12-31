@@ -1339,16 +1339,28 @@ unit cgcpu;
     procedure tcg8086.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
       var
         ai : taicpu;
-        hreg, hreg16 : tregister;
+        hreg16 : tregister;
         hl_skip: TAsmLabel;
         invf: TResFlags;
+        tmpsize: TCgSize;
       begin
-        hreg:=makeregsize(list,reg,OS_8);
-
         invf := f;
         inverse_flags(invf);
 
-        list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, hreg));
+        case size of
+          OS_8,OS_S8:
+            begin
+              tmpsize:=OS_8;
+              list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+            end;
+          OS_16,OS_S16,OS_32,OS_S32:
+            begin
+              tmpsize:=OS_16;
+              list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
+            end;
+          else
+            internalerror(2013123101);
+        end;
 
         current_asmdata.getjumplabel(hl_skip);
         ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
@@ -1357,13 +1369,12 @@ unit cgcpu;
         list.concat(ai);
 
         { 16-bit INC is shorter than 8-bit }
-        hreg16:=makeregsize(list,hreg,OS_16);
+        hreg16:=makeregsize(list,reg,OS_16);
         list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
 
         a_label(list,hl_skip);
 
-        if reg<>hreg then
-          a_load_reg_reg(list,OS_8,size,hreg,reg);
+        a_load_reg_reg(list,tmpsize,size,reg,reg);
       end;
 
 
