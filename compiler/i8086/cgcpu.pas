@@ -308,27 +308,61 @@ unit cgcpu;
                 end;
               OP_AND, OP_OR, OP_XOR:
                 begin
-                  if longword(a) = high(longword) then
+                  { low word operation }
+                  if aint(a and $FFFF) = aint(0) then
                     begin
                       case op of
                         OP_AND:
-                          exit;
-                        OP_OR:
-                          a_load_const_reg(list,size,high(longword),reg);
-                        OP_XOR:
-                          begin
-                            list.concat(taicpu.op_reg(A_NOT,S_W,reg));
-                            list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(reg)));
-                          end;
+                          a_load_const_reg(list,OS_16,aint(0),reg);
+                        OP_OR,OP_XOR:
+                          {do nothing};
                         else
                           InternalError(2013100701);
-                      end
+                      end;
+                    end
+                  else if aint(a and $FFFF) = aint($FFFF) then
+                    begin
+                      case op of
+                        OP_AND:
+                          {do nothing};
+                        OP_OR:
+                          a_load_const_reg(list,OS_16,aint($FFFF),reg);
+                        OP_XOR:
+                          list.concat(taicpu.op_reg(A_NOT,S_W,reg));
+                        else
+                          InternalError(2013100701);
+                      end;
                     end
                   else
-                  begin
                     a_op_const_reg(list,op,OS_16,aint(a and $FFFF),reg);
+
+                  { high word operation }
+                  if aint(a shr 16) = aint(0) then
+                    begin
+                      case op of
+                        OP_AND:
+                          a_load_const_reg(list,OS_16,aint(0),GetNextReg(reg));
+                        OP_OR,OP_XOR:
+                          {do nothing};
+                        else
+                          InternalError(2013100701);
+                      end;
+                    end
+                  else if aint(a shr 16) = aint($FFFF) then
+                    begin
+                      case op of
+                        OP_AND:
+                          {do nothing};
+                        OP_OR:
+                          a_load_const_reg(list,OS_16,aint($FFFF),GetNextReg(reg));
+                        OP_XOR:
+                          list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(reg)));
+                        else
+                          InternalError(2013100701);
+                      end;
+                    end
+                  else
                     a_op_const_reg(list,op,OS_16,aint(a shr 16),GetNextReg(reg));
-                  end;
                 end;
               OP_SHR,OP_SHL,OP_SAR:
                 begin
