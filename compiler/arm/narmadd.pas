@@ -483,11 +483,7 @@ interface
           begin
             asmList := current_asmdata.CurrAsmList;
             pass_left_right;
-
-            if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,left.location,left.resultdef,left.resultdef,true);
-            if not(right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,right.location,right.resultdef,right.resultdef,true);
+            force_reg_left_right(true, false);
             set_result_location_reg;
 
             { shortcuts to register64s }
