@@ -900,6 +900,20 @@ unit cgcpu;
         l1 : longint;
         imm1, imm2: DWord;
       begin
+        optimize_op_const(op, a);
+        case op of
+          OP_NONE:
+            begin
+              if src <> dst then
+                a_load_reg_reg(list, size, size, src, dst);
+              exit;
+            end;
+          OP_MOVE:
+            begin
+              a_load_const_reg(list, size, a, dst);
+              exit;
+            end;
+        end;
         ovloc.loc:=LOC_VOID;
         if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
           case op of
@@ -927,18 +941,13 @@ unit cgcpu;
               begin
                 if a>32 then
                   internalerror(200308294);
-                if a<>0 then
-                  begin
-                    shifterop_reset(so);
-                    so.shiftmode:=opshift2shiftmode(op);
-                    if op = OP_ROL then
-                      so.shiftimm:=32-a
-                    else
-                      so.shiftimm:=a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
+                shifterop_reset(so);
+                so.shiftmode:=opshift2shiftmode(op);
+                if op = OP_ROL then
+                  so.shiftimm:=32-a
                 else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+                  so.shiftimm:=a;
+                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
               end;
             else
               {if (op in [OP_SUB, OP_ADD]) and
@@ -972,11 +981,7 @@ unit cgcpu;
         else
           begin
             { there could be added some more sophisticated optimizations }
-            if (op in [OP_MUL,OP_IMUL,OP_DIV,OP_IDIV]) and (a=1) then
-              a_load_reg_reg(list,size,size,src,dst)
-            else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
-              a_load_const_reg(list,size,0,dst)
-            else if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
+            if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
               a_op_reg_reg(list,OP_NEG,size,src,dst)
             { we do this here instead in the peephole optimizer because
               it saves us a register }
@@ -1006,13 +1011,6 @@ unit cgcpu;
               begin
                 { nothing to do on success }
               end
-            { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
-              Just using mov x, #0 might allow some easier optimizations down the line. }
-            else if (op = OP_AND) and (dword(a)=0) then
-              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
-            { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
-            else if (op = OP_AND) and (not(dword(a))=0) then
-              list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
             { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
               broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
