@@ -34,8 +34,10 @@ interface
           function  GetResFlags(unsigned:Boolean):TResFlags;
        public
           function pass_1 : tnode;override;
+          function use_generic_mul32to64: boolean; override;
        protected
           function first_addfloat: tnode; override;
+          procedure second_addordinal;override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
@@ -644,6 +646,32 @@ interface
         location.resflags:=getresflags(unsigned);
       end;
 
+    const
+      multops: array[boolean] of TAsmOp = (A_SMULL, A_UMULL);
+
+    procedure tarmaddnode.second_addordinal;
+      var
+        unsigned: boolean;
+      begin
+        if (nodetype=muln) and is_64bit(resultdef) then
+          begin
+            pass_left_right;
+            force_reg_left_right(true, false);
+            set_result_location_reg;
+            unsigned:=not(is_signed(left.resultdef)) or
+                      not(is_signed(right.resultdef));
+            current_asmdata.CurrAsmList.Concat(
+              taicpu.op_reg_reg_reg_reg(multops[unsigned], location.register64.reglo, location.register64.reghi,
+                                        left.location.register,right.location.register));
+          end
+        else
+          inherited second_addordinal;
+      end;
+
+    function tarmaddnode.use_generic_mul32to64: boolean;
+      begin
+        result:=false;
+      end;
 begin
   caddnode:=tarmaddnode;
 end.
