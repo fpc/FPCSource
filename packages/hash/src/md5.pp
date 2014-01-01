@@ -147,9 +147,12 @@ function MD4Print(const Digest: TMD4Digest): String; inline;
 function MD4Match(const Digest1, Digest2: TMD4Digest): Boolean; inline;
 
 function MD5Print(const Digest: TMD5Digest): String; inline;
+function StrtoMD5(const MD5String:String):TMDDigest;
 function MD5Match(const Digest1, Digest2: TMD5Digest): Boolean; inline;
 
 implementation
+
+uses sysutils;
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
@@ -664,4 +667,21 @@ begin
   Result := MDMatch(Digest1, Digest2);
 end;
 
+//convert the String representation of a digest to a TMDDigest
+//on error all fields are set to $00
+function StrtoMD5(const MD5String:String):TMDDigest;
+   var I: Byte;
+       t: integer;
+       f: boolean;
+   begin
+     f:= Length(MD5String) = 32;
+     if f then
+      for I := 0 to 15 do
+       begin
+        f:= f and TryStrToInt('$'+copy(MD5String,i*2+1, 2), t);
+        Result[I]:= t;
+       end;
+     if not f then
+       FillChar(Result, Sizeof(Result), 0);
+   end; 
 end.
