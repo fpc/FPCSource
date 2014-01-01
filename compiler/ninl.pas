@@ -3277,7 +3277,7 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := ctypeconvnode.create_internal(cshlshrnode.create(shrn,left,
-                    cordconstnode.create(shiftconst,u32inttype,false)),resultdef)
+                    cordconstnode.create(shiftconst,sinttype,false)),resultdef)
               else
                 result := ctypeconvnode.create_internal(left,resultdef);
               left := nil;
