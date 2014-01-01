@@ -569,29 +569,62 @@ unit cgcpu;
                 end;
               OP_AND, OP_OR, OP_XOR:
                 begin
-                  if longword(a) = high(longword) then
+                  { low word operation }
+                  if aint(a and $FFFF) = aint(0) then
                     begin
                       case op of
                         OP_AND:
-                          exit;
-                        OP_OR:
-                          a_load_const_ref(list,size,high(longword),tmpref);
-                        OP_XOR:
-                          begin
-                            list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
-                            inc(tmpref.offset, 2);
-                            list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
-                          end;
+                          a_load_const_ref(list,OS_16,aint(0),ref);
+                        OP_OR,OP_XOR:
+                          {do nothing};
                         else
                           InternalError(2013100701);
-                      end
+                      end;
+                    end
+                  else if aint(a and $FFFF) = aint($FFFF) then
+                    begin
+                      case op of
+                        OP_AND:
+                          {do nothing};
+                        OP_OR:
+                          a_load_const_ref(list,OS_16,aint($FFFF),tmpref);
+                        OP_XOR:
+                          list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
+                        else
+                          InternalError(2013100701);
+                      end;
                     end
                   else
-                  begin
                     a_op_const_ref(list,op,OS_16,aint(a and $FFFF),tmpref);
-                    inc(tmpref.offset, 2);
+
+                  { high word operation }
+                  inc(tmpref.offset, 2);
+                  if aint(a shr 16) = aint(0) then
+                    begin
+                      case op of
+                        OP_AND:
+                          a_load_const_ref(list,OS_16,aint(0),tmpref);
+                        OP_OR,OP_XOR:
+                          {do nothing};
+                        else
+                          InternalError(2013100701);
+                      end;
+                    end
+                  else if aint(a shr 16) = aint($FFFF) then
+                    begin
+                      case op of
+                        OP_AND:
+                          {do nothing};
+                        OP_OR:
+                          a_load_const_ref(list,OS_16,aint($FFFF),tmpref);
+                        OP_XOR:
+                          list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
+                        else
+                          InternalError(2013100701);
+                      end;
+                    end
+                  else
                     a_op_const_ref(list,op,OS_16,aint(a shr 16),tmpref);
-                  end;
                 end;
               else
                 internalerror(2013050802);
