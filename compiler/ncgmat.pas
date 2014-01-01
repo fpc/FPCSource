@@ -423,9 +423,9 @@ implementation
     procedure tcgshlshrnode.second_integer;
       var
          op : topcg;
-         opdef : tdef;
+         opdef,right_opdef : tdef;
          hcountreg : tregister;
-         opsize : tcgsize;
+         opsize,right_opsize : tcgsize;
       begin
          { determine operator }
          case nodetype of
@@ -437,10 +437,14 @@ implementation
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;
         opdef:=left.resultdef;
+        right_opsize:=opsize;
+        right_opdef:=opdef;
 {$else cpunodefaultint}
          { load left operators in a register }
          if is_signed(left.resultdef) then
            begin
+             right_opsize:=OS_SINT;
+             right_opdef:=ossinttype;
              {$ifdef cpu16bitalu}
                if left.resultdef.size > 2 then
                  begin
@@ -456,6 +460,8 @@ implementation
            end
          else
            begin
+             right_opsize:=OS_INT;
+             right_opdef:=osuinttype;
              {$ifdef cpu16bitalu}
                if left.resultdef.size > 2 then
                  begin
@@ -497,8 +503,8 @@ implementation
               }
               if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                 begin
-                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,opdef,right.location,hcountreg);
+                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,right_opsize);
+                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right_opdef,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
