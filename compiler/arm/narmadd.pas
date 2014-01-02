@@ -670,7 +670,7 @@ interface
 
     function tarmaddnode.use_generic_mul32to64: boolean;
       begin
-        result:=false;
+        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]);
       end;
 begin
   caddnode:=tarmaddnode;
