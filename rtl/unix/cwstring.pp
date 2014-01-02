@@ -1,4 +1,4 @@
-»¿{
+{
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Florian Klaempfl,
     member of the Free Pascal development team.
