@@ -509,6 +509,7 @@ interface
         if (not(cs_check_overflow in current_settings.localswitches)) and
            (nodetype in [muln]) and
            (is_64bitint(left.resultdef)) and
+           not(GenerateThumbCode) and
            (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
           begin
             result := nil;
@@ -649,7 +650,9 @@ interface
       var
         unsigned: boolean;
       begin
-        if (nodetype=muln) and is_64bit(resultdef) and
+        if (nodetype=muln) and
+           is_64bit(resultdef) and
+           not(GenerateThumbCode) and
            (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
           begin
             pass_left_right;
