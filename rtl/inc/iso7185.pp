@@ -44,8 +44,6 @@ unit iso7185;
 
   implementation
 
-  {$i textrec.inc}
-
 {$i-}
     procedure DoAssign(var t : Text);
       begin

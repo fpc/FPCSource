@@ -253,10 +253,6 @@ type
 Var
    OnShowException : Procedure (Msg : ShortString);
 
-  { FileRec/TextRec }
-  {$i filerec.inc}
-  {$i textrec.inc}
-
 Const
    HexDisplayPrefix : string = '$';
 

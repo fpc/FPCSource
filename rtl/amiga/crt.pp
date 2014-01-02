@@ -40,12 +40,6 @@ Const
 
 Implementation
 
-{
-  The definitions of TextRec and FileRec are in separate files.
-}
-{$i textrec.inc}
-{$i filerec.inc}
-
 var
   maxcols,maxrows : longint;
 

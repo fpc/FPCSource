@@ -79,9 +79,6 @@ Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 
 threadvar internal_socketerror : cint;
 
-{ Include filerec and textrec structures }
-{$i filerec.inc}
-{$i textrec.inc}
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}

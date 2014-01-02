@@ -30,8 +30,6 @@ var
 
 implementation
 
-{$i textrec.inc}
-
 const   extkeycode:char=#0;
 
 var maxrows,maxcols:word;

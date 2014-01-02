@@ -63,8 +63,6 @@ Uses Unix,BaseUnix,Strings;
 {
   include definition of textrec
 }
-{$i textrec.inc}
-
 
 Const
   P_TOF   = 1; { Print to file }

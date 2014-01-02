@@ -33,9 +33,6 @@ uses Libc;
 var
   ScreenHandle : scr_t;
 
-{ Definition of textrec is in textrec.inc }
-{$i textrec.inc}
-
 
 {****************************************************************************
                            Low level Routines

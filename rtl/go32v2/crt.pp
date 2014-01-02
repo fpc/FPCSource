@@ -33,12 +33,6 @@ var
   DelayCnt : Longint;
   VidSeg : Word;
 
-{
-  definition of textrec is in textrec.inc
-}
-{$i textrec.inc}
-
-
 {****************************************************************************
                            Low level Routines
 ****************************************************************************}

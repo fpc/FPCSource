@@ -40,11 +40,6 @@ Implementation
 
 uses BaseUnix ,unix, termio;
 
-{
-  The definitions of TextRec and FileRec are in separate files.
-}
-{$i textrec.inc}
-
 Const
   OldTextAttr : byte = $07;
 Var

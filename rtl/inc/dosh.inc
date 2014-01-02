@@ -63,15 +63,6 @@ Type
   NameStr = String[FileNameLen];
   ExtStr  = String[FileNameLen];
 
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
   DateTime = packed record
     Year,
     Month,

@@ -587,10 +587,6 @@ Implementation
 uses
   DosCalls;
 
-{Include filerec and textrec structures}
-{$I filerec.inc}
-{$I textrec.inc}
-
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}

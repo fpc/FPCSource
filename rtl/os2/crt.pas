@@ -33,9 +33,6 @@ implementation
 
 {uses keyboard, video;}
 
-
-{$i textrec.inc}
-
 const
  VioHandle: word = 0;
 

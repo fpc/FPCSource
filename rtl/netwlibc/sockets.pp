@@ -55,10 +55,6 @@ const
 
 Implementation
 
-{ Include filerec and textrec structures }
-{$i filerec.inc}
-{$i textrec.inc}
-
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}

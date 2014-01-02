@@ -1,4 +1,4 @@
-{
+»¿{
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Florian Klaempfl,
     member of the Free Pascal development team.
@@ -1010,7 +1010,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
-{$i textrec.inc}
+
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of
