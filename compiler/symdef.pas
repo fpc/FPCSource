@@ -3598,7 +3598,9 @@ implementation
 
     procedure tabstractrecorddef.check_forwards;
       begin
-        tstoredsymtable(symtable).check_forwards;
+        { the defs of a copied def are defined for the original type only }
+        if not(df_copied_def in defoptions) then
+          tstoredsymtable(symtable).check_forwards;
       end;
 
     function tabstractrecorddef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
