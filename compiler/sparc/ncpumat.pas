@@ -253,29 +253,8 @@ implementation
 *****************************************************************************}
 
     procedure tsparcnotnode.second_boolean;
-      var
-        hl : tasmlabel;
       begin
-        { if the location is LOC_JUMP, we do the secondpass after the
-          labels are allocated
-        }
-        if left.expectloc=LOC_JUMP then
-          begin
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            secondpass(left);
-
-            if left.location.loc<>LOC_JUMP then
-              internalerror(2012081306);
-
-            maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            location.loc:=LOC_JUMP;
-          end
-        else
+        if not handle_locjump then
           begin
             secondpass(left);
             case left.location.loc of
@@ -290,7 +269,11 @@ implementation
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
+                  if is_64bit(left.resultdef) then
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ORcc,
+                      left.location.register64.reglo,left.location.register64.reghi,NR_G0))
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                end;

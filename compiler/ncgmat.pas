@@ -109,6 +109,7 @@ interface
 
       tcgnotnode = class(tnotnode)
       protected
+         function handle_locjump: boolean;
          procedure second_boolean;virtual;abstract;
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
@@ -131,7 +132,7 @@ implementation
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj
+      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj,procinfo
 {$ifndef cpu64bitalu}
       ,cg64f32
 {$endif not cpu64bitalu}
@@ -554,6 +555,33 @@ implementation
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { perform the NOT operation }
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
+      end;
+
+
+    function tcgnotnode.handle_locjump: boolean;
+      var
+        hl: tasmlabel;
+      begin
+        result:=(left.expectloc=LOC_JUMP);
+        if result then
+          begin
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
+            secondpass(left);
+
+            if is_constboolnode(left) then
+              internalerror(2014010101);
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081306);
+
+            { This does nothing for LOC_JUMP }
+            //maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
+            location_reset(location,LOC_JUMP,OS_NO);
+          end;
       end;
 
 

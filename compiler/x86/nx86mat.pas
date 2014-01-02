@@ -221,28 +221,12 @@ interface
 
     procedure tx86notnode.second_boolean;
       var
-         hl : tasmlabel;
          opsize : tcgsize;
+         hreg: tregister;
       begin
         opsize:=def_cgsize(resultdef);
 
-        if left.expectloc=LOC_JUMP then
-         begin
-           location_reset(location,LOC_JUMP,OS_NO);
-           hl:=current_procinfo.CurrTrueLabel;
-           current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-           current_procinfo.CurrFalseLabel:=hl;
-           secondpass(left);
-
-            if left.location.loc<>LOC_JUMP then
-              internalerror(2012081307);
-
-           maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-           hl:=current_procinfo.CurrTrueLabel;
-           current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-           current_procinfo.CurrFalseLabel:=hl;
-         end
-        else
+        if not handle_locjump then
          begin
            { the second pass could change the location of left }
            { if it is a register variable, so we've to do      }
@@ -255,18 +239,44 @@ interface
                  location.resflags:=left.location.resflags;
                  inverse_flags(location.resflags);
                end;
+             LOC_CREFERENCE,
+             LOC_REFERENCE:
+               begin
+{$ifndef cpu64bitalu}
+                 if is_64bit(resultdef) then
+                   begin
+                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                     inc(left.location.reference.offset,4);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                   end
+                 else
+{$endif cpu64bitalu}
+                   emit_const_ref(A_CMP, TCGSize2Opsize[opsize], 0, left.location.reference);
+                 location_reset(location,LOC_FLAGS,OS_NO);
+                 location.resflags:=F_E;
+               end;
              LOC_CONSTANT,
              LOC_REGISTER,
              LOC_CREGISTER,
-             LOC_REFERENCE,
-             LOC_CREFERENCE,
              LOC_SUBSETREG,
              LOC_CSUBSETREG,
              LOC_SUBSETREF,
              LOC_CSUBSETREF :
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                 emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
+{$ifndef cpu64bitalu}
+                 if is_64bit(resultdef) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     emit_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo);
+                   end
+                 else
+{$endif cpu64bitalu}
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                     emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
+                   end;
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
                end;
