@@ -470,16 +470,16 @@ begin
 {$include opencl/fpmake.pp}
 end;
 
-procedure add_opengl(const ADirectory: string);
-begin
-  with Installer do
-{$include opengl/fpmake.pp}
-end;
-
 procedure add_opengles(const ADirectory: string);
 begin
   with Installer do
 {$include opengles/fpmake.pp}
+end;
+
+procedure add_opengl(const ADirectory: string);
+begin
+  with Installer do
+{$include opengl/fpmake.pp}
 end;
 
 procedure add_openssl(const ADirectory: string);
@@ -565,6 +565,8 @@ begin
   with Installer do
 {$include rexx/fpmake.pp}
 end;
+
+{$include rtl-console/fpmake.pp}
 
 procedure add_sdl(const ADirectory: string);
 begin

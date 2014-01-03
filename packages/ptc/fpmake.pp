@@ -53,6 +53,7 @@ begin
   P.Dependencies.Add('x11',AllUnixOSes);
   P.Dependencies.Add('opengl',AllUnixOSes + [win32, win64]);
   P.Dependencies.Add('fcl-base');
+  p.Dependencies.Add('rtl-console');
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
 

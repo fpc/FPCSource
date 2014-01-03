@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       dos dl objects printer sockets \
       sysutils typinfo fgl classes math varutils types \
       charset cpall buildcollations character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
-      errors ipc terminfo termio video crt mouse keyboard  \
+      errors ipc terminfo termio \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp

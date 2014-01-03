@@ -10,13 +10,12 @@ loaders=$(LOADERS)
 units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinfo lnfodwrf
 implicitunits=ctypes strings \
       heaptrc matrix \
-      dos crt objects messages \
+      dos objects messages \
       windows winsock winsock2 cmem dynlibs \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils \
       varutils variants typinfo fgl classes getopts \
       stdconvs sockets printer charset character ucomplex fmtbcd fpwidestring \
-      winevent video mouse keyboard \
       sharemem exeinfo fpintres windirs \
       cpu signals \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

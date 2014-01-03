@@ -11,11 +11,11 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
-      crt printer linuxvcs \
+      printer linuxvcs \
       sysutils typinfo math matrix varutils \
       charset cpall buildcollations character unixcp ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard variants types dateutils sysconst fmtbcd fpwidestring \
+      variants types dateutils sysconst fmtbcd fpwidestring \
       cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix clocale
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -270,8 +270,8 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/dos.pp
 
-crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/crt.pp
+#crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(UNIXINC)/crt.pp
 
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/objects.pp
@@ -427,14 +427,14 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/serial.pp
 
-video$(PPUEXT) : $(UNIXINC)/video.pp baseunix$(PPUEXT) termio$(PPUEXT) strings$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/video.pp
+#video$(PPUEXT) : $(UNIXINC)/video.pp baseunix$(PPUEXT) termio$(PPUEXT) strings$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(UNIXINC)/video.pp
 
-mouse$(PPUEXT) : $(UNIXINC)/mouse.pp baseunix$(PPUEXT) video$(PPUEXT) gpm$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/mouse.pp
+#mouse$(PPUEXT) : $(UNIXINC)/mouse.pp baseunix$(PPUEXT) video$(PPUEXT) gpm$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(UNIXINC)/mouse.pp
 
-keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp baseunix$(PPUEXT) mouse$(PPUEXT) termio$(PPUEXT) linuxvcs$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/keyboard.pp
+#keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp baseunix$(PPUEXT) mouse$(PPUEXT) termio$(PPUEXT) linuxvcs$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) $(UNIXINC)/keyboard.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp

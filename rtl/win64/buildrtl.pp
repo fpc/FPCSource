@@ -6,12 +6,12 @@ unit buildrtl;
       ctypes, strings,
       heaptrc, matrix,
       windows, winsock, winsock2, cmem, dynlibs,
-      dos, crt, objects, messages,
+      dos, objects, messages,
       rtlconsts, sysconst, sysutils, math, types,
       strutils, dateutils, varutils, variants, typinfo, fgl, classes,
       convutils, stdconvs, charset, character, ucomplex, getopts,
-      winevent, sockets, printer,
-      video, mouse, keyboard, fmtbcd, fpwidestring,
+      sockets, printer,
+      fmtbcd, fpwidestring,
       sharemem, fpintres, windirs,
       cpu, signals;
 

@@ -15,9 +15,9 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
       sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
-      $(CPU_UNITS) charset cpall buildcollations ucomplex crt getopts heaptrc lnfodwrf lineinfo \
+      $(CPU_UNITS) charset cpall buildcollations ucomplex getopts heaptrc lnfodwrf lineinfo \
       errors sockets ipc terminfo bsd freebsd \
-      video mouse keyboard console serial dateutils \
+      console serial dateutils \
       sysconst cthreads strutils convutils stdconvs dos objects cwstring \
       fpintres clocale unixcp fpwidestring
 implicitunits=exeinfo \

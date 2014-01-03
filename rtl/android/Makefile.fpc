@@ -9,9 +9,9 @@ main=rtl
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
-      fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem crt printer \
+      fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem printer \
       linuxvcs sysutils typinfo math matrix varutils charset cpall character ucomplex \
-      getopts errors sockets gpm serial terminfo dl dynlibs video mouse keyboard \
+      getopts errors sockets gpm serial terminfo dl dynlibs \
       variants types dateutils sysconst fmtbcd cthreads classes fgl convutils stdconvs \
       strutils rtlconsts dos objects cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \

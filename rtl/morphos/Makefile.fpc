@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       exec timer doslib utility hardware inputevent keymap graphics layers \
       intuition aboxlib mui \
 # these units are here, because they depend on system interface units above
-      kvm video mouse keyboard \
+      kvm \
 # disabled temporarily because it doesn't build
 #     sockets \
 # these can be moved to packages later

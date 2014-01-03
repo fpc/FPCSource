@@ -10,10 +10,10 @@ loaders=prt0
 units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
-      dos crt objects printer matrix \
+      dos objects printer matrix \
       sysutils fgl classes math typinfo varutils winsock \
       charset cpall ucomplex cpu mmx getopts heaptrc lineinfo lnfodwrf dynlibs \
-      video mouse keyboard variants types rtlconst sysconst dateutil \
+      variants types rtlconst sysconst dateutil \
       strutils convutil stdconvs fmtbcd so32dll sockets
 rsts=math varutils typinfo variants pmhelp classes sysconst dateutil stdconvs
 implicitunits=exeinfo \

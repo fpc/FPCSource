@@ -9,13 +9,13 @@ main=rtl
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       lineinfo lnfodwrf winsock heaptrc matrix \
-      dos crt objects sysconst \
+      dos objects sysconst \
       initc sysutils types typinfo fgl classes fmtbcd \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset cpall ucomplex variants \
       rtlconsts math varutils freebidi utf8bidi \
-      mouse video keyboard cmem dynlibs sockets \
+      cmem dynlibs sockets \
       aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts
 implicitunits=exeinfo \

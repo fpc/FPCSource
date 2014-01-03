@@ -11,14 +11,13 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil unixcp \
       termio unix initc cmem \
-      crt printer \
+      printer \
       sysutils typinfo math fgl classes matrix varutils \
       charset cpall buildcollations ucomplex getopts \
       errors sockets \
       # ipc serial
       terminfo dl dynlibs \
-      video mouse \
-      keyboard variants types dateutils sysconst character \
+      variants types dateutils sysconst character \
       strutils fmtbcd rtlconsts cthreads \
       convutils stdconvs \
       dos objects \

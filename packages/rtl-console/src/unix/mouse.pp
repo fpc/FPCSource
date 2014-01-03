@@ -16,6 +16,10 @@
 unit Mouse;
 interface
 
+{$if defined(aix) or defined(bsd) or defined(solaris)}
+{$define NOMOUSE}
+{$endif}
+
 {$ifdef NOMOUSE}
 {$DEFINE NOGPM}
 {$ENDIF}

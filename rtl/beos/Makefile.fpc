@@ -14,7 +14,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       types charset cpall ucomplex typinfo classes fgl math varutils \
       cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
       rtlconsts syscall unix unixutil strutils termio initc \
-      cmem crt video mouse keyboard \
+      cmem \
       dateutils fmtbcd sockets dynlibs cwstring unixcp
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils
 implicitunits=exeinfo \

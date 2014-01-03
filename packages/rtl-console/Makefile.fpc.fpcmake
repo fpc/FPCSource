@@ -20,11 +20,11 @@ units_iphonesim=crt video mouse keyboard
 units_beos=crt video mouse keyboard
 units_haiku=crt video mouse keyboard
 
-units_go32v2=crt video mouse keyboard
+units_go32v2=crt video mouse keyboard vesamode
 units_watcom=crt
 units_msdos=crt,keyboard
-units_win32=crt video mouse keyboard winevent
-units_win64=crt video mouse keyboard winevent
+units_win32=winevent crt video mouse keyboard
+units_win64=winevent crt video mouse keyboard
 units_emx=crt video mouse keyboard
 units_os2=crt video mouse keyboard
 units_netware=crt video mouse keyboard

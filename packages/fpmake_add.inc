@@ -80,8 +80,8 @@
   add_oggvorbis(ADirectory+IncludeTrailingPathDelimiter('oggvorbis'));
   add_openal(ADirectory+IncludeTrailingPathDelimiter('openal'));
   add_opencl(ADirectory+IncludeTrailingPathDelimiter('opencl'));
-  add_opengl(ADirectory+IncludeTrailingPathDelimiter('opengl'));
   add_opengles(ADirectory+IncludeTrailingPathDelimiter('opengles'));
+  add_opengl(ADirectory+IncludeTrailingPathDelimiter('opengl'));
   add_openssl(ADirectory+IncludeTrailingPathDelimiter('openssl'));
   add_oracle(ADirectory+IncludeTrailingPathDelimiter('oracle'));
   add_os2units(ADirectory+IncludeTrailingPathDelimiter('os2units'));
@@ -96,6 +96,7 @@
   add_pxlib(ADirectory+IncludeTrailingPathDelimiter('pxlib'));
   add_regexpr(ADirectory+IncludeTrailingPathDelimiter('regexpr'));
   add_rexx(ADirectory+IncludeTrailingPathDelimiter('rexx'));
+  add_rtl_console(ADirectory+IncludeTrailingPathDelimiter('rtl-console'));
   add_sdl(ADirectory+IncludeTrailingPathDelimiter('sdl'));
   add_sqlite(ADirectory+IncludeTrailingPathDelimiter('sqlite'));
   add_svgalib(ADirectory+IncludeTrailingPathDelimiter('svgalib'));
