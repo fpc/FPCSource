@@ -1,0 +1,57 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=rtl-console
+version=2.7.1
+
+# all Unices support everything except QNX(nothing)
+[target]
+units_android=crt video mouse keyboard
+units_aix=crt video mouse keyboard
+units_linux=crt video mouse keyboard
+units_solaris=crt video mouse keyboard
+units_freebsd=crt video mouse keyboard
+units_netbsd=crt video mouse keyboard
+units_openbsd=crt video mouse keyboard
+units_darwin=crt video mouse keyboard
+units_iphonesim=crt video mouse keyboard
+units_beos=crt video mouse keyboard
+units_haiku=crt video mouse keyboard
+
+units_go32v2=crt video mouse keyboard
+units_watcom=crt
+units_msdos=crt,keyboard
+units_win32=crt video mouse keyboard winevent
+units_win64=crt video mouse keyboard winevent
+units_emx=crt video mouse keyboard
+units_os2=crt video mouse keyboard
+units_netware=crt video mouse keyboard
+units_netwlibc=crt video mouse keyboard
+units_morphos=video mouse keyboard
+
+[compiler]
+includedir=src/$(OS_TARGET) src/inc
+includedir_unix=src/unix
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_os2=src/os2commn
+includedir_emx=src/os2commn
+
+sourcedir=src/$(OS_TARGET)  src/inc
+sourcedir_iphonesim=src/darwin
+sourcedir_unix=src/unix
+sourcedir_win32=src/win
+sourcedir_win64=src/win
+sourcedir_os2=src/os2commn
+sourcedir_emx=src/os2commn
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
