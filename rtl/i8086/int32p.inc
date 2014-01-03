@@ -18,19 +18,15 @@ function fpc_mul_dword( f1, f2: dword; checkoverflow: boolean ): dword; [public,
 begin
 { routine contributed by Max Nazhalov
 
-//////// 16-bit multiplications summary:
-(A1:A0*B1:B0) = (A1*B1)<<32 + (A1*B0)<<16 + (A0*B1)<<16 + (A0*B0)
+  32-bit multiplications summary:
+  f1 = A1*$10000+A0
+  f2 = B1*$10000+B0
+  (A1:A0*B1:B0) = (A1*B1)<<32 + (A1*B0)<<16 + (A0*B1)<<16 + (A0*B0)
 
   A1*B1 [only needed for overflow checking; overflow if <>0]
   A1*B0
   A0*B1
   A0:B0
-  A3*B0 [only lo_word is needed; overflow if hi_word<>0]
-  A2*B1 [only lo_word is needed; overflow if hi_word<>0]
-  A2*B0
-  A1*B2 [only lo_word is needed; overflow if hi_word<>0]
-  A0*B3 [only lo_word is needed; overflow if hi_word<>0]
-  A0*B2
 }
   asm
     mov     cx,word[f1]
