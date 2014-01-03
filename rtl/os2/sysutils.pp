@@ -367,7 +367,7 @@ var
   SystemFileName: RawByteString;
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
-  Result:=(DosDelete(PChar (FileName))=0);
+  Result:=(DosDelete(PChar (SystemFileName))=0);
 End;
 
 function RenameFile (const OldName, NewName: RawByteString): boolean;
