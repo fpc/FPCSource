@@ -81,28 +81,18 @@ implementation
       begin
          secondpass(left);
          secondpass(right);
-         location_copy(location,left.location);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
 
          { put numerator in register }
          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-         location_copy(location,left.location);
-         numerator := location.register;
-
-         if (nodetype = modn) then
-           resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT)
-         else
-           begin
-             if (location.loc = LOC_CREGISTER) then
-               begin
-                 location.loc := LOC_REGISTER;
-                 location.register := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-               end;
-             resultreg := location.register;
-           end;
+         numerator := left.location.register;
+         resultreg := location.register;
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
-            ispowerof2(tordconstnode(right).value.svalue,power) then
+            ispowerof2(tordconstnode(right).value.svalue,power) and
+            (not (cs_check_overflow in current_settings.localswitches)) then
            begin
              if is_signed(left.resultdef) Then
                begin
@@ -120,9 +110,15 @@ implementation
          else
            begin
              { load divider in a register if necessary }
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
-               right.resultdef,right.resultdef,true);
-             divider := right.location.register;
+             divider:=NR_NO;
+             if (right.location.loc<>LOC_CONSTANT) or
+                (right.location.value<simm13lo) or
+                (right.location.value>simm13hi) then
+               begin
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                   right.resultdef,right.resultdef,true);
+                 divider:=right.location.register;
+               end;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
              { And on Sparc, the only way to catch a div-by-0 is by checking  }
@@ -144,7 +140,10 @@ implementation
 
              op := divops[is_signed(right.resultdef),
                           cs_check_overflow in current_settings.localswitches];
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
+             if (divider<>NR_NO) then
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
+             else
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(op,numerator,right.location.value,resultreg));
 
              if (nodetype = modn) then
                begin
@@ -154,7 +153,10 @@ implementation
                  current_asmdata.CurrAsmList.concat(ai);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
                  cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
+                 if (divider<>NR_NO) then
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg))
+                 else
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SMUL,resultreg,right.location.value,resultreg));
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
                end;
            end;
