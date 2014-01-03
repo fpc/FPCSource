@@ -4500,120 +4500,160 @@ implementation
 
     function tprocdef.GetResultName: PShortString;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010301);
         result:=implprocdefinfo^.resultname;
       end;
 
 
     procedure tprocdef.SetResultName(AValue: PShortString);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010302);
         implprocdefinfo^.resultname:=AValue;
       end;
 
 
     function tprocdef.GetParentFPInitBlock: tnode;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010303);
         result:=implprocdefinfo^.parentfpinitblock;
       end;
 
 
     function tprocdef.GetParentFPStruct: tsym;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010304);
         result:=implprocdefinfo^.parentfpstruct;
       end;
 
 
     function tprocdef.GetParentFPStructPtrType: tdef;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010305);
         result:=implprocdefinfo^.parentfpstructptrtype;
       end;
 
 
     procedure tprocdef.SetParentFPInitBlock(AValue: tnode);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010306);
         implprocdefinfo^.parentfpinitblock:=AValue;
       end;
 
 
     function tprocdef.Getprocendtai: tai;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010307);
         result:=implprocdefinfo^.procendtai;
       end;
 
 
     function tprocdef.Getprocstarttai: tai;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010308);
         result:=implprocdefinfo^.procstarttai;
       end;
 
 
     procedure tprocdef.Setprocendtai(AValue: tai);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010309);
         implprocdefinfo^.procendtai:=AValue;
       end;
 
 
     function tprocdef.Getskpara: pointer;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010310);
         result:=implprocdefinfo^.skpara;
       end;
 
 
     procedure tprocdef.Setskpara(AValue: pointer);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010311);
         implprocdefinfo:=AValue;
       end;
 
 
     function tprocdef.Getforwarddef: boolean;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010312);
         result:=implprocdefinfo^.forwarddef;
       end;
 
 
     function tprocdef.Gethasforward: boolean;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010313);
         result:=implprocdefinfo^.hasforward;
       end;
 
 
     function tprocdef.Getinterfacedef: boolean;
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010314);
         result:=implprocdefinfo^.interfacedef;
       end;
 
 
     procedure tprocdef.Setforwarddef(AValue: boolean);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010315);
         implprocdefinfo^.forwarddef:=AValue;
       end;
 
 
     procedure tprocdef.Sethasforward(AValue: boolean);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010316);
         implprocdefinfo^.hasforward:=AValue;
       end;
 
 
     procedure tprocdef.Setinterfacedef(AValue: boolean);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010317);
         implprocdefinfo^.interfacedef:=AValue;
       end;
 
 
     procedure tprocdef.Setprocstarttai(AValue: tai);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010318);
         implprocdefinfo^.procstarttai:=AValue;
       end;
 
 
     procedure tprocdef.SetParentFPStruct(AValue: tsym);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010319);
         implprocdefinfo^.parentfpstruct:=AValue;
       end;
 
 
     procedure tprocdef.SetParentFPStructPtrType(AValue: tdef);
       begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010320);
         implprocdefinfo^.parentfpstructptrtype:=AValue;
       end;
 
