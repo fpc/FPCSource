@@ -238,7 +238,7 @@ muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT
 
 kvm$(PPUEXT) : kvm.pp
 
-video$(PPUEXT) : video.pp 
+#video$(PPUEXT) : video.pp 
 #windows$(PPUEXT) dos$(PPUEXT)
 
 mouse$(PPUEXT) : mouse.pp 
