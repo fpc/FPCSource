@@ -13,8 +13,6 @@
 
  **********************************************************************}
 
-{$I int32p.inc}
-
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
 function fpc_mul_qword( f1, f2: qword; checkoverflow: longbool ): qword; [public,alias: 'FPC_MUL_QWORD']; compilerproc;
 begin

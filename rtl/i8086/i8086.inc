@@ -301,3 +301,5 @@ Procedure SysResetFPU;
     softfloat_exception_flags:=0;
   end;
 
+{$I int32p.inc}
+
