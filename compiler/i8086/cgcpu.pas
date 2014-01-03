@@ -1536,24 +1536,28 @@ unit cgcpu;
         case cmp_op of
           OC_EQ:
             a_jmp_cond(list, OC_NE, l_skip);
-          OC_GT:
-            a_jmp_cond(list, OC_LT, l_skip);
-          OC_LT:
-            a_jmp_cond(list, OC_GT, l_skip);
-          OC_GTE:
-            a_jmp_cond(list, OC_LT, l_skip);
-          OC_LTE:
-            a_jmp_cond(list, OC_GT, l_skip);
           OC_NE:
             a_jmp_cond(list, OC_NE, l_target);
-          OC_BE:
-            a_jmp_cond(list, OC_A, l_skip);
-          OC_B:
-            a_jmp_cond(list, OC_A, l_skip);
-          OC_AE:
-            a_jmp_cond(list, OC_B, l_skip);
-          OC_A:
-            a_jmp_cond(list, OC_B, l_skip);
+          OC_GT,OC_GTE:
+            begin
+              a_jmp_cond(list, OC_GT, l_target);
+              a_jmp_cond(list, OC_LT, l_skip);
+            end;
+          OC_LT,OC_LTE:
+            begin
+              a_jmp_cond(list, OC_LT, l_target);
+              a_jmp_cond(list, OC_GT, l_skip);
+            end;
+          OC_B,OC_BE:
+            begin
+              a_jmp_cond(list, OC_B, l_target);
+              a_jmp_cond(list, OC_A, l_skip);
+            end;
+          OC_A,OC_AE:
+            begin
+              a_jmp_cond(list, OC_A, l_target);
+              a_jmp_cond(list, OC_B, l_skip);
+            end;
           else
             internalerror(2014010305);
         end;
