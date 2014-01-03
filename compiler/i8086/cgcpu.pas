@@ -73,6 +73,18 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
 
+        {  comparison operations }
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
+          l : tasmlabel);override;
+        procedure a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;const ref : treference;
+          l : tasmlabel);override;
+        procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
+        procedure a_cmp_ref_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister; l : tasmlabel); override;
+        procedure a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); override;
+
+        procedure gen_cmp32_jmp1(list: TAsmList; cmp_op: topcmp; l_skip, l_target: TAsmLabel);
+        procedure gen_cmp32_jmp2(list: TAsmList; cmp_op: topcmp; l_skip, l_target: TAsmLabel);
+
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
         procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);override;
 
@@ -1400,6 +1412,179 @@ unit cgcpu;
                 internalerror(2013030211);
             end;
           end;
+      end;
+
+
+    procedure tcg8086.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
+      var
+        hl_skip: TAsmLabel;
+      begin
+        if size in [OS_32, OS_S32] then
+          begin
+            if (longint(a shr 16) = 0) then
+              list.concat(taicpu.op_reg_reg(A_TEST,S_W,GetNextReg(reg),GetNextReg(reg)))
+            else
+              list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a shr 16),GetNextReg(reg)));
+            current_asmdata.getjumplabel(hl_skip);
+            gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
+
+            if (longint(a and $ffff) = 0) then
+              list.concat(taicpu.op_reg_reg(A_TEST,S_W,reg,reg))
+            else
+              list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a and $ffff),reg));
+            gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
+            a_label(list,hl_skip);
+          end
+        else
+          inherited a_cmp_const_reg_label(list, size, cmp_op, a, reg, l);
+      end;
+
+
+    procedure tcg8086.a_cmp_const_ref_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
+      var
+        tmpref: treference;
+        hl_skip: TAsmLabel;
+      begin
+        if size in [OS_32, OS_S32] then
+          begin
+            tmpref:=ref;
+            make_simple_ref(list,tmpref);
+            inc(tmpref.offset,2);
+            list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a shr 16),tmpref));
+            current_asmdata.getjumplabel(hl_skip);
+            gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
+            dec(tmpref.offset,2);
+            list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a and $ffff),tmpref));
+            gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
+            a_label(list,hl_skip);
+          end
+        else
+          inherited a_cmp_const_ref_label(list, size, cmp_op, a, ref, l);
+      end;
+
+
+    procedure tcg8086.a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
+      var
+        hl_skip: TAsmLabel;
+      begin
+        if size in [OS_32, OS_S32] then
+          begin
+            check_register_size(size,reg1);
+            check_register_size(size,reg2);
+            list.concat(taicpu.op_reg_reg(A_CMP,S_W,GetNextReg(reg1),GetNextReg(reg2)));
+            current_asmdata.getjumplabel(hl_skip);
+            gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
+            list.concat(taicpu.op_reg_reg(A_CMP,S_W,reg1,reg2));
+            gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
+            a_label(list,hl_skip);
+          end
+        else
+          inherited a_cmp_reg_reg_label(list, size, cmp_op, reg1, reg2, l);
+      end;
+
+
+    procedure tcg8086.a_cmp_ref_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
+      var
+        tmpref: treference;
+        hl_skip: TAsmLabel;
+      begin
+        if size in [OS_32, OS_S32] then
+          begin
+            tmpref:=ref;
+            make_simple_ref(list,tmpref);
+            check_register_size(size,reg);
+            inc(tmpref.offset,2);
+            list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,GetNextReg(reg)));
+            current_asmdata.getjumplabel(hl_skip);
+            gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
+            dec(tmpref.offset,2);
+            list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,reg));
+            gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
+            a_label(list,hl_skip);
+          end
+        else
+          inherited a_cmp_ref_reg_label(list, size, cmp_op, ref, reg, l);
+      end;
+
+
+    procedure tcg8086.a_cmp_reg_ref_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
+      var
+        tmpref: treference;
+        hl_skip: TAsmLabel;
+      begin
+        if size in [OS_32, OS_S32] then
+          begin
+            tmpref:=ref;
+            make_simple_ref(list,tmpref);
+            check_register_size(size,reg);
+            inc(tmpref.offset,2);
+            list.concat(taicpu.op_reg_ref(A_CMP,S_W,GetNextReg(reg),tmpref));
+            current_asmdata.getjumplabel(hl_skip);
+            gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
+            dec(tmpref.offset,2);
+            list.concat(taicpu.op_reg_ref(A_CMP,S_W,reg,tmpref));
+            gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
+            a_label(list,hl_skip);
+          end
+        else
+          inherited a_cmp_reg_ref_label(list, size, cmp_op, reg, ref, l);
+      end;
+
+
+    procedure tcg8086.gen_cmp32_jmp1(list: TAsmList; cmp_op: topcmp; l_skip, l_target: TAsmLabel);
+      begin
+        case cmp_op of
+          OC_EQ:
+            a_jmp_cond(list, OC_NE, l_skip);
+          OC_GT:
+            a_jmp_cond(list, OC_LT, l_skip);
+          OC_LT:
+            a_jmp_cond(list, OC_GT, l_skip);
+          OC_GTE:
+            a_jmp_cond(list, OC_LT, l_skip);
+          OC_LTE:
+            a_jmp_cond(list, OC_GT, l_skip);
+          OC_NE:
+            a_jmp_cond(list, OC_NE, l_target);
+          OC_BE:
+            a_jmp_cond(list, OC_A, l_skip);
+          OC_B:
+            a_jmp_cond(list, OC_A, l_skip);
+          OC_AE:
+            a_jmp_cond(list, OC_B, l_skip);
+          OC_A:
+            a_jmp_cond(list, OC_B, l_skip);
+          else
+            internalerror(2014010305);
+        end;
+      end;
+
+    procedure tcg8086.gen_cmp32_jmp2(list: TAsmList; cmp_op: topcmp; l_skip, l_target: TAsmLabel);
+      begin
+        case cmp_op of
+          OC_EQ:
+            a_jmp_cond(list, OC_EQ, l_target);
+          OC_GT:
+            a_jmp_cond(list, OC_A, l_target);
+          OC_LT:
+            a_jmp_cond(list, OC_B, l_target);
+          OC_GTE:
+            a_jmp_cond(list, OC_AE, l_target);
+          OC_LTE:
+            a_jmp_cond(list, OC_BE, l_target);
+          OC_NE:
+            a_jmp_cond(list, OC_NE, l_target);
+          OC_BE:
+            a_jmp_cond(list, OC_BE, l_target);
+          OC_B:
+            a_jmp_cond(list, OC_B, l_target);
+          OC_AE:
+            a_jmp_cond(list, OC_AE, l_target);
+          OC_A:
+            a_jmp_cond(list, OC_A, l_target);
+          else
+            internalerror(2014010306);
+        end;
       end;
 
 
