@@ -99,7 +99,7 @@ end;
  
 {$ifndef ALLPACKAGES}
 begin
-  add_fcl_db('');
+  add_rtl_console('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
