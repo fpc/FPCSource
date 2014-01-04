@@ -700,7 +700,7 @@ procedure InitWin32Widestrings;
 
     DefaultSystemCodePage:=GetACP;
     DefaultUnicodeCodePage:=CP_UTF16;
-    DefaultFileSystemCodePage:=DefaultSystemCodePage;
-    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
+    DefaultFileSystemCodePage:=CP_UTF8;
+    DefaultRTLFileSystemCodePage:=DefaultSystemCodePage;
   end;
 
