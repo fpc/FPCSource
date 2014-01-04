@@ -96,7 +96,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos
+    aix,java,android,nativent,msdos,wii
   );
   TOSes = Set of TOS;
 
@@ -192,7 +192,8 @@ Const
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false),
     { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true )
+    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false )
   );
 
   // Useful
