@@ -56,14 +56,13 @@ unit widestr;
     procedure unicode2ascii(r : pcompilerwidestring;p : pchar;cp : tstringencoding);
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
     function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
-    function cpavailable(const s : string) : boolean;
-    function cpavailable(cp : word) : boolean;
+    function cpavailable(const s: string) : boolean;
+    function cpavailable(cp: word) : boolean;
     procedure changecodepage(
       s : pchar; l : SizeInt; scp : tstringencoding;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
-    function loadbinarycp(const s: String): Boolean;
 
   implementation
 
@@ -287,14 +286,22 @@ unit widestr;
       end;
 
 
-    function cpavailable(const s : string) : boolean;
+    function cpavailable(const s: string): boolean;
       begin
-          cpavailable:=mappingavailable(lower(s));
+        result:=mappingavailable(lower(s));
+        {$if FPC_FULLVERSION>20700}
+        if not result then
+          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset',lower(s)));
+        {$ifend}
       end;
 
-    function cpavailable(cp : word) : boolean;
+    function cpavailable(cp: word): boolean;
       begin
-          cpavailable:=mappingavailable(cp);
+        result:=mappingavailable(cp);
+        {$if FPC_FULLVERSION>20700}
+        if not result then
+          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset','cp'+tostr(cp)));
+        {$ifend}
       end;
 
     procedure changecodepage(
@@ -327,15 +334,6 @@ unit widestr;
         p:=getmap(s);
         if (p<>nil) then
           Result:=p^.cp;
-      end;
-
-    function loadbinarycp(const s: String): Boolean;
-      begin
-        {$if FPC_FULLVERSION>20700}
-        result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset',s));
-        {$else}
-        result:=false;
-        {$ifend}
       end;
 
 end.
