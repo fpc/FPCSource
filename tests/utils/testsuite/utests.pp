@@ -14,6 +14,7 @@ const
   TestsuiteURLPrefix='http://www.freepascal.org/testsuite/';
   TestsuiteBin='testsuite.cgi';
   ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
+  ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&amp;revision=';
   TestsSubDir='/tests/';
   DataBaseSubDir='/packages/fcl-db/tests/';
 var
@@ -27,6 +28,10 @@ Type
     FTrans : TSQLTransaction;
     FRunID,
     FCompareRunID,
+    FPreviousRunID,
+    FNextRunID,
+    FPrevious2RunID,
+    FNext2RunID,
     FTestFileID,
     FTestFileName,
     FVersion,
@@ -62,6 +67,8 @@ Type
     Procedure FormatFileDetails(Sender: TObject; var CellData: String);
     Procedure FormatFileIDDetails(Sender: TObject; var CellData: String);
     Procedure FormatTestResult(Sender: TObject; var CellData: String);
+    Procedure FormatSVN(Sender: TObject; var CellData: String);
+    Procedure FormatSVNData(var CellData: String);
     Function  FormatDetailURL(const RunIdStr, CellData : String) : string;
 
     Procedure DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
@@ -77,9 +84,12 @@ Type
     Function GetVersionName(ID : String) : String;
     Function GetCategoryName(ID : String) : String;
     Function GetTestFileName(ID : String) : String;
+    Function GetPreviousRunID(RunID : String) : String;
+    Function GetNextRunID(RunID : String) : String;
     Function GetFailCount(RunID : longint) : string;
     Function InitCGIVars : Integer;
     Procedure DoRun; override;
+    Procedure EmitDocType;
     Procedure EmitOverviewForm;
     Procedure EmitHistoryForm;
     Procedure ShowRunResults;
@@ -93,6 +103,9 @@ Type
     Procedure ShowRunOverview;
     Procedure CreateRunPie;
     Function  ShowRunData : Boolean;
+    Procedure LDump(Const St : String);
+    Procedure LDumpLn(Const St : String);
+
 
   end;
 
@@ -100,6 +113,7 @@ implementation
 
 
   uses
+    wformat,
     dateutils;
 
 Const
@@ -117,6 +131,17 @@ Const
   NewTestResultsTableName = 'TESTRESULTS';
   LastOldTestRun = 91178;
   MaxLimit = 1000;
+
+const
+  faction_show_overview = 0;
+  faction_show_run_results = 1;
+  faction_show_run_pie = 2;
+  faction_show_one_test = 3;
+  faction_show_history = 4;
+  faction_compare_with_previous = 5;
+  faction_compare_with_next = 6;
+  faction_compare2_with_previous = 7;
+  faction_compare2_with_next = 8;
 
   Function TestResultsTableName(const RunId : String) : string;
   var
@@ -244,15 +269,37 @@ begin
   Try
     Try
       Case InitCGIVars of
-        0 : EmitOverviewForm;
-        1 :
+        faction_show_overview : EmitOverviewForm;
+        faction_show_run_results :
           if Length(FCompareRunID) = 0 then
             ShowRunResults
           else
             ShowRunComparison;
-        2 : CreateRunPie;
-        3 : ShowOneTest;
-        4 : ShowHistory;
+        faction_show_run_pie : CreateRunPie;
+        faction_show_one_test : ShowOneTest;
+        faction_show_history : ShowHistory;
+        faction_compare_with_previous : 
+          begin
+            FCompareRunID:=FRunID;
+            FRunID:=FPreviousRunID;
+            ShowRunComparison;
+          end;
+        faction_compare_with_next : 
+          begin
+            FCompareRunID:=FNextRunID;
+            ShowRunComparison;
+          end;
+        faction_compare2_with_previous : 
+          begin
+            FRunID:=FPrevious2RunID;
+            ShowRunComparison;
+          end;
+        faction_compare2_with_next : 
+          begin
+            FRunID:=FCompareRunID;
+            FCompareRunID:=FNext2RunID;
+            ShowRunComparison;
+          end;
 {$ifdef TEST}
         98 :
           begin
@@ -296,8 +343,18 @@ begin
   S:=RequestVariables['action'];
   if Length(S) = 0 then
     S:=RequestVariables['TESTACTION'];
-  if S='View history' then
-    FAction:=4
+  if S='View_history' then
+    FAction:=faction_show_history
+  else if S='Show/Compare' then
+    FAction:=faction_show_run_results
+  else if S='Compare_to_previous' then
+    FAction:=faction_compare_with_previous
+  else if S='Compare_to_next' then
+    FAction:=faction_compare_with_next
+  else if S='Compare_right_to_previous' then
+    FAction:=faction_compare2_with_previous
+  else if S='Compare_right_to_next' then
+    FAction:=faction_compare2_with_next
   else
     FAction:=StrToIntDef(S,0);
   S:=RequestVariables['limit'];
@@ -357,6 +414,10 @@ begin
     S:=RequestVariables['TESTNOSKIPPED'];
   FNoSkipped:=(S='1');
   FCompareRunID:=RequestVariables['run2id'];
+  FPreviousRunID:=RequestVariables['previousrunid'];
+  FNextRunID:=RequestVariables['nextrunid'];
+  FPrevious2RunID:=RequestVariables['previous2runid'];
+  FNext2RunID:=RequestVariables['next2runid'];
   FTestFileID:=RequestVariables['testfileid'];
   FTestFileName:=RequestVariables['testfilename'];
   FRunCount:=StrToIntDef(RequestVariables['PIETOTAL'],0);
@@ -383,6 +444,31 @@ begin
   FDB.Transaction := FTrans;
   FDB.Connected:=True;
   Result:=True;
+end;
+
+procedure TTestsuite.LDump(Const St : String);
+var
+  S : String;
+  ShortS : ShortString;
+  i,p  : longint;
+begin
+  i:=length(St);
+  p:=1;
+  while (i>255) do 
+    begin
+      ShortS:=copy(St,p,255);
+      inc(p,255);
+      dec(i,255);
+      FHTMLWriter.Dump(ShortS);
+    end;
+  ShortS:=Copy(St,p,255);
+  FHTMLWriter.Dump(ShortS);
+end;
+
+procedure TTestsuite.LDumpLn(Const St : String);
+begin
+  LDump(St);
+  LDump(LineFeed);
 end;
 
 procedure TTestSuite.DisconnectFromDB;
@@ -460,13 +546,19 @@ begin
     Q.Free;
   end;
 end;
-Procedure TTestSuite.EmitTitle(ATitle : String);
 
+Procedure TTestSuite.EmitTitle(ATitle : String);
 begin
   AddResponseLn('<HTML>');
   AddResponseLn('<TITLE>'+ATitle+'</TITLE>');
   AddResponseLn('<BODY>');
   FNeedEnd:=true;
+end;
+
+Procedure TTestSuite.EmitDocType;
+begin
+  AddResponseLn('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" '+
+     '"http://www.w3.org/TR/html4/loose.dtd">');
 end;
 
 Procedure TTestSuite.EmitOverviewForm;
@@ -475,13 +567,14 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   EmitTitle(Title);
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('View Test suite results');
+    DumpLn('View Test suite results');
     HeaderEnd(1);
-    Write('Please specify search criteria:');
+    DumpLn('Please specify search criteria:');
     ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
@@ -490,25 +583,25 @@ begin
     TableStart(2,true);
     RowStart;
       CellStart;
-        Write('Operating system:');
+        DumpLn('Operating system:');
       CellNext;
         ComboBoxFromQuery('os','SELECT TO_ID,TO_NAME FROM TESTOS ORDER BY TO_NAME',FOS);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Processor:');
+        DumpLn('Processor:');
       CellNext;
         ComboBoxFromQuery('cpu','SELECT TC_ID,TC_NAME FROM TESTCPU ORDER BY TC_NAME',FCPU);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Version');
+        DumpLn('Version');
       CellNext;
         ComboBoxFromQuery('version','SELECT TV_ID,TV_VERSION FROM TESTVERSION ORDER BY TV_VERSION DESC',FVERSION);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Date');
+        DumpLn('Date');
       CellNext;
         If (FDate=0) then
           EmitInput('date','')
@@ -519,7 +612,7 @@ begin
       begin
         RowNext;
         CellStart;
-        Write('Submitter');
+        DumpLn('Submitter');
         CellNext;
         If (FSubmitter='') then
           EmitInput('submitter','')
@@ -528,7 +621,7 @@ begin
         CellEnd;
        RowNext;
         CellStart;
-        Write('Machine');
+        DumpLn('Machine');
         CellNext;
         If (FMachine='') then
           EmitInput('machine','')
@@ -537,7 +630,7 @@ begin
         CellEnd;
         RowNext;
         CellStart;
-        Write('Comment');
+        DumpLn('Comment');
         CellNext;
         If (FComment='') then
           EmitInput('comment','')
@@ -547,7 +640,7 @@ begin
 
         RowNext;
         CellStart;
-        Write('Cond');
+        DumpLn('Cond');
         CellNext;
         If (FCond='') then
           EmitInput('cond','')
@@ -557,19 +650,19 @@ begin
       end;
     RowNext;
       CellStart;
-        Write('Category');
+        DumpLn('Category');
       CellNext;
         ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Only failed tests');
+        DumpLn('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Hide skipped tests');
+        DumpLn('Hide skipped tests');
       CellNext;
         EmitCheckBox('noskipped','1',FNoSkipped);
       CellEnd;
@@ -582,7 +675,7 @@ begin
     EmitResetButton('','Reset form');
     FormEnd;
     end;
-//  ShowRunOverview;
+  ShowRunOverview;
 end;
 
 Procedure TTestSuite.EmitHistoryForm;
@@ -591,53 +684,54 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   EmitTitle(Title);
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('View Test suite results');
+    DumpLn('View Test suite results');
     HeaderEnd(1);
-    Write('Please specify search criteria:');
+    DumpLn('Please specify search criteria:');
     ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
       EmitHiddenVar('DEBUGCGI', '1');
-    EmitHiddenVar('action','4');
+    EmitHiddenVar('action',IntToStr(faction_show_history));
     TableStart(2,true);
     RowStart;
       CellStart;
-        Write('File:');
+        DumpLn('File:');
       CellNext;
         EmitInput('testfilename',FTestfilename);
       CellEnd;
     RowNext;
     (*   CellStart;
-        Write('FileID:');
+        DumpLn('FileID:');
       CellNext;
         EmitInput('testfileid',FTestfileid);
       CellEnd;
     RowNext; *)
 
       CellStart;
-        Write('Operating system:');
+        DumpLn('Operating system:');
       CellNext;
         ComboBoxFromQuery('os','SELECT TO_ID,TO_NAME FROM TESTOS ORDER BY TO_NAME',FOS);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Processor:');
+        DumpLn('Processor:');
       CellNext;
         ComboBoxFromQuery('cpu','SELECT TC_ID,TC_NAME FROM TESTCPU ORDER BY TC_NAME',FCPU);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Version');
+        DumpLn('Version');
       CellNext;
         ComboBoxFromQuery('version','SELECT TV_ID,TV_VERSION FROM TESTVERSION ORDER BY TV_VERSION DESC',FVERSION);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Date');
+        DumpLn('Date');
       CellNext;
         If (FDate=0) then
           EmitInput('date','')
@@ -646,7 +740,7 @@ begin
       CellEnd;
         RowNext;
         CellStart;
-        Write('Submitter');
+        DumpLn('Submitter');
         CellNext;
         If (FSubmitter='') then
           EmitInput('submitter','')
@@ -655,7 +749,7 @@ begin
         CellEnd;
        RowNext;
         CellStart;
-        Write('Machine');
+        DumpLn('Machine');
         CellNext;
         If (FMachine='') then
           EmitInput('machine','')
@@ -664,7 +758,7 @@ begin
         CellEnd;
         RowNext;
         CellStart;
-        Write('Comment');
+        DumpLn('Comment');
         CellNext;
         If (FComment='') then
           EmitInput('comment','')
@@ -673,14 +767,14 @@ begin
         CellEnd;
         RowNext;
         CellStart;
-        Write('Limit');
+        DumpLn('Limit');
         CellNext;
         EmitInput('limit',IntToStr(FLimit));
         CellEnd;
 
         RowNext;
         CellStart;
-        Write('Cond');
+        DumpLn('Cond');
         CellNext;
         If (FCond='') then
           EmitInput('cond','')
@@ -689,25 +783,25 @@ begin
         CellEnd;
     RowNext;
       CellStart;
-        Write('Category');
+        DumpLn('Category');
       CellNext;
         ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Only failed tests');
+        DumpLn('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
       CellEnd;
     RowNext;
       CellStart;
-        Write('Hide skipped tests');
+        DumpLn('Hide skipped tests');
       CellNext;
         EmitCheckBox('noskipped','1',FNoSkipped);
       CellEnd;
     RowNext;
       CellStart;
-        Write('List all tests');
+        DumpLn('List all tests');
       CellNext;
         EmitCheckBox('listall','1',FListAll);
       CellEnd;
@@ -715,6 +809,8 @@ begin
     RowEnd;
     TableEnd;
     ParaGraphStart;
+    if FDebug then
+      EmitHiddenVar('DEBUGCGI', '1');
     EmitSubmitButton('','Search');
     EmitResetButton('','Reset form');
     FormEnd;
@@ -849,9 +945,9 @@ begin
 
    A:=SDetailsURL;
    If FOnlyFailed then
-     A:=A+'&failedonly=1';
+     A:=A+'&amp;failedonly=1';
    If FNoSkipped then
-     A:=A+'&noskipped=1';
+     A:=A+'&amp;noskipped=1';
      
   if S <> '' then
   begin
@@ -873,6 +969,7 @@ begin
             CreateColumns(Nil);
             TableColumns.ColumnByName('ID').ActionURL:=A;
             TableColumns.ColumnByNAme('Failed').OnGetCellContents:=@FormatFailedOverview;
+            TableColumns.ColumnByNAme('svnrev').OnGetCellContents:=@FormatSVN;
             CreateTable(Response);
           Finally
             Free;
@@ -891,41 +988,71 @@ Function TTestSuite.GetOSName(ID : String) : String;
 
 begin
   if (ID<>'') then
-    Result:=GetSingleTon('SELECT TO_NAME FROM TESTOS WHERE TO_ID='+ID);
+    Result:=GetSingleTon('SELECT TO_NAME FROM TESTOS WHERE TO_ID='+ID)
+  else
+    Result:='';
 end;
 
 Function TTestSuite.GetTestFileName(ID : String) : String;
 
 begin
   if (ID<>'') then
-    Result:=GetSingleTon('SELECT T_NAME FROM TESTS WHERE T_ID='+ID);
+    Result:=GetSingleTon('SELECT T_NAME FROM TESTS WHERE T_ID='+ID)
+  else
+    Result:='';
 end;
 
 Function TTestsuite.GetFailCount(RunID : longint) : string;
 begin
   if RunID<>0 then
-    Result:=GetSingleTon('SELECT (TU_FAILEDTOCOMPILE + TU_FAILEDTOFAIL + TU_FAILEDTORUN) FROM TESTRUN WHERE TU_ID='+IntToStr(RunID));
+    Result:=GetSingleTon('SELECT (TU_FAILEDTOCOMPILE + TU_FAILEDTOFAIL + TU_FAILEDTORUN) FROM TESTRUN WHERE TU_ID='+IntToStr(RunID))
+  else
+    Result:='';
 end;
 
 Function TTestSuite.GetCPUName(ID : String) : String;
 
 begin
   if (ID<>'') then
-    Result:=GetSingleTon('SELECT TC_NAME FROM TESTCPU WHERE TC_ID='+ID);
+    Result:=GetSingleTon('SELECT TC_NAME FROM TESTCPU WHERE TC_ID='+ID)
+  else
+    Result:='';
 end;
 
 Function TTestSuite.GetVersionName(ID : String) : String;
 
 begin
   if (ID<>'') then
-    Result:=GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+ID);
+    Result:=GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+ID)
+  else
+    Result:='';
 end;
 
 Function TTestSuite.GetCategoryName(ID : String) : String;
 
 begin
   if (ID<>'') then
-    Result:=GetSingleton('SELECT TCAT_NAME FROM TESTCATEGORY WHERE TCAT_ID='+ID);
+    Result:=GetSingleton('SELECT TCAT_NAME FROM TESTCATEGORY WHERE TCAT_ID='+ID)
+  else
+    Result:='';
+end;
+
+Function TTestSuite.GetPreviousRunID(RunID : String) : String;
+
+begin
+  if (RunID<>'') then
+    Result:=GetSingleton('SELECT TH_PREVIOUS_FK FROM TESTRUNHISTORY WHERE TH_ID_FK='+RunID)
+  else
+    Result:='';
+end;
+
+Function TTestSuite.GetNextRunID(RunID : String) : String;
+
+begin
+  if (RunID<>'') then
+    Result:=GetSingleton('SELECT TH_ID_FK FROM TESTRUNHISTORY WHERE TH_PREVIOUS_FK='+RunID)
+  else
+    Result:='';
 end;
 
 Function TTestSuite.ShowRunData : Boolean;
@@ -954,6 +1081,7 @@ Var
   F : TField;
   SC : string;
   Date1, Date2: TDateTime;
+  AddNewPar : boolean;
   CompilerDate1, CompilerDate2: TDateTime;
 begin
   Result:=(FRunID<>'');
@@ -978,14 +1106,13 @@ begin
         Q2.Open;
       Result:=Not (Q1.EOF and Q1.BOF);
       If Result then
-        With FHTMLWriter do
-          begin
+       With FHTMLWriter do
+        begin
           FormStart(TestsuiteCGIURL,'get');
-          EmitHiddenVar('action', '1');
           TableStart(3,true);
           RowStart;
             CellStart;
-              Write('Run ID:');
+              DumpLn('Run ID:');
             CellNext;
               EmitInput('run1id',FRunID);
             CellNext;
@@ -993,110 +1120,116 @@ begin
             CellEnd;
           RowNext;
             CellStart;
-              Write('Operating system:');
+              DumpLn('Operating system:');
             CellNext;
-              Write(Q1.FieldByName('TO_NAME').AsString);
+              DumpLn(Q1.FieldByName('TO_NAME').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByName('TO_NAME').AsString);
+                DumpLn(Q2.FieldByName('TO_NAME').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Processor:');
+              DumpLn('Processor:');
             CellNext;
-              Write(Q1.FieldByName('TC_NAME').AsString);
+              DumpLn(Q1.FieldByName('TC_NAME').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByName('TC_NAME').AsString);
+                DumpLn(Q2.FieldByName('TC_NAME').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Version:');
+              DumpLn('Version:');
             CellNext;
-              Write(Q1.FieldByNAme('TV_VERSION').AsString);
+              DumpLn(Q1.FieldByNAme('TV_VERSION').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByNAme('TV_VERSION').AsString);
+                DumpLn(Q2.FieldByNAme('TV_VERSION').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Fails/OK/Total:');
+              DumpLn('Fails/OK/Total:');
             CellNext;
-              Write(Q1.FieldByName('Failed').AsString);
-              Write('/'+Q1.FieldByName('OK').AsString);
-              Write('/'+Q1.FieldByName('Total').AsString);
+              Dump(Q1.FieldByName('Failed').AsString);
+              Dump('/'+Q1.FieldByName('OK').AsString);
+              DumpLn('/'+Q1.FieldByName('Total').AsString);
             CellNext;
               if Q2 <> nil then
                 begin
-                  Write(Q2.FieldByName('Failed').AsString);
-                  Write('/'+Q2.FieldByName('Ok').AsString);
-                  Write('/'+Q2.FieldByName('Total').AsString);
+                  Dump(Q2.FieldByName('Failed').AsString);
+                  Dump('/'+Q2.FieldByName('Ok').AsString);
+                  DumpLn('/'+Q2.FieldByName('Total').AsString);
                end;
             CellEnd;
 
           RowNext;
             CellStart;
-              Write('Comment:');
+              DumpLn('Comment:');
             CellNext;
-              Write(Q1.FieldByName('TU_COMMENT').AsString);
+              DumpLn(Q1.FieldByName('TU_COMMENT').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByName('TU_COMMENT').AsString);
+                DumpLn(Q2.FieldByName('TU_COMMENT').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Machine:');
+              DumpLn('Machine:');
             CellNext;
-              Write(Q1.FieldByName('TU_MACHINE').AsString);
+              DumpLn(Q1.FieldByName('TU_MACHINE').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByName('TU_MACHINE').AsString);
+                DumpLn(Q2.FieldByName('TU_MACHINE').AsString);
             CellEnd;
           if GetCategoryName(FCategory)<>'All' then
             begin
               RowNext;
                 CellStart;
-                Write('Category:');
+                DumpLn('Category:');
                 CellNext;
-                Write(GetCategoryName(Q1.FieldByName('TU_CATEGORY_FK').AsString));
+                DumpLn(GetCategoryName(Q1.FieldByName('TU_CATEGORY_FK').AsString));
                 CellNext;
                 if Q2 <> nil then
-                  Write(GetCategoryName(Q2.FieldByName('TU_CATEGORY_FK').AsString));
+                  DumpLn(GetCategoryName(Q2.FieldByName('TU_CATEGORY_FK').AsString));
                 CellEnd;
             end;
           If GetCategoryName(FCategory)<>'DB' then
             begin
               RowNext;
                 CellStart;
-                Write('SVN Revisions:');
+                DumpLn('SVN Revisions:');
                 CellNext;
-                Write(Q1.FieldByName('svnrev').AsString);
+                SC:=Q1.FieldByName('svnrev').AsString;
+                FormatSVNData(SC);
+                LDumpLn(SC);
                 CellNext;
                 if Q2 <> nil then
-                  Write(Q2.FieldByName('svnrev').AsString);
+                  begin
+                    SC:=Q2.FieldByName('svnrev').AsString;
+                    FormatSVNData(SC);
+                    LDumpLn(SC);
+                  end;
                 CellEnd;
             end;
            RowNext;
             CellStart;
-              Write('Submitter:');
+              DumpLn('Submitter:');
             CellNext;
-              Write(Q1.FieldByName('TU_SUBMITTER').AsString);
+              DumpLn(Q1.FieldByName('TU_SUBMITTER').AsString);
             CellNext;
               if Q2 <> nil then
-                Write(Q2.FieldByName('TU_SUBMITTER').AsString);
+                DumpLn(Q2.FieldByName('TU_SUBMITTER').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Date:');
+              DumpLn('Date:');
             CellNext;
               F := Q1.FieldByName('TU_DATE');
               Date1 := F.AsDateTime;
-              Write(F.AsString);
+              DumpLn(F.AsString);
               F := Q1.FieldByName('TU_COMPILERDATE');
               Try
                 CompilerDate1 := F.AsDateTime;
                 if not SameDate(Date1,CompilerDate1) then
-                  Write(' <> '+F.AsString);
+                  DumpLn(' <> '+F.AsString);
               Except
                 { Not a valid date, do nothing }
               end;
@@ -1105,29 +1238,94 @@ begin
                 begin
                 F := Q2.FieldByName('TU_DATE');
                 Date2 := F.AsDateTime;
-                Write(F.AsString);
+                DumpLn(F.AsString);
                 F := Q2.FieldByName('TU_COMPILERDATE');
                 Try
                   CompilerDate2 := F.AsDateTime;
                   if not SameDate(Date2,CompilerDate2) then
-                    Write(' <> '+F.AsString);
+                    DumpLn(' <> '+F.AsString);
                 Except
                   { Not a valid date, do nothing }
                 end;
                 end;
             CellEnd;
+          RowNext;
+            CellStart;
+              DumpLn('Previous run:');
+            CellNext;
+              FPreviousRunID:=GetPreviousRunID(FRunID);
+              if FPreviousRunID<>'' then
+                EmitHiddenVar('previousrunid',FPreviousRunID);
+              DumpLn(FPreviousRunID);
+            CellNext;
+              if (FCompareRunID<>'') then
+                begin
+                  FPrevious2RunID:=GetPreviousRunID(FCompareRunID);
+                  DumpLn(FPrevious2RunID);
+                  if FPrevious2RunID <> '' then
+                    EmitHiddenVar('previous2runid',FPrevious2RunID);
+                end;
+            CellEnd;
+          RowNext;
+            CellStart;
+              DumpLn('Next run:');
+            CellNext;
+              FNextRunID:=GetNextRunID(FRunID);
+              if FNextRunID<>'' then
+                EmitHiddenVar('nextrunid',FNextRunID);
+              DumpLn(FNextRunID);
+            CellNext;
+              if (FCompareRunID<>'') then
+                begin
+                  FNext2RunID:=GetNextRunID(FCompareRunID);
+                  DumpLn(FNext2RunID);
+                  if FNext2RunID <> '' then
+                    EmitHiddenVar('next2runid',FNext2RunID);
+                end;
+            CellEnd;
           RowEnd;
           TableEnd;
           ParagraphStart;
+          if FDebug then
+            EmitHiddenVar('DEBUGCGI', '1');
           EmitCheckBox('noskipped','1',FNoSkipped);
-          Write(' Hide skipped tests');
+          DumpLn(' Hide skipped tests');
 	  ParagraphEnd;
 	  ParagraphStart;
           EmitCheckBox('failedonly','1',FonlyFailed);
-          Write(' Hide successful tests');
+          DumpLn(' Hide successful tests');
           ParagraphEnd;
           ParaGraphStart;
-          EmitSubmitButton('','Show/Compare');
+          AddNewPar:=false;
+          if FPreviousRunID<>'' then
+            begin
+              EmitSubmitButton('action','Compare_to_previous');
+              AddNewPar:=true;
+            end;
+          if (FNextRunID<>'') and (FNextRunID <> FCompareRunID) then
+            begin
+              EmitSubmitButton('action','Compare_to_next');
+              AddNewPar:=true;
+            end;
+          if (FPrevious2RunID<>'') and (FPrevious2RunID <> FRunID) then
+            begin
+              EmitSubmitButton('action','Compare_right_to_previous');
+              AddNewPar:=true;
+            end;
+          if FNext2RunID<>'' then
+            begin
+              EmitSubmitButton('action','Compare_right_to_next');
+              AddNewPar:=true;
+            end;
+          if AddNewPar then
+            begin
+              ParagraphEnd;
+              ParaGraphStart;
+            end;
+              
+          EmitSubmitButton('action','Show/Compare');
+          if FTestFileID<>'' then
+            EmitSubmitButton('action','View_history');
           EmitResetButton('','Reset form');
           ParagraphEnd;
           FormEnd;
@@ -1135,7 +1333,7 @@ begin
           if (Q2 <> nil) and (Date1 > Date2) then
             begin
             ParagraphStart;
-            Write('Warning: testruns are not compared in chronological order.');
+            DumpLn('Warning: testruns are not compared in chronological order.');
             ParagraphEnd;
             end;
           end;
@@ -1163,19 +1361,20 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   EmitTitle(Title+' : Search Results');
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('Test suite results for run '+FRunID);
+    DumpLn('Test suite results for run '+FRunID);
     HeaderEnd(1);
     HeaderStart(2);
-    Write('Test run data : ');
+    DumpLn('Test run data : ');
     HeaderEnd(2);
     If ShowRunData then
       begin
       HeaderStart(2);
-      Write('Detailed test run results:');
+      DumpLn('Detailed test run results:');
 
       FL:='';
       If FOnlyFailed or FNoSkipped then
@@ -1189,10 +1388,9 @@ begin
             FL:=FL+' and ';
           FL:=FL+'skipped';
           end;
-        Write(' ('+FL+' tests are hidden)');
+        DumpLn(' ('+FL+' tests are hidden)');
         end;
       HeaderEnd(2);
-      ParaGraphStart;
       S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped'
         +',TR_OK as OK,TR_RESULT as Result'
         +' FROM '+TESTRESULTSTableName(FRunID)+',TESTS'
@@ -1206,8 +1404,9 @@ begin
       Qry:=S;
       If FDebug then
         begin
-        Writeln('Query : '+Qry);
-        Flush(stdout);
+        ParaGraphStart;
+        Dumpln('Query : '+Qry);
+        ParaGraphEnd;
       end;
       FRunCount:=0;
       FRunSkipCount:=0;
@@ -1254,11 +1453,16 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+
+        '?action=2&amp;pietotal=%d&amp;piefailed=%d&amp;pieskipped=%d"'+
+        ' ALT="total=%d, failed=%d, skipped=%d"',
+        [FRunCount,FRunFailedCount,FRunSkipCount,
+          FRunCount,FRunFailedCount,FRunSkipCount
+          ]));
         end;
       end
     else
-      Write('No data for test run with ID: '+FRunID);
+      DumpLn('No data for test run with ID: '+FRunID);
     end;
 end;
 
@@ -1278,6 +1482,7 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   if FTestFileID='' then
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
      FTestFileName+'%''');
@@ -1287,10 +1492,10 @@ begin
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('Test suite results for test file '+FTestFileName);
+    DumpLn('Test suite results for test file '+FTestFileName);
     HeaderEnd(1);
     HeaderStart(2);
-    Write('Test run data : ');
+    DumpLn('Test run data : ');
     HeaderEnd(2);
     if FRunID<>'' then
       begin
@@ -1301,16 +1506,16 @@ begin
       begin
         // This is useless as it is now
         // It should be integrated into a form probably PM
-        Write('Only failed tests');
+        DumpLn('Only failed tests');
         EmitCheckBox('failedonly','1',FonlyFailed);
-        Write('Hide skipped tests');
+        DumpLn('Hide skipped tests');
         EmitCheckBox('noskipped','1',FNoSkipped);
         Res:=true;
       end;
     If Res then
       begin
       HeaderStart(2);
-      Write('Test file "'+FTestFileName+'" information:');
+      DumpLn('Test file "'+FTestFileName+'" information:');
       HeaderEnd(2);
       ParaGraphStart;
       if FTestFileID<>'' then
@@ -1331,13 +1536,13 @@ begin
                    (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                   begin
                     if (FieldValue='+') then
-                      Write('Flag ');
-                    Write(FieldName);
-                    Write(' ');
+                      DumpLn('Flag ');
+                    DumpLn(FieldName);
+                    DumpLn(' ');
                     if FieldValue='+' then
-                      Write(' set')
+                      DumpLn(' set')
                     else
-                      Write(FieldValue);
+                      DumpLn(FieldValue);
                     DumpLn('<BR>');
                   end;
               end;
@@ -1350,10 +1555,9 @@ begin
         end;
       ParaGraphEnd;
       HeaderStart(2);
-      Write('Detailed test run results:');
+      DumpLn('Detailed test run results:');
 
       HeaderEnd(2);
-      ParaGraphStart;
       S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
       //S:='SELECT * '
         +' FROM '+TESTRESULTSTableName(FRunID)
@@ -1384,8 +1588,9 @@ begin
       Qry:=S;
       If FDebug then
       begin
-        Writeln('Query : '+Qry);
-        Flush(stdout);
+        ParaGraphStart;
+        Dumpln('Query : '+Qry);
+        ParaGraphEnd;
       end;
       FRunCount:=0;
       FRunSkipCount:=0;
@@ -1411,7 +1616,9 @@ begin
               Finally
                 Free;
               end;
+           ParaGraphStart;
            DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
+           ParaGraphEnd;
           Finally
             Close;
           end;
@@ -1431,7 +1638,7 @@ begin
                 if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Log of '+FRunId+':');
+                    DumpLn('Log of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
                     system.Write(LLog);
@@ -1442,7 +1649,7 @@ begin
                   if LLog='' then
                     begin
                       HeaderStart(2);
-                      Write('No log of '+FRunId+'.');
+                      DumpLn('No log of '+FRunId+'.');
                       HeaderEnd(2);
                     end;
                 end;
@@ -1456,7 +1663,7 @@ begin
                 if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Log of '+FCompareRunId+':');
+                    DumpLn('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
                     system.Write(LLog);
@@ -1467,20 +1674,20 @@ begin
                   if LLog='' then
                     begin
                       HeaderStart(2);
-                      Write('No log of '+FCompareRunId+'.');
+                      DumpLn('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
                     end;
                 end;
               end;
             if FDebug then
-              Write('After Log.');
+              DumpLn('After Log.');
             Source:='';
             Try
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
             if Source<>'' then
               begin
                 HeaderStart(2);
-                Write('Source:');
+                DumpLn('Source:');
                 HeaderEnd(2);
                 PreformatStart;
                 system.Write(Source);
@@ -1529,10 +1736,10 @@ begin
               end;
             end;
              if FDebug then
-              Write('After Source.');
+              DumpLn('After Source.');
     end
     else
-      Write(Format('No data for test file with ID: %s',[FTestFileID]));
+      DumpLn(Format('No data for test file with ID: %s',[FTestFileID]));
 
     end;
 end;
@@ -1585,6 +1792,7 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   if (FTestFileID='') and (FTestFileName<>'') then
   begin
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
@@ -1601,10 +1809,10 @@ begin
     if FTestFileName<>'' then
       begin
         HeaderStart(1);
-        Write('Test suite results for test file '+FTestFileName);
+        DumpLn('Test suite results for test file '+FTestFileName);
         HeaderEnd(1);
         HeaderStart(2);
-        Write('Test run data : ');
+        DumpLn('Test run data : ');
         HeaderEnd(2);
       end;
     if FRunID<>'' then
@@ -1616,9 +1824,9 @@ begin
       begin
         // This is useless as it is now
         // It should be integrated into a form probably PM
-        //Write('Only failed tests');
+        //DumpLn('Only failed tests');
         //EmitCheckBox('failedonly','1',FonlyFailed);
-        //Write('Hide skipped tests');
+        //DumpLn('Hide skipped tests');
         //EmitCheckBox('noskipped','1',FNoSkipped);
         Res:=true;
         EmitHistoryForm;
@@ -1626,9 +1834,9 @@ begin
           with FHTMLWriter do begin
             HeaderStart(2);
             if Trim(FTestFileName) <> '' then
-              Write(Format('Error: No test files matching "%s" found.', [FTestFileName]))
+              DumpLn(Format('Error: No test files matching "%s" found.', [FTestFileName]))
             else
-              Write('Error: Please specify a test file.');
+              DumpLn('Error: Please specify a test file.');
             HeaderEnd(2);
             Res:=False;
           end;
@@ -1638,7 +1846,7 @@ begin
         if (FTestFileName<>'') then
           begin
           HeaderStart(2);
-          Write('Test file "'+FTestFileName+'" information:');
+          DumpLn('Test file "'+FTestFileName+'" information:');
           HeaderEnd(2);
           ParaGraphStart;
           S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
@@ -1655,13 +1863,13 @@ begin
                        (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                       begin
                         if (FieldValue='+') then
-                          Write('Flag ');
-                        Write(FieldName);
-                        Write(' ');
+                          DumpLn('Flag ');
+                        DumpLn(FieldName);
+                        DumpLn(' ');
                         if FieldValue='+' then
-                          Write(' set')
+                          DumpLn(' set')
                         else
-                          Write(FieldValue);
+                          DumpLn(FieldValue);
                         DumpLn('<BR>');
                       end;
                   end;
@@ -1674,7 +1882,7 @@ begin
             end;
           ParaGraphEnd;
           HeaderStart(2);
-          Write('Detailed test run results:');
+          DumpLn('Detailed test run results:');
         end;
       HeaderEnd(2);
       ParaGraphStart;
@@ -1973,17 +2181,17 @@ begin
               TableStart(5,True);
               RowStart;
               CellStart;
-              Write('Result type');
+              DumpLn('Result type');
               CellNext;
-              Write('Cat.');
+              DumpLn('Cat.');
               CellNext;
-              Write('Count');
+              DumpLn('Count');
               CellNext;
-              Write('Percentage');
+              DumpLn('Percentage');
               CellNext;
-              Write('First date');
+              DumpLn('First date');
               CellNext;
-              Write('Last Date');
+              DumpLn('Last Date');
               CellEnd;
             end;
           For TS:=FirstStatus to LastStatus do
@@ -1991,21 +2199,21 @@ begin
               begin
                 RowNext;
                 CellStart;
-                Write(StatusText[TS]);
+                DumpLn(StatusText[TS]);
                 CellNext;
                 CellNext;
-                Write(Format('%d',[Result_count[TS]]));
+                DumpLn(Format('%d',[Result_count[TS]]));
                 CellNext;
-                Write(Format('%3.1f',[Result_count[TS]*100/total_count]));
+                DumpLn(Format('%3.1f',[Result_count[TS]*100/total_count]));
                 CellNext;
 
                 DumpLn(FormatDetailURL(IntToStr(first_date_id[TS]),
                   DateTimeToStr(first_date[TS])));
-                Write(' '+GetFailCount(first_date_id[TS]));
+                DumpLn(' '+GetFailCount(first_date_id[TS]));
                 CellNext;
                 DumpLn(FormatDetailURL(IntToStr(last_date_id[TS]),
                   DateTimeToStr(last_date[TS])));
-                Write(' '+GetFailCount(last_date_id[TS]));
+                DumpLn(' '+GetFailCount(last_date_id[TS]));
                 CellEnd;
                 if assigned(cpu_count) then
                   begin
@@ -2015,19 +2223,19 @@ begin
                           RowNext;
                           CellStart;
                           CellNext;
-                          Write(GetSingleton('SELECT TC_NAME FROM TESTCPU WHERE TC_ID='+IntToStr(i)));
+                          DumpLn(GetSingleton('SELECT TC_NAME FROM TESTCPU WHERE TC_ID='+IntToStr(i)));
                           CellNext;
-                          Write(Format('%d',[cpu_count^[i,TS]]));
+                          DumpLn(Format('%d',[cpu_count^[i,TS]]));
                           CellNext;
-                          Write(Format('%3.1f',[cpu_count^[i,TS]*100/result_count[TS]]));
+                          DumpLn(Format('%3.1f',[cpu_count^[i,TS]*100/result_count[TS]]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(cpu_first_date_id^[i,TS]),
                             DateTimeToStr(cpu_first_date^[i,TS])));
-                          Write(' '+GetFailCount(cpu_first_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(cpu_first_date_id^[i,TS]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(cpu_last_date_id^[i,TS]),
                             DateTimeToStr(cpu_last_date^[i,TS])));
-                          Write(' '+GetFailCount(cpu_last_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(cpu_last_date_id^[i,TS]));
                           CellEnd;
                         end;
                   end;
@@ -2039,19 +2247,19 @@ begin
                           RowNext;
                           CellStart;
                           CellNext;
-                          Write(GetSingleton('SELECT TO_NAME FROM TESTOS WHERE TO_ID='+IntToStr(i)));
+                          DumpLn(GetSingleton('SELECT TO_NAME FROM TESTOS WHERE TO_ID='+IntToStr(i)));
                           CellNext;
-                          Write(Format('%d',[os_count^[i,TS]]));
+                          DumpLn(Format('%d',[os_count^[i,TS]]));
                           CellNext;
-                          Write(Format('%3.1f',[os_count^[i,TS]*100/result_count[TS]]));
+                          DumpLn(Format('%3.1f',[os_count^[i,TS]*100/result_count[TS]]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(os_first_date_id^[i,TS]),
                             DateTimeToStr(os_first_date^[i,TS])));
-                          Write(' '+GetFailCount(os_first_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(os_first_date_id^[i,TS]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(os_last_date_id^[i,TS]),
                             DateTimeToStr(os_last_date^[i,TS])));
-                          Write(' '+GetFailCount(os_last_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(os_last_date_id^[i,TS]));
                           CellEnd;
 
                         end;
@@ -2066,19 +2274,19 @@ begin
                           RowNext;
                           CellStart;
                           CellNext;
-                          Write(GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+IntToStr(i)));
+                          DumpLn(GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+IntToStr(i)));
                           CellNext;
-                          Write(Format('%d',[version_count^[i,TS]]));
+                          DumpLn(Format('%d',[version_count^[i,TS]]));
                           CellNext;
-                          Write(Format('%3.1f',[version_count^[i,TS]*100/result_count[TS]]));
+                          DumpLn(Format('%3.1f',[version_count^[i,TS]*100/result_count[TS]]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(version_first_date_id^[i,TS]),
                             DateTimeToStr(version_first_date^[i,TS])));
-                          Write(' '+GetFailCount(version_first_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(version_first_date_id^[i,TS]));
                           CellNext;
                           DumpLn(FormatDetailURL(IntToStr(version_last_date_id^[i,TS]),
                             DateTimeToStr(version_last_date^[i,TS])));
-                          Write(' '+GetFailCount(version_last_date_id^[i,TS]));
+                          DumpLn(' '+GetFailCount(version_last_date_id^[i,TS]));
                           CellEnd;
 
                         end;
@@ -2145,7 +2353,7 @@ begin
                 if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('LLog of '+FRunId+':');
+                    DumpLn('LLog of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
                     system.Write(LLog);
@@ -2156,7 +2364,7 @@ begin
                   if LLog='' then
                     begin
                       HeaderStart(2);
-                      Write('No log of '+FRunId+'.');
+                      DumpLn('No log of '+FRunId+'.');
                       HeaderEnd(2);
                     end;
                 end;
@@ -2170,7 +2378,7 @@ begin
                 if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Log of '+FCompareRunId+':');
+                    DumpLn('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
                     system.Write(LLog);
@@ -2181,13 +2389,13 @@ begin
                   if LLog='' then
                     begin
                       HeaderStart(2);
-                      Write('No log of '+FCompareRunId+'.');
+                      DumpLn('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
                     end;
                 end;
               end;
             if FDebug then
-              Write('After log.');
+              DumpLn('After log.');
             Source:='';
             Try
               if ftestfileid <> '' then
@@ -2196,7 +2404,7 @@ begin
                 if Source<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Source:');
+                    DumpLn('Source:');
                     HeaderEnd(2);
                     PreformatStart;
                     system.Write(Source);
@@ -2246,7 +2454,7 @@ begin
               end;
             end;
              if FDebug then
-              Write('After Source.');
+              DumpLn('After Source.');
     end;
 
     end;
@@ -2289,19 +2497,20 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
+  EmitDocType;
   EmitTitle(Title+' : Compare 2 runs');
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('Test suite results for run '+FRunID+' vs. '+FCompareRunID);
+    DumpLn('Test suite results for run '+FRunID+' vs. '+FCompareRunID);
     HeaderEnd(1);
     HeaderStart(2);
-    Write('Test run data: ');
+    DumpLn('Test run data: ');
     HeaderEnd(2);
     If ShowRunData then
       begin
       HeaderStart(2);
-      Write('Detailed test run results:');
+      DumpLn('Detailed test run results:');
 
       FL:='';
       If FOnlyFailed or FNoSkipped then
@@ -2315,7 +2524,7 @@ begin
             FL:=FL+' and ';
           FL:=FL+'skipped';
           end;
-        Write(' ('+FL+' tests are hidden)');
+        DumpLn(' ('+FL+' tests are hidden)');
         end;
       HeaderEnd(2);
       ParaGraphStart;
@@ -2351,8 +2560,8 @@ begin
       Qry:=Format(S,[Qry]);
       If FDebug then
         begin
-        Writeln('Query: '+Qry);
-        Flush(stdout);
+        system.WriteLn('Query: '+Qry);
+        system.Flush(stdout);
         end;
       FRunCount:=0;
       FRunSkipCount:=0;
@@ -2365,12 +2574,14 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='Filename,Run1_OK,Run2_OK';
+                FL:='Id,Filename,Run1_OK,Run2_OK';
                 If Not FNoSkipped then
                   FL:=FL+',Run1_Skipped,Run2_Skipped';
                 FL:=FL+',Run1_Result,Run2_Result';
                 CreateColumns(FL);
                 OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('Id').OnGetCellContents:=
+                  @FormatFileIDDetails;
                 TableColumns.ColumnByNAme('Run1_Result').OnGetCellContents:=
                   @FormatTestResult;
                 TableColumns.ColumnByNAme('Run2_Result').OnGetCellContents:=
@@ -2382,7 +2593,7 @@ begin
               Finally
                 Free;
               end;
-            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+            DumpLn(format('<p>Record count: %d</P>',[Q.RecordCount]));
           Finally
             Close;
           end;
@@ -2392,11 +2603,16 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="'+TestsuiteCGIURL+
+        '?action=2&amp;pietotal=%d&amp;piefailed=%d&amp;pieskipped=%d"'+
+        ' ALT="total=%d, failed=%d, skipped=%d"',
+        [FRunCount,FRunFailedCount,FRunSkipCount,
+          FRunCount,FRunFailedCount,FRunSkipCount
+          ]));
         end;
       end
     else
-      Write('No data for test run with ID: '+FRunID);
+      DumpLn('No data for test run with ID: '+FRunID);
     end;
 end;
 
@@ -2463,7 +2679,7 @@ Var
 begin
   P:=(Sender as TTableProducer);
   S:=Format(SDetailsURL,[P.DataSet.FieldByName('ID').AsString]);
-  S:=S+'&failedonly=1&noskipped=1';
+  S:=S+'&amp;failedonly=1&amp;noskipped=1';
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
@@ -2474,26 +2690,71 @@ Var
 begin
   S:=Format(SDetailsURL,[RunIdStr]);
   if FOnlyFailed then
-    S:=S+'&failedonly=1';
+    S:=S+'&amp;failedonly=1';
   if FNoSkipped then
-    S:=S+'&noskipped=1';
+    S:=S+'&amp;noskipped=1';
   FormatDetailURL:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
 procedure TTestSuite.FormatTestRunOverview(Sender: TObject; var CellData: String);
-
 Var
   S: String;
   P : TTableProducer;
-
 begin
   P:=(Sender as TTableProducer);
   S:=Format(SDetailsURL,[P.DataSet.FieldByName('RUN').AsString]);
   if FOnlyFailed then
-    S:=S+'&failedonly=1';
+    S:=S+'&amp;failedonly=1';
   if FNoSkipped then
-    S:=S+'&noskipped=1';
+    S:=S+'&amp;noskipped=1';
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
+end;
+
+procedure TTestSuite.FormatSVN(Sender: TObject; var CellData: String);
+begin
+  FormatSVNData(CellData);
+end;
+
+procedure TTestSuite.FormatSVNData(var CellData: String);
+Var
+  S, Rev, SubStr, Remaining : String;
+  P : TTableProducer;
+  pos_colon, pos_sep : longint;
+begin
+  pos_sep:=pos('/', CellData);
+  if pos_sep=0 then
+    begin
+      pos_colon:=pos(':',CellData);
+      S:=ViewRevURL+copy(CellData,pos_colon+1,length(CellData));
+      CellData:=Format('<A HREF="%s" target="_blank">%s</A>',[S,CellData]);
+    end
+  else
+    begin
+      SubStr:=Copy(CellData,1,pos_sep-1);
+      Remaining:=Copy(CellData,pos_sep+1,length(CellData));
+      CellData:='';
+      while SubStr<>'' do
+        begin
+          pos_colon:=pos(':',SubStr);
+          Rev:=copy(SubStr,pos_colon+1,length(SubStr));
+          { Remove suffix like M for modified...}
+          while not (Rev[length(Rev)] in ['0'..'9']) do
+            Rev:=Copy(Rev,1,length(Rev)-1);
+          S:=ViewRevURL+Rev;
+          CellData:=CellData+Format('<A HREF="%s" target="_blank">%s</A>',[S,SubStr]);
+          if Remaining='' then
+            SubStr:=''
+          else
+            begin
+              pos_sep:=pos('/',Remaining);
+              if pos_sep=0 then
+                pos_sep:=length(Remaining)+1;
+              CellData:=CellData+':';
+              SubStr:=Copy(Remaining,1,pos_sep-1);
+              Remaining:=Copy(Remaining,pos_sep+1,length(Remaining));
+            end;
+        end;
+    end;
 end;
 
 procedure TTestSuite.FormatFileIDDetails(Sender: TObject; var CellData: String);
@@ -2505,11 +2766,11 @@ Var
 begin
   P:=(Sender as TTableProducer);
   if FVersion<>'' then
-    S:=Format(TestSuiteCGIURL + '?action=4&version=%s&testfileid=%s',
-       [FVersion,P.DataSet.FieldByName('Id').AsString])
+    S:=Format(TestSuiteCGIURL + '?action=%d&amp;version=%s&amp;testfileid=%s',
+       [faction_show_history,FVersion,P.DataSet.FieldByName('Id').AsString])
   else
-    S:=Format(TestSuiteCGIURL + '?action=4&testfileid=%s',
-       [P.DataSet.FieldByName('Id').AsString]);
+    S:=Format(TestSuiteCGIURL + '?action=%d&amp;testfileid=%s',
+       [faction_show_history,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
@@ -2523,11 +2784,11 @@ Var
 begin
   P:=(Sender as TTableProducer);
   if FCompareRunID<>'' then
-    S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
-       [FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
+    S:=Format(TestSuiteCGIURL + '?action=%d&amp;run1id=%s&amp;run2id=%s&amp;testfileid=%s',
+       [faction_show_one_test,FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
   else
-    S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&testfileid=%s',
-       [FRunID,P.DataSet.FieldByName('Id').AsString]);
+    S:=Format(TestSuiteCGIURL + '?action=%d&amp;run1id=%s&amp;testfileid=%s',
+       [faction_show_one_test,FRunID,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
@@ -2571,6 +2832,7 @@ begin
           Free;
         end;
       ContentType:='image/png';
+      //EmitDocType;
       EmitContentType;
       M.Position:=0;
       Response.CopyFrom(M,M.Size);
@@ -2687,17 +2949,8 @@ begin
   if FDebug then
     begin
       Writeln(stdout,'Setting text');
-      Writeln(stdout,'Palette size : ',Img.Palette.Count);
+      system.flush(stdout);
     end;
-
-  cnv.font.FPColor:=colred;
-  Inc(FH,4);
-  FR:=Failed/Total;
-  SR:=Skipped/Total;
-  PR:=1-(FR+SR);
-  Cnv.Textout(1,FH,Format('%d Failed (%3.1f%%)',[Failed,Fr*100]));
-  // Writeln('Palette size : ',Img.Palette.Count);
-  cnv.font.FPColor:=colYellow;
   Cnv.Textout(1,FH*2,Format('%d Skipped (%3.1f%%)',[Skipped,SR*100]));
   A1:=(Pi*2*(failed/total));
   A2:=A1+(Pi*2*(Skipped/Total));
@@ -2718,6 +2971,6 @@ begin
   else
     TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+TestsuiteBin;
 
-  SDetailsURL := TestsuiteCGIURL + '?action=1&run1id=%s';
+  SDetailsURL := TestsuiteCGIURL + '?action=1&amp;run1id=%s';
   ShortDateFormat:='yyyy/mm/dd';
 end.
