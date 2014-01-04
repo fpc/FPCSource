@@ -63,12 +63,17 @@ unit widestr;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
+    function loadbinarycp(const s: String): Boolean;
 
   implementation
 
     uses
       {$if FPC_FULLVERSION>20700}
-      cpall,
+      { the majority of character maps can be loaded by
+        compiler from binary file from the directory passed 
+        by -FM compiler switch                              }
+      // cp8859_1,cp437,
+      cpall, // disable this when dynamic charset loading is ready
       {$endif}
       globals,cutils;
 
@@ -322,6 +327,15 @@ unit widestr;
         p:=getmap(s);
         if (p<>nil) then
           Result:=p^.cp;
+      end;
+
+    function loadbinarycp(const s: String): Boolean;
+      begin
+        {$if FPC_FULLVERSION>20700}
+        result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset',s));
+        {$else}
+        result:=false;
+        {$ifend}
       end;
 
 end.

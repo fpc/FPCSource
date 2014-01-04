@@ -1511,7 +1511,7 @@ unit scandir;
             s:=current_scanner.readcomment;
             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
               current_settings.sourcecodepage:=CP_UTF8
-            else if not(cpavailable(s)) then
+            else if not(cpavailable(s) or loadbinarycp(s)) then
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);

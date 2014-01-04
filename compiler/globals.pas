@@ -253,8 +253,11 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+       { Path to ppc }
+       exepath       : TPathStr;
+       { Path to unicode charmap/collation binaries }
+       unicodepath   : TPathStr;
        { path for searching units, different paths can be seperated by ; }
-       exepath            : TPathStr;  { Path to ppc }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
@@ -1361,6 +1364,7 @@ implementation
         sysrootpath:='';
 
         { Search Paths }
+        unicodepath:='';
         librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;

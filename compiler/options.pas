@@ -1144,7 +1144,7 @@ begin
                      include(init_settings.moduleswitches,cs_explicit_codepage);
                    end;
                  'C' :
-                   RCCompiler := More;
+                   RCCompiler:=More;
                  'd' :
                    if UnsetBool(more, 0, opt, true) then
                      init_settings.disabledircache:=false
@@ -1185,6 +1185,8 @@ begin
                      else
                        IllegalPara(opt);
                    end;
+                 'M' :
+                   unicodepath:=FixPath(More,true);
                  'g' :
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                  'l' :
@@ -1211,7 +1213,7 @@ begin
                  'r' :
                    Msgfilename:=More;
                  'R' :
-                   ResCompiler := More;
+                   ResCompiler:=More;
                  'u' :
                    begin
                      if ispara then
