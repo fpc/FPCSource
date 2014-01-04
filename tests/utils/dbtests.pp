@@ -26,7 +26,8 @@ Function AddTestResult(TestID,RunID,TestRes : Integer;
                        Log : String;var is_new : boolean) : Integer;
 Function RequireTestID(Name : String): Integer;
 Function CleanTestRun(ID : Integer) : Boolean;
-function GetTestRunHistoryID(TestRunID : Integer) : Integer;
+function GetTestPreviousRunHistoryID(TestRunID : Integer) : Integer;
+function GetTestNextRunHistoryID(TestRunID : Integer) : Integer;
 function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
 
 { ---------------------------------------------------------------------
@@ -511,10 +512,16 @@ begin
   FreeQueryResult(Res);
 end;
 
-function GetTestRunHistoryID(TestRunID : Integer) : Integer;
+function GetTestPreviousRunHistoryID(TestRunID : Integer) : Integer;
 begin
-  GetTestRunHistoryID:=IDQuery(
+  GetTestPreviousRunHistoryID:=IDQuery(
     format('SELECT TH_PREVIOUS_FK FROM TESTRUNHISTORY WHERE TH_ID_FK=%d',[TestRunID]));
+end;
+
+function GetTestNextRunHistoryID(TestRunID : Integer) : Integer;
+begin
+  GetTestNextRunHistoryID:=IDQuery(
+    format('SELECT TH_ID_FK FROM TESTRUNHISTORY WHERE TH_PREVIOUS_FK=%d',[TestRunID]));
 end;
 
 function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
