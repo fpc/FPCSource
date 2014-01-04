@@ -2,8 +2,8 @@
     This file is part of the Free Pascal test suite.
     Copyright (c) 2002 by the Free Pascal development team.
 
-    This program generates a digest
-    of the last tests run.
+    This program iupdates TESTCONFIG anf TESTRUNHISTORY tables
+    with the last tests run.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,7 +20,7 @@
   {$linklib pthread}
 {$endif}
 
-program digest;
+program dbconfig;
 
 uses
   sysutils,teststr,testu,tresults,
@@ -185,6 +185,7 @@ Var
   TestSvnTestsRevision,
   TestSvnRTLRevision,
   TestSvnPackagesRevision : String;
+  ConfigID : Integer;
 
 Procedure SetAddOpt (O : TConfigAddOpt; Value : string);
 begin
@@ -389,248 +390,6 @@ begin
     end;
 end;
 
-Var
-  TestCPUID : Integer;
-  TestOSID  : Integer;
-  TestVersionID  : Integer;
-  TestCategoryID : Integer;
-  TestRunID : Integer;
-  TestConfigID : Integer;
-  TestRunHistoryID : Integer;
-
-Procedure GetIDs;
-
-begin
-  TestCPUID := GetCPUId(TestCPU);
-  If TestCPUID=-1 then
-    Verbose(V_Error,'NO ID for CPU "'+TestCPU+'" found.');
-  TestOSID  := GetOSID(TestOS);
-  If TestOSID=-1 then
-    Verbose(V_Error,'NO ID for OS "'+TestOS+'" found.');
-  TestCategoryID := GetCategoryID(TestCategory);
-  If TestCategoryID=-1 then
-    begin
-//    Verbose(V_Error,'NO ID for Category "'+TestCategory+'" found.');
-    TestCategoryID:=1;
-    end;
-  TestVersionID  := GetVersionID(TestVersion);
-  If TestVersionID=-1 then
-    Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
-  If (Round(TestDate)=0) then
-    Testdate:=Now;
-  TestRunID:=GetRunID(TestOSID,TestCPUID,TestVersionID,TestDate);
-  If (TestRunID=-1) then
-    begin
-    TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestCategoryID,TestDate);
-    If TestRUnID=-1 then
-      Verbose(V_Error,'Could not insert new testrun record!');
-    end
-  else
-    CleanTestRun(TestRunID);
-end;
-
-
-var
-  LongLogFile : Text;
-const
-  UseLongLog : boolean = false;
-  LongLogOpenCount : longint = 0;
-  FirstLongLogLine : boolean = true;
-
-Function GetContentsFromLongLog(Line : String) : String;
-var
-  S : String;
-  IsFirst, IsFound : boolean;
-begin
-  Result:='';
-  IsFirst:=true;
-  IsFound:=false;
-  While Not(EOF(LongLogFile)) do
-    begin
-      ReadLn(LongLogFile,S);
-      if FirstLongLogLine then
-        begin
-          { At start of file there is a separation line }
-          if (pos('>>>>>>>>>>>',S)=1) then
-            Readln(LongLogFile,S);
-          FirstLongLogLine:=false;
-        end;
-      if pos(Line,S)=1 then
-        begin
-          IsFound:=true;
-          while not eof(LongLogFile) do
-            begin
-              ReadLn(LongLogFile,S);
-              { End of file marker }
-              if eof(LongLogFile) or (pos('>>>>>>>>>>>',S)=1) then
-                exit;
-              Result:=Result+S+LineEnding;
-            end;
-        end
-      else if IsFirst then
-        begin
-          Verbose(V_Warning,'Line "'+Line+'" not found as next "'+S+'"');
-          IsFirst:=false;
-        end;
-    end;
-  if not IsFound then
-    begin
-      Verbose(V_Warning,'Line "'+Line+'" not found');
-      { Restart to get a chance to find others }
-      if eof(LongLogFile) then
-        begin
-          Close(LongLogFile);
-          Reset(LongLogFile);
-          inc(LongLogOpenCount);
-        end;
-    end;
-end;
-
-Function GetLog(Line, FN : String) : String;
-
-begin
-  if UseLongLog then
-    begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
-    end;
-  FN:=ChangeFileExt(FN,'.log');
-  If FileExists(FN) then
-    Result:=GetFileContents(FN)
-  else
-    Result:='';
-end;
-
-Function GetExecuteLog(Line, FN : String) : String;
-
-begin
-  if UseLongLog then
-    begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
-    end;
-  FN:=ChangeFileExt(FN,'.elg');
-  If FileExists(FN) then
-    Result:=GetFileContents(FN)
-  else
-    Result:='';
-end;
-
-Procedure Processfile (FN: String);
-
-var
-  logfile : text;
-  fullline,line,prevLine : string;
-  TS,PrevTS : TTestStatus;
-  ID,PrevID : integer;
-  Testlog : string;
-  is_new : boolean;
-begin
-  Assign(logfile,FN);
-  PrevId:=-1;
-  PrevLine:='';
-  is_new:=false;
-  PrevTS:=low(TTestStatus);
-{$i-}
-  reset(logfile);
-  if ioresult<>0 then
-    Verbose(V_Error,'Unable to open log file'+FN);
-{$i+}
-  while not eof(logfile) do
-    begin
-    readln(logfile,line);
-    fullline:=line;
-    If analyse(line,TS) then
-      begin
-      Verbose(V_NORMAL,'Analysing result for test '+Line);
-      If Not ExpectRun[TS] then
-        begin
-        ID:=RequireTestID(Line);
-        if (PrevID<>-1) and (PrevID<>ID) then
-          begin
-            { This can only happen if a Successfully compiled message
-              is not followed by any other line about the same test }
-            TestLog:='';
-            AddTestResult(PrevID,TestRunId,ord(PrevTS),
-              TestOK[PrevTS],TestSkipped[PrevTS],TestLog,is_new);
-            Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
-          end;
-        PrevID:=-1;
-        If (ID<>-1) then
-          begin
-          If Not (TestOK[TS] or TestSkipped[TS]) then
-            begin
-              TestLog:=GetExecuteLog(Fullline,Line);
-              if pos(failed_to_compile,TestLog)=1 then
-                TestLog:=GetLog(Fullline,Line);
-            end
-          else
-            TestLog:='';
-          { AddTestResult can fail for test that contain %recompile
-            as the same }
-          if AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],
-               TestSkipped[TS],TestLog,is_new) <> -1 then
-            begin
-              if is_new then
-                Inc(StatusCount[TS])
-              else
-                Verbose(V_Debug,'Test: "'+line+'" was updated');
-            end
-          else
-            begin
-              Verbose(V_Warning,'Test: "'+line+'" already registered');
-            end;
-
-          end;
-        end
-      else
-        begin
-          Inc(StatusCount[TS]);
-          PrevTS:=TS;
-          PrevID:=RequireTestID(line);
-          PrevLine:=line;
-        end;
-
-      end
-    else
-      begin
-        Inc(UnknownLines);
-        Verbose(V_Warning,'Unknown line: "'+line+'"');
-      end;
-    end;
-  close(logfile);
-end;
-
-procedure UpdateTestRun;
-
-  var
-     i : TTestStatus;
-     qry : string;
-     res : TQueryResult;
-
-  begin
-    qry:='UPDATE TESTRUN SET ';
-    for i:=low(TTestStatus) to high(TTestStatus) do
-      qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
-    if TestCompilerDate<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerDate],EscapeSQL(TestCompilerDate)]);
-    if TestCompilerFullVersion<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerFullVersion],EscapeSQL(TestCompilerFullVersion)]);
-    if TestSvnCompilerRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnCompilerRevision],EscapeSQL(TestSvnCompilerRevision)]);
-    if TestSvnTestsRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnTestsRevision],EscapeSQL(TestSvnTestsRevision)]);
-    if TestSvnRTLRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnRTLRevision],EscapeSQL(TestSvnRTLRevision)]);
-    if TestSvnPackagesRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnPackagesRevision],EscapeSQL(TestSvnPackagesRevision)]);
-
-    qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
-    qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
-    if RunQuery(Qry,res) then
-      FreeQueryResult(Res);
-  end;
-
 function GetTestRunFieldID(const name : string; TestRunID : Integer) : Integer;
 begin
   GetTestRunFieldID:=IDQuery(
@@ -667,12 +426,7 @@ end;
 function GetTestConfigId(TestRunID : Integer) : Integer;
 var
   qry : string;
-  ConfigID, firstRunID, lastRunID,PrevRunID : Integer;
-  RunCount : Integer;
-  res : TQueryResult;
-  AddCount : boolean;
 begin
-  AddCount:=false;
   qry:='SELECT TCONF_ID FROM TESTCONFIG WHERE ' +
        'TCONF_CPU_FK=%d AND ' +
        'TCONF_OS_FK=%d AND ' +
@@ -689,6 +443,19 @@ begin
                      GetSubmitter(TestRunID),
                      GetMachine(TestRunID),
                      GetComment(TestRunID)]));
+  GetTestConfigID:=ConfigID;
+end;
+
+function UpdateTestConfigID(TestRunID : Integer) : boolean;
+var
+  qry : string;
+  firstRunID, lastRunID,PrevRunID : Integer;
+  RunCount : Integer;
+  res : TQueryResult;
+  AddCount : boolean;
+begin
+  AddCount:=false;
+  UpdateTestConfigID:=false;
   qry:=format('SELECT TCONF_FIRST_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
   FirstRunID:=IDQuery(qry);
   if TestRunID<FirstRunID then
@@ -742,7 +509,6 @@ begin
       else
         Verbose(V_Warning,'Update of TU_COUNT_RUNS failed');
     end;
-  GetTestConfigId:=ConfigID;
 end;
 
 function InsertNewTestConfigId(TestRunID: Integer) : longint;
@@ -767,62 +533,7 @@ begin
                      GetComment(TestRunID),
                      TestDate,TestDate,TestDate]);
   Result:=InsertQuery(qry);
-end;
-
-
-
-procedure UpdateTestConfig;
-
-  var
-     i : TTestStatus;
-     qry : string;
-     res : TQueryResult;
-
-  begin
-    qry:='SHOW TABLES LIKE ''TESTCONFIG''';
-    if not RunQuery(Qry,Res) then
-      exit;
-    { Row_Count is zero if table does not aexist }
-    if Res^.Row_Count=0 then exit;
-    FreeQueryResult(Res);
-    qry:='INSERT INTO TESTCONFIG (TCONF_NEW_RUN_FK,' +
-         'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
-         'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,TCONF_NEW_DATE) ';
-    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,"%s","%s","%s","%s") ',
-    [TestRunID,TestCPUID,TestOSID,TestVersionID,TestCategoryID,
-     Submitter,Machine,Comment,SqlDate(TestDate)]);
-    qry:=qry+'ON DUPLICATE KEY UPDATE '+
-            format('TCONF_NEW_RUN_FK = %d, TCONF_NEW_DATE = "%s",'+
-            'TCONF_COUNT_RUNS = TCONF_COUNT_RUNS + 1',
-            [TestRunID,SqlDate(TestDate)]);
-    if RunQuery(Qry,res) then
-      FreeQueryResult(Res);
-  end;
-
-Procedure ListRuns(var GlobalRes : TQueryResult);
-
-var
-  i,fid, num_fields : Integer;
-  Row : PPchar;
-  s : string;
-begin
-  with GlobalRes^ do
-    begin
-      num_fields:=mysql_num_fields(GlobalRes);
-      Writeln('Row count=',row_count);
-      for i:=0 to row_count-1 do
-        begin
-          row:=mysql_fetch_row(GlobalRes);
-          for fid:=0 to num_fields-1 do
-            begin
-              If (Row=Nil) or (Row[fID]=Nil) then
-                s:=''
-              else
-                s:=strpas(Row[fID]);
-              Writeln(format('row=%d, col=%d, value=%s',[i,fid,s]));
-            end;
-        end;
-    end;
+  AddTestHistoryEntry(TestRunID,0);
 end;
 
 Procedure InsertRunsIntoConfigAndHistory(var GlobalRes : TQueryResult);
@@ -841,7 +552,7 @@ begin
         begin
           row:=mysql_fetch_row(GlobalRes);
           runid:=StrToIntDef(strpas(Row[0]),-1);
-          previd:=GetTestRunHistoryID(RunID);
+          previd:=GetTestPreviousRunHistoryID(RunID);
           if previd>=0 then
             begin
               Writeln(format('RunID=%d already handled prevID=%d',[runID,prevID]));
@@ -852,7 +563,9 @@ begin
               if GetTestConfigId(runid)=-1 then
                 begin
                    InsertNewTestConfigId(RunID);
-                end;
+                end
+              else
+                UpdateTestConfigID(RunID);
             end;
         end;
     end;
@@ -878,6 +591,5 @@ begin
   ProcessCommandLine;
   ConnectToDatabase(DatabaseName,HostName,UserName,Password,Port);
   GetAllTestRuns(GlobalRes);
-  // ListRuns(GlobalRes);
   InsertRunsIntoConfigAndHistory(GlobalRes);
 end.
