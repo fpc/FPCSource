@@ -7733,6 +7733,7 @@ rtl/charmaps/cp1258.pas svneol=native#text/pascal
 rtl/charmaps/cp437.pas svneol=native#text/pascal
 rtl/charmaps/cp646.pas svneol=native#text/pascal
 rtl/charmaps/cp850.pas svneol=native#text/pascal
+rtl/charmaps/cp856.pas svneol=native#text/pascal
 rtl/charmaps/cp866.pas svneol=native#text/pascal
 rtl/charmaps/cp874.pas svneol=native#text/pascal
 rtl/charmaps/cp8859_1.pas svneol=native#text/pascal
