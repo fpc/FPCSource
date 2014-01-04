@@ -33,7 +33,18 @@ units_morphos=video mouse keyboard
 
 [compiler]
 includedir=src/$(OS_TARGET) src/inc
-includedir_unix=src/unix
+includedir_linux=src/unix
+includedir_android=src/unix
+includedir_freebsd=src/unix
+includedir_openbsd=src/unix
+includedir_netbsd=src/unix
+includedir_solaris=src/unix
+includedir_darwin=src/unix
+includedir_iphonesim=src/unix
+includedir_aix=src/unix
+includedir_beos=src/unix
+includedir_haiku=src/unix
+	
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_os2=src/os2commn
@@ -41,11 +52,21 @@ includedir_emx=src/os2commn
 
 sourcedir=src/$(OS_TARGET)  src/inc
 sourcedir_iphonesim=src/darwin
-sourcedir_unix=src/unix
 sourcedir_win32=src/win
 sourcedir_win64=src/win
 sourcedir_os2=src/os2commn
 sourcedir_emx=src/os2commn
+sourcedir_linux=src/unix
+sourcedir_android=src/unix
+sourcedir_freebsd=src/unix
+sourcedir_openbsd=src/unix
+sourcedir_netbsd=src/unix
+sourcedir_solaris=src/unix
+sourcedir_darwin=src/unix
+sourcedir_iphonesim=src/unix
+sourcedir_aix=src/unix
+sourcedir_beos=src/unix
+sourcedir_haiku=src/unix
 
 [install]
 fpcpackage=y
