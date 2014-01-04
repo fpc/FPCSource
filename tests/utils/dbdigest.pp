@@ -721,7 +721,7 @@ begin
                     [TestRunID, TestRunID, TestRunID, TestCPUID, 
                      TestOSID, TestVersionID, TestCategoryID,
                      Submitter, Machine, Comment,
-                     TestDate, TestDate, TestDate]);
+                     SqlDate(TestDate), SqlDate(TestDate), SqlDate(TestDate)]);
   Result:=InsertQuery(qry);
   AddTestHistoryEntry(TestRunID,0);
 end;
@@ -738,7 +738,7 @@ procedure UpdateTestConfig;
     { Row_Count is zero if table does not exist }
     if Res^.Row_Count=0 then exit;
     FreeQueryResult(Res);
-    if GetTestRunHistoryID(TestRunID) <> -1 then
+    if GetTestPreviousRunHistoryID(TestRunID) <> -1 then
       begin
         Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
         exit;
