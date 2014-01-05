@@ -23,7 +23,7 @@ program chmcmd;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, Sysutils, chmfilewriter, GetOpts;
+  {$ifdef LZX_USETHREADS}{$ifdef Unix}cthreads,{$endif}{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
 
 Const
   CHMCMDVersion = '2.6.1';
