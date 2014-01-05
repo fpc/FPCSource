@@ -886,7 +886,7 @@ implementation
       begin
          consume(_PROPERTY);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-           message(parser_e_resourcestring_only_sg);
+           message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat

@@ -398,7 +398,7 @@ scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 #
 # Parser
 #
-# 03334 is the last used one
+# 03335 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1498,6 +1498,9 @@ parser_e_dir_not_allowed=03333_E_Directive "$1" not allowed here
 % is not allowed for instance methods or class operators.
 parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside generics
 % The use of assembler blocks/routines is not allowed inside generics.
+parser_e_property_only_sgr=03335_E_Properties can be only static, global or inside structured types
+% Properties cannot be declared local, only global, using the static
+% directive or inside structured types.
 %
 %
 % \end{description}
