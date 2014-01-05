@@ -12,7 +12,7 @@ fpcpackage=y
 loaders=prt0 cprt0 gprt0 dllprt0
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings syscall sysctl baseunix unixutil character \
-      unix rtlconsts initc cmem matrix \
+      unix rtlconsts initc cmem  \
       dl termio  printer \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall buildcollations getopts heaptrc lnfodwrf lineinfo \
