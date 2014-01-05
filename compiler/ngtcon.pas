@@ -455,6 +455,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 strlength:=tstringconstnode(node).len;
                 strval:=tstringconstnode(node).value_str;
+                { the def may have changed from e.g. RawByteString to
+                  AnsiString(CP_ACP) }
+                if node.resultdef.typ=stringdef then
+                  def:=tstringdef(node.resultdef)
+                else
+                  internalerror(2014010501);
               end
             else
               begin
