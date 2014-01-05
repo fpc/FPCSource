@@ -1,4 +1,4 @@
-{ %platform=darwin,linux,freebsd,openbsd,netbsd,solaris }
+{ %target=darwin,linux,freebsd,openbsd,netbsd,solaris }
 
 uses
   unixcp;
