@@ -68,11 +68,17 @@ unit widestr;
 
     uses
       {$if FPC_FULLVERSION>20700}
-      { the majority of character maps can be loaded by
-        compiler from binary file from the directory passed 
-        by -FM compiler switch                              }
-      // cp8859_1,cp437,
-      cpall, // disable this when dynamic charset loading is ready
+      { use only small codepage maps, others will be }
+      { loaded on demand from -FM path               }
+
+      { cyrillic code pages }
+      cp1251,cp866,cp8859_5,
+      { greek code page }
+      cp1253,
+      { other code pages }
+      cp8859_1,cp850,cp437,cp1252,cp646,
+      cp874, cp856,
+      cp1250,cp1254,cp1255,cp1256,cp1257,cp1258,
       {$endif}
       globals,cutils;
 
