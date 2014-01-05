@@ -1,0 +1,82 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=rtl-extra
+version=2.7.1
+
+[target]
+units_android=matrix ucomplex objects
+units_aix=matrix ucomplex objects
+units_linux=matrix ucomplex objects
+units_solaris=matrix ucomplex objects
+units_freebsd=matrix ucomplex objects
+units_netbsd=matrix ucomplex objects
+units_openbsd=matrix ucomplex objects
+units_darwin=matrix ucomplex objects
+units_iphonesim=matrix ucomplex objects
+units_beos=matrix ucomplex objects
+units_haiku=matrix ucomplex objects
+
+units_go32v2=matrix ucomplex objects 
+units_watcom=ucomplex
+units_wii=matrix ucomplex
+units_msdos=matrix ucomplex objects
+units_win32=matrix ucomplex objects
+units_win64=matrix ucomplex objects
+units_wince=matrix ucomplex objects
+units_nativent=matrix ucomplex
+units_gba=matrix ucomplex objects
+units_emx=matrix ucomplex objects
+units_os2=matrix ucomplex objects
+units_netware=matrix ucomplex objects
+units_netwlibc=matrix ucomplex objects
+units_morphos=matrix ucomplex objects
+
+# since we plan to move more units, we set up more dirs than we now have.
+[compiler]
+includedir=src/$(OS_TARGET) src/inc
+includedir_linux=src/unix
+includedir_android=src/unix
+includedir_freebsd=src/unix
+includedir_openbsd=src/unix
+includedir_netbsd=src/unix
+includedir_solaris=src/unix
+includedir_darwin=src/unix
+includedir_iphonesim=src/unix
+includedir_aix=src/unix
+includedir_beos=src/unix
+includedir_haiku=src/unix
+	
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_os2=src/os2commn
+includedir_emx=src/os2commn
+
+sourcedir=src/$(OS_TARGET)  src/inc
+sourcedir_iphonesim=src/darwin
+sourcedir_win32=src/win
+sourcedir_win64=src/win
+sourcedir_os2=src/os2commn
+sourcedir_emx=src/os2commn
+sourcedir_linux=src/unix
+sourcedir_android=src/unix
+sourcedir_freebsd=src/unix
+sourcedir_openbsd=src/unix
+sourcedir_netbsd=src/unix
+sourcedir_solaris=src/unix
+sourcedir_darwin=src/unix
+sourcedir_iphonesim=src/unix
+sourcedir_aix=src/unix
+sourcedir_beos=src/unix
+sourcedir_haiku=src/unix
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
