@@ -28,6 +28,7 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.Dependencies.add('rtl-console');
+    P.Dependencies.add('rtl-extra');
 
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do

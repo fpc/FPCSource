@@ -8,10 +8,10 @@ main=rtl
 [target]
 loaders=prt0
 #exceptn fpu
-units=system uuchar objpas macpas iso7185 strings watcom dos  objects \
+units=system uuchar objpas macpas iso7185 strings watcom dos \
       cpu charset cpall types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
-      math typinfo mmx ucomplex \
-      varutils variants sysutils
+      math typinfo mmx \
+      sysutils
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
@@ -20,7 +20,7 @@ implicitunits=exeinfo \
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 
-rsts=math varutils typinfo classes variants sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y

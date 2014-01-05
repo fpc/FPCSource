@@ -12,15 +12,15 @@ fpcpackage=y
 loaders=prt0 cprt0 dllprt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
-      $(CPU_UNITS) dos objects printer matrix rtlconsts \
-      sysutils fgl classes fmtbcd typinfo math varutils \
-      charset cpall buildcollations character ucomplex getopts heaptrc lineinfo lnfodwrf \
-      errors sockets ipc terminfo dateutils strutils \
-      serial variants types sysctl sysconst \
-      fpintres convutils stdconvs dynlibs cwstring cmem dl termio \
+      $(CPU_UNITS) dos printer rtlconsts \
+      sysutils fgl classes typinfo math \
+      charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf \
+      errors sockets ipc terminfo strutils \
+      serial types sysctl sysconst \
+      fpintres dynlibs cwstring cmem dl termio \
       cthreads unixcp clocale
 
-rsts=math varutils typinfo variants classes sysconst dateutils
+rsts=math typinfo classes sysconst 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \

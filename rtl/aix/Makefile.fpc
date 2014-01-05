@@ -12,15 +12,14 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       baseunix unixutil \
       termio unix initc cmem \
       printer lnfogdb \
-      sysutils typinfo math fgl classes matrix varutils \
-      charset cpall unixcp ucomplex getopts \
+      sysutils typinfo math fgl classes \
+      charset cpall unixcp getopts \
       errors sockets \
       # ipc serial
       terminfo dl dynlibs \
-      variants types dateutils sysconst \
-      strutils fmtbcd rtlconsts cthreads \
-      convutils stdconvs \
-      dos objects \
+      types sysconst \
+      strutils rtlconsts cthreads \
+      dos \
       cwstring fpintres clocale $(CPU_UNITS)
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
@@ -47,7 +46,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt objects printer \
+      dos crt  printer \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc

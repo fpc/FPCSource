@@ -10,12 +10,12 @@ loaders=prt0 prt1
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
-      dos objects printer matrix \
-      sysutils classes fgl math typinfo varutils winsock fmtbcd \
-      charset cpall ucomplex cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs \
-      variants types rtlconst sysconst dateutil \
-      strutils convutil ctypes 
-rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
+      dos printer \
+      sysutils classes fgl math typinfo winsock \
+      charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs \
+      types rtlconst sysconst \
+      strutils ctypes 
+rsts=math typinfo pmhelp classes sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
@@ -151,9 +151,9 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
+#crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 printer$(PPUEXT) : $(OS2INC)/printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 

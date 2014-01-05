@@ -10,13 +10,12 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
-      unix initc cmem matrix dynlibs $(CPU_UNITS) \
-      dos dl objects printer sockets \
-      sysutils typinfo fgl classes math varutils types \
-      charset cpall buildcollations character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
+      unix initc cmem dynlibs $(CPU_UNITS) \
+      dos dl printer sockets \
+      sysutils typinfo fgl classes math types \
+      charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio \
-      variants dateutils convutils stdconvs \
-      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd fpwidestring \
+      sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -24,7 +23,7 @@ implicitunits=exeinfo \
       unicodedata unicodeducet unicodenumtable \
       collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
+rsts=math typinfo classes sysconst rtlconsts
 
 [require]
 nortl=y

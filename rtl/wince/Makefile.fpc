@@ -9,12 +9,10 @@ main=rtl
 units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       lineinfo heaptrc \
       windows messages dynlibs \
-      dos objects \
+      dos \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
-      strutils convutils math dateutils \
-      varutils variants fmtbcd \
-      matrix ucomplex \
+      strutils math \
       charset cpall getopts winsock winsock2 sockets \
       cmem sharemem
 #    initc  signals \

@@ -10,10 +10,10 @@ loaders=
 units=$(SYSTEMUNIT) uuchar objpas macpas strings \
 #      dos \
       sysutils \
-#      classes fmtbcd \
-      math typinfo varutils ctypes \
-      charset cpall ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
+#      classes \
+      math typinfo ctypes \
+      charset cpall getopts \
+      types rtlconsts sysconst lineinfo fgl cmem
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \

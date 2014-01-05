@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
     P.Dependencies.Add('fcl-res');
+    p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';

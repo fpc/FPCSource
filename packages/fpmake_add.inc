@@ -97,6 +97,8 @@
   add_regexpr(ADirectory+IncludeTrailingPathDelimiter('regexpr'));
   add_rexx(ADirectory+IncludeTrailingPathDelimiter('rexx'));
   add_rtl_console(ADirectory+IncludeTrailingPathDelimiter('rtl-console'));
+  add_rtl_extra(ADirectory+IncludeTrailingPathDelimiter('rtl-extra'));
+  add_rtl_objpas(ADirectory+IncludeTrailingPathDelimiter('rtl-objpas'));
   add_sdl(ADirectory+IncludeTrailingPathDelimiter('sdl'));
   add_sqlite(ADirectory+IncludeTrailingPathDelimiter('sqlite'));
   add_svgalib(ADirectory+IncludeTrailingPathDelimiter('svgalib'));

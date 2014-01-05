@@ -12,15 +12,13 @@ units=system uuchar objpas iso7185 cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
-      matrix \
 #      initc cmem dynlibs signals \
 #      dos crt objects \
       rtlconsts sysconst sysutils math types \
-      strutils dateutils varutils variants typinfo fgl classes \
-      convutils stdconvs $(CPU_UNITS) charset ucomplex getopts \
+      strutils typinfo fgl classes \
+      $(CPU_UNITS) charset getopts \
 #      sockets printer \
 #      video mouse keyboard
-       fmtbcd \
 #      sharemem exeinfo fpintres \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5

@@ -19,7 +19,7 @@ files_linux=installer.pas
 files_freebsd=installer.pas
 
 [require]
-packages=rtl-console fv unzip
+packages=rtl-console fv unzip rtl-extra
 
 [compiler]
 unitdir=../ide

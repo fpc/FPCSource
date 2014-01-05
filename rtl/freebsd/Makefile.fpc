@@ -11,14 +11,14 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
-      strings syscall sysctl  baseunix unixutil character \
+      strings syscall sysctl baseunix unixutil character \
       unix rtlconsts initc cmem matrix \
-       dl termio  printer \
-      sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
-      $(CPU_UNITS) charset cpall buildcollations ucomplex getopts heaptrc lnfodwrf lineinfo \
+      dl termio  printer \
+      sysutils math typinfo types classes fgl dynlibs \
+      $(CPU_UNITS) charset cpall buildcollations getopts heaptrc lnfodwrf lineinfo \
       errors sockets ipc terminfo bsd freebsd \
-      console serial dateutils \
-      sysconst cthreads strutils convutils stdconvs dos objects cwstring \
+      console serial \
+      sysconst cthreads strutils dos cwstring \
       fpintres clocale unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -26,7 +26,7 @@ implicitunits=exeinfo \
       unicodedata unicodeducet unicodenumtable \
       collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
-rsts=math varutils typinfo classes variants dateutils sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y

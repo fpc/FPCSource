@@ -12,15 +12,14 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       baseunix unixutil unixcp \
       termio unix initc cmem \
       printer \
-      sysutils typinfo math fgl classes matrix varutils \
-      charset cpall buildcollations ucomplex getopts \
+      sysutils typinfo math fgl classes matrix \
+      charset cpall buildcollations getopts \
       errors sockets \
       # ipc serial
       terminfo dl dynlibs \
-      variants types dateutils sysconst character \
-      strutils fmtbcd rtlconsts cthreads \
-      convutils stdconvs \
-      dos objects \
+      types sysconst character \
+      strutils rtlconsts cthreads \
+      dos \
       cwstring fpintres clocale $(CPU_UNITS)
 
 implicitunits=exeinfo \
@@ -29,7 +28,7 @@ implicitunits=exeinfo \
       unicodedata unicodeducet unicodenumtable \
       collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
  
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconst stdconvs
+rsts=math typinfo classes sysconst rtlconst
 
 [require]
 nortl=y

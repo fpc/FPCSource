@@ -148,6 +148,7 @@ begin
 {$endif ALLPACKAGES}
 
     P.Dependencies.Add('rtl');
+    P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
     { This one is only needed if DEBUG is set }

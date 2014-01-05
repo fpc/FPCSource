@@ -9,14 +9,14 @@ main=rtl
 loaders=prt0 cprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
 #      beos \
-      errors dos dl objects \
+      errors dos dl \
       sysconst sysutils \
-      types charset cpall ucomplex typinfo classes fgl math varutils \
-      cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
+      types charset cpall typinfo classes fgl math \
+      cpu mmx getopts heaptrc lineinfo lnfodwrf \
       rtlconsts syscall unix unixutil strutils termio initc \
       cmem \
-      dateutils fmtbcd sockets dynlibs cwstring unixcp
-rsts=math varutils typinfo variants sysconst rtlconsts dateutils
+      sockets dynlibs cwstring unixcp
+rsts=math typinfo sysconst rtlconsts 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
@@ -42,7 +42,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt objects printer \
+      dos crt printer \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc dynlibs

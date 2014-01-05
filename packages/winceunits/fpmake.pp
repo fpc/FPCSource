@@ -28,7 +28,8 @@ begin
 
     P.SourcePath.Add('src');
     P.SupportBuildModes := [bmOneByOne];
-
+    P.Dependencies.Add('rtl-objpas');
+   
     P.Options.Add('-Ur');
 
     // These units are from the winunits-base package.
