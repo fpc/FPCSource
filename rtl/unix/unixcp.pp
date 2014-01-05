@@ -26,7 +26,7 @@ uses baseunix;
 type
   TUnixCpData = record
    cp: word;
-   name: rawbytestring; { for null-termination }
+   name: ansistring; { for null-termination }
   end;
 (*
 * Code Page Identifiers
@@ -679,7 +679,7 @@ var
 begin
   { clear encoding to prevent nonsense code page conversion of the input
     ansistring (encoding names are always ascii) }
-  SetCodePage(cpname,$ffff,false);
+  SetCodePage(cpname,CP_ACP,false);
 
   { Linux uses cpXXXX instead of CPXXXX }
   if (length(cpname)>2) and
