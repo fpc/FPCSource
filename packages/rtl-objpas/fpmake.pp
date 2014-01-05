@@ -20,7 +20,7 @@ Const
   DateUtilsOSes = [Amiga,gba,morphos,nativent,nds,netware,netwlibc,wii,win32,win64,wince]+UnixLikes;
   DateUtilOSes  = [Go32v2,msdos,os2,emx];
   StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2]+UnixLikes-[BeOS];
-  FmtBCDOSes    = [amiga,emx,gba,morphos,msdos,nativent,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
+  FmtBCDOSes    = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
   VariantsOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+

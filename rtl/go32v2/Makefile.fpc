@@ -11,7 +11,7 @@ units=system uuchar objpas macpas iso7185 strings \
       sysutils classes math typinfo \
       cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl \
       msmouse charset cpall \
-      variants types \
+      types \
       sysconst rtlconst strutils
 rsts=math typinfo classes sysconst
 implicitunits=exeinfo \
