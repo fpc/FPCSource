@@ -292,6 +292,16 @@
 {$endif FPC_SYSTEM_HAS_MUL_QWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
+    function fpc_mul_qword_compilerproc(f1,f2 : qword;checkoverflow : longbool) : qword; external name 'FPC_MUL_QWORD';
+
+    function fpc_mul_dword_to_qword(f1,f2 : dword) : qword;[public,alias: 'FPC_MUL_DWORD_TO_QWORD']; compilerproc;
+      begin
+        fpc_mul_dword_to_qword:=fpc_mul_qword_compilerproc(f1,f2,false);
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
+
+
 {$ifndef FPC_SYSTEM_HAS_MUL_INT64}
     function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; compilerproc;
 
@@ -335,4 +345,14 @@
            end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
+    function fpc_mul_int64_compilerproc(f1,f2 : int64;checkoverflow : longbool) : int64; external name 'FPC_MUL_INT64';
+
+    function fpc_mul_longint_to_int64(f1,f2 : longint) : int64;[public,alias: 'FPC_MUL_LONGINT_TO_INT64']; compilerproc;
+      begin
+        fpc_mul_longint_to_int64:=fpc_mul_int64_compilerproc(f1,f2,false);
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
 

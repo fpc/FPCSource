@@ -2575,6 +2575,7 @@ implementation
         procname: string[31];
         temp: tnode;
         power: longint;
+        is_mul32to64: Boolean;
       begin
         result := nil;
         { create helper calls mul }
@@ -2603,31 +2604,51 @@ implementation
             exit;
           end;
 
-        if not(use_generic_mul32to64) and
-           try_make_mul32to64 then
+        { is it a 32 to 64-bit mul? }
+        is_mul32to64:=try_make_mul32to64;
+
+        { if the code generator can handle 32 to 64-bit muls, we're done here }
+        if not(use_generic_mul32to64) and is_mul32to64 then
           exit;
 
-        { when currency is used set the result of the
-          parameters to s64bit, so they are not converted }
-        if is_currency(resultdef) then
+        if is_mul32to64 then
           begin
-            left.resultdef:=s64inttype;
-            right.resultdef:=s64inttype;
-          end;
+            { this uses the same criteria for signedness as the 32 to 64-bit mul
+              handling in the i386 code generator }
+            if is_signed(left.resultdef) and is_signed(right.resultdef) then
+              procname := 'fpc_mul_longint_to_int64'
+            else
+              procname := 'fpc_mul_dword_to_qword';
 
-        { otherwise, create the parameters for the helper }
-        right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
-          ccallparanode.create(right,ccallparanode.create(left,nil)));
-        left := nil;
-        { only qword needs the unsigned code, the
-          signed code is also used for currency }
-        if is_signed(resultdef) then
-          procname := 'fpc_mul_int64'
+            right := ccallparanode.create(right,ccallparanode.create(left,nil));
+            result := ccallnode.createintern(procname,right);
+            left := nil;
+            right := nil;
+          end
         else
-          procname := 'fpc_mul_qword';
-        result := ccallnode.createintern(procname,right);
-        right := nil;
+          begin
+            { when currency is used set the result of the
+              parameters to s64bit, so they are not converted }
+            if is_currency(resultdef) then
+              begin
+                left.resultdef:=s64inttype;
+                right.resultdef:=s64inttype;
+              end;
+
+            { otherwise, create the parameters for the helper }
+            right := ccallparanode.create(
+              cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
+              ccallparanode.create(right,ccallparanode.create(left,nil)));
+            left := nil;
+            { only qword needs the unsigned code, the
+              signed code is also used for currency }
+            if is_signed(resultdef) then
+              procname := 'fpc_mul_int64'
+            else
+              procname := 'fpc_mul_qword';
+            result := ccallnode.createintern(procname,right);
+            right := nil;
+          end;
       end;
 
 
