@@ -17,7 +17,7 @@ units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5
 #      cp932 cp936 cp949 cp950 
 [require]
 nortl=y

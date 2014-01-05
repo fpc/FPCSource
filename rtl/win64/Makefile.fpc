@@ -19,7 +19,7 @@ implicitunits=ctypes strings \
       sharemem exeinfo fpintres windirs \
       cpu signals \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
       unicodedata unicodeducet unicodenumtable \
       collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 

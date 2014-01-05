@@ -16,7 +16,7 @@ units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macuti
 # rsts=math
 # implicitunits=exeinfo \
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
 
 [require]
 nortl=y
