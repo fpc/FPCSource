@@ -10,14 +10,14 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem printer \
-      linuxvcs sysutils typinfo math matrix varutils charset cpall character ucomplex \
+      linuxvcs sysutils typinfo math charset cpall character \
       getopts errors sockets gpm serial terminfo dl dynlibs \
-      variants types dateutils sysconst fmtbcd cthreads classes fgl convutils stdconvs \
-      strutils rtlconsts dos objects cwstring fpcylix clocale unixcp fpwidestring
+      variants types  sysconst cthreads classes fgl  \
+      strutils rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
-rsts=math varutils typinfo variants sysconst rtlconsts stdconvs strutils
+rsts=math  typinfo  sysconst rtlconsts  strutils
 
 [require]
 nortl=y
