@@ -192,3 +192,36 @@ begin
   if checkoverflow then
     HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 end;
+
+
+{$define FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
+function fpc_mul_dword_to_qword(f1,f2 : dword) : qword;[public,alias: 'FPC_MUL_DWORD_TO_QWORD']; compilerproc; assembler; nostackframe;
+asm
+  push    bp
+  mov     bp, sp
+  mov     di,word[bp +  8 + extra_param_offset]  // word[f1]
+  mov     bx,word[bp + 10 + extra_param_offset]  // word[f1+2]
+  mov     si,word[bp +  4 + extra_param_offset]  // word[f2]
+  mov     ax,word[bp +  6 + extra_param_offset]  // word[f2+2]
+  mov     cx,ax
+  mul     bx
+  xchg    ax,bx
+  mov     bp,dx
+  mul     si
+  xchg    ax,cx
+  add     bx,dx
+  adc     bp,0
+  mul     di
+  add     cx,ax
+  adc     bx,dx
+  adc     bp,0
+  mov     ax,di
+  mul     si
+  add     cx,dx
+  adc     bx,0
+  adc     bp,0
+  mov     dx,ax
+  mov     ax,bp
+  pop     bp
+end;
+
