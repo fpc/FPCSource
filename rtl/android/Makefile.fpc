@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem printer \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors sockets gpm serial terminfo dl dynlibs \
-      variants types  sysconst cthreads classes fgl  \
+      types  sysconst cthreads classes fgl  \
       strutils rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
