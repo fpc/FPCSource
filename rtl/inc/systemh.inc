@@ -203,8 +203,10 @@ Type
   {$ifdef FPUSOFT}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
-    {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$endif}
+
+  { m68k int64 shl/shr uses soft helper for non constaznt values }
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
