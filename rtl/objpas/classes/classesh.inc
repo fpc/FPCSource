@@ -215,11 +215,6 @@ Type
     property Current: Pointer read GetCurrent;
   end;
 
-{$ifdef VER2_4}
-type
-  TDirection = (FromBeginning, FromEnd);
-{$endif}
-
   TFPList = class(TObject)
   private
     FList: PPointerList;
