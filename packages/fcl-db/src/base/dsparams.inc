@@ -208,9 +208,9 @@ begin
           Result := True;
           repeat // skip until at end of line
             Inc(p);
-          until p^ in [#10, #0];
+          until p^ in [#10, #13, #0];
+          while p^ in [#10, #13] do Inc(p); // newline is part of comment
         end;
-        if p^<>#0 then Inc(p); // newline is part of comment
       end;
     '/': // possible start of /* */ comment
       begin
