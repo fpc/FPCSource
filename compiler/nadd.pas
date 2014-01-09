@@ -2532,11 +2532,11 @@ implementation
         result := false;
         if ((left.nodetype = typeconvn) and
             is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
+            not is_64bit(ttypeconvnode(left).left.resultdef) and
            (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
+             not is_64bit(ttypeconvnode(right).left.resultdef)) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
