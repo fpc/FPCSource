@@ -3226,12 +3226,14 @@ begin
   if not disable_configfile then
     begin
       if PathExists(FpcDir+'rtl',true) then
-        if tf_use_8_3 in Source_Info.Flags then
+        if (tf_use_8_3 in Source_Info.Flags) or
+           (tf_use_8_3 in Target_Info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_os_string,false)
         else
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
       else
-        if tf_use_8_3 in Source_Info.Flags then
+        if (tf_use_8_3 in Source_Info.Flags) or
+           (tf_use_8_3 in Target_Info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'units/'+target_os_string+'/rtl',false)
         else
           UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
