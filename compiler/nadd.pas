@@ -2526,21 +2526,30 @@ implementation
                     ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))))
         end;
 
+      function is_32bitordconst(n: tnode): boolean;
+        begin
+          result := (n.nodetype = ordconstn) and
+                    canbe32bitint(tordconstnode(n).value);
+        end;
+
+      function is_32to64typeconv(n: tnode): boolean;
+        begin
+          result := (n.nodetype = typeconvn) and
+                    is_integer(ttypeconvnode(n).left.resultdef) and
+                    not is_64bit(ttypeconvnode(n).left.resultdef);
+        end;
+
       var
         temp: tnode;
       begin
         result := false;
-        if ((left.nodetype = typeconvn) and
-            is_integer(ttypeconvnode(left).left.resultdef) and
-            not is_64bit(ttypeconvnode(left).left.resultdef) and
-           (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
-            ((right.nodetype = typeconvn) and
-             is_integer(ttypeconvnode(right).left.resultdef) and
-             not is_64bit(ttypeconvnode(right).left.resultdef)) and
+        if is_32to64typeconv(left) and
+           (is_32bitordconst(right) or
+            is_32to64typeconv(right) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
-               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit]))))) then
+               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit])))) then
           begin
             temp := ttypeconvnode(left).left;
             ttypeconvnode(left).left := nil;
