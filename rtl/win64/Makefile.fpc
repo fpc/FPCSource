@@ -11,11 +11,11 @@ units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinf
 implicitunits=ctypes strings \
       heaptrc \
       dos messages \
-      windows winsock winsock2 cmem dynlibs \
+      windows cmem dynlibs \
       rtlconsts sysconst sysutils math types \
       strutils \
       typinfo fgl classes getopts \
-      sockets printer charset character fpwidestring \
+      printer charset character fpwidestring \
       sharemem exeinfo fpintres windirs \
       cpu signals \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

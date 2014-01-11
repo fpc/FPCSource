@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos printer \
-      sysutils classes fgl math typinfo winsock \
+      sysutils classes fgl math typinfo \
       charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs \
       types rtlconst sysconst \
       strutils ctypes 
@@ -137,8 +137,6 @@ pmshl$(PPUEXT) : $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT
 pmwp$(PPUEXT) : $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmwsock$(PPUEXT) : $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-winsock$(PPUEXT) : $(OS2INC)/winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmbidi$(PPUEXT) : $(OS2INC)/pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

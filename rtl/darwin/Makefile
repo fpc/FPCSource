@@ -353,223 +353,223 @@ ifndef USELIBGGI
 USELIBGGI=NO
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sockets sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 strings sysctl baseunix unixutil unix initc cmem dynlibs $(CPU_UNITS) dos dl printer sysutils typinfo fgl classes math types charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb errors ipc terminfo termio sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring fpintres fpextres clocale objc objcbase unixcp
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 unicodedata unicodeducet unicodenumtable collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
@@ -2617,8 +2617,6 @@ fpextres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 iso7185$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-dateutils$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT) math$(PPUEXT) types$(PPUEXT) sysconst$(PPUEXT) $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
@@ -2640,8 +2638,6 @@ unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) ba
 	$(COMPILER) $(UNIXINC)/unixcp.pp
 dos$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-crt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unix$(PPUEXT) termio$(PPUEXT) $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-objects$(PPUEXT) : dos$(PPUEXT) $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sysutils$(PPUEXT) : objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
@@ -2657,11 +2653,6 @@ math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(
 	$(COMPILER) $(OBJPASDIR)/math.pp
 gettext$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/gettext.pp
-varutils$(PPUEXT) : sysutils$(PPUEXT) $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-		    $(OBJPASDIR)/varutilh.inc varutils.pp
-	$(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
@@ -2673,19 +2664,8 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		    sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/strutils.pp
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
-	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-		    sysutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/convutils.pp
-stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-		    sysutils$(PPUEXT) convutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/stdconvs.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
-video$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/video.inc $(INC)/videoh.inc $(UNIXINC)/video.pp baseunix$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT)
-keyboard$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/keyboard.inc $(INC)/keybrdh.inc $(UNIXINC)/keyboard.pp mouse$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT) baseunix$(PPUEXT)
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
@@ -2703,14 +2683,10 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 termio$(PPUEXT) : baseunix$(PPUEXT)
-mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-		   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT)
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)

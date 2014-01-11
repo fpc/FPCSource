@@ -32,7 +32,7 @@ begin
     P.IncludePath.Add('src/apr');
     P.IncludePath.Add('src/aprutil');
 
-//    P.Dependencies.Add('x11');
+    P.Dependencies.Add('rtl-extra');
 
     T:=P.Targets.AddUnit('apr24.pas');
       with T.Dependencies do

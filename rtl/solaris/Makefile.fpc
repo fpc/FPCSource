@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       printer \
       sysutils typinfo math fgl classes matrix \
       charset cpall buildcollations getopts \
-      errors sockets \
+      errors \
       # ipc serial
       terminfo dl dynlibs \
       types sysconst character \
@@ -53,7 +53,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
-      errors sockets ipc
+      errors  ipc
 
 [prerules]
 RTL=..
@@ -292,8 +292,6 @@ buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PP
 # Other system-dependent RTL Units
 #
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -313,7 +311,6 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp sysutils$(PPUEXT) baseunix$(PPUEXT) u
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
-gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 

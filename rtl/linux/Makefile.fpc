@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       printer linuxvcs \
       sysutils typinfo math   \
       charset cpall buildcollations character unixcp getopts \
-      errors sockets gpm ipc serial terminfo dl dynlibs \
+      errors  ipc serial terminfo dl dynlibs \
       types sysconst fpwidestring \
       cthreads classes fgl strutils rtlconsts dos  cwstring fpcylix clocale
 implicitunits=exeinfo \
@@ -49,7 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       unix baseunix unixtype unixutil \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
-      errors sockets \
+      errors  \
       classes fgl sysconst rtlconsts types
 
 [prerules]
@@ -402,10 +402,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #
 
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unixsock.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/sockets.pp
-
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/errors.pp
 
@@ -438,9 +434,6 @@ serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
-
-gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
-	$(COMPILER) gpm.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp

@@ -15,7 +15,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
       rtlconsts syscall unix unixutil strutils termio initc \
       cmem \
-      sockets dynlibs cwstring unixcp
+      dynlibs cwstring unixcp
 rsts=math typinfo sysconst rtlconsts 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -45,7 +45,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt printer \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
-      errors sockets ipc dynlibs
+      errors  ipc dynlibs
 
 
 [prerules]
@@ -249,8 +249,6 @@ mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
 
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 

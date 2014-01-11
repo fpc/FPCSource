@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem printer \
       linuxvcs sysutils typinfo math charset cpall character \
-      getopts errors sockets gpm serial terminfo dl dynlibs \
+      getopts errors  serial terminfo dl dynlibs \
       types  sysconst cthreads classes fgl  \
       strutils rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \
@@ -317,9 +317,6 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT)
         $(COMPILER) cwstring.pp
-
-gpm$(PPUEXT): $(LINUXINC)/gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
-        $(COMPILER) $(LINUXINC)/gpm.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp

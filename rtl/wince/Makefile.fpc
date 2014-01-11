@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
       strutils math \
-      charset cpall getopts winsock winsock2 sockets \
+      charset cpall getopts \
       cmem sharemem
 #    initc  signals \
 #    crt graph \

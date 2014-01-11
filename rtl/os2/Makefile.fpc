@@ -11,10 +11,10 @@ units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos printer \
-      sysutils fgl classes math typinfo winsock \
+      sysutils fgl classes math typinfo \
       charset cpall cpu mmx getopts heaptrc lineinfo lnfodwrf dynlibs \
       types rtlconst sysconst \
-      strutils so32dll sockets
+      strutils so32dll 
 rsts=math typinfo pmhelp classes sysconst 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -138,11 +138,7 @@ pmwp$(PPUEXT) : pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmwsock$(PPUEXT) : pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
 so32dll$(PPUEXT) : so32dll.pas $(SYSTEMUNIT)$(PPUEXT)
-
-sockets$(PPUEXT) : sockets.pas so32dll$(PPUEXT) ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmbidi$(PPUEXT) : pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

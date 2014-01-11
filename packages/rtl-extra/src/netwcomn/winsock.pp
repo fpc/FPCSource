@@ -25,7 +25,10 @@ unit winsock;
 {$mode objfpc}
 
   interface
-
+  
+  {$ifdef netwlibc}
+    {$define netware}
+  {$endif}
     const
        {
          Default maximium number of sockets.

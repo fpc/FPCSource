@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
        dl termio  printer \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall buildcollations getopts heaptrc lnfodwrf lineinfo \
-      errors sockets ipc terminfo bsd \
+      errors ipc terminfo bsd \
       serial \
       sysconst cthreads strutils dos objects cwstring \
       fpintres clocale unixcp fpwidestring
@@ -51,7 +51,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
+      errors  ipc
 
 [prerules]
 RTL=..
@@ -289,8 +289,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 # Other system-dependent RTL Units
 #
 
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -316,6 +314,5 @@ variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varut
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
-gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

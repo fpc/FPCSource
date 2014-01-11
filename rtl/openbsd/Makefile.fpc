@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(CPU_UNITS) dos printer rtlconsts \
       sysutils fgl classes typinfo math \
       charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf \
-      errors sockets ipc terminfo strutils \
+      errors ipc terminfo strutils \
       serial types sysctl sysconst \
       fpintres dynlibs cwstring cmem dl termio \
       cthreads unixcp clocale
@@ -50,7 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
+      errors ipc
 
 [prerules]
 RTL=..
@@ -295,8 +295,6 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # Other system-dependent RTL Units
 #
 
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

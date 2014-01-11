@@ -15,6 +15,11 @@ Const
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
   ObjectsOSes   = [amiga,emx,gba,go32v2,morphos,msdos,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
+  WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
+  WinSock2OSes  = [win32,win64,wince];
+  // sockets of  morphos is implemented, but not active
+  SocketsOSes   = UnixLikes+[netware,netwlibc,os2,wince,win32,win64];
+  gpmOSes	= [Linux,Android];
   AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes;
 
 Var
@@ -40,6 +45,7 @@ begin
     P.SourcePath.Add('src/darwin',[iphonesim]);
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
+    P.SourcePath.Add('src/netwcomn',[netware,netwlibc]);
     P.SourcePath.Add('src/win',[win32,win64]);
 
     P.IncludePath.Add('src/inc');
@@ -57,6 +63,22 @@ begin
        AddInclude('mvecimp.inc');
        AddInclude('mmatimp.inc');
      end;
+    T:=P.Targets.AddUnit('winsock.pp',WinSockOSes);
+    with T.Dependencies do
+     begin
+       AddInclude('qos.inc',[netware,netwlibc]);
+       AddInclude('netwsockh.inc',[netware,netwlibc]);
+     end;
+    T:=P.Targets.AddUnit('gpm.pp',gpmOSes);
+    with T.Dependencies do
+      AddUnit('sockets');
+    T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
+    with T.Dependencies do
+     begin
+       addinclude('socketsh.inc');
+       addinclude('sockets.inc');
+       addinclude('sockovl.inc');
+     end; 
   end
 end;
  

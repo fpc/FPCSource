@@ -6,12 +6,12 @@ unit buildrtl;
       sysinitpas, sysinitcyg, sysinitgprof,
       ctypes, strings,
       heaptrc,
-      windows, winsock, winsock2, initc, cmem, dynlibs, signals,
+      windows,  initc, cmem, dynlibs, signals,
       dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
       strutils, typinfo, fgl, classes,
       cpu, mmx, charset, character, getopts,
-      sockets, printer,
+      printer,
       fpwidestring,
       winsysut, sharemem, fpintres, windirs;
 

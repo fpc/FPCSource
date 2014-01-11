@@ -11,7 +11,7 @@ loaders=
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
-      dos dl printer sockets \
+      dos dl printer \
       sysutils typinfo fgl classes math types \
       charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio \
@@ -49,7 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors sockets ipc
+      errors  ipc
 
 [prerules]
 ifeq ($(CPU_TARGET),i386)
@@ -138,11 +138,6 @@ iso7185$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-
-dateutils$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT) math$(PPUEXT) types$(PPUEXT) sysconst$(PPUEXT) $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-
-
 strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
@@ -183,10 +178,6 @@ unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) ba
 dos$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-crt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unix$(PPUEXT) termio$(PPUEXT) $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-objects$(PPUEXT) : dos$(PPUEXT) $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
-
 printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
@@ -218,13 +209,6 @@ math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(
 gettext$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
-varutils$(PPUEXT) : sysutils$(PPUEXT) $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -241,17 +225,6 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
 
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/convutils.pp
-
-stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT) convutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
-
 #
 # Mac Pascal Model
 #
@@ -262,12 +235,6 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 # Other system-independent RTL Units
 #
-
-video$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/video.inc $(INC)/videoh.inc $(UNIXINC)/video.pp baseunix$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT)
-
-keyboard$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/keyboard.inc $(INC)/keybrdh.inc $(UNIXINC)/keyboard.pp mouse$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT) baseunix$(PPUEXT)
-
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
@@ -296,8 +263,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
-
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
@@ -306,12 +271,7 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 
 termio$(PPUEXT) : baseunix$(PPUEXT)
 
-mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
-
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
-
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 

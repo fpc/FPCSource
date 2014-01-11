@@ -249,5 +249,3 @@ keyboard$(PPUEXT) : keyboard.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

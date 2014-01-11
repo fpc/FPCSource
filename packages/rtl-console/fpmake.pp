@@ -40,6 +40,7 @@ begin
     P.Email := '';
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
+    P.Dependencies.Add('rtl-extra'); // linux,android gpm.
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');

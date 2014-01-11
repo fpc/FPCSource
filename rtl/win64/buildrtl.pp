@@ -5,12 +5,12 @@ unit buildrtl;
     uses
       ctypes, strings,
       heaptrc, 
-      windows, winsock, winsock2, cmem, dynlibs,
+      windows,  cmem, dynlibs,
       dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
       strutils, typinfo, fgl, classes,
       charset, character, getopts,
-      sockets, printer,
+      printer,
       fpwidestring,
       sharemem, fpintres, windirs,
       cpu, signals;
