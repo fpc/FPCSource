@@ -25,6 +25,7 @@ FPCBIN=`dirname "$1"`/../../bin/fpc
 FPBIN=`dirname "$1"`/../../bin/fp
 FPPKGBIN=`dirname "$1"`/../../bin/fppkg
 FPCMKCFGBIN=`dirname "$1"`/../../bin/fpcmkcfg
+SHAREPATH=`dirname "$1"`/../../../share
 # Look for one in the PATH, if no new one was installed.
 if [ ! -f $FPCMKCFGBIN ]; then
   FPCMKCFGBIN=fpcmkcfg
@@ -73,7 +74,7 @@ FPCGLOBALPREFIX=`dirname "$1"`/../../
 
 # Write (.)fpc.cfg
 echo Writing sample configuration file to $fpccfgfile
-${FPCMKCFGBIN} -d "basepath=$FPCPATH" -o $fpccfgfile
+${FPCMKCFGBIN} -d "basepath=$FPCPATH sharepath=$SHAREPATH" -o $fpccfgfile
 
 if ! [ -f "$FPBIN" ] ; then
   exit
@@ -81,7 +82,7 @@ fi
 
 # Write fp.cfg
 echo Writing sample configuration file to $fpcfgfile
-${FPCMKCFGBIN} -p -1 -d "basepath=$FPCPATH" -o $fpcfgfile
+${FPCMKCFGBIN} -p -1 -d "basepath=$FPCPATH sharepath=$SHAREPATH" -o $fpcfgfile
 
 # Write fp.ini
 echo Writing sample configuration file to $fpinifile
