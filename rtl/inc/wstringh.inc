@@ -45,6 +45,6 @@ function UTF8Encode(const s : WideString) : UTF8String;
 
 {$ifdef MSWINDOWS}
 const
-  winwidestringalloc : boolean = true;
+  winwidestringalloc : boolean = true deprecated;
 {$endif MSWINDOWS}
 
