@@ -40,6 +40,6 @@ function UTF8Encode(const s : WideString) : RawByteString;
 
 {$ifdef MSWINDOWS}
 const
-  winwidestringalloc : boolean = true;
+  winwidestringalloc : boolean = true deprecated;
 {$endif MSWINDOWS}
 
