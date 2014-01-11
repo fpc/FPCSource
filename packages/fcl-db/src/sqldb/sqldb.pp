@@ -1866,9 +1866,9 @@ end;
 
 procedure TCustomSQLQuery.InternalOpen;
 
-var tel, fieldc : integer;
-    f           : TField;
-    IndexFields : TStrings;
+var counter, fieldc : integer;
+    f               : TField;
+    IndexFields     : TStrings;
 begin
   if IsReadFromPacket then
     begin
@@ -1906,12 +1906,12 @@ begin
         begin
         if FusePrimaryKeyAsKey then
           begin
-          for tel := 0 to ServerIndexDefs.count-1 do
+          for counter := 0 to ServerIndexDefs.count-1 do
             begin
-            if ixPrimary in ServerIndexDefs[tel].options then
+            if ixPrimary in ServerIndexDefs[counter].options then
               begin
                 IndexFields := TStringList.Create;
-                ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
+                ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].fields),IndexFields);
                 for fieldc := 0 to IndexFields.Count-1 do
                   begin
                   F := Findfield(IndexFields[fieldc]);
