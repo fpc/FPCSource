@@ -50,6 +50,7 @@ unit cgcpu;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_reg_cgpara(list : TAsmList; size : tcgsize;r : tregister; const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
@@ -205,25 +206,124 @@ unit cgcpu;
       end;
 
 
+    procedure tcgavr.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+
+      procedure load_para_loc(r : TRegister;paraloc : PCGParaLocation);
+        var
+          ref : treference;
+        begin
+          paramanager.allocparaloc(list,paraloc);
+          case paraloc^.loc of
+             LOC_REGISTER,LOC_CREGISTER:
+               a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
+             LOC_REFERENCE,LOC_CREFERENCE:
+               begin
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2);
+                  a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
+               end;
+             else
+               internalerror(2002071004);
+          end;
+        end;
+
+      var
+        i : longint;
+        hp : PCGParaLocation;
+
+      begin
+{        if use_push(cgpara) then
+          begin
+            if tcgsize2size[cgpara.Size] > 2 then
+              begin
+                if tcgsize2size[cgpara.Size] <> 4 then
+                  internalerror(2013031101);
+                if cgpara.location^.Next = nil then
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 4 then
+                      internalerror(2013031101);
+                  end
+                else
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 2 then
+                      internalerror(2013031101);
+                    if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                      internalerror(2013031101);
+                    if cgpara.location^.Next^.Next <> nil then
+                      internalerror(2013031101);
+                  end;
+
+                if tcgsize2size[cgpara.size]>cgpara.alignment then
+                  pushsize:=cgpara.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                pushsize2 := int_cgsize(tcgsize2size[pushsize] - 2);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize2],makeregsize(list,GetNextReg(r),pushsize2)));
+                list.concat(taicpu.op_reg(A_PUSH,S_W,makeregsize(list,r,OS_16)));
+              end
+            else
+              begin
+                cgpara.check_simple_location;
+                if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+                  pushsize:=cgpara.location^.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+              end;
+
+          end
+        else }
+          begin
+            if not(tcgsize2size[cgpara.Size] in [1..4]) then
+              internalerror(2014011101);
+
+            hp:=cgpara.location;
+
+            for i:=1 to tcgsize2size[cgpara.Size] do
+              begin
+                if not(assigned(hp)) or
+                  (tcgsize2size[hp^.size]<>1) or
+                  (hp^.shiftval<>0) then
+                  internalerror(2014011102);
+                load_para_loc(r,hp);
+                hp:=hp^.Next;
+                r:=GetNextReg(r);
+              end;
+            if assigned(hp) then
+              internalerror(2014011103);
+          end;
+      end;
+
+
     procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);
       var
-        ref: treference;
+        i : longint;
+        hp : PCGParaLocation;
       begin
-        paraloc.check_simple_location;
-        paramanager.allocparaloc(list,paraloc.location);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-               reference_reset(ref,paraloc.alignment);
-               ref.base:=paraloc.location^.reference.index;
-               ref.offset:=paraloc.location^.reference.offset;
-               a_load_const_ref(list,size,a,ref);
+        if not(tcgsize2size[paraloc.Size] in [1..4]) then
+          internalerror(2014011101);
+
+        hp:=paraloc.location;
+
+        for i:=1 to tcgsize2size[paraloc.Size] do
+          begin
+            if not(assigned(hp)) or
+              (tcgsize2size[hp^.size]<>1) or
+              (hp^.shiftval<>0) then
+              internalerror(2014011105);
+             case hp^.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 a_load_const_reg(list,hp^.size,(a shr (i-1)) and $ff,hp^.register);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 begin
+                   list.concat(taicpu.op_const(A_PUSH,(a shr (i-1)) and $ff));
+                 end;
+               else
+                 internalerror(2002071004);
             end;
-          else
-            internalerror(2002081101);
-        end;
+            hp:=hp^.Next;
+          end;
+        if assigned(hp) then
+          internalerror(2014011104);
       end;
 
 
@@ -271,26 +371,11 @@ unit cgcpu;
 
     procedure tcgavr.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
-        ref: treference;
         tmpreg: tregister;
       begin
-        paraloc.check_simple_location;
-        paramanager.allocparaloc(list,paraloc.location);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_loadaddr_ref_reg(list,r,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-              reference_reset(ref,paraloc.alignment);
-              ref.base := paraloc.location^.reference.index;
-              ref.offset := paraloc.location^.reference.offset;
-              tmpreg := getintregister(list,OS_ADDR);
-              a_loadaddr_ref_reg(list,r,tmpreg);
-              a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-            end;
-          else
-            internalerror(2002080701);
-        end;
+        tmpreg:=getaddressregister(list);
+        a_loadaddr_ref_reg(list,r,tmpreg);
+        a_load_reg_cgpara(list,OS_ADDR,tmpreg,paraloc);
       end;
 
 
@@ -1175,6 +1260,7 @@ unit cgcpu;
       begin
         if a=0 then
           begin
+            swapped:=false;
             { swap parameters? }
             case cmp_op of
               OC_GT:
@@ -1195,10 +1281,8 @@ unit cgcpu;
               OC_A:
                 begin
                   swapped:=true;
-                  cmp_op:=OC_A;
+                  cmp_op:=OC_B;
                 end;
-              else
-                internalerror(2013113006);
             end;
 
             if swapped then
@@ -1229,6 +1313,7 @@ unit cgcpu;
         tmpreg : tregister;
         i : byte;
       begin
+        swapped:=false;
         { swap parameters? }
         case cmp_op of
           OC_GT:
@@ -1249,10 +1334,8 @@ unit cgcpu;
           OC_A:
             begin
               swapped:=true;
-              cmp_op:=OC_A;
+              cmp_op:=OC_B;
             end;
-          else
-            internalerror(2013113007);
         end;
         if swapped then
           begin

@@ -38,7 +38,6 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -65,45 +64,6 @@ unit cpupara;
     function tavrparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
-      end;
-
-
-    procedure tavrparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
-      begin
-        if nr<1 then
-          internalerror(2002070801);
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=std_param_align;
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-          begin
-            size:=def_cgsize(pdef);
-            def:=pdef;
-            { the four first parameters are passed into registers }
-            if nr<=9 then
-              begin
-                loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,RS_R25-(nr-1)*2,R_SUBWHOLE);
-              end
-            else
-              begin
-                { the other parameters are passed on the stack }
-                loc:=LOC_REFERENCE;
-                reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=(nr-10)*2;
-              end;
-          end;
       end;
 
 
