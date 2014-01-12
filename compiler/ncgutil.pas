@@ -94,7 +94,7 @@ interface
       uses rv.myregvars as scratch (so that two uses of the same regvar
       in a single tree to make it appear in commonregvars). Useful to
       find out which regvars are used in two different node trees
-      (e.g. in the "else" and "then" path, or in various case blocks }
+      e.g. in the "else" and "then" path, or in various case blocks }
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
