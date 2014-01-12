@@ -1918,6 +1918,8 @@ type
          init_procinfo:=nil;
          finalize_procinfo:=nil;
          resources_used:=false;
+         { make the compiler happy and avoid an uninitialized variable warning on Setlength(sc,length(sc)+1); }
+         sc:=nil;
 
          { DLL defaults to create reloc info }
          if islibrary then
