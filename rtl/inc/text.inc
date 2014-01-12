@@ -1724,7 +1724,7 @@ end;
 procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [external name 'FPC_READ_TEXT_CHAR'];
 
 
-function fpc_GetBuf(var f : Text) : pchar; iocheck; compilerproc;
+function fpc_GetBuf_Text(var f : Text) : pchar; iocheck; compilerproc;
 Begin
   Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
   If not CheckRead(f) then

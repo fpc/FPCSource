@@ -2824,13 +2824,19 @@ implementation
     procedure tfiledef.setsize;
       begin
        case filetyp of
-         ft_text    :
+         ft_text:
            savesize:=search_system_type('TEXTREC').typedef.size;
-         ft_typed,
-         ft_untyped :
+         ft_typed:
+           begin
+             savesize:=search_system_type('FILEREC').typedef.size;
+             { allocate put/get buffer in iso mode }
+             if m_iso in current_settings.modeswitches then
+               inc(savesize,typedfiledef.size);
+           end;
+         ft_untyped:
            savesize:=search_system_type('FILEREC').typedef.size;
-           else
-             internalerror(2013113001);
+         else
+           internalerror(2013113001);
          end;
       end;
 

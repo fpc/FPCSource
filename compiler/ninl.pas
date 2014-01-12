@@ -1044,7 +1044,8 @@ implementation
 
     {Read/write for typed files.}
 
-    const  procprefixes:array[boolean] of string[15]=('fpc_typed_write','fpc_typed_read');
+    const  procprefixes:array[boolean,boolean] of string[19]=(('fpc_typed_write','fpc_typed_read'),
+                                                              ('fpc_typed_write','fpc_typed_read_iso'));
            procnamesdisplay:array[boolean,boolean] of string[8] = (('Write','Read'),('WriteStr','ReadStr'));
 
     var found_error,do_read,is_rwstr:boolean;
@@ -1134,7 +1135,7 @@ implementation
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
-            Ccallnode.createintern(procprefixes[do_read],para
+            Ccallnode.createintern(procprefixes[m_iso in current_settings.modeswitches,do_read],para
           ));
 
           { if we used a temp, free it }

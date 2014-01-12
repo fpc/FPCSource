@@ -1781,11 +1781,21 @@ implementation
 
                { iso file buf access? }
                if (m_iso in current_settings.modeswitches) and
-                 (p1.resultdef.typ=filedef) and
-                 (tfiledef(p1.resultdef).filetyp=ft_text) then
+                 (p1.resultdef.typ=filedef) then
                  begin
-                   p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf',ccallparanode.create(p1,nil)));
-                   typecheckpass(p1);
+                   case tfiledef(p1.resultdef).filetyp of
+                     ft_text:
+                       begin
+                         p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf_text',ccallparanode.create(p1,nil)));
+                         typecheckpass(p1);
+                       end;
+                     ft_typed:
+                       begin
+                         p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil)),
+                           getpointerdef(tfiledef(p1.resultdef).typedfiledef)));
+                         typecheckpass(p1);
+                       end;
+                   end;
                  end
                else if (p1.resultdef.typ<>pointerdef) then
                  begin

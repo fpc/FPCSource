@@ -511,7 +511,8 @@ procedure fpc_Read_Text_Int64_Iso(var f : text; out i : int64); compilerproc;
 Procedure fpc_Read_Text_LongWord(var f : text; out q : longword); compilerproc;
 Procedure fpc_Read_Text_LongInt(var f : text; out i : longint); compilerproc;
 {$endif CPU16 or CPU8}
-function fpc_GetBuf(var f : Text) : pchar; compilerproc;
+function fpc_GetBuf_Text(var f : Text) : pchar; compilerproc;
+function fpc_GetBuf_TypedFile(var f : TypedFile) : pointer; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -690,6 +691,7 @@ Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
+Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}

@@ -40,6 +40,9 @@ unit iso7185;
     Procedure Get(Var t: Text);
     Procedure Put(Var t: Text);
 
+    Procedure Get(Var f: TypedFile);
+    Procedure Put(Var f: TypedFile);
+
     Function Eof(var f:TypedFile): Boolean;
 
   implementation
@@ -79,10 +82,17 @@ unit iso7185;
       var
         OldCtrlZMarksEof : Boolean;
       Begin
-        OldCtrlZMarksEof:=CtrlZMarksEOF;
-        CtrlZMarksEof:=false;
-        Eof:=System.Eof(t);
-        CtrlZMarksEof:=OldCtrlZMarksEOF;
+        { not sure if this is correct, but we are always at eof when
+          writing to a file }
+        if TextRec(t).mode=fmOutput then
+          Eof:=true
+        else
+          begin
+            OldCtrlZMarksEof:=CtrlZMarksEOF;
+            CtrlZMarksEof:=false;
+            Eof:=System.Eof(t);
+            CtrlZMarksEof:=OldCtrlZMarksEOF;
+          end;
       end;
 
 
@@ -109,19 +119,19 @@ unit iso7185;
       End;
 
 
-    Procedure Page;
+    Procedure Page;[IOCheck];
       begin
         Page(Output);
       end;
 
 
-    Procedure Page(var t : Text);
+    Procedure Page(var t : Text);[IOCheck];
       Begin
         write(#12);
       End;
 
 
-    procedure Get(var t : Text);
+    procedure Get(var t : Text);[IOCheck];
       var
         c : char;
       Begin
@@ -129,7 +139,7 @@ unit iso7185;
       End;
 
 
-    Procedure Put(var t : Text);
+    Procedure Put(var t : Text);[IOCheck];
       type
         FileFunc = Procedure(var t : TextRec);
       begin
@@ -139,7 +149,20 @@ unit iso7185;
       end;
 
 
-    Function Eof(var f:TypedFile): Boolean;
+    procedure Get(var f:TypedFile);[IOCheck];
+      Begin
+        if not(eof(f)) then
+          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+      End;
+
+
+    Procedure Put(var f:TypedFile);[IOCheck];
+      begin
+        BlockWrite(f,(pbyte(@f)+sizeof(FileRec))^,1)
+      end;
+
+
+    Function Eof(var f:TypedFile): Boolean;[IOCheck];
       Type
         UnTypedFile = File;
       Begin
@@ -150,8 +173,7 @@ begin
   { we shouldn't do this because it might confuse user programs, but for now it
     is good enough to get pretty unique tmp file names }
   Randomize;
+  { reset opens with read-only }
+  Filemode:=0;
 end.
-
-
-
 
