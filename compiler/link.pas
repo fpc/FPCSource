@@ -787,7 +787,8 @@ Implementation
         binstr := FindUtil(utilsprefix + binstr);
 
 
-        scripted_ar:=target_ar.id=ar_gnu_ar_scripted;
+        scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
+                     (target_ar.id=ar_watcom_wlib_omf_scripted);
 
         if scripted_ar then
           begin
@@ -796,15 +797,25 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              writeln(script, 'CREATE ' + current_module.staticlibfilename);
+              if (target_ar.id=ar_gnu_ar_scripted) then
+                writeln(script, 'CREATE ' + current_module.staticlibfilename)
+              else { wlib case }
+                writeln(script,'-q -fo -c '+
+                  maybequoted(current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  writeln(script, 'ADDMOD ' + current.str);
+                  if (target_ar.id=ar_gnu_ar_scripted) then
+                  writeln(script, 'ADDMOD ' + current.str)
+                  else
+                    writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              writeln(script, 'SAVE');
-              writeln(script, 'END');
+              if (target_ar.id=ar_gnu_ar_scripted) then
+                begin
+                  writeln(script, 'SAVE');
+                  writeln(script, 'END');
+                end;
             finally
               Close(script);
             end;
@@ -1585,10 +1596,18 @@ Implementation
             arfinishcmd : ''
           );
 
+      ar_watcom_wlib_omf_scripted_info : tarinfo =
+          (
+            id    : ar_watcom_wlib_omf_scripted;
+            arcmd : 'wlib @$SCRIPT';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
   RegisterAr(ar_gnu_ar_scripted_info);
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
+  RegisterAr(ar_watcom_wlib_omf_scripted_info);
 end.

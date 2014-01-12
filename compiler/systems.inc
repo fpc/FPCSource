@@ -237,6 +237,7 @@
             ,ar_gnu_ar_scripted
             ,ar_gnu_gar
             ,ar_watcom_wlib_omf
+            ,ar_watcom_wlib_omf_scripted
        );
 
        tres = (res_none
