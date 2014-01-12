@@ -42,6 +42,7 @@ interface
           procedure second_cmpordinal;override;
           procedure second_addordinal;override;
        public
+          function pass_1: tnode; override;
           function use_generic_mul32to64: boolean; override;
        end;
 
@@ -297,67 +298,40 @@ interface
     procedure tsparcaddnode.second_cmp64bit;
       var
         unsigned   : boolean;
+        hreg1,hreg2: tregister;
 
-      procedure firstjmp64bitcmp;
+      procedure emit_compare(list:tasmlist; ls,rs:tnode);
         var
-           oldnodetype : tnodetype;
+          lreg: tregister64;
         begin
-           { the jump the sequence is a little bit hairy }
-           case nodetype of
-              ltn,gtn:
+          if (ls.location.loc=LOC_CONSTANT) then
+            begin
+              lreg.reghi:=NR_G0;
+              lreg.reglo:=NR_G0;
+              if lo(ls.location.value64)<>0 then
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
-                   { cheat a little bit for the negative test }
-                   toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                   toggleflag(nf_swapped);
+                  lreg.reglo:=cg.GetIntRegister(list,OS_INT);
+                  cg.a_load_const_reg(list,OS_INT,lo(ls.location.value64),lreg.reglo);
                 end;
-              lten,gten:
+              if hi(ls.location.value64)<>0 then
                 begin
-                   oldnodetype:=nodetype;
-                   if nodetype=lten then
-                     nodetype:=ltn
-                   else
-                     nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
-                   { cheat for the negative test }
-                   if nodetype=ltn then
-                     nodetype:=gtn
-                   else
-                     nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                   nodetype:=oldnodetype;
+                  lreg.reghi:=cg.GetIntRegister(list,OS_INT);
+                  cg.a_load_const_reg(list,OS_INT,hi(ls.location.value64),lreg.reghi);
                 end;
-              equaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-              unequaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-           end;
-        end;
+            end
+          else
+            lreg:=ls.location.register64;
 
-      procedure secondjmp64bitcmp;
-
-        begin
-           { the jump the sequence is a little bit hairy }
-           case nodetype of
-              ltn,gtn,lten,gten:
-                begin
-                   { the comparisaion of the low dword have to be }
-                   {  always unsigned!                            }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                end;
-              equaln:
-                begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-                end;
-              unequaln:
-                begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                end;
-           end;
+          if (rs.location.loc=LOC_CONSTANT) then
+            begin
+              tcgsparc(cg).handle_reg_const_reg(list,A_SUBcc,lreg.reglo,lo(rs.location.value64),NR_G0);
+              tcgsparc(cg).handle_reg_const_reg(list,A_SUBXcc,lreg.reghi,hi(rs.location.value64),NR_G0);
+            end
+          else
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SUBcc,lreg.reglo,rs.location.register64.reglo,NR_G0));
+              list.concat(taicpu.op_reg_reg_reg(A_SUBXcc,lreg.reghi,rs.location.register64.reghi,NR_G0));
+            end;
         end;
 
       begin
@@ -367,21 +341,65 @@ interface
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        location_reset(location,LOC_JUMP,OS_NO);
+        location_reset(location,LOC_FLAGS,OS_NO);
 
-        if (right.location.loc<>LOC_CONSTANT) then
+        if (nodetype in [equaln,unequaln]) then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            firstjmp64bitcmp;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-            secondjmp64bitcmp;
+            location.resflags:=getresflags(unsigned);
+            if (right.location.loc=LOC_CONSTANT) then
+              begin
+                if hi(right.location.value64)<>0 then
+                  begin
+                    hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                    tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reghi,hi(right.location.value64),hreg1);
+                  end
+                else
+                  hreg1:=left.location.register64.reghi;
+
+                if lo(right.location.value64)<>0 then
+                  begin
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                    tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reglo,lo(right.location.value64),hreg2);
+                  end
+                else
+                  hreg2:=left.location.register64.reglo;
+              end
+            else
+              begin
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,left.location.register64.reghi,right.location.register64.reghi,hreg1));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,left.location.register64.reglo,right.location.register64.reglo,hreg2));
+              end;
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ORcc,hreg1,hreg2,NR_G0));
           end
         else
           begin
-            tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register64.reghi,hi(right.location.value64),NR_G0);
-            firstjmp64bitcmp;
-            tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register64.reglo,lo(right.location.value64),NR_G0);
-            secondjmp64bitcmp;
+            { undo possible swapped state }
+            if (nf_swapped in flags) then
+              swapleftright;
+            { Subtracting sides sets N,V and C flags correctly, but not Z flag
+              (which ends up depending only on upper dword). So don't use conditions
+              that test Z flag:
+                             unsigned  signed
+              a < b   =>       F_B      F_L
+              a >= b  =>       F_AE     F_GE
+              a <= b  => swap, F_AE     F_GE
+              a > b   => swap, F_B      F_L }
+            if (nodetype in [ltn,gten]) then
+              begin
+                emit_compare(current_asmdata.CurrAsmList,left,right);
+                location.resflags:=getresflags(unsigned);
+              end
+            else if (nodetype in [lten,gtn]) then
+              begin
+                emit_compare(current_asmdata.CurrAsmList,right,left);
+                toggleflag(nf_swapped);
+                location.resflags:=getresflags(unsigned);
+                toggleflag(nf_swapped);
+              end
+            else
+              InternalError(2014011001);
           end;
       end;
 
@@ -433,6 +451,18 @@ interface
     function tsparcaddnode.use_generic_mul32to64: boolean;
       begin
         result:=false;
+      end;
+
+
+    function tsparcaddnode.pass_1: tnode;
+      begin
+        result:=inherited pass_1;
+        if not assigned(result) then
+          begin
+            if is_64bitint(left.resultdef) and
+              (nodetype in [equaln,unequaln,ltn,gtn,lten,gten]) then
+              expectloc:=LOC_FLAGS;
+          end;
       end;
 
 begin
