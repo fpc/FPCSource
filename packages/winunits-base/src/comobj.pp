@@ -18,8 +18,8 @@ unit comobj;
 
   interface
 
-{$define DEBUG_COM}
-{$define DEBUG_COMDISPATCH}
+{ $define DEBUG_COM}
+{ $define DEBUG_COMDISPATCH}
 
 {$ifdef wince}
   {$define DUMMY_REG}
