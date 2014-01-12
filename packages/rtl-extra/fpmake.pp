@@ -19,6 +19,8 @@ Const
   WinSock2OSes  = [win32,win64,wince];
   // sockets of  morphos is implemented, but not active
   SocketsOSes   = UnixLikes+[netware,netwlibc,os2,wince,win32,win64];
+  Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
+  Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
   AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes;
 
@@ -82,6 +84,9 @@ begin
        addinclude('socketsh.inc');
        addinclude('sockets.inc');
        addinclude('sockovl.inc');
+       addinclude('unxsockh.inc',UnixLikes);
+       addinclude('stdsock.inc',socklibc);
+       addinclude('unixsock.inc',socksyscall);
      end; 
   end
 end;
