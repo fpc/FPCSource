@@ -6509,6 +6509,7 @@ packages/rtl-extra/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/rtl-extra/fpmake.pp svneol=native#text/plain
 packages/rtl-extra/src/aix/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/beos/osdefs.inc svneol=native#text/plain
+packages/rtl-extra/src/bsd/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/haiku/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/inc/matrix.pp svneol=native#text/plain
 packages/rtl-extra/src/inc/mmatimp.inc svneol=native#text/plain
