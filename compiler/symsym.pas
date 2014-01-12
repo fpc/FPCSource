@@ -235,6 +235,10 @@ interface
 {$endif symansistr}
       public
           section : ansistring;
+          { if a text buffer has been defined as being initialized from command line
+            parameters as it is done by iso pascal with the program symbols,
+            isoindex contains the parameter number }
+          isoindex : dword;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
           constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);

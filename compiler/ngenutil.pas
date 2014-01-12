@@ -68,6 +68,11 @@ interface
       { trashing for differently sized variables that those handled by
         trash_small() }
       class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
+
+      { initialization of iso styled program parameters }
+      class procedure initialize_textrec(p : TObject; statn : pointer);
+      { finalization of iso styled program parameters }
+      class procedure finalize_textrec(p : TObject; statn : pointer);
      public
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
@@ -260,6 +265,42 @@ implementation
     end;
 
 
+  class procedure tnodeutils.initialize_textrec(p:TObject;statn:pointer);
+    var
+      stat: ^tstatementnode absolute statn;
+    begin
+      if (tsym(p).typ=staticvarsym) and
+       (tstaticvarsym(p).vardef.typ=filedef) and
+       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
+       (tstaticvarsym(p).isoindex<>0) then
+       begin
+         addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
+           ccallparanode.create(
+             cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+           ccallparanode.create(
+             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+           nil))));
+       end;
+    end;
+
+
+  class procedure tnodeutils.finalize_textrec(p:TObject;statn:pointer);
+    var
+      stat: ^tstatementnode absolute statn;
+    begin
+      if (tsym(p).typ=staticvarsym) and
+       (tstaticvarsym(p).vardef.typ=filedef) and
+       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
+       (tstaticvarsym(p).isoindex<>0) then
+       begin
+         addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
+           ccallparanode.create(
+             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+           nil)));
+       end;
+    end;
+
+
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
@@ -267,6 +308,17 @@ implementation
       psym: tsym;
     begin
       result:=maybe_insert_trashing(pd,n);
+
+      if (m_iso in current_settings.modeswitches) and
+        (pd.proctypeoption=potype_proginit) then
+        begin
+          block:=internalstatements(stat);
+          pd.localst.SymList.ForEachCall(@initialize_textrec,@stat);
+          addstatement(stat,result);
+          pd.localst.SymList.ForEachCall(@finalize_textrec,@stat);
+          result:=block;
+        end;
+
       if target_info.system in systems_typed_constants_node_init then
         begin
           case pd.proctypeoption of

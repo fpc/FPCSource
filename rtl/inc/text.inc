@@ -615,6 +615,19 @@ begin
 end;
 
 
+Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
+begin
+  assign(t,paramstr(nr));
+  reset(t);
+end;
+
+
+Procedure fpc_textclose_iso(var t : Text);compilerproc;
+begin
+  close(t);
+end;
+
+
 {*****************************************************************************
                                Write(Ln)
 *****************************************************************************}
