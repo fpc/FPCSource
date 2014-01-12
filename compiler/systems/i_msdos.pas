@@ -23,6 +23,13 @@ unit i_msdos;
 
 {$i fpcdefs.inc}
 
+{$ifdef go32v2}
+  { As wlib uses a different Dos-Extender, long-command line
+    encoding for DJGPP does not work here.
+    Put all inside a script file instead }
+  {$define USE_SCRIPTED_WLIB}
+{$endif}
+
   interface
 
     uses
@@ -66,7 +73,11 @@ unit i_msdos;
             assemextern  : as_i386_nasmobj;
             link         : ld_none;
             linkextern   : ld_msdos;
+{$ifdef USE_SCRIPTED_WLIB}
+            ar           : ar_watcom_wlib_omf_scripted;
+{$else}
             ar           : ar_watcom_wlib_omf;
+{$endif}
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_dos;
