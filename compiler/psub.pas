@@ -1187,9 +1187,9 @@ implementation
 
         { add wrapping code if necessary (initialization of typed constants on
           some platforms, initing of local variables and out parameters with
-          trashing values, ... }
+          trashing values, ...) }
         { init/final code must be wrapped later (after code for main proc body
-          has been generated }
+          has been generated) }
         if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
           code:=cnodeutils.wrap_proc_body(procdef,code);
 
