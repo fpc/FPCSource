@@ -24,3 +24,7 @@
                                 // (which is a GNU extension)
 {$define hassysctl}             // Use sysctl unit
 
+{$ifdef darwin}
+  {$define FPC_USE_LIBC}
+{$endif}
+

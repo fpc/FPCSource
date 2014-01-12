@@ -23,3 +23,4 @@
 {$define usedomain}             // Allow uname with "domain" entry.
                                 // (which is a GNU extension)
 
+{$define FPC_USE_LIBC}
