@@ -44,11 +44,15 @@ begin
     P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/darwin',[iphonesim]);
     P.SourcePath.Add('src/unix',AllUnixOSes);
+    P.SourcePath.Add('src/bsd',AllBSDOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
     P.SourcePath.Add('src/netwcomn',[netware,netwlibc]);
     P.SourcePath.Add('src/win',[win32,win64]);
 
+    P.IncludePath.Add('src/bsd',AllBSDOSes);
     P.IncludePath.Add('src/inc');
+    P.IncludePath.Add('src/os2commn',[os2,emx]);
+    P.IncludePath.Add('src/netwcomn',[netware,netwlibc]);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
