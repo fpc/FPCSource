@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       $(CPU_UNITS) charset cpall buildcollations getopts heaptrc lnfodwrf lineinfo \
       errors ipc terminfo bsd \
       serial \
-      sysconst cthreads strutils dos objects cwstring \
+      sysconst cthreads strutils dos cwstring \
       fpintres clocale unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
