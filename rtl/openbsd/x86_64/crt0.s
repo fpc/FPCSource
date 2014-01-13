@@ -3,7 +3,7 @@
 	.section	.rodata
 .LC0:
 	.string	""
-	.data
+	.section	.data.rel.local,"aw",@progbits
 	.align 8
 	.type	__progname, @object
 	.size	__progname, 8
@@ -29,8 +29,19 @@ ___start:
 	movq	%rcx, -48(%rbp)
 	movq	%r8, -56(%rbp)
 	movq	%r9, -64(%rbp)
+	movq	environ@GOTPCREL(%rip), %rdx
 	movq	-40(%rbp), %rax
-	movq	%rax, environ(%rip)
+	movq	%rax, (%rdx)
+	movq	operatingsystem_parameter_envp@GOTPCREL(%rip), %rdx
+	movq	-40(%rbp), %rax
+	movq	%rax, (%rdx)
+	movl	-20(%rbp), %eax
+	movslq	%eax,%rdx
+	movq	operatingsystem_parameter_argc@GOTPCREL(%rip), %rax
+	movq	%rdx, (%rax)
+	movq	operatingsystem_parameter_argv@GOTPCREL(%rip), %rdx
+	movq	-32(%rbp), %rax
+	movq	%rax, (%rdx)
 	movq	-32(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, -8(%rbp)
@@ -39,57 +50,64 @@ ___start:
 	movq	-8(%rbp), %rdi
 	movl	$47, %esi
 	call	_strrchr
-	movq	%rax, __progname(%rip)
-	movq	__progname(%rip), %rax
+	movq	%rax, %rdx
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	%rdx, (%rax)
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	(%rax), %rax
 	testq	%rax, %rax
 	jne	.L4
+	movq	__progname@GOTPCREL(%rip), %rdx
 	movq	-8(%rbp), %rax
-	movq	%rax, __progname(%rip)
+	movq	%rax, (%rdx)
 	jmp	.L6
 .L4:
-	movq	__progname(%rip), %rax
-	addq	$1, %rax
-	movq	%rax, __progname(%rip)
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	(%rax), %rax
+	leaq	1(%rax), %rdx
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	%rdx, (%rax)
 .L6:
-	movq	$__progname_storage, -16(%rbp)
+	movq	__progname_storage@GOTPCREL(%rip), %rax
+	movq	%rax, -16(%rbp)
 	jmp	.L7
 .L8:
-	movq	__progname(%rip), %rcx
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	(%rax), %rcx
 	movzbl	(%rcx), %edx
 	movq	-16(%rbp), %rax
 	movb	%dl, (%rax)
 	addq	$1, -16(%rbp)
-	leaq	1(%rcx), %rax
-	movq	%rax, __progname(%rip)
+	leaq	1(%rcx), %rdx
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	%rdx, (%rax)
 .L7:
-	movq	__progname(%rip), %rax
+	movq	__progname@GOTPCREL(%rip), %rax
+	movq	(%rax), %rax
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	movl	$__progname_storage+255, %eax
+	movq	__progname_storage@GOTPCREL(%rip), %rax
+	leaq	255(%rax), %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
 	movq	-16(%rbp), %rax
 	movb	$0, (%rax)
-	movq	$__progname_storage, __progname(%rip)
+	movq	__progname@GOTPCREL(%rip), %rdx
+	movq	__progname_storage@GOTPCREL(%rip), %rax
+	movq	%rax, (%rdx)
 .L2:
-	movl	$_mcleanup, %edi
-	call	atexit
-	movl	$_etext, %eax
-	movq	%rax, %rsi
-	movl	$_eprol, %eax
-	movq	%rax, %rdi
-	call	monstartup
 	movl	$0, %eax
-	call	__init
-	movq	environ(%rip), %rdx
+	call	__init@PLT
+	movq	environ@GOTPCREL(%rip), %rax
+	movq	(%rax), %rdx
 	movq	-32(%rbp), %rsi
 	movl	-20(%rbp), %edi
 	movl	$0, %eax
-	call	main
+	call	main@PLT
 	movl	%eax, %edi
-	call	exit
+	call	exit@PLT
 .LFE9:
 	.size	___start, .-___start
 	.type	_strrchr, @function
@@ -126,11 +144,10 @@ _strrchr:
 	ret
 .LFE10:
 	.size	_strrchr, .-_strrchr
-#APP
-	  .text
-	_eprol:
-#NO_APP
 	.comm	environ,8,8
+	.comm	operatingsystem_parameter_envp,8,8
+	.comm	operatingsystem_parameter_argc,8,8
+	.comm	operatingsystem_parameter_argv,8,8
 	.comm	__progname_storage,256,32
 	.section	.eh_frame,"a",@progbits
 .Lframe1:
@@ -143,7 +160,7 @@ _strrchr:
 	.sleb128 -8
 	.byte	0x10
 	.uleb128 0x1
-	.byte	0x3
+	.byte	0x1b
 	.byte	0xc
 	.uleb128 0x7
 	.uleb128 0x8
@@ -155,7 +172,7 @@ _strrchr:
 	.long	.LEFDE1-.LASFDE1
 .LASFDE1:
 	.long	.LASFDE1-.Lframe1
-	.long	.LFB9
+	.long	.LFB9-.
 	.long	.LFE9-.LFB9
 	.uleb128 0x0
 	.byte	0x4
@@ -174,7 +191,7 @@ _strrchr:
 	.long	.LEFDE3-.LASFDE3
 .LASFDE3:
 	.long	.LASFDE3-.Lframe1
-	.long	.LFB10
+	.long	.LFB10-.
 	.long	.LFE10-.LFB10
 	.uleb128 0x0
 	.byte	0x4
