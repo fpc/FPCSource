@@ -2933,7 +2933,7 @@ implementation
                          internalerror(2011022301);
                      end;
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(0,pasbool8type,false),
+                       ccallparanode.create(cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false),
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil))));
                      left := nil;
