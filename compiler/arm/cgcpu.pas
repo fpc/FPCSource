@@ -1020,7 +1020,7 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,imm1));
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,imm2));
               end
-            else if (op in [OP_ADD, OP_SUB, OP_OR]) and
+            else if (op in [OP_ADD, OP_SUB, OP_OR, OP_XOR]) and
                     not(cgsetflags or setflags) and
                     split_into_shifter_const(a, imm1, imm2) then
               begin
