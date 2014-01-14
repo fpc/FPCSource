@@ -3139,11 +3139,13 @@ implementation
         if current_module.extendeddefs.count=0 then
           exit;
         { no helpers for anonymous types }
-        if (pd.typ in [recorddef,objectdef]) and
+        if ((pd.typ in [recorddef,objectdef]) and
             (
               not assigned(tabstractrecorddef(pd).objrealname) or
               (tabstractrecorddef(pd).objrealname^='')
-            ) then
+            )
+           ) or
+           not assigned(pd.typesym) then
           exit;
         { if pd is defined inside a procedure we must not use make_mangledname
           (as a helper may not be defined in a procedure this is no problem...)}
