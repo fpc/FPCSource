@@ -111,10 +111,14 @@ unit cpupi;
             localsize:=0;
             for i:=0 to procdef.parast.SymList.Count-1 do
               if tsym(procdef.parast.SymList[i]).typ=paravarsym then
-                if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
-                  inc(localsize,256)
-                else
-                  inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                begin
+                  if tabstractnormalvarsym(procdef.parast.SymList[i]).varspez in [vs_var,vs_out,vs_constref] then
+                    inc(localsize,4)
+                  else if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
+                    inc(localsize,256)
+                  else
+                    inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                end;
 
             inc(stackframesize,localsize);
 
