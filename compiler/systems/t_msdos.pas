@@ -276,6 +276,8 @@ begin
   else
     LinkRes.Add('format dos');
   LinkRes.Add('option dosseg');
+  if (cs_link_map in current_settings.globalswitches) then
+    LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
   { Write and Close response }
