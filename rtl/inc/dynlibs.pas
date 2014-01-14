@@ -41,6 +41,7 @@ Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
 
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal: Word) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: string;
 
@@ -58,6 +59,9 @@ Implementation
   OS - Independent declarations.
   ---------------------------------------------------------------------}
 
+{ Note: should define the Word overload and define DYNLIBS_SUPPORTS_ORDINAL if
+        the operating system supports loading functions by a ordinal like e.g.
+        Windows or OS/2 do }
 {$i dynlibs.inc}
 
 {$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
@@ -140,6 +144,14 @@ begin
 end;
 {$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 
+{$ifndef DYNLIBS_SUPPORTS_ORDINAL}
+{ OS does not support loading by ordinal (or it's not implemented yet), so by
+  default we simply return Nil }
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : Word) : Pointer;
+begin
+  Result := Nil;
+end;
+{$endif not DYNLIBS_SUPPORTS_ORDINAL}
 
 Function FreeLibrary(Lib : TLibHandle) : Boolean;
 

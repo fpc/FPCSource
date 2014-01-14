@@ -48,6 +48,13 @@ begin
   Result:=Windows.GetProcAddress(Lib,PChar(ProcName));
 end;
 
+{$define DYNLIBS_SUPPORTS_ORDINAL}
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : Word) : Pointer;
+
+begin
+  Result:=Windows.GetProcAddress(Lib,PChar(Ordinal));
+end;
+
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 
 begin
