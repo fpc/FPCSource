@@ -6509,6 +6509,7 @@ packages/rtl-extra/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/rtl-extra/fpmake.pp svneol=native#text/plain
 packages/rtl-extra/src/aix/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/aix/unxsockh.inc svneol=native#text/plain
+packages/rtl-extra/src/android/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/beos/osdefs.inc svneol=native#text/plain
 packages/rtl-extra/src/beos/unixsock.inc svneol=native#text/plain
 packages/rtl-extra/src/beos/unxsockh.inc svneol=native#text/plain
