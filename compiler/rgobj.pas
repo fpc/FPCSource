@@ -1832,7 +1832,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(index,reginfo[u].colour);
                                       end;
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                                     if (segment<>NR_NO) and
                                        (getregtype(segment)=regtype) then
                                       begin
@@ -1843,7 +1843,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(segment,reginfo[u].colour);
                                       end;
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                                   end;
                             end;
 {$ifdef arm}
@@ -2112,11 +2112,11 @@ unit rgobj;
                         if (index <> NR_NO) and
                             (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                         if (segment <> NR_NO) and
                             (getregtype(segment)=regtype) then
                           addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                       end;
                 end;
 {$ifdef ARM}
@@ -2285,11 +2285,11 @@ unit rgobj;
                       if (ref^.index <> NR_NO) and
                           (getregtype(ref^.index)=regtype) then
                         tryreplacereg(ref^.index);
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                       if (ref^.segment <> NR_NO) and
                           (getregtype(ref^.segment)=regtype) then
                         tryreplacereg(ref^.segment);
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                     end;
                 end;
 {$ifdef ARM}
