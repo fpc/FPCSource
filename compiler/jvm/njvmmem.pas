@@ -444,11 +444,8 @@ implementation
           begin
             thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
             thlcgjvm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,right.resultdef,tarraydef(left.resultdef).lowrange);
-            if right.location.loc<>LOC_REGISTER then
-              begin
-                location_reset(right.location,LOC_REGISTER,def_cgsize(right.resultdef));
-                right.location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,right.resultdef);
-              end;
+            location_reset(right.location,LOC_REGISTER,def_cgsize(right.resultdef));
+            right.location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,right.resultdef);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,right.resultdef,right.location.register);
           end;
 
