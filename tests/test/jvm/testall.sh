@@ -156,3 +156,5 @@ javac -encoding utf-8 -cp ../../../rtl/units/$RTLDIR:. tjavalowercaseproc.java
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tjavalowercaseproc
 $PPC -O2 -g -B -Sa -CTinitlocals tinitvar
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. org.freepascal.test.tinitvar.tinitvar
+$PPC -O2 -g -B -Sa tsmallintarr
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tsmallintarr

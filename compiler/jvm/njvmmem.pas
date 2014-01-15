@@ -427,6 +427,14 @@ implementation
              object instances (since that's what they are in Java) }
            right.resultdef:=s32inttype;
            right.location.size:=OS_S32;
+          end
+        else if (right.location.loc<>LOC_CONSTANT) and
+                ((right.resultdef.typ<>orddef) or
+                 (torddef(right.resultdef).ordtype<>s32bit)) then
+          begin
+            { Java array indices are always 32 bit signed integers }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,s32inttype,true);
+            right.resultdef:=s32inttype;
           end;
 
         { adjust index if necessary }
