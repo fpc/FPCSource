@@ -86,7 +86,11 @@ implementation
       begin
         result:='';
         if assigned(ref.symbol) then
-          result:=ref.symbol.name;
+          begin
+            result:=ref.symbol.name;
+            if assigned(ref.relsymbol) then
+              result:=result+'-'+ref.relsymbol.name;
+          end;
         if (ref.offset<0) then
           result:=result+tostr(ref.offset)
         else if (ref.offset>0) then
