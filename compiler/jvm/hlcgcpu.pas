@@ -271,7 +271,7 @@ implementation
       if (fevalstackheight>fmaxevalstackheight) then
         fmaxevalstackheight:=fevalstackheight;
       if cs_asm_regalloc in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
+        list.concat(tai_comment.Create(strpnew('    allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
   procedure thlcgjvm.decstack(list: TAsmList;slots: longint);
