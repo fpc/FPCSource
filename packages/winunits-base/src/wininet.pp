@@ -1976,6 +1976,8 @@ Type
        TINTERNET_CACHE_ENTRY_INFO = INTERNET_CACHE_ENTRY_INFOA;
        PINTERNET_CACHE_ENTRY_INFO = LPINTERNET_CACHE_ENTRY_INFOA;
 {$endif}
+     PINTERNETCACHEENTRYINFO = PINTERNET_CACHE_ENTRY_INFO;
+     TINTERNETCACHEENTRYINFO = TINTERNET_CACHE_ENTRY_INFO;
 
      INTERNET_AUTH_NOTIFY_DATA = record
           cbStruct : DWORD;
@@ -2508,7 +2510,9 @@ Type
   function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExA';
   function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR; var lpFirstCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:LongWord):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryA';
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; var lpNextCacheEntryInfo:INTERNET_CACHE_ENTRY_INFOA; var lpcbCacheEntryInfo:LongWord):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryA';
 
 {$ELSE}
 
@@ -2586,7 +2590,9 @@ Type
   function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbEntryInfo:LPDWORD; lpGroupAttributes:LPVOID; lpcbGroupAttributes:LPDWORD;
              lpReserved:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryExW';
   function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
+  function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR; lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:LongWord):HANDLE;stdcall;external WININETLIBNAME name 'FindFirstUrlCacheEntryW';
   function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; lpcbCacheEntryInfo:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
+  function FindNextUrlCacheEntry(hEnumHandle:HANDLE; lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW; var lpcbCacheEntryInfo:LongWord):BOOL;stdcall;external WININETLIBNAME name 'FindNextUrlCacheEntryW';
 //  function FindCloseUrlCache(hEnumHandle:HANDLE):BOOL;stdcall;external WININETLIBNAME name 'FindCloseUrlCache';
   function DeleteUrlCacheEntry(lpszUrlName:LPCWSTR):BOOL;stdcall;external WININETLIBNAME name 'DeleteUrlCacheEntryW';
   function InternetDial(hwndParent:HWND; lpszConnectoid:LPWSTR; dwFlags:DWORD; lpdwConnection:PDWORD_PTR; dwReserved:DWORD):DWORD;stdcall;external WININETLIBNAME name 'InternetDialW';
