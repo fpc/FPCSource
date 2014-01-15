@@ -4588,7 +4588,7 @@ implementation
       begin
         if not assigned(implprocdefinfo) then
           internalerror(2014010311);
-        implprocdefinfo:=AValue;
+        implprocdefinfo^.skpara:=AValue;
       end;
 
 
