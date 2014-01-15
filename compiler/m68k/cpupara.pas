@@ -52,6 +52,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
          private
+          function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                                var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
@@ -65,6 +66,21 @@ unit cpupara;
        systems,
        cpuinfo,
        defutil;
+
+
+    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { d0 and d1 are considered volatile }
+        Result:=VOLATILE_INTREGISTERS;
+      end;
+
+
+    function tm68kparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { a0 and a1 are considered volatile }
+        Result:=VOLATILE_ADDRESSREGISTERS;
+      end;
+
 
     procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
@@ -445,70 +461,21 @@ unit cpupara;
       end;
 }
 
+    function tm68kparamanager.parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
+      begin
+        locreg:=std_regnum_search(lowercase(s));
+        result:=(locreg <> NR_NO) and (locreg <> NR_SP);
+      end;
+
     function tm68kparamanager.parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;
       begin
-        result:=false;
         case target_info.system of
           system_m68k_amiga:
-            begin
-              if s='D0' then
-                p.exp_funcretloc:=NR_D0
-              else if s='D1' then
-                p.exp_funcretloc:=NR_D1
-              else if s='D2' then
-                p.exp_funcretloc:=NR_D2
-              else if s='D3' then
-                p.exp_funcretloc:=NR_D3
-              else if s='D4' then
-                p.exp_funcretloc:=NR_D4
-              else if s='D5' then
-                p.exp_funcretloc:=NR_D5
-              else if s='D6' then
-                p.exp_funcretloc:=NR_D6
-              else if s='D7' then
-                p.exp_funcretloc:=NR_D7
-              else if s='A0' then
-                p.exp_funcretloc:=NR_A0
-              else if s='A1' then
-                p.exp_funcretloc:=NR_A1
-              else if s='A2' then
-                p.exp_funcretloc:=NR_A2
-              else if s='A3' then
-                p.exp_funcretloc:=NR_A3
-              else if s='A4' then
-                p.exp_funcretloc:=NR_A4
-              else if s='A5' then
-                p.exp_funcretloc:=NR_A5
-              { 'A6' is problematic, since it's the frame pointer in fpc,
-                so it should be saved before a call! }
-              else if s='A6' then
-                p.exp_funcretloc:=NR_A6
-              { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
-              else
-                p.exp_funcretloc:=NR_NO;
-
-              if p.exp_funcretloc<>NR_NO then result:=true;
-            end;
+            result:=parse_loc_string_to_register(p.exp_funcretloc, s);
           else
             internalerror(2005121801);
         end;
       end;
-
-    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
-      begin
-        { d0 and d1 are considered volatile (ToDo: results in "procedure too
-          complex when compiling unicodedata.pas) }
-        //Result:=[RS_D0,RS_D1];
-        Result:=[RS_D0..RS_D7];
-      end;
-
-
-    function tm68kparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
-      begin
-        { a0 and a1 are considered volatile }
-        Result:=[RS_A0,RS_A1];
-      end;
-
 
     function tm68kparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
@@ -523,41 +490,8 @@ unit cpupara;
               paraloc^.loc:=LOC_REGISTER;
               paraloc^.size:=def_cgsize(p.vardef);
               paraloc^.def:=p.vardef;
-              { pattern is always uppercase'd }
-              if s='D0' then
-                paraloc^.register:=NR_D0
-              else if s='D1' then
-                paraloc^.register:=NR_D1
-              else if s='D2' then
-                paraloc^.register:=NR_D2
-              else if s='D3' then
-                paraloc^.register:=NR_D3
-              else if s='D4' then
-                paraloc^.register:=NR_D4
-              else if s='D5' then
-                paraloc^.register:=NR_D5
-              else if s='D6' then
-                paraloc^.register:=NR_D6
-              else if s='D7' then
-                paraloc^.register:=NR_D7
-              else if s='A0' then
-                paraloc^.register:=NR_A0
-              else if s='A1' then
-                paraloc^.register:=NR_A1
-              else if s='A2' then
-                paraloc^.register:=NR_A2
-              else if s='A3' then
-                paraloc^.register:=NR_A3
-              else if s='A4' then
-                paraloc^.register:=NR_A4
-              else if s='A5' then
-                paraloc^.register:=NR_A5
-              { 'A6' is problematic, since it's the frame pointer in fpc,
-                so it should be saved before a call! }
-              else if s='A6' then
-                paraloc^.register:=NR_A6
-              { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
-              else
+
+              if not parse_loc_string_to_register(paraloc^.register, s) then
                 exit;
 
               { copy to callee side }
