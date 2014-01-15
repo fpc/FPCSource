@@ -42,7 +42,7 @@ unit cgcpu;
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        //procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
@@ -364,7 +364,7 @@ unit cgcpu;
           inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
-
+{
     procedure tcg68k.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
@@ -403,7 +403,7 @@ unit cgcpu;
               inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
-
+}
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
        var
