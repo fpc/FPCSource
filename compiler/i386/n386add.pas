@@ -35,6 +35,8 @@ interface
          procedure second_add64bit;override;
          procedure second_cmp64bit;override;
          procedure second_mul(unsigned: boolean);
+       protected
+         procedure set_mul_result_location;
        end;
 
   implementation
@@ -366,6 +368,32 @@ interface
                                 x86 MUL
 *****************************************************************************}
 
+    procedure ti386addnode.set_mul_result_location;
+    begin
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      {Free EAX,EDX}
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+      if is_64bit(resultdef) then
+      begin
+        {Allocate a couple of registers and store EDX:EAX into it}
+        location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EDX, location.register64.reghi);
+        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+        location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EAX, location.register64.reglo);
+      end
+      else
+      begin
+        {Allocate a new register and store the result in EAX in it.}
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register);
+      end;
+      location_freetemp(current_asmdata.CurrAsmList,left.location);
+      location_freetemp(current_asmdata.CurrAsmList,right.location);
+    end;
+
+
     procedure ti386addnode.second_mul(unsigned: boolean);
 
     var reg:Tregister;
@@ -379,8 +407,6 @@ interface
     begin
       pass_left_right;
 
-      {The location.register will be filled in later (JM)}
-      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       { Mul supports registers and references, so if not register/reference,
         load the location into a register.
         The variant of IMUL which is capable of doing 32->64 bits has the same restrictions. }
@@ -418,26 +444,7 @@ interface
           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
           cg.a_label(current_asmdata.CurrAsmList,hl4);
         end;
-      {Free EAX,EDX}
-      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      if is_64bit(resultdef) then
-      begin
-        {Allocate a couple of registers and store EDX:EAX into it}
-        location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EDX, location.register64.reghi);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-        location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, NR_EAX, location.register64.reglo);
-      end
-      else
-      begin
-        {Allocate a new register and store the result in EAX in it.}
-        location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_EAX,location.register);
-      end;
-      location_freetemp(current_asmdata.CurrAsmList,left.location);
-      location_freetemp(current_asmdata.CurrAsmList,right.location);
+      set_mul_result_location;
     end;
 
 
