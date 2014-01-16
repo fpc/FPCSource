@@ -324,7 +324,7 @@ uses
                 C := W^.Data[I];
                 case C of
                   Ord('"'), Ord('\'), Ord('/'):
-                    write(f, '\', C);
+                    write(f, '\', Chr(C));
                   8:
                     write(f, '\b');
                   9:
@@ -381,7 +381,7 @@ uses
             current_module.flags:=current_module.flags or uf_has_resourcestrings;
             resstrs.CreateResourceStringData;
             resstrs.WriteResourceFile;
-            // resstrs.WriteRSJFile;
+            resstrs.WriteRSJFile;
           end;
         resstrs.Free;
       end;
