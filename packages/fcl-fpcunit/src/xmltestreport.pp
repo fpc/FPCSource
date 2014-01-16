@@ -2,7 +2,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2006 by Dean Zobec, Graeme Geldenhuys
 
-    an example of XML report for FPCUnit tests.
+    An example of an XML report writer for FPCUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -16,11 +16,15 @@
 
   Purpose:
     This unit contains a XML TestListener for use with the fpcUnit testing
-    framework.  It uses the XMLWrite unit, which is part of FPC, to generate
-    the XML document. The benefit of using the XMLWrite unit, is that the
-    data generated is valid XML, with resevered characters correctly escaped.
+    framework. It uses the XMLWrite unit (part of FPC) to generate
+    the XML document. The benefit of using XMLWrite is that the data generated
+    is valid XML, with reserved characters correctly escaped.
     This allows the XML document to be further processed with XSLT etc without
     any issues.
+		
+  Notes:
+    Specify 'null' as the filename if you don't want to output to file (e.g.
+    used by the GUI test runner which instead reads the Document property).
 
 }
 
