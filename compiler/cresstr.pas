@@ -64,7 +64,8 @@ uses
         constructor Create;
         destructor  Destroy;override;
         procedure CreateResourceStringData;
-        Procedure WriteResourceFile;
+        procedure WriteResourceFile;
+        procedure WriteRSJFile;
         procedure RegisterResourceStrings;
       end;
 
@@ -215,7 +216,7 @@ uses
       end;
 
 
-    Procedure Tresourcestrings.WriteResourceFile;
+    procedure Tresourcestrings.WriteResourceFile;
       Type
         TMode = (quoted,unquoted);
       Var
@@ -291,6 +292,65 @@ uses
         close(f);
       end;
 
+    procedure Tresourcestrings.WriteRSJFile;
+      Var
+        F: Text;
+        R: TResourceStringItem;
+        ResFileName: string;
+        I: Integer;
+        C: Char;
+      begin
+        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rsj');
+        message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
+        Assign(F,ResFileName);
+        {$push}{$i-}
+        Rewrite(f);
+        {$pop}
+        if IOresult<>0 then
+          begin
+            message1(general_e_errorwritingresourcefile,ResFileName);
+            exit;
+          end;
+        writeln(f,'{"version":1,"strings":[');
+        R:=TResourceStringItem(List.First);
+        while assigned(R) do
+          begin
+            write(f, '{"hash":',R.Hash,',"name":"',R.Name,'","value":"');
+            for I := 0 to R.Len - 1 do
+              begin
+                C := R.Value[I];
+                case C of
+                  '"', '\', '/':
+                    write(f, '\', C);
+                  #8:
+                    write(f, '\b');
+                  #9:
+                    write(f, '\t');
+                  #10:
+                    write(f, '\n');
+                  #13:
+                    write(f, '\r');
+                  #12:
+                    write(f, '\f');
+                  else
+                  // todo: this is wrong for now
+                  // we need to have C as unicode char, not a single byte char
+                  //if (C < #32) or (C > #127) then
+                  //  write(f,'\u',hexStr(Longint(C), 4))
+                  //else
+                    write(f,C);
+                end;
+              end;
+            write(f,'"}');
+            R:=TResourceStringItem(R.Next);
+            if assigned(R) then
+              writeln(f,',')
+            else
+              writeln(f);
+          end;
+        writeln(f,']}');
+        close(f);
+      end;
 
     procedure Tresourcestrings.ConstSym_Register(p:TObject;arg:pointer);
       begin
@@ -319,6 +379,7 @@ uses
             current_module.flags:=current_module.flags or uf_has_resourcestrings;
             resstrs.CreateResourceStringData;
             resstrs.WriteResourceFile;
+            // resstrs.WriteRSJFile;
           end;
         resstrs.Free;
       end;
