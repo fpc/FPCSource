@@ -32,7 +32,7 @@ implementation
 
 uses
    SysUtils,
-   cclasses,
+   cclasses,widestr,
    cutils,globtype,globals,systems,
    symconst,symtype,symdef,symsym,
    verbose,fmodule,ppu,
@@ -298,7 +298,8 @@ uses
         R: TResourceStringItem;
         ResFileName: string;
         I: Integer;
-        C: Char;
+        C: tcompilerwidechar;
+        W: pcompilerwidestring;
       begin
         ResFileName:=ChangeFileExt(current_module.ppufilename,'.rsj');
         message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
@@ -316,31 +317,32 @@ uses
         while assigned(R) do
           begin
             write(f, '{"hash":',R.Hash,',"name":"',R.Name,'","value":"');
-            for I := 0 to R.Len - 1 do
+            initwidestring(W);
+            ascii2unicode(R.Value,R.Len,current_settings.sourcecodepage,W);
+            for I := 0 to W^.len - 1 do
               begin
-                C := R.Value[I];
+                C := W^.Data[I];
                 case C of
-                  '"', '\', '/':
+                  Ord('"'), Ord('\'), Ord('/'):
                     write(f, '\', C);
-                  #8:
+                  8:
                     write(f, '\b');
-                  #9:
+                  9:
                     write(f, '\t');
-                  #10:
+                  10:
                     write(f, '\n');
-                  #13:
+                  13:
                     write(f, '\r');
-                  #12:
+                  12:
                     write(f, '\f');
                   else
-                  // todo: this is wrong for now
-                  // we need to have C as unicode char, not a single byte char
-                  //if (C < #32) or (C > #127) then
-                  //  write(f,'\u',hexStr(Longint(C), 4))
-                  //else
-                    write(f,C);
+                  if (C < 32) or (C > 127) then
+                    write(f,'\u',hexStr(Longint(C), 4))
+                  else
+                    write(f,Chr(C));
                 end;
               end;
+            donewidestring(W);
             write(f,'"}');
             R:=TResourceStringItem(R.Next);
             if assigned(R) then
@@ -356,7 +358,7 @@ uses
       begin
         if (tsym(p).typ=constsym) and
            (tconstsym(p).consttyp=constresourcestring) then
-          List.Concat(tResourceStringItem.Create(TConstsym(p)));
+          List.Concat(TResourceStringItem.Create(TConstsym(p)));
       end;
 
 
