@@ -1606,6 +1606,19 @@ unit cgx86;
             reference_reset_base(href,src,-a,0);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op in [OP_ROR,OP_ROL]) and
+          (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+          (size in [OS_32,OS_S32
+{$ifdef x86_64}
+            ,OS_64,OS_S64
+{$endif x86_64}
+          ]) then
+          begin
+            if op=OP_ROR then
+              list.concat(taicpu.op_const_reg_reg(A_RORX,TCgSize2OpSize[size], a,src,dst))
+            else
+              list.concat(taicpu.op_const_reg_reg(A_RORX,TCgSize2OpSize[size],TCgSize2Size[size]*8-a,src,dst));
+          end
         else
           inherited a_op_const_reg_reg(list,op,size,a,src,dst);
       end;

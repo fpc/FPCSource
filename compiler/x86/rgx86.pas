@@ -151,7 +151,9 @@ implementation
                           (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[2]^.reg)))
                          ) and
                          (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
-                        replaceoper:=0;
+                        replaceoper:=0
+                      else if (opcode=A_RORX) then
+                        replaceoper:=1;
                     end
                   else
                     begin

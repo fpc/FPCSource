@@ -46,7 +46,9 @@ Type
        cpu_Pentium2,
        cpu_Pentium3,
        cpu_Pentium4,
-       cpu_PentiumM
+       cpu_PentiumM,
+       cpu_core_avx,
+       cpu_core_avx2
       );
 
    tfputype =
@@ -85,7 +87,9 @@ Const
      'PENTIUM2',
      'PENTIUM3',
      'PENTIUM4',
-     'PENTIUMM'
+     'PENTIUMM',
+     'COREAVX',
+     'COREAVX2'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
@@ -122,6 +126,25 @@ Const
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
+
+type
+   tcpuflags =
+      (CPUX86_HAS_BMI1,
+       CPUX86_HAS_BMI2
+      );
+
+ const
+   cpu_capabilities : array[tcputype] of set of tcpuflags = (
+     { cpu_none      } [],
+     { cpu_386       } [],
+     { cpu_Pentium   } [],
+     { cpu_Pentium2  } [],
+     { cpu_Pentium3  } [],
+     { cpu_Pentium4  } [],
+     { cpu_PentiumM  } [],
+     { cpu_core_avx  } [],
+     { cpu_core_avx2 } [CPUX86_HAS_BMI1,CPUX86_HAS_BMI2]
+   );
 
 Implementation
 
