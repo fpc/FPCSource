@@ -2,7 +2,7 @@
 #   Makefile.fpc for running fpmake
 #
 [require]
-packages=rtl fpmkunit
+packages=rtl fpmkunit fcl-json
 
 [install]
 fpcpackage=y
