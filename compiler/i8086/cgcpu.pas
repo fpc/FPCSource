@@ -524,9 +524,6 @@ unit cgcpu;
                     a_load_reg_reg(list,size,size,ax_subreg,reg);
 
                     ungetcpuregister(list,NR_AX);
-
-                    { TODO: implement overflow checking? }
-
                     exit;
                   end
                 else
