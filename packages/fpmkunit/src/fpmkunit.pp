@@ -204,6 +204,7 @@ Const
   IncExt  = '.inc';
   ObjExt  = '.o';
   RstExt  = '.rst';
+  RsjExt  = '.rsj';
   LibExt  = '.a';
   SharedLibExt = '.so';
   DLLExt  = '.dll';
@@ -546,7 +547,8 @@ Type
     Function GetUnitFileName : String; virtual;
     function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
-    Function GetRSTFileName : String; Virtual;
+    function GetRSTFileName : String; Virtual;
+    function GetRSJFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
     Function GetProgramDebugFileName(AOS : TOS) : String; Virtual;
@@ -573,6 +575,7 @@ Type
     Property UnitFileName : String Read GetUnitFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
+    Property RSJFileName : String Read GetRSJFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
     Property Extension : String Read FExtension Write FExtension;
     Property FileType : TFileType Read FFileType Write FFileType;
@@ -7170,6 +7173,12 @@ begin
 end;
 
 
+function TTarget.GetRSJFileName: String;
+begin
+  Result:=Name+RSJext;
+end;
+
+
 function TTarget.GetProgramFileName(AOS : TOS): String;
 begin
   result := AddProgramExtension(Name, AOS);
@@ -7234,7 +7243,13 @@ begin
       List.Add(APrefixB + GetProgramDebugFileName(AOS));
     end;
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
   // Maybe add later ?  AddConditionalStrings(List,CleanFiles);
 end;
 
@@ -7255,7 +7270,13 @@ begin
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
 end;
 
 
