@@ -616,6 +616,13 @@ interface
     begin
       pass_left_right;
 
+      { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),
+        but it's only safe to use in place of IMUL when overflow checking is off
+        and we're doing a 16-bit>16-bit multiplication }
+      if not (cs_check_overflow in current_settings.localswitches) and
+        (not is_32bitint(resultdef)) then
+        unsigned:=true;
+
       {The location.register will be filled in later (JM)}
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       { Mul supports registers and references, so if not register/reference,
