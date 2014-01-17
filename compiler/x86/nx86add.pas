@@ -1318,11 +1318,25 @@ unit nx86add;
 
          pass_left_right;
 
-         left_must_be_reg(opdef,opsize,false);
-         emit_generic_code(A_CMP,opsize,unsigned,false,false);
-         location_freetemp(current_asmdata.CurrAsmList,right.location);
-         location_freetemp(current_asmdata.CurrAsmList,left.location);
-
+         if (right.location.loc=LOC_CONSTANT) and
+            (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE])
+{$ifdef x86_64}
+              and ((not (opsize in [OS_64,OS_S64])) or (
+              (right.location.value>=low(longint)) and (right.location.value<=high(longint))
+            ))
+{$endif x86_64}
+         then
+           begin
+             emit_const_ref(A_CMP, TCGSize2Opsize[opsize], right.location.value, left.location.reference);
+             location_freetemp(current_asmdata.CurrAsmList,left.location);
+           end
+         else
+           begin
+             left_must_be_reg(opdef,opsize,false);
+             emit_generic_code(A_CMP,opsize,unsigned,false,false);
+             location_freetemp(current_asmdata.CurrAsmList,right.location);
+             location_freetemp(current_asmdata.CurrAsmList,left.location);
+           end;
          location_reset(location,LOC_FLAGS,OS_NO);
          location.resflags:=getresflags(unsigned);
       end;
