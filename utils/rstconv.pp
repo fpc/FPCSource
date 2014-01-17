@@ -121,7 +121,7 @@ procedure ReadRSJFile;
 var
   Stream: TFileStream;
   Parser: TJSONParser;
-  JsonData: TJSONData;
+  JsonData, JsonItems: TJSONData;
   JsonItem: TJSONObject;
   S: String;
   item: TConstItem;
@@ -130,16 +130,21 @@ begin
   Stream := TFileStream.Create(InFilename, fmOpenRead or fmShareDenyNone);
   Parser := TJSONParser.Create(Stream);
   try
-    JsonData := Parser.Parse.GetPath('strings');
-    for I := 0 to JsonData.Count - 1 do
-    begin
-      item := TConstItem(ConstItems.Add);
-      JsonItem := JsonData.Items[I] as TJSONObject;
-      S := JsonItem.Get('name');
-      DotPos := Pos('.', s);
-      item.ModuleName := Copy(s, 1, DotPos - 1);
-      item.ConstName := Copy(s, DotPos + 1, Length(S) - DotPos);
-      item.Value := JsonItem.Get('value');
+    JsonData := Parser.Parse;
+    try
+      JsonItems := JsonData.GetPath('strings');
+      for I := 0 to JsonItems.Count - 1 do
+      begin
+        item := TConstItem(ConstItems.Add);
+        JsonItem := JsonItems.Items[I] as TJSONObject;
+        S := JsonItem.Get('name');
+        DotPos := Pos('.', s);
+        item.ModuleName := Copy(s, 1, DotPos - 1);
+        item.ConstName := Copy(s, DotPos + 1, Length(S) - DotPos);
+        item.Value := JsonItem.Get('value');
+      end;
+    finally
+      JsonData.Free;
     end;
   finally
     Parser.Free;
