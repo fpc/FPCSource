@@ -59,6 +59,17 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
+{ 7.7.x }
+{$ifdef GDB_V706}
+  {$info using gdb 7.7.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_707}
+{$endif}
+
+{$ifdef GDB_VER_GE_707}
+  {$define GDB_VER_GE_706}
+{$endif}
+
 { 7.6.x }
 {$ifdef GDB_V706}
   {$info using gdb 7.6.x}
@@ -69,6 +80,7 @@ interface
 {$ifdef GDB_VER_GE_706}
   {$define GDB_VER_GE_705}
 {$endif}
+
 { 7.5.x }
 {$ifdef GDB_V705}
   {$info using gdb 7.5.x}
@@ -80,6 +92,7 @@ interface
   {$define GDB_VER_GE_704}
   {$define GDB_BP_LOCATION_HAS_COND_BYTECODE}
   {$define GDB_BP_LOCATION_HAS_RELATED_ADDRESS}
+  {$define GDB_BP_HAS_ENABLE_COUNT}
 {$endif}
 
 { 7.4.x }
@@ -1050,8 +1063,10 @@ type
 {$ifdef GDB_USES_BP_OPS}
           display_canonical: byte;
 {$endif GDB_USES_BP_OPS}
-
           ignore_count : longint;
+{$ifdef GDB_BP_HAS_ENABLE_COUNT}
+          enable_count : longint;
+{$endif GDB_BP_HAS_ENABLE_COUNT}
 {$ifndef GDB_USES_BP_LOCATION}
           shadow_contents : array[0..15] of char;
           inserted : char;
