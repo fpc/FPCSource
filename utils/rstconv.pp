@@ -121,8 +121,8 @@ procedure ReadRSJFile;
 var
   Stream: TFileStream;
   Parser: TJSONParser;
-  JsonData, JsonItems: TJSONData;
-  JsonItem: TJSONObject;
+  JsonItems: TJSONArray;
+  JsonData, JsonItem: TJSONObject;
   S: String;
   item: TConstItem;
   DotPos, I: Integer;
@@ -130,9 +130,9 @@ begin
   Stream := TFileStream.Create(InFilename, fmOpenRead or fmShareDenyNone);
   Parser := TJSONParser.Create(Stream);
   try
-    JsonData := Parser.Parse;
+    JsonData := Parser.Parse as TJSONObject;
     try
-      JsonItems := JsonData.GetPath('strings');
+      JsonItems := JsonData.Arrays['strings'];
       for I := 0 to JsonItems.Count - 1 do
       begin
         item := TConstItem(ConstItems.Add);
