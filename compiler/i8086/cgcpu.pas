@@ -511,7 +511,12 @@ unit cgcpu;
                     a_load_const_reg(list,size,a,ax_subreg);
                     if size in [OS_16,OS_S16] then
                       getcpuregister(list,NR_DX);
-                    list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
+                    { prefer MUL over IMUL when overflow checking is off, }
+                    { because it's faster on the 8086 & 8088              }
+                    if not (cs_check_overflow in current_settings.localswitches) then
+                      list.concat(taicpu.op_reg(A_MUL,TCgSize2OpSize[size],reg))
+                    else
+                      list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
                     if size in [OS_16,OS_S16] then
                       ungetcpuregister(list,NR_DX);
                     a_load_reg_reg(list,size,size,ax_subreg,reg);
