@@ -382,7 +382,7 @@ begin
   t:=Nil;
   L:=FConnectionPool.LockList;
   try
-    while (I<L.Count-1) do
+    while (I<L.Count) do
       begin
       T:=TPQTranConnection(L[i]);
       if (T.FPGConn=nil) or not T.FTranActive then
