@@ -496,13 +496,6 @@ unit cgcpu;
             { 8086 doesn't support 'imul reg,const', so we handle it here }
             if (current_settings.cputype<cpu_186) and (op in [OP_MUL,OP_IMUL]) then
               begin
-                { TODO: also enable the SHL optimization below }
-    {            if not(cs_check_overflow in current_settings.localswitches) and
-                   ispowerof2(int64(a),power) then
-                  begin
-                    list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
-                    exit;
-                  end;}
                 if op = OP_IMUL then
                   begin
                     if size in [OS_16,OS_S16] then
