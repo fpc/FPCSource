@@ -310,39 +310,46 @@
          q1,q2,q3 : qword;
 
       begin
-           begin
-              sign:=false;
-              if f1<0 then
-                begin
-                   sign:=not(sign);
-                   q1:=qword(-f1);
-                end
-              else
-                q1:=f1;
-              if f2<0 then
-                begin
-                   sign:=not(sign);
-                   q2:=qword(-f2);
-                end
-              else
-                q2:=f2;
-              { the q1*q2 is coded as call to mulqword }
-              q3:=q1*q2;
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { qword(f1)*qword(f2) is coded as a call to mulqword }
+          fpc_mul_int64:=int64(qword(f1)*qword(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
+                sign:=not(sign);
+                q1:=qword(-f1);
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
+                sign:=not(sign);
+                q2:=qword(-f2);
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to mulqword }
+            q3:=q1*q2;
 
-              if checkoverflow and (q1 <> 0) and (q2 <>0) and
+            if (q1 <> 0) and (q2 <>0) and
               ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
                 (q3 shr 63<>0) and
                  ((q3<>qword(qword(1) shl 63)) or not(sign))
                 ) then
-                HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-              if sign then
-                fpc_mul_int64:=-q3
-              else
-                fpc_mul_int64:=q3;
-           end;
+            if sign then
+              fpc_mul_int64:=-q3
+            else
+              fpc_mul_int64:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
 
