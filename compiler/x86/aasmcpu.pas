@@ -2994,6 +2994,7 @@ implementation
           end;
         { Special cases that can't be decoded from the InsChanges flags }
         operation_type_table^[A_IMUL,1]:=operand_readwrite;
+        operation_type_table^[A_IMUL,2]:=operand_write;
       end;
 
 
