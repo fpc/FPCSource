@@ -136,7 +136,7 @@ implementation
                 begin
                   { avx instruction?
                     currently this rule is sufficient but it might be extended }
-                  if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) then
+                  if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) and (opcode<>A_IMUL) then
                     begin
                       { avx instructions allow only the first operand (at&t counting) to be a register operand }
                       { all operands must be registers ... }
@@ -157,7 +157,7 @@ implementation
                     end
                   else
                     begin
-                      { We can handle opcodes with 2 and shrd/shld the same way, where the 3rd operand is const or CL,
+                      { We can handle opcodes with 2 and 3-op imul/shrd/shld the same way, where the 3rd operand is const or CL,
                         that doesn't need spilling.
                         However, due to AT&T order inside the compiler, the 3rd operand is
                         numbered 0, so look at operand no. 1 and 2 if we have 3 operands by
@@ -274,7 +274,6 @@ implementation
                               A_CVTSS2SI,
                               A_CVTTPS2PI,
                               A_CVTTSS2SI,
-                              A_IMUL,
                               A_XORPD,
                               A_XORPS,
                               A_ORPD,
@@ -285,8 +284,11 @@ implementation
                               A_UNPCKHPS,
                               A_SHUFPD,
                               A_SHUFPS:
-
                                 replaceoper:=-1;
+
+                              A_IMUL:
+                                if ops<>3 then
+                                  replaceoper:=-1;
 {$ifdef x86_64}
                               A_MOV:
                                  { 64 bit constants can only be moved into registers }
@@ -298,7 +300,16 @@ implementation
 {$endif x86_64}
                             end;
                           end;
-                        end;
+                        2 :
+                          begin
+                            { Some 3-op instructions don't allow memory references
+                              for destination }
+                            case instr.opcode of
+                              A_IMUL:
+                                replaceoper:=-1;
+                            end;
+                          end;
+                      end;
                     end;
                 end;
              end;
