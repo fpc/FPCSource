@@ -596,15 +596,6 @@ interface
 
     procedure ti8086addnode.second_mul(unsigned: boolean);
 
-      procedure add_mov(instr: Taicpu);
-        begin
-          { Notify the register allocator that we have written a move instruction so
-            it can try to eliminate it. }
-          if (instr.oper[0]^.reg<>current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
-            tcgx86(cg).add_move_instruction(instr);
-          current_asmdata.CurrAsmList.concat(instr);
-        end;
-
     var reg:Tregister;
         ref:Treference;
         use_ref:boolean;
@@ -668,8 +659,9 @@ interface
         {Allocate an imaginary 32-bit register, which consists of a pair of
          16-bit registers and store DX:AX into it}
         location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,location.register));
-        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_DX,GetNextReg(location.register)));
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,GetNextReg(location.register));
+        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end
       else
       begin
