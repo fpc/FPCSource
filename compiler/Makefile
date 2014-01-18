@@ -402,18 +402,24 @@ override LOCALOPT+=$(OPTLEVEL2)
 override RTLOPT+=$(OPTLEVEL2)
 override LOCALOPT+=$(LOCALOPTLEVEL2)
 override RTLOPT+=$(RTLOPTLEVEL2)
+override LOCALOPT+=$(OPTNEW)
+override RTLOPT+=$(OPTNEW)
 endif
 ifeq ($(CYCLELEVEL),3)
 override LOCALOPT+=$(OPTLEVEL3)
 override RTLOPT+=$(OPTLEVEL3)
 override LOCALOPT+=$(LOCALOPTLEVEL3)
 override RTLOPT+=$(RTLOPTLEVEL3)
+override LOCALOPT+=$(OPTNEW)
+override RTLOPT+=$(OPTNEW)
 endif
 ifeq ($(CYCLELEVEL),4)
 override LOCALOPT+=$(OPTLEVEL4)
 override RTLOPT+=$(OPTLEVEL4)
 override LOCALOPT+=$(LOCALOPTLEVEL4)
 override RTLOPT+=$(RTLOPTLEVEL4)
+override LOCALOPT+=$(OPTNEW)
+override RTLOPT+=$(OPTNEW)
 endif
 endif
 override OPT=
@@ -2886,7 +2892,7 @@ endif
 ifdef ACROSSCOMPILE
 override FPCOPT+=$(CROSSOPT)
 endif
-override COMPILER:=$(FPC) $(FPCOPT)
+override COMPILER:=$(strip $(FPC) $(FPCOPT))
 ifeq (,$(findstring -s ,$(COMPILER)))
 EXECPPAS=
 else
@@ -3807,13 +3813,13 @@ ifdef RELEASE
 DOWPOCYCLE=1
 wpocycle:
 	$(RM) $(EXENAME)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTWPOCOLLECT) $(OPTNEW))' compiler
 	$(RM) $(EXENAME)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(RTLOPT) $(OPTWPOPERFORM)' rtlclean rtl
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' $(addsuffix _clean,$(ALLTARGETS)) compiler
 	$(MOVE) $(EXENAME) $(TEMPWPONAME1)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' $(addsuffix _clean,$(ALLTARGETS)) compiler
 	$(COPY) $(EXENAME) $(TEMPWPONAME2)
 endif
 endif
@@ -3887,7 +3893,7 @@ cycle:
 ifndef CROSSINSTALL
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(RTLOPT) $(CROSSOPT)' rtlclean rtl CYCLELEVEL=3
 ifndef NoNativeBinaries
-	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(LOCALOPT) $(CROSSOPT)' cycleclean compiler CYCLELEVEL=3
+	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(strip $(LOCALOPT) $(CROSSOPT))' cycleclean compiler CYCLELEVEL=3
 endif
 endif
 endif

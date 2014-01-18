@@ -1310,7 +1310,7 @@ endif
 ifdef ACROSSCOMPILE
 override FPCOPT+=$(CROSSOPT)
 endif
-override COMPILER:=$(FPC) $(FPCOPT)
+override COMPILER:=$(strip $(FPC) $(FPCOPT))
 ifeq (,$(findstring -s ,$(COMPILER)))
 EXECPPAS=
 else
