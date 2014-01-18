@@ -1584,6 +1584,14 @@ unit cgx86;
             href.scalefactor:=a;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          (a>1) and not ispowerof2(int64(a),power) then
+          begin
+            { MUL with overflow checking should be handled specifically in the code generator }
+            if (op=OP_MUL) and (cs_check_overflow in current_settings.localswitches) then
+              internalerror(2014011801);
+            list.concat(taicpu.op_const_reg_reg(A_IMUL,TCgSize2OpSize[size],a,src,dst));
+          end
         else if (op=OP_ADD) and
           ((size in [OS_32,OS_S32]) or
            { lea supports only 32 bit signed displacments }
