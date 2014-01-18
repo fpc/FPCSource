@@ -320,7 +320,7 @@ begin
                          12: begin
                             {imul 12, reg1, reg2 to
                                lea (,reg1,4), reg2
-                               lea (,reg1,8) reg2
+                               lea (reg2,reg1,8), reg2
                              imul 12, reg1 to
                                lea (reg1,reg1,2), reg1
                                lea (,reg1,4), reg1}
