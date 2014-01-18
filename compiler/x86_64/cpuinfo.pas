@@ -118,15 +118,18 @@ Const
 type
    tcpuflags =
       (CPUX86_HAS_BMI1,
-       CPUX86_HAS_BMI2
+       CPUX86_HAS_BMI2,
+       CPUX86_HAS_POPCNT,
+       CPUX86_HAS_LZCNT,
+       CPUX86_HAS_MOVBE
       );
 
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { Athlon64      } [],
-     { cpu_core_avx  } [],
-     { cpu_core_avx2 } [CPUX86_HAS_BMI1,CPUX86_HAS_BMI2]
+     { cpu_core_avx  } [CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
 Implementation

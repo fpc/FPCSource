@@ -130,7 +130,10 @@ Const
 type
    tcpuflags =
       (CPUX86_HAS_BMI1,
-       CPUX86_HAS_BMI2
+       CPUX86_HAS_BMI2,
+       CPUX86_HAS_POPCNT,
+       CPUX86_HAS_LZCNT,
+       CPUX86_HAS_MOVBE
       );
 
  const
@@ -142,9 +145,10 @@ type
      { cpu_Pentium3  } [],
      { cpu_Pentium4  } [],
      { cpu_PentiumM  } [],
-     { cpu_core_avx  } [],
-     { cpu_core_avx2 } [CPUX86_HAS_BMI1,CPUX86_HAS_BMI2]
+     { cpu_core_avx  } [CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
+
 
 Implementation
 
