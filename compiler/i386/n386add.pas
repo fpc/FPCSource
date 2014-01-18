@@ -68,6 +68,11 @@ interface
     begin
       unsigned:=not(is_signed(left.resultdef)) or
                 not(is_signed(right.resultdef));
+      { use IMUL instead of MUL in case overflow checking is off and we're
+        doing a 32->32-bit multiplication }
+      if not (cs_check_overflow in current_settings.localswitches) and
+         not is_64bit(resultdef) then
+        unsigned:=false;
       if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
         second_mul(unsigned)
       else

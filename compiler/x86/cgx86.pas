@@ -1697,6 +1697,8 @@ unit cgx86;
             end;
           OP_MUL,OP_IMUL:
             begin
+              if not (cs_check_overflow in current_settings.localswitches) then
+                op:=OP_IMUL;
               if op = OP_IMUL then
                 list.concat(taicpu.op_const_reg(A_IMUL,TCgSize2OpSize[size],a,reg))
               else
@@ -1825,6 +1827,8 @@ unit cgx86;
             End;
           OP_MUL,OP_IMUL:
             begin
+              if not (cs_check_overflow in current_settings.localswitches) then
+                op:=OP_IMUL;
               { can't multiply a memory location directly with a constant }
               if op = OP_IMUL then
                 inherited a_op_const_ref(list,op,size,a,tmpref)
@@ -1915,6 +1919,8 @@ unit cgx86;
         check_register_size(size,src);
         check_register_size(size,dst);
         dstsize := tcgsize2opsize[size];
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT:
             begin
@@ -1952,6 +1958,8 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT,OP_IMUL:
             begin
@@ -1977,6 +1985,8 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT:
             begin
