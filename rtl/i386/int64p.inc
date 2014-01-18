@@ -170,7 +170,6 @@
     }
     function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       var
-        r : qword;
         overflowed : boolean;
       begin
         overflowed:=false;
@@ -179,77 +178,58 @@
         asm
            movl f1+4,%edx
            movl f2+4,%ecx
-           cmpl $0,checkoverflow
-           jnz .Loverflowchecked
-
            orl %ecx,%edx
            movl f2,%edx
            movl f1,%eax
            jnz .Lqwordmultwomul
+           { if both upper dwords are =0 then it cannot overflow }
            mull %edx
            jmp .Lqwordmulready
         .Lqwordmultwomul:
+           cmpl $0,checkoverflow
+           jnz  .Loverflowchecked
            imul f1+4,%edx
            imul %eax,%ecx
            addl %edx,%ecx
            mull f2
            add %ecx,%edx
         .Lqwordmulready:
-           movl %eax,r
-           movl %edx,r+4
+           movl %eax,__RESULT
+           movl %edx,__RESULT+4
            jmp .Lend
 
         .Loverflowchecked:
            { if both upper dwords are <>0 then it overflows always }
            or %ecx,%ecx
            jz .Loverok1
-           or %edx,%edx
+           cmpl $0,f1+4
            jnz .Loverflowed
         .Loverok1:
            { overflow checked code }
-           orl %ecx,%edx
-           movl f2,%edi
-           movl f1,%esi
-           jnz .Lqwordmultwomul2
-           movl %edi,%eax
-           mull %esi
-           movl %eax,%esi
-           movl %edx,%edi
-           jmp .Lqwordmulready2
-
-        .Lqwordmultwomul2:
            movl f1+4,%eax
-           mull %edi
-           movl %eax,%edi
-           jc  .Loverflowed
-
-           movl %esi,%eax
-           mull %ecx
+           mull f2
            movl %eax,%ecx
            jc  .Loverflowed
 
-           addl %edi,%ecx
+           movl f1,%eax
+           mull f2+4
+           jc  .Loverflowed
+
+           addl %eax,%ecx
            jc  .Loverflowed
 
            movl f2,%eax
-           mull %esi
-           movl %eax,%esi
-           movl %edx,%edi
-
-           addl %ecx,%edi
-           jc  .Loverflowed
-
-        .Lqwordmulready2:
-           movl %esi,r
-           movl %edi,r+4
-           jmp .Lend
+           mull f1
+           addl %ecx,%edx
+           movl %eax,__RESULT
+           movl %edx,__RESULT+4
+           jnc  .Lend
 
         .Loverflowed:
            movb $1,overflowed
 
         .Lend:
-        end [ 'eax','edx','ecx','edi','esi' ];
-        fpc_mul_qword:=r;
+        end [ 'eax','edx','ecx'];
 
         if overflowed then
           HandleErrorFrame(215,get_frame);
