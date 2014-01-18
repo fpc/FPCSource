@@ -31,10 +31,12 @@ interface
     type
        ti386addnode = class(tx86addnode)
          function use_generic_mul32to64: boolean; override;
+         function use_generic_mul64bit: boolean; override;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
          procedure second_cmp64bit;override;
          procedure second_mul(unsigned: boolean);
+         procedure second_mul64bit;
        protected
          procedure set_mul_result_location;
        end;
@@ -58,6 +60,12 @@ interface
     function ti386addnode.use_generic_mul32to64: boolean;
     begin
       result := False;
+    end;
+
+    function ti386addnode.use_generic_mul64bit: boolean;
+    begin
+      result:=(cs_check_overflow in current_settings.localswitches) or
+        (cs_opt_size in current_settings.optimizerswitches);
     end;
 
     { handles all unsigned multiplications, and 32->64 bit signed ones.
@@ -124,6 +132,11 @@ interface
             op:=OP_OR;
           andn:
             op:=OP_AND;
+          muln:
+            begin
+              second_mul64bit;
+              exit;
+            end
           else
             begin
               { everything should be handled in pass_1 (JM) }
@@ -449,6 +462,106 @@ interface
           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
           cg.a_label(current_asmdata.CurrAsmList,hl4);
         end;
+      set_mul_result_location;
+    end;
+
+
+    procedure ti386addnode.second_mul64bit;
+    var
+      list: TAsmList;
+      hreg1,hreg2: tregister;
+    begin
+      { 64x64 multiplication yields 128-bit result, but we're only
+        interested in its lower 64 bits. This lower part is independent
+        of operand signs, and so is the generated code. }
+      { pass_left_right already called from second_add64bit }
+      list:=current_asmdata.CurrAsmList;
+      if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+        tcgx86(cg).make_simple_ref(list,left.location.reference);
+      if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+        tcgx86(cg).make_simple_ref(list,right.location.reference);
+
+      { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
+      if (right.location.loc=LOC_CONSTANT) then
+        begin
+          { Omit zero terms, if any }
+          hreg1:=NR_NO;
+          hreg2:=NR_NO;
+          if lo(right.location.value64)<>0 then
+            hreg1:=cg.getintregister(list,OS_INT);
+          if hi(right.location.value64)<>0 then
+            hreg2:=cg.getintregister(list,OS_INT);
+
+          { Take advantage of 3-operand form of IMUL }
+          case left.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                if hreg1<>NR_NO then
+                  emit_const_reg_reg(A_IMUL,S_L,longint(lo(right.location.value64)),left.location.register64.reghi,hreg1);
+                if hreg2<>NR_NO then
+                  emit_const_reg_reg(A_IMUL,S_L,longint(hi(right.location.value64)),left.location.register64.reglo,hreg2);
+              end;
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                if hreg2<>NR_NO then
+                  list.concat(taicpu.op_const_ref_reg(A_IMUL,S_L,longint(hi(right.location.value64)),left.location.reference,hreg2));
+                inc(left.location.reference.offset,4);
+                if hreg1<>NR_NO then
+                  list.concat(taicpu.op_const_ref_reg(A_IMUL,S_L,longint(lo(right.location.value64)),left.location.reference,hreg1));
+                dec(left.location.reference.offset,4);
+              end;
+          else
+            InternalError(2014011602);
+          end;
+        end
+      else
+        begin
+          hreg1:=cg.getintregister(list,OS_INT);
+          hreg2:=cg.getintregister(list,OS_INT);
+          cg64.a_load64low_loc_reg(list,left.location,hreg1);
+          cg64.a_load64high_loc_reg(list,left.location,hreg2);
+          case right.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                emit_reg_reg(A_IMUL,S_L,right.location.register64.reghi,hreg1);
+                emit_reg_reg(A_IMUL,S_L,right.location.register64.reglo,hreg2);
+              end;
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                emit_ref_reg(A_IMUL,S_L,right.location.reference,hreg2);
+                inc(right.location.reference.offset,4);
+                emit_ref_reg(A_IMUL,S_L,right.location.reference,hreg1);
+                dec(right.location.reference.offset,4);
+              end;
+          else
+            InternalError(2014011603);
+          end;
+        end;
+      { add hi*lo and lo*hi terms together }
+      if (hreg1<>NR_NO) and (hreg2<>NR_NO) then
+        emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+
+      { load lo(right) into EAX }
+      cg.getcpuregister(list,NR_EAX);
+      cg64.a_load64low_loc_reg(list,right.location,NR_EAX);
+
+      { multiply EAX by lo(left), producing 64-bit value in EDX:EAX }
+      cg.getcpuregister(list,NR_EDX);
+      if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        emit_reg(A_MUL,S_L,left.location.register64.reglo)
+      else if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+        emit_ref(A_MUL,S_L,left.location.reference)
+      else
+        InternalError(2014011604);
+      { add previously calculated terms to the high half }
+      if (hreg1<>NR_NO) then
+        emit_reg_reg(A_ADD,S_L,hreg1,NR_EDX)
+      else if (hreg2<>NR_NO) then
+        emit_reg_reg(A_ADD,S_L,hreg2,NR_EDX)
+      else
+        InternalError(2014011604);
+
+      { Result is now in EDX:EAX. Copy it to virtual registers. }
       set_mul_result_location;
     end;
 
