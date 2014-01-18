@@ -35,6 +35,7 @@ interface
        public
           function pass_1 : tnode;override;
           function use_generic_mul32to64: boolean; override;
+          function use_generic_mul64bit: boolean; override;
        protected
           function first_addfloat: tnode; override;
           procedure second_addordinal;override;
@@ -505,20 +506,7 @@ interface
       var
         unsigned : boolean;
       begin
-        { prepare for MUL64 inlining }
-        if (not(cs_check_overflow in current_settings.localswitches)) and
-           (nodetype in [muln]) and
-           (is_64bitint(left.resultdef)) and
-           not(GenerateThumbCode) and
-           (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
-          begin
-            result := nil;
-            firstpass(left);
-            firstpass(right);
-            expectloc := LOC_REGISTER;
-          end
-        else
-          result:=inherited pass_1;
+        result:=inherited pass_1;
 
         if not(assigned(result)) then
           begin
@@ -672,6 +660,14 @@ interface
       begin
         result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]);
       end;
+
+    function tarmaddnode.use_generic_mul64bit: boolean;
+      begin
+        result:=GenerateThumbCode or
+          not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) or
+          (cs_check_overflow in current_settings.localswitches);
+      end;
+
 begin
   caddnode:=tarmaddnode;
 end.

@@ -67,6 +67,10 @@ interface
           { and resultdef of the muln s64bit or u64bit           }
           function use_generic_mul32to64: boolean; virtual;
 
+          { override and return false if code generator can handle }
+          { full 64 bit multiplies.                                }
+          function use_generic_mul64bit: boolean; virtual;
+
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -2518,6 +2522,12 @@ implementation
       end;
 
 
+    function taddnode.use_generic_mul64bit: boolean;
+      begin
+        result := true;
+      end;
+
+
     function taddnode.try_make_mul32to64: boolean;
 
       function canbe32bitint(v: tconstexprint): boolean;
@@ -2584,7 +2594,6 @@ implementation
         procname: string[31];
         temp: tnode;
         power: longint;
-        is_mul32to64: Boolean;
       begin
         result := nil;
         { create helper calls mul }
@@ -2613,15 +2622,12 @@ implementation
             exit;
           end;
 
-        { is it a 32 to 64-bit mul? }
-        is_mul32to64:=try_make_mul32to64;
-
-        { if the code generator can handle 32 to 64-bit muls, we're done here }
-        if not(use_generic_mul32to64) and is_mul32to64 then
-          exit;
-
-        if is_mul32to64 then
+        if try_make_mul32to64 then
           begin
+            { if the code generator can handle 32 to 64-bit muls, we're done here }
+            if not use_generic_mul32to64 then
+              exit;
+
             { this uses the same criteria for signedness as the 32 to 64-bit mul
               handling in the i386 code generator }
             if is_signed(left.resultdef) and is_signed(right.resultdef) then
@@ -2642,6 +2648,14 @@ implementation
               begin
                 left.resultdef:=s64inttype;
                 right.resultdef:=s64inttype;
+              end;
+
+            { can full 64-bit multiplication be handled inline? }
+            if not use_generic_mul64bit then
+              begin
+                firstpass(left);
+                firstpass(right);
+                exit;
               end;
 
             { otherwise, create the parameters for the helper }
