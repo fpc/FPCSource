@@ -1579,7 +1579,7 @@ unit cgx86;
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a),power) and (power in [1..3]) then
           begin
-            reference_reset_base(href,src,0,0);
+            reference_reset_base(href,NR_NO,0,0);
             href.index:=src;
             href.scalefactor:=a;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
