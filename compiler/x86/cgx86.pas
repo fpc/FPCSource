@@ -1686,20 +1686,7 @@ unit cgx86;
             end;
           OP_DIV, OP_IDIV:
             begin
-              if ispowerof2(int64(a),power) then
-                begin
-                  case op of
-                    OP_DIV:
-                      opcode := A_SHR;
-                    OP_IDIV:
-                      opcode := A_SAR;
-                    else
-                      internalerror(2013112907);
-                  end;
-                  list.concat(taicpu.op_const_reg(opcode,TCgSize2OpSize[size],power,reg));
-                  exit;
-                end;
-              { the rest should be handled specifically in the code      }
+              { should be handled specifically in the code               }
               { generator because of the silly register usage restraints }
               internalerror(200109224);
             end;
@@ -1714,36 +1701,28 @@ unit cgx86;
                 { generator because of the silly register usage restraints }
                 internalerror(200109225);
             end;
-          OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+          OP_ADD, OP_SUB:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) and
                UseIncDec then
-               begin
-                 if op = OP_ADD then
-                   list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
-                 else
-                   list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
-               end
-            else if (a = 0) then
-              if (op <> OP_AND) then
-                exit
-              else
-                list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],0,reg))
-            else if (aword(a) = high(aword)) and
-                    (op in [OP_AND,OP_OR,OP_XOR]) then
-                   begin
-                     case op of
-                       OP_AND:
-                         exit;
-                       OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],aint(high(aword)),reg));
-                       OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg));
-                     end
-                   end
+              begin
+                if op = OP_ADD then
+                  list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
+                else
+                  list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+              end
             else
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
+          OP_AND,OP_OR:
+            list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
+          OP_XOR:
+            if (aword(a)=high(aword)) then
+              list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg))
+            else
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$if defined(x86_64)}
@@ -1789,47 +1768,32 @@ unit cgx86;
         tmpref  : treference;
       begin
         optimize_op_const(op, a);
-        tmpref:=ref;
-        make_simple_ref(list,tmpref);
+        if op in [OP_NONE,OP_MOVE] then
+          begin
+            if (op=OP_MOVE) then
+              a_load_const_ref(list,size,a,ref);
+            exit;
+          end;
+
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
-        if not(op in [OP_NONE,OP_MOVE]) and
-           (size in [OS_S64,OS_64]) and
+        if (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
           begin
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
-            a_op_reg_ref(list,op,size,tmpreg,tmpref);
+            a_op_reg_ref(list,op,size,tmpreg,ref);
             exit;
           end;
 {$endif x86_64}
+
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+
         Case Op of
-          OP_NONE :
-            begin
-              { Opcode is optimized away }
-            end;
-          OP_MOVE :
-            begin
-              { Optimized, replaced with a simple load }
-              a_load_const_ref(list,size,a,ref);
-            end;
           OP_DIV, OP_IDIV:
             Begin
-              if ispowerof2(int64(a),power) then
-                begin
-                  case op of
-                    OP_DIV:
-                      opcode := A_SHR;
-                    OP_IDIV:
-                      opcode := A_SAR;
-                    else
-                      internalerror(2013112908);
-                  end;
-                  list.concat(taicpu.op_const_ref(opcode,
-                    TCgSize2OpSize[size],power,tmpref));
-                  exit;
-                end;
-              { the rest should be handled specifically in the code      }
+              { should be handled specifically in the code               }
               { generator because of the silly register usage restraints }
               internalerror(200109231);
             End;
@@ -1845,37 +1809,28 @@ unit cgx86;
                 { generator because of the silly register usage restraints }
                 internalerror(200109232);
             end;
-          OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+          OP_ADD, OP_SUB:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) and
                UseIncDec then
-               begin
-                 if op = OP_ADD then
-                   list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
-                 else
-                   list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
-               end
-            else if (a = 0) then
-              if (op <> OP_AND) then
-                exit
-              else
-                a_load_const_ref(list,size,0,tmpref)
-            else if (aword(a) = high(aword)) and
-                    (op in [OP_AND,OP_OR,OP_XOR]) then
-                   begin
-                     case op of
-                       OP_AND:
-                         exit;
-                       OP_OR:
-                         list.concat(taicpu.op_const_ref(A_MOV,TCgSize2OpSize[size],aint(high(aword)),tmpref));
-                       OP_XOR:
-                         list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],tmpref));
-                     end
-                   end
+              begin
+                if op = OP_ADD then
+                  list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
+                else
+                  list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+              end
             else
-              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
-                TCgSize2OpSize[size],a,tmpref));
+              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
+          OP_AND,OP_OR:
+            list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
+          OP_XOR:
+            if (aword(a)=high(aword)) then
+              list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],tmpref))
+            else
+              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$if defined(x86_64)}
