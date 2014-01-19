@@ -7,6 +7,9 @@ uses
   sysutils;
 {$endif ALLPACKAGES}
 
+const
+  NoGDBOption: boolean = false;
+
 procedure ide_check_gdb_availability(Sender: TObject);
 
   function DetectLibGDBDir: string;
@@ -72,8 +75,7 @@ begin
   P := sender as TPackage;
   with installer do
     begin
-    s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
-    if not ((s='1') or (s='Y')) then
+    if not (NoGDBOption) then
       begin
         // Detection of GDB.
         GDBLibDir := DetectLibGDBDir;
@@ -135,6 +137,9 @@ begin
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
   With Installer do
     begin
+    s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
+    if (s='1') or (s='Y') then
+     NoGDBOption := true;
     s :=GetCustomFpmakeCommandlineOptionValue('CompilerTarget');
     if s <> '' then
       CompilerTarget:=StringToCPU(s)
@@ -153,7 +158,8 @@ begin
     P.Dependencies.Add('chm');
     { This one is only needed if DEBUG is set }
     P.Dependencies.Add('regexpr');
-    P.Dependencies.Add('gdbint',AllOSes-[morphos]);
+    if not (NoGDBOption) then
+      P.Dependencies.Add('gdbint',AllOSes-[morphos]);
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
