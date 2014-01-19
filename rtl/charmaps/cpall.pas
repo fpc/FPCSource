@@ -14,7 +14,7 @@ uses
   { these are too big for a 16-bit CPU }
   cp932,cp936,cp949,cp950,
 {$endif not cpu16}
-  cp1250,cp1254,cp1255,cp1256,cp1257,cp1258;
+  cp1250,cp1254,cp1255,cp1256,cp1257,cp1258,cp852,cp8859_2;
 
 
 implementation
