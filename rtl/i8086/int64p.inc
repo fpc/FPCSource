@@ -225,3 +225,542 @@ asm
   pop     bp
 end;
 
+
+{$define FPC_SYSTEM_HAS_DIV_QWORD}
+function fpc_div_qword( n, z: qword ): qword; [public, alias:'FPC_DIV_QWORD']; compilerproc;
+// Generic "schoolbook" division algorithm
+// see [D.Knuth, TAOCP, vol.2, sect.4.3.1] for explanation
+var
+  dig: byte;
+  u: array [0..7] of word;
+begin
+  asm
+      mov    dig,4
+      // Check parameters
+      mov    dx,word [n]
+      mov    cx,word [n+2]
+      mov    bx,word [n+4]
+      mov    ax,word [n+6]
+      mov    di,ax
+      or     di,bx
+      or     di,cx
+      jnz    @@s1
+      or     di,dx
+      jz     @@q // div by 0
+      // Short division
+      mov    dig,al
+      mov    dx,word [z+6]
+      cmp    dx,di
+      jc     @@s0
+      xchg   ax,dx
+      div    di
+@@s0: mov    word [result+6],ax
+      mov    ax,word [z+4]
+      div    di
+      mov    word [result+4],ax
+      mov    ax,word [z+2]
+      div    di
+      mov    word [result+2],ax
+      mov    ax,word [z]
+      div    di
+      mov    word [result],ax
+      jmp    @@q
+@@s1: // Long division
+      xor    si,si
+      cmp    word [z],dx
+      mov    di,word [z+2]
+      sbb    di,cx
+      mov    di,word [z+4]
+      sbb    di,bx
+      mov    di,word [z+6]
+      sbb    di,ax
+      jnc    @@n0
+      // underflow: return 0
+      mov    dig,0
+      mov    word [result],si
+      mov    word [result+2],si
+      mov    word [result+4],si
+      mov    word [result+6],si
+      jmp    @@q
+@@n0: // D1. Normalize divisor:
+      //   n := n shl lzv, so that 2^63<=n<2^64
+      mov    di,si
+      test   ax,ax
+      jnz    @@n2
+@@n1: add    si,16
+      or     ax,bx
+      mov    bx,cx
+      mov    cx,dx
+      mov    dx,di
+      jz     @@n1
+@@n2: test   ah,ah
+      jnz    @@n4
+      add    si,8
+      or     ah,al
+      mov    al,bh
+      mov    bh,bl
+      mov    bl,ch
+      mov    ch,cl
+      mov    cl,dh
+      mov    dh,dl
+      mov    dl,0
+      js     @@n5
+@@n3: inc    si
+      shl    dx,1
+      rcl    cx,1
+      rcl    bx,1
+      adc    ax,ax
+@@n4: jns    @@n3
+@@n5: mov    word [n],dx 
+      mov    word [n+2],cx
+      mov    word [n+4],bx
+      mov    word [n+6],ax
+      // Adjust divident accordingly:
+      //   u := uint128(z) shl lzv; lzv=si=0..63; di=0
+      mov    dx,word [z]
+      mov    cx,word [z+2]
+      mov    bx,word [z+4]
+      mov    ax,word [z+6]
+      push   bp
+      mov    bp,si // save lzv
+      test   si,8
+      jz     @@m0
+      // << by odd-8
+      xchg   al,ah
+      mov    di,ax
+      and    di,0FFh
+      mov    al,bh
+      mov    bh,bl
+      mov    bl,ch
+      mov    ch,cl
+      mov    cl,dh
+      mov    dh,dl
+      xor    dl,dl
+@@m0: and    si,7
+      jz     @@m2
+      // << 1..7
+@@m1: shl    dx,1
+      rcl    cx,1
+      rcl    bx,1
+      rcl    ax,1
+      rcl    di,1
+      dec    si
+      jnz    @@m1
+@@m2: // si=0, bp=lzv
+      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32|48 shifts remain
+      sub    bp,16
+      jc     @@m5
+      sub    bp,16
+      jc     @@m4
+      sub    bp,16
+      jc     @@m3
+      // << 48
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],si
+      mov    word [u+4],si
+      mov    word [u+6],dx
+      mov    word [u+8],cx
+      mov    word [u+10],bx
+      mov    word [u+12],ax
+      mov    word [u+14],di
+      jmp    @@m6
+@@m3: // << 32
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],si
+      mov    word [u+4],dx
+      mov    word [u+6],cx
+      mov    word [u+8],bx
+      mov    word [u+10],ax
+      mov    word [u+12],di
+      mov    word [u+14],si
+      jmp    @@m6
+@@m4: // << 16
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],dx
+      mov    word [u+4],cx
+      mov    word [u+6],bx
+      mov    word [u+8],ax
+      mov    word [u+10],di
+      mov    word [u+12],si
+      mov    word [u+14],si
+      jmp    @@m6
+@@m5: // << 0
+      pop    bp
+      mov    word [u],dx
+      mov    word [u+2],cx
+      mov    word [u+4],bx
+      mov    word [u+6],ax
+      mov    word [u+8],di
+      mov    word [u+10],si
+      mov    word [u+12],si
+      mov    word [u+14],si
+@@m6: // D2. Start from j:=3, si:=@u[j], bx:=@q[j]
+      lea    si,word [u+6]
+      lea    bx,word [result+6]
+@@d0: push   bx
+      // D3. Estimate the next quotient digit:
+      //   q_hat := [u(j+4):u(j+3)]/[n3]
+      //   use max.possible q_hat if division overflows
+      mov    ax,-1
+      mov    dx,ss:[si+8]
+      mov    di,word [n+6]
+      cmp    dx,di
+      jnc    @@d1
+      mov    ax,ss:[si+6]
+      div    di
+@@d1: // D4. Multiply & subtract calculating partial reminder:
+      //   r := [u(j+4):u(j+3):u(j+2):u(j+1):u(j)]-q_hat*[n3:n2:n1:n0]
+      push   ax // q_hat
+      push   si // @u[j]
+      mov    si,ax
+      mul    word [n]
+      mov    bx,ax
+      mov    cx,dx
+      mov    ax,word [n+2]
+      mul    si
+      add    cx,ax
+      adc    dx,0
+      mov    di,dx
+      mov    ax,word [n+4]
+      mul    si
+      add    di,ax
+      adc    dx,0
+      xchg   dx,si
+      mov    ax,word [n+6]
+      mul    dx
+      add    ax,si
+      pop    si // @u[j]
+      adc    dx,0
+      sub    ss:[si],bx
+      sbb    ss:[si+2],cx
+      sbb    ss:[si+4],di
+      sbb    ss:[si+6],ax
+      sbb    ss:[si+8],dx
+      pop    di // q_hat
+      // D5. Test reminder
+      jnc    @@d3 // 0<=r<n
+      // D6. Add back once or twice correcting the quotient and remainder:
+      //   while (r<0) do { q_hat--; r+=n; }
+      mov    dx,word [n]
+      mov    cx,word [n+2]
+      mov    bx,word [n+4]
+      mov    ax,word [n+6] 
+@@d2: dec    di
+      add    ss:[si],dx
+      adc    ss:[si+2],cx
+      adc    ss:[si+4],bx
+      adc    ss:[si+6],ax
+      adc    word ss:[si+8],0
+      jnc    @@d2
+@@d3: // D7. Store q[j], loop on j--
+      pop    bx // @q[j]
+      dec    si
+      dec    si
+      mov    ss:[bx],di
+      dec    bx
+      dec    bx
+      dec    dig
+      jnz    @@d0
+@@q:
+  end;
+  if dig<>0 then
+    HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+end;
+
+
+{$define FPC_SYSTEM_HAS_MOD_QWORD}
+function fpc_mod_qword( n, z: qword ): qword; [public, alias:'FPC_MOD_QWORD']; compilerproc;
+// Generic "schoolbook" division algorithm
+// see [D.Knuth, TAOCP, vol.2, sect.4.3.1] for explanation
+var
+  dig: byte;
+  lzv: word;
+  u: array [0..7] of word;
+begin
+  asm
+      mov    dig,4
+      // Check parameters
+      mov    dx,word [n]
+      mov    cx,word [n+2]
+      mov    bx,word [n+4]
+      mov    ax,word [n+6]
+      mov    di,ax
+      or     di,bx
+      or     di,cx
+      jnz    @@s1
+      or     di,dx
+      jz     @@q // div by 0
+      // Short division
+      mov    dig,al
+      mov    dx,word [z+6]
+      cmp    dx,di
+      jc     @@s0
+      xchg   ax,dx
+      div    di
+@@s0: mov    ax,word [z+4]
+      div    di
+      mov    ax,word [z+2]
+      div    di
+      mov    ax,word [z]
+      div    di
+      mov    word [result],dx
+      mov    word [result+2],cx
+      mov    word [result+4],cx
+      mov    word [result+6],cx
+      jmp    @@q
+@@s1: // Long division
+      xor    si,si
+      cmp    word [z],dx
+      mov    di,word [z+2]
+      sbb    di,cx
+      mov    di,word [z+4]
+      sbb    di,bx
+      mov    di,word [z+6]
+      sbb    di,ax
+      jnc    @@n0
+      // underflow: return z
+      mov    dig,0
+      mov    dx,word [z]
+      mov    cx,word [z+2]
+      mov    bx,word [z+4]
+      mov    ax,word [z+6]
+      jmp    @@r6
+@@n0: // D1. Normalize divisor:
+      //   n := n shl lzv, so that 2^63<=n<2^64
+      mov    di,si
+      test   ax,ax
+      jnz    @@n2
+@@n1: add    si,16
+      or     ax,bx
+      mov    bx,cx
+      mov    cx,dx
+      mov    dx,di
+      jz     @@n1
+@@n2: test   ah,ah
+      jnz    @@n4
+      add    si,8
+      or     ah,al
+      mov    al,bh
+      mov    bh,bl
+      mov    bl,ch
+      mov    ch,cl
+      mov    cl,dh
+      mov    dh,dl
+      mov    dl,0
+      js     @@n5
+@@n3: inc    si
+      shl    dx,1
+      rcl    cx,1
+      rcl    bx,1
+      adc    ax,ax
+@@n4: jns    @@n3
+@@n5: mov    word [n],dx 
+      mov    word [n+2],cx
+      mov    word [n+4],bx
+      mov    word [n+6],ax
+      mov    lzv,si
+      // Adjust divident accordingly:
+      //   u := uint128(z) shl lzv; lzv=si=0..63; di=0
+      mov    dx,word [z]
+      mov    cx,word [z+2]
+      mov    bx,word [z+4]
+      mov    ax,word [z+6]
+      push   bp
+      mov    bp,si // save lzv
+      test   si,8
+      jz     @@m0
+      // << by odd-8
+      xchg   al,ah
+      mov    di,ax
+      and    di,0FFh
+      mov    al,bh
+      mov    bh,bl
+      mov    bl,ch
+      mov    ch,cl
+      mov    cl,dh
+      mov    dh,dl
+      xor    dl,dl
+@@m0: and    si,7
+      jz     @@m2
+      // << 1..7
+@@m1: shl    dx,1
+      rcl    cx,1
+      rcl    bx,1
+      rcl    ax,1
+      rcl    di,1
+      dec    si
+      jnz    @@m1
+@@m2: // si=0, bp=lzv
+      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32|48 shifts remain
+      sub    bp,16
+      jc     @@m5
+      sub    bp,16
+      jc     @@m4
+      sub    bp,16
+      jc     @@m3
+      // << 48
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],si
+      mov    word [u+4],si
+      mov    word [u+6],dx
+      mov    word [u+8],cx
+      mov    word [u+10],bx
+      mov    word [u+12],ax
+      mov    word [u+14],di
+      jmp    @@m6
+@@m3: // << 32
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],si
+      mov    word [u+4],dx
+      mov    word [u+6],cx
+      mov    word [u+8],bx
+      mov    word [u+10],ax
+      mov    word [u+12],di
+      mov    word [u+14],si
+      jmp    @@m6
+@@m4: // << 16
+      pop    bp
+      mov    word [u],si
+      mov    word [u+2],dx
+      mov    word [u+4],cx
+      mov    word [u+6],bx
+      mov    word [u+8],ax
+      mov    word [u+10],di
+      mov    word [u+12],si
+      mov    word [u+14],si
+      jmp    @@m6
+@@m5: // << 0
+      pop    bp
+      mov    word [u],dx
+      mov    word [u+2],cx
+      mov    word [u+4],bx
+      mov    word [u+6],ax
+      mov    word [u+8],di
+      mov    word [u+10],si
+      mov    word [u+12],si
+      mov    word [u+14],si
+@@m6: // D2. Start from j:=3, si:=@u[j]
+      lea    si,word [u+6]
+@@d0: // D3. Estimate the next quotient digit:
+      //   q_hat := [u(j+4):u(j+3)]/[n3]
+      //   use max.possible q_hat if division overflows
+      mov    ax,-1
+      mov    dx,ss:[si+8]
+      mov    di,word [n+6]
+      cmp    dx,di
+      jnc    @@d1
+      mov    ax,ss:[si+6]
+      div    di
+@@d1: // D4. Multiply & subtract calculating partial reminder:
+      //   r := [u(j+4):u(j+3):u(j+2):u(j+1):u(j)]-q_hat*[n3:n2:n1:n0]
+      push   si    // @u[j]
+      mov    si,ax // q_hat
+      mul    word [n]
+      mov    bx,ax
+      mov    cx,dx
+      mov    ax,word [n+2]
+      mul    si
+      add    cx,ax
+      adc    dx,0
+      mov    di,dx
+      mov    ax,word [n+4]
+      mul    si
+      add    di,ax
+      adc    dx,0
+      xchg   dx,si
+      mov    ax,word [n+6]
+      mul    dx
+      add    ax,si
+      pop    si // @u[j]
+      adc    dx,0
+      sub    ss:[si],bx
+      sbb    ss:[si+2],cx
+      sbb    ss:[si+4],di
+      sbb    ss:[si+6],ax
+      mov    di,ss:[si+8]
+      sbb    di,dx
+      // D5. Test reminder
+      jnc    @@d3 // 0<=r<n
+      // D6. Add back once or twice correcting the remainder:
+      //   while (r<0) do { r+=n; }
+      mov    dx,word [n]
+      mov    cx,word [n+2]
+      mov    bx,word [n+4]
+      mov    ax,word [n+6]
+@@d2: add    ss:[si],dx
+      adc    ss:[si+2],cx
+      adc    ss:[si+4],bx
+      adc    ss:[si+6],ax
+      adc    di,0
+      jnc    @@d2
+@@d3: // D7. Loop on j--
+      dec    si
+      dec    si
+      dec    dig
+      jnz    @@d0
+      // D8. "Unnormalize" and return reminder:
+      //   result := [u3:u2:u1:u0] shr lzv
+      xor    ax,ax
+      mov    si,lzv
+      sub    si,16
+      jc     @@r2
+      sub    si,16
+      jc     @@r1
+      sub    si,16
+      jc     @@r0
+      // >> 48..63
+      mov    bx,ax
+      mov    cx,ax
+      mov    dx,word [u+6]
+      jmp    @@r3
+@@r0: // >> 32..47
+      mov    bx,ax
+      mov    cx,word [u+6]
+      mov    dx,word [u+4]
+      jmp    @@r3
+@@r1: // >> 16..31
+      mov    bx,word [u+6]
+      mov    cx,word [u+4]
+      mov    dx,word [u+2]
+      jmp    @@r3
+@@r2: // >> 0..15
+      mov    ax,word [u+6]
+      mov    bx,word [u+4]
+      mov    cx,word [u+2]
+      mov    dx,word [u]
+@@r3: and    si,15
+      sub    si,8
+      jc     @@r4
+      // >> 8..15
+      mov    dl,dh
+      mov    dh,cl
+      mov    cl,ch
+      mov    ch,bl
+      mov    bl,bh
+      mov    bh,al
+      mov    al,ah
+      xor    ah,ah
+@@r4: and    si,7
+      jz     @@r6
+      // >> 1..7
+@@r5: shr    ax,1
+      rcr    bx,1
+      rcr    cx,1
+      rcr    dx,1
+      dec    si
+      jnz    @@r5
+@@r6: mov    word [result],dx
+      mov    word [result+2],cx
+      mov    word [result+4],bx
+      mov    word [result+6],ax
+@@q:
+  end;
+  if dig<>0 then
+    HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+end;
+
