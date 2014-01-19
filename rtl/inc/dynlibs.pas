@@ -26,6 +26,10 @@ interface
   Read OS-dependent interface declarations.
   ---------------------------------------------------------------------}
 
+{ Note: should define the TOrdinalEntry type and define
+        DYNLIBS_SUPPORTS_ORDINAL if the operating system supports loading
+        functions by a ordinal like e.g. Windows or OS/2 do }
+
 {$define readinterface}
 {$i dynlibs.inc}
 {$undef  readinterface}
@@ -33,7 +37,10 @@ interface
 { ---------------------------------------------------------------------
   OS - Independent declarations.
   ---------------------------------------------------------------------}
-
+{$IFNDEF DYNLIBS_SUPPORTS_ORDINAL}
+type
+ TOrdinalEntry = SizeUInt;
+{$ENDIF DYNLIBS_SUPPORTS_ORDINAL}
 
 Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
 Function LoadLibrary(const Name : RawByteString) : TLibHandle;
@@ -41,7 +48,7 @@ Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
 
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
-Function GetProcedureAddress(Lib : TLibHandle; Ordinal: Word) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: string;
 
@@ -59,9 +66,8 @@ Implementation
   OS - Independent declarations.
   ---------------------------------------------------------------------}
 
-{ Note: should define the Word overload and define DYNLIBS_SUPPORTS_ORDINAL if
-        the operating system supports loading functions by a ordinal like e.g.
-        Windows or OS/2 do }
+{ Note: should define the TOrdinalEntry overload if the operating system
+        supports loading functions by a ordinal like e.g. Windows or OS/2 do }
 {$i dynlibs.inc}
 
 {$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
@@ -147,7 +153,7 @@ end;
 {$ifndef DYNLIBS_SUPPORTS_ORDINAL}
 { OS does not support loading by ordinal (or it's not implemented yet), so by
   default we simply return Nil }
-Function GetProcedureAddress(Lib : TLibHandle; Ordinal : Word) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : TOrdinalEntry) : Pointer;
 begin
   Result := Nil;
 end;
