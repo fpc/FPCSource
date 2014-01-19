@@ -64,7 +64,6 @@ uses
         constructor Create;
         destructor  Destroy;override;
         procedure CreateResourceStringData;
-        procedure WriteResourceFile;
         procedure WriteRSJFile;
         procedure RegisterResourceStrings;
       end;
@@ -215,83 +214,6 @@ uses
           current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_sym(endsymlab));
       end;
 
-
-    procedure Tresourcestrings.WriteResourceFile;
-      Type
-        TMode = (quoted,unquoted);
-      Var
-        F : Text;
-        Mode : TMode;
-        R : TResourceStringItem;
-        C : char;
-        Col,i : longint;
-        ResFileName : string;
-
-        Procedure Add(Const S : String);
-        begin
-          Write(F,S);
-          inc(Col,length(s));
-        end;
-
-      begin
-        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rst');
-        message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
-        Assign(F,ResFileName);
-        {$push}{$i-}
-        Rewrite(f);
-        {$pop}
-        If IOresult<>0 then
-          begin
-            message1(general_e_errorwritingresourcefile,ResFileName);
-            exit;
-          end;
-        R:=TResourceStringItem(List.First);
-        while assigned(R) do
-          begin
-            writeln(f);
-            Writeln(f,'# hash value = ',R.Hash);
-            col:=0;
-            Add(R.Name+'=');
-            Mode:=unquoted;
-            For I:=0 to R.Len-1 do
-             begin
-               C:=R.Value[i];
-               If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
-                begin
-                  If mode=Quoted then
-                   Add(c)
-                  else
-                   begin
-                     Add(''''+c);
-                     mode:=quoted
-                   end;
-                end
-               else
-                begin
-                  If Mode=quoted then
-                   begin
-                     Add('''');
-                     mode:=unquoted;
-                   end;
-                  Add('#'+tostr(ord(c)));
-                end;
-               If Col>72 then
-                begin
-                  if mode=quoted then
-                   Write (F,'''');
-                  Writeln(F,'+');
-                  Col:=0;
-                  Mode:=unQuoted;
-                end;
-             end;
-            if mode=quoted then
-             writeln (f,'''');
-            Writeln(f);
-            R:=TResourceStringItem(R.Next);
-          end;
-        close(f);
-      end;
-
     procedure Tresourcestrings.WriteRSJFile;
       Var
         F: Text;
@@ -380,7 +302,6 @@ uses
           begin
             current_module.flags:=current_module.flags or uf_has_resourcestrings;
             resstrs.CreateResourceStringData;
-            resstrs.WriteResourceFile;
             resstrs.WriteRSJFile;
           end;
         resstrs.Free;
