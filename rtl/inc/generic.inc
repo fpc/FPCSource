@@ -1204,39 +1204,46 @@ end;
         sign : boolean;
         q1,q2,q3 : word;
       begin
-        begin
-           sign:=false;
-           if f1<0 then
-             begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { word(f1)*word(f2) is coded as a call to mulword }
+          fpc_mul_integer:=integer(word(f1)*word(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
                 sign:=not(sign);
                 q1:=word(-f1);
-             end
-           else
-             q1:=f1;
-           if f2<0 then
-             begin
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
                 sign:=not(sign);
                 q2:=word(-f2);
-             end
-           else
-             q2:=f2;
-           { the q1*q2 is coded as call to mulqword }
-           q3:=q1*q2;
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to mulword }
+            q3:=q1*q2;
 
-           if checkoverflow and (q1 <> 0) and (q2 <>0) and
-           ((q1>q3) or (q2>q3) or
-             { the bit 63 can be only set if we have $8000 }
-             { and sign is true                            }
-             (q3 shr 15<>0) and
-              ((q3<>word(word(1) shl 15)) or not(sign))
-             ) then
-             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+            if (q1 <> 0) and (q2 <>0) and
+              ((q1>q3) or (q2>q3) or
+              { the bit 63 can be only set if we have $8000 }
+              { and sign is true                            }
+              (q3 shr 15<>0) and
+               ((q3<>word(word(1) shl 15)) or not(sign))
+              ) then
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-           if sign then
-             fpc_mul_integer:=-q3
-           else
-             fpc_mul_integer:=q3;
-        end;
+            if sign then
+              fpc_mul_integer:=-q3
+            else
+              fpc_mul_integer:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INTEGER}
 
@@ -1280,39 +1287,46 @@ end;
         sign : boolean;
         q1,q2,q3 : dword;
       begin
-        begin
-           sign:=false;
-           if f1<0 then
-             begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { dword(f1)*dword(f2) is coded as a call to muldword }
+          fpc_mul_longint:=longint(dword(f1)*dword(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
                 sign:=not(sign);
                 q1:=dword(-f1);
-             end
-           else
-             q1:=f1;
-           if f2<0 then
-             begin
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
                 sign:=not(sign);
                 q2:=dword(-f2);
-             end
-           else
-             q2:=f2;
-           { the q1*q2 is coded as call to mulqword }
-           q3:=q1*q2;
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to muldword }
+            q3:=q1*q2;
 
-           if checkoverflow and (q1 <> 0) and (q2 <>0) and
-           ((q1>q3) or (q2>q3) or
-             { the bit 31 can be only set if we have $8000 0000 }
-             { and sign is true                                 }
-             (q3 shr 15<>0) and
-              ((q3<>dword(dword(1) shl 31)) or not(sign))
-             ) then
-             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+            if (q1 <> 0) and (q2 <>0) and
+              ((q1>q3) or (q2>q3) or
+              { the bit 31 can be only set if we have $8000 0000 }
+              { and sign is true                                 }
+              (q3 shr 15<>0) and
+               ((q3<>dword(dword(1) shl 31)) or not(sign))
+              ) then
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-           if sign then
-             fpc_mul_longint:=-q3
-           else
-             fpc_mul_longint:=q3;
-        end;
+            if sign then
+              fpc_mul_longint:=-q3
+            else
+              fpc_mul_longint:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INTEGER}
 
