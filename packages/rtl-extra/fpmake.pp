@@ -54,6 +54,7 @@ begin
     P.IncludePath.Add('src/bsd',AllBSDOSes);
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/os2commn',[os2,emx]);
+    P.IncludePath.Add('../../rtl/os2',[os2,emx]);
     P.IncludePath.Add('src/netwcomn',[netware,netwlibc]);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
