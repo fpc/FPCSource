@@ -232,10 +232,10 @@ function fpc_div_qword( n, z: qword ): qword; [public, alias:'FPC_DIV_QWORD']; c
 // see [D.Knuth, TAOCP, vol.2, sect.4.3.1] for explanation
 var
   dig: byte;
-  u: array [0..7] of word;
+  u: array [0..6] of word;
 begin
   asm
-      mov    dig,4
+      mov    dig,3 // quotient contains 3 digits for "long" division path
       // Check parameters
       mov    dx,word [n]
       mov    cx,word [n+2]
@@ -284,6 +284,8 @@ begin
       jmp    @@q
 @@n0: // D1. Normalize divisor:
       //   n := n shl lzv, so that 2^63<=n<2^64
+      // Note: n>=0x10000 leads to lzv<=47 and q3=0
+      mov    word [result+6],si // q3:=0
       mov    di,si
       test   ax,ax
       jnz    @@n2
@@ -316,7 +318,7 @@ begin
       mov    word [n+4],bx
       mov    word [n+6],ax
       // Adjust divident accordingly:
-      //   u := uint128(z) shl lzv; lzv=si=0..63; di=0
+      //   u := uint128(z) shl lzv; lzv=si=0..47; di=0
       mov    dx,word [z]
       mov    cx,word [z+2]
       mov    bx,word [z+4]
@@ -347,25 +349,12 @@ begin
       dec    si
       jnz    @@m1
 @@m2: // si=0, bp=lzv
-      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32|48 shifts remain
+      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32 shifts remain
       sub    bp,16
       jc     @@m5
       sub    bp,16
       jc     @@m4
-      sub    bp,16
-      jc     @@m3
-      // << 48
-      pop    bp
-      mov    word [u],si
-      mov    word [u+2],si
-      mov    word [u+4],si
-      mov    word [u+6],dx
-      mov    word [u+8],cx
-      mov    word [u+10],bx
-      mov    word [u+12],ax
-      mov    word [u+14],di
-      jmp    @@m6
-@@m3: // << 32
+      // << 32
       pop    bp
       mov    word [u],si
       mov    word [u+2],si
@@ -374,7 +363,6 @@ begin
       mov    word [u+8],bx
       mov    word [u+10],ax
       mov    word [u+12],di
-      mov    word [u+14],si
       jmp    @@m6
 @@m4: // << 16
       pop    bp
@@ -385,7 +373,6 @@ begin
       mov    word [u+8],ax
       mov    word [u+10],di
       mov    word [u+12],si
-      mov    word [u+14],si
       jmp    @@m6
 @@m5: // << 0
       pop    bp
@@ -396,10 +383,9 @@ begin
       mov    word [u+8],di
       mov    word [u+10],si
       mov    word [u+12],si
-      mov    word [u+14],si
-@@m6: // D2. Start from j:=3, si:=@u[j], bx:=@q[j]
-      lea    si,word [u+6]
-      lea    bx,word [result+6]
+@@m6: // D2. Start from j:=2 (since u7=0 and u6<n3), si:=@u[j], bx:=@q[j]
+      lea    si,word [u+4]
+      lea    bx,word [result+4]
 @@d0: push   bx
       // D3. Estimate the next quotient digit:
       //   q_hat := [u(j+4):u(j+3)]/[n3]
@@ -478,10 +464,10 @@ function fpc_mod_qword( n, z: qword ): qword; [public, alias:'FPC_MOD_QWORD']; c
 var
   dig: byte;
   lzv: word;
-  u: array [0..7] of word;
+  u: array [0..6] of word;
 begin
   asm
-      mov    dig,4
+      mov    dig,3 // quotient contains 3 digist for "long" division path
       // Check parameters
       mov    dx,word [n]
       mov    cx,word [n+2]
@@ -530,6 +516,7 @@ begin
       jmp    @@r6
 @@n0: // D1. Normalize divisor:
       //   n := n shl lzv, so that 2^63<=n<2^64
+      // Note: n>=0x10000 leads to lzv<=47
       mov    di,si
       test   ax,ax
       jnz    @@n2
@@ -563,7 +550,7 @@ begin
       mov    word [n+6],ax
       mov    lzv,si
       // Adjust divident accordingly:
-      //   u := uint128(z) shl lzv; lzv=si=0..63; di=0
+      //   u := uint128(z) shl lzv; lzv=si=0..47; di=0
       mov    dx,word [z]
       mov    cx,word [z+2]
       mov    bx,word [z+4]
@@ -594,25 +581,12 @@ begin
       dec    si
       jnz    @@m1
 @@m2: // si=0, bp=lzv
-      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32|48 shifts remain
+      // di:ax:bx:cx:dx shifted by 0..15; 0|16|32 shifts remain
       sub    bp,16
       jc     @@m5
       sub    bp,16
       jc     @@m4
-      sub    bp,16
-      jc     @@m3
-      // << 48
-      pop    bp
-      mov    word [u],si
-      mov    word [u+2],si
-      mov    word [u+4],si
-      mov    word [u+6],dx
-      mov    word [u+8],cx
-      mov    word [u+10],bx
-      mov    word [u+12],ax
-      mov    word [u+14],di
-      jmp    @@m6
-@@m3: // << 32
+      // << 32
       pop    bp
       mov    word [u],si
       mov    word [u+2],si
@@ -621,7 +595,6 @@ begin
       mov    word [u+8],bx
       mov    word [u+10],ax
       mov    word [u+12],di
-      mov    word [u+14],si
       jmp    @@m6
 @@m4: // << 16
       pop    bp
@@ -632,7 +605,6 @@ begin
       mov    word [u+8],ax
       mov    word [u+10],di
       mov    word [u+12],si
-      mov    word [u+14],si
       jmp    @@m6
 @@m5: // << 0
       pop    bp
@@ -643,9 +615,8 @@ begin
       mov    word [u+8],di
       mov    word [u+10],si
       mov    word [u+12],si
-      mov    word [u+14],si
-@@m6: // D2. Start from j:=3, si:=@u[j]
-      lea    si,word [u+6]
+@@m6: // D2. Start from j:=2 (since u7=0 and u6<n3), si:=@u[j]
+      lea    si,word [u+4]
 @@d0: // D3. Estimate the next quotient digit:
       //   q_hat := [u(j+4):u(j+3)]/[n3]
       //   use max.possible q_hat if division overflows
@@ -711,14 +682,7 @@ begin
       jc     @@r2
       sub    si,16
       jc     @@r1
-      sub    si,16
-      jc     @@r0
-      // >> 48..63
-      mov    bx,ax
-      mov    cx,ax
-      mov    dx,word [u+6]
-      jmp    @@r3
-@@r0: // >> 32..47
+      // >> 32..47
       mov    bx,ax
       mov    cx,word [u+6]
       mov    dx,word [u+4]
