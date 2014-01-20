@@ -2642,20 +2642,22 @@ implementation
           end
         else
           begin
+            { can full 64-bit multiplication be handled inline? }
+            if not use_generic_mul64bit then
+              begin
+                { generic handling replaces this node with call to fpc_mul_int64,
+                  whose result is int64 }
+                if is_currency(resultdef) then
+                  resultdef:=s64inttype;
+                exit;
+              end;
+
             { when currency is used set the result of the
               parameters to s64bit, so they are not converted }
             if is_currency(resultdef) then
               begin
                 left.resultdef:=s64inttype;
                 right.resultdef:=s64inttype;
-              end;
-
-            { can full 64-bit multiplication be handled inline? }
-            if not use_generic_mul64bit then
-              begin
-                firstpass(left);
-                firstpass(right);
-                exit;
               end;
 
             { otherwise, create the parameters for the helper }
