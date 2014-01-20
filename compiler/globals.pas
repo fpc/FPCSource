@@ -327,7 +327,7 @@ interface
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
-       { Application type (platform specific) 
+       { Application type (platform specific)
          see globtype.pas for description }
        apptype : tapptype;
 
@@ -915,7 +915,7 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
-        if (length(GetEnvPChar)=0) then 
+        if (length(GetEnvPChar)=0) then
           begin
             FreeEnvPChar(GetEnvPChar);
             GetEnvPChar:=nil;
@@ -1106,7 +1106,9 @@ implementation
              (abiinfo[t].name=hs) then
             begin
               a:=t;
-              result:=true;
+              { abi_old_win32_gnu is a win32 i386 specific "feature" }
+              if (t<>abi_old_win32_gnu) or (target_info.system=system_i386_win32) then
+                result:=true;
               break;
             end;
       end;
