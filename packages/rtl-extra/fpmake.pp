@@ -49,7 +49,10 @@ begin
     P.SourcePath.Add('src/bsd',AllBSDOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
     P.SourcePath.Add('src/netwcomn',[netware,netwlibc]);
-    P.SourcePath.Add('src/win',[win32,win64]);
+    // We also need the win/ directory for WinCE as this uses the sockets
+    // unit from that directory. Maybe we should try to merge the WinSock(2)
+    // units to remove the wince directory completely...
+    P.SourcePath.Add('src/win',[win32,win64,wince]);
 
     P.IncludePath.Add('src/bsd',AllBSDOSes);
     P.IncludePath.Add('src/inc');

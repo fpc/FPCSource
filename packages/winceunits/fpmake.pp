@@ -29,6 +29,7 @@ begin
     P.SourcePath.Add('src');
     P.SupportBuildModes := [bmOneByOne];
     P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('rtl-extra');
    
     P.Options.Add('-Ur');
 

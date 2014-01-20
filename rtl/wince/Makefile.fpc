@@ -127,11 +127,11 @@ messages$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMU
 
 #opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                   $(INC)/sockets.inc $(INC)/socketsh.inc
-	$(COMPILER) $(WINDIR)/sockets.pp
+#sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+#                   $(INC)/sockets.inc $(INC)/socketsh.inc
+#	$(COMPILER) $(WINDIR)/sockets.pp
 
 #initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 
