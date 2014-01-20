@@ -800,6 +800,7 @@ implementation
          else
            begin
              case left.expectloc of
+               LOC_CONSTANT,
                LOC_REGISTER,
                LOC_SUBSETREG:
                  // can happen for function results on win32 and darwin/x86

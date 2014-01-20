@@ -404,6 +404,7 @@ implementation
                LOC_REFERENCE,
                LOC_CREFERENCE:
                  ;
+               LOC_CONSTANT,
                LOC_REGISTER,
                LOC_CREGISTER,
                LOC_MMREGISTER,
