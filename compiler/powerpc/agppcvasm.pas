@@ -379,6 +379,7 @@ unit agppcvasm;
            Replace(result,'$ASM',maybequoted(Unix2AmigaPath(AsmFileName)));
            Replace(result,'$OBJ',maybequoted(Unix2AmigaPath(ObjFileName)));
          end;
+        Replace(result,'$EXTRAOPT',asmextraopt);
       end;
 
 
@@ -394,7 +395,7 @@ unit agppcvasm;
 
          idtxt  : 'VASM';
          asmbin : 'fpcvasm';
-         asmcmd: '-quiet -Felf -o $OBJ $ASM';
+         asmcmd: '-quiet -Felf -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_powerpc_morphos];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';

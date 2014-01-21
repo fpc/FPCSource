@@ -42,7 +42,7 @@ unit cpugas;
       end;
 
     const
-      use_std_regnames : boolean = 
+      use_std_regnames : boolean =
       {$ifndef USE_MIPS_GAS_REGS}
       true;
       {$else}
@@ -379,7 +379,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
         supported_targets: [system_mipsel_linux];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
@@ -391,7 +391,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $EXTRAOPT $ASM';
         supported_targets: [system_mipseb_linux];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
