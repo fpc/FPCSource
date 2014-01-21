@@ -779,6 +779,13 @@ begin
                       include(init_settings.globalswitches,cs_asm_tempalloc);
                     'n' :
                       include(init_settings.globalswitches,cs_asm_nodes);
+                    { -ao option must be the last, everything behind it is passed directly to
+                      external assembler, it is ignored if internal assembler is used. }
+                    'o' :
+                      begin
+                        asmextraopt:=copy(more,j+1,length(more)-j);
+                        break;
+                      end;
                     'p' :
                       begin
                         exclude(init_settings.globalswitches,cs_asm_leave);
