@@ -228,6 +228,9 @@ interface
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
 
+       { external assembler extra option }
+       asmextraopt       : string;
+
        { things specified with parameters }
        paratarget        : tsystem;
        paratargetdbg     : tdbg;
