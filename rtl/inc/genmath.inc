@@ -36,7 +36,7 @@
 {-------------------------------------------------------------------------}
 
 type
-  TabCoef = array[0..6] of Real;
+  PReal = ^Real;
 { also necessary for Int() on systems with 64bit floats (JM) }
 {$ifndef FPC_SYSTEM_HAS_float64}
 {$ifdef ENDIAN_LITTLE}
@@ -79,20 +79,20 @@ const
       DP3 =   2.69515142907905952645E-15;
 
 {$if not defined(FPC_SYSTEM_HAS_SIN) or not defined(FPC_SYSTEM_HAS_COS)}
-const sincof : TabCoef = (
+const sincof : array[0..5] of Real = (
                 1.58962301576546568060E-10,
                -2.50507477628578072866E-8,
                 2.75573136213857245213E-6,
                -1.98412698295895385996E-4,
                 8.33333333332211858878E-3,
-               -1.66666666666666307295E-1, 0);
-      coscof : TabCoef = (
+               -1.66666666666666307295E-1);
+      coscof : array[0..5] of Real = (
                -1.13585365213876817300E-11,
                 2.08757008419747316778E-9,
                -2.75573141792967388112E-7,
                 2.48015872888517045348E-5,
                -1.38888888888730564116E-3,
-                4.16666666666665929218E-2, 0);
+                4.16666666666665929218E-2);
 {$endif}
 
 {*
@@ -430,7 +430,7 @@ type
 {$endif not SYSTEM_HAS_LDEXP}
 
 
-    function polevl(var x:Real; var Coef:TabCoef; N:Integer):Real;
+    function polevl(x:Real; Coef:PReal; N:sizeint):Real;
     {*****************************************************************}
     { Evaluate polynomial                                             }
     {*****************************************************************}
@@ -468,7 +468,7 @@ type
     {   program in microcode or assembly language.                    }
     {*****************************************************************}
     var ans : Real;
-        i   : Integer;
+        i   : sizeint;
 
     begin
       ans := Coef[0];
@@ -478,14 +478,14 @@ type
     end;
 
 
-    function p1evl(var x:Real; var Coef:TabCoef; N:Integer):Real;
+    function p1evl(x:Real; Coef:PReal; N:sizeint):Real;
     {                                                           }
     { Evaluate polynomial when coefficient of x  is 1.0.        }
     { Otherwise same as polevl.                                 }
     {                                                           }
     var
         ans : Real;
-        i   : Integer;
+        i   : sizeint;
     begin
       ans := x + Coef[0];
       for i:=1 to N-1 do
@@ -1232,15 +1232,15 @@ type
     { A Pade' form of degree 2/3 is used to approximate exp(f)- 1     }
     { in the basic range [-0.5 ln 2, 0.5 ln 2].                       }
     {*****************************************************************}
-    const  P : TabCoef = (
+    const  P : array[0..2] of Real = (
            1.26183092834458542160E-4,
            3.02996887658430129200E-2,
-           1.00000000000000000000E0, 0, 0, 0, 0);
-           Q : TabCoef = (
+           1.00000000000000000000E0);
+           Q : array[0..3] of Real = (
            3.00227947279887615146E-6,
            2.52453653553222894311E-3,
            2.27266044198352679519E-1,
-           2.00000000000000000005E0, 0 ,0 ,0);
+           2.00000000000000000005E0);
 
            C1 = 6.9335937500000000000E-1;
             C2 = 2.1219444005469058277E-4;
@@ -1366,7 +1366,7 @@ type
     {     log(x) = z + z**3 P(z)/Q(z).                                }
     {                                                                 }
     {*****************************************************************}
-    const  P : TabCoef = (
+    const  P : array[0..6] of Real = (
      {  Coefficients for log(1+x) = x - x**2/2 + x**3 P(x)/Q(x)
          1/sqrt(2) <= x < sqrt(2) }
 
@@ -1377,26 +1377,26 @@ type
            6.06127134467767258030E1,
            5.67349287391754285487E1,
            1.98892446572874072159E1);
-       Q : TabCoef = (
+       Q : array[0..5] of Real = (
            1.50314182634250003249E1,
            8.27410449222435217021E1,
            2.20664384982121929218E2,
            3.07254189979530058263E2,
            2.14955586696422947765E2,
-           5.96677339718622216300E1, 0);
+           5.96677339718622216300E1);
 
      { Coefficients for log(x) = z + z**3 P(z)/Q(z),
         where z = 2(x-1)/(x+1)
         1/sqrt(2) <= x < sqrt(2)  }
 
-       R : TabCoef = (
+       R : array[0..2] of Real = (
            -7.89580278884799154124E-1,
             1.63866645699558079767E1,
-           -6.41409952958715622951E1, 0, 0, 0, 0);
-       S : TabCoef = (
+           -6.41409952958715622951E1);
+       S : array[0..2] of Real = (
            -3.56722798256324312549E1,
             3.12093766372244180303E2,
-           -7.69691943550460008604E2, 0, 0, 0, 0);
+           -7.69691943550460008604E2);
 
     var e : Integer;
        z, y : Real;
