@@ -1726,10 +1726,7 @@ function fpc_qword_to_double(q : qword): double; compilerproc;
 {$ifndef FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i : int64): double; compilerproc;
   begin
-    if i<0 then
-      result:=-double(qword(-i))
-    else
-      result:=qword(i);
+    result:=dword(i and $ffffffff)+longint(i shr 32)*double(4294967296.0);
   end;
 {$endif FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
 
