@@ -207,28 +207,28 @@ implementation
 
         shiftval := tordconstnode(right).value.svalue and 63;
         op := ops[nodetype=shln];
-        if shiftval > 31 then
+        location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+        location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+
+        { Emitting "left shl 1" as "left+left" is twice shorter }
+        if (nodetype=shln) and (shiftval=1) then
+          cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_64,left.location.register64,left.location.register64,location.register64)
+        else if shiftval > 31 then
           begin
             if nodetype = shln then
               begin
-                location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
-                location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
                 { if shiftval and 31 = 0, it will optimize to MOVE }
                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_32, shiftval and 31, hreg64lo, location.register64.reghi);
               end
             else
               begin
-                location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
-                location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_32, shiftval and 31, hreg64hi, location.register64.reglo);
               end;
           end
         else
           begin
-            location.register64.reglo:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
-            location.register64.reghi:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
             hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
 
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, OS_32, shiftval, hreg64hi, location.register64.reghi);
