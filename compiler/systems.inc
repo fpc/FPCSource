@@ -195,6 +195,15 @@
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
              ,as_jvm_jasmin
+             ,as_yasm
+             ,as_i386_nasm
+             ,as_i386_nasmdarwin
+             ,as_x86_64_nasm
+             ,as_x86_64_nasmwin64
+             ,as_x86_64_nasmelf
+             ,as_x86_64_nasmdarwin
+             ,as_i8086_nasm
+             ,as_i8086_nasmobj
        );
 
        tlink = (ld_none,
