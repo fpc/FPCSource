@@ -606,6 +606,7 @@ Implementation
            Replace(result,'$NOWARN','')
          else
            Replace(result,'$NOWARN','-W');
+         Replace(result,'$EXTRAOPT',asmextraopt);
       end;
 
 
