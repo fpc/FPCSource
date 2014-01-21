@@ -58,7 +58,7 @@ var RC: cardinal;
     Len: Longint;
 
 begin
-  Len := Length (s);
+  Len := Length (S);
   if (Len >= 2) and (S[2] = ':') then
   begin
     RC := DosSetDefaultDisk ((Ord (S [1]) and not ($20)) - $40);
@@ -68,6 +68,8 @@ begin
       if Len > 2 then
       begin
         DoDirSeparators (s);
+        if (S [Len] = DirectorySeparator) and (Len <> 3) then
+         S [Len] := #0;
         RC := DosSetCurrentDir (pchar (s));
         if RC <> 0 then
         begin
@@ -77,6 +79,8 @@ begin
       end;
   end else begin
     DoDirSeparators (s);
+    if (Len > 1) and (S [Len] = DirectorySeparator) then
+     S [Len] := #0;
     RC := DosSetCurrentDir (pchar (s));
     if RC <> 0 then
     begin
