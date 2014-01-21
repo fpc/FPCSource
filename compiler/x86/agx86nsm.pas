@@ -27,17 +27,17 @@ unit agx86nsm;
 interface
 
     uses
-      cpubase,
+      cpubase,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
 
       { T386NasmAssembler }
 
-      T386NasmAssembler = class(texternalassembler)
+      TX86NasmAssembler = class(texternalassembler)
       private
+        using_relative : boolean;
         function CodeSectionName: string;
-
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; op : tasmop);
@@ -48,6 +48,7 @@ interface
         procedure WriteExternals;
         procedure WriteSmartExternals;
         procedure WriteHeader;
+        function  MakeCmdLine: TCmdStr;override;
       end;
 
 
@@ -55,7 +56,7 @@ interface
   implementation
 
     uses
-      cutils,globtype,globals,systems,cclasses,
+      cutils,globals,systems,cclasses,
       fmodule,finput,verbose,cpuinfo,cgbase
       ;
 
@@ -71,7 +72,7 @@ interface
       nasm_regname_table : array[tregisterindex] of string[7] = (
         {r386nasm.inc contains the Nasm name of each register.}
 {$if defined(x86_64)}
-        {$fatal nasm support not yet implemented for x86_64 }
+        {$i r8664nasm.inc}
 {$elseif defined(i386)}
         {$i r386nasm.inc}
 {$elseif defined(i8086)}
@@ -215,6 +216,23 @@ interface
                sizestr:='dword '
              else
                sizestr:='word ';
+{$ifdef x86_64}
+           S_BQ : if dest then
+                   sizestr:='qword '
+                  else
+                   sizestr:='byte ';
+           S_WQ : if dest then
+                   sizestr:='qword '
+                  else
+                   sizestr:='word ';
+           S_LQ : if dest then
+                   sizestr:='qword '
+                  else
+                   sizestr:='dword ';
+           { Nothing needed for XMM registers }
+           S_XMM: sizestr:='';
+
+{$endif x86_64}
           else { S_NO }
             sizestr:='';
         end;
@@ -290,11 +308,11 @@ interface
     end;
 
 {****************************************************************************
-                               T386NasmAssembler
+                               TX86NasmAssembler
  ****************************************************************************}
 
 
-    function T386NasmAssembler.CodeSectionName: string;
+    function TX86NasmAssembler.CodeSectionName: string;
       begin
 {$ifdef i8086}
         if current_settings.x86memorymodel in x86_far_code_models then
@@ -305,16 +323,27 @@ interface
       end;
 
 
-    procedure T386NasmAssembler.WriteReference(var ref : treference);
+    procedure TX86NasmAssembler.WriteReference(var ref : treference);
       var
         first : boolean;
+        base_done : boolean;
       begin
         with ref do
          begin
            AsmWrite('[');
            first:=true;
+           base_done:=false;
            if (segment<>NR_NO) then
              AsmWrite(nasm_regname(segment)+':');
+{$ifdef x86_64}
+          if (base=NR_RIP) then
+            begin
+              { nasm RIP is implicit for pic }
+              if not (ref.refaddr in [addr_pic,addr_pic_no_got]) and not using_relative then
+                AsmWrite('$ + ');
+              base_done:=true;
+            end;
+{$endif x86_64}
            if assigned(symbol) then
             begin
               AsmWrite(symbol.name);
@@ -322,7 +351,7 @@ interface
                 AddSymbol(symbol.name,false);
               first:=false;
             end;
-           if (base<>NR_NO) then
+           if (base<>NR_NO) and not base_done then
             begin
               if not(first) then
                AsmWrite('+')
@@ -357,7 +386,7 @@ interface
        end;
 
 
-    procedure T386NasmAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
+    procedure TX86NasmAssembler.WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
       begin
         case o.typ of
           top_reg :
@@ -370,7 +399,7 @@ interface
             end;
           top_ref :
             begin
-              if o.ref^.refaddr=addr_no then
+              if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
                 begin
                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
                           (opcode = A_LSS) or (opcode = A_LFS) or
@@ -390,7 +419,10 @@ interface
               else
                 begin
 {$ifdef x86_64}
-                  asmwrite('qword ');
+                  if s=S_L then
+                    asmwrite('dword ')
+                  else
+                    asmwrite('qword ');
 {$endif}
 {$ifdef i386}
                   asmwrite('dword ');
@@ -422,7 +454,7 @@ interface
       end;
 
 
-    procedure T386NasmAssembler.WriteOper_jmp(const o:toper; op : tasmop);
+    procedure TX86NasmAssembler.WriteOper_jmp(const o:toper; op : tasmop);
       begin
         case o.typ of
           top_reg :
@@ -474,14 +506,14 @@ interface
 
     const
       ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[30]=(
-        #9'FIXME_128BIT'#9,#9'FIXME_64BIT'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'FIXME_128BIT'#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXME_SLEB128BIT'#9,#9'FIXME_ULEB128BIT'#9,
         #9'RVA'#9,#9'SECREL32'#9,#9'FIXME_darwin_dwarf_delta64'#9,
         #9'FIXME_darwin_dwarf_delta32'#9,#9'FIXME_half16bit'#9,
         #9'DW'#9,#9'DD'#9,#9'FIXME_64BIT_UNALIGNED'#9
       );
 
-    procedure T386NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
+    procedure TX86NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -560,7 +592,7 @@ interface
         LasTSecType:=atype;
       end;
 
-    procedure T386NasmAssembler.WriteTree(p:TAsmList);
+    procedure TX86NasmAssembler.WriteTree(p:TAsmList);
 {$ifdef cpuextended}
     type
       t80bitarray = array[0..9] of byte;
@@ -672,6 +704,8 @@ interface
                  aitconst_sleb128bit,
                  aitconst_128bit:
                     begin
+                      AsmWriteLn(target_asm.comment+'Unsupported const type '+
+                        ait_const2str[consttype]);
                     end;
 {$ifdef i8086}
                  aitconst_farptr:
@@ -969,6 +1003,21 @@ interface
                    taicpu(hp).oper[1]^.typ:=top_reg;
                    taicpu(hp).oper[1]^.reg:=NR_ST;
                  end;
+                 { NASM only accepts move for loading of
+                   simple symbol address }
+                  if ((taicpu(hp).opcode=A_LEA) and
+                      (taicpu(hp).ops=2) and
+                      (taicpu(hp).oper[0]^.typ=top_reg) and
+                      (reg2opsize(taicpu(hp).oper[0]^.reg) in [S_NO,S_Q]) and
+                      (taicpu(hp).oper[1]^.typ=top_ref) and
+                      (taicpu(hp).oper[1]^.ref^.refaddr<>addr_no) and
+                      assigned(taicpu(hp).oper[1]^.ref^.symbol) and
+                      (taicpu(hp).oper[1]^.ref^.base=NR_NO)) then
+                    begin
+                      AsmWrite(target_asm.comment);
+                      AsmWriteln('Converting LEA to MOV instruction');
+                      taicpu(hp).opcode:=A_MOV;
+                    end;
                if fixed_opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
@@ -1097,7 +1146,7 @@ interface
     end;
 
 
-    procedure T386NasmAssembler.WriteExternals;
+    procedure TX86NasmAssembler.WriteExternals;
       var
         sym : TAsmSymbol;
         i   : longint;
@@ -1110,7 +1159,7 @@ interface
           end;
       end;
 
-    procedure T386NasmAssembler.WriteSmartExternals;
+    procedure TX86NasmAssembler.WriteSmartExternals;
       var
         EC : PExternChain;
       begin
@@ -1123,7 +1172,7 @@ interface
           end;
       end;
 
-    procedure T386NasmAssembler.WriteHeader;
+    procedure TX86NasmAssembler.WriteHeader;
       begin
 {$ifdef i8086}
       AsmWriteLn('BITS 16');
@@ -1166,12 +1215,19 @@ interface
         end;
       AsmWriteLn('SECTION ' + CodeSectionName);
 {$else i8086}
+{$ifdef i386}
       AsmWriteLn('BITS 32');
+      using_relative:=false;
+{$else not i386}
+      AsmWriteLn('BITS 64');
+      AsmWriteLn('default rel');
+      using_relative:=true;
+{$endif not i386}
 {$endif i8086}
       end;
 
 
-    procedure T386NasmAssembler.WriteAsmList;
+    procedure TX86NasmAssembler.WriteAsmList;
     var
       hal : tasmlisttype;
     begin
@@ -1203,18 +1259,89 @@ interface
 {$endif EXTDEBUG}
    end;
 
+    function TX86NasmAssembler.MakeCmdLine: TCmdStr;
+      var
+        FormatName : string;
+      begin
+        result:=Inherited MakeCmdLine;
+{$ifdef i8086}
+        case target_info.system of
+          system_i8086_msdos:
+            FormatName:='obj';
+        end;
+{$endif i8086}
+{$ifdef i386}
+        case target_info.system of
+          system_i386_go32v2:
+            FormatName:='coff';
+          system_i386_wdosx,
+          system_i386_win32:
+            FormatName:='win32';
+          system_i386_embedded:
+            FormatName:='obj';
+          system_i386_linux,
+          system_i386_beos:
+            FormatName:='elf';
+          system_i386_darwin:
+            FormatName:='macho32';
+        else
+          FormatName:='elf';
+        end;
+{$endif i386}
+{$ifdef x86_64}
+        case target_info.system of
+          system_x86_64_win64:
+            FormatName:='win64';
+          system_x86_64_darwin:
+            FormatName:='macho64';
+          system_x86_64_linux:
+            FormatName:='elf64';
+        else
+          FormatName:='elf64';
+        end;
+{$endif x86_64}
+        Replace(result,'$FORMAT',FormatName);
+      end;
 
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
 
+{$ifdef i8086}
     const
-       as_i386_nasmcoff_info : tasminfo =
+        as_i8086_nasm_info : tasminfo =
+          (
+            id           : as_i8086_nasm;
+            idtxt  : 'NASM';
+            asmbin : 'nasm';
+            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_i8086_msdos];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+        as_i8086_nasmobj_info : tasminfo =
+          (
+            id           : as_i8086_nasmobj;
+            idtxt  : 'NASMOBJ';
+            asmbin : 'nasm';
+            asmcmd : '-f obj -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_i8086_msdos];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+{$endif i8086}
+{$ifdef i386}
+    const
+        as_i386_nasmcoff_info : tasminfo =
           (
             id           : as_i386_nasmcoff;
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
-            asmcmd : '-f coff -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f coff -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_go32v2];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1227,7 +1354,7 @@ interface
             id           : as_i386_nasmwin32;
             idtxt  : 'NASMWIN32';
             asmbin : 'nasm';
-            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_win32];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1240,7 +1367,7 @@ interface
             id           : as_i386_nasmobj;
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
-            asmcmd : '-f obj -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f obj -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1253,7 +1380,7 @@ interface
             id           : as_i386_nasmwdosx;
             idtxt  : 'NASMWDOSX';
             asmbin : 'nasm';
-            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f win32 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_wdosx];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1267,7 +1394,7 @@ interface
             id           : as_i386_nasmelf;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1275,12 +1402,24 @@ interface
             dollarsign: '$';
           );
 
+       as_i386_nasmdarwin_info : tasminfo =
+          (
+            id           : as_i386_nasmdarwin;
+            idtxt  : 'NASMDARWIN';
+            asmbin : 'nasm';
+            asmcmd : '-f macho32 -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_i386_darwin];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+          );
+
        as_i386_nasmbeos_info : tasminfo =
           (
             id           : as_i386_nasmbeos;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_beos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1293,8 +1432,62 @@ interface
             id           : as_i386_nasmhaiku;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ -w-orphan-labels $ASM';
+            asmcmd : '-f elf -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_haiku];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+       as_i386_nasm_info : tasminfo =
+          (
+            id           : as_i386_nasm;
+            idtxt  : 'NASM';
+            asmbin : 'nasm';
+            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_any];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+
+{$endif i386}
+{$ifdef x86_64}
+    const
+       as_x86_64_nasm_info : tasminfo =
+          (
+            id           : as_x86_64_nasm;
+            idtxt  : 'NASM';
+            asmbin : 'nasm';
+            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_any];
+            flags : [af_needar{,af_no_debug}];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+
+       as_x86_64_nasmwin64_info : tasminfo =
+          (
+            id           : as_x86_64_nasmwin64;
+            idtxt  : 'NASMWIN64';
+            asmbin : 'nasm';
+            asmcmd : '-f win64 -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_x86_64_win64];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+
+       as_x86_64_nasmelf_info : tasminfo =
+          (
+            id           : as_x86_64_nasmelf;
+            idtxt  : 'NASMELF';
+            asmbin : 'nasm';
+            asmcmd : '-f elf64 -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_x86_64_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
@@ -1302,12 +1495,41 @@ interface
           );
 
 
+       as_x86_64_nasmdarwin_info : tasminfo =
+          (
+            id           : as_x86_64_nasmdarwin;
+            idtxt  : 'NASMDARWIN';
+            asmbin : 'nasm';
+            asmcmd : '-f macho64 -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_x86_64_darwin];
+            flags : [af_needar,af_no_debug];
+            labelprefix : '..@';
+            comment : '; ';
+            dollarsign: '$';
+          );
+
+{$endif x86_64}
+
+
 initialization
-  RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmbeos_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmhaiku_info,T386NasmAssembler);
-  RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
+{$ifdef i8086}
+  RegisterAssembler(as_i8086_nasm_info,TX86NasmAssembler);
+  RegisterAssembler(as_i8086_nasmobj_info,TX86NasmAssembler);
+{$endif i8086}
+{$ifdef i386}
+  RegisterAssembler(as_i386_nasmcoff_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmwin32_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmwdosx_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmobj_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmbeos_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmhaiku_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasmelf_info,TX86NasmAssembler);
+  RegisterAssembler(as_i386_nasm_info,TX86NasmAssembler);
+{$endif i386}
+{$ifdef x86_64}
+  RegisterAssembler(as_x86_64_nasm_info,TX86NasmAssembler);
+  RegisterAssembler(as_x86_64_nasmwin64_info,TX86NasmAssembler);
+  RegisterAssembler(as_x86_64_nasmelf_info,TX86NasmAssembler);
+  RegisterAssembler(as_x86_64_nasmdarwin_info,TX86NasmAssembler);
+{$endif x86_64}
 end.
