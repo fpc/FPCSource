@@ -33,7 +33,7 @@ Type
     function GetCGIVar(Index: integer): String;
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
-    Procedure InitFromEnvironment;
+    Procedure InitFromEnvironment; virtual;
     procedure ReadContent; override;
   Public
     Constructor CreateCGI(ACGI : TCGIHandler);
@@ -45,7 +45,7 @@ Type
     Property ServerProtocol : String Index 6 read GetCGIVar;
     Property ServerSoftware : String Index 7 read GetCGIVar;
   end;
-  
+  TCGIRequestClass = Class of TCGIRequest;
   { TCGIResponse }
 
   TCGIResponse = Class(TResponse)
@@ -58,8 +58,11 @@ Type
   Public
     Constructor CreateCGI(ACGI : TCGIHandler; AStream : TStream);
   end;
+  TCGIResponseClass = Class of TCGIResponse;
 
   { TCustomCgiApplication }
+
+  { TCgiHandler }
 
   TCgiHandler = Class(TWebHandler)
   Private
@@ -71,6 +74,7 @@ Type
     Function GetAdministrator : String; override;
     Function CreateResponse(AOutput : TStream) : TCGIResponse; virtual;
     Function CreateRequest : TCGIRequest; virtual;
+    Procedure InitRequest(ARequest : TRequest); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
@@ -78,6 +82,7 @@ Type
     Property Request : TCGIRequest read FRequest;
     Property Response: TCGIResponse Read FResponse;
   end;
+  TCgiHandlerClass = Class of TCgiHandler;
 
   { TCustomCgiApplication }
 
@@ -104,6 +109,10 @@ Type
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
 
+Var
+  CGIRequestClass : TCGIRequestClass = TCGIRequest;
+  CGIResponseClass : TCGIResponseClass = TCGIResponse;
+  CGIWebHandlerClass : TCgiHandlerClass = TCgiHandler;
 
 ResourceString
   SWebMaster = 'webmaster';
@@ -159,7 +168,7 @@ Const
     { 37: 'XHTTPREQUESTEDWITH'     } FieldAuthorization
   );
 
-Procedure TCgiHandler.GetCGIVarList(List : TStrings);
+procedure TCgiHandler.GetCGIVarList(List: TStrings);
 
 Var
   I : Integer;
@@ -170,7 +179,7 @@ begin
     List.Add(CGIVarNames[i]+'='+GetEnvironmentVariable(CGIVarNames[i]));
 end;
 
-Function TCgiHandler.GetEmail : String;
+function TCgiHandler.GetEmail: String;
 
 Var
   H : String;
@@ -185,7 +194,7 @@ begin
     end;
 end;
 
-Function TCgiHandler.GetAdministrator : String;
+function TCgiHandler.GetAdministrator: String;
 
 begin
   Result:=Inherited GetAdministrator;
@@ -194,23 +203,46 @@ begin
 end;
 
 function TCgiHandler.CreateResponse(AOutput : TStream): TCGIResponse;
+
+Var
+  C : TCGIResponseClass;
+
 begin
-  result := TCGIResponse.CreateCGI(Self,AOutput);
+  C:=CGIResponseClass;
+  if (C=Nil) then
+    C:=TCGIResponse;
+  Result:=TCGIResponse.CreateCGI(Self,AOutput);
 end;
 
 function TCgiHandler.CreateRequest: TCGIRequest;
+
+Var
+  C : TCGIRequestClass;
+
 begin
-  Result:=TCGIRequest.CreateCGI(Self);
+  C:=CGIRequestClass;
+  if (C=Nil) then
+    C:=TCGIRequest;
+  Result:=C.CreateCGI(Self);
+end;
+
+procedure TCgiHandler.InitRequest(ARequest: TRequest);
+begin
+  inherited InitRequest(ARequest);
+  if (ARequest is TCGIRequest) then
+    With (ARequest as TCGIRequest) do
+      begin
+      InitFromEnvironment;
+      InitRequestVars;
+      end;
 end;
 
 function TCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
-  FRequest:=CreateRequest;
-  InitRequest(FRequest);
-  FRequest.InitFromEnvironment;
-  FRequest.InitRequestVars;
   FOutput:=TIOStream.Create(iosOutput);
+  FRequest:=CreateRequest;
   FResponse:=CreateResponse(FOutput);
+  InitRequest(FRequest);
   InitResponse(FResponse);
   ARequest:=FRequest;
   AResponse:=FResponse;
@@ -417,8 +449,15 @@ begin
 end;
 
 function TCustomCGIApplication.InitializeWebHandler: TWebHandler;
+
+Var
+  C : TCGIHandlerClass;
+
 begin
-  Result:=TCgiHandler.Create(self);
+  C:=CGIWebHandlerClass;
+  if C=Nil then
+    C:=TCgiHandler;
+  Result:=C.Create(self);
 end;
 
 Procedure TCustomCGIApplication.ShowException(E: Exception);
