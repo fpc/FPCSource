@@ -67,7 +67,7 @@ unit cgcpu;
         procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
-        //procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
 
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -1111,15 +1111,24 @@ unit cgcpu;
          end;
       end;
 
-{
+
     procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         opcode: tasmop;
+        opsize : topsize;
       begin
-        writeln('a_op_const_ref');
-
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
+        opsize := TCGSize2OpSize[size];
+
+        { on ColdFire all arithmetic operations are only possible on 32bit }
+        if (current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+           and not (op in [OP_NONE,OP_MOVE]) then
+          begin
+            inherited;
+            exit;
+          end;
+
         case op of
           OP_NONE :
             begin
@@ -1130,13 +1139,32 @@ unit cgcpu;
               { Optimized, replaced with a simple load }
               a_load_const_ref(list,size,a,ref);
             end;
-          else
+          OP_ADD,
+          OP_SUB :
             begin
-              internalerror(2007010101);
+              { add/sub works the same way, so have it unified here }
+              if (a >= 1) and (a <= 8) then
+                begin
+                  if (op = OP_ADD) then
+                    opcode:=A_ADDQ
+                  else
+                    opcode:=A_SUBQ;
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref));
+                end
+              else
+                if current_settings.cputype = cpu_mc68000 then
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref))
+                else
+                  { on ColdFire, ADDI/SUBI cannot act on memory
+                    so we can only go through a register }
+                  inherited;
             end;
+          else begin
+//            list.concat(tai_comment.create(strpnew('a_op_const_ref inherited')));
+            inherited;
+          end;
         end;
       end;
-}
 
     procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
