@@ -1660,7 +1660,7 @@ unit cgx86;
         tmpreg : tregister;
 {$endif x86_64}
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
         if not(op in [OP_NONE,OP_MOVE]) and
@@ -1767,7 +1767,7 @@ unit cgx86;
 {$endif x86_64}
         tmpref  : treference;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         if op in [OP_NONE,OP_MOVE] then
           begin
             if (op=OP_MOVE) then

@@ -900,7 +900,7 @@ unit cgcpu;
         l1 : longint;
         imm1, imm2: DWord;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         case op of
           OP_NONE:
             begin

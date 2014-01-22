@@ -1007,7 +1007,7 @@ unit cgcpu;
        instr : taicpu;
        paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
         case op of
           OP_NONE :
@@ -1118,7 +1118,7 @@ unit cgcpu;
       begin
         writeln('a_op_const_ref');
 
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
         case op of
           OP_NONE :

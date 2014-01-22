@@ -286,7 +286,7 @@ unit cgcpu;
         use_loop: Boolean;
         i: Integer;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         check_register_size(size,reg);
 
         if size in [OS_64, OS_S64] then
@@ -540,7 +540,7 @@ unit cgcpu;
         tmpref: treference;
         op1,op2: TAsmOp;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 

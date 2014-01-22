@@ -704,7 +704,7 @@ implementation
 
     procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:tcgint;reg:TRegister);
       begin
-        optimize_op_const(op,a);
+        optimize_op_const(size,op,a);
         case op of
           OP_NONE:
             exit;
@@ -780,7 +780,7 @@ implementation
         tmpreg1,tmpreg2 : tregister;
       begin
         ovloc.loc:=LOC_VOID;
-        optimize_op_const(op,a);
+        optimize_op_const(size,op,a);
         case op of
           OP_NONE:
             begin

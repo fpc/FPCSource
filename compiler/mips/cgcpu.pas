@@ -749,7 +749,7 @@ const
 
 procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
 begin
-  optimize_op_const(op,a);
+  optimize_op_const(size,op,a);
   case op of
     OP_NONE:
       exit;
@@ -826,7 +826,7 @@ var
   asmop: TAsmOp;
 begin
   ovloc.loc := LOC_VOID;
-  optimize_op_const(op,a);
+  optimize_op_const(size,op,a);
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
   if (setflags and (not signed) and (src=dst) and (op in [OP_ADD,OP_SUB])) then
     hreg:=GetIntRegister(list,OS_INT)

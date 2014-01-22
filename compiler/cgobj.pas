@@ -336,11 +336,12 @@ unit cgobj;
              to emit, and the constant value to emit. This function can opcode OP_NONE to
              remove the opcode and OP_MOVE to replace it with a simple load
 
+             @param(size Size of the operand in constant)
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be emitted)
           }
-          procedure optimize_op_const(var op: topcg; var a : tcgint);virtual;
+          procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -1442,10 +1443,20 @@ implementation
       end;
 
 
-    procedure tcg.optimize_op_const(var op: topcg; var a : tcgint);
+    procedure tcg.optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);
       var
         powerval : longint;
       begin
+        case size of
+          OS_64,OS_S64:
+            a:=int64(a);
+          OS_32,OS_S32:
+            a:=longint(a);
+          OS_16,OS_S16:
+            a:=smallint(a);
+          OS_8,OS_S8:
+            a:=shortint(a);
+        end;
         case op of
           OP_OR :
             begin
