@@ -335,11 +335,12 @@ type
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
     FServerPort : String;
+    FContentRead : Boolean;
+    FContent : String;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
   Protected
-    FContentRead : Boolean;
-    FContent : String;
+    Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
     Function CreateMimeItems : TMimeItems; virtual;
     procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
@@ -357,6 +358,8 @@ type
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
+    Procedure InitContent(Var AContent : String);
+    Property ContentRead : Boolean Read FContentRead Write FContentRead;
   public
     constructor Create; override;
     destructor destroy; override;
@@ -1182,7 +1185,7 @@ end;
   TRequest
   -------------------------------------------------------------------}
   
-constructor TRequest.create;
+constructor TRequest.Create;
 begin
   inherited create;
   FHandleGetOnPost:=True;
@@ -1191,7 +1194,7 @@ begin
   FLocalPathPrefix:='-';
 end;
 
-Function  TRequest.CreateUploadedFiles : TUploadedFiles;
+function TRequest.CreateUploadedFiles: TUploadedFiles;
 
 Var
   CC : TUploadedFilesClass;
@@ -1298,15 +1301,18 @@ begin
   result := FLocalPathPrefix;
 end;
 
-function TRequest.GetFieldValue(AIndex: integer): String;
+function TRequest.GetFieldValue(AIndex: Integer): String;
 begin
   Case AIndex of
     25 : Result:=FPathInfo;
     31 : Result:=FCommand;
     32 : Result:=FURI;
     35 : begin
-         If Not FContentRead then
+         If Not FContentRead and AllowReadContent then
+           begin
            ReadContent;
+           FContentRead:=True; // in case InitContent was not called.
+           end;
          Result:=FContent;
          end
   else
@@ -1333,7 +1339,13 @@ begin
     Result := Result + ' HTTP/' + HttpVersion;
 end;
 
-procedure TRequest.HandleUnknownEncoding(Const AContentType : String;Stream : TStream);
+function TRequest.AllowReadContent: Boolean;
+begin
+  Result:=True;
+end;
+
+procedure TRequest.HandleUnknownEncoding(const AContentType: String;
+  Stream: TStream);
 begin
   If Assigned(FOnUnknownEncoding) then
     FOnUnknownEncoding(Self,AContentType,Stream);
@@ -1344,7 +1356,7 @@ begin
   // Implement in descendents
 end;
 
-Procedure TRequest.ProcessQueryString(Const FQueryString : String; SL:TStrings);
+procedure TRequest.ProcessQueryString(const FQueryString: String; SL: TStrings);
 
 
 var
@@ -1453,13 +1465,14 @@ begin
 {$ifdef CGIDEBUG}SendMethodExit('ProcessQueryString');{$endif CGIDEBUG}
 end;
 
-Function TRequest.RequestUploadDir : String;
+function TRequest.RequestUploadDir: String;
 
 begin
   Result:='';
 end;
 
-Function TRequest.GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
+function TRequest.GetTempUploadFileName(const AName, AFileName: String;
+  ASize: Int64): String;
 
 Var
   D : String;
@@ -1471,7 +1484,7 @@ begin
   Result:=GetTempFileName(D, 'CGI');
 end;
 
-Procedure TRequest.DeleteTempUploadedFiles;
+procedure TRequest.DeleteTempUploadedFiles;
 begin
   FFiles.DeleteTempUploadedFiles;
 end;
@@ -1559,8 +1572,15 @@ begin
 {$endif}
 end;
 
+procedure TRequest.InitContent(var AContent: String);
+begin
+  FContent:=AContent;
+  FContentRead:=True;
+end;
 
-Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String; SL:TStrings);
+
+procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
+  SL: TStrings);
 
 Var
   L : TMimeItems;
@@ -1602,7 +1622,7 @@ begin
 {$ifdef CGIDEBUG}  SendMethodExit('ProcessMultiPart');{$endif CGIDEBUG}
 end;
 
-Procedure TRequest.ProcessURLEncoded(Stream: TStream; SL:TStrings);
+procedure TRequest.ProcessURLEncoded(Stream: TStream; SL: TStrings);
 
 var
   S : String;

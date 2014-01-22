@@ -43,7 +43,6 @@ Type
     function GetFieldValue(Index: Integer): String; override;
     procedure SetFieldValue(Index: Integer; Value: String);override;
     Procedure InitRequestVars; override;
-    procedure SetContent(AValue : String);
   published
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
@@ -292,13 +291,6 @@ begin
   end;
 end;
 
-procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
-
-begin
-  FContent:=Avalue;
-  FContentRead:=true;
-end;
-
 
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
 
@@ -519,8 +511,7 @@ begin
         end;
       end;  
     end;
-  ARequest.SetContent(S);
-
+  ARequest.InitContent(S);
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;

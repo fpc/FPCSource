@@ -311,7 +311,10 @@ var
   B : Byte;
   retrycount: integer;
   BytesRead, a: longint;
+  S : String;
+
 begin
+  S:='';
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
@@ -319,19 +322,19 @@ begin
       begin
       // It can be that the complete content is not yet send by the server so repeat the read
       // until all data is really read
-      SetLength(FContent,Cl);
+      SetLength(S,Cl);
       BytesRead:=0;
       repeat
-      a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+      a := I.Read(S[BytesRead+1],Cl-BytesRead);
       BytesRead:=BytesRead+a;
       if a=0 then // In fact this can not happen, but the content could be delayed...
         begin
         sleep(10);
-        a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+        a := I.Read(S[BytesRead+1],Cl-BytesRead);
         if a=0 then for retrycount := 0 to 149 do // timeout of about 15 seconds
           begin
           sleep(100);
-          a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+          a := I.Read(S[BytesRead+1],Cl-BytesRead);
           if a<>0 then break;
           end;
         BytesRead:=BytesRead+a;
@@ -339,19 +342,18 @@ begin
       until (BytesRead>=Cl) or (a=0);
       // In fact the request is incomplete, but this is not the place thrown an error for that
       if BytesRead<Cl then
-        SetLength(FContent,BytesRead);
+        SetLength(S,BytesRead);
       end
     else
       begin
-      FContent:='';
       B:=0;
       While (I.Read(B,1)>0) do
-        FContent:=FContent + chr(B);
+        S:=S + chr(B);
       end;
+    InitContent(S);
   Finally
     I.Free;
   end;
-  FContentRead:=True;
 end;
 
 Function TCGIRequest.GetFieldValue(Index : Integer) : String;

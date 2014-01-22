@@ -61,6 +61,7 @@ Type
     FCGIParams : TSTrings;
     FUR: TUnknownRecordEvent;
     FLog : TLogEvent;
+    FSTDin : String;
     procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings);
   Protected
     Procedure Log(EventType : TEventType; Const Msg : String);
@@ -280,11 +281,11 @@ begin
                           end
                         else
                           begin
-                          cl := length(FContent);
+                          cl := length(FSTDin);
                           rcl := BetoN(PFCGI_ContentRecord(AFCGIRecord)^.header.contentLength);
-                          SetLength(FContent, rcl+cl);
-                          move(PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0],FContent[cl+1],rcl);
-                          FContentRead:=True;
+                          SetLength(FSTDin, rcl+cl);
+                          move(PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0],FSTDin[cl+1],rcl);
+                          InitContent(FSTDin);
                           end;
                         end;
   else

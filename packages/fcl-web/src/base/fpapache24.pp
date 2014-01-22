@@ -524,7 +524,8 @@ procedure TApacheRequest.ReadContent;
 Var
   Left,Len,Count,Bytes : Integer;
   P : Pchar;
-  
+  S : String;
+    
 begin
   ap_setup_client_block(FRequest,REQUEST_CHUNKED_DECHUNK);
   If (ap_should_client_block(FRequest)=1) then
@@ -532,8 +533,8 @@ begin
     Len:=ContentLength;
     If (Len>0) then
       begin
-      SetLength(FContent,Len);
-      P:=PChar(FContent);
+      SetLength(S,Len);
+      P:=PChar(S);
       Left:=Len;
       Count:=0;
       Repeat
@@ -542,10 +543,10 @@ begin
         Inc(P,Bytes);
         Inc(Count,Bytes);
       Until (Count>=Len) or (Bytes=0);
-      SetLength(FContent,Count);
+      SetLength(S,Count);
       end;
     end;
-  FContentRead:=True;
+  InitContent(S);  
 end;
 
 procedure TApacheRequest.InitFromRequest;
