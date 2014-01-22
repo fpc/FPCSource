@@ -2206,8 +2206,10 @@ end;
 
 function GetImportLibraryFilename(const UnitName: string; AOS: TOS): string;
 begin
-  if AOS in [go32v2,watcom,os2,emx] then
+  if AOS in [go32v2,watcom] then
     Result := 'libimp'+UnitName
+  if AOS in [os2,emx] then
+    Result := UnitName
   else if AOS in [netware,netwlibc,macos] then
     Result := 'lib'+UnitName
   else
