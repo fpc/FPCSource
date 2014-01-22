@@ -510,7 +510,7 @@ implementation
              (tosize = OS_16)) then
            case tosize of
              OS_8 :
-               a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
+               list.concat(taicpu.op_reg_const_reg(A_AND,reg1,$ff,reg2));
              OS_16 :
                begin
                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
