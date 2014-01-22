@@ -26,17 +26,25 @@ uses
 Type
   { TCGIRequest }
   TCGIHandler = Class;
+  // Content read handler. PByte points to rad content, len is length. Return False in ContinueReading to abort reading.
+  TCGIContentReadEvent = Procedure (Sender : TRequest; Content : PByte; Len : Integer; Var ContinueReading : Boolean) of object;
 
   TCGIRequest = Class(TRequest)
   Private
     FCGI : TCGIHandler;
+    FOnContentRead: TCGIContentReadEvent;
     function GetCGIVar(Index: integer): String;
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromEnvironment; virtual;
+    // Read content from STDin. Calls DoContentRead to see if reading must be aborted.
     procedure ReadContent; override;
+    // Called whenever input is read from stdin. Calls OnContentRead.
+    // If Return True to continue reading, false to abort reading.
+    Function DoContentRead(B : PByte; Len : Integer) : Boolean; virtual;
   Public
     Constructor CreateCGI(ACGI : TCGIHandler);
+    Property OnContentRead  : TCGIContentReadEvent Read FOnContentRead Write FOnContentRead;
     Property GatewayInterface : String Index 1 Read GetCGIVar;
     Property RemoteIdent : String Index 2 read GetCGIVar;
     Property RemoteUser : String Index 3 read GetCGIVar;
@@ -113,6 +121,8 @@ Var
   CGIRequestClass : TCGIRequestClass = TCGIRequest;
   CGIResponseClass : TCGIResponseClass = TCGIResponse;
   CGIWebHandlerClass : TCgiHandlerClass = TCgiHandler;
+  ContentReadRetryInterval : Word = 100;
+  ContentReadMaxRetryCount : Word = 150;
 
 ResourceString
   SWebMaster = 'webmaster';
@@ -256,7 +266,7 @@ begin
   Terminate;
 end;
 
-constructor TCgiRequest.CreateCGI(ACGI: TCgiHandler);
+constructor TCGIRequest.CreateCGI(ACGI: TCGIHandler);
 begin
   Inherited Create;
   FCGI:=ACGI;
@@ -282,7 +292,7 @@ begin
   Result:=HTTPDecode(R);
 end;
 
-Procedure TCGIRequest.InitFromEnvironment;
+procedure TCGIRequest.InitFromEnvironment;
 
 
 Var
@@ -311,6 +321,7 @@ var
   B : Byte;
   retrycount: integer;
   BytesRead, a: longint;
+  AbortRead : Boolean;
   S : String;
 
 begin
@@ -324,22 +335,22 @@ begin
       // until all data is really read
       SetLength(S,Cl);
       BytesRead:=0;
+      RetryCount:=0;
+      AbortRead:=False;
       repeat
-      a := I.Read(S[BytesRead+1],Cl-BytesRead);
-      BytesRead:=BytesRead+a;
-      if a=0 then // In fact this can not happen, but the content could be delayed...
-        begin
-        sleep(10);
         a := I.Read(S[BytesRead+1],Cl-BytesRead);
-        if a=0 then for retrycount := 0 to 149 do // timeout of about 15 seconds
-          begin
-          sleep(100);
-          a := I.Read(S[BytesRead+1],Cl-BytesRead);
-          if a<>0 then break;
-          end;
         BytesRead:=BytesRead+a;
-        end;
-      until (BytesRead>=Cl) or (a=0);
+        if (A=0) then // In fact this can not happen, but the content could be delayed...
+          begin
+          Inc(RetryCount);
+          AbortRead:=RetryCount>ContentReadMaxRetryCount;
+          if not AbortRead then
+            Sleep(ContentReadRetryInterval);
+          end
+        else
+          AbortRead:=DoContentRead(PByte(@S[BytesRead+1]),A);
+        BytesRead:=BytesRead+a;
+      until (BytesRead>=Cl) or (AbortRead);
       // In fact the request is incomplete, but this is not the place thrown an error for that
       if BytesRead<Cl then
         SetLength(S,BytesRead);
@@ -356,7 +367,14 @@ begin
   end;
 end;
 
-Function TCGIRequest.GetFieldValue(Index : Integer) : String;
+function TCGIRequest.DoContentRead(B: PByte; Len: Integer): Boolean;
+begin
+  Result:=True;
+  if Assigned(FOnContentRead) then
+    FOnContentRead(Self,B,Len,Result);
+end;
+
+function TCGIRequest.GetFieldValue(Index: Integer): String;
 
   Function DecodeVar(I : Integer; DoDecode : Boolean = true) : String;
   
