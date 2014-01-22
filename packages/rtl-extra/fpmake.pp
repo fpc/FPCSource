@@ -79,6 +79,7 @@ begin
        AddInclude('qos.inc',[netware,netwlibc]);
        AddInclude('netwsockh.inc',[netware,netwlibc]);
      end;
+    T:=P.Targets.AddUnit('winsock2.pp',WinSock2OSes);
     T:=P.Targets.AddUnit('gpm.pp',gpmOSes);
     with T.Dependencies do
       AddUnit('sockets');
