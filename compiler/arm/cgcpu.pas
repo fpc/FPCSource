@@ -894,7 +894,7 @@ unit cgcpu;
 
     procedure tcgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
-        shift : byte;
+        shift, lsb, width : byte;
         tmpreg : tregister;
         so : tshifterop;
         l1 : longint;
@@ -1015,6 +1015,30 @@ unit cgcpu;
               broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
+            { Doing two shifts instead of two bics might allow the peephole optimizer to fold the second shift
+              into the following instruction}
+            else if (op = OP_AND) and
+                    is_continuous_mask(a, lsb, width) and
+                    ((lsb = 0) or ((lsb + width) = 32)) then
+              begin
+                shifterop_reset(so);
+                if lsb = 0 then
+                  begin
+                    so.shiftmode:=SM_LSL;
+                    so.shiftimm:=32-width;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    so.shiftmode:=SM_LSR;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,dst,so));
+                  end
+                else
+                  begin
+                    so.shiftmode:=SM_LSR;
+                    so.shiftimm:=lsb;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    so.shiftmode:=SM_LSL;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,dst,so));
+                  end;
+              end
             else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
               begin
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,imm1));
