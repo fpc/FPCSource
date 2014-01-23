@@ -69,9 +69,9 @@ unit cgcpu;
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
+        procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); override;
 
-        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
-          l : tasmlabel);override;
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister; l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
@@ -121,6 +121,7 @@ unit cgcpu;
         is 32K
      }
      function isvalidrefoffset(const ref: treference): boolean;
+     function isvalidreference(const ref: treference): boolean;
 
     procedure create_codegen;
 
@@ -172,14 +173,20 @@ unit cgcpu;
        C_HI
       );
 
+     function isvalidreference(const ref: treference): boolean;
+       begin
+         isvalidreference:=isvalidrefoffset(ref) and
+           not ((current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
+                not isaddressregister(ref.base));
+       end;
 
      function isvalidrefoffset(const ref: treference): boolean;
       begin
          isvalidrefoffset := true;
          if ref.index <> NR_NO then
            begin
-             if ref.base <> NR_NO then
-                internalerror(2002081401);
+//             if ref.base <> NR_NO then
+//                internalerror(2002081401);
              if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                 isvalidrefoffset := false
            end
@@ -1122,8 +1129,9 @@ unit cgcpu;
         opsize := TCGSize2OpSize[size];
 
         { on ColdFire all arithmetic operations are only possible on 32bit }
-        if (current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
-           and not (op in [OP_NONE,OP_MOVE]) then
+        if not isvalidreference(ref) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+           and not (op in [OP_NONE,OP_MOVE])) then
           begin
             inherited;
             exit;
@@ -1274,6 +1282,36 @@ unit cgcpu;
       end;
 
 
+    procedure tcg68k.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference);
+      var
+        opcode : tasmop;
+        opsize : topsize;
+      begin
+        opcode := topcg2tasmop[op];
+        opsize := TCGSize2OpSize[size];
+
+        { on ColdFire all arithmetic operations are only possible on 32bit 
+          and addressing modes are limited }
+        if not isvalidreference(ref) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+          begin
+            inherited;
+            exit;
+          end;
+
+        case op of
+          OP_ADD,
+          OP_SUB :
+            begin
+              { add/sub works the same way, so have it unified here }
+              list.concat(taicpu.op_reg_ref(opcode, opsize, reg, ref));
+            end;
+          else begin
+//            list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited')));
+            inherited;
+          end;
+        end;
+      end;
 
     procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);
