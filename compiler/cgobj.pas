@@ -1446,16 +1446,35 @@ implementation
     procedure tcg.optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);
       var
         powerval : longint;
+        signext_a, zeroext_a: tcgint;
       begin
         case size of
           OS_64,OS_S64:
-            a:=int64(a);
+            begin
+              signext_a:=int64(a);
+              zeroext_a:=int64(a);
+            end;
           OS_32,OS_S32:
-            a:=longint(a);
+            begin
+              signext_a:=longint(a);
+              zeroext_a:=dword(a);
+            end;
           OS_16,OS_S16:
-            a:=smallint(a);
+            begin
+              signext_a:=smallint(a);
+              zeroext_a:=word(a);
+            end;
           OS_8,OS_S8:
-            a:=shortint(a);
+            begin
+              signext_a:=shortint(a);
+              zeroext_a:=byte(a);
+            end
+          else
+            begin
+              { Should we internalerror() here instead? }
+              signext_a:=a;
+              zeroext_a:=a;
+            end;
         end;
         case op of
           OP_OR :
@@ -1465,13 +1484,13 @@ implementation
                 op:=OP_NONE
               else
               { or with max returns max }
-                if a = -1 then
+                if signext_a = -1 then
                   op:=OP_MOVE;
             end;
           OP_AND :
             begin
               { and with max returns same result }
-              if (a = -1) then
+              if (signext_a = -1) then
                 op:=OP_NONE
               else
               { and with 0 returns 0 }
@@ -1483,7 +1502,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+              else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -1501,7 +1520,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+               else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
