@@ -715,7 +715,11 @@ unit cgcpu;
       begin
         if isaddressregister(register) then
          begin
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
+           { an m68k manual I have recommends SUB Ax,Ax to be used instead of CLR for address regs }
+           if a = 0 then
+             list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
+           else
+             list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register));
          end
         else
         if a = 0 then
