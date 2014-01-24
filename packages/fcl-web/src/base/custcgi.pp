@@ -309,7 +309,11 @@ begin
       OV:=GetFieldByName(N);
       V:=GetEnvironmentVariable(CGIVarNames[I]);
       If (OV='') or (V<>'') then
-        SetFieldByName(N,HTTPDecode(V));
+        begin
+        if (N<>'QUERY_STRING') then
+          V:=HTTPDecode(V);
+        SetFieldByName(N,V);
+        end;
       end;
     end;
 end;
