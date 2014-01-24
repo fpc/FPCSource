@@ -153,6 +153,7 @@ type
     // Note that this will free the file stream, to be able to close it - file is share deny write locked!
     Procedure DeleteTempUploadedFile; virtual;
     function GetStream: TStream; virtual;
+    Procedure FreeStream; virtual;
   Public
     Destructor Destroy; override;
     Property FieldName : String Read FFieldName Write FFieldName;
@@ -1727,13 +1728,15 @@ Var
   s: String;
 
 begin
-  if Assigned(FStream) and (FStream is TFileStream) then
-    FreeAndNil(FStream);
+  if (FStream is TFileStream) then
+    FreeStream;
   if (LocalFileName<>'') and FileExists(LocalFileName) then
     DeleteFile(LocalFileName);
 end;
 
+
 function TUploadedFile.GetStream: TStream;
+
 begin
   If (FStream=Nil) then
     begin
@@ -1744,9 +1747,15 @@ begin
   Result:=FStream;
 end;
 
-destructor TUploadedFile.Destroy;
+Procedure TUploadedFile.FreeStream;
+
 begin
   FreeAndNil(FStream);
+end;
+
+destructor TUploadedFile.Destroy;
+begin
+  FreeStream;
   Inherited;
 end;
 
