@@ -333,7 +333,8 @@ begin
     else
       begin // short options have form '-o value'
       If (I<ParamCount) then
-        Result:=Params[I+1];
+        if (Copy(Params[I+1],1,1)<>'-') then
+          Result:=Params[I+1];
       end;
     end;
 end;
