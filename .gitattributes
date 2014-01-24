@@ -4294,6 +4294,7 @@ packages/httpd24/src/httpd.inc svneol=native#text/plain
 packages/httpd24/src/httpd24.pas svneol=native#text/plain
 packages/httpd24/src/util_cfgtree.inc svneol=native#text/plain
 packages/httpd24/src/util_filter.inc svneol=native#text/plain
+packages/httpd24/src/util_script.inc svneol=native#text/plain
 packages/ibase/Makefile svneol=native#text/plain
 packages/ibase/Makefile.fpc svneol=native#text/plain
 packages/ibase/Makefile.fpc.fpcmake svneol=native#text/plain
