@@ -63,6 +63,7 @@ Type
     Function HasOption(Const S : String) : Boolean;
     Function HasOption(Const C : Char; Const S : String) : Boolean;
     Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
+    Function CheckOptions(Const ShortOptions : String; Const Longopts : Array of string; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
     Function CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; AllErrors : Boolean = False) : String;
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string; AllErrors : Boolean = False) : String;
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : String; AllErrors : Boolean = False) : String;
@@ -181,14 +182,15 @@ begin
   Result:=GetEnvironmentVariable(VarName);
 end;
 
-Procedure TCustomApplication.GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+procedure TCustomApplication.GetEnvironmentList(List: TStrings;
+  NamesOnly: Boolean);
 
 begin
   // Routine must be in custapp.inc
   SysGetEnvironmentList(List,NamesOnly);
 end;
 
-Procedure TCustomApplication.GetEnvironmentList(List : TStrings);
+procedure TCustomApplication.GetEnvironmentList(List: TStrings);
 
 begin
   GetEnvironmentList(List,False);
@@ -229,13 +231,13 @@ begin
   // Do nothing. Override in descendent classes.
 end;
 
-Procedure TCustomApplication.DoLog(EventType : TEventType; const Msg : String);
+procedure TCustomApplication.DoLog(EventType: TEventType; const Msg: String);
 
 begin
   // Do nothing, override in descendants
 end;
 
-Procedure TCustomApplication.Log(EventType : TEventType; const Msg : String);
+procedure TCustomApplication.Log(EventType: TEventType; const Msg: String);
 
 begin
   If (FEventLogFilter=[]) or (EventType in FEventLogFilter) then
@@ -299,12 +301,13 @@ begin
   FTerminated:=True;
 end;
 
-function TCustomApplication.GetOptionValue(Const S: String): String;
+function TCustomApplication.GetOptionValue(const S: String): String;
 begin
   Result:=GetoptionValue(#255,S);
 end;
 
-function TCustomApplication.GetOptionValue(Const C: Char; Const S: String): String;
+function TCustomApplication.GetOptionValue(const C: Char; const S: String
+  ): String;
 
 Var
   B : Boolean;
@@ -335,7 +338,7 @@ begin
     end;
 end;
 
-function TCustomApplication.HasOption(Const S: String): Boolean;
+function TCustomApplication.HasOption(const S: String): Boolean;
 
 Var
   B : Boolean;
@@ -344,7 +347,8 @@ begin
   Result:=FindOptionIndex(S,B)<>-1;
 end;
 
-function TCustomApplication.FindOptionIndex(Const S : String; Var Longopt : Boolean) : Integer;
+function TCustomApplication.FindOptionIndex(const S: String;
+  var Longopt: Boolean): Integer;
 
 Var
   SO,O : String;
@@ -380,7 +384,7 @@ begin
     end;
 end;
 
-function TCustomApplication.HasOption(Const C: Char; Const S: String): Boolean;
+function TCustomApplication.HasOption(const C: Char; const S: String): Boolean;
 
 Var
   B : Boolean;
@@ -390,7 +394,8 @@ begin
 end;
 
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; AllErrors : Boolean = False) : String;
+function TCustomApplication.CheckOptions(const ShortOptions: String;
+  const Longopts: TStrings; AllErrors: Boolean): String;
 
 begin
   Result:=CheckOptions(ShortOptions,LongOpts,Nil,Nil,AllErrors);
@@ -401,12 +406,14 @@ ResourceString
   SErrNoOptionAllowed = 'Option at position %d does not allow an argument: %s';
   SErrOptionNeeded = 'Option at position %d needs an argument : %s';
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings; AllErrors : Boolean = False) : String;
+function TCustomApplication.CheckOptions(const ShortOptions: String;
+  const Longopts: TStrings; Opts, NonOpts: TStrings; AllErrors: Boolean
+  ): String;
 
 Var
   I,J,L,P : Integer;
   O,OV,SO : String;
-  HaveArg : Boolean;
+  UsedArg,HaveArg : Boolean;
 
   Function FindLongOpt(S : String) : boolean;
 
@@ -414,6 +421,9 @@ Var
     I : integer;
 
   begin
+    Result:=Assigned(LongOpts);
+    if Not Result then
+      exit;
     If CaseSensitiveOptions then
       begin
       I:=LongOpts.Count-1;
@@ -496,6 +506,7 @@ begin
         else // Short Option.
           begin
           HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[1]<>FOptionChar);
+          UsedArg:=False;
           If HaveArg then
             OV:=Paramstr(I+1);
           If Not CaseSensitiveOptions then
@@ -516,11 +527,12 @@ begin
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     AddToResult(Format(SErrOptionNeeded,[I,O[J]]));
                 O:=O[j]; // O is added to arguments.
+                UsedArg:=True;
                 end;
               end;
             Inc(J);
             end;
-          If HaveArg then
+          If HaveArg and UsedArg then
             begin
             Inc(I); // Skip argument.
             O:=O[Length(O)]; // O is added to arguments !
@@ -535,7 +547,26 @@ begin
     end;
 end;
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : Array of string; AllErrors : Boolean = False) : String;
+function TCustomApplication.CheckOptions(const ShortOptions: String;
+  const Longopts: array of string; Opts, NonOpts: TStrings; AllErrors: Boolean
+  ): String;
+Var
+  L : TStringList;
+  I : Integer;
+
+begin
+  L:=TStringList.Create;
+  Try
+    For I:=0 to High(LongOpts) do
+      L.Add(LongOpts[i]);
+    Result:=CheckOptions(ShortOptions,L,Opts,NonOpts,AllErrors);
+  Finally
+    L.Free;
+  end;
+end;
+
+function TCustomApplication.CheckOptions(const ShortOptions: String;
+  const LongOpts: array of string; AllErrors: Boolean): String;
 
 Var
   L : TStringList;
@@ -552,7 +583,8 @@ begin
   end;
 end;
 
-Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : String; AllErrors : Boolean = False) : String;
+function TCustomApplication.CheckOptions(const ShortOptions: String;
+  const LongOpts: String; AllErrors: Boolean): String;
 
 Const
   SepChars = ' '#10#13#9;
