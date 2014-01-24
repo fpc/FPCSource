@@ -119,6 +119,14 @@ type
 
 //#if defined(AP_HAVE_DESIGNATED_INITIALIZER) || defined(DOXYGEN)
 
+  tnoargsfunc   = function(parms: Pcmd_parms; mconfig: pointer): Pchar; cdecl;
+  trawargsfunc  = function(parms: Pcmd_parms; mconfig: pointer; args: Pchar): Pchar; cdecl;
+  ttakeargvfunc = function(parms: Pcmd_parms; mconfig: pointer; argc: longint; argv: PPchar): Pchar; cdecl;
+  ttake1func    = function(parms: Pcmd_parms; mconfig: pointer; w: Pchar): Pchar; cdecl;
+  ttake2func    = function(parms: Pcmd_parms; mconfig: pointer; w, w2: Pchar): Pchar; cdecl;
+  ttake3func    = function(parms: Pcmd_parms; mconfig: pointer; w, w2, w3: Pchar): Pchar; cdecl;
+  tflagfunc     = function(parms: Pcmd_parms; mconfig: pointer; on_: longint): Pchar; cdecl;
+
 {**
  * All the types of functions that can be used in directives
  * @internal
@@ -126,25 +134,25 @@ type
   cmd_func = record
      case longint of
        {** function to call for a no-args *}
-       0 : ( no_args : function (parms:Pcmd_parms; mconfig:pointer):Pchar;cdecl; );
+       0 : ( no_args : tnoargsfunc);
 
        {** function to call for a raw-args *}
-       1 : ( raw_args : function (parms:Pcmd_parms; mconfig:pointer; args:Pchar):Pchar;cdecl; );
+       1 : ( raw_args : trawargsfunc);
 
        {** function to call for a argv/argc *}
-       2 : ( take_argv : function (parms:Pcmd_parms; mconfig:pointer; argc:longint; argv:PPchar):Pchar;cdecl; );
+       2 : ( take_argv : ttakeargvfunc);
 
        {** function to call for a take1 *}
-       3 : ( take1 : function (parms:Pcmd_parms; mconfig:pointer; w:Pchar):Pchar;cdecl; );
+       3 : ( take1 : ttake1func);
 
        {** function to call for a take2 *}
-       4 : ( take2 : function (parms:Pcmd_parms; mconfig:pointer; w:Pchar; w2:Pchar):Pchar;cdecl; );
+       4 : ( take2 : ttake2func);
 
        {** function to call for a take3 *}
-       5 : ( take3 : function (parms:Pcmd_parms; mconfig:pointer; w:Pchar; w2:Pchar; w3:Pchar):Pchar;cdecl; );
+       5 : ( take3 : ttake3func);
 
        {** function to call for a flag *}
-       6 : ( flag : function (parms:Pcmd_parms; mconfig:pointer; on_:longint):Pchar;cdecl; );
+       6 : ( flag : tflagfunc);
      end;
   Pcmd_func = ^cmd_func;
 (*

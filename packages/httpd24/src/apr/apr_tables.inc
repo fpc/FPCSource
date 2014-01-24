@@ -53,6 +53,7 @@
 type
   apr_table_t = record end;
   Papr_table_t = ^apr_table_t;
+  PPapr_table_t = ^Papr_table_T;
 
 //** @see apr_array_header_t */
 //typedef struct apr_array_header_t apr_array_header_t;
@@ -458,7 +459,7 @@ function apr_table_overlay(t: Papr_table_t;
 //typedef int (apr_table_do_callback_fn_t)(void *rec, const char *key,
 //                                                    const char *value);
 type
-  apr_table_do_callback_fn_t = function (rec: Pointer; const key, value: PChar): Integer;
+  apr_table_do_callback_fn_t = function (rec: Pointer; const key, value: PChar): Integer; cdecl;
   Papr_table_do_callback_fn_t = ^apr_table_do_callback_fn_t;
 
 {**
@@ -487,6 +488,12 @@ type
 //#endif
 //    ;
 
+// This has to be a GNU C-Declaration
+
+function apr_table_do(comp: apr_table_do_callback_fn_t; rec: Pointer;
+  t: Papr_table_t): Integer; cdecl; varargs;
+  external LibAPR Name 'apr_table_do';
+
 {**
  * Iterate over a table running the provided function once for every
  * element in the table.  The @param vp varargs parameter must be a
@@ -509,7 +516,7 @@ type
 //APR_DECLARE(int) apr_table_vdo(apr_table_do_callback_fn_t *comp,
 //                               void *rec, const apr_table_t *t, va_list vp);
 function apr_table_vdo(comp: Papr_table_do_callback_fn_t;
-                       rec: Pointer; const t: Papr_table_t; vp: va_list): Integer;
+                       rec: Pointer; t: Papr_table_t; vp: va_list): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibAPR name LibNamePrefix + 'apr_table_vdo' + LibSuff16;
 
