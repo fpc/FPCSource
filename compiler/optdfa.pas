@@ -115,6 +115,14 @@ unit optdfa;
     function AddDefUse(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         case n.nodetype of
+          tempcreaten:
+            begin
+              if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
+                begin
+                  pdfainfo(arg)^.map.Add(n);
+                  DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index);
+                end;
+            end;
           temprefn,
           loadn:
             begin
