@@ -338,16 +338,23 @@ implementation
         else
            cgop:=OP_ADD;
 
-        { we need a value in a register }
-        location_copy(location,left.location);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
 {$ifndef cpu64bitalu}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
-          cg64.a_op64_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,location.register64)
+          begin
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
+          end
         else
 {$endif not cpu64bitalu}
-          hlcg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,resultdef,1,location.register);
+          begin
+            location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,1,left.location.register,location.register);
+          end;
       end;
 
 
