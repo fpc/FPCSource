@@ -180,8 +180,10 @@ unit optcse;
             }
             (not(actualtargetnode(@n)^.nodetype=loadn) or
              not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
-             { apply cse on non-regable static variables }
-             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varregable=vr_none)) or
+             { apply cse on non-regable variables }
+             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) and
+               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(false)) and
+               not(vo_volatile in tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varoptions)) or
              (node_complexity(n)>1)
             ) and
 
