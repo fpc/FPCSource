@@ -2557,12 +2557,12 @@ void                    \3\x0F\xAE\xF0                WILLAMETTE,SSE2
 ; Willamette MMX instructions (SSE2 SIMD Integer Instructions)
 ;
 [MOVDQA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Wop2, Ch_None)
 xmmrm,xmmreg            \361\2\x0F\x7F\101              WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\x6F\110              WILLAMETTE,SSE2,SM
 
 [MOVDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Wop2, Ch_None)
 xmmrm,xmmreg            \333\2\x0F\x7F\101              WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \333\2\x0F\x6F\110              WILLAMETTE,SSE2,SM
 
@@ -2909,7 +2909,7 @@ xmmreg,xmmrm            \334\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 xmmreg,mem              \334\2\x0F\xF0\110        PRESCOTT,SSE3
 
 [MOVDDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Wop2, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x12\110        PRESCOTT,SSE3
 
 [MOVSHDUP]
@@ -3813,39 +3813,39 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x5D\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 
 [VMOVAPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \361\362\370\1\x28\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x29\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x28\110           AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \361\362\364\370\1\x29\101           AVX,SANDYBRIDGE
 
 [VMOVAPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \362\370\1\x28\110                   AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \362\370\1\x29\101                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x28\110               AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \362\364\370\1\x29\101               AVX,SANDYBRIDGE
 
 [VMOVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,rm32                          \361\362\370\1\x6E\110               AVX,SANDYBRIDGE
 rm32,xmmreg                          \361\362\370\1\x7E\101               AVX,SANDYBRIDGE
 
 [VMOVDDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 ymmreg,ymmrm                         \334\362\364\370\1\x12\110           AVX,SANDYBRIDGE
 xmmreg,mem64                         \334\362\370\1\x12\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \334\362\370\1\x12\110               AVX,SANDYBRIDGE
 
 [VMOVDQA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 ymmrm,ymmreg                         \361\362\364\370\1\x7F\101           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\370\1\x6F\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x7F\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x6F\110           AVX,SANDYBRIDGE
 
 [VMOVDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 ymmreg,ymmrm                         \333\362\364\370\1\x6F\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \333\362\370\1\x6F\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \333\362\370\1\x7F\101               AVX,SANDYBRIDGE
@@ -3894,31 +3894,32 @@ reg32,xmmreg                         \362\370\1\x50\110                   AVX,SA
 reg64,ymmreg                         \362\364\370\1\x50\110               AVX,SANDYBRIDGE
 
 [VMOVNTDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 mem128,xmmreg                        \361\362\370\1\xE7\101               AVX,SANDYBRIDGE
 mem256,ymmreg                        \361\362\364\370\1\xE7\101           AVX,SANDYBRIDGE
 
 [VMOVNTDQA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,mem128                        \361\362\371\1\x2A\110               AVX,SANDYBRIDGE
 
 [VMOVNTPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 mem256,ymmreg                        \361\362\364\370\1\x2B\101           AVX,SANDYBRIDGE
 mem128,xmmreg                        \361\362\370\1\x2B\101               AVX,SANDYBRIDGE
 
 [VMOVNTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 mem128,ymmreg                        \362\364\370\1\x2B\101               AVX,SANDYBRIDGE
 mem128,xmmreg                        \362\370\1\x2B\101                   AVX,SANDYBRIDGE
 
 [VMOVQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 rm64,xmmreg                          \361\362\363\370\1\x7E\101           AVX,SANDYBRIDGE
 xmmreg,rm64                          \361\362\363\370\1\x6E\110           AVX,SANDYBRIDGE
 
 [VMOVSD]
-(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+; the three ops must be handle by the compiler internally
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x10\75\120            AVX,SANDYBRIDGE
 xmmreg,mem64                         \334\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x11\75\102            AVX,SANDYBRIDGE
@@ -3935,21 +3936,22 @@ xmmreg,xmmrm                         \333\362\370\1\x12\110               AVX,SA
 ymmreg,ymmrm                         \333\362\364\370\1\x12\110           AVX,SANDYBRIDGE
 
 [VMOVSS]
-(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+; the three ops must be handle by the compiler internally
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x10\75\120            AVX,SANDYBRIDGE
 xmmreg,mem64                         \333\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x11\75\102            AVX,SANDYBRIDGE
 mem64,xmmreg                         \333\362\370\1\x11\101               AVX,SANDYBRIDGE
 
 [VMOVUPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \361\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x11\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x10\110           AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \361\362\364\370\1\x11\101           AVX,SANDYBRIDGE
 
 [VMOVUPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \362\370\1\x10\110                   AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \362\370\1\x11\101                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x10\110               AVX,SANDYBRIDGE
