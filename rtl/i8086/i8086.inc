@@ -197,6 +197,162 @@ begin
   runerror(304);
 end;
 
+
+{****************************************************************************
+                                  BSR/BSF
+****************************************************************************}
+
+const
+  bsr8bit: array [Byte] of Byte = (
+    $ff,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+      6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+      6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+    );
+  bsf8bit: array [Byte] of Byte = (
+    $ff,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      7,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+      5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0
+    );
+
+{$define FPC_SYSTEM_HAS_BSR_BYTE}
+function BsrByte(const AValue: Byte): Byte;
+begin
+  BsrByte := bsr8bit[AValue];
+end;
+
+{$define FPC_SYSTEM_HAS_BSF_BYTE}
+function BsfByte(const AValue: Byte): Byte;
+begin
+  BsfByte := bsf8bit[AValue];
+end;
+
+{$define FPC_SYSTEM_HAS_BSR_WORD}
+function BsrWord(const AValue: Word): Byte; assembler;
+asm
+     lea   bx, bsr8bit
+     xor   cl, cl
+     mov   ax, word [AValue]
+     test  ah, ah
+     jz    @@0
+     mov   cl, 8
+     mov   al, ah
+@@0: xlatb
+     add   al, cl
+end;
+
+{$define FPC_SYSTEM_HAS_BSF_WORD}
+function BsfWord(const AValue: Word): Byte; assembler;
+asm
+     lea   bx, bsf8bit
+     xor   cl, cl
+     mov   ax, word [AValue]
+     test  al, al
+     jnz   @@0
+     or    al, ah
+     jz    @@0
+     add   cl, 8
+@@0: xlatb
+     add   al, cl
+end;
+
+{$define FPC_SYSTEM_HAS_BSR_DWORD}
+function BsrDword(const AValue: DWord): Byte; assembler;
+asm
+     lea   bx, bsr8bit
+     mov   cl, 16
+     mov   ax, word [AValue+2]
+     test  ax, ax
+     jnz   @@0
+     xor   cl, cl
+     mov   ax, word [AValue]
+@@0: test  ah, ah
+     jz    @@1
+     add   cl, 8
+     mov   al, ah
+@@1: xlatb
+     add   al, cl
+end;
+
+{$define FPC_SYSTEM_HAS_BSF_DWORD}
+function BsfDword(const AValue: DWord): Byte; assembler;
+asm
+     lea   bx, bsf8bit
+     xor   cl, cl
+     mov   ax, word [AValue]
+     test  ax, ax
+     jnz   @@0
+     or    ax, word [AValue+2]
+     jz    @@1
+     mov   cl, 16
+@@0: test  al, al
+     jnz   @@1
+     add   cl, 8
+     mov   al, ah
+@@1: xlatb
+     add   al, cl
+end;
+
+{$define FPC_SYSTEM_HAS_BSR_QWORD}
+function BsrQword(const AValue: QWord): Byte; assembler;
+asm
+     lea   bx, bsr8bit
+     mov   cl, 48
+     mov   ax, word [AValue+6]
+     test  ax, ax
+     jnz   @@0
+     mov   cl, 32
+     or    ax, word [AValue+4]
+     jnz   @@0
+     mov   cl, 16
+     or    ax, word [AValue+2]
+     jnz   @@0
+     xor   cl, cl
+     mov   ax, word [AValue]
+@@0: test  ah, ah
+     jz    @@1
+     add   cl, 8
+     mov   al, ah
+@@1: xlatb
+     add   al, cl
+end;
+
+{$define FPC_SYSTEM_HAS_BSF_QWORD}
+function BsfQword(const AValue: QWord): Byte; assembler;
+asm
+     lea   bx, bsf8bit
+     xor   cl, cl
+     mov   ax, word [AValue]
+     test  ax, ax
+     jnz   @@0
+     mov   cl, 16
+     or    ax, word [AValue+2]
+     jnz   @@0
+     mov   cl, 32
+     or    ax, word [AValue+4]
+     jnz   @@0
+     xor   cl, cl
+     or    ax, word [AValue+6]
+     jz    @@1
+     mov   cl, 48
+@@0: test  al, al
+     jnz   @@1
+     add   cl, 8
+     mov   al, ah
+@@1: xlatb
+     add   al, cl
+end;
+
+
 {****************************************************************************
                                   FPU
 ****************************************************************************}
