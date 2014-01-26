@@ -2168,9 +2168,9 @@ unit cgx86;
         push_segment_size = S_W;
 {$endif}
 
-    type  copymode=(copy_move,copy_mmx,copy_string);
+    type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref:Treference;
+    var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
@@ -2182,6 +2182,28 @@ unit cgx86;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
         helpsize:=2*sizeof(aword);
+{$ifndef i8086}
+      { avx helps only to reduce size, using it in general does at least not help on
+        an i7-4770 (FK) }
+      if (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]) and
+        // (cs_opt_size in current_settings.optimizerswitches) and
+         ((len=8) or (len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
+         cm:=copy_avx
+      else
+{$ifdef dummy}
+      { I'am not sure what CPUs would benefit from using sse instructions for moves (FK) }
+      if
+{$ifdef x86_64}
+        ((current_settings.fputype>=fpu_sse64)
+{$else x86_64}
+        ((current_settings.fputype>=fpu_sse)
+{$endif x86_64}
+          or (CPUX86_HAS_SSEUNIT in cpu_capabilities[current_settings.cputype])) and
+         ((len=8) or (len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
+         cm:=copy_mm
+      else
+{$endif dummy}
+{$endif i8086}
       if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
@@ -2189,7 +2211,7 @@ unit cgx86;
       if (len>helpsize) then
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
-         not((len<=16) and (cm=copy_mmx)) and
+         not((len<=16) and (cm in [copy_mmx,copy_mm,copy_avx])) and
          not(len in copy_len_sizes) then
         cm:=copy_string;
 {$ifndef i8086}
@@ -2239,6 +2261,7 @@ unit cgx86;
                 inc(dstref.offset,copysize);
               end;
           end;
+
         copy_mmx:
           begin
             dstref:=dest;
@@ -2281,6 +2304,129 @@ unit cgx86;
               begin
                 inc(dstref.offset,8);
                 a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
+              end;
+          end;
+
+        copy_mm:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            r0:=NR_NO;
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
+            if len>=16 then
+              begin
+                r0:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r0,nil);
+                inc(srcref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                r1:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r1,nil);
+                inc(srcref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                r2:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r2,nil);
+                inc(srcref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                r3:=getmmregister(list,OS_M64);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r3,nil);
+              end;
+
+            if len>=16 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r0,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r1,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r2,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
+              end;
+          end;
+
+        copy_avx:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            r0:=NR_NO;
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
+            if len>=16 then
+              begin
+                r0:=getmmregister(list,OS_M128);
+                { we want to force the use of vmovups, so do not use a_loadmm_ref_reg }
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r0));
+                inc(srcref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                r1:=getmmregister(list,OS_M128);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r1));
+                inc(srcref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                r2:=getmmregister(list,OS_M128);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r2));
+                inc(srcref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                r3:=getmmregister(list,OS_M64);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r3));
+              end;
+
+            if len>=16 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,tmpref));
               end;
           end
         else {copy_string, should be a good fallback in case of unhandled}
