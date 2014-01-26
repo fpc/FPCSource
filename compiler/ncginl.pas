@@ -345,8 +345,8 @@ implementation
 {$ifndef cpu64bitalu}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
           begin
-            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
           end
         else
