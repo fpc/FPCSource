@@ -883,7 +883,7 @@ end;
 Procedure THttpHeader.SetFieldValue(Index : Integer; Value : String);
 
 begin
-  if (Index>1) and (Index<=NoHTTPFields) then
+  if (Index>=1) and (Index<=NoHTTPFields) then
     begin
     FFields[Index]:=Value;
     If (Index=11) then
