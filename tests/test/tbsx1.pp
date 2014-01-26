@@ -61,7 +61,7 @@ begin
     end;
   end;
   x16:=0;
-  f:=BsfDWord(x16);
+  f:=BsfWord(x16);
   if (f<>$ff) then
   begin
     writeln('BsfWord(',x16,') returned ',f,', should be ',$ff);
