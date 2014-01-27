@@ -2708,7 +2708,7 @@ asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 6553
 #
 # Executing linker/assembler
 #
-# 09034 is the last used one
+# 09035 is the last used one
 #
 # BeginOfTeX
 %
@@ -2768,6 +2768,9 @@ exec_e_exe_not_supported=09018_E_Creation of Executables not supported
 % not yet implemented in the compiler.
 exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not supported
 % Creating dynamically loadable libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not supported
+% Creating static libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Closing script $1
 % Informational message showing when writing of the external assembling and linking script is finished.
