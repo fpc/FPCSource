@@ -760,7 +760,7 @@ implementation
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
-{$if defined(x86) or defined(arm) or defined(sparc)}
+{$ifdef SUPPORT_SAFECALL}
         cgpara : tcgpara;
 {$endif}
       begin
@@ -890,11 +890,10 @@ implementation
                  if (not assigned(current_procinfo) or
                      wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
-{$ifndef x86}
-                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
-{$endif not x86}
+
                  reference_reset_base(href,vmtreg,vmtoffset,procdefinition.address_size);
 {$ifndef x86}
+                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
 {$endif not x86}
 
