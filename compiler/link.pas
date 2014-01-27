@@ -566,7 +566,7 @@ Implementation
     Function TLinker.MakeStaticLibrary:boolean;
       begin
         MakeStaticLibrary:=false;
-        Message(exec_e_dll_not_supported);
+        Message(exec_e_static_lib_not_supported);
       end;
 
 
