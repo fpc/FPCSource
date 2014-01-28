@@ -2684,12 +2684,10 @@ begin
         DatabaseError(SFieldIsNull);
       if not assigned(bufblob.BlobBuffer) then
         begin
-        FBlobBuffer := GetNewBlobBuffer;
-        bufblob.BlobBuffer := FBlobBuffer;
-        LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1],@bufblob);
-        end
-      else
-        FBlobBuffer := bufblob.BlobBuffer;
+        bufblob.BlobBuffer := GetNewBlobBuffer;
+        LoadBlobIntoBuffer(FieldDefs[Field.FieldNo-1], @bufblob);
+        end;
+      FBlobBuffer := bufblob.BlobBuffer;
       end
     else if Mode=bmWrite then
       begin
@@ -2699,6 +2697,9 @@ begin
         FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
       else
         FBlobBuffer^.OrgBufID := -1;
+      bufblob.BlobBuffer := FBlobBuffer;
+      // redirect pointer in current record buffer to new write blob buffer
+      Field.SetData(@bufblob);
       FModified := True;
       end;
 end;

@@ -169,7 +169,7 @@ const
 
   testBlobValuesCount = 6;
   testBlobValues : Array[0..testBlobValuesCount-1] of ansistring = (
-    'Test deze Blob',    // common value
+    'Test this Blob',    // common value
     '',                  // empty value
     'a'#0'b'#13#10#1'c', // binary data
     '''":a',             // single quotes
@@ -615,39 +615,41 @@ begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).CommitDDL;
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test this blob'')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
     sql.add('select * from FPDEV2');
     Open;
-    fields[1].ProviderFlags := [pfInUpdate]; // blob niet in de where
+    AssertEquals('Test this blob', Fields[1].AsString);
+    Fields[1].ProviderFlags := [pfInUpdate]; // Blob is not in the where
     UpdateMode := upWhereAll;
 
-    AssertEquals('Test deze blob',fields[1].AsString);
-    edit;
-// Dat werkt niet lekker, omdat de stream vernield wordt...
-//    fields[0].asstring := 'Deze blob is gewijzigd!';
+    Edit;
+    s := 'This blob has changed!';
+    Fields[1].AsString := s;
+    AssertEquals(s, Fields[1].AsString); // test before Post
+    Cancel;
+    AssertEquals('After Cancel', 'Test this blob', Fields[1].AsString); // original value
 
-    With Createblobstream(fields[1],bmwrite) do
+    Edit;
+    With CreateBlobStream(Fields[1], bmWrite) do
       begin
-      s := 'Deze blob is gewijzigd!';
+      s := 'This blob has changed!';
       WriteBuffer(Pointer(s)^,Length(s));
-      post;
-      free;
+      Post;
+      Free;
       end;
-    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
+    AssertEquals('After Post', s, Fields[1].AsString);
 
     ApplyUpdates(0);
-
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
+    Close;
 
-    close;
-
-    open;
-    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
-    close;
+    Open;
+    AssertEquals(s, Fields[1].AsString);
+    Close;
     end;
 end;
 
