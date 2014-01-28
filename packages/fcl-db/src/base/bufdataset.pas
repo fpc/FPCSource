@@ -29,22 +29,30 @@ type
   TResolverErrorEvent = procedure(Sender: TObject; DataSet: TCustomBufDataset; E: EUpdateError;
     UpdateKind: TUpdateKind; var Response: TResolverResponse) of object;
 
-  { TBufBlobStream }
+  { TBlobBuffer }
 
   PBlobBuffer = ^TBlobBuffer;
   TBlobBuffer = record
     FieldNo : integer;
     OrgBufID: integer;
     Buffer  : pointer;
-    Size    : ptrint;
+    Size    : PtrInt;
   end;
+
+  PBufBlobField = ^TBufBlobField;
+  TBufBlobField = record
+    ConnBlobBuffer : array[0..11] of byte; // DB specific data is stored here
+    BlobBuffer     : PBlobBuffer;
+  end;
+
+  { TBufBlobStream }
 
   TBufBlobStream = class(TStream)
   private
     FField      : TBlobField;
     FDataSet    : TCustomBufDataset;
     FBlobBuffer : PBlobBuffer;
-    FPosition   : ptrint;
+    FPosition   : PtrInt;
     FModified   : boolean;
   protected
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -90,12 +98,6 @@ type
     OldValuesBuffer    : TRecordBuffer;
   end;
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
-
-  PBufBlobField = ^TBufBlobField;
-  TBufBlobField = record
-    ConnBlobBuffer : array[0..11] of byte; // DB specific data is stored here
-    BlobBuffer     : PBlobBuffer;
-  end;
 
   TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
 
@@ -2646,12 +2648,12 @@ function TBufBlobStream.Read(var Buffer; Count: Longint): Longint;
 var ptr : pointer;
 
 begin
-  if FPosition + count > FBlobBuffer^.Size then
-    count := FBlobBuffer^.Size-FPosition;
+  if FPosition + Count > FBlobBuffer^.Size then
+    Count := FBlobBuffer^.Size-FPosition;
   ptr := FBlobBuffer^.Buffer+FPosition;
-  move(ptr^,buffer,count);
-  inc(FPosition,count);
-  result := count;
+  move(ptr^, Buffer, Count);
+  inc(FPosition, Count);
+  result := Count;
 end;
 
 function TBufBlobStream.Write(const Buffer; Count: Longint): Longint;
@@ -2659,13 +2661,13 @@ function TBufBlobStream.Write(const Buffer; Count: Longint): Longint;
 var ptr : pointer;
 
 begin
-  ReAllocMem(FBlobBuffer^.Buffer,FPosition+Count);
+  ReAllocMem(FBlobBuffer^.Buffer, FPosition+Count);
   ptr := FBlobBuffer^.Buffer+FPosition;
-  move(buffer,ptr^,count);
-  inc(FBlobBuffer^.Size,count);
-  inc(FPosition,count);
+  move(buffer, ptr^, Count);
+  inc(FBlobBuffer^.Size, Count);
+  inc(FPosition, Count);
   FModified := True;
-  Result := count;
+  Result := Count;
 end;
 
 constructor TBufBlobStream.Create(Field: TBlobField; Mode: TBlobStreamMode);
@@ -2693,7 +2695,7 @@ begin
       begin
       FBlobBuffer := GetNewWriteBlobBuffer;
       FBlobBuffer^.FieldNo := Field.FieldNo;
-      if (Field.GetData(@bufblob)) and assigned(bufblob.BlobBuffer) then
+      if Field.GetData(@bufblob) and assigned(bufblob.BlobBuffer) then
         FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
       else
         FBlobBuffer^.OrgBufID := -1;
@@ -2710,7 +2712,7 @@ begin
     //FField.Modified := True; // should be set to True, but TBlobField.Modified is never reset
 
     if not (FDataSet.State in [dsFilter, dsCalcFields, dsNewValue]) then
-      FDataSet.DataEvent(deFieldChange, Ptrint(FField));
+      FDataSet.DataEvent(deFieldChange, PtrInt(FField));
     end;
   inherited Destroy;
 end;
