@@ -2119,6 +2119,9 @@ Implementation
     begin
       If (p1.typ = ait_instruction) and (taicpu(p1).opcode=A_BL) then
         Result:=true
+      else If MatchInstruction(p1, [A_LDR, A_STR], [], [PF_D]) and
+              (getsupreg(taicpu(p1).oper[0]^.reg)+1=getsupreg(reg)) then
+        Result:=true
       else
         Result:=inherited RegInInstruction(Reg, p1);
     end;
