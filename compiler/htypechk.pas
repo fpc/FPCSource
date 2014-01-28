@@ -1512,8 +1512,8 @@ implementation
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resultdef.typ=pointerdef) then
-                        gotderef:=true;
+                       if ttypeconvnode(hp).convtype=tc_pointer_2_array then
+                         gotderef:=true;
                      end;
                  end;
                  hp:=ttypeconvnode(hp).left;
