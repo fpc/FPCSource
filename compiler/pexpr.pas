@@ -1357,7 +1357,8 @@ implementation
          { allow Ordinal(Value) for type declarations since it
            can be an enummeration declaration or a set lke:
            (OrdinalType(const1)..OrdinalType(const2) }
-         if (not typeonly or is_ordinal(hdef))and try_to_consume(_LKLAMMER) then
+         if (not typeonly or is_ordinal(hdef)) and
+            try_to_consume(_LKLAMMER) then
           begin
             result:=comp_expr(true,false);
             consume(_RKLAMMER);
@@ -1368,9 +1369,9 @@ implementation
             else
               result:=ctypeconvnode.create_explicit(result,hdef);
           end
-         else { not LKLAMMER }
-          if (token=_POINT) and
-             (is_object(hdef) or is_record(hdef)) then
+         { not LKLAMMER }
+         else if (token=_POINT) and
+            (is_object(hdef) or is_record(hdef)) then
            begin
              consume(_POINT);
              { handles calling methods declared in parent objects
