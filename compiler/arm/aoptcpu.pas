@@ -1165,6 +1165,41 @@ Implementation
                               end;
                             end;
                       end;
+                    { Fold the very common sequence
+                        mov  regA, regB
+                        ldr* regA, [regA]
+                      to
+                        ldr* regA, [regB]
+                      CAUTION! If this one is successful p might not be a mov instruction anymore!
+                    }
+                    if (taicpu(p).opcode = A_MOV) and
+                       (taicpu(p).ops = 2) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oppostfix = PF_NONE) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], []) and
+                       { We can change the base register only when the instruction uses AM_OFFSET }
+                       ((taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) or
+                         ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
+                          (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg))
+                       ) and
+                       not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+                       RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+                      begin
+                        DebugMsg('Peephole MovLdr2Ldr done', hp1);
+                        if (taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
+                           (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg) then
+                          taicpu(hp1).oper[1]^.ref^.base := taicpu(p).oper[1]^.reg;
+
+                        if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
+                          taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
+                      end;
+
                     { This folds shifterops into following instructions
                       mov r0, r1, lsl #8
                       add r2, r3, r0
