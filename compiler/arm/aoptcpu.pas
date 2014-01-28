@@ -38,7 +38,7 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
-    procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+    function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
     { returns true if reg reaches it's end of life at p, this means it is either
@@ -152,8 +152,9 @@ Implementation
       result := (oper.typ = top_reg) and (oper.reg = reg);
     end;
 
-  procedure RemoveRedundantMove(const cmpp: tai; movp: tai; asml: TAsmList);
+  function RemoveRedundantMove(const cmpp: tai; movp: tai; asml: TAsmList):Boolean;
     begin
+      Result:=false;
       if (taicpu(movp).condition = C_EQ) and
          (taicpu(cmpp).oper[0]^.reg = taicpu(movp).oper[0]^.reg) and
          (taicpu(cmpp).oper[1]^.val = taicpu(movp).oper[1]^.val) then
@@ -161,6 +162,7 @@ Implementation
         asml.insertafter(tai_comment.Create(strpnew('Peephole CmpMovMov - Removed redundant moveq')), movp);
         asml.remove(movp);
         movp.free;
+        Result:=true;
       end;
     end;
 
@@ -337,12 +339,13 @@ Implementation
     end;
 {$endif DEBUG_AOPTCPU}
 
-  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+  function TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string):boolean;
     var
       alloc,
       dealloc : tai_regalloc;
       hp1 : tai;
     begin
+      Result:=false;
       if MatchInstruction(movp, A_MOV, [taicpu(p).condition], [PF_None]) and
          (taicpu(movp).ops=2) and {We can't optimize if there is a shiftop}
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
@@ -374,6 +377,7 @@ Implementation
           if assigned(dealloc) then
             begin
               DebugMsg('Peephole '+optimizer+' removed superfluous mov', movp);
+              result:=true;
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
                 and remove it if possible }
@@ -586,6 +590,7 @@ Implementation
 
                asml.remove(hp1);
                hp1.free;
+               Result:=true;
              end
            else
               case taicpu(p).opcode of
@@ -647,8 +652,9 @@ Implementation
                         taicpu(p).oppostfix:=PF_D;
                         asml.remove(hp1);
                         hp1.free;
+                        result:=true;
                       end;
-                    LookForPostindexedPattern(taicpu(p));
+                    Result:=LookForPostindexedPattern(taicpu(p)) or Result;
                   end;
                 A_LDR:
                   begin
@@ -711,6 +717,7 @@ Implementation
                             taicpu(p).oppostfix:=PF_D;
                             asml.remove(hp1);
                             hp1.free;
+                            result:=true;
                           end;
                       end;
 
@@ -738,8 +745,9 @@ Implementation
                          taicpu(p).oper[0]^.reg := taicpu(hp1).oper[0]^.reg;
                          asml.remove(hp1);
                          hp1.free;
+                         result:=true;
                        end;
-                    LookForPostindexedPattern(taicpu(p));
+                    Result:=LookForPostindexedPattern(taicpu(p)) or Result;
                     { Remove superfluous mov after ldr
                       changes
                       ldr reg1, ref
@@ -754,8 +762,10 @@ Implementation
                         * ldr+mov have the same conditions
                         * mov does not set flags
                     }
-                    if (taicpu(p).oppostfix<>PF_D) and GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr');
+                    if (taicpu(p).oppostfix<>PF_D) and
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr') then
+                      Result:=true;
                   end;
                 A_MOV:
                   begin
@@ -803,6 +813,7 @@ Implementation
                                 p.free;
                                 hp1.free;
                                 p:=hp2;
+                                Result:=true;
                               end;
                             ReleaseUsedRegs(TmpUsedRegs);
                           end
@@ -1090,6 +1101,7 @@ Implementation
                               GetNextInstruction(hp2,hp1);
                               asml.remove(hp2);
                               hp2.free;
+                              result:=true;
                               if not assigned(hp1) then break;
                             end
                         {
@@ -1109,6 +1121,7 @@ Implementation
                               p.free;
                               p:=hp1;
                               GetNextInstruction(hp1,hp1);
+                              result:=true;
                               if not assigned(hp1) then
                                 break;
                             end;
@@ -1162,6 +1175,7 @@ Implementation
                                 asml.remove(p);
                                 p.free;
                                 p:=hp1;
+                                Result:=true;
                               end;
                             end;
                       end;
@@ -1301,6 +1315,7 @@ Implementation
                               hp1.free;
                               p:=hp2;
                               DebugMsg('Peephole FoldShiftProcess done', p);
+                              Result:=true;
                               break;
                             end;
                       end;
@@ -1372,14 +1387,16 @@ Implementation
                          asml.remove(p);
                          p.free;
                          p:=hp1;
+                         Result:=true;
                        end;
                     {
                       Often we see shifts and then a superfluous mov to another register
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
                     }
                     if (taicpu(p).opcode = A_MOV) and
-                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      RemoveSuperfluousMove(p, hp1, 'MovMov2Mov');
+                       GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       RemoveSuperfluousMove(p, hp1, 'MovMov2Mov') then
+                      Result:=true;
                   end;
                 A_ADD,
                 A_ADC,
@@ -1621,6 +1638,7 @@ Implementation
                                 asml.remove(p);
                                 p.free;
                                 p:=hp1;
+                                result:=true;
                                 break;
                               end;
                           end;
@@ -1632,11 +1650,10 @@ Implementation
                       to
                       add reg2, ...
                     }
-                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      begin
-                        if (taicpu(p).ops=3) then
-                          RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
-                      end;
+                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                       (taicpu(p).ops=3) and
+                       RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
+                      Result:=true;
 
                     if MatchInstruction(p, [A_ADD,A_SUB], [C_None], [PF_None]) and
                       LookForPreindexedPattern(taicpu(p)) then
@@ -1646,6 +1663,7 @@ Implementation
                         asml.remove(p);
                         p.free;
                         p:=hp1;
+                        Result:=true;
                       end;
                   end;
 {$ifdef dummy}
@@ -1795,11 +1813,9 @@ Implementation
                         p:=hp2;
                         result:=true;
                       end
-                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      begin
-                        //if (taicpu(p).ops=3) then
-                          RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data');
-                      end;
+                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                         RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data') then
+                      Result:=true;
                   end;
                 A_UXTH:
                   begin
@@ -1883,11 +1899,9 @@ Implementation
                         p:=hp1;
                         result:=true;
                       end
-                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
-                      begin
-                        //if (taicpu(p).ops=3) then
-                          RemoveSuperfluousMove(p, hp1, 'UxthMov2Data');
-                      end;
+                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                         RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
+                      Result:=true;
                   end;
                 A_CMP:
                   begin
@@ -1908,8 +1922,8 @@ Implementation
                        MatchInstruction(hp2, A_MOV, [C_EQ, C_NE], [PF_NONE]) and
                        (taicpu(hp1).oper[1]^.typ = top_const) then
                       begin
-                        RemoveRedundantMove(p, hp1, asml);
-                        RemoveRedundantMove(p, hp2, asml);
+                        Result:=RemoveRedundantMove(p, hp1, asml) or Result;
+                        Result:=RemoveRedundantMove(p, hp2, asml) or Result;
                       end;
                   end;
                 A_STM:
