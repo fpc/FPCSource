@@ -3072,7 +3072,16 @@ implementation
 
     function tpointerdef.GetTypeName : string;
       begin
-        GetTypeName:='^'+pointeddef.typename;
+        { parameter types and the resultdef of a procvardef can contain a
+          pointer to this procvardef itself, resulting in endless recursion ->
+          use the typesym's name instead if it exists (if it doesn't, such as
+          for anynonymous procedure types in macpas/iso mode, then there cannot
+          be any recursive references to it either) }
+        if (pointeddef.typ<>procvardef) or
+           not assigned(pointeddef.typesym) then
+          GetTypeName:='^'+pointeddef.typename
+        else
+          GetTypeName:='^'+pointeddef.typesym.realname;
 {$ifdef x86}
         if x86pointertyp<>default_x86_data_pointer_type then
           begin
