@@ -3072,25 +3072,33 @@ implementation
 
     function tpointerdef.GetTypeName : string;
       begin
+        GetTypeName:='^'+pointeddef.typename;
 {$ifdef x86}
-         if x86pointertyp = default_x86_data_pointer_type then
-           GetTypeName:='^'+pointeddef.typename
-         else
-           case x86pointertyp of
-             x86pt_near: GetTypeName:='^'+pointeddef.typename+';near';
-             x86pt_near_cs: GetTypeName:='^'+pointeddef.typename+';near ''CS''';
-             x86pt_near_ds: GetTypeName:='^'+pointeddef.typename+';near ''DS''';
-             x86pt_near_ss: GetTypeName:='^'+pointeddef.typename+';near ''SS''';
-             x86pt_near_es: GetTypeName:='^'+pointeddef.typename+';near ''ES''';
-             x86pt_near_fs: GetTypeName:='^'+pointeddef.typename+';near ''FS''';
-             x86pt_near_gs: GetTypeName:='^'+pointeddef.typename+';near ''GS''';
-             x86pt_far: GetTypeName:='^'+pointeddef.typename+';far';
-             x86pt_huge: GetTypeName:='^'+pointeddef.typename+';huge';
-             else
-               internalerror(2013050301);
-           end;
-{$else x86}
-         GetTypeName:='^'+pointeddef.typename;
+        if x86pointertyp<>default_x86_data_pointer_type then
+          begin
+            case x86pointertyp of
+              x86pt_near:
+                GetTypeName:=Result+';near';
+              x86pt_near_cs:
+                GetTypeName:=Result+';near ''CS''';
+              x86pt_near_ds:
+                GetTypeName:=Result+';near ''DS''';
+              x86pt_near_ss:
+                GetTypeName:=Result+';near ''SS''';
+              x86pt_near_es:
+                GetTypeName:=Result+';near ''ES''';
+              x86pt_near_fs:
+                GetTypeName:=Result+';near ''FS''';
+              x86pt_near_gs:
+                GetTypeName:=Result+';near ''GS''';
+              x86pt_far:
+                GetTypeName:=Result+';far';
+              x86pt_huge:
+                GetTypeName:=Result+';huge';
+              else
+                internalerror(2013050301);
+            end;
+          end;
 {$endif x86}
       end;
 
