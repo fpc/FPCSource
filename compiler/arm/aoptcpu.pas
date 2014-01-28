@@ -1194,6 +1194,7 @@ Implementation
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
 
+                        GetNextInstruction(p, hp1);
                         asml.remove(p);
                         p.free;
                         p:=hp1;
@@ -1293,12 +1294,12 @@ Implementation
                                        taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
                                        taicpu(p).oper[2]^.shifterop^);
                               asml.insertbefore(hp2, hp1);
+                              GetNextInstruction(p, hp2);
                               asml.remove(p);
                               asml.remove(hp1);
                               p.free;
                               hp1.free;
                               p:=hp2;
-                              GetNextInstruction(p,hp1);
                               DebugMsg('Peephole FoldShiftProcess done', p);
                               break;
                             end;
@@ -1367,6 +1368,7 @@ Implementation
                          taicpu(hp1).oper[1]^.ref^.shiftmode := taicpu(p).oper[2]^.shifterop^.shiftmode;
                          taicpu(hp1).oper[1]^.ref^.shiftimm := taicpu(p).oper[2]^.shifterop^.shiftimm;
                          DebugMsg('Peephole FoldShiftLdrStr done', hp1);
+                         GetNextInstruction(p, hp1);
                          asml.remove(p);
                          p.free;
                          p:=hp1;
@@ -1432,6 +1434,7 @@ Implementation
                                 taicpu(hp1).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
                                 taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
                                 taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                                GetNextInstruction(p, hp1);
                                 asml.remove(p);
                                 p.free;
                                 p:=hp1;
@@ -1458,6 +1461,7 @@ Implementation
                           begin
                             DebugMsg('Peephole AndStrb2Strb done', p);
                             taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+                            GetNextInstruction(p, hp1);
                             asml.remove(p);
                             p.free;
                             p:=hp1;
@@ -1550,6 +1554,7 @@ Implementation
                               begin
                                 DebugMsg('Peephole AndLsl2Lsl done', p);
                                 taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
+                                GetNextInstruction(p, hp1);
                                 asml.Remove(p);
                                 p.free;
                                 p:=hp1;
@@ -1680,6 +1685,7 @@ Implementation
                           end
                         else
                           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p, hp1);
                         asml.remove(p);
                         p.free;
                         p:=hp1;
@@ -1816,6 +1822,7 @@ Implementation
                       begin
                         DebugMsg('Peephole UXTHStrh2Strh done', p);
                         taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p, hp1);
                         asml.remove(p);
                         p.free;
                         p:=hp1;
@@ -1841,6 +1848,7 @@ Implementation
                         DebugMsg('Peephole UxthUxth2Uxth done', p);
                         taicpu(hp1).opcode:=A_UXTH;
                         taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p, hp1);
                         asml.remove(p);
                         p.free;
                         p:=hp1;
@@ -1869,6 +1877,7 @@ Implementation
                         taicpu(hp1).opcode:=A_UXTH;
                         taicpu(hp1).ops:=2;
                         taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                        GetNextInstruction(p, hp1);
                         asml.remove(p);
                         p.free;
                         p:=hp1;
