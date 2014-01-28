@@ -625,7 +625,7 @@ end;
  *       Miscellaneous procedures and functions                       *
  **********************************************************************}
 
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 var
   b, c : pchar;
 
@@ -641,12 +641,13 @@ var
       s : string;
     begin
       l := c-b;
-      if l > 0 then
+      if (l > 0) or AddEmptyStrings then
         begin
           if assigned(Strings) then
             begin
               setlength(s, l);
-              move (b^, s[1],l);
+              if l>0 then
+                move (b^, s[1],l*SizeOf(char));
               Strings.Add (s);
             end;
           inc (result);

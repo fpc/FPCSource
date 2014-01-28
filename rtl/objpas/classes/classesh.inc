@@ -2141,5 +2141,5 @@ procedure ObjectTextToResource(Input, Output: TStream);
 function LineStart(Buffer, BufPos: PChar): PChar;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
 function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 
