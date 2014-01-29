@@ -956,6 +956,9 @@ Implementation
                        (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
                        (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
                        GetNextInstructionUsingReg(p,hp1, taicpu(p).oper[0]^.reg) and
+                       (hp1.typ=ait_instruction) and
+                       (taicpu(hp1).ops>=1) and
+                       (taicpu(hp1).oper[0]^.typ=top_reg) and
                        (not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)) and
                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
                        begin
@@ -1687,6 +1690,10 @@ Implementation
 
                       (((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype>=cpu_armv4)) or
                        ((taicpu(hp1).opcode=A_SUB) and (current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and
+
+                      // CPUs before ARMv6 don't recommend having the same Rd and Rm for MLA.
+                      // TODO: A workaround would be to swap Rm and Rs
+                      (not ((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype<=cpu_armv6) and MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^))) and
 
                       (((taicpu(hp1).ops=3) and
                         (taicpu(hp1).oper[2]^.typ=top_reg) and
