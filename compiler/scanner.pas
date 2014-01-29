@@ -1983,7 +1983,7 @@ type
              begin
                hs1:=result;
                preproc_consume(op);
-               if (op=_OP_OR)and hs1.isBoolean and hs1.asBool then
+               if (op=_OP_OR) and hs1.isBoolean and hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(true);
@@ -1992,7 +1992,7 @@ type
                    else
                      hs2:=preproc_sub_expr(succ(pred_level),false);
                  end
-               else if (op=_OP_AND)and hs1.isBoolean and not hs1.asBool then
+               else if (op=_OP_AND) and hs1.isBoolean and not hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(false);
