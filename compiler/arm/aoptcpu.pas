@@ -956,6 +956,7 @@ Implementation
                        (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
                        (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
                        GetNextInstructionUsingReg(p,hp1, taicpu(p).oper[0]^.reg) and
+                       (not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)) and
                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
                        begin
                          if (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
