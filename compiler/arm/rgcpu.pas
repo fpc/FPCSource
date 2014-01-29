@@ -126,9 +126,10 @@ unit rgcpu;
                     end;
                 end;
               A_MLA,
+              A_MLS,
               A_MUL:
                 begin
-                  if current_settings.cputype<cpu_armv6 then
+                  if (current_settings.cputype<cpu_armv6) and (taicpu(p).opcode<>A_MLS) then
                     add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R13);
                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
@@ -136,7 +137,7 @@ unit rgcpu;
                    add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
                    add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R13);
                    add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
-                   if taicpu(p).opcode=A_MLA then
+                   if taicpu(p).opcode<>A_MUL then
                      begin
                        add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R13);
                        add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);

@@ -537,6 +537,7 @@ Implementation
       i, i2: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
+      oldreg: tregister;
 
     function IsPowerOf2(const value: DWord): boolean; inline;
       begin
@@ -1665,6 +1666,89 @@ Implementation
                         p:=hp1;
                         Result:=true;
                       end;
+                    {
+                     Turn
+                     mul reg0, z,w
+                     sub/add x, y, reg0
+                     dealloc reg0
+
+                     into
+
+                     mls/mla x,z,w,y
+                     }
+                    if MatchInstruction(p, [A_MUL], [C_None], [PF_None]) and
+                      (taicpu(p).ops=3) and
+                      (taicpu(p).oper[0]^.typ = top_reg) and
+                      (taicpu(p).oper[1]^.typ = top_reg) and
+                      (taicpu(p).oper[2]^.typ = top_reg) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                      MatchInstruction(hp1,[A_ADD,A_SUB],[C_None],[PF_None]) and
+
+                      (((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype>=cpu_armv4)) or
+                       ((taicpu(hp1).opcode=A_SUB) and (current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and
+
+                      (((taicpu(hp1).ops=3) and
+                        (taicpu(hp1).oper[2]^.typ=top_reg) and
+                        ((MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
+                          (not RegModifiedBetween(taicpu(hp1).oper[1]^.reg, p, hp1))) or
+                         ((MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                           (taicpu(hp1).opcode=A_ADD) and
+                           (not RegModifiedBetween(taicpu(hp1).oper[2]^.reg, p, hp1)))))) or
+                       ((taicpu(hp1).ops=2) and
+                        (taicpu(hp1).oper[1]^.typ=top_reg) and
+                        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) and
+                      (RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1))) then
+                      begin
+                        if taicpu(hp1).opcode=A_ADD then
+                          begin
+                            taicpu(hp1).opcode:=A_MLA;
+
+                            if taicpu(hp1).ops=3 then
+                              begin
+                                if MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^) then
+                                  oldreg:=taicpu(hp1).oper[2]^.reg
+                                else
+                                  oldreg:=taicpu(hp1).oper[1]^.reg;
+                              end
+                            else
+                              oldreg:=taicpu(hp1).oper[0]^.reg;
+
+                            taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
+                            taicpu(hp1).loadreg(2,taicpu(p).oper[2]^.reg);
+                            taicpu(hp1).loadreg(3,oldreg);
+
+                            DebugMsg('MulAdd2MLA done', p);
+
+                            taicpu(hp1).ops:=4;
+
+                            asml.remove(p);
+                            p.free;
+                            p:=hp1;
+                          end
+                        else
+                          begin
+                            taicpu(hp1).opcode:=A_MLS;
+
+                            taicpu(hp1).loadreg(3,taicpu(hp1).oper[1]^.reg);
+
+                            if taicpu(hp1).ops=2 then
+                              taicpu(hp1).loadreg(1,taicpu(hp1).oper[0]^.reg)
+                            else
+                              taicpu(hp1).loadreg(1,taicpu(p).oper[2]^.reg);
+
+                            taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+
+                            DebugMsg('MulSub2MLS done', p);
+
+                            taicpu(hp1).ops:=4;
+
+                            asml.remove(p);
+                            p.free;
+                            p:=hp1;
+                          end;
+
+                        result:=true;
+                      end
                   end;
 {$ifdef dummy}
                 A_MVN:
@@ -2555,83 +2639,6 @@ Implementation
           taicpu(p).ops:=2;
 
           result := true;
-        end
-      {
-       Turn
-       mul reg0, z,w
-       sub/add x, y, reg0
-       dealloc reg0
-
-       into
-
-       mls/mla x,z,w,y
-       }
-      else if (p.typ=ait_instruction) and
-        MatchInstruction(p, [A_MUL], [C_None], [PF_None]) and
-        (taicpu(p).ops=3) and
-        (taicpu(p).oper[0]^.typ = top_reg) and
-        (taicpu(p).oper[1]^.typ = top_reg) and
-        (taicpu(p).oper[2]^.typ = top_reg) and
-        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-        MatchInstruction(hp1,[A_ADD,A_SUB],[C_None],[PF_None]) and
-        (((taicpu(hp1).ops=3) and
-          (taicpu(hp1).oper[2]^.typ=top_reg) and
-          ((MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-            (not RegModifiedBetween(taicpu(hp1).oper[1]^.reg, p, hp1))) or
-           ((MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-             (taicpu(hp1).opcode=A_ADD) and
-             (not RegModifiedBetween(taicpu(hp1).oper[2]^.reg, p, hp1)))))) or
-         ((taicpu(hp1).ops=2) and
-          (taicpu(hp1).oper[1]^.typ=top_reg) and
-          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) and
-        (RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1))) then
-        begin
-          if taicpu(hp1).opcode=A_ADD then
-            begin
-              taicpu(hp1).opcode:=A_MLA;
-
-              if taicpu(hp1).ops=3 then
-                begin
-                  if MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^) then
-                    oldreg:=taicpu(hp1).oper[2]^.reg
-                  else
-                    oldreg:=taicpu(hp1).oper[1]^.reg;
-                end
-              else
-                oldreg:=taicpu(hp1).oper[0]^.reg;
-
-              taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).loadreg(2,taicpu(p).oper[2]^.reg);
-              taicpu(hp1).loadreg(3,oldreg);
-
-              DebugMsg('MulAdd2MLA done', p);
-
-              taicpu(hp1).ops:=4;
-
-              asml.remove(p);
-              p.free;
-              p:=hp1;
-            end
-          else
-            begin
-              taicpu(hp1).opcode:=A_MLS;
-
-              if taicpu(hp1).ops=2 then
-                taicpu(hp1).loadreg(1,taicpu(hp1).oper[0]^.reg);
-
-              taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).loadreg(3,taicpu(p).oper[2]^.reg);
-
-              DebugMsg('MulSub2MLS done', p);
-
-              taicpu(hp1).ops:=4;
-
-              asml.remove(p);
-              p.free;
-              p:=hp1;
-            end;
-
-          result:=true;
         end
       {else if (p.typ=ait_instruction) and
         MatchInstruction(p, [A_CMP], [C_None], [PF_None]) and
