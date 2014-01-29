@@ -1294,7 +1294,9 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
-        constord :
+        constord,
+        { error values }
+        constnone:
           ;
         else
           internalerror(2013112802);
