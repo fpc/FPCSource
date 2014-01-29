@@ -2361,27 +2361,25 @@ procedure TCustomBufDataset.InternalPost;
 
 Var ABuff        : TRecordBuffer;
     i            : integer;
-    blobbuf      : tbufblobfield;
+    bufblob      : TBufBlobField;
     NullMask     : pbyte;
     ABookmark    : PBufBookmark;
 
 begin
   inherited InternalPost;
+
   if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
     begin
-    blobbuf.BlobBuffer := FUpdateBlobBuffers[i];
-    ABuff := ActiveBuffer;
-    NullMask := PByte(ABuff);
+    bufblob.BlobBuffer := FUpdateBlobBuffers[i];
+    NullMask := PByte(ActiveBuffer);
 
-    inc(ABuff,FFieldBufPositions[blobbuf.BlobBuffer^.FieldNo-1]);
-    Move(blobbuf, ABuff^, GetFieldSize(FieldDefs[blobbuf.BlobBuffer^.FieldNo-1]));
-    if blobbuf.BlobBuffer^.Size = 0 then
-      SetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1)
+    if bufblob.BlobBuffer^.Size = 0 then
+      SetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1)
     else
-      unSetFieldIsNull(NullMask, blobbuf.BlobBuffer^.FieldNo-1);
+      unSetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1);
 
-    blobbuf.BlobBuffer^.FieldNo := -1;
+    bufblob.BlobBuffer^.FieldNo := -1;
     end;
 
   if State = dsInsert then
@@ -2673,6 +2671,7 @@ end;
 constructor TBufBlobStream.Create(Field: TBlobField; Mode: TBlobStreamMode);
 
 var bufblob : TBufBlobField;
+    CurrBuff : TRecordBuffer;
 
 begin
   FField := Field;
@@ -2699,7 +2698,9 @@ begin
         FBlobBuffer^.OrgBufID := -1;
       bufblob.BlobBuffer := FBlobBuffer;
       // redirect pointer in current record buffer to new write blob buffer
-      Field.SetData(@bufblob);
+      CurrBuff := GetCurrentBuffer;
+      inc(CurrBuff, FDataSet.FFieldBufPositions[Field.FieldNo-1]);
+      Move(bufblob, CurrBuff^, FDataSet.GetFieldSize(FDataSet.FieldDefs[Field.FieldNo-1]));
       FModified := True;
       end;
 end;
