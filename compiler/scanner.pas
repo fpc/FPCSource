@@ -1923,7 +1923,7 @@ type
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                result:=preproc_sub_expr(opcompare,true);
+                result:=preproc_sub_expr(opcompare,eval);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
