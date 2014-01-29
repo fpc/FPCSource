@@ -2824,6 +2824,8 @@ Implementation
           else if MatchInstruction(p, [A_ADD,A_SUB], [C_None], [PF_None]) and
             (taicpu(p).ops = 2) and
             (taicpu(p).oper[1]^.typ=top_reg) and
+            (not MatchOperand(taicpu(p).oper[0]^, NR_STACK_POINTER_REG)) and
+            (not MatchOperand(taicpu(p).oper[1]^, NR_STACK_POINTER_REG)) and
             (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
             begin
               DebugMsg('Peephole AddSub2*s done', p);
