@@ -69,6 +69,8 @@ implementation
         basereg,indexreg,jumpreg: TRegister;
         href: TReference;
         opcgsize: tcgsize;
+        sectype: TAsmSectiontype;
+        jtitemconsttype: taiconst_type;
 
       procedure genitem(list:TAsmList;t : pcaselabel);
         var
@@ -80,13 +82,13 @@ implementation
           i:=last.svalue+1;
           while i<=t^._low.svalue-1 do
             begin
-              list.concat(Tai_const.Create_rel_sym(aitconst_32bit,tablelabel,elselabel));
+              list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
               inc(i);
             end;
           i:=t^._low.svalue;
           while i<=t^._high.svalue do
             begin
-              list.concat(Tai_const.Create_rel_sym(aitconst_32bit,tablelabel,blocklabel(t^.blockid)));
+              list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,blocklabel(t^.blockid)));
               inc(i);
             end;
           last:=t^._high;
@@ -95,6 +97,12 @@ implementation
         end;
 
       begin
+        if not(target_info.system in systems_darwin) then
+          jtitemconsttype:=aitconst_32bit
+        else
+          { see https://gmplib.org/list-archives/gmp-bugs/2012-December/002836.html }
+          jtitemconsttype:=aitconst_darwin_dwarf_delta32;
+
         last:=min_;
         opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
@@ -127,7 +135,22 @@ implementation
         { and finally jump }
         emit_reg(A_JMP,S_NO,jumpreg);
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,4);
+        if not(target_info.system in systems_darwin) then
+          sectype:=sec_rodata
+        else
+          { on Mac OS X, dead code stripping ("smart linking") happens based on
+            global symbols: every global/static symbol (symbols that do not
+            start with "L") marks the start of a new "subsection" that is
+            discarded by the linker if there are no references to this symbol.
+            This means that if you put the jump table in the rodata section, it
+            will become part of the block of data associated with the previous
+            non-L-label in the rodata section and stay or be thrown away
+            depending on whether that block of data is referenced. Therefore,
+            jump tables must be added in the code section and since aktlocaldata
+            is inserted right after the routine, it will become part of the
+            same subsection that contains the routine's code }
+          sectype:=sec_code;
+        new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
         current_procinfo.aktlocaldata.concat(Tai_label.Create(tablelabel));
         genitem(current_procinfo.aktlocaldata,hp);
       end;
