@@ -578,47 +578,58 @@ implementation
       begin
         result:=nil;
         { constant folding }
-        if is_constintnode(left) and is_constintnode(right) then
+        if is_constintnode(right) then
           begin
-             if forinline then
+            if forinline then
+              begin
+                { shl/shr are unsigned operations, so cut off upper bits }
+                case resultdef.size of
+                  1:
+                    rvalue:=tordconstnode(right).value and byte($7);
+                  2:
+                    rvalue:=tordconstnode(right).value and byte($f);
+                  4:
+                    rvalue:=tordconstnode(right).value and byte($1f);
+                  8:
+                    rvalue:=tordconstnode(right).value and byte($3f);
+                  else
+                    internalerror(2013122302);
+                end;
+              end
+            else
+              rvalue:=tordconstnode(right).value;
+            if is_constintnode(left) then
                begin
-                 { shl/shr are unsigned operations, so cut off upper bits }
-                 case resultdef.size of
-                   1:
-                     begin
-                       rvalue:=tordconstnode(right).value and byte($7);
-                       lvalue:=tordconstnode(left).value and byte($ff);
+                 if forinline then
+                   begin
+                     { shl/shr are unsigned operations, so cut off upper bits }
+                     case resultdef.size of
+                       1:
+                         lvalue:=tordconstnode(left).value and byte($ff);
+                       2:
+                         lvalue:=tordconstnode(left).value and word($ffff);
+                       4:
+                         lvalue:=tordconstnode(left).value and dword($ffffffff);
+                       8:
+                         lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                       else
+                         internalerror(2013122301);
                      end;
-                   2:
-                     begin
-                       rvalue:=tordconstnode(right).value and byte($f);
-                       lvalue:=tordconstnode(left).value and word($ffff);
-                     end;
-                   4:
-                     begin
-                       rvalue:=tordconstnode(right).value and byte($1f);
-                       lvalue:=tordconstnode(left).value and dword($ffffffff);
-                     end;
-                   8:
-                     begin
-                       rvalue:=tordconstnode(right).value and byte($3f);
-                       lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-                     end;
-                   else
-                     internalerror(2013122301);
+                   end
+                 else
+                   lvalue:=tordconstnode(left).value;
+                 case nodetype of
+                    shrn:
+                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
+                    shln:
+                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
                  end;
                end
-             else
-               begin
-                 rvalue:=tordconstnode(right).value;
-                 lvalue:=tordconstnode(left).value;
-               end;
-             case nodetype of
-                shrn:
-                  result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
-                shln:
-                  result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
-             end;
+            else if rvalue=0 then
+              begin
+                result:=left;
+                left:=nil;
+              end;
           end;
       end;
 
