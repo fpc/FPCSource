@@ -193,19 +193,19 @@ unit optcse;
               more than one instruction to load this particular value
             }
             (not(is_constnode(n)) or (node_complexity(n)>1)))
-{$ifndef x86}
+{$if not(defined(i386)) and not(defined(i8086))}
             or
             { store reference of expression? }
 
             { loading the address of a global symbol takes typically more than
-              one instruction on every platform except x86
+              one instruction on every platform except i8086/i386
               so consider in this case loading the address of the data
             }
             (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and
              (n.nodetype=loadn) and
              (tloadnode(n).symtableentry.typ=staticvarsym)
             )
-{$endif x86}
+{$endif not(defined(i386)) and not(defined(i8086))}
           ) then
           begin
             plists(arg)^.nodelist.Add(n);
