@@ -2380,6 +2380,7 @@ Implementation
             GetNextInstruction(p,hp1) and
             (hp1.typ=ait_instruction) and
             (taicpu(hp1).opcode in [A_LDR,A_LDRB,A_LDRH,A_LDRSB,A_LDRSH]) and
+            (taicpu(hp1).oppostfix in [PF_NONE, PF_B, PF_H, PF_SB, PF_SH]) and
             { for now we don't reschedule if the previous instruction changes potentially a memory location }
             ( (not(taicpu(p).opcode in opcode_could_mem_write) and
                not(RegModifiedByInstruction(NR_PC,p))
