@@ -1,4 +1,4 @@
-{ %OPT=-Oodfa -Sew -vw }
+{ %OPT=-Oodfa -Sew -vw -Oonodeadvalues }
 type
   to1 = object
     procedure Init;
