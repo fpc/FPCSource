@@ -60,7 +60,7 @@ unit optcse;
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,niln,
         setelementn,{arrayconstructorn,arrayconstructorrangen,}
-        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
+        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn,addrn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
