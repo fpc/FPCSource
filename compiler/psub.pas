@@ -1295,9 +1295,6 @@ implementation
             {RedoDFA:=}OptimizeInductionVariables(code);
           end;
 
-        if cs_opt_nodecse in current_settings.optimizerswitches then
-          do_optcse(code);
-
         if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
           (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
           (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
@@ -1305,6 +1302,9 @@ implementation
 
         { add implicit entry and exit code }
         add_entry_exit_code;
+
+        if cs_opt_nodecse in current_settings.optimizerswitches then
+          do_optcse(code);
 
         { only do secondpass if there are no errors }
         if (ErrorCount=0) then
