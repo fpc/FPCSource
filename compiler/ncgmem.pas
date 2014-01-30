@@ -1053,7 +1053,8 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or (right.location.size<>OS_ADDR) then
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
 
               if isjump then
                begin
