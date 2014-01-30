@@ -47,7 +47,7 @@ unit rgcpu;
         supreg:=getsupreg(reg);
         { All registers conflict with rsp/rbp }
         add_edge(supreg,RS_RSP);
-        add_edge(supreg,RS_RBP);
+        // add_edge(supreg,RS_RBP);
       end;
 
 end.
