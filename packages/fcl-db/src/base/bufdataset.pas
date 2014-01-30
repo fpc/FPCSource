@@ -2736,6 +2736,8 @@ begin
     begin
     if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
       DatabaseErrorFmt(SNotEditing,[Name],self);
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
 
     result := TBufBlobStream.Create(Field as TBlobField, bmWrite);
     end;
