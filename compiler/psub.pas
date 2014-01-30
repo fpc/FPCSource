@@ -913,7 +913,7 @@ implementation
                begin
                  cg.translate_register(tabstractnormalvarsym(p).localloc.register);
                  if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
-                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+                   cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
                end;
              if cs_asm_source in current_settings.globalswitches then
                begin
