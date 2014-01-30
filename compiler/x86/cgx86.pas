@@ -1881,7 +1881,10 @@ unit cgx86;
 
     procedure tcgx86.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
       const
-{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu)}
+        REGCX=NR_RCX;
+        REGCX_Size = OS_64;
+{$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGCX_Size = OS_32;
 {$elseif defined(cpu16bitalu)}
