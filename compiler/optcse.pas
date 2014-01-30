@@ -374,7 +374,7 @@ unit optcse;
 
                         if addrstored then
                           templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
-                            true,caddrnode.create(tnode(lists.nodelist[i])))
+                            true,caddrnode.create_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
                             def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
