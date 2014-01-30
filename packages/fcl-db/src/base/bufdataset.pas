@@ -1173,7 +1173,6 @@ var IndexNr : integer;
     i : integer;
 
 begin
-  FAutoIncField:=nil;
   if not Assigned(FDatasetReader) and (FileName<>'') then
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
@@ -1202,6 +1201,7 @@ begin
   // If there is a field with FieldNo=0 then the fields are not found to the
   // FieldDefs which is a sign that there is no dataset created. (Calculated and
   // lookup fields have FieldNo=-1)
+  FAutoIncField:=nil;
   for i := 0 to Fields.Count-1 do
     if Fields[i].FieldNo=0 then
       DatabaseError(SErrNoDataset)
@@ -1274,7 +1274,7 @@ begin
 
   SetLength(FFieldBufPositions,0);
 
-  FAutoIncValue:=-1;
+  if FAutoIncValue>-1 then FAutoIncValue:=1;
 
   if assigned(FParser) then FreeAndNil(FParser);
   FReadFromFile:=false;
