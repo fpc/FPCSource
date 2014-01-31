@@ -534,6 +534,7 @@ ResourceString
   SMsgDlgAbort                  = '&Abort';
   SMsgDlgAll                    = '&All';
   SMsgDlgCancel                 = 'Cancel';
+  SMsgDlgClose                  = '&Close';
   SMsgDlgConfirm                = 'Confirm';
   SMsgDlgError                  = 'Error';
   SMsgDlgHelp                   = '&Help';
