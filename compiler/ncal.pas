@@ -3826,6 +3826,7 @@ implementation
         n: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
+        trytotakeaddress : Boolean;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -3847,30 +3848,50 @@ implementation
 
                 firstpass(para.left);
 
-                { create temps for value parameters, function result and also for    }
-                { const parameters which are passed by value instead of by reference }
-                { we need to take care that we use the type of the defined parameter and not of the
-                  passed parameter, because these can be different in case of a formaldef (PFV) }
-                paracomplexity := node_complexity(para.left);
+                { determine how a parameter is passed to the inlined body
+                  There are three options:
+                    - insert the node tree of the callparanode directly
+                      If a parameter is used only once, this is the best option if we can do so
+                    - get the address of the argument, store it in a temp and insert a dereference to this temp
+                      If the node tree cannot be inserted directly, taking the address of the argument and using it
+                      is the second best option, but even this is not always possible
+                    - assign the value of the argument to a newly created temp
+                      This is the fall back which works always
+                  Notes:
+                    - we need to take care that we use the type of the defined parameter and not of the
+                      passed parameter, because these can be different in case of a formaldef (PFV)
+                }
+
+                { pre-compute some values }
+                paracomplexity:=node_complexity(para.left);
                 if para.parasym.varspez=vs_const then
                   pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
-                { check if we have to create a temp, assign the parameter's }
-                { contents to that temp and then substitute the parameter   }
-                { with the temp everywhere in the function                  }
+
+                { if the parameter is "complex", try to take the address
+                  of the parameter expression, store it in a temp and replace
+                  occurrences of the parameter with dereferencings of this
+                  temp
+                }
+                trytotakeaddress:=
+                  { don't create a temp. for function results }
+                  not(nf_is_funcret in para.left.flags) and
+                  { this makes only sense if the parameter is reasonable complex else inserting directly is a better solution }
+                  ((paracomplexity>2) or
+                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                  ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))));
+
+                { check if we have to create a temp, assign the parameter's
+                  contents to that temp and then substitute the parameter
+                  with the temp everywhere in the function                  }
                 if
                   ((tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
                    not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]))  or
                   { we can't assign to formaldef temps }
                   ((para.parasym.vardef.typ<>formaldef) and
                    (
-                    { if paracomplexity > 1, we normally take the address of   }
-                    { the parameter expression, store it in a temp and         }
-                    { substitute the dereferenced temp in the inlined function }
-                    { We can't do this if we can't take the address of the     }
-                    { parameter expression, so in that case assign to a temp   }
-                    not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) or
-                    ((paracomplexity > 1) and
-                      not(nf_is_funcret in para.left.flags) and
+                    { can we take the address of the argument? }
+                    (trytotakeaddress and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE])) or
+                    (trytotakeaddress and
                      (not valid_for_addr(para.left,false) or
                       (para.left.nodetype = calln) or
                       is_constnode(para.left))) or
@@ -3880,9 +3901,9 @@ implementation
                     { address is taken                                     }
                     ((((para.parasym.varspez = vs_value) and
                        (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
-                      { in case of const, this is only necessary if the     }
-                      { variable would be passed by value normally, or if   }
-                      { there is such a variable somewhere in an expression }
+                      { in case of const, this is only necessary if the
+                        variable would be passed by value normally and if it is modified or if
+                        there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
                         (not pushconstaddr))) and
                      { however, if we pass a global variable, an object field or}
@@ -3960,19 +3981,8 @@ implementation
                           include(tempnode.tempinfo^.flags,ti_addr_taken);
                       end;
                   end
-                { otherwise if the parameter is "complex", take the address   }
-                { of the parameter expression, store it in a temp and replace }
-                { occurrences of the parameter with dereferencings of this    }
-                { temp                                    }
-                else
-                  { don't create a temp. for function results }
-                  if not(nf_is_funcret in para.left.flags) and
-                     ((paracomplexity>2) or
-                     { don't create a temp. for the often seen case that p^ is passed to a var parameter }
-                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var)))) then
-                  begin
-                    wrapcomplexinlinepara(para);
-                  end;
+                else if trytotakeaddress then
+                  wrapcomplexinlinepara(para);
               end;
             para := tcallparanode(para.right);
           end;
