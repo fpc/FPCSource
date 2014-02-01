@@ -970,31 +970,6 @@ implementation
                  if parasym.varspez in [vs_var,vs_out,vs_constref] then
                    set_unique(left);
 
-                 { When the address needs to be pushed then the register is
-                   not regable. Exception is when the location is also a var
-                   parameter and we can pass the address transparently (but
-                   that is handled by make_not_regable if ra_addr_regable is
-                   passed, and make_not_regable always needs to called for
-                   the ra_addr_taken info for non-invisble parameters) }
-                 if (
-                     not(
-                         (vo_is_hidden_para in parasym.varoptions) and
-                         (left.resultdef.typ in [pointerdef,classrefdef])
-                        ) and
-                     paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption)
-                    ) then
-                   { pushing the address of a variable to take the place of a temp  }
-                   { as the complex function result of a function does not make its }
-                   { address escape the current block, as the "address of the       }
-                   { function result" is not something which can be stored          }
-                   { persistently by the callee (it becomes invalid when the callee }
-                   { returns)                                                       }
-                   if not(vo_is_funcret in parasym.varoptions) then
-                     make_not_regable(left,[ra_addr_regable,ra_addr_taken])
-                   else
-                     make_not_regable(left,[ra_addr_regable]);
-
                   case parasym.varspez of
                     vs_out :
                       begin
@@ -3475,6 +3450,43 @@ implementation
 
 
     function tcallnode.pass_1 : tnode;
+
+      procedure mark_unregable_parameters;
+        var
+          hp : tcallparanode;
+        begin
+          hp:=tcallparanode(left);
+          while assigned(hp) do
+            begin
+              do_typecheckpass(hp.left);
+              { When the address needs to be pushed then the register is
+                not regable. Exception is when the location is also a var
+                parameter and we can pass the address transparently (but
+                that is handled by make_not_regable if ra_addr_regable is
+                passed, and make_not_regable always needs to called for
+                the ra_addr_taken info for non-invisble parameters) }
+              if (
+                  not(
+                      (vo_is_hidden_para in hp.parasym.varoptions) and
+                      (hp.left.resultdef.typ in [pointerdef,classrefdef])
+                     ) and
+                  paramanager.push_addr_param(hp.parasym.varspez,hp.parasym.vardef,
+                      self.procdefinition.proccalloption)
+                 ) then
+                { pushing the address of a variable to take the place of a temp
+                  as the complex function result of a function does not make its
+                  address escape the current block, as the "address of the
+                  function result" is not something which can be stored
+                  persistently by the callee (it becomes invalid when the callee
+                  returns)                                                       }
+                if not(vo_is_funcret in hp.parasym.varoptions) then
+                  make_not_regable(hp.left,[ra_addr_regable,ra_addr_taken])
+                else
+                  make_not_regable(hp.left,[ra_addr_regable]);
+              hp:=tcallparanode(hp.right);
+            end;
+        end;
+
       var
         para: tcallparanode;
       begin
@@ -3590,7 +3602,10 @@ implementation
          if cnf_do_inline in callnodeflags then
            result:=pass1_inline
          else
-           result:=pass1_normal;
+           begin
+             mark_unregable_parameters;
+             result:=pass1_normal;
+           end;
       end;
 
 
@@ -3924,9 +3939,9 @@ implementation
                     { don't create a new temp unnecessarily, but make sure we
                       do create a new one if the old one could be a regvar and
                       the new one cannot be one }
-                    if (para.left.nodetype<>temprefn) or
+                    if not(tparavarsym(para.parasym).varspez in [vs_out,vs_var]) and (((para.left.nodetype<>temprefn) or
                        (((tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
-                        (ti_may_be_in_reg in ttemprefnode(para.left).tempinfo^.flags)) then
+                        (ti_may_be_in_reg in ttemprefnode(para.left).tempinfo^.flags)))) then
                       begin
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
                           tt_persistent,tparavarsym(para.parasym).is_regvar(false));
