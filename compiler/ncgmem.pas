@@ -407,8 +407,12 @@ implementation
                LOC_CONSTANT,
                LOC_REGISTER,
                LOC_CREGISTER,
+               { if a floating point value is casted into a record, it
+                 can happen that we get here an fpu or mm register }
                LOC_MMREGISTER,
-               LOC_FPUREGISTER:
+               LOC_FPUREGISTER,
+               LOC_CMMREGISTER,
+               LOC_CFPUREGISTER:
                  begin
                    { in case the result is not something that can be put
                      into an integer register (e.g.
@@ -423,12 +427,12 @@ implementation
                         memory as well }
                       ((left.location.size in [OS_PAIR,OS_SPAIR]) and
                        (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
-                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER,
+                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_CFPUREGISTER,
                         { actually, we should be able to "subscript" a constant, but this would require some code
                           which enables dumping and reading constants from a temporary memory buffer. This
                           must be done a CPU dependent way, so it is not easy and probably not worth the effort (FK)
                         }
-                                        LOC_CONSTANT]) then
+                        LOC_CONSTANT]) then
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
                      begin

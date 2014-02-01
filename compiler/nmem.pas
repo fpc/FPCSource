@@ -800,6 +800,12 @@ implementation
          else
            begin
              case left.expectloc of
+               { if a floating point value is casted into a record, it
+                 can happen that we get here an fpu or mm register }
+               LOC_CMMREGISTER,
+               LOC_CFPUREGISTER,
+               LOC_MMREGISTER,
+               LOC_FPUREGISTER,
                LOC_CONSTANT,
                LOC_REGISTER,
                LOC_SUBSETREG:
