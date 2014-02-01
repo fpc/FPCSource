@@ -2285,13 +2285,6 @@ implementation
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
 
-                     { check if the result could be in a register }
-                     if (not(tstoreddef(resultdef).is_intregable) and
-                         not(tstoreddef(resultdef).is_fpuregable)) or
-                        ((left.resultdef.typ = floatdef) and
-                         (resultdef.typ <> floatdef))  then
-                       make_not_regable(left,[ra_addr_regable]);
-
                      { class/interface to class/interface, with checkobject support }
                      if is_class_or_interface_or_objc(resultdef) and
                         is_class_or_interface_or_objc(left.resultdef) then
@@ -3513,6 +3506,15 @@ implementation
         if codegenerror then
          exit;
         expectloc:=left.expectloc;
+
+        if nf_explicit in flags then
+          { check if the result could be in a register }
+          if (not(tstoreddef(resultdef).is_intregable) and
+              not(tstoreddef(resultdef).is_fpuregable)) or
+             ((left.resultdef.typ = floatdef) and
+              (resultdef.typ <> floatdef))  then
+            make_not_regable(left,[ra_addr_regable]);
+
         result:=first_call_helper(convtype);
       end;
 
