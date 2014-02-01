@@ -1022,7 +1022,15 @@ unit cgcpu;
                     ((lsb = 0) or ((lsb + width) = 32)) then
               begin
                 shifterop_reset(so);
-                if lsb = 0 then
+                if (width = 16) and
+                   (lsb = 0) and
+                   (current_settings.cputype >= cpu_armv6) then
+                  list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
+                else if (width = 8) and
+                   (lsb = 0) and
+                   (current_settings.cputype >= cpu_armv6) then
+                  list.concat(taicpu.op_reg_reg(A_UXTB,dst,src))
+                else if lsb = 0 then
                   begin
                     so.shiftmode:=SM_LSL;
                     so.shiftimm:=32-width;

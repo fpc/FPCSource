@@ -378,6 +378,10 @@ interface
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
             end;
+          LOC_CONSTANT:
+            begin
+              location.reference.offset:=left.location.value;
+            end
           else
             internalerror(2002032216);
         end;

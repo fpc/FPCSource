@@ -1376,7 +1376,8 @@ Implementation
                            )
                          )
                        ) and
-                       { Only fold if there isn't another shifterop already. }
+                       { Only fold if there isn't another shifterop already, and offset is zero. }
+                       (taicpu(hp1).oper[1]^.ref^.offset = 0) and
                        (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_None) and
                        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
