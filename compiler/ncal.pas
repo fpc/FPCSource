@@ -780,7 +780,7 @@ implementation
              maybe_global_proc_to_nested(left,parasym.vardef);
 
              { Handle varargs and hidden paras directly, no typeconvs or }
-             { pass_typechecking needed                                       }
+             { pass_typechecking needed                                  }
              if (cpf_varargs_para in callparaflags) then
                begin
                  { this should only happen vor C varargs                    }
@@ -2810,7 +2810,7 @@ implementation
           begin
             tcallparanode(left).get_paratype;
             if codegenerror then
-             goto errorexit;
+              goto errorexit;
           end;
 
          if assigned(methodpointer) then
