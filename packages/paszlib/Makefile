@@ -321,14 +321,14 @@ endif
 endif
 override PACKAGE_NAME=paszlib
 override PACKAGE_VERSION=2.7.1
-FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
 ifneq ($(PACKAGEDIR_FPMKUNIT),)
 ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)),)

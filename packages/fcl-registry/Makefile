@@ -321,14 +321,14 @@ endif
 endif
 override PACKAGE_NAME=fcl-registry
 override PACKAGE_VERSION=2.7.1
-FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

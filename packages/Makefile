@@ -328,8 +328,8 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
-LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
 ifneq ($(PACKAGEDIR_FPMKUNIT),)
 UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)
