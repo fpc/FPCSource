@@ -638,8 +638,19 @@ implementation
 
 
     function tcasenode.pass_typecheck : tnode;
+      var
+        i : integer;
       begin
         result:=nil;
+
+        do_typecheckpass(left);
+
+        for i:=0 to blocks.count-1 do
+          typecheckpass(pcaseblock(blocks[i])^.statement);
+
+        if assigned(elseblock) then
+          typecheckpass(elseblock);
+
         resultdef:=voidtype;
       end;
 
