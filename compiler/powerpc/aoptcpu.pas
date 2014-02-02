@@ -46,58 +46,6 @@ Implementation
   uses
     cutils, verbose, cgbase, cgcpu, cgobj;
 
-const
-  calculation_target_op0: array[tasmop] of tasmop = (a_none,
-    a_add, a_add_, a_addo, a_addo_, a_addc, a_addc_, a_addco, a_addco_,
-    a_adde, a_adde_, a_addeo, a_addeo_, a_addi, a_addic, a_addic_, a_addis,
-    a_addme, a_addme_, a_addmeo, a_addmeo_, a_addze, a_addze_, a_addzeo,
-    a_addzeo_, a_and, a_and_, a_andc, a_andc_, a_andi_, a_andis_, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_cntlzw, a_cntlzw_, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_divw, a_divw_, a_divwo, a_divwo_,
-    a_divwu, a_divwu_, a_divwuo, a_divwuo_, a_none, a_none, a_none, a_eqv,
-    a_eqv_, a_extsb, a_extsb_, a_extsh, a_extsh_, a_fabs, a_fabs_, a_fadd,
-    a_fadd_, a_fadds, a_fadds_, a_none, a_none,
-    a_fctid, a_fctid_, a_fctidz, a_fctidz_,
-    a_fctiw, a_fctiw_, a_fctiwz, a_fctiwz_,
-    a_fdiv, a_fdiv_, a_fdivs, a_fdivs_, a_fmadd, a_fmadd_, a_fmadds,
-    a_fmadds_, a_none, a_fmsub, a_fmsub_, a_fmsubs, a_fmsubs_, a_fmul, a_fmul_,
-    a_fmuls, a_fmuls_, a_fnabs, a_fnabs_, a_fneg, a_fneg_, a_fnmadd,
-    a_fnmadd_, a_fnmadds, a_fnmadds_, a_fnmsub, a_fnmsub_, a_fnmsubs,
-    a_fnmsubs_, a_fres, a_fres_, a_frsp, a_frsp_, a_frsqrte, a_frsqrte_,
-    a_none, a_none, a_fsqrt, a_fsqrt_, a_fsqrts, a_fsqrts_, a_fsub, a_fsub_,
-    a_fsubs, a_fsubs_, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_mulhw,
-    a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
-    a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
-    a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
-    a_rlwinm, a_rlwinm_, a_rlwnm, a_rlwnm_, a_none, a_slw, a_slw_, a_sraw, a_sraw_,
-    a_srawi, a_srawi_,a_srw, a_srw_, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none, a_subf, a_subf_, a_subfo,
-    a_subfo_, a_subfc, a_subfc_, a_subfco, a_subfco_, a_subfe, a_subfe_,
-    a_subfeo, a_subfeo_, a_subfic, a_subfme, a_subfme_, a_subfmeo, a_subfmeo_,
-    a_subfze, a_subfze_, a_subfzeo, a_subfzeo_, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_xor, a_xor_, a_xori, a_xoris,
-    { simplified mnemonics }
-    a_subi, a_subis, a_subic, a_subic_, a_sub, a_sub_, a_subo, a_subo_,
-    a_subc, a_subc_, a_subco, a_subco_, a_none, a_none, a_none, a_none,
-    a_extlwi, a_extlwi_, a_extrwi, a_extrwi_, a_inslwi, a_inslwi_, a_insrwi,
-    a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
-    a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
-    a_clrslwi_, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none {move to special purpose reg}, a_none {move from special purpose reg},
-    a_none, a_none, a_none, a_none, a_none, a_none, a_not, a_not_, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none, a_none);
-
   function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
     var
       next3, prev: tai;
@@ -251,13 +199,26 @@ const
                 begin
                   if getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
-                     (calculation_target_op0[taicpu(next1).opcode] <> a_none) and
+                     (taicpu(next1).ops >= 1) and
+                     { spilling_get_operation_type does not support lmw/stmw }
+                     (taicpu(next1).opcode <> A_LMW) and
+                     (taicpu(next1).opcode <> A_STMW) and
+                     (taicpu(next1).spilling_get_operation_type(0) = operand_write) and
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) then
                     begin
                       for l1 := 1 to taicpu(next1).ops - 1 do
-                        if (taicpu(next1).oper[l1]^.typ = top_reg) and
-                           (taicpu(next1).oper[l1]^.reg = taicpu(p).oper[0]^.reg) then
-                          taicpu(next1).loadreg(l1,taicpu(p).oper[1]^.reg);
+                        case taicpu(next1).oper[l1]^.typ of
+                          top_reg:
+                            if taicpu(next1).oper[l1]^.reg = taicpu(p).oper[0]^.reg then
+                              taicpu(next1).loadreg(l1,taicpu(p).oper[1]^.reg);
+                          top_ref:
+                            begin
+                              if taicpu(next1).oper[l1]^.ref^.base = taicpu(p).oper[0]^.reg then
+                                taicpu(next1).oper[l1]^.ref^.base := taicpu(p).oper[1]^.reg;
+                              if taicpu(next1).oper[l1]^.ref^.index = taicpu(p).oper[0]^.reg then
+                                taicpu(next1).oper[l1]^.ref^.index := taicpu(p).oper[1]^.reg;
+                            end;
+                        end;
                       asml.remove(p);
                       p.free;
                       p := next1;
