@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       baseunix unixutil unixcp \
       termio unix initc cmem \
       printer \
-      sysutils typinfo math fgl classes matrix \
+      sysutils typinfo math fgl classes \
       charset cpall buildcollations getopts \
       errors \
       # ipc serial
