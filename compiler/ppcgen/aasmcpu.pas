@@ -417,7 +417,7 @@ uses cutils, cclasses;
           A_MFXER
 {$endif cpu64bitalu}
             : ;
-          A_RLWIMI, A_RLWIMI_
+          A_RLWIMI, A_RLWIMI_, A_INSLWI, A_INSLWI_, A_INSRWI, A_INSRWI_
 {$ifdef cpu64bitalu}
           , A_INSRDI, A_INSRDI_, A_RLDIMI
 {$endif not cpu64bitalu}
