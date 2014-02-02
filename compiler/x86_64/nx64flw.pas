@@ -159,51 +159,53 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_x86_64_win64) or (
+    if (target_info.system=system_x86_64_win64) and
+       (
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-        assigned(current_procinfo.procdef.struct) and
-        (df_generic in current_procinfo.procdef.struct.defoptions)
-      ) then
-      exit;
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-    finalizepi.entrypos:=r.fileinfo;
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.exitswitches:=current_settings.localswitches;
-    { the init/final code is messing with asm nodes, so inform the compiler about this }
-    include(finalizepi.flags,pi_has_assembler_block);
-    { Regvar optimization for symbols is suppressed when using exceptions, but
-      temps may be still placed into registers. This must be fixed. }
-    foreachnodestatic(r,@reset_regvars,finalizepi);
+        not assigned(current_procinfo.procdef.struct) or
+        not(df_generic in current_procinfo.procdef.struct.defoptions)
+       ) then
+      begin
+        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
+        finalizepi.force_nested;
+        finalizepi.procdef:=create_finalizer_procdef;
+        finalizepi.entrypos:=r.fileinfo;
+        finalizepi.entryswitches:=r.localswitches;
+        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
+        finalizepi.exitswitches:=current_settings.localswitches;
+        { the init/final code is messing with asm nodes, so inform the compiler about this }
+        include(finalizepi.flags,pi_has_assembler_block);
+        { Regvar optimization for symbols is suppressed when using exceptions, but
+          temps may be still placed into registers. This must be fixed. }
+        foreachnodestatic(r,@reset_regvars,finalizepi);
+      end;
   end;
 
 constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
   begin
     inherited create_implicit(l, r, _t1);
-    if (target_info.system<>system_x86_64_win64) then
-      exit;
+    if (target_info.system=system_x86_64_win64) then
+      begin
+        if assigned(current_procinfo.procdef.struct) and
+          (df_generic in current_procinfo.procdef.struct.defoptions) then
+          InternalError(2013012501);
 
-    if assigned(current_procinfo.procdef.struct) and
-      (df_generic in current_procinfo.procdef.struct.defoptions) then
-      InternalError(2013012501);
+        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
+        finalizepi.force_nested;
+        finalizepi.procdef:=create_finalizer_procdef;
 
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-
-    finalizepi.entrypos:=current_filepos;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitswitches:=current_settings.localswitches;
-    include(finalizepi.flags,pi_do_call);
-    { the init/final code is messing with asm nodes, so inform the compiler about this }
-    include(finalizepi.flags,pi_has_assembler_block);
-    finalizepi.allocate_push_parasize(32);
+        finalizepi.entrypos:=current_filepos;
+        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
+        finalizepi.entryswitches:=r.localswitches;
+        finalizepi.exitswitches:=current_settings.localswitches;
+        include(finalizepi.flags,pi_do_call);
+        { the init/final code is messing with asm nodes, so inform the compiler about this }
+        include(finalizepi.flags,pi_has_assembler_block);
+        finalizepi.allocate_push_parasize(32);
+      end;
   end;
 
 function tx64tryfinallynode.simplify(forinline: boolean): tnode;
