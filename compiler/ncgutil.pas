@@ -1945,13 +1945,15 @@ implementation
             exit;
         end;
 
-        if not is_void(current_procinfo.procdef.returndef) and
+        { self is implicitly returned from constructors, even if there are no
+          references to it; additionally, funcretsym is not set for constructor
+          procdefs }
+        if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+          rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
+        else if not is_void(current_procinfo.procdef.returndef) and
            assigned(current_procinfo.procdef.funcretsym) and
            (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
-          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
-         else
-            rr.ressym:=current_procinfo.procdef.funcretsym;
+          rr.ressym:=current_procinfo.procdef.funcretsym;
 
         if not foreachnodestatic(n,@doreplace,@rr) then
           exit;
