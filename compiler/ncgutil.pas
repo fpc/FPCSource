@@ -1362,7 +1362,8 @@ implementation
         current_asmdata.asmcfi.start_frame(list);
 
         { All temps are know, write offsets used for information }
-        if (cs_asm_source in current_settings.globalswitches) then
+        if (cs_asm_source in current_settings.globalswitches) and
+           (current_procinfo.tempstart<>tg.lasttemp) then
           begin
             if tg.direction>0 then
               begin
