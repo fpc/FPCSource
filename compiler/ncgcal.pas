@@ -778,15 +778,8 @@ implementation
          regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
 
-         proc_addr_size:=int_cgsize(procdefinition.address_size);
-{$ifdef i8086}
-         if po_far in procdefinition.procoptions then
-           proc_addr_voidptrdef:=voidfarpointertype
-         else
-           proc_addr_voidptrdef:=voidnearpointertype;
-{$else i8086}
-         proc_addr_voidptrdef:=voidpointertype;
-{$endif i8086}
+         proc_addr_voidptrdef:=procdefinition.address_type;
+         proc_addr_size:=def_cgsize(proc_addr_voidptrdef);
 
          { Include Function result registers }
          if (not is_void(resultdef)) then
@@ -890,7 +883,7 @@ implementation
                      wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 
-                 reference_reset_base(href,vmtreg,vmtoffset,procdefinition.address_size);
+                 reference_reset_base(href,vmtreg,vmtoffset,proc_addr_voidptrdef.alignment);
 {$ifndef x86}
                  pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
