@@ -555,7 +555,7 @@ unit cgcpu;
       begin
         if not paramanager.use_fixed_stack then
           begin
-            cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+            a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
             list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
           end
         else
@@ -584,7 +584,7 @@ unit cgcpu;
                (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
               begin
                 current_module.requires_ebx_pic_helper:=true;
-                cg.a_call_name_static(list,'fpc_geteipasebx');
+                a_call_name_static(list,'fpc_geteipasebx');
               end
             else
               begin
@@ -674,7 +674,7 @@ unit cgcpu;
               else
                 selfoffsetfromsp:=sizeof(aint);
               reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
             end;
         end;
 
@@ -684,7 +684,7 @@ unit cgcpu;
         begin
           { mov  0(%eax),%reg ; load vmt}
           reference_reset_base(href,NR_EAX,0,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
         end;
 
       procedure op_onregmethodaddr(op: TAsmOp; reg: tregister);
@@ -707,7 +707,7 @@ unit cgcpu;
             Internalerror(200006139);
           { mov vmtoffs(%eax),%eax ; method offs }
           reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
 

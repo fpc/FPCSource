@@ -1565,8 +1565,8 @@ begin
     { generate a loop }
     if len > 4 then
     begin
-      countreg := cg.GetIntRegister(list, OS_INT);
-      tmpreg1  := cg.GetIntRegister(list, OS_INT);
+      countreg := GetIntRegister(list, OS_INT);
+      tmpreg1  := GetIntRegister(list, OS_INT);
       a_load_const_reg(list, OS_INT, len, countreg);
       current_asmdata.getjumplabel(lab);
       a_label(list, lab);
@@ -1580,7 +1580,7 @@ begin
     else
     begin
       { unrolled loop }
-      tmpreg1 := cg.GetIntRegister(list, OS_INT);
+      tmpreg1 := GetIntRegister(list, OS_INT);
       for i := 1 to len do
       begin
         list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));

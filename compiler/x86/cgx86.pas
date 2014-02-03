@@ -564,7 +564,7 @@ unit cgx86;
                  begin
                    include(current_procinfo.flags,pi_needs_got);
                    { make a copy of the got register, hreg can get modified }
-                   hreg:=cg.getaddressregister(list);
+                   hreg:=getaddressregister(list);
                    a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,hreg);
                    ref.relsymbol:=current_procinfo.CurrGOTLabel;
                  end;
@@ -578,7 +578,7 @@ unit cgx86;
             href.base:=current_procinfo.got;
             href.refaddr:=addr_pic;
             include(current_procinfo.flags,pi_needs_got);
-            hreg:=cg.getaddressregister(list);
+            hreg:=getaddressregister(list);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
             ref.symbol:=nil;
             add_hreg:=true;
@@ -2808,7 +2808,7 @@ unit cgx86;
               begin
                 if target_info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
-                cg.g_stackpointer_alloc(list,localsize);
+                g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;

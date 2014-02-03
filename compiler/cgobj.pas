@@ -759,7 +759,7 @@ implementation
           No IE can be generated, because the VMT is written
           without a valid rg[] }
         if assigned(rg[rt]) then
-          rg[rt].add_reg_instruction(instr,r,cg.executionweight);
+          rg[rt].add_reg_instruction(instr,r,executionweight);
       end;
 
 
@@ -1131,7 +1131,7 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+             a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
@@ -2086,7 +2086,7 @@ implementation
            (tcgsize2size[tosize]<>4) then
           internalerror(2009112504);
         tg.gettemp(list,8,8,tt_normal,tmpref);
-        cg.a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
+        a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
         a_load_ref_reg(list,tosize,tosize,tmpref,intreg);
         tg.ungettemp(list,tmpref);
       end;
@@ -2362,7 +2362,7 @@ implementation
 
     procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
-        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
