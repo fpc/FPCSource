@@ -87,6 +87,14 @@ interface
             LOC_REFERENCE, this method will be called to perform the necessary
             cleanups. By default it does not do anything }
           procedure do_release_unused_return_value;virtual;
+
+          { Override the following three methods to support calls to address in
+            'ref' without loading it into register (only x86 targets probably).
+            If can_call_ref returns true, it should do required simplification
+            on ref. }
+          function can_call_ref(var ref: treference):boolean;virtual;
+          procedure extra_call_ref_code(var ref: treference);virtual;
+          procedure do_call_ref(ref: treference);virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -412,6 +420,24 @@ implementation
 
     procedure tcgcallnode.extra_post_call_code;
       begin
+      end;
+
+
+    function tcgcallnode.can_call_ref(var ref: treference): boolean;
+      begin
+        result:=false;
+      end;
+
+
+    procedure tcgcallnode.extra_call_ref_code(var ref: treference);
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tcgcallnode.do_call_ref(ref: treference);
+      begin
+        InternalError(2014012901);
       end;
 
 
@@ -757,6 +783,7 @@ implementation
         pd : tprocdef;
         proc_addr_size: TCgSize;
         proc_addr_voidptrdef: tdef;
+        callref: boolean;
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
@@ -884,10 +911,14 @@ implementation
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 
                  reference_reset_base(href,vmtreg,vmtoffset,proc_addr_voidptrdef.alignment);
-{$ifndef x86}
-                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
-{$endif not x86}
+                 pvreg:=NR_NO;
+
+                 callref:=can_call_ref(href);
+                 if not callref then
+                   begin
+                     pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
+                   end;
 
                  { Load parameters that are in temporary registers in the
                    correct parameter register }
@@ -899,22 +930,9 @@ implementation
                      freeparas;
                    end;
 
-{$ifdef i8086}
-                 if href.base<>NR_NO then
-                   begin
-                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
-                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href.base,NR_BX);
-                     href.base:=NR_BX;
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_BX);
-                   end;
-                 if href.index<>NR_NO then
-                   begin
-                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
-                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href.base,NR_SI);
-                     href.index:=NR_SI;
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
-                   end;
-{$endif i8086}
+                 if callref then
+                   extra_call_ref_code(href);
+
                  cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
                  if cg.uses_registers(R_ADDRESSREGISTER) then
                    cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
@@ -925,11 +943,11 @@ implementation
 
                  { call method }
                  extra_call_code;
-{$ifdef x86}
-                 hlcg.a_call_ref(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),href);
-{$else x86}
-                 hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
-{$endif x86}
+                 if callref then
+                   do_call_ref(href)
+                 else
+                   hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
+
                  extra_post_call_code;
                end
              else
@@ -977,12 +995,18 @@ implementation
            { now procedure variable case }
            begin
               secondpass(right);
+              callref:=false;
 
               pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
               { Only load OS_ADDR from the reference (when converting to hlcg:
                 watch out with procedure of object) }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,right.location.reference,pvreg)
+                begin
+                  href:=right.location.reference;
+                  callref:=can_call_ref(href);
+                  if not callref then
+                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,right.location.reference,pvreg)
+                end
               else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                 begin
                   { in case left is a method pointer and we are on a big endian target, then
@@ -1005,6 +1029,9 @@ implementation
                   freeparas;
                 end;
 
+              if callref then
+                extra_call_ref_code(href);
+
               cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
               if cg.uses_registers(R_ADDRESSREGISTER) then
                 cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
@@ -1018,7 +1045,11 @@ implementation
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
               extra_call_code;
-              hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
+
+              if callref then
+                do_call_ref(href)
+              else
+                hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg);
               extra_post_call_code;
            end;
 

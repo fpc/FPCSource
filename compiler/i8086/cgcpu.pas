@@ -49,8 +49,6 @@ unit cgcpu;
         procedure a_call_name_static_far(list : TAsmList;const s : string);
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
         procedure a_call_reg_far(list : TAsmList;reg : tregister);
-        procedure a_call_ref(list : TAsmList;ref : treference);override;
-        procedure a_call_ref_far(list : TAsmList;ref : treference);
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
@@ -254,24 +252,9 @@ unit cgcpu;
         a_load_reg_ref(list,OS_32,OS_32,reg,href);
         cg.getcpuregister(list,NR_BX);
         cg.getcpuregister(list,NR_SI);
-        a_call_ref_far(list,href);
+        href.refaddr:=addr_far_ref;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,href));
         tg.ungettemp(list,href);
-      end;
-
-
-    procedure tcg8086.a_call_ref(list: TAsmList; ref: treference);
-      begin
-        if current_settings.x86memorymodel in x86_far_code_models then
-          a_call_ref_far(list,ref)
-        else
-          a_call_ref_near(list,ref);
-      end;
-
-
-    procedure tcg8086.a_call_ref_far(list: TAsmList; ref: treference);
-      begin
-        ref.refaddr:=addr_far_ref;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
 

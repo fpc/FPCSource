@@ -54,7 +54,6 @@ unit cgcpu;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
-        procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister); override;
@@ -398,19 +397,6 @@ unit cgcpu;
         a_reg_alloc(list,NR_ZHI);
         list.concat(taicpu.op_reg_reg(A_MOV,NR_ZLO,reg));
         list.concat(taicpu.op_reg_reg(A_MOV,NR_ZHI,GetHigh(reg)));
-        list.concat(taicpu.op_none(A_ICALL));
-        a_reg_dealloc(list,NR_ZLO);
-        a_reg_dealloc(list,NR_ZHI);
-
-        include(current_procinfo.flags,pi_do_call);
-      end;
-
-
-    procedure tcgavr.a_call_ref(list : TAsmList;ref: treference);
-      begin
-        a_reg_alloc(list,NR_ZLO);
-        a_reg_alloc(list,NR_ZHI);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_ZLO);
         list.concat(taicpu.op_none(A_ICALL));
         a_reg_dealloc(list,NR_ZLO);
         a_reg_dealloc(list,NR_ZHI);

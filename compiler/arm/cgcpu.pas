@@ -47,7 +47,6 @@ unit cgcpu;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
-        procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         { move instructions }
         procedure a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
@@ -677,16 +676,6 @@ unit cgcpu;
           if not(pi_do_call in current_procinfo.flags) then
             internalerror(2003060703);
 }
-        include(current_procinfo.flags,pi_do_call);
-      end;
-
-
-    procedure tbasecgarm.a_call_ref(list : TAsmList;ref: treference);
-      begin
-        a_reg_alloc(list,NR_R12);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_R12);
-        a_call_reg(list,NR_R12);
-        a_reg_dealloc(list,NR_R12);
         include(current_procinfo.flags,pi_do_call);
       end;
 

@@ -227,7 +227,6 @@ unit cgobj;
           }
           procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
-          procedure a_call_ref(list : TAsmList;ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;const s : string);virtual;
@@ -2410,16 +2409,6 @@ implementation
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
         a_call_name(list,s,false);
-      end;
-
-
-    procedure tcg.a_call_ref(list : TAsmList;ref: treference);
-      var
-        tempreg : TRegister;
-      begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
       end;
 
 

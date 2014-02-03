@@ -28,13 +28,15 @@ interface
 { $define AnsiStrRef}
 
     uses
-      nx86cal;
+      nx86cal,cgutils;
 
     type
        ti8086callnode = class(tx86callnode)
        protected
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
+          procedure extra_call_ref_code(var ref: treference);override;
+          procedure do_call_ref(ref: treference);override;
        end;
 
 
@@ -43,11 +45,11 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      cgbase,cgutils,
+      cgbase,
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
-      cga,cgobj,cpuinfo;
+      cga,cgobj,cgx86,cpuinfo;
 
 
 {*****************************************************************************
@@ -89,6 +91,33 @@ implementation
         else
           if pop_size<>0 then
             current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_W,pop_size,NR_SP));
+      end;
+
+
+    procedure ti8086callnode.extra_call_ref_code(var ref: treference);
+      begin
+        if ref.base<>NR_NO then
+          begin
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
+            ref.base:=NR_BX;
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_BX);
+          end;
+        if ref.index<>NR_NO then
+          begin
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.index,NR_SI);
+            ref.index:=NR_SI;
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+          end;
+      end;
+
+
+    procedure ti8086callnode.do_call_ref(ref: treference);
+      begin
+        if current_settings.x86memorymodel in x86_far_code_models then
+          ref.refaddr:=addr_far_ref;
+        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
 

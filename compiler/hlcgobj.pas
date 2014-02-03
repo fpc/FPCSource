@@ -194,7 +194,6 @@ unit hlcgobj;
           }
           function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;virtual;
@@ -973,22 +972,6 @@ implementation
            a_loadaddr_ref_reg(list,fromsize,cgpara.location^.def,r,hr);
            a_load_reg_cgpara(list,cgpara.def,hr,cgpara);
          end;
-    end;
-
-  procedure thlcgobj.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
-    var
-      reg: tregister;
-      size: tdef;
-    begin
-      { the loaded data is always a pointer to a procdef. A procvardef is
-        implicitly a pointer already, but a procdef isn't -> create one }
-      if pd.typ=procvardef then
-        size:=pd
-      else
-        size:=getpointerdef(pd);
-      reg:=getaddressregister(list,size);
-      a_load_ref_reg(list,size,size,ref,reg);
-      a_call_reg(list,pd,reg);
     end;
 
   function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
