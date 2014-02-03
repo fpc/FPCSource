@@ -8,7 +8,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}
@@ -650,19 +650,24 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOldValue;
+var OldValue: string;
+    Fmemo: TField;
 begin
-  with DBConnector.GetNDataset(1) as TDataset do
+  with DBConnector.GetFieldDataset as TCustomBufDataset do
   begin;
     Open;
     First;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
+    Next;
+    OldValue := Fields[0].AsString;
+
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
     CheckTrue(UpdateStatus=usUnmodified, 'Unmodified');
 
     Edit;
     Fields[0].AsInteger := -1;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
     Post;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
     CheckTrue(UpdateStatus=usModified, 'Modified');
 
     Append;
@@ -671,6 +676,22 @@ begin
     Post;
     CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
     CheckTrue(UpdateStatus=usInserted, 'Inserted');
+
+    // Blobs are stored in a special way
+    // Use TMemoField because it implements AsVariant as AsString
+    First;
+    Next;
+    Fmemo := FieldByName('F'+FieldTypeNames[ftMemo]);
+    OldValue := Fmemo.AsString;
+
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue');
+    Edit;
+    Fmemo.AsString := 'Changed Memo value';
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue before Post');
+    Post;
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue after Post');
+    MergeChangeLog;
+    CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
   end;
 end;
 
@@ -1676,7 +1697,7 @@ begin
     i := fields[0].AsInteger;
     s := fields[1].AsString;
     fields[0].AsInteger:=64;
-    fields[1].AsString:='Changed';
+    fields[1].AsString:='Changed1';
     Post;
     checkequals(fields[0].OldValue,i);
     checkequals(fields[1].OldValue,s);
@@ -1686,7 +1707,7 @@ begin
     i := fields[0].AsInteger;
     s := fields[1].AsString;
     fields[0].AsInteger:=23;
-    fields[1].AsString:='hanged';
+    fields[1].AsString:='Changed2';
     Post;
     checkequals(fields[0].OldValue,i);
     checkequals(fields[1].OldValue,s);
@@ -1694,7 +1715,7 @@ begin
     MergeChangeLog;
     CheckEquals(ChangeCount,0);
     checkequals(fields[0].OldValue,23);
-    checkequals(fields[1].OldValue,'hanged');
+    checkequals(fields[1].OldValue,'Changed2');
     end;
 
   // Test handling of [Update]BlobBuffers in TBufDataset
