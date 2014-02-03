@@ -47,7 +47,7 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
-  ExceptTryLevel    : longint;
+  ExceptTryLevel    : nativeint;
 
 Function RaiseList : PExceptObject;
 begin
