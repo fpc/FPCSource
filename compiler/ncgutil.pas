@@ -1553,10 +1553,10 @@ implementation
                   vs:=tabstractnormalvarsym(sym);
                   { Parameters passed to assembler procedures need to be kept
                     in the original location }
-                  if (po_assembler in current_procinfo.procdef.procoptions) then
+                  if (po_assembler in pd.procoptions) then
                     tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc)
                   { exception filters receive their frame pointer as a parameter }
-                  else if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) and
+                  else if (pd.proctypeoption=potype_exceptfilter) and
                     (vo_is_parentfp in vs.varoptions) then
                     begin
                       location_reset(vs.initialloc,LOC_REGISTER,OS_ADDR);
@@ -1564,7 +1564,7 @@ implementation
                     end
                   else
                     begin
-                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,current_procinfo.procdef.proccalloption);
+                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
                         vs.initialloc.size:=OS_ADDR
                       else
@@ -1596,7 +1596,7 @@ implementation
                 begin
                   vs:=tabstractnormalvarsym(sym);
                   vs.initialloc.size:=def_cgsize(vs.vardef);
-                  if ([po_assembler,po_nostackframe] * current_procinfo.procdef.procoptions = [po_assembler,po_nostackframe]) and
+                  if ([po_assembler,po_nostackframe] * pd.procoptions = [po_assembler,po_nostackframe]) and
                      (vo_is_funcret in vs.varoptions) then
                     begin
                       paramanager.create_funcretloc_info(pd,calleeside);
@@ -1610,7 +1610,7 @@ implementation
                         pd.funcretloc[calleeside].get_location(vs.initialloc);
                     end
                   else if (m_delphi in current_settings.modeswitches) and
-                     (po_assembler in current_procinfo.procdef.procoptions) and
+                     (po_assembler in pd.procoptions) and
                      (vo_is_funcret in vs.varoptions) and
                      (vs.refs=0) then
                     begin
