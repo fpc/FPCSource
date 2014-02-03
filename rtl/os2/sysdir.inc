@@ -69,6 +69,8 @@ begin
       if Len > 2 then
       begin
         DoDirSeparators (s);
+        if (S [Pred (Len)] = DirectorySeparator) and (Len <> 3) then
+         S [Pred (Len)] := #0;
         RC := DosSetCurrentDir (s);
         if RC <> 0 then
         begin
@@ -78,6 +80,8 @@ begin
       end;
   end else begin
     DoDirSeparators (s);
+    if (Len > 1) and (S [Pred (Len)] = DirectorySeparator) then
+     S [Pred (Len)] := #0;
     RC := DosSetCurrentDir (s);
     if RC <> 0 then
     begin
