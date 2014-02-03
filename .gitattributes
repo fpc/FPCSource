@@ -11715,6 +11715,7 @@ tests/test/tobjcl2.pp svneol=native#text/plain
 tests/test/tobjcl3.pp svneol=native#text/plain
 tests/test/tobjcl4.pp svneol=native#text/plain
 tests/test/tobject1.pp svneol=native#text/plain
+tests/test/tobject10.pp svneol=native#text/plain
 tests/test/tobject2.pp svneol=native#text/plain
 tests/test/tobject3.pp svneol=native#text/plain
 tests/test/tobject4.pp svneol=native#text/plain

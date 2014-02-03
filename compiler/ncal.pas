@@ -2226,9 +2226,11 @@ implementation
             if (cnf_new_call in callnodeflags) then
                 vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
             else
-              { destructor with extended syntax called from dispose }
-              if (cnf_dispose_call in callnodeflags) then
-                vmttree:=cloadvmtaddrnode.create(methodpointer.getcopy)
+              { destructor with extended syntax called from dispose
+                or destructor called from exception block in constructor }
+              if (cnf_dispose_call in callnodeflags) or
+                 (cnf_create_failed in callnodeflags) then
+                vmttree:=cpointerconstnode.create(1,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
