@@ -877,12 +877,11 @@ implementation
                      { todo: fix vmt type for high level cg }
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,proc_addr_voidptrdef,proc_addr_voidptrdef,false);
                      vmtreg:=methodpointer.location.register;
+                     { test validity of VMT }
+                     if not(is_interface(tprocdef(procdefinition).struct)) and
+                        not(is_cppclass(tprocdef(procdefinition).struct)) then
+                       cg.g_maybe_testvmt(current_asmdata.CurrAsmList,vmtreg,tobjectdef(tprocdef(procdefinition).struct));
                    end;
-
-                 { test validity of VMT }
-                 if not(is_interface(tprocdef(procdefinition).struct)) and
-                    not(is_cppclass(tprocdef(procdefinition).struct)) then
-                   cg.g_maybe_testvmt(current_asmdata.CurrAsmList,vmtreg,tobjectdef(tprocdef(procdefinition).struct));
 
                  { Call through VMT, generate a VTREF symbol to notify the linker }
                  vmtoffset:=tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber);
