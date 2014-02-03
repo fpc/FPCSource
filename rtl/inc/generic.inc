@@ -737,39 +737,38 @@ end;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
+type
+  pobjectvmt=^tobjectvmt;
+  tobjectvmt=record
+    size,msize:ptruint;
+    parent:pointer;
+  end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];compilerproc;
-type
-  ppointer = ^pointer;
-  pvmt = ^tvmt;
-  tvmt=packed record
-    size,msize:ptruint;
-    parent:pointer;
-  end;
 var
-  vmtcopy : pointer;
+  vmtcopy : pobjectvmt;
 begin
+  vmtcopy:=pobjectvmt(_vmt);
   { Inherited call? }
-  if _vmt=nil then
+  if vmtcopy=nil then
     begin
       fpc_help_constructor:=_self;
       exit;
     end;
-  vmtcopy:=_vmt;
 
   if (_self=nil) and
-     (pvmt(_vmt)^.size>0) then
+     (vmtcopy^.size>0) then
     begin
-      getmem(_self,pvmt(_vmt)^.size);
+      getmem(_self,vmtcopy^.size);
       { reset vmt needed for fail }
       _vmt:=pointer(-1);
     end;
   if _self<>nil then
     begin
-      fillchar(_self^,pvmt(vmtcopy)^.size,0);
+      fillchar(_self^,vmtcopy^.size,0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
   fpc_help_constructor:=_self;
@@ -780,21 +779,14 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 { Note: _self will not be reset, the compiler has to generate the reset }
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  compilerproc;
-type
-  ppointer = ^pointer;
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
    { already released? }
    if (_self=nil) or
       (_vmt=nil) or
       (ppointer(_self+vmt_pos)^=nil) then
      exit;
-   if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
-      (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
+   if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
+      (pobjectvmt(ppointer(_self+vmt_pos)^)^.size+pobjectvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
@@ -830,16 +822,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 procedure fpc_check_object(_vmt : pointer); [public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
-type
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
   if (_vmt=nil) or
-     (pvmt(_vmt)^.size=0) or
-     (pvmt(_vmt)^.size+pvmt(_vmt)^.msize<>0) then
+     (pobjectvmt(_vmt)^.size=0) or
+     (pobjectvmt(_vmt)^.size+pobjectvmt(_vmt)^.msize<>0) then
     RunError(210);
 end;
 
@@ -851,22 +837,16 @@ end;
 { deeper check to see if the current object is }
 { really related to the true }
 procedure fpc_check_object_ext(vmt, expvmt : pointer); [public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
-type
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
    if (vmt=nil) or
-      (pvmt(vmt)^.size=0) or
-      (pvmt(vmt)^.size+pvmt(vmt)^.msize<>0) then
+      (pobjectvmt(vmt)^.size=0) or
+      (pobjectvmt(vmt)^.size+pobjectvmt(vmt)^.msize<>0) then
         RunError(210);
    while assigned(vmt) do
      if vmt=expvmt then
        exit
      else
-       vmt:=pvmt(vmt)^.parent;
+       vmt:=pobjectvmt(vmt)^.parent;
    RunError(219);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
