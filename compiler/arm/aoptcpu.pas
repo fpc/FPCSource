@@ -1358,8 +1358,10 @@ Implementation
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        {Only LDR, LDRB, STR, STRB can handle scaled register indexing}
-                       MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition],
-                                             [PF_None, PF_B]) and
+                       (MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], [PF_None, PF_B]) or
+                        (GenerateThumb2Code and
+                         MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], [PF_None, PF_B, PF_SB, PF_H, PF_SH]))
+                       ) and
                        (
                          {If this is address by offset, one of the two registers can be used}
                          ((taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
@@ -1373,7 +1375,8 @@ Implementation
                            (
                              (taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) and
                              (taicpu(hp1).oper[1]^.ref^.base <> taicpu(p).oper[0]^.reg)
-                           )
+                           ) and
+                           (not GenerateThumb2Code)
                          )
                        ) and
                        { Only fold if there isn't another shifterop already, and offset is zero. }
