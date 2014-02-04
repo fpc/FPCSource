@@ -484,7 +484,7 @@ interface
           begin
             asmList := current_asmdata.CurrAsmList;
             pass_left_right;
-            force_reg_left_right(true, false);
+            force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT));
             set_result_location_reg;
 
             { shortcuts to register64s }
