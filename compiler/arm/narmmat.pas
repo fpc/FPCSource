@@ -438,8 +438,7 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        if GenerateThumbCode or GenerateThumb2Code then//or
-//           (right.nodetype <> ordconstn) then
+        if GenerateThumbCode or GenerateThumb2Code then
           result:=inherited
         else
           result := nil;
@@ -448,7 +447,6 @@ implementation
     procedure tarmshlshrnode.second_64bit;
       var
         v : TConstExprInt;
-        l1,l2,l3:Tasmlabel;
         so: tshifterop;
         lreg, resreg: TRegister64;
 
@@ -474,7 +472,7 @@ implementation
         end;
 
       {This code is build like it gets called with sm=SM_LSR all the time, for SM_LSL dst* and src* have to be reversed
-       This will generate 
+       This will generate
          mov   shiftval1, shiftval
          cmp   shiftval1, #64
          movcs shiftval1, #64
@@ -534,7 +532,6 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
         location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        
 
         { load left operator in a register }
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
