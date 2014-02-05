@@ -2226,11 +2226,14 @@ implementation
             if (cnf_new_call in callnodeflags) then
                 vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
             else
-              { destructor with extended syntax called from dispose
-                or destructor called from exception block in constructor }
-              if (cnf_dispose_call in callnodeflags) or
-                 (cnf_create_failed in callnodeflags) then
-                vmttree:=cpointerconstnode.create(1,voidpointertype)
+              { destructor with extended syntax called from dispose }
+              { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
+              if (cnf_dispose_call in callnodeflags) then
+                vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
+            else
+              { destructor called from exception block in constructor }
+              if (cnf_create_failed in callnodeflags) then
+                vmttree:=ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then

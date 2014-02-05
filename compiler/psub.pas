@@ -758,19 +758,37 @@ implementation
                 pd:=tobjectdef(procdef.struct).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
-                if assigned(pd) then
+                if assigned(pd) or is_object(procdef.struct) then
                   begin
                     current_filepos:=exitpos;
                     exceptblock:=internalstatements(newstatement);
                     { first free the instance if non-nil }
-                    { if vmt<>0 then call destructor }
-                    addstatement(newstatement,cifnode.create(
-                      caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                      { cnf_create_failed -> don't call BeforeDestruction }
-                      ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                      nil));
+                    if assigned(pd) then
+                      { if vmt<>0 then call destructor }
+                      addstatement(newstatement,
+                        cifnode.create(
+                          caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create),
+                          { cnf_create_failed -> don't call BeforeDestruction }
+                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                          nil))
+                    else
+                      { object without destructor, call 'fail' helper }
+                      addstatement(newstatement,
+                        ccallnode.createintern('fpc_help_fail',
+                          ccallparanode.create(
+                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_vmt_pointer_node,
+                              voidpointertype),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_self_pointer_node,
+                              voidpointertype),
+                          nil))))
+                      );
                     { then re-raise the exception }
                     addstatement(newstatement,craisenode.create(nil,nil,nil));
                     current_filepos:=entrypos;

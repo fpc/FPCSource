@@ -782,7 +782,7 @@ procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias
 begin
    { already released? }
    if (_self=nil) or
-      (_vmt=nil) or
+      (_vmt<>pointer(-1)) or
       (ppointer(_self+vmt_pos)^=nil) then
      exit;
    if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
