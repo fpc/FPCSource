@@ -35,13 +35,16 @@ Const
 
 Type
   TRedirectEvent = Procedure (Sender : TObject; Const ASrc : String; Var ADest: String) of object;
+  TPasswordEvent = Procedure (Sender : TObject; Var RepeatRequest : Boolean) of object;
 
   { TFPCustomHTTPClient }
   TFPCustomHTTPClient = Class(TComponent)
   private
     FAllowRedirect: Boolean;
     FMaxRedirects: Byte;
+    FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
+    FPassword: String;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -53,6 +56,7 @@ Type
     FServerHTTPVersion: String;
     FSocket : TInetSocket;
     FBuffer : Ansistring;
+    FUserName: String;
     function CheckContentLength: Integer;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
@@ -68,6 +72,7 @@ Type
     function ReadString: String;
     // Check if response code is in AllowedResponseCodes. if not, an exception is raised.
     // If AllowRedirect is true, and the result is a Redirect status code, the result is also true
+    // If the OnPassword event is set, then a 401 will also result in True.
     function CheckResponseCode(ACode: Integer;  const AllowedResponseCodes: array of Integer): Boolean; virtual;
     // Read response from server, and write any document to Stream.
     Procedure ReadResponse(Stream: TStream;  const AllowedResponseCodes: array of Integer; HeadersOnly: Boolean = False); virtual;
@@ -82,12 +87,19 @@ Type
     // Run method AMethod, using request URL AURL. Write Response to Stream, and headers in ResponseHeaders.
     // If non-empty, AllowedResponseCodes contains an array of response codes considered valid responses.
     // If HandleRedirect is True, then Redirect status is accepted as a correct status, but request is not repeated.
+    // No authorization callback.
     Procedure DoMethod(Const AMethod,AURL : String; Stream : TStream; Const AllowedResponseCodes : Array of Integer); virtual;
     // Send request to server: construct request line and send headers and request body.
     Procedure SendRequest(const AMethod: String; URI: TURI); virtual;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
+    // Add header Aheader with value AValue to HTTPHeaders, replacing exiting values
+    Class Procedure AddHeader(HTTPHeaders : TStrings; Const AHeader,AValue : String);
+    // Index of header AHeader in httpheaders.
+    Class Function IndexOfHeader(HTTPHeaders : TStrings; Const AHeader : String) : Integer;
+    // Return value of header AHeader from httpheaders. Returns empty if it doesn't exist yet.
+    Class Function GetHeader(HTTPHeaders : TStrings; Const AHeader : String) : String;
     // Request Header management
     // Return index of header, -1 if not present.
     Function IndexOfHeader(Const AHeader : String) : Integer;
@@ -95,7 +107,7 @@ Type
     Procedure AddHeader(Const AHeader,AValue : String);
     // Return header value, empty if not present.
     Function GetHeader(Const AHeader : String) : String;
-    // General-purpose call. Handles redirect.
+    // General-purpose call. Handles redirect and authorization retry (OnPassword).
     Procedure HTTPMethod(Const AMethod,AURL : String; Stream : TStream; Const AllowedResponseCodes : Array of Integer); virtual;
     // Execute GET on server, store result in Stream, File, StringList or string
     Procedure Get(Const AURL : String; Stream : TStream);
@@ -205,7 +217,16 @@ Type
     // Called On redirect. Dest URL can be edited.
     // If The DEST url is empty on return, the method is aborted (with redirect status).
     Property OnRedirect : TRedirectEvent Read FOnRedirect Write FOnRedirect;
+    // Authentication.
+    // When set, they override the credentials found in the URI.
+    // They also override any Authenticate: header in Requestheaders.
+    Property UserName : String Read FUserName Write FUserName;
+    Property Password : String Read FPassword Write FPassword;
+    // If a request returns a 401, then the OnPassword event is fired.
+    // It can modify the username/password and set RepeatRequest to true;
+    Property OnPassword : TPasswordEvent Read FOnPassword Write FOnPassword;
   end;
+
 
   TFPHTTPClient = Class(TFPCustomHTTPClient)
   Public
@@ -220,6 +241,9 @@ Type
     Property AllowRedirect;
     Property MaxRedirects;
     Property OnRedirect;
+    Property UserName;
+    Property Password;
+    Property OnPassword;
   end;
   EHTTPClient = Class(Exception);
 
@@ -328,40 +352,21 @@ begin
 end;
 
 function TFPCustomHTTPClient.IndexOfHeader(const AHeader: String): Integer;
-Var
-  L : Integer;
-  H : String;
 begin
-  H:=LowerCase(Aheader);
-  l:=Length(AHeader);
-  Result:=Requestheaders.Count-1;
-  While (Result>=0) and ((LowerCase(Copy(RequestHeaders[Result],1,l)))<>h) do
-    Dec(Result);
+  Result:=IndexOfHeader(RequestHeaders,AHeader);
 end;
 
 procedure TFPCustomHTTPClient.AddHeader(const AHeader, AValue: String);
 
-Var
-  J: Integer;
 begin
-  j:=IndexOfHeader(Aheader);
-  if (J<>-1) then
-    RequestHeaders.Delete(j);
-  RequestHeaders.Add(AHeader+': '+Avalue);
+  AddHeader(RequestHeaders,AHeader,AValue);
 end;
 
 function TFPCustomHTTPClient.GetHeader(const AHeader: String): String;
 
-Var
-  I : Integer;
 
 begin
-  I:=indexOfHeader(AHeader);
-  Result:=RequestHeaders[i];
-  I:=Pos(':',Result);
-  if (I=0) then
-    I:=Length(Result);
-  System.Delete(Result,1,I);
+  Result:=GetHeader(RequestHeaders,AHeader);
 end;
 
 function TFPCustomHTTPClient.GetServerURL(URI: TURI): String;
@@ -406,13 +411,25 @@ end;
 procedure TFPCustomHTTPClient.SendRequest(const AMethod: String; URI: TURI);
 
 Var
-  S,L : String;
+  UN,PW,S,L : String;
   I : Integer;
 
 begin
   S:=Uppercase(AMethod)+' '+GetServerURL(URI)+' '+'HTTP/'+FHTTPVersion+CRLF;
-  If (URI.Username<>'') then
-    S:=S+'Authorization: Basic ' + EncodeStringBase64(URI.UserName+ ':' + URI.Password)+CRLF;
+  UN:=URI.Username;
+  PW:=URI.Password;
+  if (UserName<>'') then
+    begin
+    UN:=UserName;
+    PW:=Password;
+    end;
+  If (UN<>'') then
+    begin
+    S:=S+'Authorization: Basic ' + EncodeStringBase64(UN+':'+PW)+CRLF;
+    I:=IndexOfHeader('Authorization');
+    If I<>-1 then
+      RequestHeaders.Delete(i);
+    end;
   S:=S+'Host: '+URI.Host;
   If (URI.Port<>0) then
     S:=S+':'+IntToStr(URI.Port);
@@ -605,8 +622,13 @@ begin
       Inc(I);
       end
     end;
-  If (Not Result) and AllowRedirect then
-    Result:=IsRedirect(ACode);
+  If (Not Result) then
+    begin
+    if AllowRedirect then
+      Result:=IsRedirect(ACode);
+    If (ACode=401) then
+      Result:=Assigned(FOnPassword);
+    end;
 end;
 
 function TFPCustomHTTPClient.CheckContentLength: Integer;
@@ -863,6 +885,51 @@ begin
   inherited Destroy;
 end;
 
+class procedure TFPCustomHTTPClient.AddHeader(HTTPHeaders: TStrings;
+  const AHeader, AValue: String);
+Var
+J: Integer;
+begin
+  j:=IndexOfHeader(HTTPHeaders,Aheader);
+  if (J<>-1) then
+    HTTPHeaders.Delete(j);
+  HTTPHeaders.Add(AHeader+': '+Avalue);
+end;
+
+
+class function TFPCustomHTTPClient.IndexOfHeader(HTTPHeaders: TStrings;
+  const AHeader: String): Integer;
+
+Var
+  L : Integer;
+  H : String;
+begin
+  H:=LowerCase(Aheader);
+  l:=Length(AHeader);
+  Result:=HTTPHeaders.Count-1;
+  While (Result>=0) and ((LowerCase(Copy(HTTPHeaders[Result],1,l)))<>h) do
+    Dec(Result);
+end;
+
+class function TFPCustomHTTPClient.GetHeader(HTTPHeaders: TStrings;
+  const AHeader: String): String;
+Var
+  I : Integer;
+begin
+  I:=IndexOfHeader(HTTPHeaders,AHeader);
+  if (I=-1) then
+    Result:=''
+  else
+    begin
+    Result:=HTTPHeaders[i];
+    I:=Pos(':',Result);
+    if (I=0) then
+      I:=Length(Result);
+    System.Delete(Result,1,I);
+    Result:=TrimLeft(Result);
+    end;
+end;
+
 procedure TFPCustomHTTPClient.ResetResponse;
 
 begin
@@ -899,10 +966,7 @@ begin
         Inc(RC);
         if (RC>MaxRedirects) then
           Raise EHTTPClient.CreateFmt(SErrMaxRedirectsReached,[RC]);
-        C:=FResponseHeaders.NameValueSeparator;
-        FResponseHeaders.NameValueSeparator:=':';
-        NL:=TrimLeft(FResponseHeaders.Values['Location']);
-        FResponseHeaders.NameValueSeparator:=C;
+        NL:=GetHeader(FResponseHeaders,'Location');
         if Not Assigned(FOnRedirect) then
           L:=NL
         else
@@ -916,7 +980,14 @@ begin
         FSentCookies:=Nil;
         end;
       end;
-    RR:=AllowRedirect and IsRedirect(FResponseStatusCode) and (L<>'')
+    if (FResponseStatusCode=401) then
+      begin
+      RR:=False;
+      if Assigned(FOnPassword) then
+        FOnPassword(Self,RR);
+      end
+    else
+      RR:=AllowRedirect and IsRedirect(FResponseStatusCode) and (L<>'')
   until not RR;
 end;
 
