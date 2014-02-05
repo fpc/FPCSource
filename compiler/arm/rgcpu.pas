@@ -43,6 +43,8 @@ unit rgcpu;
        public
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         function do_spill_replace(list : TAsmList;instr : taicpu;
+           orgreg : tsuperregister;const spilltemp : treference) : boolean;override;
          procedure add_constraints(reg:tregister);override;
          function  get_spill_subreg(r:tregister) : tsubregister;override;
        end;
@@ -277,6 +279,48 @@ unit rgcpu;
           spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
+      end;
+
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      var
+        b : byte;
+      begin
+        result:=false;
+        if abs(spilltemp.offset)>4095 then
+          exit;
+
+        { Replace 'mov  dst,orgreg' with 'ldr  dst,spilltemp'
+          and     'mov  orgreg,src' with 'str  dst,spilltemp' }
+        with instr do
+          begin
+            if (opcode=A_MOV) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
+              begin
+                if (getregtype(oper[0]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
+                  begin
+                    { str expects the register in oper[0] }
+                    oper[0]^.typ:=top_reg;
+                    oper[0]^.reg:=oper[1]^.reg;
+                    oper[1]^.typ:=top_ref;
+                    new(oper[1]^.ref);
+                    oper[1]^.ref^:=spilltemp;
+                    opcode:=A_STR;
+                    result:=true;
+                  end
+                else if (getregtype(oper[1]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
+                  begin
+                    oper[1]^.typ:=top_ref;
+                    new(oper[1]^.ref);
+                    oper[1]^.ref^:=spilltemp;
+                    opcode:=A_LDR;
+                    result:=true;
+                  end;
+              end;
+          end;
       end;
 
 

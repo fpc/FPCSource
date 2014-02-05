@@ -2137,7 +2137,7 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$if defined(x86) or defined(mips) or defined(sparc)}
+{$if defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
         { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions
 
@@ -2152,7 +2152,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif defined(x86) or defined(mips) or defined(sparc)}
+{$endif defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
 
         {
           There are registers that need are spilled. We generate the
