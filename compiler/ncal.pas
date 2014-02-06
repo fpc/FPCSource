@@ -1758,11 +1758,24 @@ implementation
           { constructors }
           if (procdefinition.proctypeoption=potype_constructor) then
             begin
-              { push 0 as self when allocation is needed }
               if (methodpointer.resultdef.typ=classrefdef) or
                  (cnf_new_call in callnodeflags) then
                 if not is_javaclass(tdef(procdefinition.owner.defowner)) then
-                  selftree:=cpointerconstnode.create(0,voidpointertype)
+                  begin
+                    if (cnf_new_call in callnodeflags) then
+                      { old-style object: push 0 as self }
+                      selftree:=cpointerconstnode.create(0,voidpointertype)
+                    else
+                      begin
+                        { class-style: push classtype }
+                        selftree:=methodpointer.getcopy;
+                        if selftree.nodetype=typen then
+                          begin
+                            selftree:=cloadvmtaddrnode.create(selftree);
+                            tloadvmtaddrnode(selftree).forcall:=true;
+                          end;
+                      end;
+                  end
                 else
                  { special handling for Java constructors, handled in
                    tjvmcallnode.extra_pre_call_code }
@@ -2142,19 +2155,10 @@ implementation
             { constructor call via classreference => allocate memory }
             if (procdefinition.proctypeoption=potype_constructor) then
               begin
-                vmttree:=methodpointer.getcopy;
-                { Only a typenode can be passed when it is called with <class of xx>.create }
-                if vmttree.nodetype=typen then
-                  begin
-                    vmttree:=cloadvmtaddrnode.create(vmttree);
-                    tloadvmtaddrnode(vmttree).forcall:=true;
-                  end;
-              end
-            else
-              begin
-                { Call afterconstruction }
                 vmttree:=cpointerconstnode.create(1,voidpointertype);
-              end;
+              end
+            else  { <class of xx>.destroy is not valid }
+              InternalError(2014020601);
           end
         else
         { Class style objects }
@@ -2177,7 +2181,7 @@ implementation
                       if called from a constructor then
                         don't call afterconstruction, vmt=0
                       else
-                        call afterconstrution, vmt=1 }
+                        call afterconstrution but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                       vmttree:=cpointerconstnode.create(1,voidpointertype)
@@ -2187,7 +2191,7 @@ implementation
                           (procdefinition.proctypeoption=potype_constructor) then
                     vmttree:=cpointerconstnode.create(0,voidpointertype)
                   else
-                    vmttree:=cpointerconstnode.create(1,voidpointertype);
+                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype);
                 end
             else
             { normal call to method like cl1.proc }
@@ -2215,7 +2219,7 @@ implementation
                        (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
                     else
-                      vmttree:=cpointerconstnode.create(1,voidpointertype);
+                      vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype);
                   end;
               end;
           end

@@ -452,9 +452,9 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
-                        { if vmt>1 then newinstance }
+                        { if vmt=1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create_internal(gtn,
+                            caddnode.create_internal(equaln,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
@@ -463,7 +463,9 @@ implementation
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
-                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node,[])),
+                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,
+                                  ctypeconvnode.create_internal(load_self_pointer_node,tclassrefdef.create(current_structdef)),
+                                  [])),
                             nil));
                       end
                     else
