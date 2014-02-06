@@ -145,7 +145,7 @@ interface
         { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false),
         { aix }     ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false,   false, false),
         { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true,  false),
-        { android } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   true,  false),
+        { android } ( true,  false, false, false, false, true,  false, false, false, false, false, true,  false, false,   true,  false),
         { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true)
       );
 
