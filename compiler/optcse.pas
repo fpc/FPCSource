@@ -225,6 +225,10 @@ unit optcse;
                     else
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(ptrint(i));
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
+                    { tree has been found, no need to search further,
+                      sub-trees have been added by the first occurence of
+                      the tree already }
+                    result:=fen_norecurse_false;
                     break;
                   end;
               end;
