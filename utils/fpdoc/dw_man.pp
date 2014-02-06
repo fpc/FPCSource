@@ -262,8 +262,7 @@ constructor TManWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
-            if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+            if Not Engine.ShowElement(FPEl) then
               continue;
 
             DocNode := Engine.FindDocNode(FPEl);

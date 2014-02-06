@@ -304,6 +304,7 @@ type
     function ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
     function ResolveLinkInUsedUnits(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
   protected
+    FAlwaysVisible : TStringList;
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
     FRootLinkNode: TLinkNode;
@@ -334,12 +335,17 @@ type
       override;
     function FindElement(const AName: String): TPasElement; override;
     function FindModule(const AName: String): TPasModule; override;
+    Function HintsToStr(Hints : TPasMemberHints) : String;
 
     // Link tree support
     procedure AddLink(const APathName, ALinkTo: String);
     function FindAbsoluteLink(const AName: String): String;
     function ResolveLink(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
     function FindLinkedNode(ANode: TDocNode): TDocNode;
+    Function ShowElement(El : TPasElement) : Boolean; inline;
+
+    // Call this before documenting.
+    Procedure StartDocumenting; virtual;
 
     // Documentation file support
     procedure AddDocFile(const AFilename: String;DontTrim:boolean=false);
@@ -348,8 +354,7 @@ type
     function FindDocNode(AElement: TPasElement): TDocNode;
     function FindDocNode(ARefModule: TPasModule; const AName: String): TDocNode;
     function FindShortDescr(AElement: TPasElement): TDOMElement;
-    function FindShortDescr(ARefModule: TPasModule;
-      const AName: String): TDOMElement;
+    function FindShortDescr(ARefModule: TPasModule; const AName: String): TDOMElement;
     function GetExampleFilename(const ExElement: TDOMElement): String;
 
     property RootLinkNode: TLinkNode read FRootLinkNode;
@@ -607,6 +612,8 @@ constructor TFPDocEngine.Create;
 begin
   inherited Create;
   DescrDocs := TObjectList.Create;
+  FAlwaysVisible := TStringList.Create;
+  FAlwaysVisible.CaseSensitive:=True;
   DescrDocNames := TStringList.Create;
   FRootLinkNode := TLinkNode.Create('', '');
   FRootDocNode := TDocNode.Create('', nil);
@@ -621,10 +628,11 @@ var
 begin
   for i := 0 to FPackages.Count - 1 do
     TPasPackage(FPackages[i]).Release;
-  FRootDocNode.Free;
-  FRootLinkNode.Free;
-  DescrDocNames.Free;
-  DescrDocs.Free;
+  FreeAndNil(FRootDocNode);
+  FreeAndNil(FRootLinkNode);
+  FreeAndNil(DescrDocNames);
+  FreeAndNil(DescrDocs);
+  FreeAndNil(FAlwaysVisible);
   inherited Destroy;
 end;
 
@@ -1224,7 +1232,24 @@ begin
     end;
 end;
 
-Function TFPDocEngine.ParseUsedUnit(AName,AInputLine,AOSTarget,ACPUTarget : String) : TPasModule;
+function TFPDocEngine.HintsToStr(Hints: TPasMemberHints): String;
+
+Var
+  H : TPasMemberHint;
+
+begin
+  Result:='';
+  For h:=Low(TPasMemberHint) to High(TPasMemberHint) do
+    if h in Hints then
+      begin
+      if (Result<>'') then
+        Result:=Result+', ';
+      Result:=Result+cPasMemberHint[h]
+      end;
+end;
+
+function TFPDocEngine.ParseUsedUnit(AName, AInputLine, AOSTarget,
+  ACPUTarget: String): TPasModule;
 
 Var
   M : TPasModule;
@@ -1359,6 +1384,9 @@ end;
 
 procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
+Var
+  PN : String;
+
   function ReadNode(OwnerDocNode: TDocNode; Element: TDOMElement): TDocNode;
   var
     Subnode: TDOMNode;
@@ -1369,6 +1397,8 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false
       Result := OwnerDocNode.CreateChildren(Element['name']);
     Result.FNode := Element;
     Result.FLink := Element['link'];
+    if (Element['alwaysvisible'] = '1') and (Element.NodeName='element') then
+      FAlwaysVisible.Add(LowerCase(PN+'.'+TDocNode(OwnerDocNode).Name+'.'+Element['name']));
     Result.FIsSkipped := Element['skip'] = '1';
     Subnode := Element.FirstChild;
     while Assigned(Subnode) do
@@ -1436,6 +1466,7 @@ begin
       begin
       PackageDocNode := ReadNode(RootDocNode, TDOMElement(Node));
       PackageDocNode.IncRefCount;
+      PN:=PackageDocNode.Name;
       // Scan all 'module' elements within this package element
       Subnode := Node.FirstChild;
       while Assigned(Subnode) do
@@ -1573,6 +1604,29 @@ begin
     Result:=Nil
   else
     Result:=FindDocNode(CurModule,ANode.Link);
+end;
+
+function TFPDocEngine.ShowElement(El: TPasElement): Boolean;
+begin
+  Case El.Visibility of
+    visStrictPrivate,
+    visPrivate :
+      Result:=Not HidePrivate;
+    visStrictProtected,
+    visProtected :
+      begin
+      Result:=Not HideProtected;
+      if not Result then
+        Result:=FAlwaysVisible.IndexOf(LowerCase(El.PathName))<>-1;
+      end
+  Else
+    Result:=True
+  end;
+end;
+
+procedure TFPDocEngine.StartDocumenting;
+begin
+  FAlwaysVisible.Sorted:=True;
 end;
 
 function TFPDocEngine.FindShortDescr(ARefModule: TPasModule;
