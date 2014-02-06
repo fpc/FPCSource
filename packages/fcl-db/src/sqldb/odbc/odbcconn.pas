@@ -134,7 +134,8 @@ type
   end;
 
   EODBCException = class(EDatabaseError)
-    // currently empty; perhaps we can add fields here later that describe the error instead of one simple message string
+    NativeError: integer;
+    SQLState: string;
   end;
 
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
@@ -199,6 +200,7 @@ var
   Res:SQLRETURN;
   SqlState,MessageText,TotalMessage:string;
   RecNumber:SQLSMALLINT;
+  Error: EODBCException;
 begin
   // check result
   if ODBCSucces(LastReturnCode) then
@@ -209,6 +211,7 @@ begin
     // build TotalMessage for exception to throw
     TotalMessage:=Format(ErrorMsg,FmtArgs)+Format(' ODBC error details: LastReturnCode: %s;',[ODBCResultToStr(LastReturnCode)]);
     // retrieve status records
+    NativeError:=0;
     SetLength(SqlState,5); // SqlState buffer
     SetLength(MessageText,1);
     RecNumber:=1;
@@ -238,7 +241,10 @@ begin
     end
   end;
   // raise error
-  raise EODBCException.Create(TotalMessage);
+  Error := EODBCException.Create(TotalMessage);
+  Error.NativeError := NativeError;
+  Error.SQLState := SqlState;
+  raise Error;
 end;
 
 procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
