@@ -33,6 +33,7 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE OS_FILESETDATEBYNAME}
 
 { used OS file system APIs use unicodestring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
@@ -451,7 +452,6 @@ begin
   Result:=-1;
 end;
 
-
 Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Var
   FT: TFileTime;
@@ -463,6 +463,24 @@ begin
   Result := GetLastError;
 end;
 
+{$IFDEF OS_FILESETDATEBYNAME}
+Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);  
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDate(fd,Age);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+{$ENDIF}                                                                                
 
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 begin
