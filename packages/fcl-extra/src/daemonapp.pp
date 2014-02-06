@@ -57,6 +57,7 @@ Type
     Function UnInstall: boolean; virtual;
     Function HandleCustomCode(ACode : DWord) : Boolean; Virtual;
   Public
+    Procedure CheckControlMessages(Wait : Boolean);
     Procedure LogMessage(const Msg : String);
     Procedure ReportStatus;
     
@@ -693,6 +694,13 @@ begin
   Result:=False
 end;
 
+Procedure TCustomDaemon.CheckControlMessages(Wait : Boolean);
+
+begin
+  If Assigned(FThread) then
+    TDaemonThread(FThread).CheckControlMessage(Wait);
+end;
+    
 { TCustomServiceApplication }
 
 procedure TCustomDaemonApplication.CreateServiceMapper(Var AMapper : TCustomDaemonMapper);
