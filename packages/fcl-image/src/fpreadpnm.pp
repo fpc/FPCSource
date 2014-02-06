@@ -136,7 +136,11 @@ var
 begin
   ReadHeader(Stream);
   Img.SetSize(FWidth,FHeight);
-  FScanLineSize:=FBitPP*((FWidth+7)shr 3);
+  Case FBitmapType of
+    5,6 : FScanLineSize:=(FBitPP div 8) * FWidth;
+  else  
+    FScanLineSize:=FBitPP*((FWidth+7)shr 3);
+  end;
   GetMem(FScanLine,FScanLineSize);
   try
     for Row:=0 to img.Height-1 do
