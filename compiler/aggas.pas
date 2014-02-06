@@ -227,7 +227,7 @@ implementation
         );
 
       { Generic unaligned pseudo-instructions, seems ELF specific }
-      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux];
+      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android];
       ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
         of string[20]=(
           #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9

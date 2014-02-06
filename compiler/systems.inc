@@ -159,7 +159,8 @@
              system_jvm_android32,      { 76 }
              system_arm_android,        { 77 }
              system_i386_android,       { 78 }
-             system_i8086_msdos         { 79 }
+             system_i8086_msdos,        { 79 }
+             system_mipsel_android      { 80 }
        );
 
      type

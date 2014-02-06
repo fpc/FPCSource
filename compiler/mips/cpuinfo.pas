@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by the Free Pascal development team
 
-    Basic Processor information for the ARM
+    Basic Processor information for the MIPS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

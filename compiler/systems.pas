@@ -213,7 +213,7 @@ interface
        system_any = system_none;
 
        systems_wince = [system_arm_wince,system_i386_wince];
-       systems_android = [system_arm_android, system_i386_android];
+       systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
@@ -890,7 +890,11 @@ begin
 
 {$ifdef mips}
 {$ifdef mipsel}
-  default_target(system_mipsel_linux);
+  {$ifdef cpumipsel}
+    default_target(source_info.system);
+  {$else cpumipsel}
+    default_target(system_mipsel_linux);
+  {$endif cpumipsel}
 {$else mipsel}
   default_target(system_mipseb_linux);
 {$endif mipsel}

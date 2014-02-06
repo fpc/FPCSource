@@ -161,7 +161,8 @@ const
   { 76 }  'Android-JVM',
   { 77 }  'Android-arm',
   { 78 }  'Android-i386',
-  { 79 }  'MSDOS-i8086'
+  { 79 }  'MSDOS-i8086',
+  { 79 }  'Android-MIPSel'
   );
 
 const

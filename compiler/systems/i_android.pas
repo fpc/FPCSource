@@ -158,6 +158,69 @@ unit i_android;
             abi : abi_default
           );
 
+       system_mipsel_android_info : tsysteminfo =
+          (
+            system       : system_mipsel_android;
+            name         : 'Android for MIPSEL';
+            shortname    : 'Android';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,tf_pic_default,
+                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+            cpu          : cpu_mipsel;
+            unit_env     : 'ANDROIDUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_android;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 0;
+            stacksize    : 32*1024*1024;
+            stackalign   : 8;
+            abi : abi_default
+          );
 
 implementation
 
@@ -172,4 +235,9 @@ initialization
     set_source_info(system_arm_android_info);
   {$endif android}
 {$endif CPUARM}
+{$ifdef CPUMIPSEL}
+  {$ifdef android}
+    set_source_info(system_mipsel_android_info);
+  {$endif android}
+{$endif CPUMIPSEL}
 end.

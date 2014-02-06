@@ -121,6 +121,7 @@ procedure TLinkerAndroid.SetDefaultInfo;
 const
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
 {$ifdef i386}      platform_select='';{$endif} {unknown :( }
+{$ifdef mipsel}    platform_select='';{$endif} {unknown :( }
 
 var
   s: string;
@@ -435,5 +436,10 @@ initialization
   RegisterExport(system_i386_android,texportlibandroid);
   RegisterTarget(system_i386_android_info);
 {$endif I386}
+{$ifdef MIPSEL}
+  RegisterImport(system_mipsel_android,timportlibandroid);
+  RegisterExport(system_mipsel_android,texportlibandroid);
+  RegisterTarget(system_mipsel_android_info);
+{$endif MIPSEL}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

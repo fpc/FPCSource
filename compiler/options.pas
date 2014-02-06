@@ -3082,6 +3082,8 @@ begin
         utilsprefix:='arm-linux-androideabi-';
       system_i386_android:
         utilsprefix:='i686-linux-android-';
+      system_mipsel_android:
+        utilsprefix:='mipsel-linux-android-';
     end;
 
   { Set up default value for the heap }
@@ -3409,6 +3411,21 @@ if (target_info.abi = abi_eabihf) then
         init_settings.cputype:=cpu_dalvik;
     end;
 {$endif jvm}
+
+{$ifdef mipsel}
+  case target_info.system of
+    system_mipsel_android:
+      begin
+        { set default cpu type to MIPS32 rev. 1 and hard float for MIPS-Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mips32;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_mips32;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_mips2;
+      end;
+  end;
+{$endif mipsel}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);

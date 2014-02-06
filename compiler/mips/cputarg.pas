@@ -46,6 +46,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETANDROID}
+      ,t_android
+    {$endif}
 
 {**************************************
              Assemblers
