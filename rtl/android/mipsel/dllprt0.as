@@ -76,6 +76,16 @@ _haltproc:
 
     .comm __stkptr,4
     .comm operatingsystem_parameter_envp,4
+operatingsystem_parameter_argc:
+    .global operatingsystem_parameter_argc
+    .long 1
+operatingsystem_parameter_argv:
+    .global operatingsystem_parameter_argv
+    .long EmptyCmdLine
+EmptyCmdLine:
+    .long EmptyCmdStr
+EmptyCmdStr:
+    .ascii "\0"
 
 EmptyEnv:
     .long 0
