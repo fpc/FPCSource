@@ -198,7 +198,7 @@ begin
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
-      if (isdll) then
+      if isdll or (cs_create_pic in current_settings.moduleswitches) then
         begin
           add('VERSION');
           add('{');
