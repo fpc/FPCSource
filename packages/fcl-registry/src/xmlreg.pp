@@ -163,6 +163,8 @@ begin
   Result:=(Length(KeyPath)>0);
   If Not Result then
     Exit;
+  If (KeyPath[1] in ['/','\']) then
+    FCurrentElement:=Nil;
   KeyPath:=NormalizeKey(KeyPath);
   If (FCurrentElement<>nil) then
     begin
