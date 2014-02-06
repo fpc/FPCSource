@@ -97,6 +97,12 @@ ifeq ($(ARCH),i386)
   ASTARGET=--32
 endif
 
+# Select mips32 instruction set and PIC for MIPS
+ifeq ($(ARCH),mipsel)
+  ASTARGET=-mips32 -KPIC
+endif
+
+
 #
 # Loaders
 #
