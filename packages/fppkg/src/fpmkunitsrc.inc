@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const fpmkunitsrc.inc : array[0..1041] of string[240]=(
+const fpmkunitsrc : array[0..1041] of string[240]=(
 {$else Delphi}
-const fpmkunitsrc.inc : array[0..1041,1..240] of char=(
+const fpmkunitsrc : array[0..1041,1..240] of char=(
 {$endif Delphi}
   '{'#013#010+
   '    This file is part of the Free Pascal Makefile Package'#013#010+
