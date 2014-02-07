@@ -42,7 +42,7 @@ end;
 Function TProcess.GetExitCode : Integer;
 
 begin
-  if wifexited(FExitCode) then
+  if (Not Running) and wifexited(FExitCode) then
     Result:=wexitstatus(FExitCode)
   else
     Result:=0;
