@@ -1174,7 +1174,7 @@ unit cgcpu;
         if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020701);
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
@@ -2225,7 +2225,7 @@ unit cgcpu;
         if (tmpref.base=NR_NO) then
           begin
             if tmpref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020702);
             if tmpref.signindex<0 then
               internalerror(200312023);
             tmpref.base:=tmpref.index;
@@ -4426,7 +4426,7 @@ unit cgcpu;
             OP_SHL:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020703);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4440,7 +4440,7 @@ unit cgcpu;
             OP_ROL:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020704);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4454,7 +4454,7 @@ unit cgcpu;
             OP_ROR:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020705);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4935,7 +4935,7 @@ unit cgcpu;
         if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020706);
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
