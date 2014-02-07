@@ -286,7 +286,10 @@ end;
 Function TProcess.GetExitCode : Integer;
 
 begin
-  Result:=GetExitStatus;
+  if Not Running then
+    Result:=GetExitStatus
+  else
+    Result:=0
 end;
 {$ENDIF}
 
