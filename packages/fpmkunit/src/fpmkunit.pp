@@ -190,7 +190,7 @@ Const
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false),
-    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true , false),
+    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false )
