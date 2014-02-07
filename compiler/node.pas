@@ -219,6 +219,8 @@ interface
          nf_write,
          { Node is modified      }
          nf_modify,
+         { address of node is taken }
+         nf_address_taken,
          nf_is_funcret,
          nf_isproperty,
          nf_processing,
@@ -1317,9 +1319,12 @@ implementation
 
 begin
 {$push}{$warnings off}
-  { tvaroption should fit into a 4 byte set for speed reasons }
+  { tvaroption must fit into a 4 byte set for speed reasons }
   if ord(high(tvaroption))>31 then
     internalerror(201110301);
+  { tnodeflags must fit into a 4 byte set for speed reasons }
+  if ord(high(tnodeflags))>31 then
+    internalerror(2014020701);
 {$pop}
 end.
 

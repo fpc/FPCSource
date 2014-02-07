@@ -3748,7 +3748,7 @@ implementation
                     begin
                       temp:=paras.left.getcopy;
                       { inherit modification information, this is needed by the dfa/cse }
-                      temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
+                      temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write,nf_address_taken]);
                       n.free;
                       n:=temp;
                       typecheckpass(n);
@@ -3766,7 +3766,7 @@ implementation
                     internalerror(20040720);
                   temp := tnode(inlinelocals[indexnr]).getcopy;
                   { inherit modification information, this is needed by the dfa/cse }
-                  temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
+                  temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write,nf_address_taken]);
                   n.free;
                   n:=temp;
                   typecheckpass(n);

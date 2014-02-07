@@ -86,7 +86,7 @@ unit optloop;
           ((n.nodetype=temprefn) and (preplaceinfo(arg)^.node.nodetype=temprefn) and
           (ttemprefnode(n).tempinfo=ttemprefnode(preplaceinfo(arg)^.node).tempinfo)) then
           begin
-            if n.flags*[nf_modify,nf_write]<>[] then
+            if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
             n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);

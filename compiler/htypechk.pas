@@ -974,6 +974,8 @@ implementation
     { marks an lvalue as "unregable" }
     procedure make_not_regable_intern(p : tnode; how: tregableinfoflags; records_only: boolean);
       begin
+        if ra_addr_taken in how then
+          include(p.flags,nf_address_taken);
         repeat
           case p.nodetype of
             subscriptn:

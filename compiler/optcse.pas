@@ -151,7 +151,7 @@ unit optcse;
           assigned(n.resultdef) and
           (
             { regable expressions }
-            (actualtargetnode(@n)^.flags*[nf_write,nf_modify]=[]) and
+            (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
             ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
             (not(n.resultdef.typ in [arraydef,recorddef])) and
