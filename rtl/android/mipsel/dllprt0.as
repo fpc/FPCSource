@@ -91,3 +91,7 @@ EmptyEnv:
     .long 0
     .long 0
     .long 0
+
+/* --------------------------------------------------------- */
+   	.section .init_array, "aw"
+    .long FPC_SHARED_LIB_START
