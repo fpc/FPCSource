@@ -10,6 +10,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+ 
+{$DEFINE OS_HASEXITCODE}
 uses
    ctypes,
    UnixType,
@@ -37,6 +39,15 @@ begin
  // Do nothing. Win32 call.
 end;
 
+Function TProcess.GetExitCode : Integer;
+
+begin
+  if wifexited(FExitCode) then
+    Result:=wexitstatus(FExitCode)
+  else
+    Result:=0;
+end;
+
 Function TProcess.PeekExitStatus : Boolean;
 var
   res: cint;
@@ -45,13 +56,7 @@ begin
     res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
   until (res<>-1) or (fpgeterrno<>ESysEINTR);
   result:=res=Handle;
-  If Result then
-   begin
-      if wifexited(FExitCode) then
-        FExitCode:=wexitstatus(FExitCode);
-      // else pass errorvalue unmodified like shell does, bug #22055
-     end
-   else
+  If Not Result then
     FexitCode:=cardinal(-1); // was 0, better testable for abnormal exit.
 end;
 
