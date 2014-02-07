@@ -224,6 +224,7 @@
   {$define cpurefshaveindexreg}
   {$define fpc_compiler_has_fixup_jmps}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif mips}
 
 {$ifdef jvm}

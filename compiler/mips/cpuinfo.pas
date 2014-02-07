@@ -63,6 +63,7 @@ Const
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_stdcall,
+     pocall_safecall,
      { same as stdcall only different name mangling }
      pocall_cdecl,
      { same as stdcall only different name mangling }
