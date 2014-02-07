@@ -43,6 +43,8 @@ procedure fpcm_update_revision_info(Sender: TObject);
     i := AProcess.Output.Read(b,1);
     if i > 0 then
       begin
+        if b = 13 then
+          continue;
         if b = 10 then
           exit;
         ALine := ALine + chr(b);
@@ -77,7 +79,7 @@ begin
       // Run svn info, and catch output.
       P := sender as TPackage;
       P.Options.Add('-dREVINC');
-      SVNBin := ExeSearch('svn', GetEnvironmentvariable('PATH'));
+      SVNBin := ExeSearch(AddProgramExtension('svn', Defaults.BuildOS), GetEnvironmentvariable('PATH'));
       if SVNBin<>'' then
         begin
           SVNProcess := TProcess.create(nil);
