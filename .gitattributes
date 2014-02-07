@@ -10253,6 +10253,13 @@ tests/test/cg/obj/android/i386/tcext3.o -text
 tests/test/cg/obj/android/i386/tcext4.o -text
 tests/test/cg/obj/android/i386/tcext5.o -text
 tests/test/cg/obj/android/i386/tcext6.o -text
+tests/test/cg/obj/android/mipsel/cpptcl1.o -text
+tests/test/cg/obj/android/mipsel/cpptcl2.o -text
+tests/test/cg/obj/android/mipsel/ctest.o -text
+tests/test/cg/obj/android/mipsel/tcext3.o -text
+tests/test/cg/obj/android/mipsel/tcext4.o -text
+tests/test/cg/obj/android/mipsel/tcext5.o -text
+tests/test/cg/obj/android/mipsel/tcext6.o -text
 tests/test/cg/obj/beos/i386/ctest.o -text
 tests/test/cg/obj/beos/i386/tcext3.o -text
 tests/test/cg/obj/beos/i386/tcext4.o -text
