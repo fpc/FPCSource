@@ -2047,32 +2047,33 @@ implementation
 
     function ttryexceptnode.pass_typecheck:tnode;
       begin
-         result:=nil;
-         typecheckpass(left);
-         { on statements }
-         if assigned(right) then
-           typecheckpass(right);
-         { else block }
-         if assigned(t1) then
-           typecheckpass(t1);
-         resultdef:=voidtype;
+        result:=nil;
+        typecheckpass(left);
+        { on statements }
+        if assigned(right) then
+          typecheckpass(right);
+        { else block }
+        if assigned(t1) then
+          typecheckpass(t1);
+        resultdef:=voidtype;
       end;
 
 
     function ttryexceptnode.pass_1 : tnode;
       begin
-         result:=nil;
-         include(current_procinfo.flags,pi_do_call);
-         include(current_procinfo.flags,pi_uses_exceptions);
-         expectloc:=LOC_VOID;
-         firstpass(left);
-         { on statements }
-         if assigned(right) then
-           firstpass(right);
-         { else block }
-         if assigned(t1) then
-           firstpass(t1);
-         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+        result:=nil;
+        expectloc:=LOC_VOID;
+        firstpass(left);
+        { on statements }
+        if assigned(right) then
+          firstpass(right);
+        { else block }
+        if assigned(t1) then
+          firstpass(t1);
+
+        include(current_procinfo.flags,pi_do_call);
+        include(current_procinfo.flags,pi_uses_exceptions);
+        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
       end;
 
 
@@ -2083,7 +2084,6 @@ implementation
     constructor ttryfinallynode.create(l,r:tnode);
       begin
         inherited create(tryfinallyn,l,r,nil,nil);
-        include(current_procinfo.flags,pi_uses_exceptions);
         implicitframe:=false;
       end;
 
@@ -2097,40 +2097,41 @@ implementation
 
     function ttryfinallynode.pass_typecheck:tnode;
       begin
-         result:=nil;
-         include(current_procinfo.flags,pi_do_call);
-         resultdef:=voidtype;
+        result:=nil;
+        resultdef:=voidtype;
 
-         typecheckpass(left);
-         // "try block" is "used"? (JM)
-         set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
+        typecheckpass(left);
+        // "try block" is "used"? (JM)
+        set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
 
-         typecheckpass(right);
-         // "except block" is "used"? (JM)
-         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
+        typecheckpass(right);
+        // "except block" is "used"? (JM)
+        set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
 
-         { special finally block only executed when there was an exception }
-         if assigned(t1) then
-           begin
-             typecheckpass(t1);
-             // "finally block" is "used"? (JM)
-             set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
-           end;
+        { special finally block only executed when there was an exception }
+        if assigned(t1) then
+          begin
+            typecheckpass(t1);
+            // "finally block" is "used"? (JM)
+            set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
+          end;
       end;
 
 
     function ttryfinallynode.pass_1 : tnode;
       begin
-         result:=nil;
-         expectloc:=LOC_VOID;
-         firstpass(left);
+        result:=nil;
+        expectloc:=LOC_VOID;
+        firstpass(left);
 
-         firstpass(right);
+        firstpass(right);
 
-         if assigned(t1) then
-           firstpass(t1);
+        if assigned(t1) then
+          firstpass(t1);
 
-         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
+        include(current_procinfo.flags,pi_do_call);
+        include(current_procinfo.flags,pi_uses_exceptions);
+        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
       end;
 
 

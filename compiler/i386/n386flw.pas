@@ -179,6 +179,9 @@ constructor ti386tryfinallynode.create(l, r: TNode);
     { Regvar optimization for symbols is suppressed when using exceptions, but
       temps may be still placed into registers. This must be fixed. }
     foreachnodestatic(r,@reset_regvars,finalizepi);
+    include(finalizepi.flags,pi_has_assembler_block);
+    include(finalizepi.flags,pi_do_call);
+    include(finalizepi.flags,pi_uses_exceptions);
   end;
 
 constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
@@ -204,6 +207,7 @@ constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
     finalizepi.exitswitches:=current_settings.localswitches;
     include(finalizepi.flags,pi_has_assembler_block);
     include(finalizepi.flags,pi_do_call);
+    include(finalizepi.flags,pi_uses_exceptions);
   end;
 
 
@@ -250,6 +254,7 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
           end;
       end;
   end;
+
 
 procedure emit_scope_start(handler,data: TAsmSymbol);
   var
