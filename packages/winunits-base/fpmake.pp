@@ -66,6 +66,7 @@ begin
 		  AddUnit('stdole2');
 		  AddUnit('eventsink');
 		  AddUnit('typelib');
+		  AddUnit('libkinect10');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -99,6 +100,7 @@ begin
 	T:=P.Targets.AddImplicitUnit('stdole2.pas');
 	T:=P.Targets.AddImplicitUnit('eventsink.pp');
 	T:=P.Targets.AddImplicitUnit('typelib.pas');
+	T:=P.Targets.AddImplicitUnit('libkinect10.pas');
     T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');

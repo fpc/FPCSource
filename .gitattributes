@@ -7275,6 +7275,7 @@ packages/winunits-base/src/htmlhelp.pp svneol=native#text/plain
 packages/winunits-base/src/imagehlp.pp svneol=native#text/plain
 packages/winunits-base/src/imm.pas svneol=native#text/plain
 packages/winunits-base/src/imm_dyn.pas svneol=native#text/plain
+packages/winunits-base/src/libkinect10.pp svneol=native#text/plain
 packages/winunits-base/src/mmsystem.pp svneol=native#text/plain
 packages/winunits-base/src/multimon.pp svneol=native#text/plain
 packages/winunits-base/src/nb30.pp svneol=native#text/plain
