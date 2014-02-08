@@ -2130,7 +2130,13 @@ implementation
           firstpass(t1);
 
         include(current_procinfo.flags,pi_do_call);
-        include(current_procinfo.flags,pi_uses_exceptions);
+
+        { pi_uses_exceptions is an information for the optimizer and it
+          is only interested in exceptions if they appear inside the body,
+          so ignore implicit frames when setting the flag }
+        if not(implicitframe) then
+          include(current_procinfo.flags,pi_uses_exceptions);
+
         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
       end;
 
