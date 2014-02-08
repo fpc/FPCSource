@@ -129,7 +129,6 @@ type
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
     function StrToStatementType(s : string) : TStatementType; virtual;
-    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); virtual; abstract;
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
@@ -168,6 +167,7 @@ type
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
     procedure GetSchemaNames(List: TStrings); virtual;
     function GetConnectionInfo(InfoType:TConnInfoType): string; virtual;
+    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
   published
