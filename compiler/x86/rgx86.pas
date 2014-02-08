@@ -138,8 +138,8 @@ implementation
                     currently this rule is sufficient but it might be extended }
                   if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) and (opcode<>A_IMUL) then
                     begin
-                      { avx instructions allow only the first operand (at&t counting) to be a register operand }
-                      { all operands must be registers ... }
+                      { avx instructions allow only the first operand (at&t counting) to be a memory operand }
+                      { all operands are registers, check ... }
                       if (oper[0]^.typ=top_reg) and
                          (oper[1]^.typ=top_reg) and
                          (oper[2]^.typ=top_reg) and
