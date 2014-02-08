@@ -47,7 +47,9 @@ implementation
       ,t_linux
     {$endif}
     {$ifndef NOTARGETANDROID}
-      ,t_android
+      {$ifdef MIPSEL}
+        ,t_android
+      {$endif MIPSEL}
     {$endif}
 
 {**************************************
