@@ -1581,9 +1581,8 @@ begin
   if (AValue<>IsUniDirectional) then
     begin
     SetUniDirectional(AValue);
-    SetLength(FIndexes,0);
+    ClearIndexes;
     FPacketRecords := 1; // temporary
-    FIndexesCount:=0;
     end;
 end;
 
