@@ -138,9 +138,16 @@ implementation
                     currently this rule is sufficient but it might be extended }
                   if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) and (opcode<>A_IMUL) then
                     begin
-                      { avx instructions allow only the first operand (at&t counting) to be a memory operand }
-                      { all operands are registers, check ... }
-                      if (oper[0]^.typ=top_reg) and
+                      { BMI shifting/rotating instructions have special requirements regarding spilling, only
+                        the middle operand can be replaced }
+                      if ((opcode=A_RORX) or (opcode=A_SHRX) or (opcode=A_SARX) or (opcode=A_SHLX)) then
+                        begin
+                          if (oper[1]^.typ=top_reg) and (getregtype(oper[1]^.reg)=regtype) and (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
+                            replaceoper:=1;
+                        end
+                      { avx instructions allow only the first operand (at&t counting) to be a register operand
+                        all operands must be registers ... }
+                      else if (oper[0]^.typ=top_reg) and
                          (oper[1]^.typ=top_reg) and
                          (oper[2]^.typ=top_reg) and
                          { but they must be different }
@@ -151,9 +158,7 @@ implementation
                           (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[2]^.reg)))
                          ) and
                          (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
-                        replaceoper:=0
-                      else if (opcode=A_RORX) then
-                        replaceoper:=1;
+                        replaceoper:=0;
                     end
                   else
                     begin
