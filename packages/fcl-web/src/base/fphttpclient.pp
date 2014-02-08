@@ -36,12 +36,20 @@ Const
 Type
   TRedirectEvent = Procedure (Sender : TObject; Const ASrc : String; Var ADest: String) of object;
   TPasswordEvent = Procedure (Sender : TObject; Var RepeatRequest : Boolean) of object;
+  // During read of headers, ContentLength equals 0.
+  // During read of content, of Server did not specify contentlength, -1 is passed.
+  // CurrentPos is reset to 0 when the actual content is read, i.e. it is the position in the data, discarding header size.
+  TDataEvent   = Procedure (Sender : TObject; Const ContentLength, CurrentPos : Int64) of object;
 
   { TFPCustomHTTPClient }
   TFPCustomHTTPClient = Class(TComponent)
   private
+    FDataRead : Int64;
+    FContentLength : Int64;
     FAllowRedirect: Boolean;
     FMaxRedirects: Byte;
+    FOnDataReceived: TDataEvent;
+    FOnHeaders: TNotifyEvent;
     FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
     FPassword: String;
@@ -57,13 +65,15 @@ Type
     FSocket : TInetSocket;
     FBuffer : Ansistring;
     FUserName: String;
-    function CheckContentLength: Integer;
+    function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
     Procedure ResetResponse;
     Procedure SetCookies(const AValue: TStrings);
     Procedure SetRequestHeaders(const AValue: TStrings);
   protected
+    // Called whenever data is read.
+    Procedure DoDataRead; virtual;
     // Parse response status line. Saves status text and protocol, returns numerical code. Exception if invalid line.
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
@@ -225,6 +235,10 @@ Type
     // If a request returns a 401, then the OnPassword event is fired.
     // It can modify the username/password and set RepeatRequest to true;
     Property OnPassword : TPasswordEvent Read FOnPassword Write FOnPassword;
+    // Called whenever data is read from the connection.
+    Property OnDataReceived : TDataEvent Read FOnDataReceived Write FOnDataReceived;
+    // Called when headers have been processed.
+    Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
   end;
 
 
@@ -244,6 +258,8 @@ Type
     Property UserName;
     Property Password;
     Property OnPassword;
+    Property OnDataReceived;
+    Property OnHeaders;
   end;
   EHTTPClient = Class(Exception);
 
@@ -349,6 +365,12 @@ procedure TFPCustomHTTPClient.SetRequestHeaders(const AValue: TStrings);
 begin
   if FRequestHeaders=AValue then exit;
   FRequestHeaders.Assign(AValue);
+end;
+
+procedure TFPCustomHTTPClient.DoDataRead;
+begin
+  If Assigned(FOnDataReceived) Then
+    FOnDataReceived(Self,FContentLength,FDataRead);
 end;
 
 function TFPCustomHTTPClient.IndexOfHeader(const AHeader: String): Integer;
@@ -477,6 +499,8 @@ function TFPCustomHTTPClient.ReadString : String;
       Raise EHTTPClient.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
+    FDataRead:=FDataRead+R;
+    DoDataRead;
   end;
 
 Var
@@ -603,6 +627,8 @@ begin
         DoCookies(S);
       end
   Until (S='');
+  If Assigned(FOnHeaders) then
+    FOnHeaders(Self);
 end;
 
 function TFPCustomHTTPClient.CheckResponseCode(ACode: Integer;
@@ -631,7 +657,7 @@ begin
     end;
 end;
 
-function TFPCustomHTTPClient.CheckContentLength: Integer;
+function TFPCustomHTTPClient.CheckContentLength: Int64;
 
 Const CL ='content-length:';
 
@@ -648,10 +674,11 @@ begin
     If (Copy(S,1,Length(Cl))=Cl) then
       begin
       System.Delete(S,1,Length(CL));
-      Result:=StrToIntDef(Trim(S),-1);
+      Result:=StrToInt64Def(Trim(S),-1);
       end;
     Inc(I);
     end;
+  FContentLength:=Result;
 end;
 
 function TFPCustomHTTPClient.CheckTransferEncoding: string;
@@ -701,7 +728,11 @@ procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream;
     If Result<0 then
       Raise EHTTPClient.Create(SErrReadingSocket);
     if (Result>0) then
+      begin
+      FDataRead:=FDataRead+Result;
+      DoDataRead;
       Stream.Write(FBuffer[1],Result);
+      end;
   end;
 
   Procedure ReadChunkedResponse;
@@ -730,7 +761,9 @@ procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream;
       SetLength(FBuffer,Cnt);
       BufPos:=1;
       Result:=Cnt>0;
-    end;
+      FDataRead:=FDataRead+Cnt;
+      DoDataRead;
+  end;
 
     Function ReadData(Data: PByte; Cnt: integer): integer;
 
@@ -806,8 +839,12 @@ procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream;
   end;
 
 Var
-  L,LB,R : Integer;
+  L : Int64;
+  LB,R : Integer;
+
 begin
+  FDataRead:=0;
+  FContentLength:=0;
   SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
@@ -820,6 +857,7 @@ begin
     begin
     // Write remains of buffer to output.
     LB:=Length(FBuffer);
+    FDataRead:=LB;
     If (LB>0) then
       Stream.WriteBuffer(FBuffer[1],LB);
     // Now read the rest, if any.
