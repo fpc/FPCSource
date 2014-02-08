@@ -61,6 +61,7 @@ type
 
   TStringHash  = class
   private
+    FAddReplacesExisting: Boolean;
     FHashList : TFPDataHashTable;
   public
     constructor Create(ACapacity : Cardinal = 256);
@@ -70,6 +71,7 @@ type
     function Modify(const Key: string; Value: Integer): Boolean;
     procedure Remove(const Key: string);
     function ValueOf(const Key: string): Integer;
+    Property AddReplacesExisting : Boolean Read FAddReplacesExisting Write FAddReplacesExisting;
   end;
 
   { THashedStringList }
@@ -262,7 +264,8 @@ end;
 
 procedure TStringHash.Add(const Key: string; Value: Integer);
 begin
-  FHashList.Add(Key, Pointer(Value));
+  if Not (AddReplacesExisting and Modify(Key,Value)) then
+    FHashList.Add(Key, Pointer(Value));
 end;
 
 procedure TStringHash.Clear;
