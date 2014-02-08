@@ -58,7 +58,7 @@ _dynamic_start:
 */
 _start:
     .ent _start
-    .frame     $sp,36,$ra 
+    .frame     $sp,40,$ra 
     /* load fp */
     .set noreorder
     .cpload $25
@@ -70,7 +70,7 @@ _start:
     /* align stack */
     li      $at,-8
     and     $sp,$sp,$at
-    addiu   $sp,$sp,-36
+    addiu   $sp,$sp,-40
 
     /* Save needed regs:
        $t1, at offset 20
