@@ -796,8 +796,6 @@ end;
 
 
 procedure TCGMIPS.a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
-var
-  hreg: tregister;
 begin
   if (TOpcg2AsmOp[op]=A_NONE) then
     InternalError(2013070305);
@@ -805,11 +803,10 @@ begin
     begin
       if (size in [OS_S8,OS_S16]) then
         begin
-          { Shift left by 16/24 bits and increase amount of right shift by same value }
+          { Sign-extend before shiting }
           list.concat(taicpu.op_reg_reg_const(A_SLL, dst, src2, 32-(tcgsize2size[size]*8)));
-          hreg:=GetIntRegister(list,OS_INT);
-          a_op_const_reg_reg(list,OP_ADD,OS_INT,32-(tcgsize2size[size]*8),src1,dst);
-          src1:=hreg;
+          list.concat(taicpu.op_reg_reg_const(A_SRA, dst, dst, 32-(tcgsize2size[size]*8)));
+          src2:=dst;
         end
       else if not (size in [OS_32,OS_S32]) then
         InternalError(2013070306);
