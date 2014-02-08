@@ -4680,12 +4680,12 @@ void                                 \362\370\1\x77                       AVX,SA
 ;*******************************************************************************
 
 [ANDN]
-(Ch_Wop1, Ch_Rop2, Ch_Rop3)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,reg32,rm32                      \362\371\1\xf2\75\120               BMI1
 reg64,reg64,rm64                      \362\363\371\1\xf2\75\120           BMI1,X86_64
 
 [BEXTR]
-(Ch_Wop1, Ch_Rop2, Ch_Rop3)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \362\371\1\xf7\76\110               BMI1
 reg64,rm64,reg64                      \362\363\371\1\xf7\76\110           BMI1,X86_64
 
@@ -4698,22 +4698,22 @@ reg16|32|64,regmem                    \320\333\2\x0F\xBC\110              BMI1,S
 ;*******************************************************************************
 
 [RORX]
-(Ch_Wop1, Ch_Rop2, Ch_None)
+(Ch_Rop1, Ch_Wop2, Ch_None)
 reg32,rm32,imm8                      \334\362\372\1\xf0\110\26            BMI2
 reg64,rm64,imm8                      \334\362\363\372\1\xf0\110\26        BMI2,X86_64
 
 [SARX]
-(Ch_Wop1, Ch_Rop2, Ch_Rop3)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \333\362\371\1\xf7\76\110           BMI2
 reg64,rm64,reg64                      \333\362\363\371\1\xf7\76\110       BMI2,X86_64
 
 [SHLX]
-(Ch_Wop1, Ch_Rop2, Ch_Rop3)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \361\362\371\1\xf7\76\110           BMI2
 reg64,rm64,reg64                      \361\362\363\371\1\xf7\76\110       BMI2,X86_64
 
 [SHRX]
-(Ch_Wop1, Ch_Rop2, Ch_Rop3)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 reg32,rm32,reg32                      \334\362\371\1\xf7\76\110           BMI2
 reg64,rm64,reg64                      \334\362\363\371\1\xf7\76\110       BMI2,X86_64
 
