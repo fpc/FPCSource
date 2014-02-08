@@ -182,7 +182,6 @@ implementation
         op : topcg;
         opsize : tcgsize;
         mask : aint;
-        hcountreg : TRegister;
       begin
         secondpass(left);
         secondpass(right);
@@ -223,7 +222,7 @@ implementation
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
           cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
-            tordconstnode(right).value.uvalue and 63,left.location.register,location.register)
+            tordconstnode(right).value.uvalue and mask,left.location.register,location.register)
         else
           begin
             { load right operators in a register - this
@@ -233,13 +232,9 @@ implementation
             if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                { location_force_reg can be also used to change the size of a register }
               (right.location.size<>opsize) then
-              begin
-                hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,hcountreg);
-              end
-            else
-              hcountreg:=right.location.register;
-            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,left.location.register,location.register);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
+
+            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
           end;
       end;
 
