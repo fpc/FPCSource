@@ -807,6 +807,7 @@ constructor TStringStream.Create(const AString: string);
 begin
   Inherited create;
   FDataString:=AString;
+  UniqueString(FDataString);
 end;
 
 
