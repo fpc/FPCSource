@@ -56,6 +56,22 @@ interface
 uses classes, sysutils, contnrs;
 
 type
+
+  { TStringHash }
+
+  TStringHash  = class
+  private
+    FHashList : TFPDataHashTable;
+  public
+    constructor Create(ACapacity : Cardinal = 256);
+    destructor Destroy;override;
+    procedure Add(const Key: string; Value: Integer);
+    procedure Clear;
+    function Modify(const Key: string; Value: Integer): Boolean;
+    procedure Remove(const Key: string);
+    function ValueOf(const Key: string): Integer;
+  end;
+
   { THashedStringList }
 
   THashedStringList = class(TStringList)
@@ -229,6 +245,58 @@ begin
   Result := False;
   if AString > '' then
     Result := (Copy(AString, 1, 1) = Comment);
+end;
+
+{ TStringHash }
+
+constructor TStringHash.Create(ACapacity : Cardinal = 256);
+begin
+  FHashList := TFPDataHashTable.Create;
+end;
+
+destructor TStringHash.Destroy;
+begin
+  FreeAndNil(FHashList);
+  inherited;
+end;
+
+procedure TStringHash.Add(const Key: string; Value: Integer);
+begin
+  FHashList.Add(Key, Pointer(Value));
+end;
+
+procedure TStringHash.Clear;
+begin
+  FHashList.Clear;
+end;
+
+function TStringHash.Modify(const Key: string; Value: Integer): Boolean;
+Var
+  AIndex : Integer;
+  Node : THTDataNode;
+
+begin
+  Node := THTDataNode(FHashList.Find(Key));
+  Result:=Assigned(Node);
+  if Result Then
+    Node.Data:=Pointer(Value);
+end;
+
+procedure TStringHash.Remove(const Key: string);
+
+begin
+  FHashList.Delete(Key);
+end;
+
+function TStringHash.ValueOf(const Key: string): Integer;
+Var
+  N : THTDataNode;
+begin
+  N:=THTDataNode(FHashList.Find(Key));
+  If Assigned(N) then
+    Result:=PTrInt(N.Data)
+  else
+    Result:=-1;
 end;
 
 { THashedStringList }
