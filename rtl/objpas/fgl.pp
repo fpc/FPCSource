@@ -1013,7 +1013,7 @@ procedure TFPGInterfacedObjectList.CopyItem(Src, Dest: Pointer);
 begin
   if Assigned(Pointer(Dest^)) then
     T(Dest^)._Release;
-  T(Dest^) := T(Src^);
+  Pointer(Dest^) := Pointer(Src^);
   if Assigned(Pointer(Dest^)) then
     T(Dest^)._AddRef;
 end;
