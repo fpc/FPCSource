@@ -563,6 +563,7 @@ type
     procedure ApplyUpdates; virtual; overload;
     procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
     procedure MergeChangeLog;
+    Procedure ClearIndexes;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;
@@ -838,9 +839,7 @@ begin
   SetLength(FUpdateBuffer,0);
   SetLength(FBlobBuffers,0);
   SetLength(FUpdateBlobBuffers,0);
-  For I:=0 to Length(FIndexes)-1 do
-    FreeAndNil(Findexes[I]);
-  SetLength(FIndexes,0);
+  ClearIndexes;
   FreeAndNil(FIndexDefs);
   inherited destroy;
 end;
@@ -2604,6 +2603,17 @@ begin
   ABlobBuffer^.OrgBufID := high(FBlobBuffers);
   FBlobBuffers[high(FBlobBuffers)] := ABlobBuffer;
   result := ABlobBuffer;
+end;
+
+procedure TCustomBufDataset.ClearIndexes;
+var
+  i:integer;
+begin
+  CheckInactive;
+  For I:=0 to Length(FIndexes)-1 do
+    FreeAndNil(Findexes[I]);
+  SetLength(FIndexes,0);
+  FIndexesCount:=0;
 end;
 
 function TCustomBufDataset.GetNewWriteBlobBuffer : PBlobBuffer;
