@@ -10,11 +10,35 @@ Type
   { TTestApp }
 
   TTestApp = Class(Tobject)
+    procedure DoProgress(Sender: TObject; Const ContentLength, CurrentPos : Int64);
+    procedure DoHeaders(Sender : TObject);
     procedure DoPassword(Sender: TObject; var RepeatRequest: Boolean);
-  procedure ShowRedirect(ASender : TObject; Const ASrc : String; Var ADest : String);
-  Procedure Run; 
+    procedure ShowRedirect(ASender : TObject; Const ASrc : String; Var ADest : String);
+    Procedure Run;
   end;
-  
+
+procedure TTestApp.DoHeaders(Sender : TObject);
+
+Var
+  I : Integer;
+
+begin
+  Writeln('Response headers received:');
+  With (Sender as TFPHTTPClient) do
+    For I:=0 to ResponseHeaders.Count-1 do
+      Writeln(ResponseHeaders[i]);
+end;
+
+procedure TTestApp.DoProgress(Sender: TObject; const ContentLength, CurrentPos: Int64);
+begin
+  If (ContentLength=0) then
+    Writeln('Reading headers : ',CurrentPos,' Bytes.')
+  else If (ContentLength=-1) then
+    Writeln('Reading data (no length available) : ',CurrentPos,' Bytes.')
+  else
+    Writeln('Reading data : ',CurrentPos,' Bytes of ',ContentLength);
+end;
+
 procedure TTestApp.DoPassword(Sender: TObject; var RepeatRequest: Boolean);
 
 Var
@@ -68,11 +92,9 @@ begin
       AllowRedirect:=True;
       OnRedirect:=@ShowRedirect;
       OnPassword:=@DoPassword;
+      OnDataReceived:=@DoProgress;
+      OnHeaders:=@DoHeaders;
       Get(ParamStr(1),ParamStr(2));
-      Writeln('Response headers:');
-      For I:=0 to ResponseHeaders.Count-1 do
-        Writeln(ResponseHeaders[i]);
-        
     finally
       Free;
     end;
