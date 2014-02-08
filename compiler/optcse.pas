@@ -152,9 +152,9 @@ unit optcse;
           (
             { regable expressions }
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
-            ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef])) and
+            (not(n.resultdef.typ in [arraydef,recorddef]))) or is_dynamic_array(n.resultdef)) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
@@ -374,14 +374,21 @@ unit optcse;
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
                         { we cannot handle register stored records or array in CSE yet
                           but we can store their reference }
-                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+                        addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
                           templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
                             true,caddrnode.create_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                            def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                            def.is_intregable or def.is_fpuregable or is_dynamic_array(def),tnode(lists.nodelist[i]));
+
+                        { the value described by the temp. is immutable and the temp. can be always in register
+
+                          ttempcreatenode.create normally takes care of the register location but it does not
+                          know about immutability so it cannot take care of managed types }
+                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_const);
+                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_may_be_in_reg);
 
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
@@ -412,7 +419,7 @@ unit optcse;
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
                         { we cannot handle register stored records or array in CSE yet
                           but we can store their reference }
-                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+                        addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
 {$if defined(csedebug) or defined(csestats)}
                         writeln;

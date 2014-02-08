@@ -1157,6 +1157,9 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
+                 { dyn. arrays and dyn. strings are read }
+                 if is_implicit_array_pointer(tunarynode(p).left.resultdef) then
+                   newstate:=vs_read;
                  if (newstate in [vs_read,vs_readwritten]) or
                     not(tunarynode(p).left.resultdef.typ in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid)

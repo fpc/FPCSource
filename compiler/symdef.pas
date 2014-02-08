@@ -1088,6 +1088,8 @@ interface
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_implicit_pointer_object_type(def: tdef): boolean;
+    { returns true, if def is a type which is an implicit pointer to an array (dyn. array or dyn. string) }
+    function is_implicit_array_pointer(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
     function is_record(def: tdef): boolean;
 
@@ -7319,6 +7321,11 @@ implementation
             (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava])) or
            ((target_info.system in systems_jvm) and
             (def.typ=recorddef)));
+      end;
+
+    function is_implicit_array_pointer(def: tdef): boolean;
+      begin
+        result:=is_dynamic_array(def) or is_dynamicstring(def);
       end;
 
     function is_class_or_object(def: tdef): boolean;

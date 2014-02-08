@@ -918,7 +918,8 @@ implementation
       begin
         result := nil;
         expectloc:=LOC_VOID;
-        if (tempinfo^.typedef.needs_inittable) then
+        { temps which are immutable do not need to be initialized/finalized }
+        if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempinfo^.flags) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
