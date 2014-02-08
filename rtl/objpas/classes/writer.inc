@@ -1110,22 +1110,6 @@ begin
                 end;  // length Name>0
               end; //(ObjValue <> AncestorObj)
             end // ObjValue.InheritsFrom(TComponent)
-          else if ObjValue.InheritsFrom(TCollection) then
-            begin
-            if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
-              TCollection(GetObjectProp(Ancestor, PropInfo)),root,rootancestor)) then
-              begin
-              Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-              SavedPropPath := FPropPath;
-              try
-                SetLength(FPropPath, 0);
-                WriteCollection(TCollection(ObjValue));
-              finally
-                FPropPath := SavedPropPath;
-                Driver.EndProperty;
-              end;
-              end;
-            end // Tcollection
           else
             begin
             SavedAncestor := Ancestor;
@@ -1139,6 +1123,22 @@ begin
               Ancestor := SavedAncestor;
               FPropPath := SavedPropPath;
             end;
+            if ObjValue.InheritsFrom(TCollection) then
+              begin
+              if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
+                TCollection(GetObjectProp(Ancestor, PropInfo)),root,rootancestor)) then
+                begin
+                Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+                SavedPropPath := FPropPath;
+                try
+                  SetLength(FPropPath, 0);
+                  WriteCollection(TCollection(ObjValue));
+                finally
+                  FPropPath := SavedPropPath;
+                  Driver.EndProperty;
+                end;
+                end;
+              end // Tcollection
             end;
           end; // Inheritsfrom(TPersistent)
       end;
