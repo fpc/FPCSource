@@ -21,8 +21,8 @@ end;
 
 procedure TFPCustomPen.SetWidth (AValue : Integer);
 begin
-  if AValue < 1 then
-    FWidth := 1
+  if AValue < 0 then
+    FWidth := 0
   else
     FWidth := AValue;
 end;
