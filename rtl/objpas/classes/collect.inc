@@ -33,7 +33,6 @@ begin
     begin
     If FCollection<>Nil then FCollection.RemoveItem(Self);
     if Value<>Nil then Value.InsertItem(Self);
-    FCollection:=Value;
     end;
 end;
 
@@ -203,6 +202,7 @@ begin
   If Not(Item Is FitemClass) then
     exit;
   FItems.add(Pointer(Item));
+  Item.FCollection:=Self;
   Item.FID:=FNextID;
   inc(FNextID);
   SetItemName(Item);
