@@ -201,7 +201,7 @@ unit optcse;
               one instruction on every platform except i8086/i386
               so consider in this case loading the address of the data
             }
-            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and
+            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and not(is_dynamic_array(n.resultdef)) and
              (n.nodetype=loadn) and
              (tloadnode(n).symtableentry.typ=staticvarsym)
             )
