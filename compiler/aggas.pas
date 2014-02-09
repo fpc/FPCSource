@@ -1668,9 +1668,12 @@ implementation
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+          if not (current_asmdata.asmlists[hal].empty) then
+            begin
+              AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+              writetree(current_asmdata.asmlists[hal]);
+              AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+            end;
         end;
 
       { add weak symbol markers }
