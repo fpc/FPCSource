@@ -32,7 +32,7 @@ unit cgx86;
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgobj,rgx86,rgcpu,
-       symconst,symtype,symdef;
+       symconst,symtype,symdef, cclasses;
 
     type
 
@@ -486,7 +486,6 @@ unit cgx86;
                     href.refaddr:=addr_pic;
                     href.base:=NR_RIP;
                     list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
-
                     ref.symbol:=nil;
                   end;
 
@@ -502,8 +501,8 @@ unit cgx86;
                     { don't use add, as the flags may contain a value }
                     reference_reset_base(href,ref.base,0,8);
                     href.index:=hreg;
-                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
-                    ref.base:=hreg;
+                    ref.base:=getaddressregister(list);
+                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
                   end;
               end
             else
@@ -537,8 +536,8 @@ unit cgx86;
                           { don't use add, as the flags may contain a value }
                           reference_reset_base(href,ref.base,0,8);
                           href.index:=hreg;
-                          list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
-                          ref.base:=hreg;
+                          ref.base:=getaddressregister(list);
+                          list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
                         end;
                     end;
 
