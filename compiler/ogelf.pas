@@ -1212,8 +1212,9 @@ implementation
            { default sections }
            symtabsect:=TElfSymtab.create(data,esk_obj);
            shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
-           { "no executable stack" marker for Linux }
-           if (target_info.system in (systems_linux + systems_android)) and
+           { "no executable stack" marker }
+           { TODO: used by OpenBSD/NetBSD as well? }
+           if (target_info.system in (systems_linux + systems_android + systems_freebsd)) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { symbol for filename }
@@ -1255,7 +1256,9 @@ implementation
 
            header.e_ident[EI_VERSION]:=1;
            if target_info.system in systems_openbsd then
-             header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD;
+             header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
+           else if target_info.system in systems_freebsd then
+             header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD;
            header.e_type:=ET_REL;
            header.e_machine:=ElfTarget.machine_code;
            header.e_version:=1;
@@ -2015,6 +2018,10 @@ implementation
           header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
         header.e_ident[EI_VERSION]:=1;
+        if target_info.system in systems_openbsd then
+          header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
+        else if target_info.system in systems_freebsd then
+          header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD;
         if IsSharedLibrary then
           header.e_type:=ET_DYN
         else
