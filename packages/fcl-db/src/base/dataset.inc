@@ -2289,41 +2289,29 @@ begin
   end;
 end;
 
-procedure TDataset.SetFieldValues(const Fieldname: string; Value: Variant);
+procedure TDataset.SetFieldValues(const FieldName: string; Value: Variant);
 
 var
-  i : Integer;
+  i, l, h : Integer;
   FieldList: TList;
-  hb, lb: integer;
 begin
-  FieldList := TList.Create;
-  try
-    GetFieldList( FieldList, FieldName );
-    if VarIsArray( Value ) then
-    begin
-      if ( FieldList.Count > 1 ) then
-      begin
-        if ( VarArrayDimCount( Value ) <> 1 ) then
-          DatabaseErrorFmt('Variant Array Dimension Mismatch: Expected 1, got %d',[VarArrayDimCount( Value )],Self);
-        hb := VarArrayHighBound( Value, 1 );
-        lb := VarArrayLowBound( Value, 1 );
-        if hb - lb + 1 <> FieldList.Count then
-          DatabaseErrorFmt('Variant Array Value Count Mismatch: Expected %d, got %d',[FieldList.Count, hb - lb + 1],Self);
-        for i := 0 to FieldList.Count -1 do
-          TField(FieldList[i]).Value := Value[i+lb];
-      end
+  if VarIsArray(Value) then begin
+    FieldList := TList.Create;
+    try
+      GetFieldList(FieldList, FieldName);
+      l := VarArrayLowBound(Value, 1);
+      h := VarArrayHighBound(Value, 1);
+      if (FieldList.Count = 1) and (l < h) then
+        // Allow for a field type that can deal with an array
+        FieldByName(FieldName).Value := Value
       else
-        // Allow for a field type that can deal with an array.
-        FieldByName(Fieldname).Value := Value;
-    end
-    else
-    if FieldList.Count = 1 then
-      FieldByName( Fieldname ).Value := Value
-    else
-      DatabaseErrorFmt('Field Count Mismatch: Expected 1, got %d',[FieldList.Count],Self);
-  finally
-    FieldList.Free;
-  end;
+        for i := 0 to FieldList.Count - 1 do
+          TField(FieldList[i]).Value := Value[l+i];
+    finally
+      FieldList.Free;
+    end;
+  end else
+    FieldByName(FieldName).Value := Value;
 end;
 
 Function TDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
