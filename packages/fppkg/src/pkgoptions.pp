@@ -16,7 +16,8 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals, fpmkunit;
+// pkgglobals must be AFTER fpmkunit
+uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, fpmkunit, pkgglobals;
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';
@@ -339,9 +340,9 @@ begin
           FLocalRepository:=AValue;
           UpdateLocalRepositoryOption;
         end;
-    4 : FBuildDir:=FixPath(AValue, True);
-    5 : FArchivesDir:=FixPath(AValue, True);
-    6 : FCompilerConfigDir:=FixPath(AValue, True);
+    4 : FBuildDir:=fpmkunit.FixPath(AValue, True);
+    5 : FArchivesDir:=fpmkunit.FixPath(AValue, True);
+    6 : FCompilerConfigDir:=fpmkunit.FixPath(AValue, True);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
     10 : FDownloader:=AValue;
@@ -459,9 +460,9 @@ begin
         FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
         UpdateLocalRepositoryOption;
-        FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir), True);
-        FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir), True);
-        FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir), True);
+        FBuildDir:=fpmkunit.FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir), True);
+        FArchivesDir:=fpmkunit.FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir), True);
+        FCompilerConfigDir:=fpmkunit.FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir), True);
         FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         FDownloader:=ReadString(SDefaults,KeyDownloader,FDownloader);
@@ -552,8 +553,8 @@ begin
     3 : Result:=FCompilerVersion;
     4 : Result:=FOptionParser.ParseString(FGlobalInstallDir);
     5 : Result:=FOptionParser.ParseString(FLocalInstallDir);
-    6 : Result:=FixPath(FOptionParser.ParseString(FGlobalPrefix), True);
-    7 : Result:=FixPath(FOptionParser.ParseString(FLocalPrefix), True);
+    6 : Result:=fpmkunit.FixPath(FOptionParser.ParseString(FGlobalPrefix), True);
+    7 : Result:=fpmkunit.FixPath(FOptionParser.ParseString(FLocalPrefix), True);
     else
       Error('Unknown option');
   end;
@@ -581,8 +582,8 @@ begin
           FCompilerVersion:=AValue;
           FOptionParser.Values['CompilerVersion'] := FCompilerVersion;
         end;
-    4 : FGlobalInstallDir:=FixPath(AValue, True);
-    5 : FLocalInstallDir:=FixPath(AValue, True);
+    4 : FGlobalInstallDir:=fpmkunit.FixPath(AValue, True);
+    5 : FLocalInstallDir:=fpmkunit.FixPath(AValue, True);
     6 : begin
           FGlobalPrefix:=AValue;
           FOptionParser.Values['GlobalPrefix'] := GlobalPrefix;
@@ -714,7 +715,7 @@ begin
       log(llDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
 
-  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'), True);
+  fpcdir:=fpmkunit.FixPath(GetEnvironmentVariable('FPCDIR'), True);
   if fpcdir<>'' then
     begin
     {$ifndef Unix}
@@ -745,8 +746,8 @@ begin
           end;
         GlobalPrefix:=ReadString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
         LocalPrefix:=ReadString(SDefaults,KeyLocalPrefix,FLocalPrefix);
-        FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir), True);
-        FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir), True);
+        FGlobalInstallDir:=fpmkunit.FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir), True);
+        FLocalInstallDir:=fpmkunit.FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir), True);
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
         FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
         FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
