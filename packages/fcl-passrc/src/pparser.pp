@@ -62,6 +62,7 @@ resourcestring
   SParsingUsedUnit = 'Parsing used unit "%s" with commandLine "%s"';
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
+  SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
 
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
@@ -3602,6 +3603,7 @@ Procedure TPasParser.ParseRecordFieldList(ARec : TPasRecordType; AEndToken : TTo
 
 Var
   VN : String;
+  v : TPasmemberVisibility;
 
 begin
   while CurToken<>AEndToken do
@@ -3609,7 +3611,17 @@ begin
     Case CurToken of
       tkIdentifier :
         begin
-        ParseInlineVarDecl(ARec, ARec.Members, visDefault, AEndToken=tkBraceClose);
+        v:=visDefault;
+        If po_delphi in Scanner.Options then
+          if CheckVisibility(CurtokenString,v) then
+            begin
+            if not (v in [visPrivate,visPublic,visStrictPrivate]) then
+              ParseExc(SParserInvalidRecordVisibility);
+            NextToken;
+            if CurToken<>tkIdentifier then
+              ParseExc(SParserTypeSyntaxError);
+            end;
+        ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
         end;
       tkCase :
         begin

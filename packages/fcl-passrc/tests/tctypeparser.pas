@@ -206,6 +206,10 @@ type
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
     Procedure TestTwoFields;
+    procedure TestTwoFieldProtected;
+    procedure TestTwoFieldStrictPrivate;
+    procedure TestTwoFieldPrivateNoDelphi;
+    Procedure TestTwoFieldPrivate;
     Procedure TestTwoFieldDeprecated;
     Procedure TestTwoFieldPlatform;
     Procedure TestTwoFieldsFirstDeprecated;
@@ -1172,7 +1176,8 @@ begin
 end;
 
 
-procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
+procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints;
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1212,7 +1217,8 @@ begin
   AssertVariant2(Hints,['1']);
 end;
 
-procedure TTestRecordTypeParser.AssertVariant2(Hints: TPasMemberHints; VariantLabels : Array of string);
+procedure TTestRecordTypeParser.AssertVariant2(Hints: TPasMemberHints;
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1465,7 +1471,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.AssertRecordVariant(AIndex: Integer;
-  Hints: TPasMemberHints; VariantLabels : Array of string);
+  Hints: TPasMemberHints; VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1497,8 +1503,9 @@ begin
 
 end;
 
-procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer; Const AFieldName,ATypeName: string;
-  Hints: TPasMemberHints; VariantLabels: array of string);
+procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer;
+  const AFieldName, ATypeName: string; Hints: TPasMemberHints;
+  VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1614,6 +1621,50 @@ end;
 procedure TTestRecordTypeParser.TestTwoFields;
 begin
   TestFields(['x : integer;','y : integer'],'',False);
+  AssertTwoIntegerFields([],[]);
+end;
+
+procedure TTestRecordTypeParser.TestTwoFieldPrivateNoDelphi;
+Var
+  B : Boolean;
+begin
+  try
+    TestFields(['private','x : integer'],'',False);
+    Fail('Need poDelphi for visibility specifier')
+  except
+    on E : Exception do
+      B:=E is EParserError;
+  end;
+  If not B then
+    Fail('Wrong exception class.');
+end;
+
+procedure TTestRecordTypeParser.TestTwoFieldProtected;
+Var
+  B : Boolean;
+begin
+  try
+    TestFields(['protected','x : integer'],'',False);
+    Fail('Protected not allowed as record visibility specifier')
+  except
+    on E : Exception do
+      B:=E is EParserError;
+  end;
+  If not B then
+    Fail('Wrong exception class.');
+end;
+
+procedure TTestRecordTypeParser.TestTwoFieldPrivate;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['private','x,y : integer'],'',False);
+  AssertTwoIntegerFields([],[]);
+end;
+
+procedure TTestRecordTypeParser.TestTwoFieldStrictPrivate;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['strict private','x,y : integer'],'',False);
   AssertTwoIntegerFields([],[]);
 end;
 
