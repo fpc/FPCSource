@@ -42,7 +42,7 @@ Type
 
 Type
   {$ifdef UNIX}
-  TProcessForkEvent = procedure;
+  TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
   { TProcess }

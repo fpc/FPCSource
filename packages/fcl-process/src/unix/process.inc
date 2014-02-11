@@ -394,7 +394,7 @@ begin
                 safefpdup2(fd,2);
               end;
             if Assigned(FForkEvent) then
-              FForkEvent;
+              FForkEvent(Self);
             if (poRunSuspended in Options) then
               sigraise(SIGSTOP);
             if FEnv<>Nil then
