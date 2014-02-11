@@ -319,16 +319,14 @@ end;
 function TBits.FindNextBit : longint;
 var
    loop : longint;
-   maxVal : longint;
 begin
    result := -1;  { will occur only if no other bits set to }
                   { current findState                        }
 
    if findIndex > -1 then { must have called FindFirstBit first }
    begin                  { or set the start index              }
-      maxVal := (FSize * 32) - 1;
 
-      for loop := findIndex + 1 to maxVal  do
+      for loop := findIndex + 1 to FBSize-1 do
       begin
          if get(loop) = findState then
          begin
