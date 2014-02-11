@@ -1770,96 +1770,78 @@ begin
     end;
 end;
 
-function isWild(inputStr, Wilds: string; ignoreCase: Boolean): Boolean;
-
- function SearchNext(var Wilds: string): Integer;
-
- begin
-   Result:=Pos('*', Wilds);
-   if Result>0 then
-     Wilds:=Copy(Wilds,1,Result - 1);
- end;
+function isWild(inputStr, Wilds: string; ignoreCase: boolean): boolean;
 
 var
-  CWild, CinputWord: Integer; { counter for positions }
-  i, LenHelpWilds: Integer;
-  MaxinputWord, MaxWilds: Integer; { Length of inputStr and Wilds }
-  HelpWilds: string;
+  CWild, CinputWord: integer; { counter for positions }
+  i: integer;
+  MaxinputWord, MaxWilds: integer; { Length of inputStr and Wilds }
 begin
-  if Wilds = inputStr then begin
-    Result:=True;
+  Result:=true;
+  if Wilds = inputStr then
     Exit;
-  end;
-  repeat { delete '**', because '**' = '*' }
+  { delete '**', because '**' = '*' }
+  i:=Pos('**', Wilds);
+  while i > 0 do
+    begin
+    Delete(Wilds, i, 1);
     i:=Pos('**', Wilds);
-    if i > 0 then
-      Wilds:=Copy(Wilds, 1, i - 1) + '*' + Copy(Wilds, i + 2, Maxint);
-  until i = 0;
-  if Wilds = '*' then begin { for fast end, if Wilds only '*' }
-    Result:=True;
+    end;
+  if Wilds = '*' then { for fast end, if Wilds only '*' }
     Exit;
-  end;
   MaxinputWord:=Length(inputStr);
   MaxWilds:=Length(Wilds);
-  if ignoreCase then begin { upcase all letters }
+  if (MaxWilds = 0) or (MaxinputWord = 0) then
+    begin
+    Result:=false;
+    Exit;
+    end;
+  if ignoreCase then { upcase all letters }
+    begin
     inputStr:=AnsiUpperCase(inputStr);
     Wilds:=AnsiUpperCase(Wilds);
-  end;
-  if (MaxWilds = 0) or (MaxinputWord = 0) then begin
-    Result:=False;
-    Exit;
-  end;
+    end;
   CinputWord:=1;
   CWild:=1;
-  Result:=True;
   repeat
-    if inputStr[CinputWord] = Wilds[CWild] then begin { equal letters }
-      { goto next letter }
+    if Wilds[CWild] = '*' then { handling of '*' }
+      begin
       inc(CWild);
-      inc(CinputWord);
-      Continue;
-    end;
-    if Wilds[CWild] = '?' then begin { equal to '?' }
-      { goto next letter }
-      inc(CWild);
-      inc(CinputWord);
-      Continue;
-    end;
-    if Wilds[CWild] = '*' then begin { handling of '*' }
-      HelpWilds:=Copy(Wilds, CWild + 1, MaxWilds);
-      i:=SearchNext(HelpWilds);
-      LenHelpWilds:=Length(HelpWilds);
-      if i = 0 then begin
-        { no '*' in the rest, compare the ends }
-        if HelpWilds = '' then Exit; { '*' is the last letter }
-        { check the rest for equal Length and no '?' }
-        for i:=0 to LenHelpWilds - 1 do begin
-          if (HelpWilds[LenHelpWilds - i] <> inputStr[MaxinputWord - i]) and
-            (HelpWilds[LenHelpWilds - i]<> '?') then
-          begin
-            Result:=False;
-            Exit;
-          end;
+      while Wilds[CWild] = '?' do { equal to '?' }
+        begin
+        { goto next letter }
+        inc(CWild);
+        inc(CinputWord);
         end;
-        Exit;
-      end;
-      { handle all to the next '*' }
-      inc(CWild, 1 + LenHelpWilds);
-      i:=FindPart(HelpWilds, Copy(inputStr, CinputWord, Maxint));
-      if i= 0 then begin
-        Result:=False;
-        Exit;
-      end;
-      CinputWord:=i + LenHelpWilds;
+      { increase until a match }
+      while (inputStr[CinputWord] <> Wilds[CWild]) and 
+        (CinputWord <= MaxinputWord) do
+        inc(CinputWord);
       Continue;
-    end;
-    Result:=False;
+      end;
+    if Wilds[CWild] = '?' then { equal to '?' }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    if inputStr[CinputWord] = Wilds[CWild] then { equal letters }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    Result:=false;
     Exit;
   until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
   { no completed evaluation }
-  if CinputWord <= MaxinputWord then Result:=False;
-  if (CWild <= MaxWilds) and (Wilds[MaxWilds] <> '*') then Result:=False;
+  if (CinputWord <= MaxinputWord) or 
+     (CWild <= MaxWilds) then
+    Result:=false;
 end;
+
 
 function XorString(const Key, Src: ShortString): ShortString;
 var
