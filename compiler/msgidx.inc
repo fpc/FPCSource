@@ -955,6 +955,8 @@ const
   option_invalid_iphoneos_deployment_target=11051;
   option_illegal_fpu_eabihf=11052;
   option_w_unsupported_debug_format=11053;
+  option_missing_arg=11054;
+  option_malformed_para=11055;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -979,9 +981,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 70843;
+  MsgTxtSize = 70911;
 
   MsgIdxMax : array[1..20] of longint=(
     26,95,336,121,88,56,126,27,202,64,
-    54,20,1,1,1,1,1,1,1,1
+    56,20,1,1,1,1,1,1,1,1
   );

@@ -3069,7 +3069,7 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 #
 #  Options
 #
-# 11053 is the last used one
+# 11055 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3209,6 +3209,10 @@ option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFP
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
+option_missing_arg=11054_E_argument to "$1" is missing
+% Displayed when parameter must be followed by an argument.
+option_malformed_para=11055_E_malformed parameter: $1
+% Given argument is not valid for parameter.
 
 
 %\end{description}

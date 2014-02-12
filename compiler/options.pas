@@ -165,6 +165,20 @@ begin
 end;
 
 
+function is_identifier(const s: TCmdStr): boolean;
+var
+  i: longint;
+begin
+  result:=false;
+  if (s='') or not (s[1] in ['A'..'Z','a'..'z','_']) then
+    exit;
+  for i:=2 to length(s) do
+    if not (s[I] in ['A'..'Z','a'..'z','0'..'9','_']) then
+      exit;
+  result:=true;
+end;
+
+
 procedure Toption.WriteLogo;
 var
   p : pchar;
@@ -727,6 +741,7 @@ var
   error : integer;
   j,l   : longint;
   d,s   : TCmdStr;
+  hs    : TCmdStr;
   unicodemapping : punicodemap;
 begin
   if opt='' then
@@ -1041,14 +1056,25 @@ begin
              end;
 
            'd' :
-             if more <> '' then
-               begin
-                 l:=Pos(':=',more);
-                 if l>0 then
-                   set_system_compvar(Copy(more,1,l-1),Copy(more,l+2,255))
-                 else
-                   def_system_macro(more);
-               end;
+             begin
+               l:=Pos(':=',more);
+               if l>0 then
+                 hs:=copy(more,1,l-1)
+               else
+                 hs:=more;
+               if (not is_identifier(hs)) then
+                 begin
+                   if hs='' then
+                     Message1(option_missing_arg,'-d')
+                   else
+                     Message1(option_malformed_para,opt);
+                   StopOptions(1);
+                 end;
+               if l>0 then
+                 set_system_compvar(hs,Copy(more,l+2,255))
+               else
+                 def_system_macro(hs);
+             end;
            'D' :
              begin
                include(init_settings.globalswitches,cs_link_deffile);
@@ -1708,8 +1734,16 @@ begin
              end;
 
            'u' :
-             if more <> '' then
-               undef_system_macro(more);
+             if is_identifier(more) then
+               undef_system_macro(more)
+             else
+               begin
+                 if (more='') then
+                   Message1(option_missing_arg,'-u')
+                 else
+                   Message1(option_malformed_para,opt);
+                 StopOptions(1);
+               end;
            'U' :
              begin
                j:=1;
