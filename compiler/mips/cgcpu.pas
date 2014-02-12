@@ -1195,6 +1195,7 @@ var
   helplist : TAsmList;
   largeoffs : boolean;
 begin
+  list.concat(tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
   a_reg_alloc(list,NR_STACK_POINTER_REG);
 
   if nostackframe then
@@ -1396,6 +1397,7 @@ begin
        list.concat(Taicpu.op_none(A_P_SET_MACRO));
        list.concat(Taicpu.op_none(A_P_SET_REORDER));
     end;
+  list.concat(tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
 end;
 
 

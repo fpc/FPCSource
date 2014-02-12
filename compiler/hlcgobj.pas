@@ -3857,12 +3857,6 @@ implementation
     end;
 
 
-  function use_ent : boolean;
-    begin
-	  use_ent := (target_info.system in [system_mipsel_linux,system_mipseb_linux,system_mipsel_android])
-	             or (target_info.cpu=cpu_alpha);
-    end;
-
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);
     var
       item,
@@ -3896,15 +3890,11 @@ implementation
           previtem:=item;
           item := TCmdStrListItem(item.next);
         end;
-      if (use_ent) then
-        list.concat(Tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
       current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-      if (use_ent) then
-        list.concat(Tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
       current_procinfo.procdef.procendtai:=tai(list.last);
