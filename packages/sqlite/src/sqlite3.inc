@@ -987,17 +987,17 @@ Type
 
 {$IFDEF LOAD_DYNAMICALLY}
 
-function InitializeSqlite(const LibraryName: String = ''): Integer;
-function TryInitializeSqlite(const LibraryName: string = ''): Integer;
+function InitializeSqlite(const LibraryName: UnicodeString = ''): Integer;
+function TryInitializeSqlite(const LibraryName: Unicodestring = ''): Integer;
 function ReleaseSqlite: Integer;
 
 function InitialiseSQLite: Integer; deprecated;
-function InitialiseSQLite(const LibraryName: String): Integer; deprecated;
+function InitialiseSQLite(const LibraryName: UnicodeString): Integer; deprecated;
 
 var
   SQLiteLibraryHandle: TLibHandle;
   SQLiteDefaultLibrary: String = Sqlite3Lib;
-  SQLiteLoadedLibrary: String;
+  SQLiteLoadedLibrary: UnicodeString;
 {$ENDIF LOAD_DYNAMICALLY}
 
 implementation
@@ -1210,18 +1210,25 @@ end;
 var
   RefCount: Integer;
 
-function TryInitializeSqlite(const LibraryName: string): Integer;
+function TryInitializeSqlite(const LibraryName: UnicodeString): Integer;
+
+Var
+  N  : UnicodeString;
+  
 begin
+  N:=LibraryName;
+  if (N='') then
+    N:=SQLiteDefaultLibrary;
   result:=InterlockedIncrement(RefCount);
   if result  = 1 then
   begin
-    SQLiteLibraryHandle := LoadLibrary(LibraryName);
+    SQLiteLibraryHandle := LoadLibrary(N);
     if (SQLiteLibraryHandle = NilHandle) then
     begin
       RefCount := 0;
       Exit(-1);
     end;
-    SQLiteLoadedLibrary := LibraryName;
+    SQLiteLoadedLibrary := N;
     LoadAddresses(SQLiteLibraryHandle);
   end;
 end;
@@ -1231,17 +1238,20 @@ begin
   result:=InitializeSqlite(SQLiteDefaultLibrary);
 end;
 
-function  InitializeSQLite(const LibraryName: String) :integer;
+function  InitializeSQLite(const LibraryName: UnicodeString) :integer;
 begin
-  if (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
+  if (LibraryName<>'') and (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
     raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
 
   result:= TryInitializeSQLIte(LibraryName);
   if result=-1 then
-    raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
+    if LibraryName='' then
+      raise EInOutError.CreateFmt(SErrLoadFailed,[SQLiteDefaultLibrary])
+    else
+      raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
 end;
 
-function  InitialiseSQLite(const LibraryName: String):integer;
+function  InitialiseSQLite(const LibraryName: UnicodeString):integer;
 begin
   result:=InitializeSqlite(LibraryName);
 end;
