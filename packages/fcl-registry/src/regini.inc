@@ -77,7 +77,7 @@ end;
 
 procedure TRegIniFile.WriteBool(const Section, Ident: string; Value: Boolean);
 begin
-  if OpenSection(Section) then
+  if OpenSection(Section,True) then
 	try
     if not fPreferStringValues then
   	  inherited WriteBool(Ident,Value)
@@ -94,7 +94,7 @@ end;
 
 procedure TRegIniFile.WriteInteger(const Section, Ident: string; Value: LongInt);
 begin
-  if OpenSection(Section) then
+  if OpenSection(Section,True) then
   try
     if not fPreferStringValues then
       inherited WriteInteger(Ident,Value)
@@ -111,7 +111,7 @@ end;
 
 procedure TRegIniFile.WriteString(const Section, Ident, Value: String);
 begin
-  if OpenSection(Section) then
+  if OpenSection(Section,True) then
   try
     inherited WriteString(Ident,Value);
   finally
@@ -161,10 +161,12 @@ begin
   end;
 end;
 
-function TRegIniFile.OpenSection(const Section: string): boolean;
+function TRegIniFile.OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
 var
   k: HKEY;
 begin
+  if CreateSection then
+    CreateKey(Section);
   ASSERT(fOldCurKey = 0);
   if Section <> '' then begin
     k:=GetKey(Section);

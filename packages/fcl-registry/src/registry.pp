@@ -134,7 +134,7 @@ type
     fPreferStringValues: Boolean;
     fOldCurKey         : HKEY;
 
-    function OpenSection(const Section: string): boolean;
+    function OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
     procedure CloseSection;
   public
     constructor Create(const FN: string); overload;
