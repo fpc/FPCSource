@@ -132,21 +132,26 @@ type
     fFileName          : String;
     fPath              : String;
     fPreferStringValues: Boolean;
-    fOldCurKey         : HKEY;
-
     function OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
     procedure CloseSection;
   public
     constructor Create(const FN: string); overload;
     constructor Create(const FN: string;aaccess:longword); overload;
     function ReadString(const Section, Ident, Default: string): string;
-    function ReadInteger(const Section, Ident: string;
-                Default: Longint): Longint;
+    function ReadInteger(const Section, Ident: string; Default: Longint): Longint;
     function ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
+    function ReadDate(const Section, Ident: string; Default: TDateTime):TDateTime;
+    function ReadDateTime(const Section, Ident: string; Default: TDateTime):TDateTime;
+    function ReadTime(const Section, Ident: string; Default: TDateTime):TDateTime;
+    function ReadFloat(const Section, Ident: string; Default: Double): Double;
 
     procedure WriteString(const Section, Ident, Value: String);
     procedure WriteInteger(const Section, Ident: string; Value: Longint);
     procedure WriteBool(const Section, Ident: string; Value: Boolean);
+    procedure WriteDate(const Section, Ident: string; Value: TDateTime);
+    procedure WriteDateTime(const Section, Ident: string; Value: TDateTime);
+    procedure WriteTime(const Section, Ident: string; Value: TDateTime);
+    procedure WriteFloat(const Section, Ident: string; Value: Double);
     procedure ReadSection(const Section: string; Strings: TStrings);
     procedure ReadSections(Strings: TStrings);
     procedure ReadSectionValues(const Section: string; Strings: TStrings);
@@ -493,43 +498,19 @@ end;
 function TRegistryIniFile.ReadDate(const Section, Name: string;
   Default: TDateTime): TDateTime;
 begin
-  Result:=Default;
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        if ValueExists(Name) then
-          Result:=FRegInifile.ReadDate(Name);
-      finally
-        CloseSection;
-      end;
+  Result:=FRegInifile.ReadDate(Section,Name,Default);
 end;
 
 function TRegistryIniFile.ReadDateTime(const Section, Name: string;
   Default: TDateTime): TDateTime;
 begin
-  Result:=Default;
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        if ValueExists(Name) then
-          Result:=FRegInifile.ReadDateTime(Name);
-      finally
-        CloseSection;
-      end;
+  Result:=FRegInifile.ReadDateTime(Section,Name,Default);
 end;
 
 function TRegistryIniFile.ReadFloat(const Section, Name: string;
   Default: Double): Double;
 begin
-  Result:=Default;
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        if ValueExists(Name) then
-          Result:=FRegInifile.ReadFloat(Name);
-      finally
-        CloseSection;
-      end;
+  Result:=FRegInifile.ReadFloat(Section,Name,Default);
 end;
 
 function TRegistryIniFile.ReadInteger(const Section, Name: string;
@@ -563,15 +544,7 @@ end;
 function TRegistryIniFile.ReadTime(const Section, Name: string;
   Default: TDateTime): TDateTime;
 begin
-  Result:=Default;
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        if ValueExists(Name) then
-          Result:=FRegInifile.ReadTime(Name);
-      finally
-        CloseSection;
-      end;
+  Result:=FRegInifile.ReadTime(Section,Name,Default);
 end;
 
 procedure TRegistryIniFile.UpdateFile;
@@ -588,37 +561,19 @@ end;
 procedure TRegistryIniFile.WriteDate(const Section, Name: string;
   Value: TDateTime);
 begin
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        FRegInifile.WriteDate(Name, Value);
-      finally
-        CloseSection;
-      end;
+  FRegInifile.WriteDate(Section,Name, Value);
 end;
 
 procedure TRegistryIniFile.WriteDateTime(const Section, Name: string;
   Value: TDateTime);
 begin
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        FRegInifile.WriteDateTime(Name, Value);
-      finally
-        CloseSection;
-      end;
+  FRegInifile.WriteDateTime(Section,Name, Value);
 end;
 
 procedure TRegistryIniFile.WriteFloat(const Section, Name: string;
   Value: Double);
 begin
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        FRegInifile.WriteFloat(Name, Value);
-      finally
-        CloseSection;
-      end;
+  FRegInifile.WriteFloat(Section,Name, Value);
 end;
 
 procedure TRegistryIniFile.WriteInteger(const Section, Name: string;
@@ -635,13 +590,7 @@ end;
 procedure TRegistryIniFile.WriteTime(const Section, Name: string;
   Value: TDateTime);
 begin
-  with FRegInifile do
-    if OpenSection(Section) then
-      try
-        FRegInifile.WriteTime(Name, Value);
-      finally
-        CloseSection;
-      end;
+  FRegInifile.WriteTime(Section,Name, Value);
 end;
 
 function TRegistryIniFile.ValueExists(const Section, Ident: string): Boolean;

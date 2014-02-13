@@ -119,6 +119,72 @@ begin
   end;
 end;
 
+procedure TRegIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
+
+begin
+  if OpenSection(Section,true) then 
+    try
+      if not fPreferStringValues then
+        inherited WriteDate(Ident,Value)
+      else if ValueExists(Ident) and (GetDataType(Ident)<>rdString) then
+	    inherited WriteDate(Ident,Value)
+      else
+        inherited WriteString(Ident,DateToStr(Value));
+  finally
+    CloseKey;
+  end;
+end;
+
+procedure TRegIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
+
+begin
+  if OpenSection(Section,true) then 
+    try
+      if not fPreferStringValues then
+        inherited WriteDateTime(Ident,Value)
+      else if ValueExists(Ident) and (GetDataType(Ident)<>rdString) then
+	    inherited WriteDateTime(Ident,Value)
+      else
+        inherited WriteString(Ident,DateTimeToStr(Value));
+  finally
+    CloseKey;
+  end;
+end;
+
+procedure TRegIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
+
+begin
+  if OpenSection(Section,true) then 
+    try
+      if not fPreferStringValues then
+        inherited WriteTime(Ident,Value)
+      else if ValueExists(Ident) and (GetDataType(Ident)<>rdString) then
+	    inherited WriteTime(Ident,Value)
+      else
+        inherited WriteString(Ident,TimeToStr(Value));
+  finally
+    CloseKey;
+  end;
+end;
+
+procedure TRegIniFile.WriteFloat(const Section, Ident: string; Value: Double);
+
+begin
+  if OpenSection(Section,true) then 
+    try
+      if not fPreferStringValues then
+        inherited WriteFloat(Ident,Value)
+      else if ValueExists(Ident) and (GetDataType(Ident)<>rdString) then
+	    inherited WriteFloat(Ident,Value)
+      else
+        inherited WriteString(Ident,FloatToStr(Value));
+  finally
+    CloseKey;
+  end;
+end;
+
+    
+
 function TRegIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
 begin
 	Result := Default;
@@ -161,20 +227,87 @@ begin
   end;
 end;
 
+function TRegIniFile.ReadDate(const Section, Ident: string; Default: TDateTime):TDateTime;
+begin
+  Result := Default;
+  if OpenSection(Section) then
+  try
+    if ValueExists(Ident) then
+      if (not fPreferStringValues) or (GetDataType(Ident)<>rdString) then
+        Result := inherited ReadDate(Ident)
+      else
+        Result := StrToDateDef(inherited ReadString(Ident),Result);
+  finally
+    CloseSection;
+  end;
+end;
+
+function TRegIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime):TDateTime;
+begin
+  Result := Default;
+  if OpenSection(Section) then
+  try
+    if ValueExists(Ident) then
+      if (not fPreferStringValues) or (GetDataType(Ident)<>rdString) then
+        Result := inherited ReadDateTime(Ident)
+      else
+        Result := StrToDateTimeDef(inherited ReadString(Ident),Result);
+  finally
+    CloseSection;
+  end;
+end;
+ 
+function TRegIniFile.ReadTime(const Section, Ident: string; Default: TDateTime):TDateTime;
+
+begin
+  Result := Default;
+  if OpenSection(Section) then
+  try
+    if ValueExists(Ident) then
+      if (not fPreferStringValues) or (GetDataType(Ident)<>rdString) then
+        Result := inherited ReadTime(Ident)
+      else
+        Result := StrToTimeDef(inherited ReadString(Ident),Result);
+  finally
+    CloseSection;
+  end;
+end;
+
+function TRegIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
+
+begin
+  Result := Default;
+  if OpenSection(Section) then
+  try
+    if ValueExists(Ident) then
+      if (not fPreferStringValues) or (GetDataType(Ident)<>rdString) then
+        Result := inherited ReadFloat(Ident)
+      else
+        Result := StrToFloatDef(inherited ReadString(Ident),Result);
+  finally
+    CloseSection;
+  end;
+end;
+
 function TRegIniFile.OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
 var
   k: HKEY;
+  S : String;
+
 begin
+  S:=Section;
+  If (S<>'') and (S[1] = '\') then
+    Delete(S,1,1);
   if CreateSection then
-    CreateKey(Section);
-  ASSERT(fOldCurKey = 0);
-  if Section <> '' then begin
-    k:=GetKey(Section);
-    if k = 0 then begin
+    CreateKey('\'+FPath+S);
+  if Section <> '' then
+    begin
+    k:=GetKey('\'+FPath+S);
+    if k = 0 then
+      begin
       Result:=False;
       exit;
-    end;
-    fOldCurKey:=CurrentKey;
+      end;
     SetCurrentKey(k);
   end;
   Result:=True;
@@ -182,10 +315,6 @@ end;
 
 procedure TRegIniFile.CloseSection;
 begin
-  if fOldCurKey <> 0 then begin
-    CloseKey(CurrentKey);
-    SetCurrentKey(fOldCurKey);
-    fOldCurKey:=0;
-  end;
+  CloseKey(CurrentKey);
 end;
 
