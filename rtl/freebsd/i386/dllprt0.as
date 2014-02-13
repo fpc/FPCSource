@@ -37,12 +37,6 @@ gcc2_compiled.:
         .size    __progname,4
 __progname:
         .long .LC0
-        .align  4
-        .type   __fpucw,@object
-        .size   __fpucw,4
-        .global __fpucw
-___fpucw:
-        .long   0x1332
 
         .globl  ___fpc_brk_addr         /* heap management */
         .type   ___fpc_brk_addr,@object
@@ -56,27 +50,15 @@ FPC_LIB_START:
 	.globl FPC_SHARED_LIB_START
 	.type FPC_SHARED_LIB_START,@function
 FPC_SHARED_LIB_START:
-        movb    $1,operatingsystem_islibrary
-
-        finit                           /* initialize fpu */
-        fwait
-        fldcw   ___fpucw
-
-        /* xorl    %ebp,%ebp */
-
 	call	PASCALMAIN@PLT
 	ret
 
-        pushl %eax
-        jmp   _haltproc
-        
 .p2align 2,0x90
 .globl _haltproc
 .type _haltproc,@function
 
 _haltproc:
-        call    FPC_LIB_EXIT@PLT
-           mov $1,%eax  
+           mov $1,%eax
            movzwl operatingsystem_result,%ebx
            pushl %ebx
            call _actualsyscall
@@ -106,3 +88,6 @@ __stkptr:
 
 //.section .threadvar,"aw",@nobits
         .comm   ___fpc_threadvar_offset,4
+
+.section .note.GNU-stack,"",%progbits
+
