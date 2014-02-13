@@ -1296,6 +1296,7 @@ implementation
         i : integer;
         hp,hpn : tparavarsym;
         oldleft : tnode;
+        para: tcallparanode;
       begin
         { Need to use a hack here to prevent the parameters from being copied.
           The parameters must be copied between callinitblock/callcleanupblock because
@@ -1343,6 +1344,13 @@ implementation
                hp:=tparavarsym(varargsparas[i]);
                hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
                n.varargsparas.add(hpn);
+               para:=tcallparanode(n.left);
+               while assigned(para) do
+                 begin
+                   if (para.parasym=hp) then
+                     para.parasym:=hpn;
+                   para:=tcallparanode(para.right);
+                 end;
              end;
          end
         else
@@ -3474,7 +3482,7 @@ implementation
                 that is handled by make_not_regable if ra_addr_regable is
                 passed, and make_not_regable always needs to called for
                 the ra_addr_taken info for non-invisble parameters) }
-              if (
+              if (not (cpf_varargs_para in hp.callparaflags)) and (
                   not(
                       (vo_is_hidden_para in hp.parasym.varoptions) and
                       (hp.left.resultdef.typ in [pointerdef,classrefdef])
