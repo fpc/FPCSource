@@ -1872,6 +1872,10 @@ type
     Procedure CheckDatabase;
     Procedure CheckActive;
     Procedure CheckInactive;
+    procedure Commit; virtual;
+    procedure CommitRetaining; virtual;
+    procedure Rollback; virtual;
+    procedure RollbackRetaining; virtual;
     procedure EndTransaction; virtual; abstract;
     procedure StartTransaction; virtual; abstract;
     procedure InternalHandleException; virtual;
