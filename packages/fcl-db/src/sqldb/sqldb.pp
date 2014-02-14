@@ -330,7 +330,7 @@ type
 
     FUpdateQry,
     FDeleteQry,
-    FInsertQry           : TCustomSQLQuery;
+    FInsertQry           : TCustomSQLStatement;
     procedure FreeFldBuffers;
     function GetParamCheck: Boolean;
     function GetParams: TParams;
@@ -2173,15 +2173,15 @@ procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 var FieldNamesQuoteChars : TQuoteChars;
 
-  function InitialiseModifyQuery(var qry : TCustomSQLQuery): TCustomSQLQuery;
+  function InitialiseModifyQuery(var qry : TCustomSQLStatement): TCustomSQLStatement;
 
   begin
     if not assigned(qry) then
     begin
-      qry := TCustomSQLQuery.Create(nil);
+      qry := TCustomSQLStatement.Create(nil);
       qry.ParseSQL := False;
-      qry.DataBase := Self.DataBase;
-      qry.Transaction := Self.Transaction;
+      qry.DataBase := Self.SQLConnection;
+      qry.Transaction := Self.SQLTransaction;
     end;
     Result:=qry;
   end;
@@ -2263,7 +2263,7 @@ var FieldNamesQuoteChars : TQuoteChars;
     result := 'delete from ' + FTableName + ' where ' + sql_where;
   end;
 
-var qry : TCustomSQLQuery;
+var qry : TCustomSQLStatement;
     s   : string;
     x   : integer;
     Fld : TField;
@@ -2304,7 +2304,7 @@ begin
       Fld := self.FieldByName(name);
       AssignFieldValue(Fld,Fld.Value);
       end;
-    execsql;
+    execute;
     end;
 end;
 
