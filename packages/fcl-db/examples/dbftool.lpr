@@ -64,7 +64,7 @@ type
       else
         NewDBF.TableLevel := TableLevel;
 
-      NewDBF.TableName := 'CUSTOMER.DBF';
+      NewDBF.TableName := 'customer.dbf';
       writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);
       if TableLevel >= 30 then
       begin
@@ -133,7 +133,7 @@ type
       else
         NewDBF.TableLevel := TableLevel;
 
-      NewDBF.TableName := 'EMPLOYEE.DBF';
+      NewDBF.TableName := 'employee.dbf';
       writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);
       if TableLevel >= 30 then
       begin
