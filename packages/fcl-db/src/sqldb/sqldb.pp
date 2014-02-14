@@ -31,6 +31,7 @@ type
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
+
   TRowsCount = LargeInt;
 
   TSQLStatementInfo = Record
@@ -78,6 +79,24 @@ type
       SQLState : string;
       constructor CreateFmt(const Fmt: string; const Args: array of const;
                             Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
+  end;
+
+  { TSQLDBParam }
+
+  TSQLDBParam = Class(TParam)
+  private
+    FFieldDef: TFieldDef;
+    FData : Pointer;
+  Protected
+    Property FieldDef : TFieldDef Read FFieldDef Write FFieldDef;
+    Property Data : Pointer Read FData Write FData;
+  end;
+
+  { TSQLDBParams }
+
+  TSQLDBParams = Class(TParams)
+  Protected
+    Class Function ParamClass : TParamClass; override;
   end;
 
   TQuoteChars = array[0..1] of char;
@@ -218,10 +237,10 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    procedure Commit; virtual;
-    procedure CommitRetaining; virtual;
-    procedure Rollback; virtual;
-    procedure RollbackRetaining; virtual;
+    procedure Commit; override;
+    procedure CommitRetaining; override;
+    procedure Rollback; override;
+    procedure RollbackRetaining; override;
     procedure StartTransaction; override;
     procedure EndTransaction; override;
     property Handle: Pointer read GetHandle;
@@ -267,7 +286,7 @@ type
     Procedure DoExecute; virtual;
     procedure DoPrepare; virtual;
     procedure DoUnPrepare; virtual;
-    Function CreateParams : TParams; virtual;
+    Function CreateParams : TSQLDBParams; virtual;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -650,6 +669,13 @@ begin
   result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
+{ TSQLDBParams }
+
+class function TSQLDBParams.ParamClass: TParamClass;
+begin
+  Result:=TSQLDBParam;
+end;
+
 { ESQLDatabaseError }
 
 constructor ESQLDatabaseError.CreateFmt(const Fmt: string; const Args: array of const;
@@ -675,7 +701,7 @@ procedure TCustomSQLStatement.OnChangeSQL(Sender: TObject);
 
 var
   ConnOptions : TConnOptions;
-  NewParams: TParams;
+  NewParams: TSQLDBParams;
 
 begin
   UnPrepare;
@@ -776,9 +802,9 @@ begin
   Result:=TDataLink.Create;
 end;
 
-function TCustomSQLStatement.CreateParams: TParams;
+function TCustomSQLStatement.CreateParams: TSQLDBParams;
 begin
-  Result:=TParams.Create(Nil);
+  Result:=TSQLDBParams.Create(Nil);
 end;
 
 function TCustomSQLStatement.LogEvent(EventType: TDBEventType): Boolean;
@@ -1438,32 +1464,6 @@ begin
 end;
 
 { TCustomSQLQuery }
-(*
-procedure TCustomSQLQuery.OnChangeSQL(Sender : TObject);
-
-var ConnOptions : TConnOptions;
-    NewParams: TParams;
-
-begin
-  FSchemaType:=stNoSchema;
-  if (FSQL <> nil) and ParamCheck then
-    begin
-    if assigned(DataBase) then
-      ConnOptions := SQLConnection.ConnOptions
-    else
-      ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
-    //preserve existing param. values
-    NewParams := TParams.Create(Self);
-    try
-      NewParams.ParseSQL(FSQL.Text, True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psInterbase);
-      NewParams.AssignValues(FParams);
-      FParams.Assign(NewParams);
-    finally
-      NewParams.Free;
-    end;
-    end;
-end;
-*)
 
 function TCustomSQLQuery.ParamByName(const AParamName: String): TParam;
 
@@ -1502,13 +1502,8 @@ begin
     If Assigned(FStatement) then
       FStatement.Database:=DB;
     inherited setdatabase(value);
-(*
-     FStatement.Database:=Db,
-    if assigned(FCursor) then SQLConnection.DeAllocateCursorHandle(FCursor);
-*)
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
       transaction := Db.Transaction;
-//    FStatement.OnChangeSQL(Self);
     end;
 end;
 
