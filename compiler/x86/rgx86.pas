@@ -288,7 +288,9 @@ implementation
                               A_UNPCKLPS,
                               A_UNPCKHPS,
                               A_SHUFPD,
-                              A_SHUFPS:
+                              A_SHUFPS,
+                              A_VCOMISD,
+                              A_VCOMISS:
                                 replaceoper:=-1;
 
                               A_IMUL:
