@@ -169,7 +169,6 @@ type
     destructor Destroy; override;
     procedure StartTransaction; override;
     procedure EndTransaction; override;
-    property ConnOptions: TConnOptions read FConnOptions;
     procedure ExecuteDirect(SQL : String); overload; virtual;
     procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
@@ -180,6 +179,7 @@ type
     function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
+    property ConnOptions: TConnOptions read FConnOptions;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -207,22 +207,25 @@ type
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FParams              : TStringList;
+    function GetSQLConnection: TSQLConnection;
     procedure SetParams(const AValue: TStringList);
+    procedure SetSQLConnection(AValue: TSQLConnection);
   protected
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
     procedure Rollback; virtual;
     procedure RollbackRetaining; virtual;
     procedure StartTransaction; override;
-    constructor Create(AOwner : TComponent); override;
-    destructor Destroy; override;
-    property Handle: Pointer read GetHandle;
     procedure EndTransaction; override;
+    property Handle: Pointer read GetHandle;
+    Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
   published
     property Action : TCommitRollbackAction read FAction write FAction Default caRollBack;
     property Database;
@@ -302,9 +305,7 @@ type
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    // FCursor              : TSQLCursor;
     FSchemaType: TSchemaType;
-//    FSQL: TStringlist;
     FUpdateable          : boolean;
     FTableName           : string;
     FStatement           : TCustomSQLStatement;
@@ -318,10 +319,6 @@ type
     FSQLBuf              : String;
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
-    // FParseSQL            : boolean;
-//    FMasterLink          : TMasterParamsDatalink;
-//    FSchemaInfo          : TSchemaInfo;
-
     FServerFilterText    : string;
     FServerFiltered      : Boolean;
 
@@ -340,8 +337,12 @@ type
     function GetParseSQL: Boolean;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetSQL: TStringlist;
+    function GetSQLConnection: TSQLConnection;
+    function GetSQLTransaction: TSQLTransaction;
     function GetStatementType : TStatementType;
     procedure SetParamCheck(AValue: Boolean);
+    procedure SetSQLConnection(AValue: TSQLConnection);
+    procedure SetSQLTransaction(AValue: TSQLTransaction);
     procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetDeleteSQL(const AValue: TStringlist);
     procedure SetInsertSQL(const AValue: TStringlist);
@@ -350,10 +351,8 @@ type
     procedure SetSQL(const AValue: TStringlist);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
-//    procedure OnChangeSQL(Sender : TObject);
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
-//    Function SQLParser(const ASQL : string) : TStatementType;
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
@@ -387,15 +386,17 @@ type
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
     procedure ExecSQL; virtual;
-    constructor Create(AOwner : TComponent); override;
-    destructor Destroy; override;
     procedure SetSchemaInfo( ASchemaType : TSchemaType; ASchemaObjectName, ASchemaPattern : string); virtual;
-    property Prepared : boolean read IsPrepared;
     function RowsAffected: TRowsCount; virtual;
     function ParamByName(Const AParamName : String) : TParam;
+    Property Prepared : boolean read IsPrepared;
+    Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
+    Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
   protected
 
     // redeclared data set properties
@@ -1297,9 +1298,19 @@ begin
   FParams.Assign(AValue);
 end;
 
-function TSQLTransaction.GetHandle: pointer;
+function TSQLTransaction.GetSQLConnection: TSQLConnection;
 begin
-  Result := TSQLConnection(Database).GetTransactionHandle(FTrans);
+  Result:=Database as TSQLConnection;
+end;
+
+procedure TSQLTransaction.SetSQLConnection(AValue: TSQLConnection);
+begin
+  Database:=AValue;
+end;
+
+function TSQLTransaction.GetHandle: Pointer;
+begin
+  Result := SQLConnection.GetTransactionHandle(FTrans);
 end;
 
 procedure TSQLTransaction.Commit;
@@ -1309,7 +1320,7 @@ begin
     closedatasets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if TSQLConnection(Database).commit(FTrans) then
+    if SQLConnection.commit(FTrans) then
       begin
       closeTrans;
       FreeAndNil(FTrans);
@@ -1323,7 +1334,7 @@ begin
     begin
     If LogEvent(detCommit) then
       Log(detCommit,SCommitRetaining);
-    TSQLConnection(Database).commitRetaining(FTrans);
+    SQLConnection.commitRetaining(FTrans);
     end;
 end;
 
@@ -1334,7 +1345,7 @@ begin
     closedatasets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
-    if TSQLConnection(Database).RollBack(FTrans) then
+    if SQLConnection.RollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -1348,7 +1359,7 @@ begin
     begin
     If LogEvent(detRollback) then
       Log(detRollback,SRollBackRetaining);
-    TSQLConnection(Database).RollBackRetaining(FTrans);
+    SQLConnection.RollBackRetaining(FTrans);
     end;
 end;
 
@@ -1360,7 +1371,7 @@ begin
   if Active then
     DatabaseError(SErrTransAlreadyActive);
 
-  db := TSQLConnection(Database);
+  db := SQLConnection;
 
   if Db = nil then
     DatabaseError(SErrDatabasenAssigned);
@@ -1387,7 +1398,7 @@ begin
   inherited Destroy;
 end;
 
-Procedure TSQLTransaction.SetDatabase(Value : TDatabase);
+procedure TSQLTransaction.SetDatabase(Value: TDatabase);
 
 begin
   If Value<>Database then
@@ -1396,18 +1407,18 @@ begin
       DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
     CheckInactive;
     If Assigned(Database) then
-      with TSQLConnection(DataBase) do
+      with SQLConnection do
         if Transaction = self then Transaction := nil;
     inherited SetDatabase(Value);
     If Assigned(Database) and not (csLoading in ComponentState) then
-      If (TSQLConnection(DataBase).Transaction=Nil) then
-        TSQLConnection(DataBase).Transaction:=Self;
+      If (SQLConnection.Transaction=Nil) then
+        SQLConnection.Transaction:=Self;
     end;
 end;
 
 function TSQLTransaction.LogEvent(EventType: TDBEventType): Boolean;
 begin
-  Result:=Assigned(Database) and TSQLConnection(Database).LogEvent(EventType);
+  Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
 end;
 
 procedure TSQLTransaction.Log(EventType: TDBEventType; const Msg: String);
@@ -1422,7 +1433,7 @@ begin
       M:=Name+' : '+Msg
     else
       M:=Msg;
-    TSQLConnection(Database).Log(EventType,M);
+    SQLConnection.Log(EventType,M);
     end;
 end;
 
@@ -1438,7 +1449,7 @@ begin
   if (FSQL <> nil) and ParamCheck then
     begin
     if assigned(DataBase) then
-      ConnOptions := TSQLConnection(DataBase).ConnOptions
+      ConnOptions := SQLConnection.ConnOptions
     else
       ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
     //preserve existing param. values
@@ -1474,7 +1485,7 @@ begin
   If Assigned(FStatement) then
     FStatement.Transaction:=TSQLTransaction(Value);
   If (Transaction<>Nil) and (Database=Nil) then
-    Database:=TSQLTransaction(Transaction).Database;
+    Database:=SQLTransaction.Database;
 end;
 
 procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
@@ -1493,7 +1504,7 @@ begin
     inherited setdatabase(value);
 (*
      FStatement.Database:=Db,
-    if assigned(FCursor) then TSQLConnection(DataBase).DeAllocateCursorHandle(FCursor);
+    if assigned(FCursor) then SQLConnection.DeAllocateCursorHandle(FCursor);
 *)
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
       transaction := Db.Transaction;
@@ -1595,7 +1606,7 @@ end;
 procedure TCustomSQLQuery.FreeFldBuffers;
 begin
   if assigned(Cursor) then
-     TSQLConnection(Database).FreeFldBuffers(Cursor);
+     SQLConnection.FreeFldBuffers(Cursor);
 end;
 
 function TCustomSQLQuery.GetParamCheck: Boolean;
@@ -1623,6 +1634,16 @@ begin
   Result:=TStringList(Fstatement.SQL);
 end;
 
+function TCustomSQLQuery.GetSQLConnection: TSQLConnection;
+begin
+  Result:=Database as TSQLConnection;
+end;
+
+function TCustomSQLQuery.GetSQLTransaction: TSQLTransaction;
+begin
+  Result:=Transaction as TSQLTransaction;
+end;
+
 function TCustomSQLQuery.Fetch : boolean;
 begin
   if Not Assigned(Cursor) then
@@ -1631,7 +1652,7 @@ begin
     Exit;
   If LogEvent(detFetch) then
     Log(detFetch,FSQLBuf);
-  if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Cursor);
+  if not FIsEof then FIsEOF := not SQLConnection.Fetch(Cursor);
   Result := not FIsEOF;
 end;
 
@@ -1652,13 +1673,13 @@ end;
 
 function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 begin
-  result := TSQLConnection(Database).LoadField(Cursor,FieldDef,buffer, Createblob)
+  result := SQLConnection.LoadField(Cursor,FieldDef,buffer, Createblob)
 end;
 
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
-  TSQLConnection(DataBase).LoadBlobIntoBuffer(FieldDef, ABlobBuf, Cursor,(Transaction as TSQLTransaction));
+  SQLConnection.LoadBlobIntoBuffer(FieldDef, ABlobBuf, Cursor,SQLTransaction);
 end;
 
 procedure TCustomSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -1696,7 +1717,7 @@ begin
   try
     FieldDefs.Clear;
     if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
-    TSQLConnection(Database).AddFieldDefs(Cursor,FieldDefs);
+    SQLConnection.AddFieldDefs(Cursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
     if Assigned(Cursor) then Cursor.FInitFieldDef := false;
@@ -1980,7 +2001,7 @@ begin
     // Cursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     //   called, so UnPrepareStatement shoudn't be called either
     // Don't deallocate cursor; f.e. RowsAffected is requested later
-    if not Prepared and (assigned(Database)) and (assigned(Cursor)) then TSQLConnection(Database).UnPrepareStatement(Cursor);
+    if not Prepared and (assigned(Database)) and (assigned(Cursor)) then SQLConnection.UnPrepareStatement(Cursor);
   end;
 end;
 
@@ -2145,7 +2166,7 @@ procedure TCustomSQLQuery.UpdateServerIndexDefs;
 begin
   FServerIndexDefs.Clear;
   if assigned(DataBase) and (FTableName<>'') then
-    TSQLConnection(DataBase).UpdateIndexDefs(ServerIndexDefs,FTableName);
+    SQLConnection.UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
@@ -2248,7 +2269,7 @@ var qry : TCustomSQLQuery;
     Fld : TField;
 
 begin
-  FieldNamesQuoteChars := TSQLConnection(DataBase).FieldNameQuoteChars;
+  FieldNamesQuoteChars := SQLConnection.FieldNameQuoteChars;
 
   case UpdateKind of
     ukInsert : begin
@@ -2318,13 +2339,13 @@ begin
   // prepared cursor. In fact this is wrong, but has never led to
   // problems because in SetActive(false) queries are always
   // unprepared. (which is also wrong, but has to be fixed later)
-  if IsPrepared then with TSQLConnection(DataBase) do
+  if IsPrepared then with SQLConnection do
     UnPrepareStatement(Cursor);
 end;
 
 function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
 begin
-  Result:=Assigned(Database) and TSQLConnection(Database).LogEvent(EventType);
+  Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
 end;
 
 procedure TCustomSQLQuery.Log(EventType: TDBEventType; const Msg: String);
@@ -2338,7 +2359,7 @@ begin
     M:=Msg;
     If (Name<>'') then
       M:=Name+' : '+M;
-    TSQLConnection(Database).Log(EventType,M);
+    SQLConnection.Log(EventType,M);
     end;
 end;
 
@@ -2354,6 +2375,16 @@ end;
 procedure TCustomSQLQuery.SetParamCheck(AValue: Boolean);
 begin
   FStatement.ParamCheck:=AValue;
+end;
+
+procedure TCustomSQLQuery.SetSQLConnection(AValue: TSQLConnection);
+begin
+  Database:=AValue;
+end;
+
+procedure TCustomSQLQuery.SetSQLTransaction(AValue: TSQLTransaction);
+begin
+  Transaction:=AValue;
 end;
 
 procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
