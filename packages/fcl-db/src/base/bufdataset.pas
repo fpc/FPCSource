@@ -563,7 +563,6 @@ type
     procedure ApplyUpdates; virtual; overload;
     procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
     procedure MergeChangeLog;
-    Procedure ClearIndexes;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;
@@ -572,6 +571,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
+    procedure ClearIndexes;
 
     procedure SetDatasetPacket(AReader : TDataPacketReader);
     procedure GetDatasetPacket(AWriter : TDataPacketReader);
@@ -1100,6 +1100,17 @@ begin
   for i:=1 to FIndexesCount-1 do
     if (i<>1) or (FIndexes[i]=FCurrentIndex) then
       BuildIndex(FIndexes[i]);
+end;
+
+procedure TCustomBufDataset.ClearIndexes;
+var
+  i:integer;
+begin
+  CheckInactive;
+  For I:=0 to Length(FIndexes)-1 do
+    FreeAndNil(Findexes[I]);
+  SetLength(FIndexes,0);
+  FIndexesCount:=0;
 end;
 
 procedure TCustomBufDataset.RemoveRecordFromIndexes(const ABookmark: TBufBookmark);
@@ -2283,7 +2294,7 @@ begin
             else Response := rrSkip;
             if assigned(FOnUpdateError) then
               begin
-              AUpdateErr := EUpdateError.Create(SOnUpdateError,E.Message,0,0,Exception(AcquireExceptionObject));
+              AUpdateErr := PSGetUpdateException(Exception(AcquireExceptionObject), nil);
               FOnUpdateError(Self,Self,AUpdateErr,FUpdateBuffer[r].UpdateKind,Response);
               AUpdateErr.Free;
               if Response in [rrApply, rrIgnore] then dec(FailedCount);
@@ -2295,7 +2306,7 @@ begin
           else
             raise;
         end;
-        if response in [rrApply, rrIgnore] then
+        if Response in [rrApply, rrIgnore] then
           begin
           FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
           if FUpdateBuffer[r].UpdateKind = ukDelete then
@@ -2602,17 +2613,6 @@ begin
   ABlobBuffer^.OrgBufID := high(FBlobBuffers);
   FBlobBuffers[high(FBlobBuffers)] := ABlobBuffer;
   result := ABlobBuffer;
-end;
-
-procedure TCustomBufDataset.ClearIndexes;
-var
-  i:integer;
-begin
-  CheckInactive;
-  For I:=0 to Length(FIndexes)-1 do
-    FreeAndNil(Findexes[I]);
-  SetLength(FIndexes,0);
-  FIndexesCount:=0;
 end;
 
 function TCustomBufDataset.GetNewWriteBlobBuffer : PBlobBuffer;

@@ -162,7 +162,6 @@ Type
   end;
 
 
-  EMySQLError = Class(Exception);
   {$IFDEF mysql56}
     TMySQL56Connection = Class(TConnectionName);
     TMySQL56ConnectionDef = Class(TMySQLConnectionDef);
@@ -254,19 +253,27 @@ Resourcestring
   SErrVersionMismatch = '%s can not work with the installed MySQL client version: Expected (%s), got (%s).';
   SErrSettingParameter = 'Error setting parameter "%s"';
 
-Procedure MySQLError(R : PMySQL;Msg: String;Comp : TComponent);
+Procedure MySQLError(R : PMySQL; Msg: String; Comp : TComponent);
 
 Var
-  MySQLMsg : String;
+  MySQLError, MySQLState : String;
+  MySQLErrno: integer;
 
 begin
- If (R<>Nil) then
-   begin
-   MySQLMsg:=Strpas(mysql_error(R));
-   DatabaseErrorFmt(Msg,[MySQLMsg],Comp);
-   end
- else
-   DatabaseError(Msg,Comp);
+  If (R<>Nil) then
+    begin
+    MySQLError:=StrPas(mysql_error(R));
+    MySQLErrno:=mysql_errno(R);
+    MySQLState:=StrPas(mysql_sqlstate(R));
+    end
+  else
+    begin
+    MySQLError:='';
+    MySQLErrno:=0;
+    MySQLState:='';
+    end;
+
+  raise ESQLDatabaseError.CreateFmt(Msg, [MySQLError], Comp, MySQLErrno, MySQLState);
 end;
 
 function MysqlOption(const OptionName: string; out AMysql_Option: mysql_option) : boolean;

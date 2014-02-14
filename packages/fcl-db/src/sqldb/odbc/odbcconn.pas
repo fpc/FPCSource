@@ -133,10 +133,7 @@ type
     property OnLogin;
   end;
 
-  EODBCException = class(EDatabaseError)
-    NativeError: integer;
-    SQLState: string;
-  end;
+  EODBCException = class(ESQLDatabaseError);
 
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   { TODBCConnectionDef }
@@ -151,7 +148,7 @@ type
 implementation
 
 uses
-  DBConst, ctypes;
+  ctypes;
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;
@@ -195,12 +192,11 @@ procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHan
   end;
 
 var
-  NativeError:SQLINTEGER;
+  NativeError, NativeError1: SQLINTEGER;
   TextLength:SQLSMALLINT;
   Res:SQLRETURN;
-  SqlState,MessageText,TotalMessage:string;
+  SqlState, SQLState1, MessageText, TotalMessage: string;
   RecNumber:SQLSMALLINT;
-  Error: EODBCException;
 begin
   // check result
   if ODBCSucces(LastReturnCode) then
@@ -208,14 +204,15 @@ begin
 
   //WriteLn('LastResultCode: ',ODBCResultToStr(LastReturnCode));
   try
+    NativeError1:=0;
+    SQLState1:='';
     // build TotalMessage for exception to throw
     TotalMessage:=Format(ErrorMsg,FmtArgs)+Format(' ODBC error details: LastReturnCode: %s;',[ODBCResultToStr(LastReturnCode)]);
     // retrieve status records
-    NativeError:=0;
-    SetLength(SqlState,5); // SqlState buffer
     SetLength(MessageText,1);
     RecNumber:=1;
     repeat
+      SetLength(SqlState,5); // reset 5-character buffer
       // dummy call to get correct TextLength
       //WriteLn('Getting error record ',RecNumber);
       Res:=SQLGetDiagRec(HandleType,AHandle,RecNumber,@(SqlState[1]),NativeError,@(MessageText[1]),0,TextLength);
@@ -232,6 +229,12 @@ begin
       end;
       // add to TotalMessage
       TotalMessage:=TotalMessage+Format(' Record %d: SqlState: %s; NativeError: %d; Message: %s;',[RecNumber,SqlState,NativeError,MessageText]);
+      // save most significant error
+      if RecNumber = 1 then
+      begin
+        NativeError1 := NativeError;
+        SQLState1 := SqlState;
+      end;
       // incement counter
       Inc(RecNumber);
     until false;
@@ -241,10 +244,7 @@ begin
     end
   end;
   // raise error
-  Error := EODBCException.Create(TotalMessage);
-  Error.NativeError := NativeError;
-  Error.SQLState := SqlState;
-  raise Error;
+  raise EODBCException.CreateFmt(TotalMessage, [], nil, NativeError1, SQLState1);
 end;
 
 procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);

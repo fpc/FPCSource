@@ -70,7 +70,17 @@ type
     FSchemaType    : TSchemaType;
   end;
 
-type TQuoteChars = array[0..1] of char;
+  { ESQLDatabaseError}
+
+  ESQLDatabaseError = class(EDatabaseError)
+    public
+      ErrorCode: integer;
+      SQLState : string;
+      constructor CreateFmt(const Fmt: string; const Args: array of const;
+                            Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
+  end;
+
+  TQuoteChars = array[0..1] of char;
 
 const
   SingleQuotes : TQuoteChars = ('''','''');
@@ -352,6 +362,7 @@ type
     Function Cursor : TSQLCursor;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
+    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     // abstract & virtual methods of TDataset
     procedure UpdateServerIndexDefs; virtual;
     procedure SetDatabase(Value : TDatabase); override;
@@ -361,7 +372,6 @@ type
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function  GetCanModify: Boolean; override;
-    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     Function IsPrepared : Boolean; virtual;
     Procedure SetActive (Value : Boolean); override;
     procedure SetServerFiltered(Value: Boolean); virtual;
@@ -370,9 +380,12 @@ type
     Procedure SetDataSource(AValue : TDataSource);
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    // IProviderSupport methods
+    function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
+
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -634,6 +647,25 @@ begin
   DecodeTime(Time,hour,minute,second,millisecond);
   hour := hour + (trunc(Time) * 24);
   result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
+end;
+
+{ ESQLDatabaseError }
+
+constructor ESQLDatabaseError.CreateFmt(const Fmt: string; const Args: array of const;
+  Comp: TComponent; AErrorCode: integer; ASQLState: string);
+const CompNameFmt='%s : %s';
+var Msg: string;
+begin
+  if not assigned(Comp) then
+    Msg := Fmt
+  else if Comp.Name = '' then
+    Msg := Format(CompNameFmt, [Comp.ClassName,Fmt])
+  else
+    Msg := Format(CompNameFmt, [Comp.Name,Fmt]);
+
+  inherited CreateFmt(Msg, Args);
+  ErrorCode := AErrorCode;
+  SQLState  := ASQLState;
 end;
 
 { TCustomSQLStatement }
@@ -2371,6 +2403,23 @@ begin
   Inherited;
   If (Operation=opRemove) and (AComponent=DataSource) then
     DataSource:=Nil;
+end;
+
+function TCustomSQLQuery.PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError;
+var
+  PrevErrorCode, ErrorCode: Integer;
+begin
+  if Assigned(Prev) then
+    PrevErrorCode := Prev.ErrorCode
+  else
+    PrevErrorCode := 0;
+
+  if E is ESQLDatabaseError then
+    ErrorCode := ESQLDatabaseError(E).ErrorCode
+  else
+    ErrorCode := 0;
+
+  Result := EUpdateError.Create(SOnUpdateError, E.Message, ErrorCode, PrevErrorCode, E);
 end;
 
 { TSQLScript }
