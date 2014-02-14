@@ -214,9 +214,14 @@ begin
   inherited Items[Index] := AValue;
 end;
 
-constructor TFieldDefs.Create(ADataset: TDataset);
+class function TFieldDefs.FieldDefClass: TFieldDefClass;
 begin
-  Inherited Create(ADataset, Owner, TFieldDef);
+  Result:=TFieldDef;
+end;
+
+constructor TFieldDefs.Create(ADataSet: TDataSet);
+begin
+  Inherited Create(ADataset, Owner, FieldDefClass);
 end;
 
 procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
@@ -271,7 +276,7 @@ begin
     end;
 end;
 
-Function TFieldDefs.AddFieldDef : TFieldDef;
+function TFieldDefs.AddFieldDef: TFieldDef;
 
 begin
   Result:=TFieldDef.Create(Self,'',ftUnknown,0,False,Count+1);

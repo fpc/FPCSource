@@ -198,7 +198,7 @@ type
     property Precision: Longint read FPrecision write SetPrecision;
     property Size: Integer read FSize write SetSize;
   end;
-
+  TFieldDefClass = Class of TFieldDef;
 { TFieldDefs }
 
   TFieldDefs = class(TDefCollection)
@@ -206,6 +206,8 @@ type
     FHiddenFields : Boolean;
     function GetItem(Index: Longint): TFieldDef;
     procedure SetItem(Index: Longint; const AValue: TFieldDef);
+  Protected
+    Class Function FieldDefClass : TFieldDefClass; virtual;
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
@@ -222,6 +224,7 @@ type
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
+  TFieldDefsClass = Class of TFieldDefs;
 
 { TField }
 
@@ -1107,7 +1110,7 @@ type
       Property Dataset : TDataset Read FDataset;
       Property Fields [Index : Integer] : TField Read GetField Write SetField; default;
     end;
-
+  TFieldsClass = Class of TFields;
 
   { TParam }
 
@@ -1214,7 +1217,7 @@ type
     Property Size : Integer read FSize write FSize default 0;
     Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
   end;
-
+  TParamClass = Class of TParam;
 
   { TParams }
 
@@ -1229,7 +1232,9 @@ type
     Procedure AssignTo(Dest: TPersistent); override;
     Function  GetDataSet: TDataSet;
     Function  GetOwner: TPersistent; override;
+    Class Function ParamClass : TParamClass; virtual;
   public
+    Constructor Create(AOwner: TPersistent; AItemClass : TCollectionItemClass); overload;
     Constructor Create(AOwner: TPersistent); overload;
     Constructor Create; overload;
     Procedure AddParam(Value: TParam);
@@ -1383,7 +1388,7 @@ type
     FDisableControlsCount : Integer;
     FDisableControlsState : TDatasetState;
     FCurrentRecord: Longint;
-    FDataSources : TList;
+    FDataSources : TFPList;
     FDefaultFields: Boolean;
     FEOF: Boolean;
     FEnableControlsEvent : TDataEvent;
@@ -1566,6 +1571,8 @@ type
     procedure PSSetCommandText(const CommandText: string); virtual;
     procedure PSSetParams(AParams: TParams); virtual;
     procedure PSStartTransaction; virtual;
+    class function FieldDefsClass : TFieldDefsClass; virtual;
+    class function FieldsClass : TFieldsClass; virtual;
     function PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet)
                                 : Boolean; virtual;
   public
@@ -2200,7 +2207,7 @@ procedure TNamedItem.SetDisplayName(const AValue: string);
 Var TmpInd : Integer;
 begin
   if FName=AValue then exit;
-  if (AValue <> '') and (Collection is TFieldDefs) then
+  if (AValue <> '') and (Collection is TFieldDefs ) then
     begin
     TmpInd :=  (TDefCollection(Collection).IndexOf(AValue));
     if (TmpInd >= 0) and (TmpInd <> Index) then
