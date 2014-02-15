@@ -701,7 +701,7 @@ begin
         FieldType := ftAutoInc;
     end;
 
-    with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
+    with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
     begin
       // identity, timestamp and calculated column are not updatable
       if col.Updatable = 0 then Attributes := Attributes + [faReadonly];
