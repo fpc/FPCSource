@@ -3598,7 +3598,7 @@ begin
   // Read FieldDefs
   FldCount := Stream.ReadWord;
   DataSet.FieldDefs.Clear;
-  for i := 0 to FldCount - 1 do with TFieldDef.Create(DataSet.FieldDefs) do
+  for i := 0 to FldCount - 1 do with DataSet.FieldDefs.AddFieldDef do
     begin
     Name := Stream.ReadAnsiString;
     Displayname := Stream.ReadAnsiString;
