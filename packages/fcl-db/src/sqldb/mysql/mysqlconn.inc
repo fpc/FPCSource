@@ -765,9 +765,9 @@ begin
 
     if MySQLDataType(field, DFT, DFS) then
       begin
-      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
-                       (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
-                       TF);
+      FieldDefs.Add(FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
+                    (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
+                    TF);
       c.MapDSRowToMSQLRow[TF-1] := I;
       inc(TF);
       end
