@@ -852,7 +852,7 @@ begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen);
 
-      FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
+      FD := FieldDefs.Add(FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
          TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
       if TransType in [ftBCD, ftFmtBCD] then
         case (SQLDA^.SQLVar[x].sqltype and not 1) of
