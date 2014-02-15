@@ -275,6 +275,7 @@ type
     FDisplayLabel : String;
     FDisplayWidth : Longint;
     FEditMask: TEditMask;
+    FFieldDef: TFieldDef;
     FFieldKind : TFieldKind;
     FFieldName : String;
     FFieldNo : Longint;
@@ -305,7 +306,7 @@ type
     function GetIndex : longint;
     function GetLookup: Boolean;
     procedure SetAlignment(const AValue: TAlignMent);
-    procedure SetIndex(const AValue: Integer);
+    procedure SetIndex(const AValue: Longint);
     function GetDisplayText: String;
     function GetEditText: String;
     procedure SetEditText(const AValue: string);
@@ -422,6 +423,7 @@ type
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;
+    Property FieldDef : TFieldDef Read FFieldDef;
   published
     property Alignment : TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
@@ -1084,10 +1086,11 @@ type
       FOnChange : TNotifyEvent;
       FValidFieldKinds : TFieldKinds;
     Protected
+      Procedure ClearFieldDefs;
       Procedure Changed;
       Procedure CheckfieldKind(Fieldkind : TFieldKind; Field : TField);
       Function GetCount : Longint;
-      Function GetField (Index : longint) : TField;
+      Function GetField (Index : Integer) : TField;
       Procedure SetField(Index: Integer; Value: TField);
       Procedure SetFieldIndex (Field : TField;Value : Integer);
       Property OnChange : TNotifyEvent Read FOnChange Write FOnChange;

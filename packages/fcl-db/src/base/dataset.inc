@@ -83,7 +83,7 @@ end;
 procedure TDataSet.BindFields(Binding: Boolean);
 
 var i, FieldIndex: Integer;
-    FieldDef: TFieldDef;
+
 begin
   { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
     and for bound fields it is set to FieldDef.FieldNo }
@@ -91,6 +91,7 @@ begin
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
     with Fields[i] do begin
+      FFieldDef:=Nil;
       if Binding then begin
         if FieldKind in [fkCalculated, fkLookup] then begin
           FFieldNo := -1;
@@ -107,14 +108,14 @@ begin
             if FLookupCache then RefreshLookupList;
           end
         end else begin
-          FieldDef := nil;
+          FFieldDef := nil;
           FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
           if FieldIndex <> -1 then begin
-            FieldDef := FieldDefs[FieldIndex];
-            FFieldNo := FieldDef.FieldNo;
+            FFieldDef := FieldDefs[FieldIndex];
+            FFieldNo := FFieldDef.FieldNo;
             if FieldDef.InternalCalcField then FInternalCalcFields := True;
             if IsBlob then begin
-              FSize := FieldDef.Size;
+              FSize := FFieldDef.Size;
               FOffset := FBlobFieldCount;
               Inc(FBlobFieldCount);
             end;
@@ -198,6 +199,7 @@ begin
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(0);
+  Fields.ClearFieldDefs;
   InternalClose;
   FInternalOpenComplete := False;
 end;
@@ -877,6 +879,7 @@ end;
 procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);
 
 begin
+  Fields.ClearFieldDefs;
   FFieldDefs.Assign(AFieldDefs);
 end;
 
@@ -899,6 +902,7 @@ end;
 
 procedure TDataSet.InitFieldDefsFromfields;
 var i : integer;
+
 begin
   if FieldDefs.count = 0 then
     begin
@@ -907,7 +911,8 @@ begin
       for i := 0 to Fields.Count-1 do with fields[i] do
         if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
           begin
-          with TFieldDef.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1) do
+          FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
+          with FFieldDef do
             begin
             if Required then Attributes := attributes + [faRequired];
             if ReadOnly then Attributes := attributes + [faReadOnly];

@@ -91,6 +91,7 @@ begin
     DatabaseErrorFmt(SUnknownFieldType,[FName]);
   Result:=Thefield.Create(AOwner);
   Try
+    Result.FFieldDef:=Self;
     Result.Size:=FSize;
     Result.Required:=FRequired;
     Result.FFieldName:=FName;
@@ -197,7 +198,7 @@ begin
   // fieldno is 1 based !
   BeginUpdate;
   try
-    TFieldDef.Create(Self,AName,ADataType,ASize,Arequired,Count+1);
+    FieldDefClass.Create(Self,AName,ADataType,ASize,Arequired,Count+1);
   finally
     EndUpdate;
   end;
@@ -279,7 +280,7 @@ end;
 function TFieldDefs.AddFieldDef: TFieldDef;
 
 begin
-  Result:=TFieldDef.Create(Self,'',ftUnknown,0,False,Count+1);
+  Result:=FieldDefClass.Create(Self,'',ftUnknown,0,False,Count+1);
 end;
 
 { ---------------------------------------------------------------------
@@ -462,7 +463,7 @@ begin
   raise AccessError(SInteger);
 end;
 
-function TField.GetAsVariant: Variant;
+function TField.GetAsVariant: variant;
 
 begin
   raise AccessError(SVariant);
@@ -480,7 +481,7 @@ begin
   Result := GetAsString;
 end;
 
-function TField.GetOldValue: Variant;
+function TField.GetOldValue: variant;
 
 var SaveState : TDatasetState;
 
@@ -604,7 +605,7 @@ begin
     Result:=FFieldName;
 end;
 
-Function TField.IsDisplayStored : Boolean;
+function TField.IsDisplayStored: Boolean;
 
 begin
   Result:=(DisplayLabel<>FieldName);
@@ -625,7 +626,7 @@ begin
     Value := FLookupDataSet.Lookup(FLookupKeyfields, FDataSet.FieldValues[FKeyFields], FLookupresultField);
 end;
 
-function TField.getIndex : longint;
+function TField.GetIndex: longint;
 
 begin
   If Assigned(FDataset) then
@@ -658,7 +659,7 @@ begin
     end;
 end;
 
-procedure TField.SetIndex(const AValue: Integer);
+procedure TField.SetIndex(const AValue: Longint);
 begin
   if FFields <> nil then FFields.SetFieldIndex(Self, AValue)
 end;
@@ -785,7 +786,7 @@ begin
   Raise AccessError(SFloat);
 end;
 
-procedure TField.SetAsVariant(const AValue: Variant);
+procedure TField.SetAsVariant(const AValue: variant);
 
 begin
   if VarIsNull(AValue) then
@@ -842,7 +843,7 @@ begin
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
-Procedure TField.SetDataset (AValue : TDataset);
+procedure TField.SetDataset(AValue: TDataset);
 
 begin
 {$ifdef dsdebug}
@@ -915,7 +916,7 @@ begin
     end;
 end;
 
-class function Tfield.IsBlob: Boolean;
+class function TField.IsBlob: Boolean;
 
 begin
   Result:=False;
@@ -3218,7 +3219,7 @@ end;
 
 { TFields }
 
-Constructor TFields.Create(ADataset : TDataset);
+constructor TFields.Create(ADataset: TDataset);
 
 begin
   FDataSet:=ADataset;
@@ -3226,7 +3227,7 @@ begin
   FValidFieldKinds:=[fkData..fkInternalcalc];
 end;
 
-Destructor TFields.Destroy;
+destructor TFields.Destroy;
 
 begin
   if Assigned(FFieldList) then
@@ -3235,7 +3236,17 @@ begin
   inherited Destroy;
 end;
 
-Procedure Tfields.Changed;
+procedure TFields.ClearFieldDefs;
+
+Var
+  i : Integer;
+
+begin
+  For I:=0 to Count-1 do
+    Fields[i].FFieldDef:=Nil;
+end;
+
+procedure TFields.Changed;
 
 begin
   if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) and FDataset.Active then
@@ -3244,32 +3255,32 @@ begin
     FOnChange(Self);
 end;
 
-Procedure TFields.CheckfieldKind(Fieldkind : TFieldKind; Field : TField);
+procedure TFields.CheckfieldKind(Fieldkind: TFieldKind; Field: TField);
 
 begin
   If Not (FieldKind in ValidFieldKinds) Then
     DatabaseErrorFmt(SInvalidFieldKind,[Field.FieldName]);
 end;
 
-Function Tfields.GetCount : Longint;
+function TFields.GetCount: Longint;
 
 begin
   Result:=FFieldList.Count;
 end;
 
 
-Function TFields.GetField (Index : longint) : TField;
+function TFields.GetField(Index: Integer): TField;
 
 begin
   Result:=Tfield(FFieldList[Index]);
 end;
 
-procedure Tfields.SetField(Index: Integer; Value: TField);
+procedure TFields.SetField(Index: Integer; Value: TField);
 begin
   Fields[Index].Assign(Value);
 end;
 
-Procedure TFields.SetFieldIndex (Field : TField;Value : Integer);
+procedure TFields.SetFieldIndex(Field: TField; Value: Integer);
 
 Var Old : Longint;
 
@@ -3289,7 +3300,7 @@ begin
     end;
 end;
 
-Procedure TFields.Add(Field : TField);
+procedure TFields.Add(Field: TField);
 
 begin
   CheckFieldName(Field.FieldName);
@@ -3298,14 +3309,14 @@ begin
   Changed;
 end;
 
-Procedure TFields.CheckFieldName (Const Value : String);
+procedure TFields.CheckFieldName(const Value: String);
 
 begin
   If FindField(Value)<>Nil then
     DataBaseErrorFmt(SDuplicateFieldName,[Value],FDataset);
 end;
 
-Procedure TFields.CheckFieldNames (Const Value : String);
+procedure TFields.CheckFieldNames(const Value: String);
 
 
 Var I : longint;
@@ -3322,7 +3333,7 @@ begin
   Until (T='');
 end;
 
-Procedure TFields.Clear;
+procedure TFields.Clear;
 var
   AField: TField;
 begin
@@ -3336,7 +3347,7 @@ begin
   Changed;
 end;
 
-Function TFields.FindField (Const Value : String) : TField;
+function TFields.FindField(const Value: String): TField;
 
 Var S : String;
     I : longint;
@@ -3355,7 +3366,7 @@ begin
       end;
 end;
 
-Function TFields.FieldByName (Const Value : String) : TField;
+function TFields.FieldByName(const Value: String): TField;
 
 begin
   Result:=FindField(Value);
@@ -3363,7 +3374,7 @@ begin
     DatabaseErrorFmt(SFieldNotFound,[Value],FDataset);
 end;
 
-Function TFields.FieldByNumber(FieldNo : Integer) : TField;
+function TFields.FieldByNumber(FieldNo: Integer): TField;
 
 Var i : Longint;
 
@@ -3377,13 +3388,13 @@ begin
       end;
 end;
 
-Function TFields.GetEnumerator: TFieldsEnumerator;
+function TFields.GetEnumerator: TFieldsEnumerator;
 
 begin
   Result:=TFieldsEnumerator.Create(Self);
 end;
 
-Procedure TFields.GetFieldNames (Values : TStrings);
+procedure TFields.GetFieldNames(Values: TStrings);
 
 Var i : longint;
 
@@ -3393,7 +3404,7 @@ begin
     Values.Add(Tfield(FFieldList[I]).FieldName);
 end;
 
-Function TFields.IndexOf(Field : TField) : Longint;
+function TFields.IndexOf(Field: TField): Longint;
 
 begin
   Result:=FFieldList.IndexOf(Field);
