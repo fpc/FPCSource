@@ -1302,7 +1302,7 @@ begin
     end;
 
     // add FieldDef
-    with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
+    with FieldDefs.Add(FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
     begin
       if Updatable = SQL_ATTR_READONLY then Attributes := Attributes + [faReadonly];
     end;
