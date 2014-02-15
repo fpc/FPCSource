@@ -860,7 +860,7 @@ begin
       setlength(Fieldname,OFNameLength);
       move(OFieldName^,Fieldname[1],OFNameLength);
 
-      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
+      FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, counter);
       end;
   end;
 end;
