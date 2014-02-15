@@ -31,12 +31,17 @@ type
   end;
 
   { TPQCursor }
+  // TField and TFieldDef only support a limited amount of fields.
+  // TFieldBinding and TExtendedFieldType can be used to map PQ types
+  // on standard fields and retain mapping info.
   TExtendedFieldType = (eftNone,eftEnum);
+
   TFieldBinding = record
-    Index : Integer;
-    TypeOID : oid;
-    TypeName : String;
-    ExtendedFieldType: TExtendedFieldType;
+    FieldDef : TSQLDBFieldDef; // FieldDef this is associated with
+    Index : Integer; // Tuple index
+    TypeOID : oid; // Filled with type OID if it is not standard.
+    TypeName : String; // Filled with type name by getextendedfieldInfo
+    ExtendedFieldType: TExtendedFieldType; //
   end;
   PFieldBinding = ^TFieldBinding;
   TFieldBindings = Array of TFieldBinding;
@@ -49,6 +54,7 @@ type
     res          : PPGresult;
     CurTuple     : integer;
     FieldBinding : TFieldBindings;
+    Function GetFieldBinding(F : TFieldDef): PFieldBinding;
    Public
     Destructor Destroy; override;
   end;
@@ -84,6 +90,7 @@ type
     procedure ExecuteDirectPG(const Query : String);
     Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
   protected
+    procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); override;
     Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
     procedure AddConnection(T: TPQTranConnection);
@@ -150,10 +157,7 @@ ResourceString
   SErrCommitFailed = 'Commit transaction failed';
   SErrConnectionFailed = 'Connection to database failed';
   SErrTransactionFailed = 'Start of transacion failed';
-  SErrClearSelection = 'Clear of selection failed';
   SErrExecuteFailed = 'Execution of query failed';
-  SErrFieldDefsFailed = 'Can not extract field information from query';
-  SErrFetchFailed = 'Fetch of data failed';
   SErrPrepareFailed = 'Preparation of query failed.';
   SErrUnPrepareFailed = 'Unpreparation of query failed.';
 
@@ -222,6 +226,29 @@ begin
 end;
 
 { TPQCursor }
+
+function TPQCursor.GetFieldBinding(F: TFieldDef): PFieldBinding;
+
+Var
+  I : Integer;
+
+begin
+  Result:=Nil;
+  if (F=Nil) then exit;
+  // This is an optimization: it is so for 99% of cases (FieldNo-1=array index)
+  if F is TSQLDBFieldDef then
+    Result:=PFieldBinding(TSQLDBFieldDef(F).SQLDBData)
+  else If (FieldBinding[F.FieldNo-1].FieldDef=F) then
+    Result:=@FieldBinding[F.FieldNo-1]
+  else
+    begin
+    I:=Length(FieldBinding)-1;
+    While (I>=0) and (FieldBinding[i].FieldDef<>F) do
+      Dec(I);
+    if I>=0 then
+      Result:=@FieldBinding[i];
+    end;
+end;
 
 destructor TPQCursor.Destroy;
 begin
@@ -340,6 +367,14 @@ begin
   finally
     PQClear(Res);
   end;
+end;
+
+procedure TPQConnection.ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField;
+  UseOldValue: Boolean);
+begin
+  inherited ApplyFieldUpdate(C,P, F, UseOldValue);
+  if (C is TPQCursor) then
+    P.SQLDBData:=TPQCursor(C).GetFieldBinding(F.FieldDef);
 end;
 
 function TPQConnection.ErrorOnUnknownType: Boolean;
@@ -802,8 +837,11 @@ const TypeStrings : array[TFieldType] of string =
     );
 
 
-var s : string;
-    i : integer;
+var
+  s,ts : string;
+  i : integer;
+  P : TParam;
+  PQ : TSQLDBParam;
 
 begin
   with (cursor as TPQCursor) do
@@ -824,8 +862,21 @@ begin
         begin
         s := s + '(';
         for i := 0 to AParams.Count-1 do
-          if TypeStrings[AParams[i].DataType] <> 'Unknown' then
-            s := s + TypeStrings[AParams[i].DataType] + ','
+          begin
+          P:=AParams[i];
+          If (P is TSQLDBParam) then
+            PQ:=TSQLDBParam(P)
+          else
+            PQ:=Nil;
+          TS:=TypeStrings[P.DataType];
+          if (TS<>'Unknown') then
+            begin
+            If Assigned(PQ)
+               and Assigned(PQ.SQLDBData)
+               and (PFieldBinding(PQ.SQLDBData)^.ExtendedFieldType=eftEnum) then
+                ts:='unknown';
+            s := s + ts + ','
+            end
           else
             begin
             if AParams[i].DataType = ftUnknown then
@@ -838,6 +889,7 @@ begin
             else
               DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
             end;
+          end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
@@ -992,8 +1044,9 @@ var
   nFields   : integer;
   b : Boolean;
   Q : TPQCursor;
-  FD : TFieldDef;
+  FD : TSQLDBFieldDef;
   FB : PFieldBinding;
+  C : TFieldDefClass;
 
 begin
   B:=False;
@@ -1005,10 +1058,13 @@ begin
     for i := 0 to nFields-1 do
       begin
       fieldtype := TranslateFldType(Res, i,size, aoid );
-      with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(PQfname(Res, i)), fieldtype,size, False, (i + 1)) do
+      FD:=FieldDefs.Add(FieldDefs.MakeNameUnique(PQfname(Res, i)),fieldtype,Size,False,I+1) as TSQLDBFieldDef;
+      With FD do
         begin
-        FieldBinding[FieldNo-1].Index := i;
-        FieldBinding[FieldNo-1].TypeOID:=aOID;
+        SQLDBData:=@FieldBinding[i];
+        FieldBinding[i].Index:=i;
+        FieldBinding[i].FieldDef:=FD;
+        FieldBinding[i].TypeOID:=aOID;
         B:=B or (aOID>0);
         end;
       end;
@@ -1023,13 +1079,13 @@ begin
       FB:=@Q.FieldBinding[i];
       if (FB^.TypeOID>0) then
         begin
-        FD:=FieldDefs[FB^.Index];
+        FD:=FB^.FieldDef;
         Case FB^.ExtendedFieldType of
           eftEnum :
             begin
             FD.DataType:=ftString;
             FD.Size:=64;
-            FD.Attributes:=FD.Attributes+[faReadonly];
+            //FD.Attributes:=FD.Attributes+[faReadonly];
             end
         else
           if ErrorOnUnknownType then
@@ -1133,7 +1189,7 @@ begin
   Createblob := False;
   with cursor as TPQCursor do
     begin
-    x := FieldBinding[FieldDef.FieldNo-1].Index;
+    x := GetFieldBinding(FieldDef)^.Index;
 
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
