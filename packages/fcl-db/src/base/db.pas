@@ -211,6 +211,7 @@ type
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
+    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum : Integer) : TFieldDef; overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean); overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
     procedure Add(const AName: string; ADataType: TFieldType); overload;

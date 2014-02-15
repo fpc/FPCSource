@@ -198,7 +198,7 @@ begin
   // fieldno is 1 based !
   BeginUpdate;
   try
-    FieldDefClass.Create(Self,AName,ADataType,ASize,Arequired,Count+1);
+    Add(AName,ADataType,ASize,Arequired,Count+1);
   finally
     EndUpdate;
   end;
@@ -223,6 +223,11 @@ end;
 constructor TFieldDefs.Create(ADataSet: TDataSet);
 begin
   Inherited Create(ADataset, Owner, FieldDefClass);
+end;
+
+function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum: Integer): TFieldDef;
+begin
+  Result:=FieldDefClass.create(Self,AName,ADataType,ASize,ARequired,AFieldNum);
 end;
 
 procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
