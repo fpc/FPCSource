@@ -87,11 +87,26 @@ type
   private
     FFieldDef: TFieldDef;
     FData : Pointer;
-  Protected
+  Public
     Property FieldDef : TFieldDef Read FFieldDef Write FFieldDef;
-    Property Data : Pointer Read FData Write FData;
+    Property SQLDBData : Pointer Read FData Write FData;
   end;
 
+  { TSQLDBFieldDef }
+
+  TSQLDBFieldDef = Class(TFieldDef)
+  private
+    FData: Pointer;
+  Public
+    Property SQLDBData : Pointer Read FData Write FData;
+  end;
+
+  { TSQLDBFieldDefs }
+
+  TSQLDBFieldDefs = Class(TFieldDefs)
+  Protected
+    Class Function FieldDefClass : TFieldDefClass; override;
+  end;
   { TSQLDBParams }
 
   TSQLDBParams = Class(TParams)
@@ -143,6 +158,19 @@ type
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings : TFormatSettings;
+    // Updating of DB records is moved out of TSQLQuery.
+    // It is done here, so descendents can override it and implement DB-specific.
+    // One day, this may be factored out to a TSQLResolver class.
+    // The following allow construction of update queries. They can be adapted as needed by descendents to fit the DB engine.
+    procedure AddFieldToUpdateWherePart(var sql_where: string; UpdateMode : TUpdateMode; F: TField); virtual;
+    function ConstructDeleteSQL(Query: TCustomSQLQuery): string; virtual;
+    function ConstructInsertSQL(Query: TCustomSQLQuery): string; virtual;
+    function ConstructUpdateSQL(Query: TCustomSQLQuery): string; virtual;
+    function InitialiseUpdateStatement(Query: TCustomSQLQuery; var qry: TCustomSQLStatement): TCustomSQLStatement;
+    procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); virtual;
+    // This is the call that updates a record, it used to be in TSQLQuery.
+    procedure ApplyRecUpdate(Query : TCustomSQLQuery; UpdateKind : TUpdateKind); virtual;
+    //
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
     procedure SetTransaction(Value : TSQLTransaction); virtual;
     procedure DoInternalConnect; override;
@@ -404,6 +432,7 @@ type
 
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
+    class function FieldDefsClass : TFieldDefsClass; override;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -667,6 +696,13 @@ begin
   DecodeTime(Time,hour,minute,second,millisecond);
   hour := hour + (trunc(Time) * 24);
   result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
+end;
+
+{ TSQLDBFieldDefs }
+
+class function TSQLDBFieldDefs.FieldDefClass: TFieldDefClass;
+begin
+  Result:=TSQLDBFieldDef;
 end;
 
 { TSQLDBParams }
@@ -1273,6 +1309,159 @@ procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
 begin
   if Assigned(FStatements) then // Can be nil, when we are destroying and datasets are uncoupled.
     FStatements.Remove(S);
+end;
+
+function TSQLConnection.InitialiseUpdateStatement(Query : TCustomSQLQuery; var qry : TCustomSQLStatement): TCustomSQLStatement;
+
+begin
+  if not assigned(qry) then
+  begin
+    qry := TCustomSQLStatement.Create(nil);
+    qry.ParseSQL := False;
+    qry.DataBase := Self;
+    qry.Transaction := Query.SQLTransaction;
+  end;
+  Result:=qry;
+end;
+
+procedure TSQLConnection.AddFieldToUpdateWherePart(var sql_where : string;UpdateMode : TUpdateMode; F : TField);
+
+begin
+  if (pfInKey in F.ProviderFlags)
+     or ((UpdateMode = upWhereAll) and (pfInWhere in F.ProviderFlags))
+     or ((UpdateMode = UpWhereChanged) and (pfInWhere in F.ProviderFlags) and (F.Value <> F.OldValue)) then
+     begin
+     if (sql_where<>'') then
+       sql_where:=sql_where + ' and ';
+     sql_where:= sql_where + '(' + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1];
+     if F.OldValue = NULL then
+        sql_where :=  sql_where + ' is null '
+     else
+        sql_where :=  sql_where +'= :"' + 'OLD_' + F.FieldName + '"';
+     sql_where:=sql_where+') ';
+     end;
+end;
+
+Function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery) : string;
+
+var x : integer;
+    F : TField;
+    sql_set    : string;
+    sql_where  : string;
+
+begin
+  sql_set := '';
+  sql_where := '';
+  for x := 0 to Query.Fields.Count -1 do
+    begin
+    F:=Query.Fields[x];
+    AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
+    if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
+      sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
+    end;
+  if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
+  setlength(sql_set,length(sql_set)-1);
+  if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
+  result := 'update ' + Query.FTableName + ' set ' + sql_set + ' where ' + sql_where;
+end;
+
+function TSQLConnection.ConstructInsertSQL(Query : TCustomSQLQuery) : string;
+
+var x          : integer;
+    sql_fields : string;
+    sql_values : string;
+    F : TField;
+
+begin
+  sql_fields := '';
+  sql_values := '';
+  for x := 0 to Query.Fields.Count -1 do
+    begin
+    F:=Query.Fields[x];
+    if (not F.IsNull) and (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
+      begin
+      sql_fields := sql_fields + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] + ',';
+      sql_values := sql_values + ':"' + F.FieldName + '",';
+      end;
+    end;
+  if length(sql_fields) = 0 then
+    DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
+  setlength(sql_fields,length(sql_fields)-1);
+  setlength(sql_values,length(sql_values)-1);
+
+  result := 'insert into ' + Query.FTableName + ' (' + sql_fields + ') values (' + sql_values + ')';
+end;
+
+
+function TSQLConnection.ConstructDeleteSQL(Query : TCustomSQLQuery) :  string;
+
+var
+  x          : integer;
+  sql_where  : string;
+
+begin
+  sql_where := '';
+  for x := 0 to Query.Fields.Count -1 do
+    AddFieldToUpdateWherePart(sql_where,Query.UpdateMode, Query.Fields[x]);
+  if length(sql_where) = 0 then
+    DatabaseErrorFmt(sNoWhereFields,['delete'],self);
+  result := 'delete from ' + Query.FTableName + ' where ' + sql_where;
+end;
+
+procedure TSQLConnection.ApplyFieldUpdate(C : TSQLCursor; P : TSQLDBParam;F : TField; UseOldValue : Boolean);
+
+begin
+  if UseOldValue then
+    P.AssignFieldValue(F,F.OldValue)
+  else
+    P.AssignFieldValue(F,F.Value);
+  P.FFieldDef:=F.FieldDef;
+end;
+
+procedure TSQLConnection.ApplyRecUpdate(Query: TCustomSQLQuery; UpdateKind: TUpdateKind);
+
+var
+  qry : TCustomSQLStatement;
+  s   : string;
+  x   : integer;
+  Fld : TField;
+  P : TParam;
+  B : Boolean;
+
+begin
+  case UpdateKind of
+    ukInsert : begin
+               s := trim(Query.FInsertSQL.Text);
+               if s = '' then s := ConstructInsertSQL(Query);
+               qry := InitialiseUpdateStatement(Query,Query.FInsertQry);
+               end;
+    ukModify : begin
+               s := trim(Query.FUpdateSQL.Text);
+               if (s='') and (not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
+                 s := ConstructUpdateSQL(Query);
+               qry := InitialiseUpdateStatement(Query,Query.FUpdateQry);
+               end;
+    ukDelete : begin
+               s := trim(Query.FDeleteSQL.Text);
+               if (s='') and (not assigned(Query.FDeleteQry) or (Query.UpdateMode<>upWhereKeyOnly)) then
+                 s := ConstructDeleteSQL(Query);
+               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
+               end;
+  end;
+  if (s<>'') and (qry.SQL.Text<>s) then
+    qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
+  assert(qry.sql.Text<>'');
+  for x:=0 to Qry.Params.Count-1 do
+    begin
+    P:=Qry.Params[x];
+    S:=p.name;
+    B:=Sametext(leftstr(S,4),'OLD_');
+    if B then
+      Delete(S,1,4);
+    Fld:=Query.FieldByName(S);
+    ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
+    end;
+  Qry.execute;
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
@@ -2166,141 +2355,10 @@ end;
 
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
-var FieldNamesQuoteChars : TQuoteChars;
-
-  function InitialiseModifyQuery(var qry : TCustomSQLStatement): TCustomSQLStatement;
-
-  begin
-    if not assigned(qry) then
-    begin
-      qry := TCustomSQLStatement.Create(nil);
-      qry.ParseSQL := False;
-      qry.DataBase := Self.SQLConnection;
-      qry.Transaction := Self.SQLTransaction;
-    end;
-    Result:=qry;
-  end;
-
-  procedure UpdateWherePart(var sql_where : string;x : integer);
-
-  begin
-    if (pfInKey in Fields[x].ProviderFlags) or
-       ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
-       ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (Fields[x].Value <> Fields[x].OldValue)) then
-       if Fields[x].OldValue = NULL then
-          sql_where := sql_where + FieldNamesQuoteChars[0] + Fields[x].FieldName + FieldNamesQuoteChars[1] + ' is null and '
-       else
-          sql_where := sql_where + '(' + FieldNamesQuoteChars[0] + Fields[x].FieldName + FieldNamesQuoteChars[1] + '= :"' + 'OLD_' + Fields[x].FieldName + '") and ';
-  end;
-
-  function ModifyRecQuery : string;
-
-  var x          : integer;
-      sql_set    : string;
-      sql_where  : string;
-
-  begin
-    sql_set := '';
-    sql_where := '';
-    for x := 0 to Fields.Count -1 do
-      begin
-      UpdateWherePart(sql_where,x);
-
-      if (pfInUpdate in Fields[x].ProviderFlags) and (not Fields[x].ReadOnly) then
-        sql_set := sql_set +FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] +'=:"' + fields[x].FieldName + '",';
-      end;
-
-    if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
-    setlength(sql_set,length(sql_set)-1);
-    if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
-    setlength(sql_where,length(sql_where)-5);
-    result := 'update ' + FTableName + ' set ' + sql_set + ' where ' + sql_where;
-
-  end;
-
-  function InsertRecQuery : string;
-
-  var x          : integer;
-      sql_fields : string;
-      sql_values : string;
-
-  begin
-    sql_fields := '';
-    sql_values := '';
-    for x := 0 to Fields.Count -1 do
-      begin
-      if (not Fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) and (not Fields[x].ReadOnly) then
-        begin
-        sql_fields := sql_fields + FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] + ',';
-        sql_values := sql_values + ':"' + fields[x].FieldName + '",';
-        end;
-      end;
-    if length(sql_fields) = 0 then DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
-    setlength(sql_fields,length(sql_fields)-1);
-    setlength(sql_values,length(sql_values)-1);
-
-    result := 'insert into ' + FTableName + ' (' + sql_fields + ') values (' + sql_values + ')';
-  end;
-
-  function DeleteRecQuery : string;
-
-  var x          : integer;
-      sql_where  : string;
-
-  begin
-    sql_where := '';
-    for x := 0 to Fields.Count -1 do
-      UpdateWherePart(sql_where,x);
-
-    if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['delete'],self);
-    setlength(sql_where,length(sql_where)-5);
-
-    result := 'delete from ' + FTableName + ' where ' + sql_where;
-  end;
-
-var qry : TCustomSQLStatement;
-    s   : string;
-    x   : integer;
-    Fld : TField;
-
 begin
-  FieldNamesQuoteChars := SQLConnection.FieldNameQuoteChars;
-
-  case UpdateKind of
-    ukInsert : begin
-               s := trim(FInsertSQL.Text);
-               if s = '' then s := InsertRecQuery;
-               qry := InitialiseModifyQuery(FInsertQry);
-               end;
-    ukModify : begin
-               s := trim(FUpdateSQL.Text);
-               if (s='') and (not assigned(FUpdateQry) or (UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
-                 s := ModifyRecQuery;
-               qry := InitialiseModifyQuery(FUpdateQry);
-               end;
-    ukDelete : begin
-               s := trim(FDeleteSQL.Text);
-               if (s='') and (not assigned(FDeleteQry) or (UpdateMode<>upWhereKeyOnly)) then
-                 s := DeleteRecQuery;
-               qry := InitialiseModifyQuery(FDeleteQry);
-               end;
-  end;
-  if (qry.SQL.Text<>s) and (s<>'') then qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
-  assert(qry.sql.Text<>'');
-  with qry do
-    begin
-    for x := 0 to Params.Count-1 do with params[x] do if sametext(leftstr(name,4),'OLD_') then
-      begin
-      Fld := self.FieldByName(copy(name,5,length(name)-4));
-      AssignFieldValue(Fld,Fld.OldValue);
-      end
-    else
-      begin
-      Fld := self.FieldByName(name);
-      AssignFieldValue(Fld,Fld.Value);
-      end;
-    execute;
-    end;
+  // Moved to connection: the connection always has more information about types etc.
+  // than SQLQuery itself.
+  SQLConnection.ApplyRecupdate(Self,UpdateKind);
 end;
 
 
@@ -2356,6 +2414,11 @@ begin
       M:=Name+' : '+M;
     SQLConnection.Log(EventType,M);
     end;
+end;
+
+class function TCustomSQLQuery.FieldDefsClass: TFieldDefsClass;
+begin
+  Result:=TSQLDBFieldDefs;
 end;
 
 function TCustomSQLQuery.GetStatementType : TStatementType;
