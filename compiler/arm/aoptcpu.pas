@@ -573,7 +573,10 @@ Implementation
                 N := result[31];
                 EQ = Z=1; NE = Z=0;
                 MI = N=1; PL = N=0; }
-              MatchInstruction(hp2, A_B, [C_EQ,C_NE,C_MI,C_PL], []) and
+              (MatchInstruction(hp2, A_B, [C_EQ,C_NE,C_MI,C_PL], []) or
+               { mov is also possible, but only if there is no shifter operand, it could be an rxx,
+                 we are too lazy to check if it is rxx or something else }
+               (MatchInstruction(hp2, A_MOV, [C_EQ,C_NE,C_MI,C_PL], []) and (taicpu(hp2).ops=2))) and
               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next))) then
              begin
                DebugMsg('Peephole OpCmp2OpS done', p);
