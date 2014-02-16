@@ -1401,6 +1401,7 @@ begin
                                   taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
                                   taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                                   taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
+                                  taicpu(hp1).fileinfo := taicpu(p).fileinfo;
                                 end
                         end;
                       if GetNextInstruction(p, hp1) and
