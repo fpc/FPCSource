@@ -753,7 +753,8 @@ begin
          (opt[1]='-') and
          (
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
-          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e'))
+          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
+          ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
          )
         ) then
     exit;
@@ -3102,6 +3103,14 @@ begin
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
+  case init_settings.x86memorymodel of
+    mm_tiny:    def_system_macro('FPC_MM_TINY');
+    mm_small:   def_system_macro('FPC_MM_SMALL');
+    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+    mm_compact: def_system_macro('FPC_MM_COMPACT');
+    mm_large:   def_system_macro('FPC_MM_LARGE');
+    mm_huge:    def_system_macro('FPC_MM_HUGE');
+  end;
 {$endif i8086}
 
   if tf_cld in target_info.flags then
@@ -3540,16 +3549,6 @@ if (target_info.abi = abi_eabihf) then
       if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
-{$endif}
-{$if defined(i8086)}
-  case init_settings.x86memorymodel of
-    mm_tiny:    def_system_macro('FPC_MM_TINY');
-    mm_small:   def_system_macro('FPC_MM_SMALL');
-    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
-    mm_compact: def_system_macro('FPC_MM_COMPACT');
-    mm_large:   def_system_macro('FPC_MM_LARGE');
-    mm_huge:    def_system_macro('FPC_MM_HUGE');
-  end;
 {$endif}
 
 
