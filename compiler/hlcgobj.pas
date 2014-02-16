@@ -2220,7 +2220,10 @@ implementation
            if (slopt<>SL_REGNOSRCMASK) then
             a_op_const_reg(list,OP_AND,subsetregdef,tcgint(not(bitmask)),tmpreg);
         end;
-      if (slopt<>SL_SETMAX) then
+      if (slopt<>SL_SETMAX) and
+      { the "and" is not needed if the whole register is modified (except for SL_SETZERO),
+        because later on we do a move in this case instead of an or }
+        ((sreg.bitlen<>AIntBits) or (slopt=SL_SETZERO)) then
         a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),sreg.subsetreg);
 
       case slopt of
@@ -2232,8 +2235,11 @@ implementation
               sreg.subsetreg)
           else
             a_load_const_reg(list,subsetregdef,-1,sreg.subsetreg);
+        { if the whole register is modified, no "or" is needed }
+        else if sreg.bitlen=AIntBits then
+          a_load_reg_reg(list,subsetregdef,subsetregdef,tmpreg,sreg.subsetreg)
         else
-          a_op_reg_reg(list,OP_OR,subsetregdef,tmpreg,sreg.subsetreg);
+          a_op_reg_reg(list,OP_OR,subsetregdef,tmpreg,sreg.subsetreg)
        end;
     end;
 
