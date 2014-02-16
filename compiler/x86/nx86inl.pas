@@ -234,7 +234,12 @@ implementation
      function tx86inlinenode.first_popcnt: tnode;
        begin
          Result:=nil;
-         if not(CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+         if
+{$ifdef i8086}
+           true
+{$else i8086}
+           not(CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+{$endif i8086}
 {$ifdef i386}
            or is_64bit(left.resultdef)
 {$endif i386}
