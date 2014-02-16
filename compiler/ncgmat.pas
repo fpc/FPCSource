@@ -478,7 +478,10 @@ implementation
              end;
 {$endif cpunodefaultint}
 
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+           { location_force_reg can be also used to change the size of a register }
+           (left.location.size<>opsize) then
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
          location_reset(location,LOC_REGISTER,opsize);
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
