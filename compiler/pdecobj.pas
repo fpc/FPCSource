@@ -767,7 +767,7 @@ implementation
                       { primitive types are allowed for record helpers in mode
                         delphi }
                       (hdef.typ<>recorddef) and
-                      not (m_delphi in current_settings.modeswitches)
+                      not (m_type_helpers in current_settings.modeswitches)
                     ) then
                   Message1(type_e_record_type_expected,hdef.typename)
                 else

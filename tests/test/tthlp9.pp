@@ -3,6 +3,7 @@
 program tthlp9;
 
 {$mode objfpc}
+{$modeswitch typehelpers}
 {$apptype console}
 
 type

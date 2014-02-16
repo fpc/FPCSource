@@ -5,6 +5,7 @@
 program tthlp1;
 
 {$mode objfpc}{$H+}
+{$modeswitch typehelpers}
 
 type
   TTest = type helper for LongInt
