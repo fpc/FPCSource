@@ -261,6 +261,41 @@ unit aoptcpu;
                     TryRemoveMov(p,A_MOV);
                 end;
 
+              A_SRL:
+                begin
+                  { happens with a_load_const_ref(...,0), where %g0 is used instead of 0 }
+                  { TODO: override a_load_reg_ref_unaligned and don't generate such shifts }
+                  if (taicpu(p).oper[2]^.typ=top_reg) and
+                    (taicpu(p).oper[2]^.reg=NR_G0) then
+                    begin
+                      next:=tai(p.next);
+                      asml.remove(p);
+                      p.free;
+                      p:=next;
+                    end
+                  { kill zero extension after right shift (e.g. happens with "high(dword)")}
+                  else if (taicpu(p).oper[1]^.typ=top_const) and
+                    (taicpu(p).oper[1]^.val>=16) and
+                    GetNextInstruction(p,next) and
+                    MatchInstruction(next,A_SLL) and
+                    GetNextInstruction(next,next2) and
+                    MatchInstruction(next2,A_SRL) and
+                    IsSameReg(taicpu(p),taicpu(next)) and
+                    IsSameReg(taicpu(p),taicpu(next2)) and
+                    (taicpu(next).oper[1]^.typ=top_const) and
+                    (taicpu(next2).oper[1]^.typ=top_const) and
+                    (taicpu(next).oper[1]^.val=taicpu(next2).oper[1]^.val) and
+                    (taicpu(next).oper[1]^.val=16) then
+                    begin
+                      asml.remove(next);
+                      asml.remove(next2);
+                      next.free;
+                      next2.free;
+                    end
+                  else
+                    TryRemoveMov(p,A_MOV);
+                end;
+
               A_AND:
                 begin
                   { Remove sign extension after 'and' if bit 7 of const operand is clear }
@@ -312,7 +347,6 @@ unit aoptcpu;
               A_ADD,A_ADDcc,A_ADDX,
               A_SUB,A_SUBcc,A_SUBX,
               A_SRA,
-              A_SRL,
               A_ANDcc,A_OR,A_ORcc,A_XOR,A_XORcc:
                 TryRemoveMov(p,A_MOV);
 
