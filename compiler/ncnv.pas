@@ -2461,7 +2461,7 @@ implementation
                 gotsint:=true;
               exit(true);
             end;
-          if (torddef(n.resultdef).ordtype=s64bit) and
+          if (torddef(n.resultdef).ordtype in [u64bit,s64bit]) and
              { nf_explicit is also set for explicitly typecasted }
              { ordconstn's                                       }
              ([nf_internal,nf_explicit]*n.flags=[]) and
@@ -2511,8 +2511,10 @@ implementation
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
-                  docheckremove64bittypeconvs(tbinarynode(n).left) and
-                  docheckremove64bittypeconvs(tbinarynode(n).right);
+                  (docheckremove64bittypeconvs(tbinarynode(n).left) and
+                   docheckremove64bittypeconvs(tbinarynode(n).right)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
               end;
           end;
         end;
@@ -2545,14 +2547,21 @@ implementation
                   doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
                   n.resultdef:=u32inttype
                 end;
+              //if ((n.nodetype=andn) and (tbinarynode(n).left.nodetype=ordconstn) and
+              //    ((tordconstnode(tbinarynode(n).left).value and $7fffffff)=tordconstnode(tbinarynode(n).left).value)
+              //   ) then
+              //  inserttypeconv_internal(tbinarynode(n).right,n.resultdef)
+              //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
+              //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
+              //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
             end;
-          ordconstn:
-            inserttypeconv_internal(n,todef);
           typeconvn:
             begin
               n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
             end;
+          else
+            inserttypeconv_internal(n,todef);
         end;
       end;
 {$endif not CPUNO32BITOPS}
