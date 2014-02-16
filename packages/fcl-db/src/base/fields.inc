@@ -3323,19 +3323,19 @@ end;
 
 procedure TFields.CheckFieldNames(const Value: String);
 
+var
+  N: String;
+  StrPos: Integer;
 
-Var I : longint;
-    S,T : String;
 begin
-  T:=Value;
-  Repeat
-    I:=Pos(';',T);
-    If I=0 Then I:=Length(T)+1;
-    S:=Copy(T,1,I-1);
-    Delete(T,1,I);
+  if Value = '' then
+    Exit;
+  StrPos := 1;
+  repeat
+    N := ExtractFieldName(Value, StrPos);
     // Will raise an error if no such field...
-    FieldByName(S);
-  Until (T='');
+    FieldByName(N);
+  until StrPos > Length(Value);
 end;
 
 procedure TFields.Clear;
@@ -3358,17 +3358,19 @@ Var S : String;
     I : longint;
 
 begin
-  Result:=Nil;
   S:=UpperCase(Value);
   For I:=0 To FFieldList.Count-1 do
-    If S=UpperCase(TField(FFieldList[i]).FieldName) Then
-      Begin
+  begin
+    Result:=TField(FFieldList[I]);
+    if S=UpperCase(Result.FieldName) then
+    begin
       {$ifdef dsdebug}
       Writeln ('Found field ',Value);
       {$endif}
-      Result:=TField(FFieldList[I]);
       Exit;
-      end;
+    end;
+  end;
+  Result:=Nil;
 end;
 
 function TFields.FieldByName(const Value: String): TField;
@@ -3384,13 +3386,13 @@ function TFields.FieldByNumber(FieldNo: Integer): TField;
 Var i : Longint;
 
 begin
-  Result:=Nil;
   For I:=0 to FFieldList.Count-1 do
-    If FieldNo=TField(FFieldList[I]).FieldNo then
-      begin
-      Result:=TField(FFieldList[i]);
+  begin
+    Result:=TField(FFieldList[I]);
+    if FieldNo=Result.FieldNo then
       Exit;
-      end;
+  end;
+  Result:=Nil;
 end;
 
 function TFields.GetEnumerator: TFieldsEnumerator;
