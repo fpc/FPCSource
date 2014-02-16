@@ -22,34 +22,41 @@
 
 }
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL0'];
+begin
   asm
     move.l sysnr, d0
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0'];
+end;
 
 
-function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL1'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1'];
+end;
 
 
-function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL2'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
     move.l param2, d2
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1', 'd2'];
+end;
 
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL3'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
@@ -57,10 +64,11 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; 
     move.l param3, d3
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1', 'd2', 'd3'];
+end;
 
-
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL4'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
@@ -69,10 +77,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
     move.l param4, d4
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1', 'd2', 'd3', 'd4'];
+end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL5'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
@@ -82,10 +92,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
     move.l param5, d5
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'];
+end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL6'];
+begin
   asm
     move.l sysnr, d0
     move.l param1, d1
@@ -96,5 +108,6 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
     move.l param6, a0
     trap #0
     move.l d0, @Result
-  end;
+  end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5', 'a0'];
+end;
 
