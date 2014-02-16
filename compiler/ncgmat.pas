@@ -488,16 +488,9 @@ implementation
          { shifting by a constant directly coded: }
          if (right.nodetype=ordconstn) then
            begin
-              { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
-              if right.value<=31 then
-              }
+              { shl/shr must "wrap around", so use ... and 31 }
               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                 tordconstnode(right).value.uvalue and 31,left.location.register,location.register);
-              {
-              else
-                emit_reg_reg(A_XOR,S_L,hregister1,
-                  hregister1);
-              }
            end
          else
            begin
