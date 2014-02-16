@@ -1074,15 +1074,17 @@ implementation
                pasbool8,
                pasbool16,
                pasbool32,
-               pasbool64,
+               pasbool64:
+                 v:=byte(not(boolean(int64(v))));
                bool8bit,
                bool16bit,
                bool32bit,
                bool64bit:
                  begin
-                   v:=byte(not(boolean(int64(v))));
-                   if is_cbool(left.resultdef) then
-                     v:=-v;
+                   if v=0 then
+                     v:=-1
+                   else
+                     v:=0;
                  end;
                uchar,
                uwidechar,
