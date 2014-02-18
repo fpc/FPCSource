@@ -161,8 +161,10 @@ procedure OutermostHandler; external name '__FPC_DEFAULT_HANDLER';
                          System Dependent Exit code
 *****************************************************************************}
 
+{$ifndef FPC_USE_WIN32_SEH}
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
+{$endif FPC_USE_WIN32_SEH}
 
 Procedure system_exit;
 begin
@@ -371,6 +373,7 @@ type
 
 {$i seh32.inc}
 
+{$ifndef FPC_USE_WIN32_SEH}
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
         stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
 
@@ -546,6 +549,7 @@ procedure remove_exception_handlers;
   begin
     SetUnhandledExceptionFilter(nil);
   end;
+{$endif not FPC_USE_WIN32_SEH}
 
 {$else not cpui386 (Processor specific !!)}
 procedure install_exception_handlers;
