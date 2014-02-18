@@ -417,7 +417,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
                     Error Message writing using messageboxes
 ****************************************************************************}
 
-function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
+function MessageBox(w1:THandle;l1,l2:pointer;w2:longint):longint;
    stdcall;external 'user32' name 'MessageBoxA';
 
 const

@@ -204,7 +204,7 @@ threadvar
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetLastError';
 
    { time and date functions }
-   function GetTickCount : longint;
+   function GetTickCount : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetTickCount';
 
 {$ifndef WINCE}
@@ -237,7 +237,7 @@ threadvar
   function GetCurrentProcess : THandle;
     stdcall;external 'kernel32' name 'GetCurrentProcess';
 
-  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : ptruint;bytesread : pptruint) :  longbool;
     stdcall;external 'kernel32' name 'ReadProcessMemory';
 
   { module functions }

@@ -40,7 +40,7 @@ function CreateThread(lpThreadAttributes : pointer;
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ExitThread';
-function LocalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
+function LocalAlloc(uFlags:DWord; dwBytes:SIZE_T):Pointer;
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalAlloc';
 function LocalFree(hMem : Pointer):Pointer; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalFree';
 procedure Sleep(dwMilliseconds: DWord); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'Sleep';
@@ -200,7 +200,7 @@ var
       tthreadinfo = record
         f : tthreadfunc;
         p : pointer;
-        stklen : cardinal;
+        stklen : ptruint;
       end;
 
     function ThreadMain(param : pointer) : Longint; {$ifdef wince}cdecl{$else}stdcall{$endif};

@@ -21,13 +21,13 @@
    { memory functions }
    function GetProcessHeap : THandle;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetProcessHeap';
-   function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
+   function HeapAlloc(hHeap : THandle; dwFlags : DWord; dwBytes : SIZE_T) : pointer;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapAlloc';
    function HeapFree(hHeap : THandle; dwFlags : dword; lpMem: pointer) : boolean;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapFree';
 {$IFDEF SYSTEMDEBUG}
-   function WinAPIHeapSize(hHeap : THandle; dwFlags : DWord; ptr : Pointer) : DWord;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external 'kernel32' name 'HeapSize';
+   function WinAPIHeapSize(hHeap : THandle; dwFlags : DWord; ptr : Pointer) : SIZE_T;
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'HeapSize';
 {$ENDIF}
 
 

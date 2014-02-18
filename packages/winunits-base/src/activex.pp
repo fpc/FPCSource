@@ -4379,8 +4379,8 @@ type
   function DllGetClassObject(const _para1:TCLSID; const _para2:TIID; out _para3):HRESULT;stdcall; external  'ole32.dll' name 'DllGetClassObject';
   function DllCanUnloadNow:HRESULT;stdcall; external  'ole32.dll' name 'DllCanUnloadNow';
 {$endif wince}
-  function CoTaskMemAlloc(_para1:ULONG):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemAlloc';
-  function CoTaskMemRealloc(_para1:PVOID; _para2:ULONG):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemRealloc';
+  function CoTaskMemAlloc(_para1:SIZE_T):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemAlloc';
+  function CoTaskMemRealloc(_para1:PVOID; _para2:SIZE_T):PVOID;stdcall; external  'ole32.dll' name 'CoTaskMemRealloc';
   procedure CoTaskMemFree(_para1:PVOID);stdcall; external  'ole32.dll' name 'CoTaskMemFree';
 
 {$ifndef wince}
