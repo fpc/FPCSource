@@ -70,34 +70,12 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-type
-  TStartupInfo = record
-    cb : longint;
-    lpReserved : Pointer;
-    lpDesktop : Pointer;
-    lpTitle : Pointer;
-    dwX : longint;
-    dwY : longint;
-    dwXSize : longint;
-    dwYSize : longint;
-    dwXCountChars : longint;
-    dwYCountChars : longint;
-    dwFillAttribute : longint;
-    dwFlags : longint;
-    wShowWindow : Word;
-    cbReserved2 : Word;
-    lpReserved2 : Pointer;
-    hStdInput : THandle;
-    hStdOutput : THandle;
-    hStdError : THandle;
-  end;
-
 var
 { C compatible arguments }
   argc : longint;
   argv : ppchar;
 { Win32 Info }
-  startupinfo : tstartupinfo;
+  startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
   StartupConsoleMode : dword;
   MainInstance : qword;
   cmdshow     : longint;

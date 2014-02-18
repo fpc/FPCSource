@@ -77,34 +77,12 @@ const
 
   System_exception_frame : PEXCEPTION_FRAME =nil;
 
-type
-  TStartupInfo=packed record
-    cb : longint;
-    lpReserved : Pointer;
-    lpDesktop : Pointer;
-    lpTitle : Pointer;
-    dwX : longint;
-    dwY : longint;
-    dwXSize : longint;
-    dwYSize : longint;
-    dwXCountChars : longint;
-    dwYCountChars : longint;
-    dwFillAttribute : longint;
-    dwFlags : longint;
-    wShowWindow : Word;
-    cbReserved2 : Word;
-    lpReserved2 : Pointer;
-    hStdInput : longint;
-    hStdOutput : longint;
-    hStdError : longint;
-  end;
-
 var
 { C compatible arguments }
   argc : longint; public name 'operatingsystem_parameter_argc';
   argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
-  startupinfo : tstartupinfo;
+  startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
   MainInstance,
   cmdshow     : longint;
   DLLreason : dword; public name 'operatingsystem_dllreason';

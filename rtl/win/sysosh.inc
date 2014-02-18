@@ -64,6 +64,28 @@ procedure OleStrToStrVar(source : PWideChar;var dest : AnsiString);inline;
 function StringToOleStr(const source : ansistring) : PWideChar;inline;
 function StringToOleStr(const source : UnicodeString) : PWideChar;inline;
 
+type
+  TStartupInfo = record
+    cb : DWord;
+    lpReserved : Pointer;
+    lpDesktop : Pointer;
+    lpTitle : Pointer;
+    dwX : DWord;
+    dwY : DWord;
+    dwXSize : DWord;
+    dwYSize : DWord;
+    dwXCountChars : DWord;
+    dwYCountChars : DWord;
+    dwFillAttribute : DWord;
+    dwFlags : DWord;
+    wShowWindow : Word;
+    cbReserved2 : Word;
+    lpReserved2 : Pointer;
+    hStdInput : THandle;
+    hStdOutput : THandle;
+    hStdError : THandle;
+  end;
+
 { package stuff }
 type
   PLibModule = ^TLibModule;
