@@ -427,6 +427,7 @@ implementation
          opdef,right_opdef : tdef;
          hcountreg : tregister;
          opsize,right_opsize : tcgsize;
+         shiftval : longint;
       begin
          { determine operator }
          case nodetype of
@@ -489,8 +490,14 @@ implementation
          if (right.nodetype=ordconstn) then
            begin
               { shl/shr must "wrap around", so use ... and 31 }
+              { In TP, "byte/word shl 16 = 0", so no "and 15" in case of
+                a 16 bit ALU }
+              if tcgsize2size[opsize]<=4 then
+                shiftval:=tordconstnode(right).value.uvalue and 31
+              else
+                shiftval:=tordconstnode(right).value.uvalue and 63;
               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
-                tordconstnode(right).value.uvalue and 31,left.location.register,location.register);
+                shiftval,left.location.register,location.register);
            end
          else
            begin
