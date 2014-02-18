@@ -432,8 +432,8 @@ Const
      BROWSEINFO = record
           hwndOwner : HWND;
           pidlRoot : LPCITEMIDLIST;
-          pszDisplayName : LPSTR;
-          lpszTitle : LPCSTR;
+          pszDisplayName : LPTSTR;
+          lpszTitle : LPCTSTR;
           ulFlags : UINT;
           lpfn : BFFCALLBACK;
           lParam : LPARAM;
@@ -734,7 +734,7 @@ Const
           lpLogFont : LPLOGFONT;
           iPointSize : WINT;
           Flags : DWORD;
-          rgbColors : DWORD;
+          rgbColors : COLORREF;
           lCustData : LPARAM;
           lpfnHook : LPCFHOOKPROC;
           lpTemplateName : LPCTSTR;
@@ -952,6 +952,7 @@ Const
           itemData1 : ULONG_PTR;
           itemID2 : UINT;
           itemData2 : ULONG_PTR;
+          dwLocaleID : DWORD;
        end;
      tagCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
      TCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
@@ -1480,7 +1481,7 @@ Const
      SECURITY_QUALITY_OF_SERVICE = record
           Length : DWORD;
           ImpersonationLevel : SECURITY_IMPERSONATION_LEVEL;
-          ContextTrackingMode : WINBOOL;
+          ContextTrackingMode : WINBOOL;    // SECURITY_CONTEXT_TRACKING_MODE
           EffectiveOnly : BOOLEAN;
        end;
      PSECURITY_QUALITY_OF_SERVICE = ^SECURITY_QUALITY_OF_SERVICE;
@@ -1586,7 +1587,7 @@ Const
           idIcon : longint;
           idName : longint;
           idInfo : longint;
-          lData : LONG;
+          lData : LONG_PTR;
        end;
      tagCPLINFO = CPLINFO;
      TCPLINFO = CPLINFO;
@@ -1777,8 +1778,8 @@ Const
   type
 
      DDEML_MSG_HOOK_DATA = record
-          uiLo : UINT;
-          uiHi : UINT;
+          uiLo : UINT_PTR;
+          uiHi : UINT_PTR;
           cbData : DWORD;
           Data : array[0..7] of DWORD;
        end;
@@ -2013,11 +2014,11 @@ Const
      PDEVBROADCASTHDR = ^DEV_BROADCAST_HDR;
 
      DEV_BROADCAST_OEM = record
-          dbco_size : ULONG;
-          dbco_devicetype : ULONG;
-          dbco_reserved : ULONG;
-          dbco_identifier : ULONG;
-          dbco_suppfunc : ULONG;
+          dbco_size : DWORD;
+          dbco_devicetype : DWORD;
+          dbco_reserved : DWORD;
+          dbco_identifier : DWORD;
+          dbco_suppfunc : DWORD;
        end;
      PDEV_BROADCAST_OEM = ^DEV_BROADCAST_OEM;
      _DEV_BROADCAST_OEM = DEV_BROADCAST_OEM;
@@ -2025,10 +2026,10 @@ Const
      PDEVBROADCASTOEM = ^DEV_BROADCAST_OEM;
 
      DEV_BROADCAST_PORT = record
-          dbcp_size : ULONG;
-          dbcp_devicetype : ULONG;
-          dbcp_reserved : ULONG;
-          dbcp_name : array[0..0] of char;
+          dbcp_size : DWORD;
+          dbcp_devicetype : DWORD;
+          dbcp_reserved : DWORD;
+          dbcp_name : array[0..0] of TCHAR;
        end;
      PDEV_BROADCAST_PORT = ^DEV_BROADCAST_PORT;
      _DEV_BROADCAST_PORT = DEV_BROADCAST_PORT;
@@ -2044,11 +2045,11 @@ Const
      PDEVBROADCASTUSERDEFINED = ^_DEV_BROADCAST_USERDEFINED;
 
      DEV_BROADCAST_VOLUME = record
-          dbcv_size : ULONG;
-          dbcv_devicetype : ULONG;
-          dbcv_reserved : ULONG;
-          dbcv_unitmask : ULONG;
-          dbcv_flags : USHORT;
+          dbcv_size : DWORD;
+          dbcv_devicetype : DWORD;
+          dbcv_reserved : DWORD;
+          dbcv_unitmask : DWORD;
+          dbcv_flags : WORD;
        end;
      PDEV_BROADCAST_VOLUME = ^DEV_BROADCAST_VOLUME;
      _DEV_BROADCAST_VOLUME = DEV_BROADCAST_VOLUME;
@@ -2242,9 +2243,14 @@ Const
           BytesWritten : LARGE_INTEGER;
           ReadTime : LARGE_INTEGER;
           WriteTime : LARGE_INTEGER;
+          IdleTime : LARGE_INTEGER;
           ReadCount : DWORD;
           WriteCount : DWORD;
           QueueDepth : DWORD;
+          SplitCount : DWORD;
+          QueryTime : LARGE_INTEGER;
+          StorageDeviceNumber : DWORD;
+          StorageManagerName : array [0..7] of WCHAR;
        end;
      _DISK_PERFORMANCE = DISK_PERFORMANCE;
      TDISKPERFORMANCE = DISK_PERFORMANCE;
@@ -2485,7 +2491,7 @@ Const
      PDRIVERINFO3 = ^DRIVER_INFO_3;
 
      EDITSTREAM = record
-          dwCookie : DWORD;
+          dwCookie : DWORD_PTR;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
        end;
@@ -2561,6 +2567,7 @@ Const
           crBkColorSrc : COLORREF;
           iUsageSrc : DWORD;
           offBmiSrc : DWORD;
+          cbBmiSrc : DWORD;
           offBitsSrc : DWORD;
           cbBitsSrc : DWORD;
        end;
@@ -2829,11 +2836,11 @@ Const
      PEMREXTCREATEFONTINDIRECTW = ^EMREXTCREATEFONTINDIRECTW;
 
      EXTLOGPEN = record
-          elpPenStyle : UINT;
-          elpWidth : UINT;
+          elpPenStyle : DWORD;
+          elpWidth : DWORD;
           elpBrushStyle : UINT;
           elpColor : COLORREF;
-          elpHatch : ULONG_ptr;
+          elpHatch : ULONG_PTR;
           elpNumEntries : DWORD;
           elpStyleEntry : array[0..0] of DWORD;
        end;
@@ -3574,6 +3581,14 @@ Const
           nPalEntries : DWORD;
           szlDevice : SIZEL;
           szlMillimeters : SIZEL;
+// #if (WINVER >= 0x0400)
+          cbPixelFormat : DWORD;
+          offPixelFormat : DWORD;
+          bOpenGL : DWORD;
+// #endif
+// #if (WINVER >= 0x0500)
+          szlMicrometers : SIZEL;
+// #endif
        end;
      LPENHMETAHEADER = ^ENHMETAHEADER;
      tagENHMETAHEADER = ENHMETAHEADER;
@@ -3627,8 +3642,8 @@ Const
 
      ENUMLOGFONT = record
           elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of TCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
      tagENUMLOGFONT = ENUMLOGFONT;
      TENUMLOGFONT = ENUMLOGFONT;
@@ -3636,9 +3651,9 @@ Const
 
      ENUMLOGFONTEX = record
           elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
-          elfScript : array[0..(LF_FACESIZE)-1] of BCHAR;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of TCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of TCHAR;
+          elfScript : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
      tagENUMLOGFONTEX = ENUMLOGFONTEX;
      TENUMLOGFONTEX = ENUMLOGFONTEX;
@@ -3927,10 +3942,10 @@ Const
           lpOrder : ^UINT;
           lpDx : ^WINT;
           lpCaretPos : ^WINT;
-          lpClass : LPTSTR;
-          lpGlyphs : ^UINT;
+          lpClass : LPSTR;           { Unicode-independent, i.e. not LPTSTR }
+          lpGlyphs : LPWSTR;         { Unicode-independent }
           nGlyphs : UINT;
-          nMaxFit : UINT;
+          nMaxFit : WINT;
        end;
      LPGCP_RESULTS = ^GCP_RESULTS;
      tagGCP_RESULTS = GCP_RESULTS;
@@ -4043,6 +4058,8 @@ Const
           iCtrlId : longint;
           hItemHandle : HANDLE;
           dwContextId : DWORD_PTR;
+ // NOTE:  this is defined as DWORD in http://msdn.microsoft.com/en-us/library/windows/desktop/bb773313%28v=vs.85%29.asp
+// but mingw has it as DWORD_PTR, so we will use that
           MousePos : POINT;
        end;
      LPHELPINFO = ^HELPINFO;
@@ -4465,6 +4482,8 @@ Const
           pt : POINT;
           flags : UINT;
           iItem : longint;
+          iSubItem : longint;
+          iGroup : longint;
        end;
      _LV_HITTESTINFO = LV_HITTESTINFO;
      TLVHITTESTINFO = LV_HITTESTINFO;
@@ -4739,8 +4758,8 @@ Const
           hsz1 : HSZ;
           hsz2 : HSZ;
           hData : HDDEDATA;
-          dwData1 : DWORD;
-          dwData2 : DWORD;
+          dwData1 : ULONG_PTR;
+          dwData2 : ULONG_PTR;
           cc : CONVCONTEXT;
           cbData : DWORD;
           Data : array[0..7] of DWORD;
@@ -4860,7 +4879,7 @@ Const
           pt : POINT;
           hwnd : HWND;
           wHitTestCode : UINT;
-          dwExtraInfo : DWORD;
+          dwExtraInfo : ULONG_PTR;
        end;
      LPMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
      tagMOUSEHOOKSTRUCT = MOUSEHOOKSTRUCT;
@@ -4886,10 +4905,10 @@ Const
           cbSize : UINT;
           hwndOwner : HWND;
           hInstance : HINST;
-          lpszText : LPCSTR;
-          lpszCaption : LPCSTR;
+          lpszText : LPCTSTR;
+          lpszCaption : LPCTSTR;
           dwStyle : DWORD;
-          lpszIcon : LPCSTR;
+          lpszIcon : LPCTSTR;
           dwContextHelpId : DWORD_PTR;
           lpfnMsgBoxCallback : MSGBOXCALLBACK;
           dwLanguageId : DWORD;
@@ -5015,7 +5034,7 @@ Const
           dwSize : DWORD;
           dwFlags : DWORD;
           dwHelpContext : DWORD;
-          lData : LONG;
+          lpData : LONG_PTR;
           hIcon : HICON;
           szName : array[0..31] of AnsiCHAR;
           szInfo : array[0..63] of AnsiCHAR;
@@ -5232,6 +5251,7 @@ Const
           lfMenuFont : LOGFONT;
           lfStatusFont : LOGFONT;
           lfMessageFont : LOGFONT;
+          //iPaddedBorderWidth : longint;     // WINVER >= 0x0600
        end;
      LPNONCLIENTMETRICS = ^NONCLIENTMETRICS;
      tagNONCLIENTMETRICS = NONCLIENTMETRICS;
@@ -5780,8 +5800,8 @@ Const
      TPRINTDLG = packed record
           lStructSize : DWORD;
           hwndOwner : HWND;
-          hDevMode : HANDLE;
-          hDevNames : HANDLE;
+          hDevMode : HGLOBAL;
+          hDevNames : HGLOBAL;
           hDC : HDC;
           Flags : DWORD;
           nFromPage : WORD;
@@ -5790,13 +5810,13 @@ Const
           nMaxPage : WORD;
           nCopies : WORD;
           hInstance : HINST;
-          lCustData : DWORD;
+          lCustData : LPARAM;
           lpfnPrintHook : LPPRINTHOOKPROC;
           lpfnSetupHook : LPSETUPHOOKPROC;
           lpPrintTemplateName : LPCTSTR;
           lpSetupTemplateName : LPCTSTR;
-          hPrintTemplate : HANDLE;
-          hSetupTemplate : HANDLE;
+          hPrintTemplate : HGLOBAL;
+          hSetupTemplate : HGLOBAL;
        end;
      LPPRINTDLG = ^TPRINTDLG;
      PPRINTDLG = ^TPRINTDLG;
@@ -5955,11 +5975,15 @@ Const
           cbOverhead : BYTE;
           iRegionIndex : BYTE;
           wFlags : WORD;
-          dwCommittedSize : DWORD;
-          dwUnCommittedSize : DWORD;
-          lpFirstBlock : LPVOID;
-          lpLastBlock : LPVOID;
-          hMem : HANDLE;
+          case longint of
+            0 : (hMem : HANDLE;
+                 dwReserved : array [0..2] of DWORD;
+                );
+            1 : (dwCommittedSize : DWORD;
+                 dwUnCommittedSize : DWORD;
+                 lpFirstBlock : LPVOID;
+                 lpLastBlock : LPVOID;
+                );
        end;
      LPPROCESS_HEAP_ENTRY = ^PROCESS_HEAPENTRY;
      _PROCESS_HEAP_ENTRY = PROCESS_HEAPENTRY;
@@ -6181,12 +6205,46 @@ Const
         RASCONN  = RASCONNA;
      {$endif}
 
+     { actually: in_addr }
+     RASIPV4ADDR = record
+       case longint of
+         0 : (s_b1 : BYTE;
+              s_b2 : BYTE;
+              s_b3 : BYTE;
+              s_b4 : BYTE;
+             );
+         1 : (s_w1 : USHORT;
+              s_w2 : USHORT;
+             );
+         2 : (S_addr : ULONG;);
+     end;
+
+     { actually: in6_addr }
+     RASIPV6ADDR = record
+       case longint of
+         0 : (rbyte : array[0..15] of BYTE);
+         1 : (rword : array[0..7] of USHORT);
+     end;
+
+     RASTUNNELENDPOINT = record
+       dwType : DWORD;
+       case longint of
+         0 : (ipv4 : RASIPV4ADDR);
+         1 : (ipv6 : RASIPV6ADDR);
+     end;
+
+     RASCONNSUBSTATE = longint;   //enumerated type
+
      RASCONNSTATUSA = record
           dwSize : DWORD;
           rasconnstate : RASCONNSTATE;
           dwError : DWORD;
           szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of AnsiCHAR;
           szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of AnsiCHAR;
+          szPhoneNumber : array[0..(RAS_MaxPhoneNumber + 1)-1] of AnsiCHAR; // http://msdn.microsoft.com/en-us/library/windows/desktop/aa376728%28v=vs.85%29.aspx
+          localEndPoint : RASTUNNELENDPOINT;
+          remoteEndPoint : RASTUNNELENDPOINT;
+          rasconnsubstate : RASCONNSUBSTATE;
        end;
      _RASCONNSTATUSA = RASCONNSTATUSA;
      TRASCONNSTATUSA = RASCONNSTATUSA;
@@ -6198,6 +6256,10 @@ Const
           dwError : DWORD;
           szDeviceType : array[0..(RAS_MaxDeviceType + 1)-1] of WideCHAR;
           szDeviceName : array[0..(RAS_MaxDeviceName + 1)-1] of WideCHAR;
+          szPhoneNumber : array[0..(RAS_MaxPhoneNumber + 1)-1] of WideCHAR; // http://msdn.microsoft.com/en-us/library/windows/desktop/aa376728%28v=vs.85%29.aspx
+          localEndPoint : RASTUNNELENDPOINT;
+          remoteEndPoint : RASTUNNELENDPOINT;
+          rasconnsubstate : RASCONNSUBSTATE;
        end;
      _RASCONNSTATUSW = RASCONNSTATUSW;
      TRASCONNSTATUSW = RASCONNSTATUSW;
@@ -6232,6 +6294,9 @@ Const
           szUserName : array[0..(UNLEN + 1)-1] of AnsiCHAR;
           szPassword : array[0..(PWLEN + 1)-1] of AnsiCHAR;
           szDomain : array[0..(DNLEN + 1)-1] of AnsiCHAR;
+          dwSubEntry : DWORD; // http://msdn.microsoft.com/en-us/library/windows/desktop/aa377238%28v=vs.85%29.aspx
+          dwCallbackId : ULONG_PTR;
+          dwIfIndex : DWORD;
        end;
      _RASDIALPARAMSA = RASDIALPARAMSA;
      TRASDIALPARAMSA = RASDIALPARAMSA;
@@ -6245,6 +6310,9 @@ Const
           szUserName : array[0..(UNLEN + 1)-1] of WCHAR;
           szPassword : array[0..(PWLEN + 1)-1] of WCHAR;
           szDomain : array[0..(DNLEN + 1)-1] of WCHAR;
+          dwSubEntry : DWORD; // http://msdn.microsoft.com/en-us/library/windows/desktop/aa377238%28v=vs.85%29.aspx
+          dwCallbackId : ULONG_PTR;
+          dwIfIndex : DWORD;
        end;
      _RASDIALPARAMSW = RASDIALPARAMSW;
      TRASDIALPARAMSW = RASDIALPARAMSW;
@@ -6264,6 +6332,9 @@ Const
      RASENTRYNAMEA = record
           dwSize : DWORD;
           szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of AnsiCHAR;
+          { Winver>=0x500 members }
+          dwFlags : DWORD;
+          szPhonebookPath : array[0..(MAX_PATH + 1)-1] of AnsiCHAR;
        end;
      _RASENTRYNAMEA = RASENTRYNAMEA;
      TRASENTRYNAMEA = RASENTRYNAMEA;
@@ -6272,6 +6343,9 @@ Const
      RASENTRYNAMEW = record
           dwSize : DWORD;
           szEntryName : array[0..(RAS_MaxEntryName + 1)-1] of WCHAR;
+          { Winver>=0x500 members }
+          dwFlags : DWORD;
+          szPhonebookPath : array[0..(MAX_PATH + 1)-1] of WCHAR;
        end;
      _RASENTRYNAMEW = RASENTRYNAMEW;
      TRASENTRYNAMEW = RASENTRYNAMEW;
@@ -6501,7 +6575,7 @@ Const
      Pselchange = ^SELCHANGE;
 
      SERIALKEYS = record
-          cbSize : DWORD;
+          cbSize : UINT;
           dwFlags : DWORD;
           lpszActivePort : LPSTR;
           lpszPort : LPSTR;
@@ -6574,8 +6648,8 @@ Const
           hIcon : HICON;
           iIcon : longint;
           dwAttributes : DWORD;
-          szDisplayName : array[0..(MAX_PATH)-1] of char;
-          szTypeName : array[0..79] of char;
+          szDisplayName : array[0..(MAX_PATH)-1] of TCHAR;
+          szTypeName : array[0..79] of TCHAR;
        end;
      _SHFILEINFO = SHFILEINFO;
      TSHFILEINFO = SHFILEINFO;
@@ -6588,12 +6662,12 @@ Const
      SHFILEOPSTRUCT = record
           hwnd : HWND;
           wFunc : UINT;
-          pFrom : LPCSTR;
-          pTo : LPCSTR;
+          pFrom : LPCSTR;   // PCZZTSTR
+          pTo : LPCSTR;     // PCZZTSTR
           fFlags : FILEOP_FLAGS;
           fAnyOperationsAborted : WINBOOL;
           hNameMappings : LPVOID;
-          lpszProgressTitle : LPCSTR;
+          lpszProgressTitle : LPCSTR;   // PCTSTR
        end;
      LPSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
      _SHFILEOPSTRUCT = SHFILEOPSTRUCT;
@@ -6703,7 +6777,7 @@ Const
 
      STYLEBUF = record
           dwStyle : DWORD;
-          szDescription : array[0..31] of CHAR;
+          szDescription : array[0..31] of TCHAR;
        end;
      LPSTYLEBUF = ^STYLEBUF;
      _tagSTYLEBUF = STYLEBUF;
@@ -6743,6 +6817,7 @@ Const
 			 );
                  1 : (
                       wProcessorArchitecture : WORD;
+                      wReserved : WORD;
                     );
        end;
      LPSYSTEM_INFO = ^SYSTEM_INFO;
@@ -6766,6 +6841,7 @@ Const
 
      TAPE_ERASE = record
           _Type : ULONG;
+          Immediate : BOOLEAN;
        end;
      _TAPE_ERASE = TAPE_ERASE;
      TTAPEERASE = TAPE_ERASE;
@@ -6791,8 +6867,8 @@ Const
      TAPE_GET_MEDIA_PARAMETERS = record
           Capacity : LARGE_INTEGER;
           Remaining : LARGE_INTEGER;
-          BlockSize : DWORD;
-          PartitionCount : DWORD;
+          BlockSize : ULONG;
+          PartitionCount : ULONG;
           WriteProtected : BOOLEAN;
        end;
      _TAPE_GET_MEDIA_PARAMETERS = TAPE_GET_MEDIA_PARAMETERS;
@@ -6811,6 +6887,7 @@ Const
 
      TAPE_PREPARE = record
           Operation : ULONG;
+          Immediate : BOOLEAN;
        end;
      _TAPE_PREPARE = TAPE_PREPARE;
      TTAPEPREPARE = TAPE_PREPARE;
@@ -6839,6 +6916,7 @@ Const
           Partition : ULONG;
           OffsetLow : ULONG;
           OffsetHigh : ULONG;
+          Immediate : BOOLEAN;
        end;
      _TAPE_SET_POSITION = TAPE_SET_POSITION;
      TTAPESETPOSITION = TAPE_SET_POSITION;
@@ -6847,6 +6925,7 @@ Const
      TAPE_WRITE_MARKS = record
           _Type : ULONG;
           Count : ULONG;
+          Immediate : BOOLEAN;
        end;
      _TAPE_WRITE_MARKS = TAPE_WRITE_MARKS;
      TTAPEWRITEMARKS = TAPE_WRITE_MARKS;
@@ -6854,7 +6933,7 @@ Const
 
      TBADDBITMAP = record
           hInst : HINST;
-          nID : UINT;
+          nID : UINT_PTR;
        end;
      LPTBADDBITMAP = ^TBADDBITMAP;
      TTBADDBITMAP = TBADDBITMAP;
@@ -6865,8 +6944,13 @@ Const
           idCommand : longint;
           fsState : BYTE;
           fsStyle : BYTE;
-          dwData : DWORD;
-          iString : longint;
+{$ifdef _WIN64}
+          bReserved : array[0..5] of BYTE;
+{$else}
+          bReserved : array[0..1] of BYTE;
+{$endif}
+          dwData : DWORD_PTR;
+          iString : INT_PTR;
        end;
      LPTBBUTTON = ^TBBUTTON;
      LPCTBBUTTON = ^TBBUTTON;
@@ -6966,7 +7050,7 @@ Const
      PTOGGLEKEYS = ^TOGGLEKEYS;
 
      TOKEN_SOURCE = record
-          SourceName : array[0..7] of CHAR;
+          SourceName : array[0..7] of CHAR;  // 0..(TOKEN_SOURCE_LENGTH-1)
           SourceIdentifier : LUID;
        end;
      _TOKEN_SOURCE = TOKEN_SOURCE;
@@ -7056,6 +7140,8 @@ Const
           rect : RECT;
           hinst : HINST;
           lpszText : LPTSTR;
+          lParam : LPARAM;
+          lpReserved : LPVOID;
        end;
      LPTOOLINFO = ^TOOLINFO;
      TTOOLINFO = TOOLINFO;
@@ -7064,9 +7150,10 @@ Const
      TOOLTIPTEXT = record
           hdr : NMHDR;
           lpszText : LPTSTR;
-          szText : array[0..79] of char;
+          szText : array[0..79] of TCHAR;
           hinst : HINST;
           uFlags : UINT;
+          lParam : LPARAM;
        end;
      LPTOOLTIPTEXT = ^TOOLTIPTEXT;
      TTOOLTIPTEXT = TOOLTIPTEXT;
@@ -7139,10 +7226,26 @@ Const
      TTVHITTESTINFO = TV_HITTESTINFO;
      PTVHITTESTINFO = ^TV_HITTESTINFO;
 
+     TVITEMEX = record
+          mask : UINT;
+          hItem : HTREEITEM;
+          state : UINT;
+          stateMask : UINT;
+          pszText : LPTSTR;
+          cchTextMax : longint;
+          iImage : longint;
+          iSelectedImage : longint;
+          cChildren : longint;
+          lParam : LPARAM;
+          iIntegral : longint;
+       end;
+
      TV_INSERTSTRUCT = record
           hParent : HTREEITEM;
           hInsertAfter : HTREEITEM;
-          item : TV_ITEM;
+          case longint of
+          0 : (item : TV_ITEM;);
+          1 : (itemex : TVITEMEX;);
        end;
      LPTV_INSERTSTRUCT = ^TV_INSERTSTRUCT;
      _TV_INSERTSTRUCT = TV_INSERTSTRUCT;
@@ -7195,7 +7298,7 @@ Const
      VALENT = record
           ve_valuename : LPTSTR;
           ve_valuelen : DWORD;
-          ve_valueptr : DWORD;
+          ve_valueptr : DWORD_PTR;
           ve_type : DWORD;
        end;
      TVALENT = VALENT;
@@ -7291,7 +7394,7 @@ Const
           dwStreamAttributes : DWORD;
           Size : LARGE_INTEGER;
           dwStreamNameSize : DWORD;
-          cStreamName : ^WCHAR;
+          cStreamName : array[0..0] of WCHAR;  // really array[0..(dwStreamNameSize)] of WCHAR
        end;
      _WIN32_STREAM_ID = WIN32_STREAM_ID;
      TWIN32STREAMID = WIN32_STREAM_ID;
@@ -7314,7 +7417,7 @@ Const
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
           cbWndExtra : longint;
-          hInstance : HANDLE;
+          hInstance : HINST;
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
@@ -7331,7 +7434,7 @@ Const
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
           cbWndExtra : longint;
-          hInstance : HANDLE;
+          hInstance : HINST;
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
@@ -7362,7 +7465,7 @@ Const
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
           cbWndExtra : longint;
-          hInstance : HANDLE;
+          hInstance : HINST;
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
@@ -7381,7 +7484,7 @@ Const
           lpfnWndProc : WNDPROC;
           cbClsExtra : longint;
           cbWndExtra : longint;
-          hInstance : HANDLE;
+          hInstance : HINST;
           hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
@@ -7438,7 +7541,7 @@ Const
           dwProviderVersion : DWORD;
           dwStatus : DWORD;
           dwCharacteristics : DWORD;
-          dwHandle : DWORD;
+          dwHandle : ULONG_PTR;
           wNetType : WORD;
           dwPrinters : DWORD;
           dwDrives : DWORD;
@@ -7710,7 +7813,17 @@ Const
           uFlags: UINT;
           uCallbackMessage: UINT;
           hIcon: HICON;
-          szTip: array [0..63] of Char;
+          szTip: array [0..127] of AnsiChar;
+          dwState : DWORD;
+          dwStateMask : DWORD;
+          szInfo : array[0..255] of AnsiChar;
+          case longint of
+            0 : (uTimeout : UINT;);
+            1 : (uVersion : UINT;
+                 szInfoTitle : array[0..63] of AnsiChar;
+                 dwInfoFlags : DWORD;
+                 //guidItem : TGUID;     // #if (_WIN32_IE >= 0x600)}
+                );
      end;
      _NOTIFYICONDATA = _NOTIFYICONDATAA;
 
@@ -7721,7 +7834,17 @@ Const
          uFlags: UINT;
          uCallbackMessage: UINT;
          hIcon: HICON;
-         szTip: array [0..63] of Word;
+         szTip: array [0..127] of WCHAR;
+         dwState : DWORD;
+         dwStateMask : DWORD;
+         szInfo : array[0..255] of WCHAR;
+         case longint of
+           0 : (uTimeout : UINT;);
+           1 : (uVersion : UINT;
+                szInfoTitle : array[0..63] of WCHAR;
+                dwInfoFlags : DWORD;
+                //guidItem : TGUID;     // #if (_WIN32_IE >= 0x600)}
+               );
      end;
      TNotifyIconDataA = _NOTIFYICONDATAA;
      TNotifyIconDataW = _NOTIFYICONDATAW;
@@ -7941,8 +8064,13 @@ const
   IMAGE_ROM_OPTIONAL_HDR_MAGIC  = $107;
 
 type
+{$ifdef _WIN64}
+  IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER64;
+  PIMAGE_OPTIONAL_HEADER = PIMAGE_OPTIONAL_HEADER64;
+{$else}
   IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER32;
   PIMAGE_OPTIONAL_HEADER = PIMAGE_OPTIONAL_HEADER32;
+{$endif}
   TImageOptionalHeader = IMAGE_OPTIONAL_HEADER;
   PImageOptionalHeader = PIMAGE_OPTIONAL_HEADER;
 
@@ -7980,10 +8108,15 @@ type
   TImageRomHeaders = IMAGE_ROM_HEADERS;
   PImageRomHeaders = PIMAGE_ROM_HEADERS;
 
+{$ifdef _WIN64}
+  IMAGE_NT_HEADERS = IMAGE_NT_HEADERS64;
+  PIMAGE_NT_HEADERS = PIMAGE_NT_HEADERS64;
+{$else}
   IMAGE_NT_HEADERS = IMAGE_NT_HEADERS32;
   PIMAGE_NT_HEADERS = PIMAGE_NT_HEADERS32;
+{$endif}
 
-  TImageNtHeaders = IMAGE_NT_HEADERS32;
+  TImageNtHeaders = IMAGE_NT_HEADERS;
   PImageNtHeaders = PIMAGE_NT_HEADERS;
 
   _GET_FILEEX_INFO_LEVELS = (GetFileExInfoStandard, GetFileExMaxInfoLevel);

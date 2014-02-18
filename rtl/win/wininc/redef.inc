@@ -349,9 +349,9 @@ function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProc
 function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
 //function CreateRectRgnIndirect(const p1: TRect): HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
-function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
+function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: PTRUINT; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
   external 'kernel32' name 'CreateRemoteThread';
-function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
+function CreateThread(lpThreadAttributes: Pointer; dwStackSize: PTRUINT; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
 function DdeSetQualityOfService(hWndClient: HWnd; const pqosNew: TSecurityQualityOfService; pqosPrev: PSecurityQualityOfService): BOOL;external 'user32' name 'DdeSetQualityOfService';
 function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
 //function DeleteAce(var pAcl: TACL; dwAceIndex: DWORD): BOOL; external 'advapi32' name 'DeleteAce';
@@ -410,7 +410,7 @@ function FindFirstFileW(lpFileName: LPWSTR; var lpFindFileData: TWIN32FindDataW)
 function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL;external 'kernel32' name 'FindNextFileA';
 function FindNextFileA(hFindFile: THandle; var lpFindFileData: TWIN32FindDataA): BOOL; external 'kernel32' name 'FindNextFileA';
 function FindNextFileW(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; external 'kernel32' name 'FindNextFileW';
-//function FlushInstructionCache(hProcess: THandle; const lpBaseAddress: Pointer; dwSize: DWORD): BOOL; external 'kernel32' name 'FlushInstructionCache';
+//function FlushInstructionCache(hProcess: THandle; const lpBaseAddress: Pointer; dwSize: PTRUINT): BOOL; external 'kernel32' name 'FlushInstructionCache';
 //function FlushViewOfFile(const lpBaseAddress: Pointer; dwNumberOfBytesToFlush: DWORD): BOOL; external 'kernel32' name 'FlushViewOfFile';
 //function FrameRect(hDC: HDC; const lprc: TRect; hbr: HBRUSH): Integer; external 'user32' name 'FrameRect';
 //function GetAce(const pAcl: TACL; dwAceIndex: DWORD; var pAce: Pointer): BOOL; external 'advapi32' name 'GetAce';
@@ -571,7 +571,7 @@ function GetProcessPriorityBoost(hThread: THandle; var DisablePriorityBoost: Boo
 {$endif NO_SMART_LINK}
 function GetProcessShutdownParameters(var lpdwLevel, lpdwFlags: DWORD): BOOL; external 'kernel32' name 'GetProcessShutdownParameters';
 function GetProcessTimes(hProcess: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetProcessTimes';
-function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize, lpMaximumWorkingSetSize: DWORD): BOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
+function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize, lpMaximumWorkingSetSize: PTRUINT): BOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
 function GetQueuedCompletionStatus(CompletionPort: THandle; var lpNumberOfBytesTransferred: DWORD; var lpCompletionKey: ULONG_PTR; var lpOverlapped: POverlapped; dwMilliseconds: DWORD): BOOL; external 'kernel32' name 'GetQueuedCompletionStatus';
 function PostQueuedCompletionStatus(CompletionPort: THandle; NumberOfBytesTransferred:dword; dwCompletionKey: ULONG_PTR; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'PostQueuedCompletionStatus';
 function GetRasterizerCaps(var p1: TRasterizerStatus; p2: UINT): BOOL; external 'gdi32' name 'GetRasterizerCaps';
@@ -766,7 +766,7 @@ function ReadEventLog(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lp
 function ReadEventLogA(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lpBuffer: Pointer; nNumberOfBytesToRead: DWORD; var pnBytesRead, pnMinNumberOfBytesNeeded: DWORD): BOOL; external 'advapi32' name 'ReadEventLogA';
 function ReadEventLogW(hEventLog: THandle; dwReadFlags, dwRecordOffset: DWORD; lpBuffer: Pointer; nNumberOfBytesToRead: DWORD; var pnBytesRead, pnMinNumberOfBytesNeeded: DWORD): BOOL; external 'advapi32' name 'ReadEventLogW';
 function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'ReadFile';
-function ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; external 'kernel32' name 'ReadProcessMemory';
+function ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: PTRUINT; var lpNumberOfBytesRead: PTRUINT): BOOL; external 'kernel32' name 'ReadProcessMemory';
 //function RectInRegion(RGN: HRGN; const p2: TRect): BOOL; external 'gdi32' name 'RectInRegion';
 //function RectVisible(DC: HDC; const Rect: TRect): BOOL; external 'gdi32' name 'RectVisible';
 function RegConnectRegistry(lpMachineName: PChar; hKey: HKEY; var phkResult: HKEY): Longint;external 'advapi32' name 'RegConnectRegistryA';
@@ -906,9 +906,9 @@ function VerInstallFileW(uFlags: DWORD; szSrcFileName, szDestFileName, szSrcDir,
 function VerQueryValue(pBlock: Pointer; lpSubBlock: PChar; var lplpBuffer: Pointer; var puLen: UINT): BOOL;external 'version' name 'VerQueryValueA';
 function VerQueryValueA(pBlock: Pointer; lpSubBlock: LPCSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueA';
 function VerQueryValueW(pBlock: Pointer; lpSubBlock: LPWSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueW';
-function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; var lpflOldProtect:DWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
-function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQuery';
-function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQueryEx';
+function VirtualProtect(lpAddress:LPVOID; dwSize:PTRUINT; flNewProtect:DWORD; var lpflOldProtect:DWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
+function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: PTRUINT): PTRUINT; external 'kernel32' name 'VirtualQuery';
+function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: PTRUINT): PTRUINT; external 'kernel32' name 'VirtualQueryEx';
 function WaitCommEvent(hFile: THandle; var lpEvtMask: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WaitCommEvent';
 function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; external 'kernel32' name 'WaitForDebugEvent';
 function wglDescribeLayerPlane(DC: HDC; iPixelFormat, iLayerPlane: Integer; nBytes: Cardinal; var pfd: TLayerPlaneDescriptor): BOOL;external 'opengl32' name 'wglDescribeLayerPlane';
@@ -977,7 +977,7 @@ function WriteFileEx(hFile: THandle; lpBuffer: Pointer; nNumberOfBytesToWrite: D
 function WritePrivateProfileStructA(lpszSection, lpszKey: LPCSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructA';
 function WritePrivateProfileStructW(lpszSection, lpszKey: LPCWSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCWSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructW';
 function WritePrivateProfileStruct(lpszSection, lpszKey: LPCTSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCTSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructA';
-function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; external 'kernel32' name 'WriteProcessMemory';
+function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: PTRUINT; var lpNumberOfBytesWritten: PTRUINT): BOOL; external 'kernel32' name 'WriteProcessMemory';
 function SHFileOperation(Var para1: SHFILEOPSTRUCT):longint; external 'shell32' name 'SHFileOperation';
 // these are old Win16 funcs that under win32 are aliases for several char* funcs.
 // exist under Win32 (even in SDK's from 2002), but are officially "depreciated"
