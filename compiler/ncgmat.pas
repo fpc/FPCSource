@@ -483,13 +483,13 @@ implementation
            (left.location.size<>opsize) then
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
          location_reset(location,LOC_REGISTER,opsize);
-         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
          { shifting by a constant directly coded: }
          if (right.nodetype=ordconstn) then
            begin
               { shl/shr must "wrap around", so use ... and 31 }
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+              hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
                 tordconstnode(right).value.uvalue and 31,left.location.register,location.register);
            end
          else
@@ -500,12 +500,20 @@ implementation
               }
               if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                 begin
-                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,right_opsize);
+                  hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,right_opdef);
                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right_opdef,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,left.location.register,location.register);
+              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,hcountreg,left.location.register,location.register);
+           end;
+         { shl/shr nodes return the same type as left, which can be different
+           from opdef }
+         if opdef<>resultdef then
+           begin
+             hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+             location.register:=hcountreg;
            end;
       end;
 
