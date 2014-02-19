@@ -192,10 +192,6 @@ type
   end;
 
 
-threadvar
-  errno : longint;
-
-
    { misc. functions }
    function GetLastError : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetLastError';
@@ -323,19 +319,17 @@ threadvar
      len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 {$endif WINCE}
 
-   Procedure Errno2InOutRes;
+   Procedure Errno2InOutRes(oserror: longword);
    var
      res : Word;
-     pErrno : ^longint;
    Begin
      { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
-     pErrno:=@Errno;
-     case pErrno^ of
+     case oserror of
        ERROR_WRITE_PROTECT..ERROR_GEN_FAILURE :
          begin
            { This is the offset to the Win32 to add to directly map  }
            { to the DOS/TP compatible error codes when in this range }
-           res := word(pErrno^)+131;
+           res := word(oserror)+131;
          end;
        ERROR_DISK_FULL :
          res := 101;
@@ -348,10 +342,9 @@ threadvar
        else
          begin
            { other error codes can directly be mapped }
-           res := Word(pErrno^);
+           res := Word(oserror);
          end;
      end;
-     pErrno^:=0;
      InOutRes:=res;
    end;
 

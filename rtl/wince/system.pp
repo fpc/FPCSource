@@ -1783,8 +1783,6 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
-  { Reset internal error variable }
-  errno:=0;
   initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 

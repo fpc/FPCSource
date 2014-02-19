@@ -30,10 +30,10 @@ begin
   DoDirSeparators(s);
   if not aFunc(punicodechar(s)) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
     end;
 end;
+
 Procedure do_MkDir(const s: UnicodeString);
 begin
   dirfn(TDirFnType(@CreateDirectoryTrunc),s);
@@ -123,8 +123,7 @@ begin
     Len2 := GetFullPathNameW (@Drive, Len, PUnicodeChar (Dir), P);
     if Len2 = 0 then
      begin
-      errno := word (GetLastError);
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
       Dir := widechar (DriveNr + Ord ('A') - 1) + ':\';
       Exit;
      end
