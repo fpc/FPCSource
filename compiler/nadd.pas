@@ -1390,7 +1390,7 @@ implementation
                      not is_64bitint(ld) and not is_64bitint(rd) and
                      ((nodetype=andn) or
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
-                       not(is_signed(ld) xor is_signed(rd)))) then
+                       (is_signed(ld)=is_signed(rd)))) then
                begin
                  if (rd.size>ld.size) or
                     { Delphi-compatible: prefer unsigned type for "and" with equal size }
