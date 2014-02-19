@@ -74,7 +74,7 @@ type
   PBufBookmark = ^TBufBookmark;
   TBufBookmark = record
     BookmarkData : PBufRecLinkItem;
-    BookmarkInt  : integer;
+    BookmarkInt  : integer; // was used by TArrayBufIndex
     BookmarkFlag : TBookmarkFlag;
   end;
 
@@ -473,31 +473,32 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
-    procedure FetchAll;
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
-    function GetIndexDefs : TIndexDefs;
-    function  GetCurrentBuffer: TRecordBuffer;
-    procedure CalcRecordSize;
-    function GetIndexFieldNames: String;
-    function GetIndexName: String;
-    function GetBufUniDirectional: boolean;
-    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
-    function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
+    procedure CalcRecordSize;
+    function  IntAllocRecordBuffer: TRecordBuffer;
+    procedure IntLoadFieldDefsFromFile;
+    procedure IntLoadRecordsFromFile;
+    function  GetCurrentBuffer: TRecordBuffer;
+    procedure CurrentRecordToBuffer(Buffer: TRecordBuffer);
+    function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
+    procedure FetchAll;
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
     function GetRecordUpdateBufferCached(const ABookmark : TBufBookmark; IncludePrior : boolean = false) : boolean;
     function GetActiveRecordUpdateBuffer : boolean;
+    procedure ParseFilter(const AFilter: string);
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
+
+    function GetIndexDefs : TIndexDefs;
+    function GetIndexFieldNames: String;
+    function GetIndexName: String;
+    function GetBufUniDirectional: boolean;
     procedure SetIndexFieldNames(const AValue: String);
     procedure SetIndexName(AValue: String);
     procedure SetMaxIndexesCount(const AValue: Integer);
     procedure SetPacketRecords(aValue : integer);
-    function  IntAllocRecordBuffer: TRecordBuffer;
-    procedure ParseFilter(const AFilter: string);
-    procedure IntLoadFielddefsFromFile;
-    procedure IntLoadRecordsFromFile;
-    procedure CurrentRecordToBuffer(Buffer: TRecordBuffer);
     procedure SetBufUniDirectional(const AValue: boolean);
     // indexes handling
     procedure InitDefaultIndexes;
@@ -505,9 +506,7 @@ type
     procedure BuildIndexes;
     procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
   protected
-    function GetNewBlobBuffer : PBlobBuffer;
-    function GetNewWriteBlobBuffer : PBlobBuffer;
-    procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
+    // abstract & virtual methods of TDataset
     procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
@@ -521,10 +520,7 @@ type
     procedure DoBeforeClose; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
-    function getnextpacket : integer;
     function GetRecordSize: Word; override;
-    procedure InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
-      const ACaseInsFields: string); virtual;
     procedure InternalPost; override;
     procedure InternalCancel; Override;
     procedure InternalDelete; override;
@@ -544,14 +540,21 @@ type
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
     procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
+    // virtual or methods, which can be used by descendants
+    function GetNewBlobBuffer : PBlobBuffer;
+    function GetNewWriteBlobBuffer : PBlobBuffer;
+    procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
+    procedure InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
+      const ACaseInsFields: string); virtual;
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
     procedure SetReadOnly(AValue: Boolean); virtual;
-  {abstracts, must be overidden by descendents}
+    function IsReadFromPacket : Boolean;
+    function getnextpacket : integer;
+    // abstracts, must be overidden by descendents
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
-    function IsReadFromPacket : Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     function GetFieldData(Field: TField; Buffer: Pointer;
@@ -1605,7 +1608,7 @@ end;
 function TCustomBufDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var Acceptable : Boolean;
-    SaveState : TDataSetState;
+    SavedState : TDataSetState;
 
 begin
   Result := grOK;
@@ -1633,17 +1636,17 @@ begin
       if Filtered then
         begin
         FFilterBuffer := Buffer;
-        SaveState := SetTempState(dsFilter);
+        SavedState := SetTempState(dsFilter);
         DoFilterRecord(Acceptable);
         if (GetMode = gmCurrent) and not Acceptable then
           begin
           Acceptable := True;
           Result := grError;
           end;
-        RestoreState(SaveState);
+        RestoreState(SavedState);
         end;
       end
-    else if (Result = grError) and doCheck then
+    else if (Result = grError) and DoCheck then
       DatabaseError('No record');
     until Acceptable;
   end;
@@ -2550,9 +2553,9 @@ var
 
 begin
   CheckBrowseMode;
-  if value > RecordCount then
+  if Value > RecordCount then
     begin
-    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
+    repeat until (getnextpacket < FPacketRecords) or (Value <= RecordCount) or (FPacketRecords = -1);
     if value > RecordCount then
       begin
       DatabaseError(SNoSuchRecord,self);
@@ -2560,22 +2563,22 @@ begin
       end;
     end;
   TmpRecBuffer := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
-  for recnr := 1 to value-1 do
+  for recnr := 1 to Value-1 do
     TmpRecBuffer := TmpRecBuffer[FCurrentIndex.IndNr].next;
   GotoBookmark(@TmpRecBuffer);
 end;
 
 function TCustomBufDataset.GetRecNo: Longint;
 
-Var abuf            :  TRecordBuffer;
+Var CurrBuff :  TRecordBuffer;
 
 begin
-  abuf := GetCurrentBuffer;
-  // If abuf isn't assigned, the recordset probably isn't opened.
-  if assigned(abuf) and (FBRecordCount>0) and (State <> dsInsert) then
-    Result:=FCurrentIndex.GetRecNo(PBufBookmark(abuf+FRecordSize))
+  CurrBuff := GetCurrentBuffer;
+  // If CurrBuff isn't assigned, the recordset probably isn't opened.
+  if assigned(CurrBuff) and (FBRecordCount>0) and (State <> dsInsert) then
+    Result:=FCurrentIndex.GetRecNo(PBufBookmark(CurrBuff+FRecordSize))
   else
-    result := 0;
+    Result := 0;
 end;
 
 function TCustomBufDataset.IsCursorOpen: Boolean;
@@ -2819,7 +2822,7 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
   end;
 
 var ScrollResult   : TGetResult;
-    StoreDSState   : TDataSetState;
+    SavedState     : TDataSetState;
     ABookMark      : PBufBookmark;
     ATBookmark     : TBufBookmark;
     RowState       : TRowState;
@@ -2831,7 +2834,7 @@ begin
     ABookMark:=@ATBookmark;
     FDatasetReader.StoreFieldDefs(FAutoIncValue);
 
-    StoreDSState:=SetTempState(dsFilter);
+    SavedState:=SetTempState(dsFilter);
     ScrollResult:=FCurrentIndex.ScrollFirst;
     while ScrollResult=grOK do
       begin
@@ -2855,7 +2858,7 @@ begin
     FCurrentIndex.StoreSpareRecIntoBookmark(ABookmark);
     HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
 
-    RestoreState(StoreDSState);
+    RestoreState(SavedState);
 
     FDatasetReader.FinalizeStoreRecords;
   finally
@@ -2972,7 +2975,7 @@ end;
 
 procedure TCustomBufDataset.IntLoadRecordsFromFile;
 
-var StoreState      : TDataSetState;
+var SavedState      : TDataSetState;
     AddRecordBuffer : boolean;
     ARowState       : TRowState;
     AUpdOrder       : integer;
@@ -2981,7 +2984,7 @@ var StoreState      : TDataSetState;
 begin
   CheckBiDirectional;
   FDatasetReader.InitLoadRecords;
-  StoreState:=SetTempState(dsFilter);
+  SavedState:=SetTempState(dsFilter);
 
   while FDatasetReader.GetCurrentRecord do
     begin
@@ -3069,7 +3072,7 @@ begin
     FDatasetReader.GotoNextRecord;
     end;
 
-  RestoreState(StoreState);
+  RestoreState(SavedState);
   FIndexes[0].SetToFirstRecord;
   FAllPacketsFetched:=True;
   if assigned(FFileStream) then
@@ -3197,7 +3200,7 @@ var CurrLinkItem    : PBufRecLinkItem;
     bm              : TBufBookmark;
     SearchFields    : TList;
     DBCompareStruct : TDBCompareStruct;
-    StoreDSState    : TDataSetState;
+    SavedState      : TDataSetState;
     FilterRecord    : TRecordBuffer;
     FiltAcceptable  : boolean;
 
@@ -3218,7 +3221,7 @@ begin
   end;
 
   // Set the filter buffer
-  StoreDSState:=SetTempState(dsFilter);
+  SavedState:=SetTempState(dsFilter);
   FFilterBuffer:=FCurrentIndex.SpareBuffer;
   SetFieldValues(KeyFields,KeyValues);
   FilterRecord:=IntAllocRecordBuffer;
@@ -3252,7 +3255,7 @@ begin
       getnextpacket;
     end;
 
-  RestoreState(StoreDSState);
+  RestoreState(SavedState);
   FreeRecordBuffer(FilterRecord);
 
   // If a match is found, jump to the found record
