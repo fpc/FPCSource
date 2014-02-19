@@ -484,7 +484,7 @@ implementation
          else
            begin
               { do an property override }
-              if (astruct.typ=objectdef) then
+              if (astruct.typ=objectdef) and assigned(tobjectdef(astruct).childof) then
                 overridden:=search_struct_member(tobjectdef(astruct).childof,p.name)
               else
                 overridden:=nil;
