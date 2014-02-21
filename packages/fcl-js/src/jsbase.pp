@@ -42,6 +42,11 @@ Type
     procedure SetIsNull(const AValue: Boolean);
     procedure SetIsUndefined(const AValue: Boolean);
   Public
+    Constructor Create;
+    Constructor CreateNull;
+    Constructor Create(ANumber : TJSNumber);
+    Constructor Create(ABoolean : Boolean);
+    Constructor Create(AString: TJSString);
     Destructor Destroy; override;
     Property ValueType : TJSType Read FValueType;
     Property IsUndefined : Boolean Read GetIsUndefined Write SetIsUndefined;
@@ -164,7 +169,32 @@ begin
   ClearValue(jstUndefined);
 end;
 
-destructor TJSValue.Destroy;
+Constructor TJSValue.CreateNull;
+begin
+  IsNull:=True;
+end;
+
+Constructor TJSValue.Create;
+begin
+  IsUndefined:=True;
+end;
+
+Constructor TJSValue.Create(ANumber: TJSNumber);
+begin
+  AsNumber:=ANumber;
+end;
+
+Constructor TJSValue.Create(ABoolean: Boolean);
+begin
+  AsBoolean:=ABoolean;
+end;
+
+Constructor TJSValue.Create(AString: TJSString);
+begin
+  AsString:=AString
+end;
+
+Destructor TJSValue.Destroy;
 begin
   ClearValue(jstUndefined);
   inherited Destroy;
