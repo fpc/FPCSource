@@ -102,6 +102,7 @@ interface
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify(forinline:boolean):tnode;override;
           function docompare(p: tnode): boolean; override;
           procedure addlabel(blockid:longint;l,h : TConstExprInt); overload;
           procedure addlabel(blockid:longint;l,h : tstringconstnode); overload;
@@ -837,6 +838,41 @@ implementation
            result:=cifnode.create(left,node_thenblock,node_elseblock);
            left:=nil;
          end;
+      end;
+
+
+    function tcasenode.simplify(forinline:boolean):tnode;
+      var
+        tmp: pcaselabel;
+      begin
+        result:=nil;
+        if left.nodetype=ordconstn then
+          begin
+            tmp:=labels;
+            { walk the case labels as long as the upper bound is smaller than
+              the constant }
+            while assigned(tmp) and (tmp^._high<tordconstnode(left).value) do
+              tmp:=tmp^.greater;
+            { check whether the constant is inside the range }
+            if assigned(tmp) and
+                (tmp^._low<=tordconstnode(left).value) and
+                (tmp^._high>=tordconstnode(left).value) then
+              begin
+                if tmp^.blockid>=blocks.count then
+                  internalerror(2014022101);
+                result:=pcaseblock(blocks[tmp^.blockid])^.statement;
+                if not assigned(result) then
+                  internalerror(2014022102);
+                result:=result.getcopy;
+                exit;
+              end;
+            { no label did match; use the else block if available }
+            if assigned(elseblock) then
+              result:=elseblock.getcopy
+            else
+              { no else block, so there is no code to execute at all }
+              result:=cnothingnode.create;
+          end;
       end;
 
 
