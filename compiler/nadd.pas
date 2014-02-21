@@ -1392,36 +1392,24 @@ implementation
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
                        (is_signed(ld)=is_signed(rd)))) then
                begin
-                 if (rd.size>ld.size) or
-                    { Delphi-compatible: prefer unsigned type for "and" with equal size }
-                    ((rd.size=ld.size) and
-                     not is_signed(rd)) then
+                 if (rd.size=ld.size) and
+                    (is_signed(ld) or is_signed(rd)) then
                    begin
-                     if (rd.size=ld.size) and
-                        is_signed(ld) then
+                     { Delphi-compatible: prefer unsigned type for "and" with equal size }
+                     if not is_signed(rd) then
                        inserttypeconv_internal(left,rd)
                      else
-                       begin
-                         { not to left right.resultdef, because that may
-                           cause a range error if left and right's def don't
-                           completely overlap }
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
+                       inserttypeconv_internal(right,ld);
                    end
                  else
                    begin
-                     if (rd.size=ld.size) and
-                        is_signed(rd) then
-                       inserttypeconv_internal(right,ld)
-                     else
-                       begin
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
-                   end
+                     { not to left right.resultdef, because that may
+                       cause a range error if left and right's def don't
+                       completely overlap }
+                     nd:=get_common_intdef(torddef(ld),torddef(rd),true);
+                     inserttypeconv(left,nd);
+                     inserttypeconv(right,nd);
+                   end;
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
