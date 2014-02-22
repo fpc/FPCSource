@@ -426,7 +426,7 @@ var
   ErrorBuf : array[0..ErrorBufferLength] of char;
   ErrorLen : SizeInt;
 
-Function ErrorWrite(Var F: TextRec): Integer;
+procedure ErrorWrite(Var F: TextRec);
 {
   An error message should always end with #13#10#13#10
 }
@@ -451,11 +451,10 @@ Begin
         end;
       Dec(F.BufPos,i);
     end;
-  ErrorWrite:=0;
 End;
 
 
-Function ErrorClose(Var F: TextRec): Integer;
+procedure ErrorClose(Var F: TextRec);
 begin
   if ErrorLen>0 then
    begin
@@ -463,17 +462,15 @@ begin
      ErrorLen:=0;
    end;
   ErrorLen:=0;
-  ErrorClose:=0;
 end;
 
 
-Function ErrorOpen(Var F: TextRec): Integer;
+procedure ErrorOpen(Var F: TextRec);
 Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
   ErrorLen:=0;
-  ErrorOpen:=0;
 End;
 
 
