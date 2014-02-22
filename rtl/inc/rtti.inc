@@ -18,7 +18,11 @@
 
 type
   PRecordElement=^TRecordElement;
-  TRecordElement=packed record
+  TRecordElement=
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     TypeInfo: Pointer;
     {$ifdef VER2_6}
     Offset: Longint;
@@ -28,14 +32,22 @@ type
   end;
 
   PRecordInfo=^TRecordInfo;
-  TRecordInfo=packed record
+  TRecordInfo=
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Size: Longint;
     Count: Longint;
     { Elements: array[count] of TRecordElement }
   end;
 
   PArrayInfo=^TArrayInfo;
-  TArrayInfo=packed record
+  TArrayInfo=
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
     Size: SizeInt;
     ElCount: SizeInt;
     ElInfo: Pointer;
