@@ -1315,7 +1315,8 @@ ResourceString
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
-  SInfoDeletingFile       = 'Deleting file "%s"';
+  SInfoDeletedFile        = 'Deleted file "%s"';
+  SInfoRemovedDirectory   = 'Removed directory "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
@@ -1354,6 +1355,9 @@ ResourceString
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
   SDbgGenerateBuildUnit     = 'Generate build-unit %s';
+  SDbgDeletedFile           = 'Recursively deleted file "%s"';
+  SDbgRemovedDirectory      = 'Recursively removed directory "%s"';
+
 
   // Help messages for usage
   SValue              = 'Value';
@@ -4417,11 +4421,12 @@ end;
 
 procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
-  Log(vlInfo,SInfoDeletingFile,[AFileName]);
   if not FileExists(AFileName) then
     Log(vldebug,SDbgFileDoesNotExist,[AFileName])
   else If Not DeleteFile(AFileName) then
-    Error(SErrDeletingFile,[AFileName]);
+    Error(SErrDeletingFile,[AFileName])
+  else
+    Log(vlInfo,SInfoDeletedFile,[AFileName]);
 end;
 
 procedure TBuildEngine.SysDeleteDirectory(Const ADirectoryName: String);
@@ -4431,7 +4436,9 @@ begin
   else if not IsDirectoryEmpty(ADirectoryName) then
     Log(vldebug,SDbgDirectoryNotEmpty,[ADirectoryName])
   else If Not RemoveDir(ADirectoryName) then
-    Error(SErrRemovingDirectory,[ADirectoryName]);
+    Error(SErrRemovingDirectory,[ADirectoryName])
+  else
+    Log(vlInfo,SInfoRemovedDirectory,[ADirectoryName]);
 end;
 
 
@@ -4441,6 +4448,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
   var
     searchRec: TSearchRec;
     SearchResult: longint;
+    s: string;
   begin
     result := true;
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
@@ -4449,13 +4457,16 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
         begin
           if (searchRec.Name<>'.') and (searchRec.Name<>'..') then
              begin
+               s := IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name;
                if (searchRec.Attr and faDirectory)=faDirectory then
                  begin
-                   if not IntRemoveTree(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
+                   if not IntRemoveTree(s) then
                      result := false;
                  end
-               else if not DeleteFile(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
-                 result := False;
+               else if not DeleteFile(s) then
+                 result := False
+               else
+                 log(vldebug, SDbgDeletedFile, [s]);
              end;
           SearchResult := FindNext(searchRec);
         end;
@@ -4463,14 +4474,18 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
       FindClose(searchRec);
     end;
     if not RemoveDir(ADirectoryName) then
-      result := false;
+      result := false
+    else
+      log(vldebug, SDbgRemovedDirectory, [ADirectoryName]);
   end;
 
 begin
   if not DirectoryExists(ADirectoryName) then
     Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])
   else If Not IntRemoveTree(ADirectoryName) then
-    Error(SErrRemovingDirectory,[ADirectoryName]);
+    Error(SErrRemovingDirectory,[ADirectoryName])
+  else
+    Log(vlInfo,SInfoRemovedDirectory,[ADirectoryName]);
 end;
 
 
@@ -6146,8 +6161,8 @@ end;
 
 procedure TBuildEngine.Clean(APackage: TPackage; AllTargets: boolean);
 var
-//  ACPU: TCpu;
-//  AOS: TOS;
+  ACPU: TCpu;
+  AOS: TOS;
   DirectoryList : TStringList;
 begin
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
@@ -6161,8 +6176,15 @@ begin
         // being renamed and such. See also bug 19655
         DirectoryList := TStringList.Create;
         try
-          DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
-          DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+          for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
+            for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
+              begin
+                if OSCPUSupported[AOS,ACPU] then
+                  begin
+                    DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+                    DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                  end;
+              end;
           CmdRemoveTrees(DirectoryList);
         finally
           DirectoryList.Free;
@@ -6464,10 +6486,10 @@ begin
   Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If AllTargets or PackageOK(P) then
-      Clean(P, AllTargets);
-    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
+      P:=Packages.PackageItems[i];
+      If AllTargets or PackageOK(P) then
+        Clean(P, AllTargets);
+      log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);
