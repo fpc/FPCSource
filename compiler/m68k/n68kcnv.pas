@@ -192,7 +192,8 @@ implementation
               exit;
            end;
 
-         location_reset(location,LOC_REGISTER,def_cgsize(left.resultdef));
+         newsize:=def_cgsize(resultdef);
+         location_reset(location,LOC_REGISTER,newsize);
          opsize := def_cgsize(left.resultdef);
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
@@ -234,7 +235,7 @@ implementation
     //                reference_release(current_asmdata.CurrAsmList,left.location.reference);
                   end;
                 resflags:=F_NE;
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
@@ -251,18 +252,18 @@ implementation
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
     //                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
                   end;
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
                 resflags:=F_NE;
               end;
             LOC_FLAGS :
               begin
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
                 resflags:=left.location.resflags;
               end;
             LOC_JUMP :
               begin
                 { for now blindly copied from nx86cnv }
-                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location_reset(location,LOC_REGISTER,newsize);
                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                 current_asmdata.getjumplabel(hlabel);
                 cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
