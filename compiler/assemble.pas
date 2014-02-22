@@ -32,6 +32,9 @@ interface
 
 
     uses
+{$ifdef hasamiga}
+      exec,
+{$endif}
       SysUtils,
       systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,finput;
 
@@ -611,9 +614,31 @@ Implementation
 
 
     procedure TExternalAssembler.AsmCreate(Aplace:tcutplace);
+{$ifdef hasamiga}
+      var
+        tempFileName: TPathStr;
+{$endif}
       begin
         if SmartAsm then
          NextSmartName(Aplace);
+{$ifdef hasamiga}
+        { on Amiga/MorphOS try to redirect .s files to the T: assign, which is
+          for temp files, and usually (default setting) located in the RAM: drive. 
+          This highly improves assembling speed for complex projects like the 
+          compiler itself, especially on hardware with slow disk I/O.
+          Consider this as a poor man's pipe on Amiga, because real pipe handling 
+          would be much more complex and error prone to implement. (KB) }
+        if (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) then
+         begin
+          { try to have an unique name for the .s file }
+          tempFileName:=HexStr(FindTask(nil))+ExtractFileName(AsmFileName);
+{$ifndef morphos}
+          { old Amiga RAM: handler only allows filenames up to 30 char }
+          if Length(tempFileName) < 30 then
+{$endif}
+          AsmFileName:='T:'+tempFileName;
+         end;
+{$endif}
 {$ifdef hasunix}
         if DoPipe then
          begin
