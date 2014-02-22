@@ -2846,72 +2846,75 @@ implementation
               in_dec_x:
                 begin
                   resultdef:=voidtype;
-                  if assigned(left) then
+                  if not(df_generic in current_procinfo.procdef.defoptions) then
                     begin
-                       { first param must be var }
-                       valid_for_var(tcallparanode(left).left,true);
-                       set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
-
-                       if (left.resultdef.typ in [enumdef,pointerdef]) or
-                          is_ordinal(left.resultdef) or
-                          is_currency(left.resultdef) then
+                      if assigned(left) then
                         begin
-                          { value of left gets changed -> must be unique }
-                          set_unique(tcallparanode(left).left);
-                          { two paras ? }
-                          if assigned(tcallparanode(left).right) then
-                           begin
-                             if is_integer(tcallparanode(left).right.resultdef) then
+                           { first param must be var }
+                           valid_for_var(tcallparanode(left).left,true);
+                           set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
+
+                           if (left.resultdef.typ in [enumdef,pointerdef]) or
+                              is_ordinal(left.resultdef) or
+                              is_currency(left.resultdef) then
+                            begin
+                              { value of left gets changed -> must be unique }
+                              set_unique(tcallparanode(left).left);
+                              { two paras ? }
+                              if assigned(tcallparanode(left).right) then
                                begin
-                                 set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                                 { when range/overflow checking is on, we
-                                   convert this to a regular add, and for proper
-                                   checking we need the original type }
-                                 if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
-                                   if (tcallparanode(left).left.resultdef.typ=pointerdef) then
-                                     begin
-                                       { don't convert values added to pointers into the pointer types themselves,
-                                         because that will turn signed values into unsigned ones, which then
-                                         goes wrong when they have to be multiplied with the size of the elements
-                                         to which the pointer points in ncginl (mantis #17342) }
-                                       if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
-                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                 if is_integer(tcallparanode(left).right.resultdef) then
+                                   begin
+                                     set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                                     { when range/overflow checking is on, we
+                                       convert this to a regular add, and for proper
+                                       checking we need the original type }
+                                     if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
+                                       if (tcallparanode(left).left.resultdef.typ=pointerdef) then
+                                         begin
+                                           { don't convert values added to pointers into the pointer types themselves,
+                                             because that will turn signed values into unsigned ones, which then
+                                             goes wrong when they have to be multiplied with the size of the elements
+                                             to which the pointer points in ncginl (mantis #17342) }
+                                           if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                           else
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
+                                         end
+                                       else if is_integer(tcallparanode(left).left.resultdef) then
+                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
                                        else
-                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
-                                     end
-                                   else if is_integer(tcallparanode(left).left.resultdef) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
-                                   else
-                                     inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
-                                 if assigned(tcallparanode(tcallparanode(left).right).right) then
-                                   { should be handled in the parser (JM) }
-                                   internalerror(2006020901);
-                               end
-                             else
-                               CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
-                           end;
-                        end
-                       { generic type parameter? }
-                       else if is_typeparam(left.resultdef) then
-                         begin
-                           result:=cnothingnode.create;
-                           exit;
-                         end
-                       else
-                         begin
-                           hp:=self;
-                           if isunaryoverloaded(hp) then
+                                         inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
+                                     if assigned(tcallparanode(tcallparanode(left).right).right) then
+                                       { should be handled in the parser (JM) }
+                                       internalerror(2006020901);
+                                   end
+                                 else
+                                   CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
+                               end;
+                            end
+                           { generic type parameter? }
+                           else if is_typeparam(left.resultdef) then
                              begin
-                               { inc(rec) and dec(rec) assigns result value to argument }
-                               result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);
+                               result:=cnothingnode.create;
                                exit;
                              end
                            else
-                             CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
-                         end;
-                    end
-                  else
-                    CGMessagePos(fileinfo,type_e_mismatch);
+                             begin
+                               hp:=self;
+                               if isunaryoverloaded(hp) then
+                                 begin
+                                   { inc(rec) and dec(rec) assigns result value to argument }
+                                   result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);
+                                   exit;
+                                 end
+                               else
+                                 CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                             end;
+                        end
+                      else
+                        CGMessagePos(fileinfo,type_e_mismatch);
+                    end;
                 end;
 
               in_read_x,
