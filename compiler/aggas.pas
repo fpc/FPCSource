@@ -652,28 +652,18 @@ implementation
               if not(target_info.system in (systems_darwin+systems_aix)) then
                 begin
 {$ifdef m68k}
-                  if assigned(lasthp) and
-                      (
-                        (lasthp.typ=ait_instruction) and
-                        (taicpu(lasthp).opcode<>A_JMP)
-                      ) or
-                      (
-                        (lasthp.typ=ait_label)
-                      ) then
+                  if not use_op and (lastsectype=sec_code) then
                     begin
-                      if ispowerof2(alignment,i) then
-                        begin
-                          { the Coldfire manual suggests the TBF instruction for
-                            alignments, but somehow QEMU does not interpret that
-                            correctly... }
-                          {if current_settings.cputype in cpu_coldfire then
-                            instr:='0x51fc'
-                          else}
-                            instr:='0x4e71';
-                          AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
-                        end
-                      else
-                        internalerror(2012102101);
+                      if not ispowerof2(alignment,i) then
+                        internalerror(2014022201);
+                      { the Coldfire manual suggests the TBF instruction for
+                        alignments, but somehow QEMU does not interpret that
+                        correctly... }
+                      {if current_settings.cputype in cpu_coldfire then
+                        instr:='0x51fc'
+                      else}
+                        instr:='0x4e71';
+                      AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
                     end
                   else
                     begin
