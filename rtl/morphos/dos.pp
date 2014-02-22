@@ -881,17 +881,24 @@ var
    s : string;
    found : boolean;
    temp : string[255];
+   tmpBat: string[31];
+   tmpList: string[31];
 begin
    found := true;
    temp := '';
-   assign(f,'ram:makepathstr');
+
+   tmpBat:='T:'+HexStr(FindTask(nil));
+   tmpList:=tmpBat+'_path.tmp';
+   tmpBat:=tmpBat+'_path.sh';
+
+   assign(f,tmpBat);
    rewrite(f);
-   writeln(f,'path >ram:temp.lst');
+   writeln(f,'path >'+tmpList);
    close(f);
-   exec('c:protect','ram:makepathstr sarwed quiet');
-   exec('C:execute','ram:makepathstr');
-   exec('c:delete','ram:makepathstr quiet');
-   assign(f,'ram:temp.lst');
+   exec('C:Execute',tmpBat);
+   erase(f);
+
+   assign(f,tmpList);
    reset(f);
    { skip the first line, garbage }
    if not eof(f) then readln(f,s);
@@ -906,7 +913,8 @@ begin
       end;
    end;
    close(f);
-   exec('C:delete','ram:temp.lst quiet');
+   erase(f);
+
    getpathstring := temp;
 end;
 
