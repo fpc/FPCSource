@@ -266,7 +266,7 @@ end;
 
 {$push}
 {$codealign localmin=16}          { TContext record requires this }
-function fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer): TObject; [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
+procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   ctx: TContext;
   args: array[0..3] of PtrUint;
@@ -276,7 +276,6 @@ begin
   args[1]:=PtrUint(Obj);
   args[2]:=GetBacktrace(ctx,AFrame,PPointer(args[3]));
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
-  result:=nil;
 end;
 
 procedure _fpc_local_unwind(frame,target: Pointer);[public,alias:'_FPC_local_unwind'];compilerproc;

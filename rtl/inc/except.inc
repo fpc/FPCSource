@@ -211,7 +211,7 @@ begin
 end;
 
 {$ifndef FPC_SYSTEM_HAS_RAISEEXCEPTION}
-Function fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
+procedure fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
@@ -219,7 +219,6 @@ begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
-  fpc_Raiseexception:=nil;
   PushExceptObject(Obj,AnAddr,AFrame);
   _ExceptAddrstack:=ExceptAddrStack;
   If _ExceptAddrStack=Nil then
