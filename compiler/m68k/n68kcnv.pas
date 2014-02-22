@@ -34,7 +34,6 @@ interface
           function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
-//          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -231,9 +230,7 @@ implementation
                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
                             left.location.reference,hreg2);
                          current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-    //                     cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
                       end;
-    //                reference_release(current_asmdata.CurrAsmList,left.location.reference);
                   end;
               end;
             LOC_REGISTER,LOC_CREGISTER :
@@ -249,7 +246,6 @@ implementation
                   begin
                     hreg2:=left.location.register;
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-    //                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
                   end;
               end;
             LOC_FLAGS :
@@ -305,27 +301,6 @@ implementation
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
-{
-    procedure tm68ktypeconvnode.pass_generate_code;
-{$ifdef TESTOBJEXT2}
-      var
-         r : preference;
-         nillabel : plabel;
-{$endif TESTOBJEXT2}
-      begin
-         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                 }
-
-         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              if codegenerror then
-               exit;
-           end;
-         second_call_helper(convtype);
-      end;
-}
 
 begin
    ctypeconvnode:=tm68ktypeconvnode;
