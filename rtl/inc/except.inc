@@ -257,13 +257,13 @@ end;
 
 function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; compilerproc;
 var
-  hp,_ExceptObjectStack : PExceptObject;
+  hp : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
 {$endif}
-  _ExceptObjectStack:=ExceptObjectStack;
-  If _ExceptObjectStack=nil then
+  hp:=ExceptObjectStack;
+  if hp=nil then
     begin
 {$ifdef excdebug}
       writeln ('At end of ExceptionObjectStack');
@@ -273,13 +273,11 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       if _ExceptObjectStack^.refcount = 0 then begin
-         fpc_PopObjectStack:=_ExceptObjectStack^.FObject;
-       end else begin
+       if hp^.refcount = 0 then
+         fpc_PopObjectStack:=hp^.FObject
+       else
          fpc_PopObjectStack:=nil;
-       end;
-       hp:=_ExceptObjectStack;
-       ExceptObjectStack:=_ExceptObjectStack^.next;
+       ExceptObjectStack:=hp^.next;
        if assigned(hp^.frames) then
          freemem(hp^.frames);
        dispose(hp);
