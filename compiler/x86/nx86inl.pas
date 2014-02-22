@@ -304,18 +304,39 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-             location:=left.location;
+             if left.location.loc<>LOC_MMREGISTER then
+               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+             if UseAVX then
+               begin
+                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+               end
+             else
+               location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPS,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register));
+                 end;
                s64real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPD,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPD,S_XMM,href,location.register))
+                 end;
                else
                  internalerror(200506081);
              end;
-             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
            end
          else
            begin
