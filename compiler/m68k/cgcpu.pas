@@ -176,6 +176,12 @@ unit cgcpu;
      function isvalidreference(const ref: treference): boolean;
        begin
          isvalidreference:=isvalidrefoffset(ref) and
+
+           { don't try to generate addressing with symbol and base reg and offset
+             it might fail in linking stage if the symbol is more than 32k away (KB) }
+           not (assigned(ref.symbol) and (ref.base <> NR_NO) and (ref.offset <> 0)) and
+
+           { coldfire and 68000 cannot handle non-addressregs as bases }
            not ((current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
                 not isaddressregister(ref.base));
        end;
