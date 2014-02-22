@@ -13,7 +13,7 @@ packages_iphonesim=univint
 [target]
 units=contnrs inifiles rtfpars idea base64 gettext \
       iostream cachecls avl_tree uriparser \
-      eventlog custapp wformat whtml wtex rttiutils bufstream \
+      eventlog custapp wformat whtml wtex rttiutils bufstream nullstream \
       streamex blowfish streamio inicol pooledmm libtar streamcoll \
       maskutils fpexprpars ascii85 fptemplate fpmimetypes
 units_beos=syncobjs
