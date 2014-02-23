@@ -99,7 +99,7 @@ unit i_amiga;
             flags        : [tf_files_case_aware];
             cpu          : cpu_powerpc;
             unit_env     : '';
-            extradefines : 'PPC603;HASAMIGA';
+            extradefines : 'PPC603;HASAMIGA;AMIGAOS4';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
