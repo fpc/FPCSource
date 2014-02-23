@@ -48,7 +48,7 @@ _start:
         move.l %d0, operatingsystem_parameter_argc
         lea.l 4(%sp), %a0
         move.l %a0, operatingsystem_parameter_argv
-        lea.l 4(%sp,%d0.l*4), %a0
+        lea.l 8(%sp,%d0.l*4), %a0
         move.l %a0, operatingsystem_parameter_envp
 
 #        move.l 8(%sp), %d0
