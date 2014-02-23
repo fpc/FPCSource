@@ -136,7 +136,8 @@ begin
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
-  prev_frame:=get_caller_frame(curr_frame, curr_addr);
+  { The frame pointer of this procedure is used as initial stack bottom value. }
+  prev_frame:=get_frame;
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
         (curr_frame<(StackBottom + StackLength)) do
     Begin
