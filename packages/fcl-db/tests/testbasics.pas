@@ -117,6 +117,14 @@ begin
   AssertEquals( StringReplace(SQLStr, ':par', '$', [rfReplaceAll]),
     Params.ParseSQL(SQLStr, True, True, True, psPostgreSQL) );
 
+// Test comments:
+  // Simple comment
+  AssertEquals(     'select * from table where id= --comment :c'#10'$1-$2 or id= --:c'#13'-$3',
+    Params.ParseSQL('select * from table where id= --comment :c'#10':a-:b or id= --:c'#13'-:d', True, True, True, psPostgreSQL));
+  // Bracketed comment
+  AssertEquals(     'select * from table where id=/*comment :c*/$1-$2',
+    Params.ParseSQL('select * from table where id=/*comment :c*/:a-:b', True, True, True, psPostgreSQL));
+
   Params.Free;
 end;
 

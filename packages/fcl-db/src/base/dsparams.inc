@@ -192,16 +192,12 @@ end;
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
 
 begin
-  result := false;
+  Result := False;
   case p^ of
-    '''':
+    '''', '"', '`':
       begin
-        SkipQuotesString(p,'''',EscapeSlash,EscapeRepeat); // single quote delimited string
-        Result := True;
-      end;
-    '"':
-      begin
-        SkipQuotesString(p,'"',EscapeSlash,EscapeRepeat);  // double quote delimited string
+        // single quote, double quote or backtick delimited string
+        SkipQuotesString(p, p^, EscapeSlash, EscapeRepeat);
         Result := True;
       end;
     '-': // possible start of -- comment
@@ -212,9 +208,9 @@ begin
           Result := True;
           repeat // skip until at end of line
             Inc(p);
-          until p^ in [#10, #0];
+          until p^ in [#10, #13, #0];
+          while p^ in [#10, #13] do Inc(p); // newline is part of comment
         end;
-        if p^<>#0 then Inc(p); // newline is part of comment
       end;
     '/': // possible start of /* */ comment
       begin
