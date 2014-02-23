@@ -9165,6 +9165,7 @@ rtl/win32/initc.pp svneol=native#text/plain
 rtl/win32/objinc.inc svneol=native#text/plain
 rtl/win32/rtldefs.inc svneol=native#text/plain
 rtl/win32/seh32.inc svneol=native#text/plain
+rtl/win32/serial.pp svneol=native#text/plain
 rtl/win32/signals.pp svneol=native#text/plain
 rtl/win32/sysinit.inc svneol=native#text/plain
 rtl/win32/sysinitcyg.pp svneol=native#text/plain
