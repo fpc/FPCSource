@@ -1,5 +1,5 @@
 { Unit for handling the serial interfaces for Linux and similar Unices.
-  (c) 2000 Sebastian Guenther, sg@freepascal.org
+  (c) 2000 Sebastian Guenther, sg@freepascal.org; modified markMLl 2011.
 }
 
 unit Serial;
@@ -36,8 +36,26 @@ function SerOpen(const DeviceName: String): TSerialHandle;
 { Closes a serial device previously opened with SerOpen. }
 procedure SerClose(Handle: TSerialHandle);
 
-{ Flushes the data queues of the given serial device. }
-procedure SerFlush(Handle: TSerialHandle);
+{ Flushes the data queues of the given serial device. DO NOT USE THIS:
+  use either SerSync (non-blocking) or SerDrain (blocking). }
+procedure SerFlush(Handle: TSerialHandle); deprecated;
+
+{ Suggest to the kernel that buffered output data should be sent. This
+  is unlikely to have a useful effect except possibly in the case of
+  buggy ports that lose Tx interrupts, and is implemented as a preferred
+  alternative to the deprecated SerFlush procedure. }
+procedure SerSync(Handle: TSerialHandle);
+
+{ Wait until all buffered output has been transmitted. It is the caller's
+  responsibility to ensure that this won't block permanently due to an
+  inappropriate handshake state. }
+procedure SerDrain(Handle: TSerialHandle);
+
+{ Discard all pending input. }
+procedure SerFlushInput(Handle: TSerialHandle);
+
+{ Discard all unsent output. }
+procedure SerFlushOutput(Handle: TSerialHandle);
 
 { Reads a maximum of "Count" bytes of data into the specified buffer.
   Result: Number of bytes read. }
@@ -60,6 +78,7 @@ procedure SerSetDTR(Handle: TSerialHandle; State: Boolean);
 procedure SerSetRTS(Handle: TSerialHandle; State: Boolean);
 function SerGetCTS(Handle: TSerialHandle): Boolean;
 function SerGetDSR(Handle: TSerialHandle): Boolean;
+function SerGetCD(Handle: TSerialHandle): Boolean;
 function SerGetRI(Handle: TSerialHandle): Boolean;
 
 
@@ -78,9 +97,29 @@ begin
   fpClose(Handle);
 end;
 
-procedure SerFlush(Handle: TSerialHandle);
+procedure SerFlush(Handle: TSerialHandle); deprecated;
 begin
   fpfsync(Handle);
+end;
+
+procedure SerSync(Handle: TSerialHandle);
+begin
+  fpfsync(Handle)
+end;
+
+procedure SerDrain(Handle: TSerialHandle);
+begin
+  tcdrain(Handle)
+end;
+
+procedure SerFlushInput(Handle: TSerialHandle);
+begin
+  tcflush(Handle, TCIFLUSH)
+end;
+
+procedure SerFlushOutput(Handle: TSerialHandle);
+begin
+  tcflush(Handle, TCOFLUSH)
 end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
@@ -200,6 +239,14 @@ var
 begin
   fpioctl(Handle, TIOCMGET, @Flags);
   Result := (Flags and TIOCM_DSR) <> 0;
+end;
+
+function SerGetCD(Handle: TSerialHandle): Boolean;
+var
+  Flags: Cardinal;
+begin
+  fpioctl(Handle, TIOCMGET, @Flags);
+  Result := (Flags and TIOCM_CD) <> 0
 end;
 
 function SerGetRI(Handle: TSerialHandle): Boolean;
