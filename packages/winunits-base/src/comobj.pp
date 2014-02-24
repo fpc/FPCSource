@@ -1276,7 +1276,9 @@ HKCR
                 inc(DispParams.cNamedArgs);
               end;
             DISPATCH_METHOD:
-              if assigned(Result) and (CallDesc^.ArgCount=0) then
+              { It appears that certain COM servers expect both DISPATCH_METHOD and DISPATCH_PROPERTYGET
+                flags for anything returning a result, see bug #24352 }
+              if assigned(Result) then
                 InvokeKind:=DISPATCH_METHOD or DISPATCH_PROPERTYGET;
           end;
 {$ifdef DEBUG_COMDISPATCH}
@@ -1488,7 +1490,9 @@ HKCR
               DispParams.rgdispidNamedArgs:=@dispidNamed;
             end;
           DISPATCH_METHOD:
-            if assigned(res) and (desc^.calldesc.argcount=0) then
+            { It appears that certain COM servers expect both DISPATCH_METHOD and DISPATCH_PROPERTYGET
+              flags for anything returning a result, see bug #24352 }
+            if assigned(res) then
               flags:=DISPATCH_METHOD or DISPATCH_PROPERTYGET;
         end;
 
