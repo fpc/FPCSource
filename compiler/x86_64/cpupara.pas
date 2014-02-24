@@ -41,7 +41,6 @@ unit cpupara;
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
@@ -889,62 +888,6 @@ unit cpupara;
     function tx86_64paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[RS_ST0..RS_ST7];
-      end;
-
-
-    procedure tx86_64paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym : tparavarsym;
-        pdef : tdef;
-      begin
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=get_para_align(pd.proccalloption);
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-         begin
-           size:=def_cgsize(pdef);
-           paraloc^.def:=pdef;
-           if target_info.system=system_x86_64_win64 then
-             begin
-               if nr<1 then
-                 internalerror(200304303)
-               else if nr<=high(paraintsupregs_winx64)+1 then
-                 begin
-                    loc:=LOC_REGISTER;
-                    register:=newreg(R_INTREGISTER,paraintsupregs_winx64[nr-1],cgsize2subreg(R_INTREGISTER,size));
-                 end
-               else
-                 begin
-                    loc:=LOC_REFERENCE;
-                    reference.index:=NR_STACK_POINTER_REG;
-                    reference.offset:=(nr-6)*sizeof(aint);
-                 end;
-             end
-           else
-             begin
-               if nr<1 then
-                 internalerror(200304303)
-               else if nr<=high(paraintsupregs)+1 then
-                 begin
-                    loc:=LOC_REGISTER;
-                    register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],cgsize2subreg(R_INTREGISTER,size));
-                 end
-               else
-                 begin
-                    loc:=LOC_REFERENCE;
-                    reference.index:=NR_STACK_POINTER_REG;
-                    reference.offset:=(nr-6)*sizeof(aint);
-                 end;
-             end;
-          end;
       end;
 
 

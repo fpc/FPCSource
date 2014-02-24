@@ -35,10 +35,6 @@ interface
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
-        {Returns a structure giving the information on the storage of the parameter
-        (which must be an integer parameter)
-        @param(nr Parameter number of routine, starting from 1)}
-        procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -71,46 +67,6 @@ implementation
     function tsparcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;
       begin
         result:=[RS_F0..RS_F31];
-      end;
-
-
-    procedure TSparcParaManager.GetIntParaLoc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
-      begin
-        if nr<1 then
-          InternalError(2002100806);
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=std_param_align;
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-          begin
-            { The six first parameters are passed into registers }
-            dec(nr);
-            if nr<6 then
-              begin
-                loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,(RS_O0+nr),R_SUBWHOLE);
-              end
-            else
-              begin
-                { The other parameters are passed on the stack }
-                loc:=LOC_REFERENCE;
-                reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=92+(nr-6)*4;
-              end;
-            size:=def_cgsize(pdef);
-            def:=pdef;
-          end;
       end;
 
 
