@@ -420,13 +420,13 @@ begin
   repeat
     if mSec < quantum then begin
       Sleep(mSec);
-      mSec := 0
+      mSec := 0;
     end else begin
       Sleep(quantum);
-      mSec -= quantum
+      mSec := msec-quantum;
     end;
     if (mSec > 0) and Assigned(SerialIdle) then
-      SerialIdle(Handle)
+      SerialIdle(Handle);
   until mSec <= 0;
   ClearCommBreak(Handle);
   if sync then
