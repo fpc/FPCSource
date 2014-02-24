@@ -13,7 +13,7 @@ unit buildrtl;
       cpu, mmx, charset, character, getopts,
       printer,
       fpwidestring,
-      winsysut, sharemem, fpintres, windirs;
+      winsysut, sharemem, fpintres, windirs, serial;
 
   implementation
 
