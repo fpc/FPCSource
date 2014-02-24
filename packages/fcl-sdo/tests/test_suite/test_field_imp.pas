@@ -42,6 +42,8 @@ type
     procedure setShort();
     procedure getCharacter();
     procedure setCharacter();
+    procedure getVariant();
+    procedure setVariant();
   end;
 
   TSDOIntegerField_Test = class(TSDOField_Test)
@@ -62,6 +64,8 @@ type
     procedure setShort();
     procedure getCharacter();
     procedure setCharacter();
+    procedure getVariant();
+    procedure setVariant();
   end;
 
   TSDOStringField_Test = class(TSDOField_Test)
@@ -83,6 +87,8 @@ type
     procedure setShort();
     procedure getCharacter();
     procedure setCharacter();
+    procedure getVariant();
+    procedure setVariant();
 
     procedure unset();override;
     procedure setNull();override;
@@ -104,6 +110,8 @@ type
     procedure setDataObject();
     procedure unset();override;
     procedure setNull();override;
+    procedure getVariant();
+    procedure setVariant();
   end;
 
   TSDOChangeSummaryField_Test = class(TSDOField_Test)
@@ -140,6 +148,8 @@ type
     procedure setLong();
     procedure getShort();
     procedure setShort();
+    procedure getVariant();
+    procedure setVariant();
   end;
 
   TSDODateField_Test = class(TSDOField_Test)
@@ -152,6 +162,8 @@ type
     procedure setDate();
     procedure getString();
     procedure setString();
+    procedure getVariant();
+    procedure setVariant();
   end;
 
 {$IFDEF HAS_SDO_BYTES}
@@ -159,11 +171,17 @@ type
   protected
     function Create_Field() : ISDOField;override;
     class procedure CleanUpBuffer(var ABuffer : PPSDOBytes);
+    procedure CompareVarToBytes(
+      const ABytes : TSDOBytes;
+      const AVar   : Variant
+    );
   published
     procedure getBytes();
     procedure setBytes();
     procedure getString();
     procedure setString();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_BYTES}
 
@@ -186,6 +204,8 @@ type
     procedure setLong();
     procedure getShort();
     procedure setShort();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_CHAR}
 
@@ -202,6 +222,8 @@ type
     procedure setFloat();
     procedure getString();
     procedure setString();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_CURRENCY}
 
@@ -218,6 +240,8 @@ type
     procedure setFloat();
     procedure getString();
     procedure setString();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_DOUBLE}
 
@@ -234,6 +258,8 @@ type
     procedure setFloat();
     procedure getString();
     procedure setString();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_FLOAT}
 
@@ -256,6 +282,8 @@ type
     procedure setLong();
     procedure getShort();
     procedure setShort();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_LONG}
 
@@ -278,12 +306,15 @@ type
     procedure setLong();
     procedure getShort();
     procedure setShort();
+    procedure getVariant();
+    procedure setVariant();
   end;
 {$ENDIF HAS_SDO_SHORT}
 
 implementation
 
 uses
+  Variants,
   sdo_imp_utils, sdo_datafactory, sdo_changesummary, sdo_date_utils, DateUtils;
 
 const s_URI_1  = 'uri:1'; s_URI_3 = 'uri:3';
@@ -603,6 +634,26 @@ begin
       CheckEquals('1',obj.getString(buffer,F_OFFSET));
 end;
 
+procedure TSDOBooleanField_Test.getVariant();
+const F_OFFSET = 0;
+var
+  obj : ISDOField;
+  intVal : DWord;
+  buffer : PByte;
+  v : Variant;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  obj.setBoolean(buffer,F_OFFSET,False);
+    v := obj.getVariant(buffer,F_OFFSET);
+    CheckEquals(False,Boolean(v));
+  obj.setBoolean(buffer,F_OFFSET,True);
+    v := obj.getVariant(buffer,F_OFFSET);
+    CheckEquals(True,Boolean(v));
+end;
+
 procedure TSDOBooleanField_Test.setBoolean();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -865,6 +916,23 @@ begin
     CheckEquals(0,valBuffer^);
 end;
 
+
+procedure TSDOBooleanField_Test.setVariant();
+const F_OFFSET = 0;
+var
+  obj : ISDOField;
+  intVal : DWord;
+  buffer : PByte;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  obj.setVariant(buffer,F_OFFSET,False);
+    CheckEquals(False,obj.getBoolean(buffer,F_OFFSET));
+  obj.setVariant(buffer,F_OFFSET,True);
+    CheckEquals(True,obj.getBoolean(buffer,F_OFFSET));
+end;
 
 { TSDOField_Test }
 
@@ -1624,6 +1692,28 @@ begin
         CheckEquals(IntToStr(VAL_3),obj.getString(buffer,F_OFFSET_1));
 end;
 
+procedure TSDOIntegerField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOInteger = (-12345,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setInteger(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(SAMPLE_VALUES[i],TSDOInteger(v));
+  end;
+end;
+
 procedure TSDOIntegerField_Test.setBoolean();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -1962,6 +2052,27 @@ begin
       CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
+end;
+
+procedure TSDOIntegerField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOInteger = (-98765,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      CheckEquals(SAMPLE_VALUES[i],obj.getInteger(buffer,F_OFFSET));
+  end;
 end;
 
 { TSDOStringField_Test }
@@ -2798,6 +2909,31 @@ begin
     end;
 end;
 
+procedure TSDOStringField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..9] of TSDOString = (
+    'AZERTY', 'QWERTY', 'Service Data Object', 'S', 'D', 'O',
+    'WEIRD STRING'#0'Sample', #0#0, '0123456789', '#!'
+  );
+var
+  obj : ISDOField;
+  trueBuffer : array[0..200] of Byte;
+  buffer : PByte;
+  i : Integer;
+  v : Variant;
+begin
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setString(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(SAMPLE_VALUES[i],TSDOString(v));
+  end;
+end;
+
 procedure TSDOStringField_Test.setBoolean();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -3297,6 +3433,29 @@ begin
   valBuffer^^ := ''; FreeMem(valBuffer^,SizeOf(PSDOString));
 end;
 
+procedure TSDOStringField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..9] of TSDOString = (
+    'AZERTY', 'QWERTY', 'Service Data Object', 'S', 'D', 'O',
+    'WEIRD STRING'#0'Sample', #0#0, '0123456789', '#!'
+  );
+var
+  obj : ISDOField;
+  trueBuffer : array[0..200] of Byte;
+  buffer : PByte;
+  i : Integer;
+begin
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+    CheckEquals(SAMPLE_VALUES[i],obj.getString(buffer,F_OFFSET));
+  end;
+end;
+
 procedure TSDOStringField_Test.unset();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
       VAL_1 = 'azerty12345'; VAL_2 = 'xyz-9876'; VAL_3 = '';
@@ -3665,6 +3824,43 @@ begin
     end;
 end;
 
+procedure TSDOBaseDataObject_Test.getVariant();
+const
+  F_OFFSET = 0;
+var
+  obj : ISDOField;
+  trueBuffer : array[0..200] of Byte;
+  buffer : PByte;
+  val_array : array[0..2] of ISDODataObject;
+  val_x : ISDODataObject;
+  v : Variant;
+  a : IInterface;
+  ax : ISDODataObject;
+  i : TSDOByte;
+begin
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+  val_array[0] := FFactory.createNew(s_URI_1,s_TYPE_1) as ISDODataObject;
+  val_array[1] := FFactory.createNew(s_URI_1,s_TYPE_2) as ISDODataObject;
+  val_array[2] := nil;
+
+  for i := Low(val_array) to High(val_array) do begin
+    val_x := val_array[i];
+    obj.setDataObject(buffer,F_OFFSET,val_x);
+      v := obj.getVariant(buffer,F_OFFSET);
+      if (val_x <> nil) then begin
+        Check(VarIsType(v,varUnknown));
+        a := v;
+        Check(Supports(a,ISDODataObject,ax));
+        CheckEquals(PtrUInt(val_x),PtrUInt(ax));
+      end else begin
+        a := v;
+        Check(a = nil);
+      end;
+  end;
+end;
+
 procedure TSDOBaseDataObject_Test.setDataObject();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -3895,6 +4091,35 @@ procedure TSDOBaseDataObject_Test.SetUp();
 begin
   inherited;
   FFactory := Create_Factory();
+end;
+
+procedure TSDOBaseDataObject_Test.setVariant();
+const
+  F_OFFSET = 0;
+var
+  obj : ISDOField;
+  trueBuffer : array[0..200] of Byte;
+  buffer : PByte;
+  val_array : array[0..2] of ISDODataObject;
+  val_x : ISDODataObject;
+  v : Variant;
+  a : IInterface;
+  ax : ISDODataObject;
+  i : TSDOByte;
+begin
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+  val_array[0] := FFactory.createNew(s_URI_1,s_TYPE_1) as ISDODataObject;
+  val_array[1] := FFactory.createNew(s_URI_1,s_TYPE_2) as ISDODataObject;
+  val_array[2] := nil;
+
+  for i := Low(val_array) to High(val_array) do begin
+    val_x := val_array[i];
+    obj.setVariant(buffer,F_OFFSET,val_x);
+      ax := obj.getDataObject(buffer,F_OFFSET);
+      CheckEquals(PtrUInt(val_x),PtrUInt(ax));
+  end;
 end;
 
 procedure TSDOBaseDataObject_Test.TearDown;
@@ -5227,6 +5452,27 @@ begin
         CheckEquals(IntToStr(VAL_3),obj.getString(buffer,F_OFFSET_1));
 end;
 
+procedure TSDOByteField_Test.getVariant();
+const
+  F_OFFSET = 0;
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : TSDOByte;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(TSDOByte) to High(TSDOByte) do begin
+    obj.setByte(buffer,F_OFFSET,i);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(i,TSDOByte(v));
+  end;
+end;
+
 procedure TSDOByteField_Test.setBoolean();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -5567,6 +5813,25 @@ begin
       CheckEquals(VAL_2,valBuffer^);
 end;
 
+procedure TSDOByteField_Test.setVariant();
+const
+  F_OFFSET = 0;
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  i : TSDOByte;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(TSDOByte) to High(TSDOByte) do begin
+    obj.setVariant(buffer,F_OFFSET,i);
+    CheckEquals(i,obj.getByte(buffer,F_OFFSET));
+  end;
+end;
+
 { TSDODateField_Test }
 
 procedure TSDODateField_Test.CheckEquals(expected, actual: TSDODate; msg: string; const AStrict : Boolean);
@@ -5807,6 +6072,58 @@ begin
         CheckEquals(xsd_DateTimeToStr(VAL_3,xdkDateTime),obj.getString(buffer,F_OFFSET_1));
 end;
 
+procedure TSDODateField_Test.getVariant();
+const F_OFFSET = 0;
+      VAL_1 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+      VAL_2 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+      VAL_3 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+
+  procedure SetConstants();
+  var
+    d : TSDODate;
+  begin
+    FillChar(d,SizeOf(TSDODate),#0);
+    d.Date := EncodeDateTime(1976,10,12,23,34,45,56);
+    d.HourOffset := 5;
+    d.MinuteOffset := 6;
+    PSDODate(@VAL_1)^ := d;
+
+    FillChar(d,SizeOf(TSDODate),#0);
+    d.Date := EncodeDateTime(2008,7,8,9,10,11,12);
+    d.HourOffset := 0;
+    d.MinuteOffset := 13;
+    PSDODate(@VAL_3)^ := d;
+  end;
+
+var
+  obj : ISDOField;
+  trueBuffer : array[0..(3 * SizeOf(TSDODate))] of Byte;
+  buffer : PByte;
+  v : Variant;
+  value : TSDODate;
+  a, b : TDateTime;
+  i : Integer;
+begin
+  SetConstants();
+
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+
+  for i := 1 to 3 do begin
+    case i of
+      1 : value := VAL_1;
+      2 : value := VAL_2;
+      3 : value := VAL_3;
+    end;
+    obj.setDate(buffer,F_OFFSET,value);
+      v := obj.getVariant(buffer,F_OFFSET);
+      a := v;
+      b := NormalizeToUTC(value);
+      CheckEquals(0,MilliSecondsBetween(a,b));
+  end;
+end;
+
 procedure TSDODateField_Test.setDate();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
       VAL_1 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
@@ -5945,6 +6262,57 @@ begin
       CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
+end;
+
+procedure TSDODateField_Test.setVariant();
+const F_OFFSET = 0;
+      VAL_1 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+      VAL_2 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+      VAL_3 : TSDODate = ( Date : 0; HourOffset : 0; MinuteOffset : 0; );
+
+  procedure SetConstants();
+  var
+    d : TSDODate;
+  begin
+    FillChar(d,SizeOf(TSDODate),#0);
+    d.Date := EncodeDateTime(1976,10,12,23,34,45,56);
+    d.HourOffset := 5;
+    d.MinuteOffset := 6;
+    PSDODate(@VAL_1)^ := d;
+
+    FillChar(d,SizeOf(TSDODate),#0);
+    d.Date := EncodeDateTime(2008,7,8,9,10,11,12);
+    d.HourOffset := 0;
+    d.MinuteOffset := 13;
+    PSDODate(@VAL_3)^ := d;
+  end;
+
+var
+  obj : ISDOField;
+  trueBuffer : array[0..(3 * SizeOf(TSDODate))] of Byte;
+  buffer : PByte;
+  v : Variant;
+  value : TSDODate;
+  a, b : TDateTime;
+  i : Integer;
+begin
+  SetConstants();
+
+  FillChar(trueBuffer,SizeOf(trueBuffer),#0);
+  buffer := @(trueBuffer[0]);
+  obj := Create_Field();
+
+  for i := 1 to 3 do begin
+    case i of
+      1 : value := VAL_1;
+      2 : value := VAL_2;
+      3 : value := VAL_3;
+    end;
+    b := NormalizeToUTC(value);
+    obj.setVariant(buffer,F_OFFSET,b);
+      a := NormalizeToUTC(obj.getDate(buffer,F_OFFSET));
+      CheckEquals(0,MilliSecondsBetween(a,b));
+  end;
 end;
 
 {$IFDEF HAS_SDO_CHAR}
@@ -6571,6 +6939,30 @@ begin
         CheckEquals(VAL_3,obj.getString(buffer,F_OFFSET_1));
 end;
 
+procedure TSDOCharField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..2] of TSDOChar = (TSDOChar(#97),TSDOChar(#48),TSDOChar(#100));
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+  a : TSDOChar;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setCharacter(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      a := v;
+      Check(SAMPLE_VALUES[i] = a);
+  end;
+end;
+
 procedure TSDOCharField_Test.setBoolean();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
 var
@@ -6919,6 +7311,28 @@ begin
       CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
+end;
+
+procedure TSDOCharField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..2] of TSDOChar = (TSDOChar(#97),TSDOChar(#48),TSDOChar(#100));
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  i : Integer;
+  a : TSDOChar;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      a := obj.getCharacter(buffer,F_OFFSET);
+      CheckEquals(Ord(SAMPLE_VALUES[i]),Ord(a));
+  end;
 end;
 {$ENDIF HAS_SDO_CHAR}
 
@@ -7861,6 +8275,51 @@ begin
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
 end;
+
+procedure TSDOLongField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOLong = (-987654321654321,-678,0,1,12,12345678912345);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+  a : TSDOLong;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setLong(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      a := v;
+      CheckEquals(SAMPLE_VALUES[i],a);
+  end;
+end;
+
+procedure TSDOLongField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOLong = (-987654321654321,-678,0,1,12,12345678912345);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      CheckEquals(SAMPLE_VALUES[i],obj.getLong(buffer,F_OFFSET));
+  end;
+end;
 {$ENDIF HAS_SDO_LONG}
 
 {$IFDEF HAS_SDO_SHORT}
@@ -8802,6 +9261,51 @@ begin
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
 end;
+
+procedure TSDOShortField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOShort = (-9865,-678,0,1,12,4567);
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+  a : TSDOShort;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setShort(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      a := v;
+      CheckEquals(SAMPLE_VALUES[i],a);
+  end;
+end;
+
+procedure TSDOShortField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOShort = (-9865,-678,0,1,12,4567);
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      CheckEquals(SAMPLE_VALUES[i],obj.getShort(buffer,F_OFFSET));
+  end;
+end;
 {$ENDIF HAS_SDO_SHORT}
 
 {$IFDEF HAS_SDO_BYTES}
@@ -8837,12 +9341,12 @@ var
     VAL_1 := v;
     v := nil;
 
-    VAL_2 := nil;    
+    VAL_2 := nil;
 
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v;     
+    VAL_3 := v;
   end;
 
 var
@@ -8874,7 +9378,7 @@ begin
     SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
       CheckEquals(VAL_1,obj.getBytes(buffer,F_OFFSET_0));
   valBuffer^ := nil;
-  
+
   valBuffer^ := @VAL_2; SetBit(attributeBuffer^,BIT_ORDER_BUFFER,True);
   SetBit(attributeBuffer^,BIT_ORDER_SET,False);
     SetBit(attributeBuffer^,BIT_ORDER_NULL,True);
@@ -8887,7 +9391,7 @@ begin
     SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
       CheckEquals(VAL_2,obj.getBytes(buffer,F_OFFSET_0));
   valBuffer^ := nil;
-  
+
   valBuffer^ := @VAL_3; SetBit(attributeBuffer^,BIT_ORDER_BUFFER,True);
   SetBit(attributeBuffer^,BIT_ORDER_SET,False);
     SetBit(attributeBuffer^,BIT_ORDER_NULL,True);
@@ -8966,7 +9470,7 @@ var
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v;     
+    VAL_3 := v;
   end;
 
 var
@@ -8974,7 +9478,6 @@ var
   trueBuffer : array[0..100] of Byte;
   buffer, tmpBuffer, attributeBuffer : PByte;
   valBuffer : PPSDOBytes;
-  s : TSDOString;
 begin
   SetConstants();
 
@@ -9001,14 +9504,12 @@ begin
     valBuffer^^ := VAL_2;
       SetBit(attributeBuffer^,BIT_ORDER_SET,True);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
-        s := obj.getString(buffer,F_OFFSET_0);
-        CheckEquals(BytesToString(VAL_2),s,'x1');
-        //CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0),'1');
+        CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0));
       SetBit(attributeBuffer^,BIT_ORDER_SET,False);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
         CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_0));
     valBuffer^^ := nil;
-  
+
     valBuffer^^ := VAL_3;
       SetBit(attributeBuffer^,BIT_ORDER_SET,False);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
@@ -9041,14 +9542,12 @@ begin
     valBuffer^^ := VAL_2;
       SetBit(attributeBuffer^,BIT_ORDER_SET,True);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
-        s := obj.getString(buffer,F_OFFSET_0);
-        CheckEquals(BytesToString(VAL_2),s);
-        //CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));
+        CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));
       SetBit(attributeBuffer^,BIT_ORDER_SET,False);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
         CheckEquals(BytesToString(VAL_2),obj.getString(buffer,F_OFFSET_1));
     valBuffer^^ := nil;
-    
+
     valBuffer^^ := VAL_3;
       SetBit(attributeBuffer^,BIT_ORDER_SET,True);
         SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
@@ -9079,13 +9578,13 @@ var
     v := nil;
 
     VAL_2 := nil;
-    
+
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v;     
+    VAL_3 := v;
   end;
-  
+
 var
   obj : ISDOField;
   trueBuffer : array[0..100] of Byte;
@@ -9183,14 +9682,14 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     VAL_2 := nil;
 
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v;     
+    VAL_3 := v;
   end;
 
 var
@@ -9234,8 +9733,131 @@ begin
       CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^^);
-      
+
   CleanUpBuffer(valBuffer);
+end;
+
+procedure TSDOBytesField_Test.CompareVarToBytes(
+  const ABytes : TSDOBytes;
+  const AVar   : Variant
+);
+var
+  i, c, lb : Integer;
+begin
+  if (Length(ABytes) = 0) then
+    Check(
+      ( (VarIsEmpty(AVar) or VarIsNull(AVar)) or
+        (VarIsArray(AVar) and (VarArrayHighBound(AVar,1) < VarArrayLowBound(AVar,1)) )
+      ),
+      'NULL Bytes'
+    );
+
+  Check(VarIsArray(AVar),'Array expected');
+  c := Length(ABytes);
+  lb := VarArrayLowBound(AVar,1);
+  CheckEquals(c,(VarArrayHighBound(AVar,1)-lb+1),'Array Length');
+  for i := Low(ABytes) to High(ABytes) do
+    CheckEquals(ABytes[i],AVar[lb+i]);
+end;
+
+procedure TSDOBytesField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  ZERO_BYTES : TSDOBytes = nil;
+var
+  VAL_1, VAL_2, VAL_3 : TSDOBytes;
+  SAMPLE_VALUES : array[0..3] of TSDOBytes;
+
+  procedure SetConstants();
+  var
+    v : TSDOBytes;
+    k : Integer;
+  begin
+    SetLength(v,100);
+    for k := 0 to High(v) do
+      v[k] := k mod High(Byte);
+    VAL_1 := v;
+    v := nil;
+
+    VAL_2 := nil;
+
+    SetLength(v,200);
+    for k := 0 to High(v) do
+      v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
+    VAL_3 := v;
+
+    SAMPLE_VALUES[0] := nil;
+    SAMPLE_VALUES[1] := VAL_1;
+    SAMPLE_VALUES[2] := VAL_2;
+    SAMPLE_VALUES[3] := VAL_3;
+  end;
+
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setBytes(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CompareVarToBytes(SAMPLE_VALUES[i],v);
+  end;
+end;
+
+procedure TSDOBytesField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  ZERO_BYTES : TSDOBytes = nil;
+var
+  VAL_1, VAL_2, VAL_3 : TSDOBytes;
+  SAMPLE_VALUES : array[0..3] of TSDOBytes;
+
+  procedure SetConstants();
+  var
+    v : TSDOBytes;
+    k : Integer;
+  begin
+    SetLength(v,100);
+    for k := 0 to High(v) do
+      v[k] := k mod High(Byte);
+    VAL_1 := v;
+    v := nil;
+
+    VAL_2 := nil;
+
+    SetLength(v,200);
+    for k := 0 to High(v) do
+      v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
+    VAL_3 := v;
+
+    SAMPLE_VALUES[0] := nil;
+    SAMPLE_VALUES[1] := VAL_1;
+    SAMPLE_VALUES[2] := VAL_2;
+    SAMPLE_VALUES[3] := VAL_3;
+  end;
+
+var
+  obj : ISDOField;
+  intVal : QWord;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  intVal := 0;
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    v := SAMPLE_VALUES[i];
+    obj.setVariant(buffer,F_OFFSET,v);
+      CheckEquals(SAMPLE_VALUES[i], obj.getBytes(buffer,F_OFFSET));
+  end;
 end;
 {$ENDIF HAS_SDO_BYTES}
 
@@ -9760,6 +10382,28 @@ begin
         CheckEquals(TSDOConvertHelper.CurrencyToString(VAL_3),obj.getString(buffer,F_OFFSET_1));
 end;
 
+procedure TSDOCurrencyField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOCurrency = (-12345.1234,-678.258,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setCurrency(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(SAMPLE_VALUES[i],TSDOCurrency(v));
+  end;
+end;
+
 procedure TSDOCurrencyField_Test.setString();
 const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
       VAL_1 : TSDOCurrency = 12345; VAL_2 : TSDOCurrency = -98765; VAL_3 : TSDOCurrency = 0;
@@ -9802,6 +10446,28 @@ begin
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
 end;
+
+procedure TSDOCurrencyField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOCurrency = (-12345.1234,-678.258,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  value : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      value := obj.getCurrency(buffer,F_OFFSET);
+      Check((SAMPLE_VALUES[i] = value));
+  end;
+end;
 {$ENDIF HAS_SDO_CURRENCY}
 
 {$IFDEF HAS_SDO_DOUBLE}
@@ -9811,13 +10477,117 @@ begin
 end;
 
 procedure TSDODoubleField_Test.getCurrency();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDODouble = 12345; VAL_2 : TSDODouble = -987654; VAL_3 : TSDODouble = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDODouble;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+  obj := Create_Field();
 
+  valBuffer^ := VAL_1;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_2;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_3;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_0));
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+    valBuffer^ := VAL_1;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_1));
+
+
+    valBuffer^ := VAL_2;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_1));
+
+    valBuffer^ := VAL_3;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_1));
 end;
 
 procedure TSDODoubleField_Test.setCurrency();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDODouble = 12345; VAL_2 : TSDODouble = -98765; VAL_3 : TSDODouble = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDODouble;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+  obj := Create_Field();
 
+  obj.setCurrency(buffer,F_OFFSET_0,VAL_1);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_1,valBuffer^);
+
+  obj.setCurrency(buffer,F_OFFSET_0,VAL_2);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_2,valBuffer^);
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+
+    obj.setCurrency(buffer,F_OFFSET_1,VAL_1);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_1,valBuffer^);
+
+    obj.setCurrency(buffer,F_OFFSET_1,VAL_2);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_2,valBuffer^);
 end;
 
 procedure TSDODoubleField_Test.getDouble();
@@ -9969,13 +10739,117 @@ begin
 end;
 
 procedure TSDODoubleField_Test.getFloat();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDODouble = 12345; VAL_2 : TSDODouble = -987654; VAL_3 : TSDODouble = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDODouble;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+  obj := Create_Field();
 
+  valBuffer^ := VAL_1;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_2;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_3;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_0));
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+    valBuffer^ := VAL_1;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_1));
+
+
+    valBuffer^ := VAL_2;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_1));
+
+    valBuffer^ := VAL_3;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_1));
 end;
 
 procedure TSDODoubleField_Test.setFloat();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDODouble = 12345; VAL_2 : TSDODouble = -98765; VAL_3 : TSDODouble = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDODouble;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+  obj := Create_Field();
 
+  obj.setFloat(buffer,F_OFFSET_0,VAL_1);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_1,valBuffer^);
+
+  obj.setFloat(buffer,F_OFFSET_0,VAL_2);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_2,valBuffer^);
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDODouble(tmpBuffer);
+
+    obj.setFloat(buffer,F_OFFSET_1,VAL_1);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_1,valBuffer^);
+
+    obj.setFloat(buffer,F_OFFSET_1,VAL_2);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_2,valBuffer^);
 end;
 
 procedure TSDODoubleField_Test.getString();
@@ -10091,6 +10965,50 @@ begin
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
 end;
+
+procedure TSDODoubleField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDODouble = (-12345,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setDouble(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(SAMPLE_VALUES[i],TSDODouble(v));
+  end;
+end;
+
+procedure TSDODoubleField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDODouble = (-12345,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  value : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      value := obj.getDouble(buffer,F_OFFSET);
+      Check((SAMPLE_VALUES[i] = value));
+  end;
+end;
 {$ENDIF HAS_SDO_DOUBLE}
 
 {$IFDEF HAS_SDO_FLOAT}
@@ -10100,33 +11018,345 @@ begin
 end;
 
 procedure TSDOFloatField_Test.getCurrency();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -987654; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  valBuffer^ := VAL_1;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_2;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_3;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_0));
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+    valBuffer^ := VAL_1;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getCurrency(buffer,F_OFFSET_1));
+
+
+    valBuffer^ := VAL_2;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getCurrency(buffer,F_OFFSET_1));
+
+    valBuffer^ := VAL_3;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getCurrency(buffer,F_OFFSET_1));
 end;
 
 procedure TSDOFloatField_Test.setCurrency();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -98765; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  obj.setCurrency(buffer,F_OFFSET_0,VAL_1);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_1,valBuffer^);
+
+  obj.setCurrency(buffer,F_OFFSET_0,VAL_2);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_2,valBuffer^);
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+
+    obj.setCurrency(buffer,F_OFFSET_1,VAL_1);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_1,valBuffer^);
+
+    obj.setCurrency(buffer,F_OFFSET_1,VAL_2);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_2,valBuffer^);
 end;
 
 procedure TSDOFloatField_Test.getDouble();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -987654; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  valBuffer^ := VAL_1;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getDouble(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getDouble(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_2;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getDouble(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getDouble(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_3;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getDouble(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getDouble(buffer,F_OFFSET_0));
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+    valBuffer^ := VAL_1;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getDouble(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getDouble(buffer,F_OFFSET_1));
+
+
+    valBuffer^ := VAL_2;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getDouble(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getDouble(buffer,F_OFFSET_1));
+
+    valBuffer^ := VAL_3;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getDouble(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getDouble(buffer,F_OFFSET_1));
 end;
 
 procedure TSDOFloatField_Test.setDouble();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -98765; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  obj.setDouble(buffer,F_OFFSET_0,VAL_1);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_1,valBuffer^);
+
+  obj.setDouble(buffer,F_OFFSET_0,VAL_2);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_2,valBuffer^);
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+
+    obj.setDouble(buffer,F_OFFSET_1,VAL_1);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_1,valBuffer^);
+
+    obj.setDouble(buffer,F_OFFSET_1,VAL_2);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_2,valBuffer^);
 end;
 
 procedure TSDOFloatField_Test.getFloat();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -987654; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  valBuffer^ := VAL_1;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_2;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_0));
+
+  valBuffer^ := VAL_3;
+    SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_0));
+    SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+      SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+      CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_0));
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+    valBuffer^ := VAL_1;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_1,obj.getFloat(buffer,F_OFFSET_1));
+
+
+    valBuffer^ := VAL_2;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_2,obj.getFloat(buffer,F_OFFSET_1));
+
+    valBuffer^ := VAL_3;
+      SetBit(attributeBuffer^,BIT_ORDER_SET,True);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_1));
+      SetBit(attributeBuffer^,BIT_ORDER_SET,False);
+        SetBit(attributeBuffer^,BIT_ORDER_NULL,False);
+        CheckEquals(VAL_3,obj.getFloat(buffer,F_OFFSET_1));
 end;
 
 procedure TSDOFloatField_Test.setFloat();
+const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
+      VAL_1 : TSDOFloat = 12345; VAL_2 : TSDOFloat = -98765; VAL_3 : TSDOFloat = 0;
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer, tmpBuffer, attributeBuffer : PByte;
+  valBuffer : PSDOFloat;
 begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  tmpBuffer := buffer;
+  attributeBuffer := buffer;
+  Inc(tmpBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+  obj := Create_Field();
 
+  obj.setFloat(buffer,F_OFFSET_0,VAL_1);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_1,valBuffer^);
+
+  obj.setFloat(buffer,F_OFFSET_0,VAL_2);
+    CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+    CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+    CheckEquals(VAL_2,valBuffer^);
+
+  FillChar(intVal,SizeOf(intVal),#0);
+  Inc(tmpBuffer);
+  Inc(attributeBuffer);
+  valBuffer := PSDOFloat(tmpBuffer);
+
+    obj.setFloat(buffer,F_OFFSET_1,VAL_1);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_1,valBuffer^);
+
+    obj.setFloat(buffer,F_OFFSET_1,VAL_2);
+      CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
+      CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
+      CheckEquals(VAL_2,valBuffer^);
 end;
 
 procedure TSDOFloatField_Test.getString();
@@ -10241,6 +11471,50 @@ begin
       CheckEquals(True,IsBitON(attributeBuffer^,BIT_ORDER_SET));
       CheckEquals(False,IsBitON(attributeBuffer^,BIT_ORDER_NULL));
       CheckEquals(VAL_2,valBuffer^);
+end;
+
+procedure TSDOFloatField_Test.getVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOFloat = (-12345,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  v : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setFloat(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      v := obj.getVariant(buffer,F_OFFSET);
+      CheckEquals(SAMPLE_VALUES[i],TSDOFloat(v));
+  end;
+end;
+
+procedure TSDOFloatField_Test.setVariant();
+const
+  F_OFFSET = 0;
+  SAMPLE_VALUES : array[0..5] of TSDOFloat = (-12345,-678,0,1,12,456789);
+var
+  obj : ISDOField;
+  intVal : array[0..100] of Byte;
+  buffer : PByte;
+  value : Variant;
+  i : Integer;
+begin
+  FillChar(intVal,SizeOf(intVal),#0);
+  buffer := @intVal;
+  obj := Create_Field();
+
+  for i := Low(SAMPLE_VALUES) to High(SAMPLE_VALUES) do begin
+    obj.setVariant(buffer,F_OFFSET,SAMPLE_VALUES[i]);
+      value := obj.getFloat(buffer,F_OFFSET);
+      Check((SAMPLE_VALUES[i] = value));
+  end;
 end;
 {$ENDIF HAS_SDO_FLOAT}
 

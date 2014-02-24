@@ -395,7 +395,7 @@ type
       const AOffset : PtrUInt;
       const AValue  : TSDOVariant
     ); override;
-      
+
     function getBoolean(
       const ABuffer : TSDOFieldBuffer;
       const AOffset : PtrUInt
@@ -565,7 +565,7 @@ type
       const AOffset : PtrUInt;
       const AValue  : TSDOVariant
     ); override;
-      
+
     function getBoolean(
       const ABuffer : TSDOFieldBuffer;
       const AOffset : PtrUInt
@@ -670,6 +670,15 @@ type
       const ABuffer : TSDOFieldBuffer;
       const AOffset : PtrUInt
     );override;
+    function getVariant(
+      const ABuffer : TSDOFieldBuffer;
+      const AOffset : PtrUInt
+    ) : TSDOVariant; override;
+    procedure setVariant(
+      const ABuffer : TSDOFieldBuffer;
+      const AOffset : PtrUInt;
+      const AValue  : TSDOVariant
+    ); override;
   end;
 
   TSDOChangeSummaryField = class(TSDOBaseField,IInterface,ISDOField)
@@ -706,7 +715,7 @@ type
       const AOffset : PtrUInt;
       const AValue  : TSDOVariant
     ); override;
-      
+
     function getBoolean(
       const ABuffer : TSDOFieldBuffer;
       const AOffset : PtrUInt
@@ -793,7 +802,7 @@ type
       const AOffset : PtrUInt;
       const AValue  : TSDOVariant
     ); override;
-      
+
     function getBytes(
       const ABuffer : TSDOFieldBuffer;
       const AOffset : PtrUInt
@@ -1836,7 +1845,7 @@ procedure TSDOBooleanField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setBoolean(ABuffer,AOffset,AValue);
@@ -1995,7 +2004,7 @@ procedure TSDOIntegerField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setInteger(ABuffer,AOffset,AValue);
@@ -2200,7 +2209,7 @@ procedure TSDOBaseStringField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setString(ABuffer,AOffset,AValue);
@@ -2264,6 +2273,17 @@ begin
   end;
 end;
 
+function TSDOObjectField.getVariant(
+  const ABuffer: TSDOFieldBuffer;
+  const AOffset: PtrUInt
+) : TSDOVariant;
+begin
+  if isNull(ABuffer,AOffset) then
+    Result := Null
+  else
+    Result := getDataObject(ABuffer,AOffset);
+end;
+
 procedure TSDOObjectField.setDataObject(
   const ABuffer : TSDOFieldBuffer;
   const AOffset : PtrUInt;
@@ -2290,6 +2310,31 @@ begin
     FillChar(objBuffer^^,SizeOf(ISDODataObject),#0);
   end;
   objBuffer^^ := AValue;
+end;
+
+procedure TSDOObjectField.setVariant(
+  const ABuffer : TSDOFieldBuffer;
+  const AOffset : PtrUInt;
+  const AValue  : TSDOVariant
+);
+var
+  x : IInterface;
+  obj : ISDODataObject;
+begin
+  if VarIsNull(AValue) then begin
+    setNull(ABuffer,AOffset);
+    exit;
+  end;
+  if not VarIsType(AValue,varUnknown) then
+    raise ESDOInvalidConversionException.Create(ClassName);
+  x := AValue;
+  if (x = nil) then begin
+    obj := nil;
+  end else begin
+    if not Supports(x,ISDODataObject,obj) then
+      raise ESDOInvalidConversionException.Create(ClassName);
+  end;
+  setDataObject(ABuffer,AOffset,obj);
 end;
 
 procedure TSDOObjectField.setNull(const ABuffer: TSDOFieldBuffer; const AOffset: PtrUInt);
@@ -2580,7 +2625,7 @@ procedure TSDOByteField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setByte(ABuffer,AOffset,AValue);
@@ -2658,10 +2703,10 @@ procedure TSDODateField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
-    setDate(ABuffer,AOffset,DateTimeToDateTimeRec(AValue));
+    setDate(ABuffer,AOffset,DateTimeToDateTimeRec(VarToDateTime(AValue)));
 end;
 
 { TSDOCharField }
@@ -2910,16 +2955,11 @@ procedure TSDOCharField.setVariant(
   const AOffset: PtrUInt;
   const AValue: TSDOVariant
 );
-var
-  locStr : TSDOString;
 begin
-  if isNull(ABuffer,AOffset) then begin
+  if VarIsNull(AValue) then begin
     setNull(ABuffer,AOffset)
   end else begin
-    locStr := AValue;
-    if IsStrEmpty(locStr) then
-      locStr := #0;
-    setCharacter(ABuffer,AOffset,locStr[1]);
+    setCharacter(ABuffer,AOffset,AValue);
   end;
 end;
 
@@ -3080,7 +3120,7 @@ procedure TSDOLongField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setLong(ABuffer,AOffset,AValue);
@@ -3245,7 +3285,7 @@ procedure TSDOShortField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setShort(ABuffer,AOffset,AValue);
@@ -3562,11 +3602,25 @@ procedure TSDOBytesField.setVariant(
   const AOffset: PtrUInt;
   const AValue: TSDOVariant
 );
+var
+  tempValue : TSDOBytes;
+  i, c : Integer;
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then begin
     setNull(ABuffer,AOffset)
-  else
-    setBytes(ABuffer,AOffset,AValue);
+  end else begin
+    if not VarIsArray(AValue) then
+      raise ESDOInvalidConversionException.Create(ClassName);
+    c := VarArrayHighBound(AValue,1) - VarArrayLowBound(AValue,1) + 1;
+    if (c > 0) then begin
+      SetLength(tempValue,c);
+      for i := VarArrayLowBound(AValue,1) to VarArrayHighBound(AValue,1) do
+        tempValue[i] := AValue[i];
+    end else begin
+      tempValue := nil;
+    end;
+    setBytes(ABuffer,AOffset,tempValue);
+  end;
 end;
 
 function TSDOCurrencyField.getVariant(
@@ -3586,7 +3640,7 @@ procedure TSDOCurrencyField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setCurrency(ABuffer,AOffset,AValue);
@@ -3609,7 +3663,7 @@ procedure TSDODoubleField.setVariant(
   const AValue: TSDOVariant
 );
 begin
- if isNull(ABuffer,AOffset) then
+ if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setDouble(ABuffer,AOffset,AValue);
@@ -3632,7 +3686,7 @@ procedure TSDOFloatField.setVariant(
   const AValue: TSDOVariant
 );
 begin
-  if isNull(ABuffer,AOffset) then
+  if VarIsNull(AValue) then
     setNull(ABuffer,AOffset)
   else
     setFloat(ABuffer,AOffset,AValue);
@@ -3643,5 +3697,6 @@ initialization
 
 finalization
   UnprepareMap();
-  
+
 end.
+
