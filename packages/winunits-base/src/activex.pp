@@ -3108,9 +3108,9 @@ TYPE
    IEnumVARIANT = Interface (IUnknown)
      ['{00020404-0000-0000-C000-000000000046}']
      {$ifndef Call_as}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: OLEVARIANT;  out pCeltFetched: ULONG):HResult;StdCall;
      {$else}
-      Function  Next(celt: ULONG; OUT rgVar: VARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
+      Function  Next(celt: ULONG; OUT rgVar: OLEVARIANT;  pCeltFetched: pULONG=nil):HResult;StdCall;
      {$endif}
      Function  Skip(celt: ULONG):HResult;StdCall;
      Function  Reset():HResult;StdCall;
