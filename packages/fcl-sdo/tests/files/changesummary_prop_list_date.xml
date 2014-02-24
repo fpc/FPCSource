@@ -40,39 +40,3 @@
     <list_date>2009-09-01T01:50:00.001Z</list_date>
   </ns1:DepartmentType>
 </sdo:datagraph>
-<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
-  <xsd>
-    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
-      <xsd:complexType name="DepartmentType">
-        <xsd:sequence>
-          <xsd:element name="list_date" type="xsd:dateTime" minOccurs="0" maxOccurs="unbounded"/>
-          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
-        <xsd:attribute name="location" type="xsd:string"/>
-        <xsd:attribute name="birthDate" type="xsd:dateTime"/>
-      </xsd:complexType>
-    </schema>
-  </xsd>
-  <changeSummary>
-    <DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF">
-      <list_date>
-        <listChanges index="0" kind="change" dataValues="1976-10-12T18:28:45.056Z"/>
-        <listChanges index="3" kind="append"/>
-        <listChanges index="4" kind="append"/>
-        <listChanges index="1" kind="change" dataValues="1899-12-30T00:00:00Z"/>
-        <listChanges index="0" kind="delete" dataValues="2009-09-01T01:50:00.001Z"/>
-        <listChanges index="1" kind="delete" dataValues="2008-07-08T08:57:11.012Z"/>
-        <listChanges index="2" kind="insert"/>
-        <listChanges index="4" kind="append"/>
-      </list_date>
-    </DepartmentType>
-  </changeSummary>
-  <ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" birthDate="1976-10-12T18:28:45.056Z">
-    <list_date>1899-12-30T00:00:00Z</list_date>
-    <list_date>1900-11-08T00:49:00Z</list_date>
-    <list_date>2008-07-08T08:57:11.012Z</list_date>
-    <list_date>1976-10-12T18:28:45.056Z</list_date>
-    <list_date>2009-09-01T01:50:00.001Z</list_date>
-  </ns1:DepartmentType>
-</sdo:datagraph>

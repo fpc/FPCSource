@@ -33,38 +33,3 @@ xmlns:sdo="commonj.sdo"
 		<xsd:attribute name="manager" type="xsd:boolean" use="optional"/>
 	</xsd:complexType>
 </xsd:schema>
-<?xml version="1.0" encoding="UTF-8"?>
-
-<xsd:schema targetNamespace="company.xsd"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:company="company.xsd"
-xmlns:sdo="commonj.sdo"  
->
-	<xsd:element name="company" type="company:CompanyType"/>
-	<xsd:complexType name="CompanyType">
-		<xsd:sequence>
-			<xsd:element name="departments" type="company:DepartmentType"
-			  minOccurs="0" maxOccurs="unbounded"/>
-
-			<xsd:element name="changes" type="sdo:ChangeSummary" />
-      
-      </xsd:sequence>
-		<xsd:attribute name="name" type="xsd:string" use="optional"/>
-		<xsd:attribute name="employeeOfTheMonth" type="xsd:string" use="optional"/>
-	</xsd:complexType>
-	<xsd:complexType name="DepartmentType">
-		<xsd:sequence>
-			<xsd:element name="employees" type="company:EmployeeType"
-			  minOccurs="0" maxOccurs="unbounded"/>
-		</xsd:sequence>
-		<xsd:attribute name="name" type="xsd:string" use="optional"/>
-		<xsd:attribute name="location" type="xsd:string" use="optional"/>
-		<xsd:attribute name="number" type="xsd:int" use="optional"/>
-	</xsd:complexType>
-	<xsd:complexType name="EmployeeType">
-		<xsd:attribute name="name" type="xsd:string" use="optional"/>
-		<xsd:attribute name="SN" type="xsd:ID" use="optional"/>
-		<xsd:attribute name="manager" type="xsd:boolean" use="optional"/>
-	</xsd:complexType>
-</xsd:schema>

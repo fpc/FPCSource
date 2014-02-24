@@ -24,22 +24,3 @@
     <SN>001</SN>
   </ns1:Employee>
 </sdo:datagraph>
-<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
-  <xsd>
-    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
-      <xsd:complexType name="Employee">
-        <xsd:sequence>
-          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
-        <xsd:attribute name="SN" type="xsd:string"/>
-        <xsd:attribute name="manager" type="xsd:boolean"/>
-        <xsd:attribute name="age" type="xsd:byte"/>
-      </xsd:complexType>
-    </schema>
-  </xsd>
-  <changeSummary>
-    <Employee sdo:ref="#/Employee" name="Inoussa O." SN="002" age="30"/>
-  </changeSummary>
-  <ns1:Employee name="Inoussa OUEDRAOGO" SN="001" manager="1" age="32"/>
-</sdo:datagraph>

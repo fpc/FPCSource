@@ -14,19 +14,3 @@
     </xsd:sequence>
   </xsd:complexType>
 </schema>
-<?xml version="1.0"?>
-<schema xmlns:tns="urn:second-library" 
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-        xmlns:bx="urn:base-library"
-        targetNamespace="urn:second-library">
-  <xsd:import
-    namespace = "urn:base-library"
-    schemaLocation = "import_base_library.xsd"
-  />
-  
-  <xsd:complexType name="Second_Type">
-    <xsd:sequence>
-      <xsd:element name="SampleProperty" type="bx:SampleBase_Type"/>
-    </xsd:sequence>
-  </xsd:complexType>
-</schema>

@@ -21,26 +21,3 @@
     <xsd:attribute name="IsManager" type="xsd:boolean"/>
   </xsd:complexType>
 </schema>
-<schema targetNamespace="uri:sample" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="uri:sample" xmlns:sdo="commonj.sdo">
-  <xsd:complexType name="ProjectList">
-    <xsd:sequence>
-      <xsd:element name="Project" type="tns:ProjectType" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="changeSummary" type="sdo:ChangeSummary" minOccurs="0"/>
-    </xsd:sequence>
-  </xsd:complexType>
-  <xsd:complexType name="ProjectType">
-    <xsd:sequence>
-      <xsd:element name="Member" type="tns:Person" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="ProjectLeader" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
-      <xsd:element name="ProjectLeaderArray" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded" sdo:propertyType="tns:Person"/>
-    </xsd:sequence>
-    <xsd:attribute name="ProjectName" type="xsd:string"/>
-  </xsd:complexType>
-  <xsd:complexType name="Person">
-    <xsd:sequence>
-      <xsd:element name="Manager" type="xsd:anyURI" minOccurs="0" sdo:propertyType="tns:Person"/>
-    </xsd:sequence>
-    <xsd:attribute name="Name" type="xsd:string"/>
-    <xsd:attribute name="IsManager" type="xsd:boolean"/>
-  </xsd:complexType>
-</schema>

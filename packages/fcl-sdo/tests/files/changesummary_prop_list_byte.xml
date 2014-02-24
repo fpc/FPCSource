@@ -40,39 +40,3 @@
     <list_byte>89</list_byte>
   </ns1:DepartmentType>
 </sdo:datagraph>
-<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
-  <xsd>
-    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
-      <xsd:complexType name="DepartmentType">
-        <xsd:sequence>
-          <xsd:element name="list_byte" type="xsd:byte" minOccurs="0" maxOccurs="unbounded"/>
-          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
-        <xsd:attribute name="location" type="xsd:string"/>
-        <xsd:attribute name="number" type="xsd:byte"/>
-      </xsd:complexType>
-    </schema>
-  </xsd>
-  <changeSummary>
-    <DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF">
-      <list_byte>
-        <listChanges index="0" kind="change" dataValues="1"/>
-        <listChanges index="3" kind="append"/>
-        <listChanges index="4" kind="append"/>
-        <listChanges index="1" kind="change" dataValues="2"/>
-        <listChanges index="0" kind="delete" dataValues="10"/>
-        <listChanges index="1" kind="delete" dataValues="3"/>
-        <listChanges index="2" kind="insert"/>
-        <listChanges index="4" kind="append"/>
-      </list_byte>
-    </DepartmentType>
-  </changeSummary>
-  <ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" number="123">
-    <list_byte>20</list_byte>
-    <list_byte>123</list_byte>
-    <list_byte>107</list_byte>
-    <list_byte>45</list_byte>
-    <list_byte>89</list_byte>
-  </ns1:DepartmentType>
-</sdo:datagraph>

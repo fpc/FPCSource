@@ -40,39 +40,3 @@
     <list_string>this is a multi words text. Lets test it!</list_string>
   </ns1:DepartmentType>
 </sdo:datagraph>
-<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
-	<xsd>
-		<schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
-			<xsd:complexType name="DepartmentType">
-				<xsd:sequence>
-					<xsd:element name="list_string" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-					<xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
-				</xsd:sequence>
-				<xsd:attribute name="name" type="xsd:string"/>
-				<xsd:attribute name="location" type="xsd:string"/>
-				<xsd:attribute name="number" type="xsd:int"/>
-			</xsd:complexType>
-		</schema>
-	</xsd>
-	<changeSummary>
-		<DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF">
-			<list_string>
-				<listChanges index="0" kind="change" dataValues="wst"/>
-				<listChanges index="3" kind="append"/>
-				<listChanges index="4" kind="append"/>
-				<listChanges index="1" kind="change" dataValues="sdo"/>
-				<listChanges index="0" kind="delete" dataValues="azerty"/>
-				<listChanges index="1" kind="delete" dataValues="fpc-lazarus"/>
-				<listChanges index="2" kind="insert"/>
-				<listChanges index="4" kind="append"/>
-			</list_string>
-		</DepartmentType>
-	</changeSummary>
-	<ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" number="1210">
-		<list_string>kis</list_string>
-		<list_string>Ouagadougou</list_string>
-		<list_string>107612</list_string>
-		<list_string>BF</list_string>
-		<list_string>this is a multi words text. Lets test it!</list_string>
-	</ns1:DepartmentType>
-</sdo:datagraph>
