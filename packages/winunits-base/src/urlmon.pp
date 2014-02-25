@@ -201,25 +201,25 @@ Const
   BINDSTRING_POST_DATA_MIME   = BINDSTRING_POST_COOKIE+1;
   BINDSTRING_URL              = BINDSTRING_POST_DATA_MIME+1;
 
-  INET_E_INVALID_URL                 = $800C0002;
-  INET_E_NO_SESSION                  = $800C0003;
-  INET_E_CANNOT_CONNECT              = $800C0004;
-  INET_E_RESOURCE_NOT_FOUND          = $800C0005;
-  INET_E_OBJECT_NOT_FOUND            = $800C0006;
-  INET_E_DATA_NOT_AVAILABLE          = $800C0007;
-  INET_E_DOWNLOAD_FAILURE            = $800C0008;
-  INET_E_AUTHENTICATION_REQUIRED     = $800C0009;
-  INET_E_NO_VALID_MEDIA              = $800C000A;
-  INET_E_CONNECTION_TIMEOUT          = $800C000B;
-  INET_E_INVALID_REQUEST             = $800C000C;
-  INET_E_UNKNOWN_PROTOCOL            = $800C000D;
-  INET_E_SECURITY_PROBLEM            = $800C000E;
-  INET_E_CANNOT_LOAD_DATA            = $800C000F;
-  INET_E_CANNOT_INSTANTIATE_OBJECT   = $800C0010;
-  INET_E_REDIRECT_FAILED             = $800C0014;
-  INET_E_REDIRECT_TO_DIR             = $800C0015;
-  INET_E_CANNOT_LOCK_REQUEST         = $800C0016;
-  INET_E_ERROR_FIRST                 = $800C0002;
+  INET_E_INVALID_URL                 = HResult($800C0002);
+  INET_E_NO_SESSION                  = HResult($800C0003);
+  INET_E_CANNOT_CONNECT              = HResult($800C0004);
+  INET_E_RESOURCE_NOT_FOUND          = HResult($800C0005);
+  INET_E_OBJECT_NOT_FOUND            = HResult($800C0006);
+  INET_E_DATA_NOT_AVAILABLE          = HResult($800C0007);
+  INET_E_DOWNLOAD_FAILURE            = HResult($800C0008);
+  INET_E_AUTHENTICATION_REQUIRED     = HResult($800C0009);
+  INET_E_NO_VALID_MEDIA              = HResult($800C000A);
+  INET_E_CONNECTION_TIMEOUT          = HResult($800C000B);
+  INET_E_INVALID_REQUEST             = HResult($800C000C);
+  INET_E_UNKNOWN_PROTOCOL            = HResult($800C000D);
+  INET_E_SECURITY_PROBLEM            = HResult($800C000E);
+  INET_E_CANNOT_LOAD_DATA            = HResult($800C000F);
+  INET_E_CANNOT_INSTANTIATE_OBJECT   = HResult($800C0010);
+  INET_E_REDIRECT_FAILED             = HResult($800C0014);
+  INET_E_REDIRECT_TO_DIR             = HResult($800C0015);
+  INET_E_CANNOT_LOCK_REQUEST         = HResult($800C0016);
+  INET_E_ERROR_FIRST                 = HResult($800C0002);
   INET_E_ERROR_LAST                  = INET_E_REDIRECT_TO_DIR;
 
   CIP_DISK_FULL                            = 0;
@@ -286,11 +286,11 @@ Const
   QUERY_IS_CACHED_OR_MAPPED = QUERY_IS_INSTALLEDENTRY+1;
   QUERY_USES_CACHE          = QUERY_IS_CACHED_OR_MAPPED+1;
 
-  INET_E_USE_DEFAULT_PROTOCOLHANDLER = $800C0011;
-  INET_E_USE_DEFAULT_SETTING         = $800C0012;
-  INET_E_DEFAULT_ACTION              = $800C0011;
-  INET_E_QUERYOPTION_UNKNOWN         = $800C0013;
-  INET_E_REDIRECTING                 = $800C0014;
+  INET_E_USE_DEFAULT_PROTOCOLHANDLER = HResult($800C0011);
+  INET_E_USE_DEFAULT_SETTING         = HResult($800C0012);
+  INET_E_DEFAULT_ACTION              = HResult($800C0011);
+  INET_E_QUERYOPTION_UNKNOWN         = HResult($800C0013);
+  INET_E_REDIRECTING                 = HResult($800C0014);
 
   PROTOCOLFLAG_NO_PICS_CHECK         = $00000001;
 
@@ -719,8 +719,11 @@ Type
     Function OnSecurityProblem(dwProblem : DWORD) : HResult; stdcall;
   end;
   PIHttpSecurityRaw = ^IHttpSecurityRaw;
-  IHttpSecurity = IHttpSecurityRaw;
-  PIHttpSecurity = PIHttpSecurityRaw;
+
+  IHttpSecurity = interface(IWindowForBindingUI)['{79eac9d7-bafa-11ce-8c82-00aa004ba90b}']
+    Function OnSecurityProblem(dwProblem : DWORD) : HResult; stdcall;
+  end;
+  PIHttpSecurity = ^IHttpSecurity;
   
   IWinInetHttpInfoRaw = interface(IWinInetInfoRaw)['{79eac9d8-bafa-11ce-8c82-00aa004ba90b}']
     Function QueryInfo(dwOption : DWORD; Buffer : Pointer; cbBuf, dwFlags, dwReserved : PDWORD) : HResult; stdcall;
@@ -1032,6 +1035,7 @@ Function HlinkNavigateString(unk : IUnknown; szTarget : LPCWSTR) : HResult; stdc
 Function HlinkSimpleNavigateToMoniker( mkTarget : Imoniker; szLocation, szTargetFrameName : LPCWSTR; Unk : IUnknown; bc : IBindCtx; BSC : IBindStatusCallback; grfHLNF, dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function HlinkSimpleNavigateToString(szTarget, szLocation, szTargetFrameName : LPCWSTR; Unk : IUnknown; pbc : IBindCtx; BSC : IBindStatusCallback; grfHLNF, dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function IsAsyncMoniker(pmk : IMoniker) : HResult; stdcall; external liburlmon;
+Function IsLoggingEnabled(pszUrl : PAnsiChar) : BOOL; stdcall; external liburlmon name 'IsLoggingEnabledA';
 Function IsLoggingEnabledA(pszUrl : PAnsiChar) : BOOL; stdcall; external liburlmon;
 Function IsLoggingEnabledW(pszUrl : PWideChar) : BOOL; stdcall; external liburlmon;
 Function IsValidURL(pBC : IBindCtx; szURL : LPCWSTR; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
@@ -1047,19 +1051,25 @@ Function RegisterMediaTypes(ctypes : UINT; const rgszTypes : LPCSTR; const rgcfT
 Function RevokeBindStatusCallback(pBC : IBindCtx; pBSCb : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function RevokeFormatEnumerator(pBC : IBindCtx; pEFetc : IEnumFormatEtc) : HResult; stdcall; external liburlmon;
 Function SetSoftwareUpdateAdvertisementState(szDistUnit : LPCWSTR;dwAdState, dwAdvertisedVersionMS, dwAdvertisedVersionLS : DWORD) : HResult; stdcall; external liburlmon;
+Function URLDownloadToCacheFile(p1 : IUnknown; p2 : PAnsiChar; p3 : PChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToCacheFileA';
 Function URLDownloadToCacheFileA(p1 : IUnknown; p2 : PAnsiChar; p3 : PAnsiChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLDownloadToCacheFileW(p1 : IUnknown; p2 : PWideChar; p3 : PWideChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
+Function URLDownloadToFile(Caller : IUnknown; URL : PAnsiChar; FileName : PChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToFileA';
 Function URLDownloadToFileA(Caller : IUnknown; URL : PAnsiChar; FileName : PAnsiChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLDownloadToFileW(Caller : IUnknown; URL : PWideChar; FileName : PWideChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function UrlMkGetSessionOption(dwOption : DWORD; pBuffer : Pointer; dwBufferLength : DWORD; pdwBufferLength : PDWORD; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function UrlMkGetSessionOption(dwOption : DWORD; pBuffer : Pointer; dwBufferLength : DWORD; out pdwBufferLength : DWORD; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function UrlMkSetSessionOption(dwOption : DWORD; pBuffer : Pointer; dwBufferLength, dwReserved : DWORD) : HResult; stdcall; external liburlmon;
+Function URLOpenBlockingStream(p1 : IUnknown; p2 : PAnsiChar; p3 : PIStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLOpenBlockingStreamA';
+Function URLOpenBlockingStream(p1 : IUnknown; p2 : PAnsiChar; out p3 : IStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLOpenBlockingStreamA';
 Function URLOpenBlockingStreamA(p1 : IUnknown; p2 : PAnsiChar; p3 : PIStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenBlockingStreamA(p1 : IUnknown; p2 : PAnsiChar; out p3 : IStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenBlockingStreamW(p1 : IUnknown; p2 : PWideChar; p3 : PIStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenBlockingStreamW(p1 : IUnknown; p2 : PWideChar; out p3 : IStream; p4 : DWORD; p5 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
+Function URLOpenPullStream(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; BSC : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLOpenPullStreamA';
 Function URLOpenPullStreamA(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; BSC : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenPullStreamW(p1 : IUnknown; p2 : PWideChar; p3 : DWORD; BSC : IBindStatusCallback) : HResult; stdcall; external liburlmon;
+Function URLOpenStream(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLOpenStreamA';
 Function URLOpenStreamA(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenStreamW(p1 : IUnknown; p2 : PWideChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function WriteHitLogging(const Logginginfo : THIT_LOGGING_INFO) : BOOL; stdcall; external liburlmon;
