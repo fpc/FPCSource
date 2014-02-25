@@ -4,7 +4,7 @@
 
 [package]
 name=httpd24 
-version=2.6.3
+version=2.6.4
 
 [target]
 units=apr24 httpd24 

@@ -287,7 +287,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-base
-override PACKAGE_VERSION=2.6.3
+override PACKAGE_VERSION=2.6.4
 ifeq ($(OS_TARGET),win32)
 INSTALL_DATADIR=${INSTALL_UNITDIR}
 endif

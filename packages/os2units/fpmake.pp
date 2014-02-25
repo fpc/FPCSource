@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='os2units';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4';
     P.SourcePath.Add('src',[OS2]);
 //    P.Dependencies.Add('x11');
    // P.Targets.AddUnit('buildall.pas',[OS2]);

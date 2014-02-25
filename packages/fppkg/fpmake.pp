@@ -28,7 +28,7 @@ begin
     P.Directory:='fppkg';
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='2.6.4';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');

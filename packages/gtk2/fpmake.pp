@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gtk2';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4';
     P.SupportBuildModes := [bmOneByOne];
     P.OSes:=AllUnixOSes+[Win32,Win64];
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Mattias Gaertner, Olaf Leidinger';

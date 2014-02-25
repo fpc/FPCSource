@@ -3,7 +3,7 @@
 #
 [package]
 name=libgbafpc-audio-examples
-version=2.6.3
+version=2.6.4
 
 [target]
 dirs=PlayBoyScout 

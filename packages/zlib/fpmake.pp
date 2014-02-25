@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='zlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('zlib.pp');

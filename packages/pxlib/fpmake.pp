@@ -16,7 +16,7 @@ begin
     P.Directory:='pxlib';
 {$endif ALLPACKAGES}
     P.OSes:=[Linux,beos,win32,darwin,iphonesim,freebsd,openbsd,netbsd];
-    P.Version:='2.6.3';
+    P.Version:='2.6.4';
     T:=P.Targets.AddUnit('src/pxlib.pp');
     T:=P.Targets.AddExampleunit('examples/ppxview.pp');
 {$ifndef ALLPACKAGES}

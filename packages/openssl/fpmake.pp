@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='openssl';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.3';
+    P.Version:='2.6.4';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 
