@@ -41,11 +41,16 @@ begin
   end;
 
   try
+    y105:='a';
     v := y105;
     test105(v);
+    Writeln('Did not catch exception as expected');
+    Halt(1)
   except
     on E : TObject do
-      halt(1);
+      begin
+      Writeln('Caught exception ',E.ClassName,'as expected');
+      end
   end;
 end;
 
