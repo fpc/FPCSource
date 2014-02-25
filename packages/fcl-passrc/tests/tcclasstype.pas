@@ -74,6 +74,9 @@ type
     Procedure TestTwoFieldsB;
     Procedure TestTwoVarFieldsB;
     Procedure TestTwoFieldsVisibility;
+    Procedure TestConstProtectedEnd;
+    Procedure TestTypeProtectedEnd;
+    Procedure TestVarProtectedEnd;
     procedure TestHintFieldDeprecated;
     procedure TestHintFieldPlatform;
     procedure TestHintFieldExperimental;
@@ -155,7 +158,7 @@ begin
   Result:=TPasElement(TheClass.Members[AIndex])
 end;
 
-function TTestClassType.GetMM(AIndex : integer): TPasProcedure;
+function TTestClassType.GetMM(AIndex: Integer): TPasProcedure;
 begin
   AssertNotNull('Have member '+IntToStr(AIndex),Members[AIndex]);
   AssertEquals('Member is method '+IntToStr(AIndex),TPasProcedure,Members[Aindex].ClassType);
@@ -183,7 +186,7 @@ begin
   Result:=TPasProperty(Members[1]);
 end;
 
-function TTestClassType.GetT(Aindex :integer): TPasType;
+function TTestClassType.GetT(AIndex: Integer): TPasType;
 begin
   AssertNotNull('Have member '+IntToStr(AIndex),Members[AIndex]);
   if not (Members[AIndex] is TPasType) then
@@ -206,7 +209,7 @@ begin
   Result:=TPasConst(Members[AIndex]);
 end;
 
-procedure TTestClassType.StartClass(AParent: String = 'TObject'; InterfaceList: String = '');
+Procedure TTestClassType.StartClass(AParent: String; InterfaceList: String);
 
 Var
   S : String;
@@ -224,7 +227,7 @@ begin
   FParent:=AParent;
 end;
 
-procedure TTestClassType.StartClassHelper(ForType: String; AParent: String);
+Procedure TTestClassType.StartClassHelper(ForType: String; AParent: String);
 Var
   S : String;
 begin
@@ -240,7 +243,7 @@ begin
   FParent:=AParent;
 end;
 
-procedure TTestClassType.StartInterface(AParent: String; UUID: String);
+Procedure TTestClassType.StartInterface(AParent: String; UUID: String);
 Var
   S : String;
 begin
@@ -254,7 +257,7 @@ begin
   FParent:=AParent;
 end;
 
-procedure TTestClassType.StartRecordHelper(ForType: String; AParent: String);
+Procedure TTestClassType.StartRecordHelper(ForType: String; AParent: String);
 Var
   S : String;
 begin
@@ -270,14 +273,14 @@ begin
   FParent:=AParent;
 end;
 
-procedure TTestClassType.StartVisibility(A: TPasMemberVisibility);
+Procedure TTestClassType.StartVisibility(A: TPasMemberVisibility);
 begin
   if not FStarted then
     StartClass;
   FDecl.Add('  '+VisibilityNames[A]);
 end;
 
-procedure TTestClassType.EndClass(AEnd: String);
+Procedure TTestClassType.EndClass(AEnd: String);
 begin
   if FEnded then exit;
   if not FStarted then
@@ -287,14 +290,14 @@ begin
     FDecl.Add('  '+AEnd);
 end;
 
-procedure TTestClassType.AddMember(S: String);
+Procedure TTestClassType.AddMember(S: String);
 begin
   if Not FStarted then
     StartClass;
   FDecl.Add('    '+S+';');
 end;
 
-procedure TTestClassType.ParseClass;
+Procedure TTestClassType.ParseClass;
 begin
   EndClass;
   Add('Type');
@@ -333,7 +336,7 @@ begin
   inherited TearDown;
 end;
 
-procedure TTestClassType.AssertVisibility(V: TPasMemberVisibility;
+Procedure TTestClassType.AssertVisibility(V: TPasMemberVisibility;
   Member: TPasElement);
 begin
   If Member=Nil then
@@ -356,8 +359,9 @@ begin
   AssertEquals('Member name ',AName,Member.Name)
 end;
 
-procedure TTestClassType.AssertProperty(P: TPasProperty; AVisibility : TPasMemberVisibility;AName, ARead, AWrite,
-  AStored,AImplements: String; AArgCount: Integer; ADefault, ANodefault: Boolean);
+Procedure TTestClassType.AssertProperty(P: TPasProperty;
+  AVisibility: TPasMemberVisibility; AName, ARead, AWrite, AStored,
+  AImplements: String; AArgCount: Integer; ADefault, ANodefault: Boolean);
 begin
   AssertEquals(P.Name+': Visibility',AVisibility,P.Visibility);
   Assertequals(P.Name+': No args',AArgCount,P.Args.Count);
@@ -397,7 +401,7 @@ begin
   AssertEquals('No members',0,TheClass.Members.Count);
 end;
 
-procedure TTestClassType.TestOneInterface;
+Procedure TTestClassType.TestOneInterface;
 begin
   StartClass('TObject','ISomething');
   ParseClass;
@@ -407,7 +411,7 @@ begin
   AssertEquals('Interface name','ISomething',TPasUnresolvedTypeRef(TheClass.Interfaces[0]).Name);
 end;
 
-procedure TTestClassType.TestTwoInterfaces;
+Procedure TTestClassType.TestTwoInterfaces;
 begin
   StartClass('TObject','ISomething, ISomethingElse');
   ParseClass;
@@ -420,7 +424,7 @@ begin
   AssertEquals('Interface name','ISomethingElse',TPasUnresolvedTypeRef(TheClass.Interfaces[1]).Name);
 end;
 
-procedure TTestClassType.TestOneField;
+Procedure TTestClassType.TestOneField;
 begin
   AddMember('a : integer');
   ParseClass;
@@ -429,7 +433,7 @@ begin
   AssertVisibility;
 end;
 
-procedure TTestClassType.TestOneVarField;
+Procedure TTestClassType.TestOneVarField;
 begin
   StartVisibility(visPublished);
   FDecl.Add('var');
@@ -440,7 +444,7 @@ begin
   AssertVisibility(visPublished);
 end;
 
-procedure TTestClassType.TestOneClassField;
+Procedure TTestClassType.TestOneClassField;
 begin
   StartVisibility(visPublished);
   FDecl.Add('class var');
@@ -453,7 +457,7 @@ begin
      Fail('Field is not a class field');
 end;
 
-procedure TTestClassType.TestOneFieldVisibility;
+Procedure TTestClassType.TestOneFieldVisibility;
 begin
   StartVisibility(visPublished);
   AddMember('a : integer');
@@ -463,7 +467,7 @@ begin
   AssertVisibility(visPublished);
 end;
 
-procedure TTestClassType.TestOneFieldDeprecated;
+Procedure TTestClassType.TestOneFieldDeprecated;
 begin
   AddMember('a : integer deprecated');
   ParseClass;
@@ -473,7 +477,7 @@ begin
   AssertVisibility;
 end;
 
-procedure TTestClassType.TestTwoFields;
+Procedure TTestClassType.TestTwoFields;
 begin
   AddMember('a : integer');
   AddMember('b : integer');
@@ -488,7 +492,7 @@ begin
   AssertVisibility(visDefault,Members[1]);
 end;
 
-procedure TTestClassType.TestTwoFieldsB;
+Procedure TTestClassType.TestTwoFieldsB;
 begin
   AddMember('a,b : integer');
   ParseClass;
@@ -502,7 +506,7 @@ begin
   AssertVisibility(visDefault,Members[1]);
 end;
 
-procedure TTestClassType.TestTwoVarFieldsB;
+Procedure TTestClassType.TestTwoVarFieldsB;
 begin
   StartVisibility(visPublic);
   FDecl.Add('var');
@@ -518,7 +522,7 @@ begin
   AssertVisibility(visPublic,Members[1]);
 end;
 
-procedure TTestClassType.TestTwoFieldsVisibility;
+Procedure TTestClassType.TestTwoFieldsVisibility;
 begin
   StartVisibility(visPublic);
   AddMember('a,b : integer');
@@ -531,6 +535,48 @@ begin
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
   AssertVisibility(visPublic,Members[1]);
+end;
+
+Procedure TTestClassType.TestConstProtectedEnd;
+begin
+  // After bug report 25720
+   StartVisibility(visPrivate);
+   AddMember('fmy : Integer');
+   StartVisibility(visProtected);
+   AddMember('fmy : Integer');
+   FDecl.Add('protected const');
+   FDecl.Add('cconst = 10;');
+   StartVisibility(visProtected);
+   AddMember('I : Integer');
+   ParseClass;
+end;
+
+Procedure TTestClassType.TestTypeProtectedEnd;
+begin
+  // After bug report 25720
+   StartVisibility(visPrivate);
+   AddMember('fmy : Integer');
+   StartVisibility(visProtected);
+   AddMember('fmy : Integer');
+   FDecl.Add('protected type');
+   FDecl.Add('mytype = integer;');
+   StartVisibility(visProtected);
+   AddMember('I : Integer');
+   ParseClass;
+end;
+
+Procedure TTestClassType.TestVarProtectedEnd;
+begin
+  // After bug report 25720
+   StartVisibility(visPrivate);
+   AddMember('fmy : Integer');
+   StartVisibility(visProtected);
+   AddMember('fmy : Integer');
+   FDecl.Add('protected var');
+   FDecl.Add('mytype : integer;');
+   StartVisibility(visProtected);
+   AddMember('I : Integer');
+   ParseClass;
 end;
 
 procedure TTestClassType.TestHintFieldDeprecated;
@@ -575,7 +621,7 @@ begin
   AssertMemberName('unimplemented');
 end;
 
-procedure TTestClassType.TestMethodSimple;
+Procedure TTestClassType.TestMethodSimple;
 begin
   AddMember('Procedure DoSomething');
   ParseClass;
@@ -589,7 +635,7 @@ begin
   AssertEquals('No arguments',0,Method1.ProcType.Args.Count)
 end;
 
-procedure TTestClassType.TestClassMethodSimple;
+Procedure TTestClassType.TestClassMethodSimple;
 begin
   AddMember('Class Procedure DoSomething');
   ParseClass;
@@ -603,7 +649,7 @@ begin
   AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
 end;
 
-procedure TTestClassType.TestFunctionMethodSimple;
+Procedure TTestClassType.TestFunctionMethodSimple;
 begin
   AddMember('Function DoSomething : integer');
   ParseClass;
@@ -617,7 +663,7 @@ begin
   AssertEquals('No arguments',0,functionMethod1.ProcType.Args.Count)
 end;
 
-procedure TTestClassType.TestClassFunctionMethodSimple;
+Procedure TTestClassType.TestClassFunctionMethodSimple;
 begin
   AddMember('Class Function DoSomething : integer');
   ParseClass;
@@ -643,12 +689,12 @@ begin
   AssertEquals('Argument name','A',TPasVariable(Method1.ProcType.Args[0]).Name);
 end;
 
-procedure TTestClassType.AssertParserError(Const Msg : String);
+Procedure TTestClassType.AssertParserError(Const Msg: String);
 begin
   AssertException(Msg,EParserError,@ParseClass)
 end;
 
-procedure TTestClassType.TestMethodOneArg;
+Procedure TTestClassType.TestMethodOneArg;
 begin
   AddMember('Procedure DoSomething(A : Integer)');
   ParseClass;
@@ -658,7 +704,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodVirtual;
+Procedure TTestClassType.TestMethodVirtual;
 begin
   AddMember('Procedure DoSomething(A : Integer) virtual');
   ParseClass;
@@ -668,7 +714,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodVirtualSemicolon;
+Procedure TTestClassType.TestMethodVirtualSemicolon;
 begin
   AddMember('Procedure DoSomething(A : Integer); virtual');
   ParseClass;
@@ -678,7 +724,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodVirtualAbstract;
+Procedure TTestClassType.TestMethodVirtualAbstract;
 begin
   AddMember('Procedure DoSomething(A : Integer) virtual abstract');
   ParseClass;
@@ -689,7 +735,7 @@ begin
 end;
 
 
-procedure TTestClassType.TestMethodOverride;
+Procedure TTestClassType.TestMethodOverride;
 begin
   AddMember('Procedure DoSomething(A : Integer) override');
   ParseClass;
@@ -729,7 +775,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodVisibility;
+Procedure TTestClassType.TestMethodVisibility;
 begin
   StartVisibility(visPublic);
   AddMember('Procedure DoSomething(A : Integer)');
@@ -740,7 +786,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodSVisibility;
+Procedure TTestClassType.TestMethodSVisibility;
 begin
   AddMember('Procedure DoSomething(A : Integer)');
   StartVisibility(visPublic);
@@ -758,7 +804,7 @@ begin
   AssertEquals('Argument name','A',TPasVariable(Method2.ProcType.Args[0]).Name);
 end;
 
-procedure TTestClassType.TestMethodOverloadVisibility;
+Procedure TTestClassType.TestMethodOverloadVisibility;
 begin
   AddMember('Procedure DoSomething(A : Integer)');
   StartVisibility(visPublic);
@@ -769,7 +815,7 @@ begin
   AssertEquals('Default visibility',visDefault,Member1.Visibility);
 end;
 
-procedure TTestClassType.TestMethodHint;
+Procedure TTestClassType.TestMethodHint;
 begin
   AddMember('Procedure DoSomething(A : Integer) deprecated');
   ParseClass;
@@ -781,7 +827,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestMethodVirtualHint;
+Procedure TTestClassType.TestMethodVirtualHint;
 begin
   AddMember('Procedure DoSomething(A : Integer) virtual; deprecated');
   ParseClass;
@@ -793,7 +839,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.TestIntegerMessageMethod;
+Procedure TTestClassType.TestIntegerMessageMethod;
 begin
   AddMember('Procedure DoSomething(A : Integer) message 123');
   ParseClass;
@@ -804,7 +850,7 @@ begin
   AssertEquals('Message name','123',Method1.MessageName);
 end;
 
-procedure TTestClassType.TestStringMessageMethod;
+Procedure TTestClassType.TestStringMessageMethod;
 begin
   AddMember('Procedure DoSomething(A : Integer) message ''aha''');
   ParseClass;
@@ -815,7 +861,7 @@ begin
   AssertEquals('Message name','''aha''',Method1.MessageName);
 end;
 
-procedure TTestClassType.Test2Methods;
+Procedure TTestClassType.Test2Methods;
 begin
   AddMember('Procedure DoSomething(A : Integer) virtual');
   AddMember('Procedure DoSomethingElse');
@@ -830,7 +876,7 @@ begin
   AssertEquals('Default calling convention',ccDefault, TPasProcedure(Members[1]).ProcType.CallingConvention);
 end;
 
-procedure TTestClassType.Test2MethodsDifferentVisibility;
+Procedure TTestClassType.Test2MethodsDifferentVisibility;
 begin
   AddMember('Procedure DoSomething(A : Integer) virtual');
   StartVisibility(visPublic);
@@ -847,7 +893,7 @@ begin
 
 end;
 
-procedure TTestClassType.TestPropertyRedeclare;
+Procedure TTestClassType.TestPropertyRedeclare;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something');
@@ -860,7 +906,7 @@ begin
   Assertequals('No default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyReadOnly;
+Procedure TTestClassType.TestPropertyReadOnly;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read FSomething');
@@ -875,7 +921,7 @@ begin
   Assertequals('No default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyReadWrite;
+Procedure TTestClassType.TestPropertyReadWrite;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read FSomething Write FSomething');
@@ -890,7 +936,7 @@ begin
   Assertequals('No default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyWriteOnly;
+Procedure TTestClassType.TestPropertyWriteOnly;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Write FSomething');
@@ -905,7 +951,7 @@ begin
   Assertequals('No default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyDefault;
+Procedure TTestClassType.TestPropertyDefault;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read FSomething Write FSomething default 1');
@@ -920,7 +966,7 @@ begin
   Assertequals('Default value','1',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyNoDefault;
+Procedure TTestClassType.TestPropertyNoDefault;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read FSomething Write FSomething nodefault');
@@ -935,7 +981,7 @@ begin
   Assertequals('No Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyIndex;
+Procedure TTestClassType.TestPropertyIndex;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Index 2 Read GetF Write SetF');
@@ -950,7 +996,7 @@ begin
   Assertequals('No Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyStored;
+Procedure TTestClassType.TestPropertyStored;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read GetF Write SetF Stored CheckStored');
@@ -965,7 +1011,7 @@ begin
   Assertequals('No Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyStoredFalse;
+Procedure TTestClassType.TestPropertyStoredFalse;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : integer Read GetF Write SetF Stored False');
@@ -980,7 +1026,7 @@ begin
   Assertequals('No Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyFullyQualifiedType;
+Procedure TTestClassType.TestPropertyFullyQualifiedType;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : unita.typeb Read FSomething');
@@ -995,7 +1041,7 @@ begin
   Assertequals('No default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyArrayReadOnly;
+Procedure TTestClassType.TestPropertyArrayReadOnly;
 Var
   A : TPasArgument;
 begin
@@ -1019,7 +1065,7 @@ begin
   AssertEquals('Argument class type name','Integer',A.ArgType.Name);
 end;
 
-procedure TTestClassType.TestPropertyArrayReadWrite;
+Procedure TTestClassType.TestPropertyArrayReadWrite;
 Var
   A : TPasArgument;
 begin
@@ -1043,7 +1089,7 @@ begin
   AssertEquals('Argument class type name','Integer',A.ArgType.Name);
 end;
 
-procedure TTestClassType.TestPropertyArrayReadOnlyDefault;
+Procedure TTestClassType.TestPropertyArrayReadOnlyDefault;
 
 Var
   A : TPasArgument;
@@ -1068,7 +1114,7 @@ begin
   AssertEquals('Argument class type name','Integer',A.ArgType.Name);
 end;
 
-procedure TTestClassType.TestPropertyArrayReadWriteDefault;
+Procedure TTestClassType.TestPropertyArrayReadWriteDefault;
 Var
   A : TPasArgument;
 begin
@@ -1092,7 +1138,7 @@ begin
   AssertEquals('Argument class type name','Integer',A.ArgType.Name);
 end;
 
-procedure TTestClassType.TestPropertyArrayMultiDimReadOnly;
+Procedure TTestClassType.TestPropertyArrayMultiDimReadOnly;
 Var
   A : TPasArgument;
 begin
@@ -1124,7 +1170,7 @@ begin
   AssertEquals('Argument 2 class type name','Integer',A.ArgType.Name);
 end;
 
-procedure TTestClassType.TestPropertyImplements;
+Procedure TTestClassType.TestPropertyImplements;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : AInterface Read FSomething Implements ISomeInterface');
@@ -1140,7 +1186,7 @@ begin
 
 end;
 
-procedure TTestClassType.TestPropertyImplementsFullyQualifiedName;
+Procedure TTestClassType.TestPropertyImplementsFullyQualifiedName;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : AInterface Read FSomething Implements UnitB.ISomeInterface');
@@ -1155,7 +1201,7 @@ begin
   Assertequals('Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestPropertyReadFromRecordField;
+Procedure TTestClassType.TestPropertyReadFromRecordField;
 begin
   StartVisibility(visPublished);
   AddMember('Property Something : Integer Read FPoint.X');
@@ -1185,7 +1231,7 @@ begin
   Assertequals('Default value','',Property1.DefaultValue);
 end;
 
-procedure TTestClassType.TestLocalSimpleType;
+Procedure TTestClassType.TestLocalSimpleType;
 begin
   StartVisibility(visPublic);
   FDecl.add('Type');
@@ -1200,7 +1246,7 @@ begin
   AssertEquals('method name','Something', Method2.Name);
 end;
 
-procedure TTestClassType.TestLocalSimpleTypes;
+Procedure TTestClassType.TestLocalSimpleTypes;
 begin
   StartVisibility(visPublic);
   FDecl.add('Type');
@@ -1220,7 +1266,7 @@ begin
   AssertEquals('method name','Something', Method3.Name);
 end;
 
-procedure TTestClassType.TestLocalSimpleConst;
+Procedure TTestClassType.TestLocalSimpleConst;
 begin
   StartVisibility(visPublic);
   FDecl.add('Const');
@@ -1236,7 +1282,7 @@ begin
   AssertEquals('method name','Something', Method2.Name);
 end;
 
-procedure TTestClassType.TestLocalSimpleConsts;
+Procedure TTestClassType.TestLocalSimpleConsts;
 begin
   StartVisibility(visPublic);
   FDecl.add('Const');

@@ -3764,7 +3764,7 @@ begin
     AType.Members.Add(t);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
-    Done:=Curtoken<>tkIdentifier;
+    Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
     if Done then
       UngetToken;
   Until Done;
@@ -3783,7 +3783,7 @@ begin
     AType.Members.Add(C);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
-    Done:=Curtoken<>tkIdentifier;
+    Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
     if Done then
       UngetToken;
   Until Done;
