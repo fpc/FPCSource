@@ -1384,23 +1384,25 @@ implementation
              { size either as long as both values are signed or unsigned   }
              { "xor" and "or" also don't care about the sign if the values }
              { occupy an entire register                                   }
-             { don't do it if either type is 64 bit, since in that case we }
-             { can't safely find a "common" type                           }
+             { don't do it if either type is 64 bit (except for "and"),    }
+             { since in that case we can't safely find a "common" type     }
              else if is_integer(ld) and is_integer(rd) and
-                     not is_64bitint(ld) and not is_64bitint(rd) and
                      ((nodetype=andn) or
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
+                        not is_64bitint(ld) and not is_64bitint(rd) and
                        (is_signed(ld)=is_signed(rd)))) then
                begin
-                 if (rd.size=ld.size) and
-                    (is_signed(ld) or is_signed(rd)) then
-                   begin
-                     { Delphi-compatible: prefer unsigned type for "and" with equal size }
-                     if not is_signed(rd) then
-                       inserttypeconv_internal(left,rd)
-                     else
-                       inserttypeconv_internal(right,ld);
-                   end
+                 { Delphi-compatible: prefer unsigned type for "and", when the
+                   unsigned type is bigger than the signed one, and also bigger
+                   than min(native_int, 32-bit) }
+                 if (is_oversizedint(rd) or is_nativeint(rd) or is_32bitint(rd)) and
+                    (rd.size>=ld.size) and
+                    not is_signed(rd) and is_signed(ld) then
+                      inserttypeconv_internal(left,rd)
+                 else if (is_oversizedint(ld) or is_nativeint(ld) or is_32bitint(ld)) and
+                    (ld.size>=rd.size) and
+                    not is_signed(ld) and is_signed(rd) then
+                      inserttypeconv_internal(right,ld)
                  else
                    begin
                      { not to left right.resultdef, because that may
