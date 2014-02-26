@@ -370,13 +370,13 @@ not_enough_mem_msg:
         segment bss class=bss
 
 %ifndef __TINY__
-        segment _NULL class=BEGDATA
+        segment _NULL align=16 class=BEGDATA
         global __nullarea
 __nullarea:
         dd 01010101h, 01010101h, 01010101h, 01010101h
         dd 01010101h, 01010101h, 01010101h, 01010101h
 
-        segment _AFTERNULL class=BEGDATA
+        segment _AFTERNULL align=2 class=BEGDATA
         dw 0
 
         segment stack stack class=stack
