@@ -188,6 +188,8 @@ program fpc;
                    if processorstr='B' then
                      begin
                        { report the full name of the ppcbin }
+                       if versionstr<>'' then
+                         ppcbin:=ppcbin+'-'+versionstr;
                        findexe(ppcbin);
                        writeln(ppcbin);
                        halt(0);
