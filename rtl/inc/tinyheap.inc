@@ -216,7 +216,10 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyReAllocMem(', ptruint(p), ',', size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        result := AllocMem(size);
+        if size=0 then
+          result := nil
+        else
+          result := AllocMem(size);
         if result <> nil then
           begin
             if p <> nil then
