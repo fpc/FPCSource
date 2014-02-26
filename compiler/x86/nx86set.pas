@@ -72,7 +72,6 @@ implementation
         indexreg : tregister;
         href : treference;
         jtlist: tasmlist;
-        sectype: TAsmSectiontype;
         opcgsize: tcgsize;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
@@ -134,16 +133,10 @@ implementation
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
-          begin
-            jtlist:=current_asmdata.asmlists[al_const];
-            sectype:=sec_rodata;
-          end
+          jtlist:=current_asmdata.asmlists[al_const]
         else
-          begin
-            jtlist:=current_procinfo.aktlocaldata;
-            sectype:=sec_data;
-          end;
-        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,sizeof(aint));
+          jtlist:=current_procinfo.aktlocaldata;
+        new_section(jtlist,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
         jtlist.concat(Tai_label.Create(table));
         genitem(jtlist,hp);
       end;
