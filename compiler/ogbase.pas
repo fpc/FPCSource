@@ -84,6 +84,8 @@ interface
          RELOC_NONE,
          { Darwin relocation, using PAIR }
          RELOC_PIC_PAIR,
+         { Relative to GOT/gp }
+         RELOC_GOTOFF,
          { Untranslated target-specific value }
          RELOC_RAW
       );

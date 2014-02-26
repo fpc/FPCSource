@@ -951,6 +951,32 @@ implementation
                      AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
                      Asmln;
                    end;
+
+                 aitconst_gotoff_symbol:
+                   begin
+                     if (tai_const(hp).sym=nil) then
+                       InternalError(2014022601);
+                     case target_info.cpu of
+
+                       cpu_mipseb,cpu_mipsel:
+                         begin
+                           AsmWrite(#9'.gpword'#9);
+                           AsmWrite(tai_const(hp).sym.name);
+                         end;
+
+                       cpu_i386:
+                         begin
+                           AsmWrite(ait_const2str[aitconst_32bit]);
+                           AsmWrite(tai_const(hp).sym.name);
+                         end;
+                     else
+                       InternalError(2014022602);
+                     end;
+                     if (tai_const(hp).value<>0) then
+                       AsmWrite(tostr_with_plus(tai_const(hp).value));
+                     Asmln;
+                   end;
+
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
 {$ifdef cpu64bitaddr}
