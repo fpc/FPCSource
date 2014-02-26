@@ -243,9 +243,11 @@ begin
       end;
     ssOracle:
       begin
-      FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftTime]    := 'TIMESTAMP';
-      FieldtypeDefinitions[ftMemo]    := 'CLOB';
+      FieldtypeDefinitions[ftBoolean]  := '';
+      //At least Oracle 10, 11 do not support a BIGINT field:
+      FieldtypeDefinitions[ftLargeInt] := 'NUMERIC(18,0)'; 
+      FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
+      FieldtypeDefinitions[ftMemo]     := 'CLOB';
       end;
     ssPostgreSQL:
       begin
