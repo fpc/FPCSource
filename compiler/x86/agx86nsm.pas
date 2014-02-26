@@ -1314,7 +1314,7 @@ interface
             id           : as_i8086_nasm;
             idtxt  : 'NASM';
             asmbin : 'nasm';
-            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1326,7 +1326,7 @@ interface
             id           : as_i8086_nasmobj;
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
-            asmcmd : '-f obj -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f obj -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1407,7 +1407,7 @@ interface
             id           : as_i386_nasmdarwin;
             idtxt  : 'NASMDARWIN';
             asmbin : 'nasm';
-            asmcmd : '-f macho32 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f macho32 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1444,7 +1444,7 @@ interface
             id           : as_i386_nasm;
             idtxt  : 'NASM';
             asmbin : 'nasm';
-            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_any];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1460,7 +1460,7 @@ interface
             id           : as_x86_64_nasm;
             idtxt  : 'NASM';
             asmbin : 'nasm';
-            asmcmd : '-f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_any];
             flags : [af_needar{,af_no_debug}];
             labelprefix : '..@';
@@ -1473,7 +1473,7 @@ interface
             id           : as_x86_64_nasmwin64;
             idtxt  : 'NASMWIN64';
             asmbin : 'nasm';
-            asmcmd : '-f win64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f win64 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_win64];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1486,7 +1486,7 @@ interface
             id           : as_x86_64_nasmelf;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
-            asmcmd : '-f elf64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f elf64 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
@@ -1500,7 +1500,7 @@ interface
             id           : as_x86_64_nasmdarwin;
             idtxt  : 'NASMDARWIN';
             asmbin : 'nasm';
-            asmcmd : '-f macho64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-f macho64 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
