@@ -112,7 +112,7 @@ type
   end;
 
   TProcType = (ptProcedure, ptFunction, ptOperator, ptConstructor, ptDestructor,
-               ptClassProcedure, ptClassFunction);
+               ptClassProcedure, ptClassFunction, ptClassConstructor, ptClassDestructor);
 
 
   TExprKind = (ek_Normal, ek_PropertyIndex);
@@ -811,8 +811,13 @@ begin
       K:=stkRange;
     UnGetToken;
     end
+  else  if (CurToken=tkDotDot) then // Type A = B;
+    begin
+    K:=stkRange;
+    UnGetToken;
+    end
   else
-    begin // Type A = B;
+    begin
     UnGetToken;
     K:=stkAlias;
     if (LowerCase(Name)='string') then
@@ -914,7 +919,7 @@ begin
   Result := TPasSetType(CreateElement(TPasSetType, TypeName, Parent));
   try
     ExpectToken(tkOf);
-    Result.EnumType := ParseType(Result);
+    Result.EnumType := ParseType(Result,'',False);
   except
     Result.Free;
     raise;
@@ -1846,9 +1851,15 @@ begin
       else
         Result:=ptFunction;
     tkConstructor:
-      Result:=ptConstructor;
+      if IsClass then
+        Result:=ptClassConstructor
+      else
+        Result:=ptConstructor;
     tkDestructor:
-      Result:=ptDestructor;
+      if IsClass then
+        Result:=ptClassDestructor
+      else
+        Result:=ptDestructor;
     tkOperator:
       Result:=ptOperator;
   else
@@ -1938,7 +1949,7 @@ begin
       tkClass:
         begin
           NextToken;
-          If CurToken in [tkprocedure,tkFunction] then
+          If CurToken in [tkprocedure,tkFunction,tkConstructor, tkDestructor] then
             begin
             pt:=GetProcTypeFromToken(CurToken,True);
             AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
@@ -3495,6 +3506,8 @@ begin
     ptFunction       : Result:=TPasFunction;
     ptClassFunction  : Result:=TPasClassFunction;
     ptClassProcedure : Result:=TPasClassProcedure;
+    ptClassConstructor  : Result:=TPasClassConstructor;
+    ptClassDestructor   : Result:=TPasClassDestructor;
     ptProcedure      : Result:=TPasProcedure;
     ptConstructor    : Result:=TPasConstructor;
     ptDestructor     : Result:=TPasDestructor;
@@ -3828,7 +3841,7 @@ begin
       tkclass:
         begin
          NextToken;
-         if CurToken in [tkprocedure,tkFunction] then
+         if CurToken in [tkConstructor,tkDestructor,tkprocedure,tkFunction] then
            ProcessMethod(AType,True,CurVisibility)
          else if CurToken = tkVar then
            begin
