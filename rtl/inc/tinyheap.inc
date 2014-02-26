@@ -180,6 +180,11 @@
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('SysTinyFreeMem(', ptruint(Addr), ')');
 {$endif DEBUG_TINY_HEAP}
+        if addr=nil then
+          begin
+            result:=0;
+            exit;
+          end;
         sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
 
         InternalTinyFreeMem(@pptruint(addr)[-1], sz);
