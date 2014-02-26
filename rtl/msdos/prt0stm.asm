@@ -361,6 +361,29 @@ int_number:
         ret 4
 %endif
 
+        global FPC_CHECK_NULLAREA
+FPC_CHECK_NULLAREA:
+%ifdef __TINY__
+        ; tiny model has no nil pointer assignment checking; always return true.
+        mov al, 1
+%else
+        push ds
+        pop es
+        xor di, di
+        mov cx, 32
+        mov al, 1
+        cld
+        repe scasb
+        je .skip
+        dec ax   ; 1 byte shorter than dec al
+.skip:
+%endif
+%ifdef __FAR_CODE__
+        retf
+%else
+        ret
+%endif
+
         segment data
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'

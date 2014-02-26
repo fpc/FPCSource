@@ -116,6 +116,8 @@ procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 procedure InstallInterruptHandlers; external name 'FPC_INSTALL_INTERRUPT_HANDLERS';
 procedure RestoreInterruptHandlers; external name 'FPC_RESTORE_INTERRUPT_HANDLERS';
 
+function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
+
 {$I system.inc}
 
 {$I tinyheap.inc}
@@ -279,6 +281,8 @@ begin
          if h>=5 then
            do_close(h);
       end;
+  if not CheckNullArea then
+    writeln(stderr, 'Nil pointer assignment');
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch
