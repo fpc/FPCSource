@@ -20,7 +20,6 @@ procedure test156(a: single); overload;
 procedure test156(a: widechar); overload;
   begin
     writeln('widechar called instead of single');
-    halt(1)
   end;
 
 var
@@ -43,9 +42,11 @@ begin
   try
     v := y156;
     test156(v);
+    Writeln('Exception expected, but none raised');
+    Halt(1);
   except
     on E : TObject do
-      halt(1);
+      Writeln('Caught exception as expected: ',E.ClassName);
   end;
 end;
 

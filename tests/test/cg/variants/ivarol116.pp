@@ -20,7 +20,6 @@ procedure test116(a: smallint); overload;
 procedure test116(a: widechar); overload;
   begin
     writeln('widechar called instead of smallint');
-    halt(1)
   end;
 
 var
@@ -43,9 +42,13 @@ begin
   try
     v := y116;
     test116(v);
+    Writeln('Expected exception, did not get one');
+    Halt(1);
   except
     on E : TObject do
-      halt(1);
+      begin
+      Writeln('Caught exception as expected',E.ClassName);
+      end;
   end;
 end;
 
