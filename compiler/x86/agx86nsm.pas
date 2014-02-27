@@ -577,6 +577,11 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           AsmWrite('.data')
+        else if (atype=sec_user) then
+          AsmWrite(aname)
+        else if (atype=sec_threadvar) and
+          (target_info.system in (systems_windows+systems_wince)) then
+          AsmWrite('.tls'#9'bss')
         else if secnames[atype]='.text' then
           AsmWrite(CodeSectionName)
         else
@@ -665,11 +670,16 @@ interface
 
            ait_align :
              begin
-               { nasm gives warnings when it finds align in bss as it
-                 wants to store data }
-               if (lastsectype<>sec_bss) and
-                  (tai_align(hp).aligntype>1) then
-                 AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+               if (tai_align(hp).aligntype>1) then
+                 begin
+                   if (lastsectype=sec_bss) or (
+                      (lastsectype=sec_threadvar) and
+                      (target_info.system in (systems_windows+systems_wince))
+                     ) then
+                      AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
+                    else
+                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+                 end;
              end;
 
            ait_datablock :
@@ -1242,9 +1252,12 @@ interface
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
+          if not (current_asmdata.asmlists[hal].empty) then
+            begin
+              AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+              writetree(current_asmdata.asmlists[hal]);
+              AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
+            end;
         end;
 
       AsmLn;
