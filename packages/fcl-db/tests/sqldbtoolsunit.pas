@@ -28,7 +28,7 @@ const
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
         ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
-  STestNotApplicable = 'This test does not apply to this sqldb-connection type';
+  STestNotApplicable = 'This test does not apply to this sqldb connection type';
 
 
 type
@@ -244,8 +244,8 @@ begin
     ssOracle:
       begin
       FieldtypeDefinitions[ftBoolean]  := '';
-      //At least Oracle 10, 11 do not support a BIGINT field:
-      FieldtypeDefinitions[ftLargeInt] := 'NUMERIC(18,0)'; 
+      // At least Oracle 10, 11 do not support a BIGINT field:
+      FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19,0)';
       FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
       FieldtypeDefinitions[ftMemo]     := 'CLOB';
       end;
@@ -409,10 +409,39 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            if FType in [ftCurrency] then
-              sql1 := sql1 + ',' + testValues[FType,CountID]
-            else
-              sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            case FType of
+              ftCurrency:
+                sql1 := sql1 + ',' + testValues[FType,CountID];
+              ftDate:
+                // Oracle requires date conversion; otherwise
+                // ORA-01861: literal does not match format string
+                if SQLServerType in [ssOracle] then
+                  // ANSI/ISO date literal:
+                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              ftDateTime:
+                // similar to ftDate handling
+                if SQLServerType in [ssOracle] then
+                begin
+                  // Could be a real date+time or only date. Does not consider only time.
+                  if pos(' ',testValues[FType,CountID])>0 then
+                    sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
+                  else
+                    sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
+                end
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              ftTime:
+                // similar to ftDate handling
+                if SQLServerType in [ssOracle] then
+                  // More or less arbitrary default time; there is no time-only data type in Oracle.
+                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              else
+                sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            end
           else
             sql1 := sql1 + ',NULL';
           end;
