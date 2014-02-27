@@ -4,7 +4,6 @@
 {$define FPC_HAS_TYPE_EXTENDED}
 {$endif fpc}
 {$define bigfile}
-uses cwstring;
 
 {$i ivarol100.pp }
 {$i ivarol101.pp }
