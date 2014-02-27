@@ -290,14 +290,14 @@ begin
       end;
     end;
 
-  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssPostgreSQL, ssSybase] then
+  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssOracle, ssPostgreSQL, ssSybase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
     testValues[ftTime,3]:='13:25:15.000';
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       begin
-      // Firebird does not support time = 24:00:00
+      // Firebird, Oracle do not support time = 24:00:00
       testTimeValues[2]:='23:00:00.000';
       testValues[ftTime,2]:='23:00:00.000';
       end;
