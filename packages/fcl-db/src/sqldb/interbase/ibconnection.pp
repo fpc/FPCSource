@@ -701,7 +701,7 @@ begin
         // Always force the creation of slqind for parameters. It could be
         // that a database trigger takes care of inserting null values, so
         // it should always be possible to pass null parameters. If that fails,
-        // the database server will generate the appropiate error.
+        // the database server will generate the appropriate error.
         sqltype := sqltype or 1;
         new(sqlind);
         end;
