@@ -570,6 +570,39 @@ Const
     DISPID_DESTRUCTOR           = -7;
     DISPID_COLLECT              = -8;
 
+    DISPID_AMBIENT_BACKCOLOR              = -701;
+    DISPID_AMBIENT_DISPLAYNAME            = -702;
+    DISPID_AMBIENT_FONT                   = -703;
+    DISPID_AMBIENT_FORECOLOR              = -704;
+    DISPID_AMBIENT_LOCALEID               = -705;
+    DISPID_AMBIENT_MESSAGEREFLECT         = -706;
+    DISPID_AMBIENT_SCALEUNITS             = -707;
+    DISPID_AMBIENT_TEXTALIGN              = -708;
+    DISPID_AMBIENT_USERMODE               = -709;
+    DISPID_AMBIENT_UIDEAD                 = -710;
+    DISPID_AMBIENT_SHOWGRABHANDLES        = -711;
+    DISPID_AMBIENT_SHOWHATCHING           = -712;
+    DISPID_AMBIENT_DISPLAYASDEFAULT       = -713;
+    DISPID_AMBIENT_SUPPORTSMNEMONICS      = -714;
+    DISPID_AMBIENT_AUTOCLIP               = -715;
+    DISPID_AMBIENT_APPEARANCE             = -716;
+    DISPID_AMBIENT_CODEPAGE               = -725;
+    DISPID_AMBIENT_PALETTE                = -726;
+    DISPID_AMBIENT_CHARSET                = -727;
+    DISPID_AMBIENT_TRANSFERPRIORITY       = -728;
+    DISPID_AMBIENT_RIGHTTOLEFT            = -732;
+    DISPID_AMBIENT_TOPTOBOTTOM            = -733;
+    DISPID_WINDOWOBJECT                   = -5500;
+    DISPID_AMBIENT_OFFLINEIFNOTCONNECTED  = -5501;
+    DISPID_AMBIENT_SILENT                 = -5502;
+    DISPID_LOCATIONOBJECT                 = -5506;
+    DISPID_HISTORYOBJECT                  = -5507;
+    DISPID_NAVIGATOROBJECT                = -5508;
+    DISPID_SECURITYCTX                    = -5511;
+    DISPID_AMBIENT_DLCONTROL              = -5512;
+    DISPID_AMBIENT_USERAGENT              = -5513;
+    DISPID_SECURITYDOMAIN                 = -5514;
+
     DISPATCH_METHOD         = $1;
     DISPATCH_PROPERTYGET    = $2;
     DISPATCH_PROPERTYPUT    = $4;
@@ -2191,12 +2224,15 @@ TYPE
                       end;
      PtagCONTROLINFO = ^TagControlInfo;
      PCONTROLINFO    = PtagCONTROLINFO;
+     TCONTROLINFO    = tagCONTROLINFO;
 
      PtagPOINTF = ^tagPOINTF;
      tagPOINTF = packed record
                   x : Single;
                   y : Single;
                   end;
+     PPOINTF = PtagPOINTF;
+     TPOINTF = tagPOINTF;
 
      tagPROPPAGEINFO = packed record
                  cb : LongWord;
@@ -2211,6 +2247,19 @@ TYPE
      tagCAUUID = packed record
                   cElems : LongWord;
                   pElems : PGUID;
+                 end;
+
+     PtagCALPOLESTR = ^tagCALPOLESTR;
+
+     tagCALPOLESTR = packed record
+                  cElems : LongWord;
+                  pElems : PPWideChar;
+                 end;
+     PtagCADWORD = ^tagCADWORD;
+
+     tagCADWORD = packed record
+                  cElems : LongWord;
+                  pElems : PLongWord;
                  end;
 
 // Unknwn.idl
@@ -3480,6 +3529,20 @@ type
     // ShowPropertyFrame :
    function ShowPropertyFrame:HRESULT;stdcall;
   end;
+
+// IPerPropertyBrowsing :
+
+  IPerPropertyBrowsing = interface(IUnknown)
+  ['{376BD3AA-3845-101B-84ED-08002B2EC713}']
+   // GetDisplayString :
+  function GetDisplayString(dispID:Integer;out pBstr:WideString):HRESULT;stdcall;
+   // MapPropertyToPage :
+  function MapPropertyToPage(dispID:Integer;out pClsid:GUID):HRESULT;stdcall;
+   // GetPredefinedStrings :
+  function GetPredefinedStrings(dispID:Integer;out pCaStringsOut:tagCALPOLESTR;out pCaCookiesOut:tagCADWORD):HRESULT;stdcall;
+   // GetPredefinedValue :
+  function GetPredefinedValue(dispID:Integer;dwCookie:LongWord;out pVarOut:OleVariant):HRESULT;stdcall;
+ end;
 
 // IPropertyPage :
 
