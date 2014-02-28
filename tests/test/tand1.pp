@@ -1,5 +1,19 @@
-{ This test has been checked against Delphi XE3 and XE5, both 32-bit and 64-bit
-  versions }
+{ This test has been checked against the following Delphi versions:
+  Delphi XE3 32-bit - test passes
+  Delphi XE5 32-bit - test passes
+  Delphi XE5 64-bit - test passes
+  Delphi XE3 64-bit - fails with the following errors:
+    shortint and uint64: varInt64 (ERROR! Expected: varUInt64)
+    smallint and uint64: varInt64 (ERROR! Expected: varUInt64)
+     integer and uint64: varInt64 (ERROR! Expected: varUInt64)
+       int64 and uint64: varInt64 (ERROR! Expected: varUInt64)
+    uint64 and shortint: varInt64 (ERROR! Expected: varUInt64)
+    uint64 and smallint: varInt64 (ERROR! Expected: varUInt64)
+     uint64 and integer: varInt64 (ERROR! Expected: varUInt64)
+       uint64 and int64: varInt64 (ERROR! Expected: varUInt64)
+
+We assume the XE5 (and XE3 32-bit) behaviour to be the correct one in this case.
+}
 
 {$IFDEF FPC}
   {$MODE DELPHI}
