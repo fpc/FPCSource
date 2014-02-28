@@ -201,6 +201,7 @@ begin
   case SQLServerType of
     ssFirebird:
       begin
+      // Firebird < 3.0 has no support for Boolean data type:
       FieldtypeDefinitions[ftBoolean] := '';
       FieldtypeDefinitions[ftMemo]    := 'BLOB SUB_TYPE TEXT';
       end;
@@ -385,6 +386,18 @@ procedure TSQLDBConnector.CreateFieldDataset;
 var CountID : Integer;
     FType   : TFieldType;
     Sql,sql1: String;
+
+function String2Hex(Source: string): string;
+// Converts ASCII codes into hex
+// Inverse of hex2string
+var
+  i: integer;
+begin
+  result := '';
+  for i := 1 to length(Source) do
+    result := result + inttohex(ord(Source[i]),2);
+end;
+
 begin
   try
     Ftransaction.StartTransaction;
@@ -410,6 +423,13 @@ begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
             case FType of
+              ftBlob, ftBytes, ftGraphic, ftVarBytes:
+                if SQLServerType in [ssOracle] then
+                  // Oracle does not accept string literals in blob insert statements
+                  // convert 'DEADBEEF' hex literal to binary:
+                    sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
+                  else // other dbs have no problems with the original string values
+                    sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
               ftCurrency:
                 sql1 := sql1 + ',' + testValues[FType,CountID];
               ftDate:
