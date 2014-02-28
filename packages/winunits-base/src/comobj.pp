@@ -288,6 +288,8 @@ unit comobj;
     function ProgIDToClassID(const id : string) : TGUID;
     function ClassIDToProgID(const classID: TGUID): string;
 
+    function StringToLPOLESTR(const Source: string): POLEStr;
+
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
        DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
     procedure DispatchInvokeError(Status: HRESULT; const ExceptInfo: TExcepInfo);
@@ -570,6 +572,17 @@ implementation
        OleCheck(ProgIDFromCLSID(@classID,progid));
        result:=progid;
        CoTaskMemFree(progid);
+     end;
+
+
+   function StringToLPOLESTR(const Source: string): POLEStr;
+     var
+       Src: WideString;
+     begin
+       Src := WideString(Source);
+       Result := CoTaskMemAlloc((Length(Src)+1) * SizeOf(WideChar));
+       if Result <> nil then
+         Move(PWideChar(Src)^, Result^, (Length(Src)+1) * SizeOf(WideChar));
      end;
 
 
