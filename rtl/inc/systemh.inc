@@ -474,8 +474,8 @@ Type
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
 
-  PNativeInt 	      = PPtrInt;
-  PNativeUInt	      = PPtrUint;
+  PNativeInt 	      = ^NativeInt;
+  PNativeUInt	      = ^NativeUint;
   pInt8   	      = PShortInt;
   pInt16  	      = PSmallint;
   pInt32  	      = PLongint;
