@@ -293,7 +293,8 @@ unit cgcpu;
                   { Optimization when the low 16-bits of the constant are 0 }
                   if aint(a and $FFFF) = 0 then
                     begin
-                      list.concat(taicpu.op_const_reg(op1,S_W,aint(a shr 16),GetNextReg(reg)));
+                      { use a_op_const_reg to allow the use of inc/dec }
+                      a_op_const_reg(list,op,OS_16,aint(a shr 16),GetNextReg(reg));
                     end
                   else
                     begin
@@ -548,7 +549,8 @@ unit cgcpu;
                   if aint(a and $FFFF) = 0 then
                     begin
                       inc(tmpref.offset, 2);
-                      list.concat(taicpu.op_const_ref(op1,S_W,aint(a shr 16),tmpref));
+                      { use a_op_const_ref to allow the use of inc/dec }
+                      a_op_const_ref(list,op,OS_16,aint(a shr 16),tmpref);
                     end
                   else
                     begin
@@ -2312,12 +2314,13 @@ unit cgcpu;
             end;
           OP_ADD, OP_SUB:
             begin
-              // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
               if (value and $ffffffffffff) = 0 then
                 begin
-                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                  { use a_op_const_reg to allow the use of inc/dec }
+                  cg.a_op_const_reg(list,op,OS_16,aint((value shr 48) and $ffff),GetNextReg(reg.reghi));
                 end
+              // can't use a_op_const_ref because this may use dec/inc
               else if (value and $ffffffff) = 0 then
                 begin
                   list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 32) and $ffff),reg.reghi));
@@ -2360,12 +2363,13 @@ unit cgcpu;
           OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
-              // can't use a_op_const_ref because this may use dec/inc
               if (value and $ffffffffffff) = 0 then
                 begin
                   inc(tempref.offset,6);
-                  list.concat(taicpu.op_const_ref(op1,S_W,aint((value shr 48) and $ffff),tempref));
+                  { use a_op_const_ref to allow the use of inc/dec }
+                  cg.a_op_const_ref(list,op,OS_16,aint((value shr 48) and $ffff),tempref);
                 end
+              // can't use a_op_const_ref because this may use dec/inc
               else if (value and $ffffffff) = 0 then
                 begin
                   inc(tempref.offset,4);
