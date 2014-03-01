@@ -431,7 +431,12 @@ implementation
               else
 {$endif not cpu64bitalu}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
-                  aint(addvalue.svalue),tcallparanode(left).left.location);
+{$ifdef cpu64bitalu}
+                  aint(addvalue.svalue),
+{$else cpu64bitalu}
+                  longint(addvalue.svalue),  // can't use aint, because it breaks 16-bit and 8-bit CPUs
+{$endif cpu64bitalu}
+                  tcallparanode(left).left.location);
             end
            else
              begin
