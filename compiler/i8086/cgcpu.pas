@@ -135,8 +135,7 @@ unit cgcpu;
     procedure tcg8086.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
+        if cs_create_pic in current_settings.moduleswitches then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI],first_int_imreg,[RS_BP])
         else
           if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_BP) then
