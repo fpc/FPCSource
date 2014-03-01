@@ -157,6 +157,28 @@ unit cgcpu;
        A_NONE
       );
 
+      { opcode with extend bits table lookup, used by 64bit cg }
+      topcg2tasmopx: Array[topcg] of tasmop =
+      (
+       A_NONE,
+       A_NONE,
+       A_ADDX,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NEGX,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_SUBX,
+       A_NONE,
+       A_NONE,
+       A_NONE
+      );
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond =
       (
@@ -1669,9 +1691,9 @@ unit cgcpu;
           begin
             localsize := current_procinfo.calc_stackframe_size;
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-	    parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
-	                                                            correct here, but at least it looks less
-								    hacky, and makes some sense (KB) }
+            parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
+                                                                    correct here, but at least it looks less
+                                                                    hacky, and makes some sense (KB) }
             if (parasize<>0) then
               begin
                 { only 68020+ supports RTD, so this needs another code path
@@ -1985,156 +2007,127 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG64F68K                                    }
 {****************************************************************************}
- procedure tcg64f68k.a_op64_reg_reg(list : TAsmList;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
-  var
-   hreg1, hreg2 : tregister;
-   opcode : tasmop;
-   instr : taicpu;
-  begin
-//    writeln('a_op64_reg_reg');
-    opcode := topcg2tasmop[op];
-    case op of
-      OP_ADD :
-         begin
-            { if one of these three registers is an address
-              register, we'll really get into problems!
-            }
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regdst.reghi) or
-               isaddressregister(regsrc.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_ADD,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_ADDX,S_L,regsrc.reghi,regdst.reghi));
-         end;
-      OP_AND,OP_OR :
-          begin
-            { at least one of the registers must be a data register }
-            if (isaddressregister(regdst.reglo) and
-                isaddressregister(regsrc.reglo)) or
-               (isaddressregister(regsrc.reghi) and
-                isaddressregister(regdst.reghi))
-               then
-                 internalerror(20020817);
-            cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
-            cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
-          end;
-      { this is handled in 1st pass for 32-bit cpu's (helper call) }
-      OP_IDIV,OP_DIV,
-      OP_IMUL,OP_MUL: internalerror(2002081701);
-      { this is also handled in 1st pass for 32-bit cpu's (helper call) }
-      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
-      OP_SUB:
-         begin
-            { if one of these three registers is an address
-              register, we'll really get into problems!
-            }
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regdst.reghi) or
-               isaddressregister(regsrc.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_SUB,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_SUBX,S_L,regsrc.reghi,regdst.reghi));
-         end;
-      OP_XOR:
-        begin
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regsrc.reglo) or
-               isaddressregister(regsrc.reghi) or
-               isaddressregister(regdst.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reghi,regdst.reghi));
-        end;
-      OP_NEG:
-        begin
-          if isaddressregister(regdst.reglo) or
-              isaddressregister(regdst.reghi) then
-            internalerror(2012110402);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
-          list.concat(taicpu.op_reg(A_NEGX,S_L,regdst.reghi));
-        end;
-      OP_NOT:
-        begin
-          if isaddressregister(regdst.reglo) or
-              isaddressregister(regdst.reghi) then
-            internalerror(2012110401);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
-          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
-        end;
-    end; { end case }
-  end;
+    procedure tcg64f68k.a_op64_reg_reg(list : TAsmList;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
+      var
+        hreg1, hreg2 : tregister;
+        opcode : tasmop;
+        xopcode : tasmop;
+        instr : taicpu;
+      begin
+        opcode := topcg2tasmop[op];
+        xopcode := topcg2tasmopx[op];
+
+        case op of
+          OP_ADD,OP_SUB:
+            begin
+              { if one of these three registers is an address
+              register, we'll really get into problems! }
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regdst.reghi) or
+                 isaddressregister(regsrc.reghi) then
+                internalerror(2014030101);
+              list.concat(taicpu.op_reg_reg(opcode,S_L,regsrc.reglo,regdst.reglo));
+              list.concat(taicpu.op_reg_reg(xopcode,S_L,regsrc.reghi,regdst.reghi));
+            end;
+          OP_AND,OP_OR:
+            begin
+              { at least one of the registers must be a data register }
+              if (isaddressregister(regdst.reglo) and
+                  isaddressregister(regsrc.reglo)) or
+                 (isaddressregister(regsrc.reghi) and
+                  isaddressregister(regdst.reghi)) then
+                internalerror(2014030102);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          { this is handled in 1st pass for 32-bit cpu's (helper call) }
+          OP_IDIV,OP_DIV,
+          OP_IMUL,OP_MUL: 
+            internalerror(2002081701);
+          { this is also handled in 1st pass for 32-bit cpu's (helper call) }
+          OP_SAR,OP_SHL,OP_SHR:
+            internalerror(2002081702);
+          OP_XOR:
+            begin
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regsrc.reglo) or
+                 isaddressregister(regsrc.reghi) or
+                 isaddressregister(regdst.reghi) then
+                internalerror(2014030103);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          OP_NEG,OP_NOT:
+            begin
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regdst.reghi) then
+               internalerror(2014030104);
+              instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
+              cg.add_move_instruction(instr);
+              list.concat(instr);
+              instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
+              cg.add_move_instruction(instr);
+              list.concat(instr);
+              if (op = OP_NOT) then
+                xopcode:=opcode;
+              list.concat(taicpu.op_reg(opcode,S_L,regdst.reglo));
+              list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
+            end;
+        end; { end case }
+      end;
 
 
- procedure tcg64f68k.a_op64_const_reg(list : TAsmList;op:TOpCG;size: tcgsize; value : int64;regdst : tregister64);
-  var
-   lowvalue : cardinal;
-   highvalue : cardinal;
-   hreg : tregister;
-  begin
-//    writeln('a_op64_const_reg');
-    { is it optimized out ? }
-//    if cg.optimize64_op_const_reg(list,op,value,reg) then
-//       exit;
+    procedure tcg64f68k.a_op64_const_reg(list : TAsmList;op:TOpCG;size: tcgsize; value : int64;regdst : tregister64);
+      var
+        lowvalue : cardinal;
+        highvalue : cardinal;
+        opcode : tasmop;
+        xopcode : tasmop;
+        hreg : tregister;
+      begin
+        { is it optimized out ? }
+        { optimize64_op_const_reg doesn't seem to be used in any cg64f32 right now. why? (KB) }
+        { if cg.optimize64_op_const_reg(list,op,value,reg) then
+            exit; }
 
-    lowvalue := cardinal(value);
-    highvalue:= value shr 32;
+        lowvalue := cardinal(value);
+        highvalue := value shr 32;
 
-   { the destination registers must be data registers }
-   if  isaddressregister(regdst.reglo) or
-       isaddressregister(regdst.reghi) then
-         internalerror(20020817);
-   case op of
-      OP_ADD :
-         begin
-           hreg:=cg.getintregister(list,OS_INT);
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
-           list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_ADDX,S_L,hreg,regdst.reghi));
-         end;
-      OP_AND :
-          begin
-            list.concat(taicpu.op_const_reg(A_AND,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_AND,S_L,highvalue,regdst.reghi));
-          end;
-      OP_OR :
-          begin
-            list.concat(taicpu.op_const_reg(A_OR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reghi));
-          end;
-      { this is handled in 1st pass for 32-bit cpus (helper call) }
-      OP_IDIV,OP_DIV,
-      OP_IMUL,OP_MUL: internalerror(2002081701);
-      { this is also handled in 1st pass for 32-bit cpus (helper call) }
-      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
-      OP_SUB:
-         begin
-           hreg:=cg.getintregister(list,OS_INT);
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
-           list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_SUBX,S_L,hreg,regdst.reghi));
-         end;
-      OP_XOR:
-        begin
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reghi));
-        end;
-      { these should have been handled already by earlier passes }
-      OP_NOT, OP_NEG:
-        internalerror(2012110403);
-    end; { end case }
-  end;
+        opcode := topcg2tasmop[op];
+        xopcode := topcg2tasmopx[op];
+
+        { the destination registers must be data registers }
+        if isaddressregister(regdst.reglo) or
+           isaddressregister(regdst.reghi) then
+          internalerror(2014030105);
+        case op of
+          OP_ADD,OP_SUB:
+            begin
+              hreg:=cg.getintregister(list,OS_INT);
+              { cg.a_load_const_reg provides optimized loading to register for special cases }
+              cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
+              { don't use cg.a_op_const_reg() here, because a possible optimized
+                ADDQ/SUBQ wouldn't set the eXtend bit }
+              list.concat(taicpu.op_const_reg(opcode,S_L,lowvalue,regdst.reglo));
+              list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
+            end;
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg(list,op,OS_S32,longint(lowvalue),regdst.reglo);
+              cg.a_op_const_reg(list,op,OS_S32,longint(highvalue),regdst.reghi);
+            end;
+          { this is handled in 1st pass for 32-bit cpus (helper call) }
+          OP_IDIV,OP_DIV,
+          OP_IMUL,OP_MUL:
+            internalerror(2002081701);
+          { this is also handled in 1st pass for 32-bit cpus (helper call) }
+          OP_SAR,OP_SHL,OP_SHR: 
+            internalerror(2002081702);
+          { these should have been handled already by earlier passes }
+          OP_NOT,OP_NEG:
+            internalerror(2012110403);
+        end; { end case }
+      end;
 
 
 procedure create_codegen;
