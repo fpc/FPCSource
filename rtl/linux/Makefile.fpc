@@ -304,16 +304,6 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc $(UNIXINC)/varutils.pp sysutils$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
-
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
@@ -384,12 +374,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/matrix.pp
-
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ucomplex.pp
-
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 
@@ -422,15 +406,6 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
 serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/serial.pp
-
-#video$(PPUEXT) : $(UNIXINC)/video.pp baseunix$(PPUEXT) termio$(PPUEXT) strings$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#	$(COMPILER) $(UNIXINC)/video.pp
-
-#mouse$(PPUEXT) : $(UNIXINC)/mouse.pp baseunix$(PPUEXT) video$(PPUEXT) gpm$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#	$(COMPILER) $(UNIXINC)/mouse.pp
-
-#keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp baseunix$(PPUEXT) mouse$(PPUEXT) termio$(PPUEXT) linuxvcs$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#	$(COMPILER) $(UNIXINC)/keyboard.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
