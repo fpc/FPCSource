@@ -1670,65 +1670,57 @@ unit cgcpu;
           end;
       end;
 
-{    procedure tcg68k.g_restore_frame_pointer(list : TAsmList);
-      var
-        r:Tregister;
-      begin
-        r:=NR_FRAME_POINTER_REG;
-        list.concat(taicpu.op_reg(A_UNLK,S_NO,r));
-      end;
-}
-
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
         r,hregister : TRegister;
-        localsize: tcgint;
         spr : TRegister;
         fpr : TRegister;
         ref : TReference;
       begin
         if not nostackframe then
           begin
-            localsize := current_procinfo.calc_stackframe_size;
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
             parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
                                                                     correct here, but at least it looks less
                                                                     hacky, and makes some sense (KB) }
-            if (parasize<>0) then
+
+            { if parasize is less than zero here, we probably have a cdecl function.
+              According to the info here: http://www.makestuff.eu/wordpress/gcc-68000-abi/
+              68k GCC uses two different methods to free the stack, depending if the target
+              architecture supports RTD or not, and one does callee side, the other does
+              caller side free, which looks like a PITA to support. We have to figure this 
+              out later. More info welcomed. (KB) }
+
+            if (parasize > 0) then
               begin
-                { only 68020+ supports RTD, so this needs another code path
-                  for 68000 and Coldfire (KB) }
-{ TODO: 68020+ only code generation, without fallback}
                 if current_settings.cputype=cpu_mc68020 then
                   list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
                 else
                   begin
-
                     { We must pull the PC Counter from the stack, before  }
                     { restoring the stack pointer, otherwise the PC would }
                     { point to nowhere!                                   }
 
-                    { save the PC counter (pop it from the stack)         }
-                    { use A0 for this which is defined as a scratch       }
-                    { register                                            }
+                    { Instead of doing a slow copy of the return address while trying    }
+                    { to feed it to the RTS instruction, load the PC to A0 (scratch reg) }
+                    { then free up the stack allocated for paras, then use a JMP (A0) to }
+                    { return to the caller with the paras freed. (KB) }
+
                     hregister:=NR_A0;
                     cg.a_reg_alloc(list,hregister);
                     reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
                     ref.direction:=dir_inc;
                     list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
-                    { can we do a quick addition ... }
+
                     r:=NR_SP;
+                    { can we do a quick addition ... }
                     if (parasize > 0) and (parasize < 9) then
                        list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
                     else { nope ... }
                        list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
 
-                    { restore the PC counter (push it on the stack)       }
-                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
-                    ref.direction:=dir_dec;
-                    cg.a_reg_alloc(list,hregister);
-                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
-                    list.concat(taicpu.op_none(A_RTS,S_NO));
+                    reference_reset_base(ref,hregister,0,4);
+                    list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
                   end;
               end
             else
@@ -1739,9 +1731,9 @@ unit cgcpu;
             list.concat(taicpu.op_none(A_RTS,S_NO));
           end;
 
-//         writeln('g_proc_exit');
          { Routines with the poclearstack flag set use only a ret.
-           also  routines with parasize=0     }
+           also  routines with parasize=0 }
+         { TODO: figure out if these are still relevant to us (KB) }
            (*
          if current_procinfo.procdef.proccalloption in clearstack_pocalls then
            begin
@@ -1756,40 +1748,6 @@ unit cgcpu;
              list.concat(taicpu.op_none(A_RTS,S_NO));
            end
          else
-           begin
-            { return with immediate size possible here
-              signed!
-              RTD is not supported on the coldfire     }
-            if (current_settings.cputype=cpu_MC68020) and (parasize<$7FFF) then
-                list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
-            { manually restore the stack }
-            else
-              begin
-                { We must pull the PC Counter from the stack, before  }
-                { restoring the stack pointer, otherwise the PC would }
-                { point to nowhere!                                   }
-
-                { save the PC counter (pop it from the stack)         }
-                hregister:=NR_A3;
-                cg.a_reg_alloc(list,hregister);
-                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-                ref.direction:=dir_inc;
-                list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
-                { can we do a quick addition ... }
-                r:=NR_SP;
-                if (parasize > 0) and (parasize < 9) then
-                   list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
-                else { nope ... }
-                   list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
-
-                { restore the PC counter (push it on the stack)       }
-                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-                ref.direction:=dir_dec;
-                cg.a_reg_alloc(list,hregister);
-                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
-                list.concat(taicpu.op_none(A_RTS,S_NO));
-               end;
-           end;
            *)
       end;
 
