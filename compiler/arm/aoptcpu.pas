@@ -1421,6 +1421,7 @@ Implementation
                 A_EOR,
                 A_ORR,
                 A_MLA,
+                A_MLS,
                 A_MUL:
                   begin
                         {
@@ -1663,7 +1664,7 @@ Implementation
                       add reg2, ...
                     }
                     if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                       (taicpu(p).ops=3) and
+                       (taicpu(p).ops>=3) and
                        RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
                       Result:=true;
 
