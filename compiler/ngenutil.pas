@@ -685,8 +685,8 @@ implementation
           inc(count);
         end;
       { Insert TableCount,InitCount at start }
-      unitinits.insert(Tai_const.Create_32bit(0));
-      unitinits.insert(Tai_const.Create_32bit(count));
+      unitinits.insert(Tai_const.Create_pint(0));
+      unitinits.insert(Tai_const.Create_pint(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(pint));
