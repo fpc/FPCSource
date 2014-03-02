@@ -164,7 +164,7 @@ implementation
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hsym.localloc,location.register);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin

@@ -367,7 +367,7 @@ implementation
 {$endif dummy}
       begin
         result:=nil;
-        resultdef:=voidpointertype;
+        resultdef:=parentfpvoidpointertype;
 {$ifdef dummy}
         { currently parentfps are never loaded in registers (FK) }
         if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then

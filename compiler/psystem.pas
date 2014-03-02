@@ -273,6 +273,11 @@ implementation
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
+{$ifdef i8086}
+        parentfpvoidpointertype:=tpointerdef.createx86(voidtype,x86pt_near);
+{$else i8086}
+        parentfpvoidpointertype:=tpointerdef.create(voidtype);
+{$endif i8086}
 {$ifdef x86}
         voidnearpointertype:=tpointerdef.createx86(voidtype,x86pt_near);
         voidnearcspointertype:=tpointerdef.createx86(voidtype,x86pt_near_cs);
@@ -410,6 +415,7 @@ implementation
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
+        addtype('$parentfp_void_pointer',parentfpvoidpointertype);
 {$ifdef x86}
         addtype('$void_nearpointer',voidnearpointertype);
         addtype('$void_nearcspointer',voidnearcspointertype);
@@ -545,6 +551,7 @@ implementation
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
+        loadtype('parentfp_void_pointer',parentfpvoidpointertype);
 {$ifdef x86}
         loadtype('void_nearpointer',voidnearpointertype);
         loadtype('void_nearcspointer',voidnearcspointertype);
