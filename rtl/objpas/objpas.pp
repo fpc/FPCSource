@@ -295,7 +295,7 @@ Type
    end;
 
    TResourceStringTableList = Packed Record
-     Count : ptrint;
+     Count : nativeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
        TableStart,
        TableEnd   : PResourceStringRecord;
