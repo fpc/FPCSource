@@ -1931,8 +1931,8 @@ begin
                               'TINY':    init_settings.x86memorymodel:=mm_tiny;
                               'SMALL':   init_settings.x86memorymodel:=mm_small;
                               'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
-                              'COMPACT',
-                              'LARGE',
+                              'COMPACT': init_settings.x86memorymodel:=mm_compact;
+                              'LARGE':   init_settings.x86memorymodel:=mm_large;
                               'HUGE': IllegalPara(opt); { these are not implemented yet }
                               else
                                 IllegalPara(opt);
