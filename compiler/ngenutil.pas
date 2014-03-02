@@ -805,7 +805,7 @@ implementation
          inc(count);
        end;
       { Insert TableCount at start }
-      hlist.insert(Tai_const.Create_32bit(count));
+      hlist.insert(Tai_const.Create_pint(count));
       { insert in data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));
