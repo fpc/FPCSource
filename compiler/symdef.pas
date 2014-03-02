@@ -196,13 +196,6 @@ interface
           procedure deref;override;
        end;
 
-{$ifdef x86}
-    const
-       { TODO: make this depend on the memory model, when other memory models are supported }
-       default_x86_data_pointer_type = x86pt_near;
-
-    type
-{$endif x86}
 
        { tpointerdef }
 
@@ -1114,6 +1107,10 @@ interface
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef;
     function getparaencoding(def:tdef):tstringencoding; inline;
+
+{$ifdef x86}
+    function default_x86_data_pointer_type: tx86pointertyp;
+{$endif x86}
 
 implementation
 
@@ -7490,5 +7487,17 @@ implementation
         result:=tarraydef(res^.Data);
       end;
 
+
+{$ifdef x86}
+    function default_x86_data_pointer_type: tx86pointertyp;
+      begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          result:=x86pt_far
+        else
+{$endif i8086}
+          result:=x86pt_near;
+      end;
+{$endif x86}
 
 end.
