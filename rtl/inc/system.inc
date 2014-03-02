@@ -1013,8 +1013,10 @@ Begin
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
   FinalizeHeap;
-{$endif HAS_MEMORYMANAGER}
+{$endif not FPC_NO_DEFAULT_HEAP}
+{$endif not HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 End;
 
