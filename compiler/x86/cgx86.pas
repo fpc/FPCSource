@@ -1071,6 +1071,12 @@ unit cgx86;
               end;
             if segment<>NR_NO then
               begin
+{$ifdef i8086}
+                if is_segment_reg(segment) then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,S_W,segment,GetNextReg(r)))
+                else
+                  a_load_reg_reg(list,OS_16,OS_16,segment,GetNextReg(r));
+{$else i8086}
                 if (tf_section_threadvars in target_info.flags) then
                   begin
                     { Convert thread local address to a process global addres
@@ -1091,6 +1097,7 @@ unit cgx86;
                   end
                 else
                   cgmessage(cg_e_cant_use_far_pointer_there);
+{$endif i8086}
               end;
           end;
       end;
