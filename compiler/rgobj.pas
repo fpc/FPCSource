@@ -2229,8 +2229,13 @@ unit rgobj;
             begin
               if mustbespilled and regread and (not regwritten) then
                 begin
-                  { The original instruction will be the next that uses this register }
-                  add_reg_instruction(instr,tempreg,1);
+                  { The original instruction will be the next that uses this register
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
                   ungetregisterinline(list,tempreg);
                 end;
             end;
@@ -2246,8 +2251,13 @@ unit rgobj;
                   if (not regread) then
                     tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
                   { The original instruction will be the next that uses this register, this
-                    also needs to be done for read-write registers }
-                  add_reg_instruction(instr,tempreg,1);
+                    also needs to be done for read-write registers,
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
                 end;
             end;
 
