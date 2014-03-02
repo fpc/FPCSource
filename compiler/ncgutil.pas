@@ -1083,6 +1083,21 @@ implementation
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,destloc.registerhi,sizeof(aint));
                           {$endif}
                         end
+{$if defined(cpu8bitalu)}
+                      else if (destloc.size in [OS_32,OS_S32]) and
+                        (para.Size in [OS_32,OS_S32]) then
+                        begin
+                          unget_para(paraloc^);
+                          gen_alloc_regloc(list,destloc);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
+                          unget_para(paraloc^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
+                        end
+{$endif defined(cpu8bitalu)}
                       else
                         internalerror(200410105);
                     end

@@ -527,8 +527,8 @@ unit atmega128;
       end;
 
     var
-      _data: record end; external name '_data';
-      _edata: record end; external name '_edata';
+      _data: record end; external name '__data_start';
+      _edata: record end; external name '__data_end';
       _etext: record end; external name '_etext';
       _bss_start: record end; external name '_bss_start';
       _bss_end: record end; external name '_bss_end';
