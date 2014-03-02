@@ -559,7 +559,7 @@ unit cgcpu;
                current_asmdata.getjumplabel(l2);
                countreg:=getintregister(list,OS_8);
                a_load_reg_reg(list,size,OS_8,src,countreg);
-               list.concat(taicpu.op_reg_const(A_CP,countreg,0));
+               list.concat(taicpu.op_reg_const(A_CPI,countreg,0));
                a_jmp_flags(list,F_EQ,l2);
                cg.a_label(list,l1);
                case op of
@@ -677,7 +677,7 @@ unit cgcpu;
              end;
            OP_SUB:
              begin
-               list.concat(taicpu.op_reg_const(A_SUBI,reg,a));
+               list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
                    for i:=2 to tcgsize2size[size] do
@@ -689,6 +689,20 @@ unit cgcpu;
                      end;
                  end;
              end;
+           {OP_ADD:
+             begin
+               list.concat(taicpu.op_reg_const(A_SUBI,reg,(-a) and mask));
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       list.concat(taicpu.op_reg_const(A_ADC,reg,(a and mask) shr shift));
+                     end;
+                 end;
+             end; }
          else
            begin
              if size in [OS_64,OS_S64] then
@@ -787,11 +801,11 @@ unit cgcpu;
         else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
           begin
             maybegetcpuregister(list,tmpreg);
-            emit_mov(list,tmpreg,ref.index);
+            emit_mov(list,tmpreg,ref.base);
             maybegetcpuregister(list,GetNextReg(tmpreg));
-            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
-            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
-            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
+            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
+            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
@@ -1329,13 +1343,13 @@ unit cgcpu;
             reg1:=reg2;
             reg2:=tmpreg;
           end;
-        list.concat(taicpu.op_reg_reg(A_CP,reg1,reg2));
+        list.concat(taicpu.op_reg_reg(A_CP,reg2,reg1));
 
         for i:=2 to tcgsize2size[size] do
           begin
             reg1:=GetNextReg(reg1);
             reg2:=GetNextReg(reg2);
-            list.concat(taicpu.op_reg_reg(A_CPC,reg1,reg2));
+            list.concat(taicpu.op_reg_reg(A_CPC,reg2,reg1));
           end;
 
         a_jmp_cond(list,cmp_op,l);
@@ -1513,6 +1527,8 @@ unit cgcpu;
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 a_adjust_sp(list,LocalSize);
                 regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  regs:=regs+[RS_R28,RS_R29];
 
                 for reg:=RS_R0 to RS_R31 do
                   if reg in regs then

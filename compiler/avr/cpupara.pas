@@ -162,7 +162,10 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            result:=inherited ret_in_param(def,pd);
+            if (def.size > 4) then
+              result:=true
+            else
+              result:=inherited ret_in_param(def,pd);
         end;
       end;
 
@@ -441,7 +444,57 @@ unit cpupara;
           { Return in register }
         else
           begin
-            if retcgsize in [OS_64,OS_S64] then
+            case retcgsize of
+              OS_32,OS_S32:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R22;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R23;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R25;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              OS_16,OS_S16:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R25;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              OS_8,OS_S8:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              else
+                internalerror(2014030101);
+            end;
+
+            {if retcgsize in [OS_64,OS_S64] then
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
@@ -457,9 +510,9 @@ unit cpupara;
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
-                paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
-              end;
+                paraloc^.size:=OS_INT;
+                paraloc^.def:=u16inttype;
+              end;}
           end;
       end;
 

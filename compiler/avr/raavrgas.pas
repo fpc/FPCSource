@@ -69,14 +69,20 @@ Unit raavrgas;
           name : string[2];
           reg : tregister;
         end;
-{
+
       const
-        extraregs : array[0..19] of treg2str = (
-          (name: 'X'; reg : NR_Z),
-          (name: 'Y'; reg : NR_R1),
-          (name: 'Z'; reg : NR_R2),
+        extraregs : array[0..8] of treg2str = (
+          (name: 'X'; reg : NR_R26),
+          (name: 'XL'; reg : NR_R26),
+          (name: 'XH'; reg : NR_R27),
+          (name: 'Y'; reg : NR_R28),
+          (name: 'YL'; reg : NR_R28),
+          (name: 'YH'; reg : NR_R29),
+          (name: 'Z'; reg : NR_R30),
+          (name: 'ZL'; reg : NR_R30),
+          (name: 'ZH'; reg : NR_R31)
         );
-}
+
       var
         i : longint;
 
@@ -85,9 +91,9 @@ Unit raavrgas;
         { reg found?
           possible aliases are always 2 char
         }
-        if result or (length(s)<>2) then
+        if result or (not (length(s) in [1,2])) then
           exit;
-{
+
         for i:=low(extraregs) to high(extraregs) do
           begin
             if s=extraregs[i].name then
@@ -98,7 +104,6 @@ Unit raavrgas;
                 exit;
               end;
           end;
-}
       end;
 
 
@@ -480,7 +485,16 @@ Unit raavrgas;
               { save the type of register used. }
               tempreg:=actasmregister;
               Consume(AS_REGISTER);
-              if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+              if (actasmtoken=AS_PLUS) then
+                begin
+                  oper.opr.typ:=OPR_REFERENCE;
+
+                  reference_reset_base(oper.opr.ref,tempreg,0,1);
+                  oper.opr.ref.addressmode:=AM_POSTINCREMENT;
+
+                  consume(AS_PLUS);
+                end
+              else if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                 Begin
                   if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
                     Message(asmr_e_invalid_operand_type);
