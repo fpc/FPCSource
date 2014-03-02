@@ -803,12 +803,15 @@ type
          try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
 
          consume(_SEMICOLON);
-         consume(_INTERFACE);
-         { global switches are read, so further changes aren't allowed }
-         current_module.in_global:=false;
 
-         { handle the global switches }
+         { handle the global switches, do this before interface, because after interface has been
+           read, all following directives are parsed as well }
          setupglobalswitches;
+
+         consume(_INTERFACE);
+
+         { global switches are read, so further changes aren't allowed  }
+         current_module.in_global:=false;
 
          message1(unit_u_loading_interface_units,current_module.modulename^);
 
@@ -1649,13 +1652,15 @@ type
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
+         { setup things using the switches, do this before the semicolon, because after the semicolon has been
+           read, all following directives are parsed as well }
+
+         setupglobalswitches;
+
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
-
-         { setup things using the switches }
-         setupglobalswitches;
 
          { set implementation flag }
          current_module.in_interface:=false;
@@ -1972,6 +1977,10 @@ type
               if tf_library_needs_pic in target_info.flags then
                 include(current_settings.moduleswitches,cs_create_pic);
 
+              { setup things using the switches, do this before the semicolon, because after the semicolon has been
+                read, all following directives are parsed as well }
+              setupglobalswitches;
+
               consume(_SEMICOLON);
            end
          else
@@ -2013,16 +2022,23 @@ type
                    until not try_to_consume(_COMMA);
                    consume(_RKLAMMER);
                 end;
+
+              { setup things using the switches, do this before the semicolon, because after the semicolon has been
+                read, all following directives are parsed as well }
+              setupglobalswitches;
+
               consume(_SEMICOLON);
             end
          else if (target_info.system in systems_unit_program_exports) then
-           exportlib.preparelib(current_module.realmodulename^);
+           begin
+             exportlib.preparelib(current_module.realmodulename^);
+
+             { setup things using the switches }
+             setupglobalswitches;
+           end;
 
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
-
-         { setup things using the switches }
-         setupglobalswitches;
 
          { set implementation flag }
          current_module.in_interface:=false;
