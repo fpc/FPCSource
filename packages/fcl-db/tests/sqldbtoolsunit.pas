@@ -535,7 +535,7 @@ end;
 procedure TSQLDBConnector.TryDropIfExist(ATableName: String);
 begin
   // This makes life soo much easier, since it avoids the exception if the table already
-  // exists. And while this exeption is in a try..except statement, the debugger
+  // exists. And while this exception is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
     case SQLServerType of
@@ -556,6 +556,22 @@ begin
           'begin '+
           'drop table ' + ATableName + ' '+
           'end');
+        end;
+      ssMySQL:
+        begin
+        FConnection.ExecuteDirect('drop table if exists ' + ATableName);
+        end;
+      ssOracle:
+        begin
+          FConnection.ExecuteDirect(
+          'declare ' +
+          '   c int; ' +
+          'begin ' +
+          '   select count(*) into c from all_tables where table_name = upper(''' + ATableName + '''); ' +
+          '   if c = 1 then ' +
+          '      execute immediate ''drop table ' + ATableName + '''; ' +
+          '   end if; ' +
+          'end; ');
         end;
       ssSybase:
         begin
