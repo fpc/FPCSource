@@ -740,15 +740,24 @@ unit cgcpu;
 
 
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);
+      var
+        opsize: topsize;
       begin
+        opsize:=tcgsize2opsize[size];
+
         if isaddressregister(register) then
-         begin
-           { an m68k manual I have recommends SUB Ax,Ax to be used instead of CLR for address regs }
-           if a = 0 then
-             list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
-           else
-             list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register));
-         end
+          begin
+            { an m68k manual I have recommends SUB Ax,Ax to be used instead of CLR for address regs }
+            if a = 0 then
+              list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
+            else
+              { ISA B/C Coldfire has MOV3Q which can move -1 or 1..7 to any reg }
+              if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+                 ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
+                list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
+              else
+                list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register));
+          end
         else
         if a = 0 then
            list.concat(taicpu.op_reg(A_CLR,S_L,register))
@@ -758,15 +767,28 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
              begin
-               { clear the register first, for unsigned and positive values, so
-                  we don't need to zero extend after }
-               if (size in [OS_16,OS_8]) or
-                  ((size in [OS_S16,OS_S8]) and (a > 0)) then
-                 list.concat(taicpu.op_reg(A_CLR,S_L,register));
-               list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
-               { only sign extend if we need to, zero extension is not necessary because the CLR.L above }
-               if (size in [OS_S16,OS_S8]) and (a < 0) then
-                 sign_extend(list,size,register);
+               { ISA B/C Coldfire has sign extend/zero extend moves }
+               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+                  (size in [OS_16, OS_8, OS_S16, OS_S8]) and 
+                  ((longint(a) >= low(smallint)) and (longint(a) <= high(smallint))) then
+                 begin
+                   if size in [OS_16, OS_8] then
+                     list.concat(taicpu.op_const_reg(A_MVZ,opsize,longint(a),register))
+                   else
+                     list.concat(taicpu.op_const_reg(A_MVS,opsize,longint(a),register));
+                 end
+               else
+                 begin
+                   { clear the register first, for unsigned and positive values, so
+                     we don't need to zero extend after }
+                   if (size in [OS_16,OS_8]) or
+                      ((size in [OS_S16,OS_S8]) and (a > 0)) then
+                     list.concat(taicpu.op_reg(A_CLR,S_L,register));
+                   list.concat(taicpu.op_const_reg(A_MOVE,opsize,longint(a),register));
+                   { only sign extend if we need to, zero extension is not necessary because the CLR.L above }
+                   if (size in [OS_S16,OS_S8]) and (a < 0) then
+                     sign_extend(list,size,register);
+                 end;
              end;
          end;
       end;
