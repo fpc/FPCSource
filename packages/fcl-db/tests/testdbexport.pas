@@ -136,7 +136,7 @@ begin
     NumberExported := Exporter.Execute;
     Exporter.Dataset.Last;
     Exporter.Dataset.First;
-    AssertEquals('Number of records exported', NumberExported,
+    AssertEquals('Number of records exported matches recordcount', NumberExported,
       Exporter.Dataset.RecordCount);
     Exporter.Dataset.Close;
   finally
