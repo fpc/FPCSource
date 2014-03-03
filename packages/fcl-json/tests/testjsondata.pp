@@ -989,13 +989,20 @@ end;
 
 { TTestJSON }
 
-procedure TTestJSON.SetDefaultInstanceTypes;
-
 Const
   DefJSONInstanceTypes :
     Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TJSONIntegerNumber,
     TJSONInt64Number,TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
     TJSONObject);
+
+Const
+  MyJSONInstanceTypes :
+    Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TMyInteger,
+    TMyInt64,TMyFloat, TMyString, TMyBoolean, TMyNull, TMyArray,
+    TMyObject);
+
+procedure TTestJSON.SetDefaultInstanceTypes;
+
 Var
   Ti : TJSONInstanceType;
 
@@ -1005,17 +1012,13 @@ begin
 end;
 
 procedure TTestJSON.SetMyInstanceTypes;
-Const
-  MyJSONInstanceTypes :
-    Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TMyInteger,
-    TMyInt64,TMyFloat, TMyString, TMyBoolean, TMyNull, TMyArray,
-    TMyObject);
+
 Var
   Ti : TJSONInstanceType;
 
 begin
   For ti:=Low(TJSONInstanceType) to High(TJSONInstanceType) do
-   SetJSONInstanceType(Ti,MyJSONInstanceTypes[ti]);
+    AssertEquals('Previous value is returned by SetJSONInstanceType',DefJSONInstanceTypes[ti],SetJSONInstanceType(Ti,MyJSONInstanceTypes[ti]));
 end;
 
 procedure TTestJSON.SetUp;

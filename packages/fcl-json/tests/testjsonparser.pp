@@ -406,7 +406,7 @@ Var
 begin
   H:=GetJSONParserHandler;
   try
-    SetJSONParserHandler(Nil);
+    AssertSame('SetJSONParserHandler returns previous handler',H,SetJSONParserHandler(Nil));
     AssertException('No handler raises exception',EJSON,@CallNoHandler);
     AssertException('No handler raises exception',EJSON,@CallNoHandlerStream);
   finally

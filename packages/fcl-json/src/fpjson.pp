@@ -69,7 +69,7 @@ Type
   TJSONData = class(TObject)
   protected
     Class Procedure DoError(Const Msg : String);
-    Class Procedure DoError(Const Fmt : String; Args : Array of const);
+    Class Procedure DoError(Const Fmt : String; const Args : Array of const);
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; virtual;
     function GetAsBoolean: Boolean; virtual; abstract;
     function GetAsFloat: TJSONFloat; virtual; abstract;
@@ -480,7 +480,7 @@ Type
 
   TJSONParserHandler = Procedure(AStream : TStream; Const AUseUTF8 : Boolean; Out Data : TJSONData);
 
-Procedure SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass);
+Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass) : TJSONDataClass;
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
 Function StringToJSONString(const S : TJSONStringType) : TJSONStringType;
@@ -501,7 +501,7 @@ Function CreateJSONObject(Data : Array of const) : TJSONObject;
 // When the jsonparser unit is included in the project, the callback is automatically set.
 Function GetJSON(Const JSON : TJSONStringType; Const UseUTF8 : Boolean = True) : TJSONData;
 Function GetJSON(Const JSON : TStream; Const UseUTF8 : Boolean = True) : TJSONData;
-Procedure SetJSONParserHandler(AHandler : TJSONParserHandler);
+Function SetJSONParserHandler(AHandler : TJSONParserHandler) : TJSONParserHandler;
 Function GetJSONParserHandler : TJSONParserHandler;
 
 implementation
@@ -541,12 +541,13 @@ Const
     TJSONInt64Number,TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
     TJSONObject);
 
-procedure SetJSONInstanceType(AType: TJSONInstanceType; AClass: TJSONDataClass);
+function SetJSONInstanceType(AType: TJSONInstanceType; AClass: TJSONDataClass): TJSONDataClass;
 begin
   if AClass=Nil then
-    TJSONData.DoError(SErrWrongInstanceClass,['Nil',MinJSONINstanceTypes[AType].ClassName]);
+    TJSONData.DoError(SErrWrongInstanceClass,['Nil',MinJSONInstanceTypes[AType].ClassName]);
   if Not AClass.InheritsFrom(MinJSONINstanceTypes[AType]) then
-    TJSONData.DoError(SErrWrongInstanceClass,[AClass.ClassName,MinJSONINstanceTypes[AType].ClassName]);
+    TJSONData.DoError(SErrWrongInstanceClass,[AClass.ClassName,MinJSONInstanceTypes[AType].ClassName]);
+  Result:=DefaultJSONInstanceTypes[AType];
   DefaultJSONINstanceTypes[AType]:=AClass;
 end;
 
@@ -706,8 +707,9 @@ begin
   JPH(JSON,UseUTF8,Result);
 end;
 
-procedure SetJSONParserHandler(AHandler: TJSONParserHandler);
+function SetJSONParserHandler(AHandler: TJSONParserHandler): TJSONParserHandler;
 begin
+  Result:=JPH;
   JPH:=AHandler;
 end;
 
@@ -837,7 +839,7 @@ begin
   Raise EJSON.Create(Msg);
 end;
 
-class procedure TJSONData.DoError(const Fmt: String; Args: array of const);
+class procedure TJSONData.DoError(const Fmt: String; Const Args: array of const);
 begin
   Raise EJSON.CreateFmt(Fmt,Args);
 end;
