@@ -17,6 +17,8 @@
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
+{$mode fpc}
+
 unit winsock;
 
   interface
