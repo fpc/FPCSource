@@ -5215,16 +5215,16 @@ implementation
          if assigned(inlininginfo) then
            include(procoptions,po_has_inlininginfo);
 
-         { Locals }
-         if assigned(localst) then
-           begin
-             tlocalsymtable(localst).deref;
-             tlocalsymtable(localst).derefimpl;
-           end;
-
         { Inline }
         if (po_has_inlininginfo in procoptions) then
           begin
+            { Locals }
+            if assigned(localst) then
+              begin
+                tlocalsymtable(localst).deref;
+                tlocalsymtable(localst).derefimpl;
+              end;
+
             inlininginfo^.code.derefimpl;
             { funcretsym, this is always located in the localst }
             funcretsym:=tsym(funcretsymderef.resolve);
