@@ -142,13 +142,13 @@ uses
       maxfpuvarregs = 1;
 
       { Integer Super registers first and last }
-      first_int_imreg = 10;
+      first_int_imreg = 2;
 
       { Float Super register first and last }
-      first_fpu_imreg     = 10;
+      first_fpu_imreg     = 2;
 
       { MM Super register first and last }
-      first_mm_imreg     = 10;
+      first_mm_imreg     = 2;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rjvmnum.inc}
