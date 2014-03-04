@@ -79,7 +79,7 @@ const
     ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
     ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
     ftUnknown,ftVarBytes,ftVariant,ftWidememo,ftWideString];
-  FoxProUnsupported=  [ftADT,ftArray,                         ftCursor,ftDataSet,
+  FoxProUnsupported=  [ftADT,ftArray,      ftBytes,           ftCursor,ftDataSet,
     ftFixedWideChar,
     ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
     ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
