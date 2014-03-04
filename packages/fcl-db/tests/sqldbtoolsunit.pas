@@ -144,6 +144,7 @@ procedure TSQLDBConnector.CreateFConnection;
 var t : TSQLConnType;
     i : integer;
     s : string;
+    TempTrans: TSQLTransaction;
 begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
@@ -198,6 +199,7 @@ begin
 
   FieldtypeDefinitions := FieldtypeDefinitionsConst;
 
+  // Server-specific initialization
   case SQLServerType of
     ssFirebird:
       begin
@@ -227,6 +229,20 @@ begin
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
+
+      TempTrans:=TSQLTransaction.Create(nil);
+      FConnection.Transaction:=TempTrans;
+      TempTrans.StartTransaction;
+      // Proper blob support:
+      FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
+      // When running CREATE TABLE statements, allow NULLs by default - without
+      // having to specify NULL all the time:
+      // http://msdn.microsoft.com/en-us/library/ms174979.aspx
+      FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+      TempTrans.Commit;
+      TempTrans.Free;
+      FConnection.Transaction:=nil;
+
       end;
     ssMySQL:
       begin
