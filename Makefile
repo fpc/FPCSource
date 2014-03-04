@@ -370,6 +370,9 @@ endif
 ifeq ($(CPU_TARGET),i8086)
 PPSUF=8086
 endif
+ifeq ($(CPU_TARGET),avr)
+PPSUF=avr
+endif
 ifdef CROSSCOMPILE
 ifneq ($(CPU_TARGET),jvm)
 PPPRE=ppcross
