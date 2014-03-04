@@ -994,7 +994,7 @@ implementation
                     LOC_REGISTER:
                       begin
                         case para.locations_count of
-{$ifdef cpu16bitalu}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                           { 4 paralocs? }
                           4:
                             if (target_info.endian=ENDIAN_BIG) then
@@ -1026,7 +1026,7 @@ implementation
                                 unget_para(paraloc^.next^.next^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,GetNextReg(destloc.register64.reghi),2);
                               end;
-{$endif cpu16bitalu}
+{$endif defined(cpu16bitalu) or defined(cpu8bitalu)}
                           2:
                             if (target_info.endian=ENDIAN_BIG) then
                               begin

@@ -1352,11 +1352,17 @@ implementation
 {$endif arm}
            ait_set:
              begin
-               AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+               if replaceforbidden then
+                 AsmWriteLn(#9'.set '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).value^))
+               else
+                 AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
              end;
            ait_weak:
              begin
-               AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
+               if replaceforbidden then
+                 AsmWriteLn(#9'.weak '+ReplaceForbiddenAsmSymbolChars(tai_weak(hp).sym^))
+               else
+                 AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
              end;
            ait_symbol_end :
              begin

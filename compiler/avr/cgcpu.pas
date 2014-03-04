@@ -226,7 +226,7 @@ unit cgcpu;
         end;
 
       var
-        i : longint;
+        i, i2 : longint;
         hp : PCGParaLocation;
 
       begin
@@ -277,15 +277,29 @@ unit cgcpu;
 
             hp:=cgpara.location;
 
-            for i:=1 to tcgsize2size[cgpara.Size] do
+            i:=0;
+            while i<tcgsize2size[cgpara.Size] do
               begin
-                if not(assigned(hp)) or
-                  (tcgsize2size[hp^.size]<>1) or
-                  (hp^.shiftval<>0) then
+                if not(assigned(hp)) then
                   internalerror(2014011102);
-                load_para_loc(r,hp);
-                hp:=hp^.Next;
-                r:=GetNextReg(r);
+
+                inc(i, tcgsize2size[hp^.Size]);
+
+                if hp^.Loc=LOC_REGISTER then
+                  begin
+                    load_para_loc(r,hp);
+                    hp:=hp^.Next;
+                    r:=GetNextReg(r);
+                  end
+                else
+                  begin
+                    load_para_loc(r,hp);
+
+                    for i2:=1 to tcgsize2size[hp^.Size] do
+                      r:=GetNextReg(r);
+
+                    hp:=hp^.Next;
+                  end;
               end;
             if assigned(hp) then
               internalerror(2014011103);
@@ -485,7 +499,15 @@ unit cgcpu;
            OP_NEG:
              begin
                if src<>dst then
-                 a_load_reg_reg(list,size,size,src,dst);
+                 begin
+                   if size in [OS_S64,OS_64] then
+                     begin
+                       a_load_reg_reg(list,OS_32,OS_32,src,dst);
+                       a_load_reg_reg(list,OS_32,OS_32,srchi,dsthi);
+                     end
+                   else
+                     a_load_reg_reg(list,size,size,src,dst);
+                 end;
 
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
@@ -499,7 +521,7 @@ unit cgcpu;
                    tmpreg:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       list.concat(taicpu.op_reg_const(A_SBCI,dst,-1));
+                       list.concat(taicpu.op_reg_const(A_SBCI,tmpreg,-1));
                        NextTmp;
                    end;
                  end;
@@ -1869,7 +1891,7 @@ unit cgcpu;
 
     procedure tcgavr.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       begin
-        internalerror(2011021324);
+        //internalerror(2011021324);
       end;
 
 

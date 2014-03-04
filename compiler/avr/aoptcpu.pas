@@ -42,6 +42,7 @@ Type
 Implementation
 
   uses
+    cpuinfo,
     aasmbase,aasmcpu,
     globals,globtype;
 
@@ -275,7 +276,8 @@ Implementation
                     to
                     movw reg2,reg0
                   }
-                  else if (taicpu(p).ops=2) and
+                  else if (CPUAVR_HAS_MOVW in cpu_capabilities[current_settings.cputype]) and
+                     (taicpu(p).ops=2) and
                      (taicpu(p).oper[0]^.typ = top_reg) and
                      (taicpu(p).oper[1]^.typ = top_reg) and
                      getnextinstruction(p,hp1) and
