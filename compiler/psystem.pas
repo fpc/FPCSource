@@ -190,6 +190,7 @@ implementation
         cformaltype:=tformaldef.create(false);
         ctypedformaltype:=tformaldef.create(true);
         voidtype:=torddef.create(uvoid,0,0);
+        voidpointertype:=tpointerdef.create(voidtype);
         u8inttype:=torddef.create(u8bit,0,255);
         s8inttype:=torddef.create(s8bit,int64(-128),127);
         u16inttype:=torddef.create(u16bit,0,65535);
@@ -270,7 +271,6 @@ implementation
 {$endif jvm}
         set_default_int_types;
         { some other definitions }
-        voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
 {$ifdef i8086}
@@ -388,6 +388,7 @@ implementation
         addtype('$formal',cformaltype);
         addtype('$typedformal',ctypedformaltype);
         addtype('$void',voidtype);
+        addtype('$void_pointer',voidpointertype);
         addtype('$byte',u8inttype);
         addtype('$shortint',s8inttype);
         addtype('$word',u16inttype);
@@ -412,7 +413,6 @@ implementation
         addtype('$wordbool',bool16type);
         addtype('$longbool',bool32type);
         addtype('$qwordbool',bool64type);
-        addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
         addtype('$parentfp_void_pointer',parentfpvoidpointertype);
@@ -523,6 +523,7 @@ implementation
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
+        loadtype('void_pointer',voidpointertype);
         loadtype('char',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
@@ -548,7 +549,6 @@ implementation
         loadtype('wordbool',bool16type);
         loadtype('longbool',bool32type);
         loadtype('qwordbool',bool64type);
-        loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
         loadtype('parentfp_void_pointer',parentfpvoidpointertype);
