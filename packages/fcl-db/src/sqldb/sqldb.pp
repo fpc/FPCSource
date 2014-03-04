@@ -52,7 +52,6 @@ type
   TSQLScript = class;
 
 
-
   TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit,detRollBack);
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
@@ -81,17 +80,6 @@ type
                             Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
   end;
 
-  { TSQLDBParam }
-
-  TSQLDBParam = Class(TParam)
-  private
-    FFieldDef: TFieldDef;
-    FData : Pointer;
-  Public
-    Property FieldDef : TFieldDef Read FFieldDef Write FFieldDef;
-    Property SQLDBData : Pointer Read FData Write FData;
-  end;
-
   { TSQLDBFieldDef }
 
   TSQLDBFieldDef = Class(TFieldDef)
@@ -107,6 +95,18 @@ type
   Protected
     Class Function FieldDefClass : TFieldDefClass; override;
   end;
+
+  { TSQLDBParam }
+
+  TSQLDBParam = Class(TParam)
+  private
+    FFieldDef: TFieldDef;
+    FData : Pointer;
+  Public
+    Property FieldDef : TFieldDef Read FFieldDef Write FFieldDef;
+    Property SQLDBData : Pointer Read FData Write FData;
+  end;
+
   { TSQLDBParams }
 
   TSQLDBParams = Class(TParams)
@@ -244,7 +244,7 @@ type
     property OnLogin;
   end;
 
-{ TSQLTransaction }
+  { TSQLTransaction }
 
   TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback,
     caRollbackRetaining);
@@ -348,11 +348,11 @@ type
     Property Transaction;
   end;
 
-{ TCustomSQLQuery }
+  { TCustomSQLQuery }
 
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    FSchemaType: TSchemaType;
+    FSchemaType          : TSchemaType;
     FUpdateable          : boolean;
     FTableName           : string;
     FStatement           : TCustomSQLStatement;
@@ -427,12 +427,12 @@ type
     procedure BeforeRefreshOpenCursor; override;
     procedure SetReadOnly(AValue : Boolean); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    class function FieldDefsClass : TFieldDefsClass; override;
     // IProviderSupport methods
     function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
 
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
-    class function FieldDefsClass : TFieldDefsClass; override;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -446,12 +446,10 @@ type
     Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
     Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
   protected
-
-    // redeclared data set properties
+    // redeclared TDataSet properties
     property Active;
     property Filter;
     property Filtered;
-//    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
     property BeforeClose;
