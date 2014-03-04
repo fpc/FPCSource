@@ -1099,6 +1099,60 @@ begin
     len:=length(s);
   write_str_iso(len,t,s);
 end;
+
+
+procedure fpc_write_text_word(len : longint;var t : text;q : word); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(q,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_smallint(len : longint;var t : text;i : smallint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_word_iso(len : longint;var t : text;q : word); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+    exit;
+  str(q,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+
+
+procedure fpc_write_text_smallint_iso(len : longint;var t : text;i : smallint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
 {$endif CPU16 or CPU8}
 
 {$ifndef FPUNONE}

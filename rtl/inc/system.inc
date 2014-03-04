@@ -644,7 +644,7 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_PTR}
-Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Ptr(sel,off : {$ifdef CPU16}Word{$else}Longint{$endif}) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;

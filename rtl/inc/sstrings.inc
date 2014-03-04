@@ -463,6 +463,22 @@ begin
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
+
+
+procedure fpc_shortstr_word(v : word;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_WORD']; compilerproc;
+begin
+  int_str_unsigned(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+
+procedure fpc_shortstr_smallint(v : smallint;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_SMALLINT'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 {$endif CPU16 or CPU8}
 
 
@@ -923,6 +939,38 @@ begin
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
 
+
+procedure fpc_chararray_word(v : word;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str_unsigned(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+
+procedure fpc_chararray_smallint(v : smallint;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
 {$endif CPU16 or CPU8}
 
 
@@ -1349,6 +1397,105 @@ end;
            Exit
          End;
        fpc_val_longword_shortstr:=fpc_val_longword_shortstr*LongWord(base) + u;
+       inc(code);
+     end;
+    code := 0;
+  end;
+
+
+  Function fpc_val_smallint_shortstr(Const S: ShortString; out Code: ValSInt): SmallInt; [public, alias:'FPC_VAL_SMALLINT_SHORTSTR']; compilerproc;
+
+  var  u, temp, prev, maxprevvalue, maxnewvalue : word;
+       base : byte;
+       negative : boolean;
+
+  const maxlongint=longword($7fffffff);
+        maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_smallint_shortstr := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    maxprevvalue := maxlongword div base;
+    if (base = 10) then
+      maxnewvalue := maxlongint + ord(negative)
+    else
+      maxnewvalue := maxlongword;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*longword(base);
+     If (u >= base) or
+        (longword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
+       Begin
+         fpc_val_smallint_shortstr := 0;
+         Exit
+       End;
+       Temp:=Temp+u;
+       inc(code);
+     end;
+    code:=0;
+    fpc_val_smallint_shortstr:=longint(Temp);
+    If Negative Then
+      fpc_val_smallint_shortstr:=-fpc_val_smallint_shortstr;
+  end;
+
+
+  Function fpc_val_word_shortstr(Const S: ShortString; out Code: ValSInt): Word; [public, alias:'FPC_VAL_WORD_SHORTSTR']; compilerproc;
+
+  var  u, prev: word;
+       base : byte;
+       negative : boolean;
+
+  const maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_word_shortstr:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       prev := fpc_val_word_shortstr;
+       If (u>=base) or
+         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
+         Begin
+           fpc_val_word_shortstr := 0;
+           Exit
+         End;
+       fpc_val_word_shortstr:=fpc_val_word_shortstr*LongWord(base) + u;
        inc(code);
      end;
     code := 0;

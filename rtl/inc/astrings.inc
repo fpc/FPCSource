@@ -1125,7 +1125,69 @@ begin
        Val(SS,fpc_Val_longint_AnsiStr,Code);
     end;
 end;
+
+
+Function fpc_Val_word_AnsiStr (Const S : RawByteString; out Code : ValSInt): word; [public, alias:'FPC_VAL_WORD_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_word_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := S;
+       Val(SS,fpc_Val_word_AnsiStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_smallint_AnsiStr (Const S : RawByteString; out Code : ValSInt): smallint; [public, alias:'FPC_VAL_SMALLINT_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_smallint_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := s;
+       Val(SS,fpc_Val_smallint_AnsiStr,Code);
+    end;
+end;
 {$endif CPU16 or CPU8}
+
+
+{$if defined(CPU8)}
+Function fpc_Val_word_AnsiStr (Const S : RawByteString; out Code : ValSInt): longword; [public, alias:'FPC_VAL_WORD_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_longword_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := S;
+       Val(SS,fpc_Val_longword_AnsiStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_smallint_AnsiStr (Const S : RawByteString; out Code : ValSInt): LongInt; [public, alias:'FPC_VAL_SMALLINT_ANSISTR']; compilerproc;
+Var
+  SS : ShortString;
+begin
+  fpc_Val_longint_AnsiStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS := s;
+       Val(SS,fpc_Val_longint_AnsiStr,Code);
+    end;
+end;
+{$endif CPU8}
 
 
 {$ifndef FPUNONE}
@@ -1254,6 +1316,28 @@ begin
 end;
 
 Procedure fpc_AnsiStr_LongInt(v : LongInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_LONGINT']; compilerproc; inline;
+Var
+  SS : ShortString;
+begin
+  str (v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+
+Procedure fpc_AnsiStr_Word(v : Word;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_WORD']; compilerproc; inline;
+Var
+  SS : ShortString;
+begin
+  str(v:Len,SS);
+  S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
+end;
+
+Procedure fpc_AnsiStr_SmallInt(v : SmallInt; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_SMALLINT']; compilerproc; inline;
 Var
   SS : ShortString;
 begin

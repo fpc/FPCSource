@@ -144,6 +144,24 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
     procedure fpc_UnicodeStr_longword(v : longword;len : SizeInt;out s : UnicodeString); compilerproc;
     procedure fpc_UnicodeStr_longint(v : longint;len : SizeInt;out s : UnicodeString); compilerproc;
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+  procedure fpc_shortstr_word(v : word;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_shortstr_smallint(v : smallint;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_chararray_word(v : word;len : SizeInt;out a : array of char); compilerproc;
+  procedure fpc_chararray_smallint(v : smallint;len : SizeInt;out a : array of char); compilerproc;
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  procedure fpc_ansistr_word(v : word;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  procedure fpc_ansistr_smallint(v : smallint;len : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_widestr_word(v : word;len : SizeInt;out s : widestring); compilerproc;
+    procedure fpc_widestr_smallint(v : smallint;len : SizeInt;out s : widestring); compilerproc;
+    {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure fpc_UnicodeStr_word(v : word;len : SizeInt;out s : UnicodeString); compilerproc;
+    procedure fpc_UnicodeStr_smallint(v : smallint;len : SizeInt;out s : UnicodeString); compilerproc;
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU16 or CPU8}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
@@ -246,6 +264,22 @@ Function fpc_Val_longint_WideStr (Const S : WideString; out Code : ValSInt): Lon
 {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Function fpc_Val_longword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongWord; compilerproc;
 Function fpc_Val_longint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): LongInt; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+Function fpc_val_smallint_shortstr(Const S: ShortString; out Code: ValSInt): SmallInt; compilerproc;
+Function fpc_val_word_shortstr(Const S: ShortString; out Code: ValSInt): Word; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_Val_word_AnsiStr (Const S : RawByteString; out Code : ValSInt): Word;compilerproc;
+Function fpc_Val_smallint_AnsiStr (Const S : RawByteString; out Code : ValSInt): SmallInt; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_word_WideStr (Const S : WideString; out Code : ValSInt): Word; compilerproc;
+Function fpc_Val_smallint_WideStr (Const S : WideString; out Code : ValSInt): SmallInt; compilerproc;
+{$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function fpc_Val_word_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): Word; compilerproc;
+Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): SmallInt; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU16 or CPU8}
 
@@ -407,6 +441,11 @@ procedure fpc_write_text_longword(len : longint;var t : text;q : longword); comp
 procedure fpc_write_text_longint(len : longint;var t : text;i : longint); compilerproc;
 procedure fpc_write_text_longword_iso(len : longint;var t : text;q : longword); compilerproc;
 procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); compilerproc;
+
+procedure fpc_write_text_word(len : longint;var t : text;q : word); compilerproc;
+procedure fpc_write_text_smallint(len : longint;var t : text;i : smallint); compilerproc;
+procedure fpc_write_text_word_iso(len : longint;var t : text;q : word); compilerproc;
+procedure fpc_write_text_smallint_iso(len : longint;var t : text;i : smallint); compilerproc;
 {$endif CPU16 or CPU8}
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
