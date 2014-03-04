@@ -911,7 +911,7 @@ begin
   DelOptions:=opts;
 end;
 
-function RunCompiler:boolean;
+function RunCompiler(const ExtraPara: string):boolean;
 var
   args,LocalExtraArgs,
   wpoargs : string;
@@ -923,6 +923,8 @@ var
 begin
   RunCompiler:=false;
   args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
+  if ExtraPara<>'' then
+    args:=args+' '+ExtraPara;
   { the helper object files have been copied to the common directory }
   if UniqueSuffix<>'' then
     args:=args+' -Fo'+TestOutputDir+'/..';
@@ -2000,9 +2002,9 @@ begin
 
   if Res then
    begin
-     Res:=RunCompiler;
+     Res:=RunCompiler('');
      if Res and Config.NeedRecompile then
-      Res:=RunCompiler;
+      Res:=RunCompiler(Config.RecompileOpt);
    end;
 
   if Res and (not Config.ShouldFail) then

@@ -88,7 +88,9 @@ DELFILES...........List of files (separated by spaces) to be deleted after
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second
-                   time. This is needed to test ppu loading issues.
+                   time. This is needed to test ppu loading issues. Can
+		   optionally specify a command line option to use only
+		   during the second compilation.
 NORUN..............Do not execute test, only compile it
 INTERACTIVE........Do not execute test, as it requires user intervention
 NOTE...............Output note when compiling/executing test
