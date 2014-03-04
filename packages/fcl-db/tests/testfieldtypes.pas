@@ -1746,7 +1746,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 var ADateStr : String;
 begin
   if not(SQLServerType in [ssPostgreSQL, ssOracle]) then
-    Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+    Ignore('This test does not apply to this sqldb connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -1808,7 +1808,7 @@ begin
         end;
       else
         begin
-        Ignore('This test does not apply to this sqldb-connection type, since it does not support selectable stored procedures.');
+        Ignore('This test does not apply to this sqldb connection type, since it does not support selectable stored procedures.');
         Exit;
         end;
     end;
@@ -2261,7 +2261,7 @@ end;
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
   // Tests rev.6481: "Do not use a new connection for every statement that is executed";
-  if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
+  if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
