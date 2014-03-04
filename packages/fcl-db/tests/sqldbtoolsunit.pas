@@ -383,9 +383,11 @@ begin
 end;
 
 procedure TSQLDBConnector.CreateFieldDataset;
-var CountID : Integer;
-    FType   : TFieldType;
-    Sql,sql1: String;
+var
+  AdditionalText: string;
+  CountID : Integer;
+  FType   : TFieldType;
+  Sql,sql1: String;
 
 function String2Hex(Source: string): string;
 // Converts ASCII codes into hex
@@ -404,9 +406,14 @@ begin
     TryDropIfExist('FPDEV_FIELD');
 
     Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
+    if SQLServerType = ssMSSQL then
+      AdditionalText := ' NULL ' //SQL Server seems to default to NULL fields
+    else
+      AdditionalText := '';
     for FType := low(TFieldType)to high(TFieldType) do
       if FieldtypeDefinitions[FType]<>'' then
-        sql := sql + 'F' + Fieldtypenames[FType] + ' ' +FieldtypeDefinitions[FType]+ ',';
+        sql := sql + 'F' + Fieldtypenames[FType] + ' ' +
+          FieldtypeDefinitions[FType] + AdditionalText + ',';
     Sql := Sql + 'PRIMARY KEY (ID))';
 
     FConnection.ExecuteDirect(Sql);
@@ -534,7 +541,7 @@ end;
 
 procedure TSQLDBConnector.TryDropIfExist(ATableName: String);
 begin
-  // This makes life soo much easier, since it avoids the exception if the table already
+  // This makes life so much easier, since it avoids the exception if the table already
   // exists. And while this exception is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
