@@ -384,7 +384,6 @@ end;
 
 procedure TSQLDBConnector.CreateFieldDataset;
 var
-  AdditionalText: string;
   CountID : Integer;
   FType   : TFieldType;
   Sql,sql1: String;
@@ -406,14 +405,10 @@ begin
     TryDropIfExist('FPDEV_FIELD');
 
     Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
-    if SQLServerType = ssMSSQL then
-      AdditionalText := ' NULL ' //SQL Server seems to default to NULL fields
-    else
-      AdditionalText := '';
     for FType := low(TFieldType)to high(TFieldType) do
       if FieldtypeDefinitions[FType]<>'' then
         sql := sql + 'F' + Fieldtypenames[FType] + ' ' +
-          FieldtypeDefinitions[FType] + AdditionalText + ',';
+          FieldtypeDefinitions[FType] + ',';
     Sql := Sql + 'PRIMARY KEY (ID))';
 
     FConnection.ExecuteDirect(Sql);
