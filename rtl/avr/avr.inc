@@ -57,12 +57,12 @@ Function Sptr : pointer;assembler;
 
 function InterLockedDecrement (var Target: longint) : longint;
   var
-    sreg : byte;
+    temp_sreg : byte;
   begin
     { block interrupts }
     asm
       in r0,0x3f
-      std sreg,r0
+      std temp_sreg,r0
       cli
     end;
 
@@ -71,7 +71,7 @@ function InterLockedDecrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
-      ldd r0,sreg
+      ldd r0,temp_sreg
       out 0x3f,r0
     end;
   end;
@@ -79,12 +79,12 @@ function InterLockedDecrement (var Target: longint) : longint;
 
 function InterLockedIncrement (var Target: longint) : longint;
   var
-    sreg : byte;
+    temp_sreg : byte;
   begin
     { block interrupts }
     asm
       in r0,0x3f
-      std sreg,r0
+      std temp_sreg,r0
       cli
     end;
 
@@ -93,7 +93,7 @@ function InterLockedIncrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
-      ldd r0,sreg
+      ldd r0,temp_sreg
       out 0x3f,r0
     end;
   end;
@@ -101,12 +101,12 @@ function InterLockedIncrement (var Target: longint) : longint;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
   var
-    sreg : byte;
+    temp_sreg : byte;
   begin
     { block interrupts }
     asm
       in r0,0x3f
-      std sreg,r0
+      std temp_sreg,r0
       cli
     end;
 
@@ -115,7 +115,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 
     { release interrupts }
     asm
-      ldd r0,sreg
+      ldd r0,temp_sreg
       out 0x3f,r0
     end;
   end;
@@ -123,12 +123,12 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
   var
-    sreg : byte;
+    temp_sreg : byte;
   begin
     { block interrupts }
     asm
       in r0,0x3f
-      std sreg,r0
+      std temp_sreg,r0
       cli
     end;
 
@@ -138,7 +138,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
 
     { release interrupts }
     asm
-      ldd r0,sreg
+      ldd r0,temp_sreg
       out 0x3f,r0
     end;
   end;
@@ -146,12 +146,12 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
   var
-    sreg : byte;
+    temp_sreg : byte;
   begin
     { block interrupts }
     asm
       in r0,0x3f
-      std sreg,r0
+      std temp_sreg,r0
       cli
     end;
 
@@ -160,7 +160,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
     { release interrupts }
     asm
-      ldd r0,sreg
+      ldd r0,temp_sreg
       out 0x3f,r0
     end;
   end;

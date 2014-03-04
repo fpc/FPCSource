@@ -526,49 +526,49 @@ unit atmega128;
         jmp .Lloop
       end;
 
+    procedure Int00Handler; external name 'Int00Handler';
+    procedure Int01Handler; external name 'Int01Handler';
+    procedure Int02Handler; external name 'Int02Handler';
+    procedure Int03Handler; external name 'Int03Handler';
+    procedure Int04Handler; external name 'Int04Handler';
+    procedure Int05Handler; external name 'Int05Handler';
+    procedure Int06Handler; external name 'Int06Handler';
+    procedure Int07Handler; external name 'Int07Handler';
+    procedure Int08Handler; external name 'Int08Handler';
+    procedure Int09Handler; external name 'Int09Handler';
+    procedure Int10Handler; external name 'Int10Handler';
+    procedure Int11Handler; external name 'Int11Handler';
+    procedure Int12Handler; external name 'Int12Handler';
+    procedure Int13Handler; external name 'Int13Handler';
+    procedure Int14Handler; external name 'Int14Handler';
+    procedure Int15Handler; external name 'Int15Handler';
+    procedure Int16Handler; external name 'Int16Handler';
+    procedure Int17Handler; external name 'Int17Handler';
+    procedure Int18Handler; external name 'Int18Handler';
+    procedure Int19Handler; external name 'Int19Handler';
+    procedure Int20Handler; external name 'Int20Handler';
+    procedure Int21Handler; external name 'Int21Handler';
+    procedure Int22Handler; external name 'Int22Handler';
+    procedure Int23Handler; external name 'Int23Handler';
+    procedure Int24Handler; external name 'Int24Handler';
+    procedure Int25Handler; external name 'Int25Handler';
+    procedure Int26Handler; external name 'Int26Handler';
+    procedure Int27Handler; external name 'Int27Handler';
+    procedure Int28Handler; external name 'Int28Handler';
+    procedure Int29Handler; external name 'Int29Handler';
+    procedure Int30Handler; external name 'Int30Handler';
+    procedure Int31Handler; external name 'Int31Handler';
+    procedure Int32Handler; external name 'Int32Handler';
+    procedure Int33Handler; external name 'Int33Handler';
+    procedure Int34Handler; external name 'Int34Handler';
+
     var
       _data: record end; external name '__data_start';
       _edata: record end; external name '__data_end';
       _etext: record end; external name '_etext';
-      _bss_start: record end; external name '_bss_start';
-      _bss_end: record end; external name '_bss_end';
+      _bss_start: record end; external name '__bss_start';
+      _bss_end: record end; external name '__bss_end';
       _stack_top: record end; external name '_stack_top';
-
-      Int00Handler : Pointer = @Default_IRQ_handler;
-      Int01Handler : Pointer = @Default_IRQ_handler;
-      Int02Handler : Pointer = @Default_IRQ_handler;
-      Int03Handler : Pointer = @Default_IRQ_handler;
-      Int04Handler : Pointer = @Default_IRQ_handler;
-      Int05Handler : Pointer = @Default_IRQ_handler;
-      Int06Handler : Pointer = @Default_IRQ_handler;
-      Int07Handler : Pointer = @Default_IRQ_handler;
-      Int08Handler : Pointer = @Default_IRQ_handler;
-      Int09Handler : Pointer = @Default_IRQ_handler;
-      Int10Handler : Pointer = @Default_IRQ_handler;
-      Int11Handler : Pointer = @Default_IRQ_handler;
-      Int12Handler : Pointer = @Default_IRQ_handler;
-      Int13Handler : Pointer = @Default_IRQ_handler;
-      Int14Handler : Pointer = @Default_IRQ_handler;
-      Int15Handler : Pointer = @Default_IRQ_handler;
-      Int16Handler : Pointer = @Default_IRQ_handler;
-      Int17Handler : Pointer = @Default_IRQ_handler;
-      Int18Handler : Pointer = @Default_IRQ_handler;
-      Int19Handler : Pointer = @Default_IRQ_handler;
-      Int20Handler : Pointer = @Default_IRQ_handler;
-      Int21Handler : Pointer = @Default_IRQ_handler;
-      Int22Handler : Pointer = @Default_IRQ_handler;
-      Int23Handler : Pointer = @Default_IRQ_handler;
-      Int24Handler : Pointer = @Default_IRQ_handler;
-      Int25Handler : Pointer = @Default_IRQ_handler;
-      Int26Handler : Pointer = @Default_IRQ_handler;
-      Int27Handler : Pointer = @Default_IRQ_handler;
-      Int28Handler : Pointer = @Default_IRQ_handler;
-      Int29Handler : Pointer = @Default_IRQ_handler;
-      Int30Handler : Pointer = @Default_IRQ_handler;
-      Int31Handler : Pointer = @Default_IRQ_handler;
-      Int32Handler : Pointer = @Default_IRQ_handler;
-      Int33Handler : Pointer = @Default_IRQ_handler;
-      Int34Handler : Pointer = @Default_IRQ_handler;
 
     procedure _FPC_start; assembler; nostackframe;
       label
@@ -613,11 +613,84 @@ unit atmega128;
         rjmp Int32Handler
         rjmp Int33Handler
         rjmp Int34Handler
+        
         {
           all ATMEL MCUs use the same startup code, the details are
           governed by defines
         }
         {$i start.inc}
+        
+        .weak Int00Handler
+        .weak Int01Handler
+        .weak Int02Handler
+        .weak Int03Handler
+        .weak Int04Handler
+        .weak Int05Handler
+        .weak Int06Handler
+        .weak Int07Handler
+        .weak Int08Handler
+        .weak Int09Handler
+        .weak Int10Handler
+        .weak Int11Handler
+        .weak Int12Handler
+        .weak Int13Handler
+        .weak Int14Handler
+        .weak Int15Handler
+        .weak Int16Handler
+        .weak Int17Handler
+        .weak Int18Handler
+        .weak Int19Handler
+        .weak Int20Handler
+        .weak Int21Handler
+        .weak Int22Handler
+        .weak Int23Handler
+        .weak Int24Handler
+        .weak Int25Handler
+        .weak Int26Handler
+        .weak Int27Handler
+        .weak Int28Handler
+        .weak Int29Handler
+        .weak Int30Handler
+        .weak Int31Handler
+        .weak Int32Handler
+        .weak Int33Handler
+        .weak Int34Handler
+        
+        .set Int00Handler, Default_IRQ_handler
+        .set Int01Handler, Default_IRQ_handler
+        .set Int02Handler, Default_IRQ_handler
+        .set Int03Handler, Default_IRQ_handler
+        .set Int04Handler, Default_IRQ_handler
+        .set Int05Handler, Default_IRQ_handler
+        .set Int06Handler, Default_IRQ_handler
+        .set Int07Handler, Default_IRQ_handler
+        .set Int08Handler, Default_IRQ_handler
+        .set Int09Handler, Default_IRQ_handler
+        .set Int10Handler, Default_IRQ_handler
+        .set Int11Handler, Default_IRQ_handler
+        .set Int12Handler, Default_IRQ_handler
+        .set Int13Handler, Default_IRQ_handler
+        .set Int14Handler, Default_IRQ_handler
+        .set Int15Handler, Default_IRQ_handler
+        .set Int16Handler, Default_IRQ_handler
+        .set Int17Handler, Default_IRQ_handler
+        .set Int18Handler, Default_IRQ_handler
+        .set Int19Handler, Default_IRQ_handler
+        .set Int20Handler, Default_IRQ_handler
+        .set Int21Handler, Default_IRQ_handler
+        .set Int22Handler, Default_IRQ_handler
+        .set Int23Handler, Default_IRQ_handler
+        .set Int24Handler, Default_IRQ_handler
+        .set Int25Handler, Default_IRQ_handler
+        .set Int26Handler, Default_IRQ_handler
+        .set Int27Handler, Default_IRQ_handler
+        .set Int28Handler, Default_IRQ_handler
+        .set Int29Handler, Default_IRQ_handler
+        .set Int30Handler, Default_IRQ_handler
+        .set Int31Handler, Default_IRQ_handler
+        .set Int32Handler, Default_IRQ_handler
+        .set Int33Handler, Default_IRQ_handler
+        .set Int34Handler, Default_IRQ_handler
       end;
 
 end.
