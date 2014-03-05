@@ -63,7 +63,7 @@ unit cpupi;
     function tavrprocinfo.calc_stackframe_size:longint;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-        result:=0;
+        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
       end;
 
 

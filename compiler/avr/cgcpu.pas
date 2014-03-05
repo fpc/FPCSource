@@ -1447,7 +1447,7 @@ unit cgcpu;
         case value of
           0:
             ;
-          -14..-1:
+          {-14..-1:
             begin
               if ((-value) mod 2)<>0 then
                 list.concat(taicpu.op_reg(A_PUSH,NR_R0));
@@ -1458,7 +1458,7 @@ unit cgcpu;
             begin
               for i:=1 to value do
                 list.concat(taicpu.op_reg(A_POP,NR_R0));
-            end;
+            end;}
           else
             begin
               list.concat(taicpu.op_reg_const(A_SUBI,NR_R28,lo(word(-value))));
