@@ -102,6 +102,7 @@ begin
                         end;
               openbsd : begin
                           P.Options.Add('-Fl/usr/local/lib');
+                          P.Options.Add('-Fl/usr/lib');
                           P.Options.Add('-Xd');
                         end;
               netbsd  : P.Options.Add('-Xd');
