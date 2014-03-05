@@ -1228,6 +1228,177 @@ begin
       end;
 end;
 
+function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
+
+type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
+     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
+     TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
+
+const
+  KeywordNames: array[TKeyword] of string =
+    ('WITH', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'JOIN', 'WHERE', 'GROUP', 'ORDER', 'UNION', 'ROWS', 'LIMIT', '');
+
+var
+  PSQL, CurrentP, SavedP,
+  PhraseP, PStatementPart : pchar;
+  S                       : string;
+  ParsePart               : TParsePart;
+  BracketCount            : Integer;
+  Separator               : TPhraseSeparator;
+  Keyword, K              : TKeyword;
+
+begin
+  PSQL:=Pchar(ASQL);
+  ParsePart := ppStart;
+
+  CurrentP := PSQL-1;
+  PhraseP := PSQL;
+
+  Result.TableName := '';
+  Result.Updateable := False;
+  Result.WhereStartPos := 0;
+  Result.WhereStopPos := 0;
+
+  repeat
+    begin
+    inc(CurrentP);
+    SavedP := CurrentP;
+
+    case CurrentP^ of
+      ' ', #9..#13:
+        Separator := sepWhiteSpace;
+      ',':
+        Separator := sepComma;
+      #0, ';':
+        Separator := sepEnd;
+      '(':
+        begin
+        Separator := sepParentheses;
+        // skip everything between brackets, since it could be a sub-select, and
+        // further nothing between brackets could be interesting for the parser.
+        BracketCount := 1;
+        repeat
+          inc(CurrentP);
+          if CurrentP^ = '(' then inc(BracketCount)
+          else if CurrentP^ = ')' then dec(BracketCount);
+        until (CurrentP^ = #0) or (BracketCount = 0);
+        if CurrentP^ <> #0 then inc(CurrentP);
+        end;
+      '"','`':
+        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
+          Separator := sepDoubleQuote;
+      else
+        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
+          Separator := sepComment
+        else
+          Separator := sepNone;
+    end;
+
+    if (CurrentP > SavedP) and (SavedP > PhraseP) then
+      CurrentP := SavedP;  // there is something before comment or left parenthesis
+
+    if Separator <> sepNone then
+      begin
+      if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
+        PhraseP := CurrentP;  // skip comments (but not parentheses) and white spaces
+
+      if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
+        begin
+        SetString(s, PhraseP, CurrentP-PhraseP);
+
+        Keyword := kwUnknown;
+        for K in TKeyword do
+          if SameText(s, KeywordNames[K]) then
+          begin
+            Keyword := K;
+            break;
+          end;
+
+        case ParsePart of
+          ppStart  : begin
+                     Result.StatementType := StrToStatementType(s);
+                     case Keyword of
+                       kwWITH  : ParsePart := ppWith;
+                       kwSELECT: ParsePart := ppSelect;
+                       else      break;
+                     end;
+                     end;
+          ppWith   : begin
+                     // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
+                     //  { SELECT | INSERT | UPDATE | DELETE } ...
+                     case Keyword of
+                       kwSELECT: Result.StatementType := stSelect;
+                       kwINSERT: Result.StatementType := stInsert;
+                       kwUPDATE: Result.StatementType := stUpdate;
+                       kwDELETE: Result.StatementType := stDelete;
+                     end;
+                     if Result.StatementType <> stUnknown then break;
+                     end;
+          ppSelect : begin
+                     if Keyword = kwFROM then
+                       ParsePart := ppTableName;
+                     end;
+          ppTableName:
+                     begin
+                     // Meta-data requests are never updateable
+                     //  and select statements from more than one table
+                     //  and/or derived tables are also not updateable
+                     if Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd] then
+                       begin
+                       Result.TableName := s;
+                       Result.Updateable := True;
+                       end;
+                     ParsePart := ppFrom;
+                     end;
+          ppFrom   : begin
+                     if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
+                        (Separator = sepEnd) then
+                       begin
+                       case Keyword of
+                         kwWHERE: ParsePart := ppWhere;
+                         kwGROUP: ParsePart := ppGroup;
+                         kwORDER: ParsePart := ppOrder;
+                         else     ParsePart := ppBogus;
+                       end;
+
+                       Result.WhereStartPos := PhraseP-PSQL+1;
+                       PStatementPart := CurrentP;
+                       end
+                     else
+                     // joined table or user_defined_function (...)
+                     if (Keyword = kwJOIN) or (Separator in [sepComma, sepParentheses]) then
+                       begin
+                       Result.TableName := '';
+                       Result.Updateable := False;
+                       end;
+                     end;
+          ppWhere  : begin
+                     if (Keyword in [kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
+                        (Separator = sepEnd) then
+                       begin
+                       ParsePart := ppBogus;
+                       Result.WhereStartPos := PStatementPart-PSQL;
+                       if (Separator = sepEnd) then
+                         Result.WhereStopPos := CurrentP-PSQL+1
+                       else
+                         Result.WhereStopPos := PhraseP-PSQL+1;
+                       end
+                     else if (Keyword = kwUNION) then
+                       begin
+                       ParsePart := ppBogus;
+                       Result.Updateable := False;
+                       end;
+                     end;
+        end; {case}
+        end;
+      if Separator in [sepComment, sepParentheses, sepDoubleQuote] then
+        dec(CurrentP);
+      PhraseP := CurrentP+1;
+      end
+    end;
+  until CurrentP^=#0;
+end;
+
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
 
 begin
@@ -1487,6 +1658,7 @@ begin
 end;
 
 { TSQLTransaction }
+
 procedure TSQLTransaction.EndTransaction;
 
 begin
@@ -1647,7 +1819,132 @@ begin
     end;
 end;
 
+
+Type
+
+  { TQuerySQLStatement }
+
+  TQuerySQLStatement = Class(TCustomSQLStatement)
+  protected
+    FQuery : TCustomSQLQuery;
+    Function CreateDataLink : TDataLink; override;
+    Function GetSchemaType : TSchemaType; override;
+    Function GetSchemaObjectName : String; override;
+    Function GetSchemaPattern: String; override;
+    procedure GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo); override;
+    procedure OnChangeSQL(Sender : TObject); override;
+  end;
+
+{ TQuerySQLStatement }
+
+function TQuerySQLStatement.CreateDataLink: TDataLink;
+begin
+  Result:=TMasterParamsDataLink.Create(FQuery);
+end;
+
+function TQuerySQLStatement.GetSchemaType: TSchemaType;
+begin
+  if Assigned(FQuery) then
+    Result:=FQuery.FSchemaType
+  else
+    Result:=stNoSchema;
+end;
+
+function TQuerySQLStatement.GetSchemaObjectName: String;
+begin
+  if Assigned(FQuery) then
+    Result:=FQuery.FSchemaObjectname
+  else
+    Result:=inherited GetSchemaObjectName;
+end;
+
+function TQuerySQLStatement.GetSchemaPattern: String;
+begin
+  if Assigned(FQuery) then
+    Result:=FQuery.FSchemaPattern
+  else
+    Result:=inherited GetSchemaPattern;
+end;
+
+procedure TQuerySQLStatement.GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo);
+begin
+  inherited GetStatementInfo(ASQL, Info);
+  If Assigned(FQuery) then
+    // Note: practical side effect of switch off ParseSQL is that UpdateServerIndexDefs is bypassed
+    //       which is used as performance tuning option
+    if (FQuery.FSchemaType = stNoSchema) and FParseSQL then
+      begin
+      FQuery.FUpdateable:=Info.Updateable;
+      FQuery.FTableName:=Info.TableName;
+      FQuery.FWhereStartPos:=Info.WhereStartPos;
+      FQuery.FWhereStopPos:=Info.WhereStopPos;
+      if FQuery.ServerFiltered then
+        ASQL:=FQuery.AddFilter(ASQL);
+      end
+    else
+      begin
+      FQuery.FUpdateable:=false;
+      FQuery.FTableName:='';
+      FQuery.FWhereStartPos:=0;
+      FQuery.FWhereStopPos:=0;
+      end;
+end;
+
+procedure TQuerySQLStatement.OnChangeSQL(Sender: TObject);
+begin
+  UnPrepare;
+  inherited OnChangeSQL(Sender);
+  If ParamCheck and Assigned(FDataLink) then
+    (FDataLink as TMasterParamsDataLink).RefreshParamNames;
+  FQuery.ServerIndexDefs.Updated:=false;
+end;
+
 { TCustomSQLQuery }
+
+constructor TCustomSQLQuery.Create(AOwner : TComponent);
+
+Var
+  F : TQuerySQLStatement;
+
+begin
+  inherited Create(AOwner);
+  F:=TQuerySQLStatement.Create(Self);
+  F.FQuery:=Self;
+  FStatement:=F;
+
+  FUpdateSQL := TStringList.Create;
+  FUpdateSQL.OnChange := @OnChangeModifySQL;
+  FInsertSQL := TStringList.Create;
+  FInsertSQL.OnChange := @OnChangeModifySQL;
+  FDeleteSQL := TStringList.Create;
+  FDeleteSQL.OnChange := @OnChangeModifySQL;
+
+  FServerIndexDefs := TServerIndexDefs.Create(Self);
+
+  FServerFiltered := False;
+  FServerFilterText := '';
+
+  FSchemaType:=stNoSchema;
+  FSchemaObjectName:='';
+  FSchemaPattern:='';
+
+// Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
+// (variants) set it to upWhereKeyOnly
+  FUpdateMode := upWhereKeyOnly;
+  FUsePrimaryKeyAsKey := True;
+end;
+
+destructor TCustomSQLQuery.Destroy;
+begin
+  if Active then Close;
+  UnPrepare;
+  FreeAndNil(FStatement);
+  FreeAndNil(FInsertSQL);
+  FreeAndNil(FDeleteSQL);
+  FreeAndNil(FUpdateSQL);
+  FServerIndexDefs.Free;
+  inherited Destroy;
+end;
 
 function TCustomSQLQuery.ParamByName(const AParamName: String): TParam;
 
@@ -1900,179 +2197,6 @@ begin
   end;
 end;
 
-
-
-function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
-
-type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
-     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
-     TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
-
-const
-  KeywordNames: array[TKeyword] of string =
-    ('WITH', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'JOIN', 'WHERE', 'GROUP', 'ORDER', 'UNION', 'ROWS', 'LIMIT', '');
-
-var
-  PSQL, CurrentP, SavedP,
-  PhraseP, PStatementPart : pchar;
-  S                       : string;
-  ParsePart               : TParsePart;
-  BracketCount            : Integer;
-  Separator               : TPhraseSeparator;
-  Keyword, K              : TKeyword;
-
-begin
-  PSQL:=Pchar(ASQL);
-  ParsePart := ppStart;
-
-  CurrentP := PSQL-1;
-  PhraseP := PSQL;
-
-  Result.TableName := '';
-  Result.Updateable := False;
-  Result.WhereStartPos := 0;
-  Result.WhereStopPos := 0;
-
-  repeat
-    begin
-    inc(CurrentP);
-    SavedP := CurrentP;
-
-    case CurrentP^ of
-      ' ', #9..#13:
-        Separator := sepWhiteSpace;
-      ',':
-        Separator := sepComma;
-      #0, ';':
-        Separator := sepEnd;
-      '(':
-        begin
-        Separator := sepParentheses;
-        // skip everything between brackets, since it could be a sub-select, and
-        // further nothing between brackets could be interesting for the parser.
-        BracketCount := 1;
-        repeat
-          inc(CurrentP);
-          if CurrentP^ = '(' then inc(BracketCount)
-          else if CurrentP^ = ')' then dec(BracketCount);
-        until (CurrentP^ = #0) or (BracketCount = 0);
-        if CurrentP^ <> #0 then inc(CurrentP);
-        end;
-      '"','`':
-        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
-          Separator := sepDoubleQuote;
-      else
-        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
-          Separator := sepComment
-        else
-          Separator := sepNone;
-    end;
-
-    if (CurrentP > SavedP) and (SavedP > PhraseP) then
-      CurrentP := SavedP;  // there is something before comment or left parenthesis
-
-    if Separator <> sepNone then
-      begin
-      if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
-        PhraseP := CurrentP;  // skip comments (but not parentheses) and white spaces
-
-      if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
-        begin
-        SetString(s, PhraseP, CurrentP-PhraseP);
-
-        Keyword := kwUnknown;
-        for K in TKeyword do
-          if SameText(s, KeywordNames[K]) then
-          begin
-            Keyword := K;
-            break;
-          end;
-
-        case ParsePart of
-          ppStart  : begin
-                     Result.StatementType := StrToStatementType(s);
-                     case Keyword of
-                       kwWITH  : ParsePart := ppWith;
-                       kwSELECT: ParsePart := ppSelect;
-                       else      break;
-                     end;
-                     end;
-          ppWith   : begin
-                     // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
-                     //  { SELECT | INSERT | UPDATE | DELETE } ...
-                     case Keyword of
-                       kwSELECT: Result.StatementType := stSelect;
-                       kwINSERT: Result.StatementType := stInsert;
-                       kwUPDATE: Result.StatementType := stUpdate;
-                       kwDELETE: Result.StatementType := stDelete;
-                     end;
-                     if Result.StatementType <> stUnknown then break;
-                     end;
-          ppSelect : begin
-                     if Keyword = kwFROM then
-                       ParsePart := ppTableName;
-                     end;
-          ppTableName:
-                     begin
-                     // Meta-data requests are never updateable
-                     //  and select statements from more than one table
-                     //  and/or derived tables are also not updateable
-                     if Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd] then
-                       begin
-                       Result.TableName := s;
-                       Result.Updateable := True;
-                       end;
-                     ParsePart := ppFrom;
-                     end;
-          ppFrom   : begin
-                     if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
-                        (Separator = sepEnd) then
-                       begin
-                       case Keyword of
-                         kwWHERE: ParsePart := ppWhere;
-                         kwGROUP: ParsePart := ppGroup;
-                         kwORDER: ParsePart := ppOrder;
-                         else     ParsePart := ppBogus;
-                       end;
-
-                       Result.WhereStartPos := PhraseP-PSQL+1;
-                       PStatementPart := CurrentP;
-                       end
-                     else
-                     // joined table or user_defined_function (...)
-                     if (Keyword = kwJOIN) or (Separator in [sepComma, sepParentheses]) then
-                       begin
-                       Result.TableName := '';
-                       Result.Updateable := False;
-                       end;
-                     end;
-          ppWhere  : begin
-                     if (Keyword in [kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
-                        (Separator = sepEnd) then
-                       begin
-                       ParsePart := ppBogus;
-                       Result.WhereStartPos := PStatementPart-PSQL;
-                       if (Separator = sepEnd) then
-                         Result.WhereStopPos := CurrentP-PSQL+1
-                       else
-                         Result.WhereStopPos := PhraseP-PSQL+1;
-                       end
-                     else if (Keyword = kwUNION) then
-                       begin
-                       ParsePart := ppBogus;
-                       Result.Updateable := False;
-                       end;
-                     end;
-        end; {case}
-        end;
-      if Separator in [sepComment, sepParentheses, sepDoubleQuote] then
-        dec(CurrentP);
-      PhraseP := CurrentP+1;
-      end
-    end;
-  until CurrentP^=#0;
-end;
-
 procedure TCustomSQLQuery.InternalOpen;
 
 var counter, fieldc : integer;
@@ -2161,134 +2285,6 @@ begin
   end;
 end;
 
-Type
-
-  { TQuerySQLStatement }
-
-  TQuerySQLStatement = Class(TCustomSQLStatement)
-  protected
-    FQuery : TCustomSQLQuery;
-    Function CreateDataLink : TDataLink; override;
-    Function GetSchemaType : TSchemaType; override;
-    Function GetSchemaObjectName : String; override;
-    Function GetSchemaPattern: String; override;
-    procedure GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo); override;
-    procedure OnChangeSQL(Sender : TObject); override;
-  end;
-
-{ TQuerySQLStatement }
-
-function TQuerySQLStatement.CreateDataLink: TDataLink;
-begin
-  Result:=TMasterParamsDataLink.Create(FQuery);
-end;
-
-function TQuerySQLStatement.GetSchemaType: TSchemaType;
-begin
-  if Assigned(FQuery) then
-    Result:=FQuery.FSchemaType
-  else
-    Result:=stNoSchema;
-end;
-
-function TQuerySQLStatement.GetSchemaObjectName: String;
-begin
-  if Assigned(FQuery) then
-    Result:=FQuery.FSchemaObjectname
-  else
-    Result:=inherited GetSchemaObjectName;
-end;
-
-function TQuerySQLStatement.GetSchemaPattern: String;
-begin
-  if Assigned(FQuery) then
-    Result:=FQuery.FSchemaPattern
-  else
-    Result:=inherited GetSchemaPattern;
-end;
-
-procedure TQuerySQLStatement.GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo);
-begin
-  inherited GetStatementInfo(ASQL, Info);
-  If Assigned(FQuery) then
-    // Note: practical side effect of switch off ParseSQL is that UpdateServerIndexDefs is bypassed
-    //       which is used as performance tuning option
-    if (FQuery.FSchemaType = stNoSchema) and FParseSQL then
-      begin
-      FQuery.FUpdateable:=Info.Updateable;
-      FQuery.FTableName:=Info.TableName;
-      FQuery.FWhereStartPos:=Info.WhereStartPos;
-      FQuery.FWhereStopPos:=Info.WhereStopPos;
-      if FQuery.ServerFiltered then
-        ASQL:=FQuery.AddFilter(ASQL);
-      end
-    else
-      begin
-      FQuery.FUpdateable:=false;
-      FQuery.FTableName:='';
-      FQuery.FWhereStartPos:=0;
-      FQuery.FWhereStopPos:=0;
-      end;
-end;
-
-procedure TQuerySQLStatement.OnChangeSQL(Sender: TObject);
-begin
-  UnPrepare;
-  inherited OnChangeSQL(Sender);
-  If ParamCheck and Assigned(FDataLink) then
-    (FDataLink as TMasterParamsDataLink).RefreshParamNames;
-  FQuery.ServerIndexDefs.Updated:=false;
-end;
-
-constructor TCustomSQLQuery.Create(AOwner : TComponent);
-
-Var
-  F : TQuerySQLStatement;
-
-begin
-  inherited Create(AOwner);
-  F:=TQuerySQLStatement.Create(Self);
-  F.FQuery:=Self;
-  FStatement:=F;
-
-  //FSQL := TStringList.Create;
-  // FSQL.OnChange := @OnChangeSQL;
-
-  FUpdateSQL := TStringList.Create;
-  FUpdateSQL.OnChange := @OnChangeModifySQL;
-  FInsertSQL := TStringList.Create;
-  FInsertSQL.OnChange := @OnChangeModifySQL;
-  FDeleteSQL := TStringList.Create;
-  FDeleteSQL.OnChange := @OnChangeModifySQL;
-
-  FServerIndexDefs := TServerIndexDefs.Create(Self);
-
-  FServerFiltered := False;
-  FServerFilterText := '';
-
-  FSchemaType:=stNoSchema;
-  FSchemaObjectName:='';
-  FSchemaPattern:='';
-
-// Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
-// (variants) set it to upWhereKeyOnly
-  FUpdateMode := upWhereKeyOnly;
-  FUsePrimaryKeyAsKey := True;
-end;
-
-destructor TCustomSQLQuery.Destroy;
-begin
-  if Active then Close;
-  UnPrepare;
-  FreeAndNil(Fstatement);
-//  FreeAndNil(FSQL);
-  FreeAndNil(FInsertSQL);
-  FreeAndNil(FDeleteSQL);
-  FreeAndNil(FUpdateSQL);
-  FServerIndexDefs.Free;
-  inherited Destroy;
-end;
-
 procedure TCustomSQLQuery.SetReadOnly(AValue : Boolean);
 
 begin
@@ -2337,7 +2333,7 @@ end;
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 begin
-  // Moved to connection: the connection always has more information about types etc.
+  // Moved to connection: the SQLConnection always has more information about types etc.
   // than SQLQuery itself.
   SQLConnection.ApplyRecupdate(Self,UpdateKind);
 end;
