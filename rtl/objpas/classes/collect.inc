@@ -302,8 +302,12 @@ end;
 
 destructor TCollection.Destroy;
 begin
-  BeginUpdate; // Prevent OnChange
-  DoClear;
+  FUpdateCount:=1; // Prevent OnChange
+  try
+    DoClear;
+  Finally
+    FUpdateCount:=0;
+  end;
   FItems.Free;
   Inherited Destroy;
 end;
