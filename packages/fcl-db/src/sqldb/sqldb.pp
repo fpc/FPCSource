@@ -204,7 +204,7 @@ type
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
 
-    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); virtual;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
 
     Property Statements : TFPList Read FStatements;
@@ -223,7 +223,7 @@ type
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
     procedure GetSchemaNames(List: TStrings); virtual;
     function GetConnectionInfo(InfoType:TConnInfoType): string; virtual;
-    function GetStatementInfo(const ASQL: string; Full: Boolean; ASchema : TSchemaType): TSQLStatementInfo; virtual;
+    function GetStatementInfo(const ASQL: string): TSQLStatementInfo; virtual;
     procedure CreateDB; virtual;
     procedure DropDB; virtual;
     property ConnOptions: TConnOptions read FConnOptions;
@@ -310,7 +310,7 @@ type
     Function GetSchemaObjectName : String; virtual;
     Function GetSchemaPattern: String; virtual;
     Function IsSelectable : Boolean ; virtual;
-    procedure GetStatementInfo(Var ASQL: String; Full: Boolean; ASchema: TSchemaType; out Info: TSQLStatementInfo); virtual;
+    procedure GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo); virtual;
     Procedure DoExecute; virtual;
     procedure DoPrepare; virtual;
     procedure DoUnPrepare; virtual;
@@ -623,7 +623,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     Property Proxy : TSQLConnection Read FProxy;
   Published
@@ -919,11 +919,10 @@ begin
 end;
 
 
-procedure TCustomSQLStatement.GetStatementInfo(var ASQL: String; Full: Boolean;
-  ASchema: TSchemaType; out Info: TSQLStatementInfo);
+procedure TCustomSQLStatement.GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo);
 
 begin
-  Info:=Database.GetStatementInfo(ASQL,Full,ASchema);
+  Info:=Database.GetStatementInfo(ASQL);
 end;
 
 procedure TCustomSQLStatement.AllocateCursor;
@@ -943,8 +942,7 @@ end;
 procedure TCustomSQLStatement.DoPrepare;
 
 var
-  StmType: TStatementType;
-  I : TSQLStatementInfo;
+  StmInfo: TSQLStatementInfo;
 begin
   if GetSchemaType=stNoSchema then
     FOrigSQL := TrimRight(FSQL.Text)
@@ -953,11 +951,10 @@ begin
   if (FOrigSQL='') then
     DatabaseError(SErrNoStatement);
   FServerSQL:=FOrigSQL;
-  GetStatementInfo(FServerSQL,ParseSQL,GetSchemaType,I);
-  StmType:=I.StatementType;
+  GetStatementInfo(FServerSQL,StmInfo);
   AllocateCursor;
   FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
-  FCursor.FStatementType:=StmType;
+  FCursor.FStatementType:=StmInfo.StatementType;
   FCursor.FSchemaType:=GetSchemaType;
   If LogEvent(detPrepare) then
     Log(detPrepare,FServerSQL);
@@ -1061,7 +1058,7 @@ begin
     end;
 end;
 
-procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
+procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string);
 
 begin
 // Empty abstract
@@ -1723,8 +1720,6 @@ end;
 
 procedure TCustomSQLQuery.ApplyFilter;
 
-var S : String;
-
 begin
   FreeFldBuffers;
   FStatement.Unprepare;
@@ -1754,8 +1749,7 @@ begin
   if (ServerFiltered <> Value) then
     begin
     FServerFiltered := Value;
-    if active then
-      ApplyFilter;
+    if Active then ApplyFilter;
     end;
 end;
 
@@ -1764,7 +1758,7 @@ begin
   if Value <> ServerFilter then
     begin
     FServerFilterText := Value;
-    if active then ApplyFilter;
+    if Active then ApplyFilter;
     end;
 end;
 
@@ -1908,25 +1902,7 @@ end;
 
 
 
-(*
-function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
-
-Var
-  I : TSQLStatementInfo;
-
-begin
-  I:=(Database as TSQLConnection).GetStatementInfo(ASQL,ParseSQL,SchemaType);
-  FTableName:=I.TableName;
-  FUpdateable:=I.Updateable;
-  FWhereStartPos:=I.WhereStartPos;
-  FWhereStopPos:=I.WhereStopPos;
-  Result:=I.StatementType;
-end;
-*)
-
-function TSQLConnection.GetStatementInfo(const ASQL: string; Full: Boolean;
-  ASchema: TSchemaType): TSQLStatementInfo;
-
+function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
 
 type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
      TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
@@ -2020,7 +1996,6 @@ begin
                        kwSELECT: ParsePart := ppSelect;
                        else      break;
                      end;
-                     if not Full then break;
                      end;
           ppWith   : begin
                      // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
@@ -2042,8 +2017,7 @@ begin
                      // Meta-data requests are never updateable
                      //  and select statements from more than one table
                      //  and/or derived tables are also not updateable
-                     if (ASchema = stNoSchema) and
-                        (Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd]) then
+                     if Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd] then
                        begin
                        Result.TableName := s;
                        Result.Updateable := True;
@@ -2198,7 +2172,7 @@ Type
     Function GetSchemaType : TSchemaType; override;
     Function GetSchemaObjectName : String; override;
     Function GetSchemaPattern: String; override;
-    procedure GetStatementInfo(Var ASQL: String; Full: Boolean; ASchema: TSchemaType; out Info: TSQLStatementInfo); override;
+    procedure GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo); override;
     procedure OnChangeSQL(Sender : TObject); override;
   end;
 
@@ -2233,19 +2207,28 @@ begin
     Result:=inherited GetSchemaPattern;
 end;
 
-procedure TQuerySQLStatement.GetStatementInfo(var ASQL: String; Full: Boolean;
-  ASchema: TSchemaType; out Info: TSQLStatementInfo);
+procedure TQuerySQLStatement.GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo);
 begin
-  inherited GetStatementInfo(ASQL, Full, ASchema, Info);
+  inherited GetStatementInfo(ASQL, Info);
   If Assigned(FQuery) then
-    begin
-    FQuery.FWhereStartPos:=Info.WhereStartPos;
-    FQuery.FWhereStopPos:=Info.WhereStopPos;
-    FQuery.FUpdateable:=info.Updateable;
-    FQuery.FTableName:=Info.TableName;
-    if FQuery.ServerFiltered then
-      ASQL:=FQuery.AddFilter(ASQL);
-    end;
+    // Note: practical side effect of switch off ParseSQL is that UpdateServerIndexDefs is bypassed
+    //       which is used as performance tuning option
+    if (FQuery.FSchemaType = stNoSchema) and FParseSQL then
+      begin
+      FQuery.FUpdateable:=Info.Updateable;
+      FQuery.FTableName:=Info.TableName;
+      FQuery.FWhereStartPos:=Info.WhereStartPos;
+      FQuery.FWhereStopPos:=Info.WhereStopPos;
+      if FQuery.ServerFiltered then
+        ASQL:=FQuery.AddFilter(ASQL);
+      end
+    else
+      begin
+      FQuery.FUpdateable:=false;
+      FQuery.FTableName:='';
+      FQuery.FWhereStartPos:=0;
+      FQuery.FWhereStopPos:=0;
+      end;
 end;
 
 procedure TQuerySQLStatement.OnChangeSQL(Sender: TObject);
