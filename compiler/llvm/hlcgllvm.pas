@@ -245,7 +245,7 @@ implementation
       if ref.refaddr=addr_full then
         internalerror(2013102306);
       sref:=make_simple_ref(list,ref,fromsize);
-      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,fromsize,sref,tosize));
+      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,getpointerdef(fromsize),sref,tosize));
     end;
 
 
