@@ -584,8 +584,7 @@ implementation
 
   procedure thlcgllvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     begin
-      { todo }
-      inherited;
+      a_load_ref_ref(list,size,size,source,dest);
     end;
 
 
