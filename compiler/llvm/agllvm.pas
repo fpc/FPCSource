@@ -180,6 +180,31 @@ implementation
       end;
 
 
+   function getparas(const o: toper): ansistring;
+     var
+       i: longint;
+       para: pllvmcallpara;
+     begin
+       result:='(';
+       for i:=0 to o.paras.count-1 do
+         begin
+           if i<>0 then
+             result:=result+', ';
+           para:=pllvmcallpara(o.paras[i]);
+           result:=result+llvmencodetype(para^.def);
+           case para^.loc of
+             LOC_REGISTER,
+             LOC_FPUREGISTER,
+             LOC_MMREGISTER:
+               result:=result+' '+getregisterstring(para^.reg);
+             else
+               internalerror(2014010801);
+           end;
+         end;
+       result:=result+')';
+     end;
+
+
    function getopstr(const o:toper; refwithalign: boolean) : ansistring;
      var
        hs : ansistring;
@@ -247,6 +272,10 @@ implementation
              doubleval.d:=o.dval;
              result:='0x'+hexstr(doubleval.i,16);
            end;
+         top_para:
+           begin
+             result:=getparas(o);
+           end;
 {$ifdef cpuextended}
          top_extended80:
            begin
@@ -287,7 +316,10 @@ implementation
           end;
         la_call:
           begin
-            internalerror(2013011601);
+            if taillvm(hp).oper[0]^.reg<>NR_NO then
+              s:=s+getregisterstring(taillvm(hp).oper[0]^.reg)+' = ';
+            sep:=' ';
+            opstart:=1;
           end;
         la_alloca:
           begin
@@ -300,11 +332,11 @@ implementation
         la_ptrtoint, la_inttoptr,
         la_bitcast:
           begin
-            s:=s+getopstr(taillvm(hp).oper[0]^,true)+' = '+
+            s:=s+getopstr(taillvm(hp).oper[0]^,false)+' = '+
               llvm_op2str[op]+' '+
-              getopstr(taillvm(hp).oper[1]^,true)+' '+
-              getopstr(taillvm(hp).oper[2]^,true)+' to '+
-              getopstr(taillvm(hp).oper[3]^,true);
+              getopstr(taillvm(hp).oper[1]^,false)+' '+
+              getopstr(taillvm(hp).oper[2]^,false)+' to '+
+              getopstr(taillvm(hp).oper[3]^,false);
             done:=true;
           end
         else
@@ -323,7 +355,8 @@ implementation
               for i:=opstart to taillvm(hp).ops-1 do
                 begin
                    s:=s+sep+getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]);
-                   if taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond] then
+                   if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
+                      (op=la_call) then
                      sep :=' '
                    else
                      sep:=', ';
