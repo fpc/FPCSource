@@ -584,7 +584,8 @@ implementation
                   if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
                      { should be emitted as part of the variable/function def }
-                     internalerror(2013010704);
+                     //internalerror(2013010704);
+                     AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
                    end;
                   if replaceforbidden then
                     AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
