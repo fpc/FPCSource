@@ -167,19 +167,83 @@ implementation
     end;
 
 
+  function def2intdef(fromsize, tosize: tdef): tdef;
+    begin
+      { we cannot zero-extend from/to anything but ordinal/enum
+        types }
+      if not(tosize.typ in [orddef,enumdef]) then
+        internalerror(2014012305);
+      { will give an internalerror if def_cgsize() returns OS_NO, which is
+        what we want }
+      result:=cgsize_orddef(def_cgsize(fromsize));
+    end;
+
+
   procedure thlcgllvm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
     var
+      tmpref,
       sref: treference;
-      hreg: tregister;
+      hreg,
+      hreg2: tregister;
+      tmpsize: tdef;
     begin
       sref:=make_simple_ref(list,ref,tosize);
       hreg:=register;
-      if fromsize.size<>tosize.size then
+      (* typecast the pointer to the value instead of the value itself if
+        they have the same size but are of different kinds, because we can't
+        e.g. typecast a loaded <{i32, i32}> to an i64 *)
+      if (llvmaggregatetype(fromsize) or
+          llvmaggregatetype(tosize)) and
+         (fromsize<>tosize) then
+        begin
+          if fromsize.size>tosize.size then
+            begin
+              { if source size is larger than the target size, we have to
+                truncate it before storing. Unfortunately, we cannot truncate
+                records (nor bitcast them to integers), so we first have to
+                store them to memory and then bitcast the pointer to them
+              }
+              if fromsize.typ in [arraydef,recorddef] then
+                begin
+                  { store struct/array-in-register to memory }
+                  tmpsize:=def2intdef(fromsize,tosize);
+                  tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
+                  a_load_reg_ref(list,fromsize,fromsize,register,tmpref);
+                  { typecast pointer to memory into pointer to integer type }
+                  hreg:=getaddressregister(list,getpointerdef(tmpsize));
+                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),tmpref,hreg);
+                  reference_reset_base(sref,hreg,0,tmpref.alignment);
+                  { load the integer from the temp into the destination }
+                  a_load_ref_ref(list,tmpsize,tosize,tmpref,sref);
+                  tg.ungettemp(list,tmpref);
+                end
+              else
+                begin
+                  tmpsize:=def2intdef(tosize,fromsize);
+                  hreg:=getintregister(list,tmpsize);
+                  { truncate the integer }
+                  a_load_reg_reg(list,fromsize,tmpsize,register,hreg);
+                  { store it to memory (it will now be of the same size as the
+                    struct, and hence another path will be followed in this
+                    method) }
+                  a_load_reg_ref(list,tmpsize,tosize,hreg,sref);
+                end;
+                exit;
+            end
+          else
+            begin
+              hreg2:=getaddressregister(list,getpointerdef(fromsize));
+              a_loadaddr_ref_reg(list,tosize,getpointerdef(fromsize),sref,hreg2);
+              reference_reset_base(sref,hreg2,0,sref.alignment);
+              tosize:=fromsize;
+            end;
+        end
+      else if fromsize<>tosize then
         begin
           hreg:=getregisterfordef(list,tosize);
           a_load_reg_reg(list,fromsize,tosize,register,hreg);
         end;
-      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,getpointerdef(tosize),sref))
+      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,getpointerdef(tosize),sref));
     end;
 
 
@@ -218,15 +282,80 @@ implementation
 
   procedure thlcgllvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
     var
+      tmpref,
       sref: treference;
       hreg: tregister;
+      tmpsize: tdef;
     begin
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
       if sref.refaddr=addr_full then
-        list.concat(taillvm.op_reg_size_ref_size(la_bitcast,register,fromsize,sref,tosize))
+        begin
+          { can't bitcast records/arrays }
+          if (llvmaggregatetype(fromsize) or
+              llvmaggregatetype(tosize)) and
+             (fromsize<>tosize) then
+            begin
+              tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
+              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(fromsize),tmpref));
+              a_load_ref_reg(list,fromsize,tosize,tmpref,register);
+              tg.ungettemp(list,tmpref);
+            end
+          else
+            list.concat(taillvm.op_reg_size_ref_size(la_bitcast,register,fromsize,sref,tosize))
+        end
       else
         begin
+          if ((fromsize.typ in [arraydef,recorddef]) or
+              (tosize.typ in [arraydef,recorddef])) and
+             (fromsize<>tosize) then
+            begin
+              if fromsize.size<tosize.size then
+                begin
+                  { if the target size is larger than the source size, we
+                    have to perform the zero-extension using an integer type
+                    (can't zero-extend a record/array) }
+                  if fromsize.typ in [arraydef,recorddef] then
+                    begin
+                      { typecast the pointer to the struct into a pointer to an
+                        integer of equal size }
+                      tmpsize:=def2intdef(fromsize,tosize);
+                      hreg:=getaddressregister(list,getpointerdef(tmpsize));
+                      a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),sref,hreg);
+                      reference_reset_base(sref,hreg,0,sref.alignment);
+                      { load that integer }
+                      a_load_ref_reg(list,tmpsize,tosize,sref,register);
+                    end
+                  else
+                    begin
+                      { load the integer into an integer memory location with
+                        the same size as the struct (the integer should be
+                        unsigned, we don't want sign extensions here) }
+                      if is_signed(fromsize) then
+                        internalerror(2014012309);
+                      tmpsize:=def2intdef(tosize,fromsize);
+                      tg.gethltemp(list,tmpsize,tmpsize.size,tt_normal,tmpref);
+                      { typecast the struct-sized integer location into the
+                        struct type }
+                      a_load_ref_ref(list,fromsize,tmpsize,sref,tmpref);
+                      { load the struct in the register }
+                      a_load_ref_reg(list,tmpsize,tosize,tmpref,register);
+                      tg.ungettemp(list,tmpref);
+                    end;
+                  exit;
+                end
+              else
+                begin
+                  (* typecast the pointer to the value instead of the value
+                     itself if they have the same size but are of different
+                     kinds, because we can't e.g. typecast a loaded <{i32, i32}>
+                     to an i64 *)
+                  hreg:=getaddressregister(list,getpointerdef(tosize));
+                  a_loadaddr_ref_reg(list,fromsize,getpointerdef(tosize),sref,hreg);
+                  reference_reset_base(sref,hreg,0,sref.alignment);
+                  fromsize:=tosize;
+                end;
+            end;
           hreg:=register;
           if fromsize<>tosize then
             hreg:=getregisterfordef(list,fromsize);

@@ -70,6 +70,8 @@ interface
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
         { e.g. store fromsize src, ptrsize toref}
         constructor op_size_reg_size_ref(op:tllvmop;fromsize:tdef;src:tregister;ptrsize:tdef;const toref:treference);
+        { e.g. store fromsize srcref, ptrsize toref (with srcref.refaddr=full) }
+        constructor op_size_ref_size_ref(op:tllvmop;fromsize:tdef;const src:treference;ptrsize:tdef;const toref:treference);
         { e.g. store fromsize const, ptrsize toref}
         constructor op_size_const_size_ref(op:tllvmop;fromsize:tdef;src:int64;ptrsize:tdef;const toref:treference);
         { e.g. dst = load fromsize fromref }
@@ -547,6 +549,17 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadreg(1,src);
+        loaddef(2,ptrsize);
+        loadref(3,toref);
+      end;
+
+
+    constructor taillvm.op_size_ref_size_ref(op: tllvmop; fromsize: tdef; const src: treference; ptrsize: tdef; const toref: treference);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loaddef(0,fromsize);
+        loadref(1,src);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
