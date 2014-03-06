@@ -35,6 +35,11 @@ interface
       tllvmloadparentfpnode = class(tcgnestloadparentfpnode)
       end;
 
+      tllvmsubscriptnode = class(tcgsubscriptnode)
+       protected
+        function handle_platform_subscript: boolean; override;
+      end;
+
       tllvmvecnode= class(tcgvecnode)
        private
         constarrayoffset: aint;
@@ -52,9 +57,49 @@ implementation
     uses
       verbose,cutils,
       aasmdata,aasmllvm,
-      symconst,symdef,defutil,
+      symtable,symconst,symdef,defutil,
       nmem,
       cpubase,llvmbase,hlcgobj;
+
+  { tllvmsubscriptnode }
+
+    function tllvmsubscriptnode.handle_platform_subscript: boolean;
+      var
+        llvmfielddef: tdef;
+        newbase: tregister;
+      begin
+        if location.loc<>LOC_REFERENCE then
+          internalerror(2014011905);
+        if is_packed_record_or_object(left.resultdef) then
+          begin
+            { typecast the result to the expected type, but don't actually index
+              (that still has to be done by the generic code, so return false) }
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),location.reference,newbase);
+            reference_reset_base(location.reference,newbase,0,location.reference.alignment);
+            result:=false;
+          end
+        else
+          begin
+            { get the type of the corresponding field in the llvm shadow
+              definition }
+            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(left.resultdef).symtable).llvmst[vs.llvmfieldnr].def;
+            { load the address of that shadow field }
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
+            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,getpointerdef(left.resultdef),location.reference,s32inttype,vs.llvmfieldnr,true));
+            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
+            { if it doesn't match the requested field exactly (variant record),
+              adjust the type of the pointer }
+            if (vs.offsetfromllvmfield<>0) or
+               (llvmfielddef<>resultdef) then
+              begin
+                newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference.base,newbase);
+                location.reference.base:=newbase;
+              end;
+            result:=true;
+          end;
+      end;
 
   { tllvmvecnode }
 
@@ -214,6 +259,7 @@ implementation
 
 begin
   cloadparentfpnode:=tllvmloadparentfpnode;
+  csubscriptnode:=tllvmsubscriptnode;
   cvecnode:=tllvmvecnode;
 end.
 
