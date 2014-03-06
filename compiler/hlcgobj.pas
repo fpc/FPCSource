@@ -193,14 +193,14 @@ unit hlcgobj;
              Returns the function result location.
              This routine must be overridden for each new target cpu.
           }
-          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
-          procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
+          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
+          function a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister; const paras: array of pcgpara): tcgpara;virtual;abstract;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;virtual;
+          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             special static calls for inherited methods }
-          procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
+          function a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara): tcgpara;virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);virtual;abstract;
@@ -258,8 +258,8 @@ unit hlcgobj;
           procedure a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);virtual;
           procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: tcgint; const loc: tlocation);virtual;
 
+          function  get_call_result_cgpara(pd: tabstractprocdef; forceresdef: tdef): tcgpara; virtual;
          protected
-           function  get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
            procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: torddef; out extra_load: boolean);
            procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
            procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); virtual;
@@ -536,10 +536,10 @@ unit hlcgobj;
           procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); virtual;
 
           { generate a call to a routine in the system unit }
-          function g_call_system_proc(list: TAsmList; const procname: string; forceresdef: tdef): tcgpara;
-          function g_call_system_proc(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+          function g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
+          function g_call_system_proc(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
          protected
-          function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara; virtual;
+          function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara; virtual;
          public
 
 
@@ -986,15 +986,15 @@ implementation
          end;
     end;
 
-  function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
+  function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
-      result:=a_call_name(list,pd,s,forceresdef,false);
+      result:=a_call_name(list,pd,s,paras,forceresdef,false);
     end;
 
-    procedure thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
-      begin
-        a_call_name(list,pd,s,nil,false);
-      end;
+  function thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
+    begin
+      result:=a_call_name(list,pd,s,paras,nil,false);
+    end;
 
   procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
@@ -1670,7 +1670,7 @@ implementation
     end;
 
 
-  function thlcgobj.get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.get_call_result_cgpara(pd: tabstractprocdef; forceresdef: tdef): tcgpara;
     begin
       if not assigned(forceresdef) then
         begin
@@ -2936,7 +2936,7 @@ implementation
          paramanager.getintparaloc(pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
-         g_call_system_proc(list,pd,nil);
+         g_call_system_proc(list,pd,[@cgpara1],nil);
          cgpara1.done;
          a_label(list,oklabel);
        end;
@@ -2984,7 +2984,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3012,7 +3012,7 @@ implementation
         end;
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
       cgpara2.done;
       cgpara1.done;
     end;
@@ -3051,7 +3051,7 @@ implementation
             { these functions get the pointer by value }
             a_load_ref_cgpara(list,t,ref,cgpara1);
           paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil);
         end
        else
         begin
@@ -3073,7 +3073,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
         end;
        cgpara2.done;
        cgpara1.done;
@@ -3099,7 +3099,7 @@ implementation
            paramanager.getintparaloc(pd,1,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil);
          end
        else
          begin
@@ -3121,7 +3121,7 @@ implementation
               end;
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
-            g_call_system_proc(list,pd,nil);
+            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
          end;
        cgpara1.done;
        cgpara2.done;
@@ -3171,7 +3171,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
           cgpara1.done;
           cgpara2.done;
           exit;
@@ -3181,7 +3181,7 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil);
       cgpara1.done;
     end;
 
@@ -3235,7 +3235,7 @@ implementation
       paramanager.freecgpara(list,cgpara1);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara3);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
 
       cgpara3.done;
       cgpara2.done;
@@ -3406,7 +3406,7 @@ implementation
                   { if low(to) > maxlongint also range error }
                   (lto > aintmax) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -3421,7 +3421,7 @@ implementation
                if (lfrom > aintmax) or
                   (hto < 0) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -3444,7 +3444,7 @@ implementation
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
-      g_call_system_proc(list,'fpc_rangeerror',nil);
+      g_call_system_proc(list,'fpc_rangeerror',[],nil);
       a_label(list,neglabel);
     end;
 
@@ -3486,7 +3486,7 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      getmemres:=g_call_system_proc(list,pd,ptrarrdef);
+      getmemres:=g_call_system_proc(list,pd,[@cgpara1],ptrarrdef);
       cgpara1.done;
       { return the new address }
       location_reset(destloc,LOC_REGISTER,OS_ADDR);
@@ -3522,7 +3522,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3541,7 +3541,7 @@ implementation
       { load source }
       a_load_loc_cgpara(list,getpointerdef(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil);
       cgpara1.done;
     end;
 
@@ -4062,9 +4062,9 @@ implementation
        begin
          { initialize units }
          if not(current_module.islibrary) then
-           g_call_system_proc(list,'fpc_initializeunits',nil)
+           g_call_system_proc(list,'fpc_initializeunits',[],nil)
          else
-           g_call_system_proc(list,'fpc_libinitializeunits',nil);
+           g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
        end;
 
       list.concat(Tai_force_line.Create);
@@ -4082,7 +4082,7 @@ implementation
       { call __EXIT for main program }
       if (not DLLsource) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        g_call_system_proc(list,'fpc_do_exit',nil);
+        g_call_system_proc(list,'fpc_do_exit',[],nil);
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
@@ -4713,26 +4713,26 @@ implementation
         current_asmdata.asmlists[al_procedures].concatlist(data);
     end;
 
-  function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     var
       pd: tprocdef;
     begin
       pd:=search_system_proc(procname);
-      result:=g_call_system_proc_intern(list,pd,forceresdef);
+      result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
-  function thlcgobj.g_call_system_proc(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       { separate non-virtual routine to make it clear that the routine to
         override, if any, is g_call_system_proc_intern (and that none of
         the g_call_system_proc variants should be made virtual) }
-      result:=g_call_system_proc_intern(list,pd,forceresdef);
+      result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
-  function thlcgobj.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       allocallcpuregisters(list);
-      result:=a_call_name(list,pd,pd.mangledname,forceresdef,false);
+      result:=a_call_name(list,pd,pd.mangledname,paras,forceresdef,false);
       deallocallcpuregisters(list);
     end;
 

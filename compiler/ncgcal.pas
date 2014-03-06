@@ -34,12 +34,13 @@ interface
     type
        tcgcallparanode = class(tcallparanode)
        protected
-          tempcgpara : tcgpara;
           procedure push_addr_para;
           procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
           procedure push_copyout_para;virtual;abstract;
        public
+          tempcgpara : tcgpara;
+
           constructor create(expr,next : tnode);override;
           destructor destroy;override;
           procedure secondcallparan;override;
@@ -55,10 +56,10 @@ interface
           procedure copy_back_paras;
           procedure release_para_temps;
           procedure reorder_parameters;
-          procedure pushparas;
           procedure freeparas;
        protected
           retloc: tcgpara;
+          paralocs: array of pcgpara;
 
           framepointer_paraloc : tcgpara;
           {# This routine is used to push the current frame pointer
@@ -94,7 +95,12 @@ interface
             on ref. }
           function can_call_ref(var ref: treference):boolean;virtual;
           procedure extra_call_ref_code(var ref: treference);virtual;
-          procedure do_call_ref(ref: treference);virtual;
+          function do_call_ref(ref: treference): tcgpara;virtual;
+
+          { store all the parameters in the temporary paralocs in their final
+            location, and create the paralocs array that will be passed to
+            hlcg.a_call_* }
+          procedure pushparas;virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -107,7 +113,7 @@ implementation
       systems,
       cutils,verbose,globals,
       cpuinfo,
-      symconst,symtable,symtype,defutil,paramgr,
+      symconst,symtable,symtype,symsym,defutil,paramgr,
       cgbase,pass_2,
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
@@ -434,9 +440,11 @@ implementation
       end;
 
 
-    procedure tcgcallnode.do_call_ref(ref: treference);
+    function tcgcallnode.do_call_ref(ref: treference): tcgpara;
       begin
         InternalError(2014012901);
+        { silence warning }
+        result.init;
       end;
 
 
@@ -629,6 +637,7 @@ implementation
                end;
              ppn:=tcallparanode(ppn.right);
           end;
+        setlength(paralocs,0);
       end;
 
 
@@ -641,7 +650,7 @@ implementation
          htempref,
          href : treference;
          calleralignment,
-         tmpalignment: longint;
+         tmpalignment, i: longint;
          skipiffinalloc: boolean;
        begin
          { copy all resources to the allocated registers }
@@ -743,6 +752,9 @@ implementation
                end;
              ppn:=tcgcallparanode(ppn.right);
            end;
+         setlength(paralocs,procdefinition.paras.count);
+         for i:=0 to procdefinition.paras.count-1 do
+           paralocs[i]:=@tparavarsym(procdefinition.paras[i]).paraloc[callerside];
        end;
 
 
@@ -812,16 +824,12 @@ implementation
           begin
             { The forced returntype may have a different size than the one
               declared for the procdef }
-            if not assigned(typedef) then
-              retloc:=procdefinition.funcretloc[callerside]
-            else
-              retloc:=paramanager.get_funcretloc(procdefinition,callerside,typedef);
+            retloc:=hlcg.get_call_result_cgpara(procdefinition,typedef);
             retlocitem:=retloc.location;
             while assigned(retlocitem) do
               begin
                 case retlocitem^.loc of
                   LOC_REGISTER:
-
                     include(regs_to_save_int,getsupreg(retlocitem^.register));
                   LOC_FPUREGISTER:
                     include(regs_to_save_fpu,getsupreg(retlocitem^.register));
@@ -942,11 +950,11 @@ implementation
 
                  { call method }
                  extra_call_code;
+                 retloc.resetiftemp;
                  if callref then
-                   do_call_ref(href)
+                   retloc:=do_call_ref(href)
                  else
-                   hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
-
+                   retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
                  extra_post_call_code;
                end
              else
@@ -979,13 +987,14 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
+                      retloc.resetiftemp;
                       if (name_to_call='') then
                         if cnf_inherited in callnodeflags then
-                          hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname)
+                          retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,paralocs)
                         else
-                          hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,typedef,po_weakexternal in procdefinition.procoptions).resetiftemp
+                          retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,paralocs,typedef,po_weakexternal in procdefinition.procoptions)
                       else
-                        hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,typedef,po_weakexternal in procdefinition.procoptions).resetiftemp;
+                        retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;
@@ -1045,10 +1054,11 @@ implementation
                 extra_interrupt_code;
               extra_call_code;
 
+              retloc.resetiftemp;
               if callref then
-                do_call_ref(href)
+                retloc:=do_call_ref(href)
               else
-                hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg);
+                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
               extra_post_call_code;
            end;
 

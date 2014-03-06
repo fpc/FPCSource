@@ -158,7 +158,7 @@ implementation
              hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
              current_asmdata.getjumplabel(lab);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
-             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',nil);
+             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
              hlcg.a_label(current_asmdata.CurrAsmList,lab);
            end;
       end;

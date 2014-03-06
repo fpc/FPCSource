@@ -149,11 +149,11 @@ unit hlcg2ll;
           }
           procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);override;
 
-          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
-          procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
+          function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
+          function a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister; const paras: array of pcgpara): tcgpara;override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
+          function a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
@@ -450,18 +450,19 @@ implementation
       cg.a_loadaddr_ref_cgpara(list,r,cgpara);
     end;
 
-  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       cg.a_call_name(list,s,weak);
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
+  function thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       cg.a_call_reg(list,reg);
+      result:=get_call_result_cgpara(pd,nil);
     end;
 
-  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
+  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       cg.a_call_name_static(list,s);
       result:=get_call_result_cgpara(pd,forceresdef);

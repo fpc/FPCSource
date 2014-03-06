@@ -110,6 +110,7 @@ unit parabase;
           procedure   ppuwrite(ppufile:tcompilerppufile);
           procedure   ppuload(ppufile:tcompilerppufile);
        end;
+       PCGPara = ^TCGPara;
 
        tvarargsinfo = (
          va_uses_float_reg
@@ -195,6 +196,7 @@ implementation
         result.alignment:=alignment;
         result.size:=size;
         result.intsize:=intsize;
+        result.def:=def;
       end;
 
 
