@@ -2029,9 +2029,10 @@ type
 
               consume(_SEMICOLON);
             end
-         else if (target_info.system in systems_unit_program_exports) then
+         else
            begin
-             exportlib.preparelib(current_module.realmodulename^);
+             if (target_info.system in systems_unit_program_exports) then
+               exportlib.preparelib(current_module.realmodulename^);
 
              { setup things using the switches }
              setupglobalswitches;
