@@ -519,6 +519,7 @@ unit hlcgobj;
             location if it's not initialised by the Pascal code, e.g.
             stack-based architectures. By default it does nothing }
           procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);virtual;
+          procedure gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);virtual;
          public
           { load a tlocation into a cgpara }
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);virtual;
@@ -4584,6 +4585,11 @@ implementation
       { do nothing by default }
     end;
 
+  procedure thlcgobj.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    begin
+      gen_load_loc_cgpara(list,vardef,l,current_procinfo.procdef.funcretloc[calleeside]);
+    end;
+
   procedure thlcgobj.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
     begin
       { Handle Floating point types differently
@@ -4661,7 +4667,6 @@ implementation
   procedure thlcgobj.gen_load_return_value(list: TAsmList);
     var
       ressym : tabstractnormalvarsym;
-      funcretloc : TCGPara;
       retdef : tdef;
     begin
       { Is the loading needed? }
@@ -4673,8 +4678,6 @@ implementation
            (po_nostackframe in current_procinfo.procdef.procoptions))
          ) then
         exit;
-
-      funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
 
       { constructors return self }
       if (current_procinfo.procdef.proctypeoption=potype_constructor) then
@@ -4695,10 +4698,10 @@ implementation
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-            gen_load_loc_cgpara(list,retdef,ressym.localloc,funcretloc);
+            gen_load_loc_function_result(list,retdef,ressym.localloc);
         end
       else
-        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,funcretloc)
+        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside])
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
