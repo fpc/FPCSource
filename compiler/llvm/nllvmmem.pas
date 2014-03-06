@@ -99,7 +99,7 @@ implementation
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
           current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(left.resultdef),
-            locref^,ptruinttype,constarrayoffset));
+            locref^,ptruinttype,constarrayoffset,true));
           reference_reset_base(locref^,hreg,0,locref^.alignment);
         end;
 
@@ -131,7 +131,7 @@ implementation
       { get address of indexed array element and convert pointer to array into
         pointer to the elementdef in the process }
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),
-        location.reference,ptruinttype,maybe_const_reg));
+        location.reference,ptruinttype,maybe_const_reg,true));
       arraytopointerconverted:=true;
       reference_reset_base(location.reference,hreg,0,location.reference.alignment);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
@@ -185,7 +185,7 @@ implementation
       { index the array using this chunk index }
       basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(defloadsize));
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,getpointerdef(left.resultdef),
-        sref.ref,ptruinttype,offsetreg));
+        sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
       reference_reset_base(sref.ref,basereg,0,sref.ref.alignment);
       { calculate the bit index inside that chunk }

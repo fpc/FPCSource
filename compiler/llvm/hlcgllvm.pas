@@ -926,7 +926,7 @@ implementation
           if ref.base<>NR_NO then
             internalerror(2012111301);
           reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,getpointerdef(def),tmpref,ptruinttype,0));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,getpointerdef(def),tmpref,ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
         begin

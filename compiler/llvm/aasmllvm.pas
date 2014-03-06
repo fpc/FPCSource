@@ -91,9 +91,9 @@ interface
         { e.g. la_ret retdef retval }
         constructor op_size_reg(op:tllvmop;def: tdef;reg: tregister);
 
-        { e.g. dst = getelementptr ptrsize ref, i32 0 (implicit), index1type index1 }
-        constructor getelementptr_reg_size_ref_size_reg(dst:tregister;ptrsize:tdef;const ref:treference;indextype: tdef;index1:tregister);
-        constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype: tdef;index1:ptrint);
+        { e.g. dst = getelementptr ptrsize ref, i32 0 (if indirect), index1type index1 }
+        constructor getelementptr_reg_size_ref_size_reg(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:tregister;indirect:boolean);
+        constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
 
         procedure loaddef(opidx: longint; _def: tdef);
         procedure loaddouble(opidx: longint; _dval: double);
@@ -648,31 +648,53 @@ uses
       end;
 
 
-    constructor taillvm.getelementptr_reg_size_ref_size_reg(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: tregister);
+    constructor taillvm.getelementptr_reg_size_ref_size_reg(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: tregister; indirect: boolean);
+      var
+        index: longint;
       begin
         create_llvm(la_getelementptr);
-        ops:=7;
+        if indirect then
+          ops:=7
+        else
+          ops:=5;
         loadreg(0,dst);
         loaddef(1,ptrsize);
         loadref(2,ref);
-        loaddef(3,s32inttype);
-        loadconst(4,0);
-        loaddef(5,indextype);
-        loadreg(6,index1);
+        if indirect then
+          begin
+            loaddef(3,s32inttype);
+            loadconst(4,0);
+            index:=5;
+          end
+        else
+          index:=3;
+        loaddef(index,indextype);
+        loadreg(index+1,index1);
       end;
 
 
-    constructor taillvm.getelementptr_reg_size_ref_size_const(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: ptrint);
+    constructor taillvm.getelementptr_reg_size_ref_size_const(dst: tregister; ptrsize: tdef; const ref: treference; indextype: tdef; index1: ptrint; indirect: boolean);
+      var
+        index: longint;
       begin
         create_llvm(la_getelementptr);
-        ops:=7;
+        if indirect then
+          ops:=7
+        else
+          ops:=5;
         loadreg(0,dst);
         loaddef(1,ptrsize);
         loadref(2,ref);
-        loaddef(3,s32inttype);
-        loadconst(4,0);
-        loaddef(5,indextype);
-        loadconst(6,index1);
+        if indirect then
+          begin
+            loaddef(3,s32inttype);
+            loadconst(4,0);
+            index:=5;
+          end
+        else
+          index:=3;
+        loaddef(index,indextype);
+        loadconst(index+1,index1);
       end;
 
 end.
