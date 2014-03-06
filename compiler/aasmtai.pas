@@ -263,6 +263,7 @@ interface
        ,top_def
        ,top_fpcond
        ,top_cond
+       ,top_para
 {$endif llvm}
        );
 
@@ -318,6 +319,7 @@ interface
           top_def    : (def: tdef);
           top_cond   : (cond: topcmp);
           top_fpcond : (fpcond: tllvmfpcmp);
+          top_para   : (paras: tfplist);
       {$endif llvm}
       end;
       poper=^toper;
@@ -2684,6 +2686,10 @@ implementation
               top_wstring:
                 donewidestring(pwstrval);
 {$endif jvm}
+{$ifdef llvm}
+              top_para:
+                paras.free;
+{$endif llvm}
             end;
             typ:=top_none;
           end;

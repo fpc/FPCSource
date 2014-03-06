@@ -26,7 +26,7 @@ unit aasmllvm;
 interface
 
     uses
-      globtype,verbose,
+      globtype,verbose,cclasses,
       aasmbase,aasmtai,aasmdata,aasmsym,
       cpubase,cgbase,cgutils,
       symtype,symdef,symsym,
@@ -98,6 +98,9 @@ interface
         constructor getelementptr_reg_size_ref_size_reg(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:tregister;indirect:boolean);
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
 
+        { e.g. dst = call retsize (paras) }
+        constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+
         procedure loaddef(opidx: longint; _def: tdef);
         procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
@@ -106,6 +109,7 @@ interface
 {$endif cpuextended}
         procedure loadcond(opidx: longint; _cond: topcmp);
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
+        procedure loadparas(opidx: longint; _paras: tfplist);
 
         { register spilling code }
         function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -142,11 +146,25 @@ interface
       constructor create(_namesym: tasmsymbol; _def: tdef);
     end;
 
+    { parameter to an llvm call instruction }
+    pllvmcallpara = ^tllvmcallpara;
+    tllvmcallpara = record
+      def: tdef;
+      valueext: tllvmvalueextension;
+      case loc: tcgloc of
+        LOC_REFERENCE,
+        LOC_REGISTER,
+        LOC_FPUREGISTER,
+        LOC_MMREGISTER: (reg: tregister);
+    end;
+
 
 implementation
 
 uses
-  cutils, cclasses, strings, aasmcpu;
+  cutils, strings,
+  symconst,
+  aasmcpu;
 
     { taillvmprocdecl }
 
@@ -280,6 +298,18 @@ uses
            fpcond:=_fpcond;
            typ:=top_fpcond;
          end;
+      end;
+
+
+    procedure taillvm.loadparas(opidx: longint; _paras: tfplist);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            clearop(opidx);
+            paras:=_paras;
+            typ:=top_para;
+          end;
       end;
 
 
@@ -737,6 +767,16 @@ uses
           index:=3;
         loaddef(index,indextype);
         loadconst(index+1,index1);
+      end;
+
+    constructor taillvm.call_size_name_paras(dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+      begin
+        create_llvm(la_call);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,retsize);
+        loadsymbol(2,name,0);
+        loadparas(3,paras);
       end;
 
 end.

@@ -35,9 +35,9 @@ implementation
     }
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
-    ncgadd, ncgcal,ncgmat,ncginl,
+    ncgadd,ncgcal,ncgmat,ncginl,
     tgllvm,hlcgllvm,
-    nllvmadd,nllvmcnv,nllvmcon,nllvmld,nllvmmat,nllvmmem,
+    nllvmadd,nllvmcal,nllvmcnv,nllvmcon,nllvmld,nllvmmat,nllvmmem,
     nllvmutil,
     llvmpara;
 

@@ -77,10 +77,74 @@ unit llvmpara;
       result:=false;
     end;
 
+
   procedure tllvmparamanager.createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara);
+    var
+      paraloc,
+      nextloc: pcgparalocation;
     begin
       inherited;
+      paraloc:=cgpara.location;
+      { No need to set paraloc^.llvmloc.*, these are not used/needed for temp
+        paralocs }
+      while assigned(paraloc) do
+        begin
+          if paramanager.push_addr_param(parasym.varspez,parasym.vardef,tabstractprocdef(parasym.owner.defowner).proccalloption) or
+             not llvmbyvalparaloc(paraloc) then
+            begin
+              case paraloc^.loc of
+                LOC_REFERENCE:
+                  begin
+                    case hlcg.def2regtyp(paraloc^.def) of
+                      R_INTREGISTER,
+                      R_ADDRESSREGISTER:
+                        paraloc^.loc:=LOC_REGISTER;
+                      R_FPUREGISTER:
+                        paraloc^.loc:=LOC_FPUREGISTER;
+                      R_MMREGISTER:
+                        paraloc^.Loc:=LOC_MMREGISTER;
+                      else
+                        internalerror(2013012308);
+                    end;
+                    paraloc^.register:=hlcg.getregisterfordef(list,paraloc^.def);
+                    paraloc^.llvmvalueloc:=true;
+                  end;
+                LOC_REGISTER,
+                LOC_FPUREGISTER,
+                LOC_MMREGISTER:
+                  begin
+                    paraloc^.llvmvalueloc:=true;
+                  end;
+                LOC_VOID:
+                  ;
+                else
+                  internalerror(2014012302);
+              end;
+            end
+          else
+            begin
+              { turn this paraloc into the "byval" parameter: at the llvm level,
+                a pointer to the value that it should place on the stack (or
+                passed in registers, in some cases) }
+              paraloc^.llvmvalueloc:=false;
+              paraloc^.def:=getpointerdef(paraloc^.def);
+              paraloc^.size:=def_cgsize(paraloc^.def);
+              paraloc^.loc:=LOC_REGISTER;
+              paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);
+              { remove all other paralocs }
+              nextloc:=paraloc^.next;
+              while assigned(nextloc) do
+                begin
+                  dispose(nextloc);
+                  nextloc:=paraloc^.next;
+                end;
+            end;
+          paraloc^.llvmloc.loc:=paraloc^.loc;
+          paraloc^.llvmloc.reg:=paraloc^.register;
+          paraloc:=paraloc^.next;
+        end;
     end;
+
 
   function tllvmparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
     begin

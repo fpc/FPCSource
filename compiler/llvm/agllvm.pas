@@ -74,6 +74,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
+      symconst,symdef,
       llvmbase,aasmllvm,itllvm,llvmdef,
       cgbase,cgutils,cpubase;
 
@@ -192,6 +193,8 @@ implementation
              result:=result+', ';
            para:=pllvmcallpara(o.paras[i]);
            result:=result+llvmencodetype(para^.def);
+           if para^.valueext<>lve_none then
+             result:=result+llvmvalueextension2str[para^.valueext];
            case para^.loc of
              LOC_REGISTER,
              LOC_FPUREGISTER,
