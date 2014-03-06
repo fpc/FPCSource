@@ -235,7 +235,7 @@ implementation
          top_reg:
            getopstr:=getregisterstring(o.reg);
          top_const:
-           getopstr:=tostr(longint(o.val));
+           getopstr:=tostr(int64(o.val));
          top_ref:
            if o.ref^.refaddr=addr_full then
              begin
