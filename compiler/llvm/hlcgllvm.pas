@@ -47,6 +47,7 @@ uses
       procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
       procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
+      procedure a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference); override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
       procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
@@ -363,6 +364,21 @@ implementation
           if hreg<>register then
             a_load_reg_reg(list,fromsize,tosize,hreg,register);
         end;
+    end;
+
+
+  procedure thlcgllvm.a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference);
+    var
+      sdref: treference;
+    begin
+      if (fromsize=tosize) and
+         (sref.refaddr=addr_full) then
+        begin
+          sdref:=make_simple_ref(list,dref,tosize);
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,getpointerdef(tosize),sdref));
+        end
+      else
+        inherited
     end;
 
 
