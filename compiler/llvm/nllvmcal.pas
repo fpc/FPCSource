@@ -26,11 +26,14 @@ unit nllvmcal;
 interface
 
     uses
-      ncgcal;
+      parabase,
+      ncgcal,
+      cgutils;
 
     type
       tllvmcallnode = class(tcgcallnode)
        protected
+        function can_call_ref(var ref: treference): boolean; override;
         procedure pushparas; override;
       end;
 
@@ -41,7 +44,12 @@ implementation
        verbose,
        ncal;
 
-{ tllvmcallnode }
+
+    function tllvmcallnode.can_call_ref(var ref: treference): boolean;
+      begin
+        result:=false;
+      end;
+
 
     procedure tllvmcallnode.pushparas;
       var
