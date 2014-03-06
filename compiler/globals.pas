@@ -369,10 +369,19 @@ interface
        syscall_convention : string = 'LEGACY';
 {$endif powerpc}
 
+{$ifdef llvm}
+        { the \01 means: don't mangle the symbol name coming after it }
+        globalsymbolmangleprefix='@"\01';
+        globalsymbolmanglesuffix='"';
+{$else llvm}
+        globalsymbolmangleprefix='';
+        globalsymbolmanglesuffix='';
+{$endif llvm}
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
+
 
     const
       default_settings : TSettings = (

@@ -428,7 +428,7 @@ implementation
 
     constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
       begin
-        inherited Create(AList,'_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
+        inherited Create(AList,(globalsymbolmangleprefix+'_$')+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr)+globalsymbolmanglesuffix,AB_GLOBAL,AT_DATA);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;

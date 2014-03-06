@@ -1659,7 +1659,7 @@ implementation
 {$endif symansistr}
             else
               begin
-                result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
+                result:=globalsymbolmangleprefix+target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName+globalsymbolmanglesuffix;
 {$ifdef symansistr}
                 cachedmangledname:=result;
 {$else symansistr}
@@ -1865,12 +1865,12 @@ implementation
   {$endif symansistr}
 {$ifdef compress}
             {$error add ansistring support for symansistr}
-            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,usename)));
+            _mangledname:=stringdup(minilzw_encode(llvmglobalprefix+make_mangledname(prefix,owner,usename)+llvmglobalsuffix));
 {$else compress}
   {$ifdef symansistr}
-           _mangledname:=make_mangledname(prefix,owner,usename);
+           _mangledname:=llvmglobalprefix+make_mangledname(prefix,owner,usename)+llvmglobalsuffix;
   {$else symansistr}
-           _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
+           _mangledname:=stringdup(globalsymbolmangleprefix+make_mangledname(prefix,owner,usename)+globalsymbolmanglesuffix);
   {$endif symansistr}
 {$endif compress}
 {$endif jvm}
@@ -1922,9 +1922,9 @@ implementation
         _mangledname:=stringdup(minilzw_encode(s));
 {$else}
   {$ifdef symansistr}
-        _mangledname:=s;
+        _mangledname:=llvmglobalprefix+s+llvmglobalsuffix;
   {$else symansistr}
-        _mangledname:=stringdup(s);
+        _mangledname:=stringdup(globalsymbolmangleprefix+s+globalsymbolmanglesuffix);
   {$endif symansistr}
 {$endif}
         include(varoptions,vo_has_mangledname);
@@ -2165,7 +2165,7 @@ implementation
       begin
          case abstyp of
            toasm :
-             mangledname:=asmname^;
+             mangledname:=globalsymbolmangleprefix+asmname^+globalsymbolmanglesuffix;
            toaddr :
              mangledname:='$'+tostr(addroffset);
            else

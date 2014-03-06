@@ -1296,10 +1296,6 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
-{$ifdef llvm}
-        { in LLVM, all non-procedure local symbols have to start with an '@' }
-        result:='@'+result;
-{$endif llvm}
       end;
 
     function make_dllmangledname(const dllname,importname:TSymStr;import_nr : word; pco : tproccalloption):TSymStr;
@@ -5271,7 +5267,7 @@ implementation
            exit;
          end;
 {$ifndef jvm}
-        mangledname:=defaultmangledname;
+        mangledname:=globalsymbolmangleprefix+defaultmangledname+globalsymbolmanglesuffix;
 {$else not jvm}
         mangledname:=jvmmangledbasename(false);
         if (po_has_importdll in procoptions) then
@@ -5649,9 +5645,9 @@ implementation
         _mangledname:=stringdup(minilzw_encode(s));
   {$else}
     {$ifdef symansistr}
-        _mangledname:=s;
+        _mangledname:=llvmglobalprefix+s+llvmglobalsuffix;
     {$else symansistr}
-        _mangledname:=stringdup(s);
+        _mangledname:=stringdup(globalsymbolmangleprefix+s+globalsymbolmanglesuffix);
     {$endif symansistr}
   {$endif}
 {$endif jvm}
