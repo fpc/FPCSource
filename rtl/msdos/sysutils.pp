@@ -136,13 +136,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : RawByteString; ShareMode:longint; Rights : longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; ShareMode:integer; Rights : integer) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
+Function FileCreate (Const FileName : RawByteString; Rights:integer) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -237,7 +237,7 @@ begin
 end;
 
 
-Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Integer) : Int64;
+Function FileSeek (Handle : THandle; FOffset: Int64; Origin: {Integer}Longint) : Int64;
 begin
   {$warning need to add 64bit call }
   FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));

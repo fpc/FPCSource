@@ -185,7 +185,7 @@ function intToBin(Value: int64; Digits:integer): string;
 function IntToRoman(Value: Longint): string;
 function TryRomanToInt(S: String; out N: LongInt; Strictness: TRomanConversionStrictness = rcsRelaxed): Boolean;
 function RomanToInt(const S: string; Strictness: TRomanConversionStrictness = rcsRelaxed): Longint;
-function RomanToIntDef(Const S : String; const ADefault: integer = 0; Strictness: TRomanConversionStrictness = rcsRelaxed): Integer;
+function RomanToIntDef(Const S : String; const ADefault: Longint = 0; Strictness: TRomanConversionStrictness = rcsRelaxed): Longint;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
 function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 
@@ -1635,8 +1635,8 @@ begin
     raise EConvertError.CreateFmt(SInvalidRomanNumeral,[S]);
 end;
 
-function RomanToIntDef(const S: String; const ADefault: integer;
-  Strictness: TRomanConversionStrictness): Integer;
+function RomanToIntDef(const S: String; const ADefault: Longint;
+  Strictness: TRomanConversionStrictness): Longint;
 begin
   if not TryRomanToInt(S, Result, Strictness) then
     Result := ADefault;
