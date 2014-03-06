@@ -830,7 +830,16 @@ implementation
               begin
                 case retlocitem^.loc of
                   LOC_REGISTER:
-                    include(regs_to_save_int,getsupreg(retlocitem^.register));
+                    case getregtype(retlocitem^.register) of
+                      R_INTREGISTER:
+                        include(regs_to_save_int,getsupreg(retlocitem^.register));
+                      R_ADDRESSREGISTER:
+                        include(regs_to_save_address,getsupreg(retlocitem^.register));
+                      R_TEMPREGISTER:
+                        ;
+                      else
+                        internalerror(2014020102);
+                      end;
                   LOC_FPUREGISTER:
                     include(regs_to_save_fpu,getsupreg(retlocitem^.register));
                   LOC_MMREGISTER:
@@ -1092,10 +1101,16 @@ implementation
                begin
                  case retlocitem^.loc of
                    LOC_REGISTER:
-                     if getregtype(retlocitem^.register)=R_INTREGISTER then
-                       exclude(regs_to_save_int,getsupreg(retlocitem^.register))
-                     else
-                       exclude(regs_to_save_address,getsupreg(retlocitem^.register));
+                     case getregtype(retlocitem^.register) of
+                       R_INTREGISTER:
+                         exclude(regs_to_save_int,getsupreg(retlocitem^.register));
+                       R_ADDRESSREGISTER:
+                         exclude(regs_to_save_address,getsupreg(retlocitem^.register));
+                       R_TEMPREGISTER:
+                         ;
+                       else
+                         internalerror(2014020103);
+                     end;
                    LOC_FPUREGISTER:
                      exclude(regs_to_save_fpu,getsupreg(retlocitem^.register));
                    LOC_MMREGISTER:
