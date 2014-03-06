@@ -2168,11 +2168,19 @@ implementation
                        to different kinds of refcounting helpers }
                       (resultdef=left.resultdef)) then
                    begin
+{$ifndef llvm}
                      left.resultdef:=resultdef;
                      if (nf_explicit in flags) and (left.nodetype = addrn) then
                        include(left.flags, nf_typedaddr);
                      result:=left;
                      left:=nil;
+{$else llvm}
+                     { we still may have to insert a type conversion at the
+                       llvm level }
+                     if (nf_explicit in flags) and (left.nodetype = addrn) then
+                       include(flags, nf_typedaddr);
+                     result:=nil;
+{$endif llvm}
                      exit;
                    end;
                 end;
