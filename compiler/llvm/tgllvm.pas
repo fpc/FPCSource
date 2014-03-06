@@ -86,6 +86,7 @@ implementation
     procedure ttgllvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference);
       var
         tl: ptemprecord;
+        oldfileinfo: tfileposinfo;
       begin
         reference_reset_base(ref,cg.gettempregister(list),0,alignment);
         new(tl);
@@ -101,8 +102,16 @@ implementation
         { TODO: add llvm.lifetime.start() for this allocation and afterwards
             llvm.lifetime.end() for freetemp (if the llvm version supports it) }
         inc(lasttemp);
-        { allocation for the temp }
+        { allocation for the temp -- should have lineinfo of the start of the
+          routine }
+        if assigned(current_procinfo) then
+          begin
+            oldfileinfo:=current_filepos;
+            current_filepos:=current_procinfo.procdef.fileinfo;
+          end;
         alloclist.concat(taillvm.op_ref_size(la_alloca,ref,def));
+        if assigned(current_procinfo) then
+          current_filepos:=oldfileinfo;
       end;
 
 
