@@ -127,12 +127,10 @@ begin
       if not FieldSupported(
         Exporter.Dataset.Fields[i].DataType,
         ExportFormat) then
-        FieldMapping.Delete(i);
+          FieldMapping.Delete(i);
     end;
     for i:=0 to FieldMapping.Count-1 do
-    begin
       Exporter.ExportFields.Add.Assign(FieldMapping[i]);
-    end;
     NumberExported := Exporter.Execute;
     Exporter.Dataset.Last;
     Exporter.Dataset.First;
@@ -186,6 +184,7 @@ begin
   try
     ExportFormat:=efDBaseVII;
     ExportSettings.TableFormat:=tfDBaseVII;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     // Use export subtype position to differentiate output filenames:
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
@@ -213,6 +212,7 @@ begin
   try
     ExportFormat:=efDBaseIV;
     ExportSettings.TableFormat:=tfDBaseIV;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];
@@ -239,6 +239,7 @@ begin
   try
     ExportFormat:=efFoxpro;
     ExportSettings.TableFormat:=tfFoxPro;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];

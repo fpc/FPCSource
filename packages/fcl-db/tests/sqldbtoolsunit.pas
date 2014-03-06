@@ -406,7 +406,6 @@ var
 
 function String2Hex(Source: string): string;
 // Converts ASCII codes into hex
-// Inverse of hex2string
 var
   i: integer;
 begin
