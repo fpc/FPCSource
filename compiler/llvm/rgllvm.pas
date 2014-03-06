@@ -173,6 +173,7 @@ implementation
         for i:=0 to taillvm(supstart).ops-1 do
           begin
             if (taillvm(supstart).oper[i]^.typ=top_reg) and
+               (getregtype(taillvm(supstart).oper[i]^.reg)=regtype) and
                (getsupreg(taillvm(supstart).oper[i]^.reg)=supreg) then
               begin
                 def:=taillvm(supstart).spilling_get_reg_type(i);
