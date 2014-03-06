@@ -87,13 +87,13 @@ type
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index : Integer);
+    Procedure RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);
+    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
@@ -224,7 +224,7 @@ type
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);
+    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
@@ -649,7 +649,7 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-procedure TFPList.RaiseIndexError(Index : Integer);
+procedure TFPList.RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Error(SListIndexError, Index);
 end;
@@ -745,7 +745,7 @@ begin
   end;
 end;
 
-class procedure TFPList.Error(const Msg: string; Data: PtrInt);
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -1443,7 +1443,7 @@ begin
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;

@@ -231,7 +231,8 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
-         if (cs_create_pic in current_settings.moduleswitches) then
+         if (left.nodetype=typen) and
+            (cs_create_pic in current_settings.moduleswitches) then
            include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
@@ -366,7 +367,7 @@ implementation
 {$endif dummy}
       begin
         result:=nil;
-        resultdef:=voidpointertype;
+        resultdef:=parentfpvoidpointertype;
 {$ifdef dummy}
         { currently parentfps are never loaded in registers (FK) }
         if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
@@ -800,6 +801,13 @@ implementation
          else
            begin
              case left.expectloc of
+               { if a floating point value is casted into a record, it
+                 can happen that we get here an fpu or mm register }
+               LOC_CMMREGISTER,
+               LOC_CFPUREGISTER,
+               LOC_MMREGISTER,
+               LOC_FPUREGISTER,
+               LOC_CONSTANT,
                LOC_REGISTER,
                LOC_SUBSETREG:
                  // can happen for function results on win32 and darwin/x86
@@ -1038,6 +1046,8 @@ implementation
                     elementdef:=cansichartype;
                   st_shortstring :
                     elementdef:=cansichartype;
+                  else
+                    internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin

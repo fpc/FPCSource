@@ -161,7 +161,8 @@ const
   { 76 }  'Android-JVM',
   { 77 }  'Android-arm',
   { 78 }  'Android-i386',
-  { 79 }  'MSDOS-i8086'
+  { 79 }  'MSDOS-i8086',
+  { 79 }  'Android-MIPSel'
   );
 
 const
@@ -936,6 +937,11 @@ begin
     exit;
   first:=true;
   idx:=ppufile.getlongint;
+  if idx = -1 then
+    begin
+      writeln('Nil');
+      exit;
+    end;
   if (idx>derefdatalen) then
     begin
       WriteError('!! Error: Deref idx '+IntToStr(idx)+' > '+IntToStr(derefdatalen));
@@ -2509,6 +2515,8 @@ begin
                  write  ([space,' OverrideProp : ']);
                  readderef('');
                end;
+             if ppo_defaultproperty in propoptions then
+               Include(TPpuPropDef(def).Options, poDefault);
              write  ([space,'    Prop Type : ']);
              readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
@@ -2817,7 +2825,7 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
-             readsymtable('symbols');
+             readsymtable('symbols', arrdef);
            end;
 
          ibprocdef :

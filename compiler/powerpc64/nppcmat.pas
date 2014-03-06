@@ -75,8 +75,8 @@ begin
   (*
   // this code replaces all mod nodes by the equivalent div/mul/sub sequence
   // on node level, which might be advantageous when doing CSE on that level
-  // However, optimal modulo code for some cases (in particular a 'x mod 2^n-1' 
-  // operation) can not be expressed using nodes, so this is commented out for now 
+  // However, optimal modulo code for some cases (in particular a 'x mod 2^n-1'
+  // operation) can not be expressed using nodes, so this is commented out for now
   if (nodetype = modn) then begin
     block := internalstatements(statementnode);
 
@@ -92,20 +92,20 @@ begin
       addstatement(statementnode, temp_right);
       addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_right), right.getcopy));
 
-      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), 
+      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left),
         caddnode.create(subn, ctemprefnode.create(temp_left),
-        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), ctemprefnode.create(temp_right)), 
+        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), ctemprefnode.create(temp_right)),
         ctemprefnode.create(temp_right)))));
 
       addstatement(statementnode, ctempdeletenode.create(temp_right));
     end else begin
       // in case this is a modulo by a constant operation, do not use a temp for the
       // right hand side, because otherwise the div optimization will not recognize this
-      // fact (and there is no constant propagator/recognizer in the compiler), 
+      // fact (and there is no constant propagator/recognizer in the compiler),
       // resulting in suboptimal code.
-      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), 
+      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left),
         caddnode.create(subn, ctemprefnode.create(temp_left),
-        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), right.getcopy), 
+        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), right.getcopy),
           right.getcopy))));
     end;
     addstatement(statementnode, ctempdeletenode.create_normal_temp(temp_left));
@@ -126,7 +126,7 @@ const         { signed   overflow }
   divcgops : array[boolean] of TOpCG = (OP_DIV, OP_IDIV);
   zerocond: tasmcond = (dirhint: DH_Plus; simple: true; cond:C_NE; cr: RS_CR7);
   tcgsize2native : array[OS_8..OS_S128] of tcgsize = (
-    OS_64, OS_64, OS_64, OS_64, OS_NO, 
+    OS_64, OS_64, OS_64, OS_64, OS_NO,
     OS_S64, OS_S64, OS_S64, OS_S64, OS_NO
     );
 var
@@ -137,7 +137,7 @@ var
   size       : TCgSize;
   hl : tasmlabel;
   done: boolean;
-         
+
   procedure genOrdConstNodeMod;
   var
     modreg, maskreg, tempreg : tregister;
@@ -164,19 +164,19 @@ var
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, modreg, maskreg, maskreg);
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_INT, maskreg, tempreg, resultreg);
       end else begin
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value-1, numerator, 
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value-1, numerator,
           resultreg);
       end;
     end else begin
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT,
         tordconstnode(right).value, numerator, resultreg);
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg,
         resultreg);
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
     end;
   end;
 
-         
+
 begin
   secondpass(left);
   secondpass(right);
@@ -201,9 +201,9 @@ begin
   done := false;
   if (cs_opt_level1 in current_settings.optimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)],
         size, tordconstnode(right).value, numerator, resultreg)
-    else 
+    else
       genOrdConstNodeMod;
     done := true;
   end;
@@ -215,7 +215,7 @@ begin
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR7,
         right.location.register, 0))
     else begin
-      if (tordconstnode(right).value = 0) then 
+      if (tordconstnode(right).value = 0) then
         internalerror(2005100301);
     end;
     divider := right.location.register;
@@ -245,7 +245,7 @@ begin
     cg.a_label(current_asmdata.CurrAsmList,hl);
   end;
   { unsigned division/module can only overflow in case of division by zero
-   (but checking this overflow flag is more convoluted than performing a  
+   (but checking this overflow flag is more convoluted than performing a
    simple comparison with 0)                                             }
   if is_signed(right.resultdef) then
     cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
@@ -259,7 +259,7 @@ procedure tppcshlshrnode.pass_generate_code;
 
 var
   resultreg, hregister1, hregister2 : tregister;
-  
+
   op: topcg;
   asmop1, asmop2: tasmop;
   shiftval: aint;
@@ -350,6 +350,8 @@ begin
               left.location.reference, src1);
           end;
         end;
+      else
+       internalerror(2013120112);
     end;
     { choose appropriate operand }
     if left.resultdef.typ <> floatdef then begin

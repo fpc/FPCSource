@@ -282,7 +282,10 @@ implementation
                 s64real:
                   c:='D';
                 else
-                  result:=false;
+                  begin
+                    result:=false;
+                    c:=' ';
+                  end;
               end;
               encodedstr:=encodedstr+c;
             end;

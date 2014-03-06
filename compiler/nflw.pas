@@ -102,6 +102,7 @@ interface
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
+          function wrap_to_value:tnode;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -114,6 +115,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          property resultexpr : tnode read left write left;
        end;
        texitnodeclass = class of texitnode;
 
@@ -190,6 +192,8 @@ interface
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
+       protected
+          function create_finalizer_procdef: tprocdef;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -236,6 +240,7 @@ implementation
       cutils,verbose,globals,
       symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,ninl,nset,
+      pdecsub,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -1448,6 +1453,21 @@ implementation
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
+         { Can we spare the first comparision? }
+         if (t1.nodetype=ordconstn) and
+            (right.nodetype=ordconstn) and
+            (
+             (
+              (lnf_backward in loopflags) and
+              (Tordconstnode(right).value>=Tordconstnode(t1).value)
+             ) or
+             (
+               not(lnf_backward in loopflags) and
+               (Tordconstnode(right).value<=Tordconstnode(t1).value)
+             )
+            ) then
+           exclude(loopflags,lnf_testatbegin);
+
         if (t1.nodetype=ordconstn) and
            (right.nodetype=ordconstn) and
            (
@@ -1461,6 +1481,29 @@ implementation
             )
            ) then
         result:=cnothingnode.create;
+      end;
+
+
+    function tfornode.wrap_to_value:tnode;
+      var
+        statements: tstatementnode;
+        temp: ttempcreatenode;
+      begin
+        result:=internalstatements(statements);
+        temp:=ctempcreatenode.create(t1.resultdef,t1.resultdef.size,tt_persistent,true);
+        addstatement(statements,temp);
+        addstatement(statements,cassignmentnode.create(
+          ctemprefnode.create(temp),
+          t1));
+        { create a new for node, it is cheaper than cloning entire loop body }
+        addstatement(statements,cfornode.create(
+          left,right,ctemprefnode.create(temp),t2,lnf_backward in loopflags));
+        addstatement(statements,ctempdeletenode.create(temp));
+        { all child nodes are reused }
+        left:=nil;
+        right:=nil;
+        t1:=nil;
+        t2:=nil;
       end;
 
 
@@ -1493,21 +1536,6 @@ implementation
                end;
            end;
 
-         { Can we spare the first comparision? }
-         if (t1.nodetype=ordconstn) and
-            (right.nodetype=ordconstn) and
-            (
-             (
-              (lnf_backward in loopflags) and
-              (Tordconstnode(right).value>=Tordconstnode(t1).value)
-             ) or
-             (
-               not(lnf_backward in loopflags) and
-               (Tordconstnode(right).value<=Tordconstnode(t1).value)
-             )
-            ) then
-           exclude(loopflags,lnf_testatbegin);
-
          { Make sure that the loop var and the
            from and to values are compatible types }
          check_ranges(right.fileinfo,right,left.resultdef);
@@ -1531,11 +1559,14 @@ implementation
          firstpass(t1);
 
          if assigned(t2) then
-          begin
-            firstpass(t2);
-            if codegenerror then
-             exit;
-          end;
+           firstpass(t2);
+         if codegenerror then
+           exit;
+
+         { 'to' value must be evaluated once before loop, so its possible modifications
+           inside loop body do not affect the number of iterations (see webtbs/tw8883). }
+         if not (t1.nodetype in [ordconstn,temprefn]) then
+           result:=wrap_to_value;
       end;
 
 
@@ -2016,32 +2047,33 @@ implementation
 
     function ttryexceptnode.pass_typecheck:tnode;
       begin
-         result:=nil;
-         typecheckpass(left);
-         { on statements }
-         if assigned(right) then
-           typecheckpass(right);
-         { else block }
-         if assigned(t1) then
-           typecheckpass(t1);
-         resultdef:=voidtype;
+        result:=nil;
+        typecheckpass(left);
+        { on statements }
+        if assigned(right) then
+          typecheckpass(right);
+        { else block }
+        if assigned(t1) then
+          typecheckpass(t1);
+        resultdef:=voidtype;
       end;
 
 
     function ttryexceptnode.pass_1 : tnode;
       begin
-         result:=nil;
-         include(current_procinfo.flags,pi_do_call);
-         include(current_procinfo.flags,pi_uses_exceptions);
-         expectloc:=LOC_VOID;
-         firstpass(left);
-         { on statements }
-         if assigned(right) then
-           firstpass(right);
-         { else block }
-         if assigned(t1) then
-           firstpass(t1);
-         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+        result:=nil;
+        expectloc:=LOC_VOID;
+        firstpass(left);
+        { on statements }
+        if assigned(right) then
+          firstpass(right);
+        { else block }
+        if assigned(t1) then
+          firstpass(t1);
+
+        include(current_procinfo.flags,pi_do_call);
+        include(current_procinfo.flags,pi_uses_exceptions);
+        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
       end;
 
 
@@ -2052,7 +2084,6 @@ implementation
     constructor ttryfinallynode.create(l,r:tnode);
       begin
         inherited create(tryfinallyn,l,r,nil,nil);
-        include(current_procinfo.flags,pi_uses_exceptions);
         implicitframe:=false;
       end;
 
@@ -2066,40 +2097,47 @@ implementation
 
     function ttryfinallynode.pass_typecheck:tnode;
       begin
-         result:=nil;
-         include(current_procinfo.flags,pi_do_call);
-         resultdef:=voidtype;
+        result:=nil;
+        resultdef:=voidtype;
 
-         typecheckpass(left);
-         // "try block" is "used"? (JM)
-         set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
+        typecheckpass(left);
+        // "try block" is "used"? (JM)
+        set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
 
-         typecheckpass(right);
-         // "except block" is "used"? (JM)
-         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
+        typecheckpass(right);
+        // "except block" is "used"? (JM)
+        set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
 
-         { special finally block only executed when there was an exception }
-         if assigned(t1) then
-           begin
-             typecheckpass(t1);
-             // "finally block" is "used"? (JM)
-             set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
-           end;
+        { special finally block only executed when there was an exception }
+        if assigned(t1) then
+          begin
+            typecheckpass(t1);
+            // "finally block" is "used"? (JM)
+            set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
+          end;
       end;
 
 
     function ttryfinallynode.pass_1 : tnode;
       begin
-         result:=nil;
-         expectloc:=LOC_VOID;
-         firstpass(left);
+        result:=nil;
+        expectloc:=LOC_VOID;
+        firstpass(left);
 
-         firstpass(right);
+        firstpass(right);
 
-         if assigned(t1) then
-           firstpass(t1);
+        if assigned(t1) then
+          firstpass(t1);
 
-         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
+        include(current_procinfo.flags,pi_do_call);
+
+        { pi_uses_exceptions is an information for the optimizer and it
+          is only interested in exceptions if they appear inside the body,
+          so ignore implicit frames when setting the flag }
+        if not(implicitframe) then
+          include(current_procinfo.flags,pi_uses_exceptions);
+
+        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
       end;
 
 
@@ -2115,6 +2153,54 @@ implementation
            right:=nil;
          end;
      end;
+
+
+    var
+      seq: longint=0;
+
+    function ttryfinallynode.create_finalizer_procdef: tprocdef;
+      var
+        st:TSymTable;
+        checkstack: psymtablestackitem;
+        oldsymtablestack: tsymtablestack;
+        sym:tprocsym;
+      begin
+        { get actual procedure symtable (skip withsymtables, etc.) }
+        st:=nil;
+        checkstack:=symtablestack.stack;
+        while assigned(checkstack) do
+          begin
+            st:=checkstack^.symtable;
+            if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
+              break;
+            checkstack:=checkstack^.next;
+          end;
+        { Create a nested procedure, even from main_program_level.
+          Furthermore, force procdef and procsym into the same symtable
+          (by default, defs are registered with symtablestack.top which may be
+          something temporary like exceptsymtable - in that case, procdef can be
+          destroyed before procsym, leaving invalid pointers). }
+        oldsymtablestack:=symtablestack;
+        symtablestack:=nil;
+        result:=tprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+        symtablestack:=oldsymtablestack;
+        st.insertdef(result);
+        result.struct:=current_procinfo.procdef.struct;
+        { tabstractprocdef constructor sets po_delphi_nested_cc whenever
+          nested procvars modeswitch is active. We must be independent of this switch. }
+        exclude(result.procoptions,po_delphi_nested_cc);
+        result.proctypeoption:=potype_exceptfilter;
+        handle_calling_convention(result);
+        sym:=tprocsym.create('$fin$'+tostr(seq));
+        st.insert(sym);
+        inc(seq);
+
+        result.procsym:=sym;
+        proc_add_definition(result);
+        result.forwarddef:=false;
+        result.aliasnames.insert(result.mangledname);
+      end;
+
 
 {*****************************************************************************
                                 TONNODE

@@ -2362,6 +2362,13 @@ implementation
         if objdata.currobjsec.size<>longword(insoffset) then
            internalerror(200130121);
 
+        { those variables are initialized inside local procedures, the dfa cannot handle this yet }
+        currsym:=nil;
+        currabsreloc:=RELOC_NONE;
+        currabsreloc32:=RELOC_NONE;
+        currrelreloc:=RELOC_NONE;
+        currval:=0;
+
         { load data to write }
         codes:=insentry^.code;
 {$ifdef x86_64}
@@ -2985,8 +2992,6 @@ implementation
                 end;
               end;
           end;
-        { Special cases that can't be decoded from the InsChanges flags }
-        operation_type_table^[A_IMUL,1]:=operand_readwrite;
       end;
 
 
@@ -3008,6 +3013,41 @@ implementation
               else
                 internalerror(200506055);
             end
+          end
+        { IMUL has 1, 2 and 3-operand forms }
+        else if opcode=A_IMUL then
+          begin
+            case ops of
+              1:
+                if opnr=0 then
+                  result:=operand_read
+                else
+                  internalerror(2014011802);
+              2:
+                begin
+                  case opnr of
+                    0:
+                      result:=operand_read;
+                    1:
+                      result:=operand_readwrite;
+                    else
+                      internalerror(2014011803);
+                  end;
+                end;
+              3:
+                begin
+                  case opnr of
+                    0,1:
+                      result:=operand_read;
+                    2:
+                      result:=operand_write;
+                    else
+                      internalerror(2014011804);
+                  end;
+                end;
+              else
+                internalerror(2014011805);
+            end;
           end
         else
           result:=operation_type_table^[opcode,opnr];

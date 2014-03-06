@@ -43,13 +43,9 @@ interface
         function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
         { sparc special, needed by cg64 }
         procedure make_simple_ref(list:TAsmList;var ref: treference);
-        procedure make_simple_ref_sparc(list:TAsmList;var ref: treference;loadaddr : boolean;addrreg : tregister);
         procedure handle_load_store(list:TAsmList;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:tcgint;dst:tregister);
         { parameter }
-        procedure a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);override;
-        procedure a_load_ref_cgpara(list:TAsmList;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
-        procedure a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
         procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
@@ -91,12 +87,13 @@ interface
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
        private
-        g1_used : boolean;
         use_unlimited_pic_mode : boolean;
       end;
 
@@ -134,15 +131,13 @@ implementation
   uses
     globals,verbose,systems,cutils,
     paramgr,fmodule,
-    symtable,
+    symtable,symsym,
     tgobj,
     procinfo,cpupi;
 
 
     function TCgSparc.IsSimpleRef(const ref:treference):boolean;
       begin
-        if (ref.base=NR_NO) and (ref.index<>NR_NO) then
-          InternalError(2002100804);
         result :=not(assigned(ref.symbol))and
                   (((ref.index = NR_NO) and
                    (ref.offset >= simm13lo) and
@@ -153,181 +148,113 @@ implementation
 
 
     procedure tcgsparc.make_simple_ref(list:TAsmList;var ref: treference);
-      begin
-        make_simple_ref_sparc(list,ref,false,NR_NO);
-      end;
-
-    procedure tcgsparc.make_simple_ref_sparc(list:TAsmList;var ref: treference;loadaddr : boolean;addrreg : tregister);
       var
-        tmpreg,tmpreg2 : tregister;
-        tmpref : treference;
-        need_add_got,need_got_load : boolean;
+        href: treference;
+        hreg,hreg2: tregister;
       begin
-        if loadaddr then
-          tmpreg:=addrreg
-        else
-          tmpreg:=NR_NO;
-        need_add_got:=false;
-        need_got_load:=false;
-        { Be sure to have a base register }
+        if (ref.refaddr<>addr_no) then
+          InternalError(2013022802);
+
         if (ref.base=NR_NO) then
           begin
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           use_unlimited_pic_mode and
-           assigned(ref.symbol) then
+
+        if IsSimpleRef(ref) then
+          exit;
+
+        if (ref.symbol=nil) then
           begin
-            if not(pi_needs_got in current_procinfo.flags) then
-              begin
-{$ifdef CHECK_PIC}
-                internalerror(200501161);
-{$endif CHECK_PIC}
-                include(current_procinfo.flags,pi_needs_got);
-              end;
-            if current_procinfo.got=NR_NO then
-              current_procinfo.got:=NR_L7;
-            need_got_load:=true;
-            need_add_got:=true;
-          end;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           not use_unlimited_pic_mode and
-           assigned(ref.symbol) then
-          begin
-            if tmpreg=NR_NO then
-              tmpreg:=GetIntRegister(list,OS_INT);
-            reference_reset(tmpref,ref.alignment);
-            tmpref.symbol:=ref.symbol;
-            tmpref.refaddr:=addr_pic;
-            if not(pi_needs_got in current_procinfo.flags) then
-              begin
-{$ifdef CHECK_PIC}
-                internalerror(200501161);
-{$endif CHECK_PIC}
-                include(current_procinfo.flags,pi_needs_got);
-              end;
-            if current_procinfo.got=NR_NO then
-              current_procinfo.got:=NR_L7;
-            tmpref.index:=current_procinfo.got;
-            list.concat(taicpu.op_ref_reg(A_LD,tmpref,tmpreg));
-            ref.symbol:=nil;
-            if (ref.index<>NR_NO) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
-                ref.index:=tmpreg;
-              end
+            hreg:=getintregister(list,OS_INT);
+            if (ref.index=NR_NO) then
+              a_load_const_reg(list,OS_INT,ref.offset,hreg)
             else
               begin
-                if ref.base<>NR_NO then
-                  ref.index:=tmpreg
-                else
-                  ref.base:=tmpreg;
-              end;
-          end;
-        { When need to use SETHI, do it first }
-        if assigned(ref.symbol) or
-           (ref.offset<simm13lo) or
-           (ref.offset>simm13hi) then
-          begin
-            if tmpreg=NR_NO then
-              tmpreg:=GetIntRegister(list,OS_INT);
-            reference_reset(tmpref,ref.alignment);
-            tmpref.symbol:=ref.symbol;
-            if not need_got_load then
-              tmpref.offset:=ref.offset;
-            tmpref.refaddr:=addr_high;
-            list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
-            if (ref.offset=0) and (ref.index=NR_NO) and
-              (ref.base=NR_NO) and not need_add_got then
-              begin
-                ref.refaddr:=addr_low;
-              end
-            else
-              begin
-                { Load the low part is left }
-                tmpref.refaddr:=addr_low;
-                list.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
-                if not need_got_load then
-                  ref.offset:=0;
-                { symbol is loaded }
-                ref.symbol:=nil;
-              end;
-            if need_add_got then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,current_procinfo.got,tmpreg));
-                need_add_got:=false;
-              end;
-            if need_got_load then
-              begin
-                tmpref.refaddr:=addr_no;
-                tmpref.base:=tmpreg;
-                tmpref.symbol:=nil;
-                list.concat(taicpu.op_ref_reg(A_LD,tmpref,tmpreg));
-                need_got_load:=false;
-                if (ref.offset<simm13lo) or
-                   (ref.offset>simm13hi) then
+                if (ref.offset<simm13lo) or (ref.offset>simm13hi-sizeof(pint)) then
                   begin
-                    tmpref.symbol:=nil;
-                    tmpref.offset:=ref.offset;
-                    tmpref.base:=tmpreg;
-                    tmpref.refaddr := addr_high;
-                    tmpreg2:=GetIntRegister(list,OS_INT);
-                    a_load_const_reg(list,OS_INT,ref.offset,tmpreg2);
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg2,tmpreg));
+                    a_load_const_reg(list,OS_INT,ref.offset,hreg);
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,hreg));
+                  end
+                else
+                  list.concat(taicpu.op_reg_const_reg(A_ADD,ref.index,ref.offset,hreg));
+              end;
+            if (ref.base=NR_NO) then
+              ref.base:=hreg
+            else
+              ref.index:=hreg;
+            ref.offset:=0;
+            exit;
+          end;
+
+        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+        hreg:=getintregister(list,OS_INT);
+        if not (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            { absolute loads allow any offset to be encoded into relocation }
+            href.refaddr:=addr_high;
+            list.concat(taicpu.op_ref_reg(A_SETHI,href,hreg));
+            if (ref.base=NR_NO) and (ref.index=NR_NO) then
+              begin
+                ref.base:=hreg;
+                ref.refaddr:=addr_low;
+                exit;
+              end;
+            { base present -> load the entire address and use it as index }
+            href.refaddr:=addr_low;
+            list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,href,hreg));
+            ref.symbol:=nil;
+            ref.offset:=0;
+            if (ref.index<>NR_NO) then
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.index,hreg,hreg));
+            ref.index:=hreg;
+          end
+        else
+          begin
+            include(current_procinfo.flags,pi_needs_got);
+            href.offset:=0;
+            if use_unlimited_pic_mode then
+              begin
+                href.refaddr:=addr_high;
+                list.concat(taicpu.op_ref_reg(A_SETHI,href,hreg));
+                href.refaddr:=addr_low;
+                list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,href,hreg));
+                reference_reset_base(href,hreg,0,sizeof(pint));
+                href.index:=current_procinfo.got;
+              end
+            else
+              begin
+                href.base:=current_procinfo.got;
+                href.refaddr:=addr_pic;
+              end;
+            list.concat(taicpu.op_ref_reg(A_LD,href,hreg));
+            ref.symbol:=nil;
+            { hreg now holds symbol address. Add remaining members. }
+            if (ref.offset>=simm13lo) and (ref.offset<=simm13hi-sizeof(pint)) then
+              begin
+                if (ref.base=NR_NO) then
+                  ref.base:=hreg
+                else
+                  begin
+                    if (ref.offset<>0) then
+                      list.concat(taicpu.op_reg_const_reg(A_ADD,hreg,ref.offset,hreg));
+                    if (ref.index<>NR_NO) then
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,hreg));
+                    ref.index:=hreg;
                     ref.offset:=0;
                   end;
-              end;
-            if (ref.index<>NR_NO) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
-                ref.index:=tmpreg;
               end
-            else
+            else    { large offset, need another register to deal with it }
               begin
-                if ref.base<>NR_NO then
-                  ref.index:=tmpreg
-                else
-                  ref.base:=tmpreg;
-              end;
-          end;
-        if need_add_got then
-          begin
-            if tmpreg=NR_NO then
-              tmpreg:=GetIntRegister(list,OS_INT);
-            list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,current_procinfo.got,tmpreg));
-            ref.base:=tmpreg;
-            ref.index:=NR_NO;
-          end;
-        if need_got_load then
-          begin
-            if tmpreg=NR_NO then
-              tmpreg:=GetIntRegister(list,OS_INT);
-            list.concat(taicpu.op_ref_reg(A_LD,ref,tmpreg));
-            ref.base:=tmpreg;
-            ref.index:=NR_NO;
-          end;
-        if (ref.base<>NR_NO) or loadaddr then
-          begin
-            if loadaddr then
-              begin
-                if ref.index<>NR_NO then
-                  list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
-                ref.base:=tmpreg;
-                ref.index:=NR_NO;
-                if ref.offset<>0 then
-                  list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,tmpreg));
-              end
-            else if (ref.index<>NR_NO) and
-               ((ref.offset<>0) or assigned(ref.symbol)) then
-              begin
-                if tmpreg=NR_NO then
-                  tmpreg:=GetIntRegister(list,OS_INT);
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,tmpreg));
-                ref.base:=tmpreg;
-                ref.index:=NR_NO;
+                hreg2:=getintregister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,ref.offset,hreg2);
+                if (ref.index<>NR_NO) then
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg2,ref.index,hreg2));
+                if (ref.base<>NR_NO) then
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg2,ref.base,hreg2));
+                ref.base:=hreg;
+                ref.index:=hreg2;
+                ref.offset:=0;
               end;
           end;
       end;
@@ -350,17 +277,9 @@ implementation
         if (a<simm13lo) or
            (a>simm13hi) then
           begin
-            if g1_used then
-              GetIntRegister(list,OS_INT)
-            else
-              begin
-                tmpreg:=NR_G1;
-                g1_used:=true;
-              end;
+            tmpreg:=GetIntRegister(list,OS_INT);
             a_load_const_reg(list,OS_INT,a,tmpreg);
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
-            if tmpreg=NR_G1 then
-              g1_used:=false;
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -375,21 +294,11 @@ implementation
       begin
         inherited init_register_allocators;
 
-        if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(current_procinfo) and
-           (pi_needs_got in current_procinfo.flags) then
-          begin
-            current_procinfo.got:=NR_L7;
-            rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
-                [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,
-                 RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6],
-                first_int_imreg,[]);
-          end
-        else
-          rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
-              [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,
-               RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],
-              first_int_imreg,[]);
+        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
+            [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
+             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7,
+             RS_I0,RS_I1,RS_I2,RS_I3,RS_I4,RS_I5],
+            first_int_imreg,[]);
 
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFS,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
@@ -418,100 +327,6 @@ implementation
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
         else
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFS);
-      end;
-
-
-    procedure TCgSparc.a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);
-      var
-        Ref:TReference;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-              { Code conventions need the parameters being allocated in %o6+92 }
-              with paraloc.location^.Reference do
-                begin
-                  if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
-                    InternalError(2002081104);
-                  reference_reset_base(ref,index,offset,paraloc.alignment);
-                end;
-              a_load_const_ref(list,size,a,ref);
-            end;
-          else
-            InternalError(2002122200);
-        end;
-      end;
-
-
-    procedure TCgSparc.a_load_ref_cgpara(list:TAsmList;sz:TCgSize;const r:TReference;const paraloc:TCGPara);
-      var
-        ref: treference;
-        tmpreg:TRegister;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        with paraloc.location^ do
-          begin
-            case loc of
-              LOC_REGISTER,LOC_CREGISTER :
-                a_load_ref_reg(list,sz,paraloc.location^.size,r,Register);
-              LOC_REFERENCE:
-                begin
-                  { Code conventions need the parameters being allocated in %o6+92 }
-                  with Reference do
-                    begin
-                      if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
-                        InternalError(2002081104);
-                      reference_reset_base(ref,index,offset,paraloc.alignment);
-                    end;
-                  if g1_used then
-                    GetIntRegister(list,OS_INT)
-                  else
-                    begin
-                      tmpreg:=NR_G1;
-                      g1_used:=true;
-                    end;
-                  a_load_ref_reg(list,sz,sz,r,tmpreg);
-                  a_load_reg_ref(list,sz,sz,tmpreg,ref);
-                  if tmpreg=NR_G1 then
-                    g1_used:=false;
-                end;
-              else
-                internalerror(2002081103);
-            end;
-          end;
-      end;
-
-
-    procedure TCgSparc.a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);
-      var
-        Ref:TReference;
-        TmpReg:TRegister;
-      begin
-        paraloc.check_simple_location;
-        paramanager.alloccgpara(list,paraloc);
-        with paraloc.location^ do
-          begin
-            case loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                a_loadaddr_ref_reg(list,r,register);
-              LOC_REFERENCE:
-                begin
-                  reference_reset(ref,paraloc.alignment);
-                  ref.base := reference.index;
-                  ref.offset := reference.offset;
-                  tmpreg:=GetAddressRegister(list);
-                  a_loadaddr_ref_reg(list,r,tmpreg);
-                  a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                end;
-              else
-                internalerror(2002080701);
-            end;
-          end;
       end;
 
 
@@ -592,15 +407,13 @@ implementation
           instructions which would cause problems with the delay slot (FK) }
         if (a=0) then
           list.concat(taicpu.op_reg(A_CLR,reg))
-        { sethi allows to set the upper 22 bit, so we'll take full advantage of it }
-        else if (aint(a) and aint($1fff))=0 then
-          list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg))
         else if (a>=simm13lo) and (a<=simm13hi) then
           list.concat(taicpu.op_const_reg(A_MOV,a,reg))
         else
           begin
             list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg));
-            list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
+            if (aint(a) and aint($3ff))<>0 then
+              list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
           end;
       end;
 
@@ -697,9 +510,12 @@ implementation
              (tosize = OS_16)) then
            case tosize of
              OS_8 :
-               a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
+               list.concat(taicpu.op_reg_const_reg(A_AND,reg1,$ff,reg2));
              OS_16 :
-               a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,16,reg2));
+               end;
              OS_32,
              OS_S32 :
                begin
@@ -735,164 +551,89 @@ implementation
 
     procedure TCgSparc.a_loadaddr_ref_reg(list : TAsmList;const ref : TReference;r : tregister);
       var
-         tmpref,href : treference;
-         hreg,tmpreg,hreg2 : tregister;
-         need_got,need_got_load : boolean;
+         href: treference;
+         hreg: tregister;
       begin
-        href:=ref;
-{$ifdef TEST_SIMPLE_SPARC}
-        make_simple_ref_sparc(list,href,true,r);
-{$else}
-        need_got:=false;
-        need_got_load:=false;
-        if (href.base=NR_NO) and (href.index<>NR_NO) then
+        if (ref.base=NR_NO) and (ref.index<>NR_NO) then
           internalerror(200306171);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           use_unlimited_pic_mode and
-           assigned(ref.symbol) then
+
+        if (ref.symbol=nil) then
           begin
-            if not(pi_needs_got in current_procinfo.flags) then
+            if (ref.base<>NR_NO) then
               begin
-{$ifdef CHECK_PIC}
-                internalerror(200501161);
-{$endif CHECK_PIC}
-                include(current_procinfo.flags,pi_needs_got);
-              end;
-            if current_procinfo.got=NR_NO then
-              current_procinfo.got:=NR_L7;
-            need_got_load:=true;
-            need_got:=true;
+                if (ref.offset<simm13lo) or (ref.offset>simm13hi) then
+                  begin
+                    hreg:=getintregister(list,OS_INT);
+                    a_load_const_reg(list,OS_INT,ref.offset,hreg);
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,r));
+                    if (ref.index<>NR_NO) then
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.index,r));
+                  end
+                else if (ref.offset<>0) then
+                  begin
+                    list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,r));
+                    if (ref.index<>NR_NO) then
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.index,r));
+                  end
+                else if (ref.index<>NR_NO) then
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,r))
+                else
+                  a_load_reg_reg(list,OS_INT,OS_INT,ref.base,r);   { (try to) emit optimizable move }
+              end
+            else
+              a_load_const_reg(list,OS_INT,ref.offset,r);
+            exit;
           end;
 
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           not use_unlimited_pic_mode and
-           assigned(href.symbol) then
+        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+        if (cs_create_pic in current_settings.moduleswitches) then
           begin
-            tmpreg:=GetIntRegister(list,OS_ADDR);
-            reference_reset(tmpref,href.alignment);
-            tmpref.symbol:=href.symbol;
-            tmpref.refaddr:=addr_pic;
-            if not(pi_needs_got in current_procinfo.flags) then
+            include(current_procinfo.flags,pi_needs_got);
+            href.offset:=0;
+            if use_unlimited_pic_mode then
               begin
-{$ifdef CHECK_PIC}
-                internalerror(200501161);
-{$endif CHECK_PIC}
-                include(current_procinfo.flags,pi_needs_got);
-              end;
-            if current_procinfo.got=NR_NO then
-              current_procinfo.got:=NR_L7;
-            tmpref.base:=current_procinfo.got;
-            list.concat(taicpu.op_ref_reg(A_LD,tmpref,tmpreg));
-            href.symbol:=nil;
-            if (href.index<>NR_NO) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,href.index,tmpreg));
-                href.index:=tmpreg;
+                href.refaddr:=addr_high;
+                list.concat(taicpu.op_ref_reg(A_SETHI,href,r));
+                href.refaddr:=addr_low;
+                list.concat(taicpu.op_reg_ref_reg(A_OR,r,href,r));
+                reference_reset_base(href,r,0,sizeof(pint));
+                href.index:=current_procinfo.got;
               end
             else
               begin
-                if href.base<>NR_NO then
-                  href.index:=tmpreg
-                else
-                  href.base:=tmpreg;
+                href.base:=current_procinfo.got;
+                href.refaddr:=addr_pic;            { should it be done THAT way?? }
               end;
-          end;
-
-        { At least big offset (need SETHI), maybe base and maybe index }
-        if assigned(href.symbol) or
-           (href.offset<simm13lo) or
-           (href.offset>simm13hi) then
-          begin
-            hreg:=GetAddressRegister(list);
-            reference_reset(tmpref,href.alignment);
-            tmpref.symbol := href.symbol;
-            if not need_got_load then
-              tmpref.offset := href.offset;
-            tmpref.refaddr := addr_high;
-            list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
-            { Only the low part is left }
-            tmpref.refaddr:=addr_low;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
-            if need_got then
+            { load contents of GOT slot }
+            list.concat(taicpu.op_ref_reg(A_LD,href,r));
+            { add original base/index, if any }
+            if (ref.base<>NR_NO) then
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.base,r));
+            if (ref.index<>NR_NO) then
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.index,r));
+            { finally, add offset }
+            if (ref.offset<simm13lo) or (ref.offset>simm13hi) then
               begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,current_procinfo.got,hreg));
-                need_got:=false;
-              end;
-            if need_got_load then
-              begin
-                 tmpref.symbol:=nil;
-                 tmpref.base:=hreg;
-                 tmpref.refaddr:=addr_no;
-                 list.concat(taicpu.op_ref_reg(A_LD,tmpref,hreg)); 
-                 need_got_load:=false;
-                if (href.offset<simm13lo) or
-                   (href.offset>simm13hi) then
-                  begin
-                    tmpref.symbol:=nil;
-                    tmpref.offset:=href.offset;
-                    tmpref.refaddr := addr_high;
-                    hreg2:=GetIntRegister(list,OS_INT);
-                    a_load_const_reg(list,OS_INT,href.offset,hreg2);
-                    { Only the low part is left }
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,hreg2,hreg));
-                  end
-                else if (href.offset<>0) then
-                  begin
-                    list.concat(taicpu.op_reg_const_reg(A_ADD,hreg,href.offset,hreg));
-                  end;
-              end;
-            if href.base<>NR_NO then
-              begin
-                if href.index<>NR_NO then
-                  begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,href.base,hreg));
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,href.index,r));
-                  end
-                else
-                  list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,href.base,r));
+                hreg:=getintregister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,ref.offset,hreg);
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,r,r));
               end
-            else
-              begin
-                if hreg<>r then
-                  a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,r);
-              end;
+            else if (ref.offset<>0) then
+              list.concat(taicpu.op_reg_const_reg(A_ADD,r,ref.offset,r));
           end
         else
-        { At least small offset, maybe base and maybe index }
-          if href.offset<>0 then
-            begin
-              if href.base<>NR_NO then
-                begin
-                  if href.index<>NR_NO then
-                    begin
-                      hreg:=GetAddressRegister(list);
-                      list.concat(taicpu.op_reg_const_reg(A_ADD,href.base,href.offset,hreg));
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,href.index,r));
-                    end
-                  else
-                    list.concat(taicpu.op_reg_const_reg(A_ADD,href.base,href.offset,r));
-                end
-              else
-                list.concat(taicpu.op_const_reg(A_MOV,href.offset,r));
-            end
-        else
-        { Both base and index }
-          if href.index<>NR_NO then
-            list.concat(taicpu.op_reg_reg_reg(A_ADD,href.base,href.index,r))
-        else
-        { Only base }
-          if href.base<>NR_NO then
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,href.base,r)
-        else
-          { only offset, can be generated by absolute }
-          a_load_const_reg(list,OS_ADDR,href.offset,r);
-        if need_got then
-          list.concat(taicpu.op_reg_reg_reg(A_ADD,r,current_procinfo.got,r));
-        if need_got_load then
-          list.concat(taicpu.op_reg_reg(A_LD,r,r)); 
-{$endif}
+          begin
+            { load symbol+offset }
+            href.refaddr:=addr_high;
+            list.concat(taicpu.op_ref_reg(A_SETHI,href,r));
+            href.refaddr:=addr_low;
+            list.concat(taicpu.op_reg_ref_reg(A_OR,r,href,r));
+            { add original base/index, if any }
+            if (ref.base<>NR_NO) then
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.base,r));
+            if (ref.index<>NR_NO) then
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.index,r));
+          end;
       end;
 
 
@@ -922,6 +663,7 @@ implementation
        var
          tmpreg: tregister;
        begin
+         tmpreg:=NR_NO;
          if (fromsize<>tosize) then
            begin
              tmpreg:=reg;
@@ -962,13 +704,19 @@ implementation
 
     procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:tcgint;reg:TRegister);
       begin
-        if Op in [OP_NEG,OP_NOT] then
-          internalerror(200306011);
-        if (a=0) then
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],reg,NR_G0,reg))
+        optimize_op_const(size,op,a);
+        case op of
+          OP_NONE:
+            exit;
+
+          OP_MOVE:
+            a_load_const_reg(list,size,a,reg);
+
+          OP_NEG,OP_NOT:
+            internalerror(200306011);
         else
-          handle_reg_const_reg(list,TOpCG2AsmOp[op],reg,a,reg);
-        maybeadjustresult(list,op,size,reg);
+          a_op_const_reg_reg(list,op,size,a,reg,reg);
+        end;
       end;
 
 
@@ -1000,36 +748,28 @@ implementation
 
     procedure TCgSparc.a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:tcgint;src, dst:tregister);
       var
-        power : longInt;
+        l: TLocation;
       begin
-        case op of
-          OP_MUL,
-          OP_IMUL:
-            begin
-              if ispowerof2(a,power) then
-                begin
-                  { can be done with a shift }
-                  inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-                  exit;
-                end;
-            end;
-          OP_SUB,
-          OP_ADD :
-            begin
-              if (a=0) then
-                begin
-                  a_load_reg_reg(list,size,size,src,dst);
-                  exit;
-                end;
-            end;
-        end;
-        handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
-        maybeadjustresult(list,op,size,dst);
+        a_op_const_reg_reg_checkoverflow(list,op,size,a,src,dst,false,l);
       end;
 
 
     procedure TCgSparc.a_op_reg_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);
       begin
+        if (TOpcg2AsmOp[op]=A_NONE) then
+          InternalError(2013070305);
+        if (op=OP_SAR) then
+          begin
+            if (size in [OS_S8,OS_S16]) then
+              begin
+                { Sign-extend before shifting }
+                list.concat(taicpu.op_reg_const_reg(A_SLL,src2,32-(tcgsize2size[size]*8),dst));
+                list.concat(taicpu.op_reg_const_reg(A_SRA,dst,32-(tcgsize2size[size]*8),dst));
+                src2:=dst;
+              end
+            else if not (size in [OS_32,OS_S32]) then
+              InternalError(2013070306);
+          end;
         list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
         maybeadjustresult(list,op,size,dst);
       end;
@@ -1037,19 +777,33 @@ implementation
 
     procedure tcgsparc.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
-        power : longInt;
         tmpreg1,tmpreg2 : tregister;
       begin
         ovloc.loc:=LOC_VOID;
+        optimize_op_const(size,op,a);
         case op of
-          OP_SUB,
-          OP_ADD :
+          OP_NONE:
             begin
-              if (a=0) then
+              a_load_reg_reg(list,size,size,src,dst);
+              exit;
+            end;
+
+          OP_MOVE:
+            begin
+              a_load_const_reg(list,size,a,dst);
+              exit;
+            end;
+
+          OP_SAR:
+            begin
+              if (size in [OS_S8,OS_S16]) then
                 begin
-                  a_load_reg_reg(list,size,size,src,dst);
-                  exit;
-                end;
+                  list.concat(taicpu.op_reg_const_reg(A_SLL,src,32-(tcgsize2size[size]*8),dst));
+                  inc(a,32-tcgsize2size[size]*8);
+                  src:=dst;
+                end
+              else if not (size in [OS_32,OS_S32]) then
+                InternalError(2013070303);
             end;
         end;
         if setflags then
@@ -1168,13 +922,8 @@ implementation
     procedure TCgSparc.a_jmp_flags(list:TAsmList;const f:TResFlags;l:tasmlabel);
       var
         ai : taicpu;
-        op : tasmop;
       begin
-        if f in [F_FE,F_FNE,F_FG,F_FL,F_FGE,F_FLE] then
-          op:=A_FBxx
-        else
-          op:=A_Bxx;
-        ai := Taicpu.op_sym(op,l);
+        ai:=Taicpu.op_sym(A_Bxx,l);
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         { Delay slot }
@@ -1261,9 +1010,7 @@ implementation
         if LocalSize>4096 then
           begin
             a_load_const_reg(list,OS_ADDR,-LocalSize,NR_G1);
-            g1_used:=true;
             list.concat(Taicpu.Op_reg_reg_reg(A_SAVE,NR_STACK_POINTER_REG,NR_G1,NR_STACK_POINTER_REG));
-            g1_used:=false;
           end
         else
           list.concat(Taicpu.Op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-LocalSize,NR_STACK_POINTER_REG));
@@ -1272,23 +1019,29 @@ implementation
     procedure TCgSparc.g_maybe_got_init(list : TAsmList);
       var
         ref : treference;
+        hl : tasmlabel;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
-           (pi_needs_got in current_procinfo.flags) then
+           ((pi_needs_got in current_procinfo.flags) or
+           (current_procinfo.procdef.proctypeoption=potype_unitfinalize)) then
           begin
-            current_procinfo.got:=NR_L7;
-            { Set register $l7 to _GLOBAL_OFFSET_TABLE_ at function entry }
-            { The offsets -8 for %hi and -4 for %lo correspnod to the
-              code distance from the call to FPC_GETGOT inxtruction }
-            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8,sizeof(pint));
+            current_asmdata.getjumplabel(hl);
+            list.concat(taicpu.op_sym(A_CALL,hl));
+            { ABI recommends the following sequence:
+            1:   call   2f
+                 sethi  %hi(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
+            2:   or     %l7, %lo(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
+                 add    %l7, %o7, %l7 }
+            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),4,sizeof(pint));
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
+            cg.a_label(list,hl);
             ref.refaddr:=addr_low;
-            ref.offset:=-4;
+            ref.offset:=8;
             list.concat(Taicpu.Op_reg_ref_reg(A_OR,NR_L7,ref,NR_L7));
-            list.concat(Taicpu.Op_sym(A_CALL,current_asmdata.RefAsmSymbol('FPC_GETGOT')));
-            { Delay slot }
-            list.concat(Taicpu.Op_none(A_NOP));
+            list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_L7,NR_O7,NR_L7));
+            { allocate NR_L7, so reg.allocator does not see it as available }
+            list.concat(tai_regalloc.alloc(NR_L7,nil));
           end;
       end;
 
@@ -1387,6 +1140,14 @@ implementation
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aint;
+
+        function reference_is_reusable(const ref: treference): boolean;
+          begin
+            result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
+              (ref.symbol=nil) and
+              (ref.offset>=simm13lo) and (ref.offset+len<=simm13hi);
+          end;
+
       begin
         if len>high(longint) then
           internalerror(2002072704);
@@ -1395,27 +1156,27 @@ implementation
           g_concatcopy_move(list,source,dest,len)
         else
           begin
-            reference_reset(src,source.alignment);
-            reference_reset(dst,dest.alignment);
-            { load the address of source into src.base }
-            src.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,source,src.base);
-            { load the address of dest into dst.base }
-            dst.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,dest,dst.base);
-            { generate a loop }
             count:=len div 4;
+            if (count<=4) and reference_is_reusable(source) then
+              src:=source
+            else
+              begin
+                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint));
+                a_loadaddr_ref_reg(list,source,src.base);
+              end;
+            if (count<=4) and reference_is_reusable(dest) then
+              dst:=dest
+            else
+              begin
+                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint));
+                a_loadaddr_ref_reg(list,dest,dst.base);
+              end;
+            { generate a loop }
             if count>4 then
               begin
-                { the offsets are zero after the a_loadaddress_ref_reg and just }
-                { have to be set to 8. I put an Inc there so debugging may be   }
-                { easier (should offset be different from zero here, it will be }
-                { easy to notice in the generated assembler                     }
                 countreg:=GetIntRegister(list,OS_INT);
                 tmpreg1:=GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_INT,count,countreg);
-                { explicitely allocate R_O0 since it can be used safely here }
-                { (for holding date that's being copied)                    }
                 current_asmdata.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
@@ -1424,11 +1185,6 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
                 a_jmp_cond(list,OC_NE,lab);
-                list.concat(taicpu.op_none(A_NOP));
-                { keep the registers alive }
-                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
-                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
                 len := len mod 4;
               end;
             { unrolled loop }
@@ -1495,15 +1251,9 @@ implementation
             { generate a loop }
             if len>4 then
               begin
-                { the offsets are zero after the a_loadaddress_ref_reg and just }
-                { have to be set to 8. I put an Inc there so debugging may be   }
-                { easier (should offset be different from zero here, it will be }
-                { easy to notice in the generated assembler                     }
                 countreg:=GetIntRegister(list,OS_INT);
                 tmpreg1:=GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_INT,len,countreg);
-                { explicitely allocate R_O0 since it can be used safely here }
-                { (for holding date that's being copied)                    }
                 current_asmdata.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
@@ -1512,11 +1262,6 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,1,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
                 a_jmp_cond(list,OC_NE,lab);
-                list.concat(taicpu.op_none(A_NOP));
-                { keep the registers alive }
-                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
-                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
               end
             else
               begin
@@ -1534,10 +1279,19 @@ implementation
       end;
 
 
+    procedure tcgsparc.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
+      begin
+        { This method is integrated into g_intf_wrapper and shouldn't be called separately }
+        InternalError(2013020102);
+      end;
+
+
     procedure tcgsparc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       var
         make_global : boolean;
         href : treference;
+        hsym : tsym;
+        paraloc : pcgparalocation;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
@@ -1559,7 +1313,29 @@ implementation
           List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
+        procdef.init_paraloc_info(callerside);
+        hsym:=tsym(procdef.parast.Find('self'));
+        if not(assigned(hsym) and
+          (hsym.typ=paravarsym)) then
+          internalerror(2010103101);
+        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+        if assigned(paraloc^.next) then
+          InternalError(2013020101);
+
+        case paraloc^.loc of
+          LOC_REGISTER:
+            begin
+              if ((ioffset>=simm13lo) and (ioffset<=simm13hi)) then
+                a_op_const_reg(list,OP_SUB,paraloc^.size,ioffset,paraloc^.register)
+              else
+                begin
+                  a_load_const_reg(list,paraloc^.size,ioffset,NR_G1);
+                  a_op_reg_reg(list,OP_SUB,paraloc^.size,NR_G1,paraloc^.register);
+                end;
+            end;
+        else
+          internalerror(2010103102);
+        end;
 
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
@@ -1567,39 +1343,29 @@ implementation
             if (procdef.extnumber=$ffff) then
               Internalerror(200006139);
             { mov  0(%rdi),%rax ; load vmt}
-            reference_reset_base(href,NR_O0,0,sizeof(pint));
+            reference_reset_base(href,paraloc^.register,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
-            g1_used:=true;
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
-	    g1_used:=false;
+            { Delay slot }
+            list.Concat(TAiCpu.Op_none(A_NOP));
           end
         else
-          begin
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-            href.refaddr := addr_high;
-            list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
-	    g1_used:=true;
-            href.refaddr := addr_low;
-            list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G1,href,NR_G1));
-            { FIXME: this assumes for now that %l7 already has the correct value }
-            if (cs_create_pic in current_settings.moduleswitches) then
-              begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_G1,NR_L7,NR_G1));
-                reference_reset_base(href,NR_G1,0,sizeof(pint));
-                list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
-              end;
-              
-            list.concat(taicpu.op_reg(A_JMP,NR_G1));
-	    g1_used:=false;
-          end;
-        { Delay slot }
-        list.Concat(TAiCpu.Op_none(A_NOP));
-
+          g_external_wrapper(list,procdef,procdef.mangledname);
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
+
+
+    procedure tcgsparc.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
+      begin
+        { CALL overwrites %o7 with its own address, we use delay slot to restore it. }
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_O7,NR_G1));
+        list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname)));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
+      end;
+
 
     procedure tcgsparc.g_stackpointer_alloc(list : TAsmList;localsize : longint);
       begin

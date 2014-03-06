@@ -770,8 +770,7 @@ implementation
             else
               result:=operand_read;
           A_STREX:
-            if opnr in [0,1,2] then
-              result:=operand_write;
+            result:=operand_write;
           else
             internalerror(200403151);
         end;
@@ -1032,6 +1031,7 @@ implementation
                 end;
             end;
             { special case for case jump tables }
+            penalty:=0;
             if SimpleGetNextInstruction(curtai,hp) and
               (tai(hp).typ=ait_instruction) then
               begin
@@ -1081,12 +1081,8 @@ implementation
                   A_ITTTT:
                     if GenerateThumb2Code then
                       penalty:=4*multiplier;
-                  else
-                    penalty:=0;
                 end;
-              end
-            else
-              penalty:=0;
+              end;
 
             { FLD/FST VFP instructions have a limit of +/- 1024, not 4096 }
             if SimpleGetNextInstruction(curtai,hp) and
@@ -2102,6 +2098,7 @@ implementation
 
       begin
         bytes:=$0;
+        i_field:=0;
         { evaluate and set condition code }
 
         { condition code allowed? }

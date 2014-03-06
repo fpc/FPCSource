@@ -13,13 +13,18 @@
 **********************************************************************}
 
 {$ASMMODE intel}
+
+{NOTE: the fpatan instruction on the 8087 and 80287 has the following restrictions:
+            0 <= ST(1) < ST(0) < +inf
+       so the following code requires a 387+ and is therefore disabled, so that we use the
+       generic implementation, until an asm optimized version, compatible with 8087/80287 is written }
 {//$define FPC_MATH_HAS_ARCTAN2}
 {function arctan2(y,x : float) : float;assembler;
   asm
-     fldt y
-     fldt x
-     fpatan
-     fwait
+    fld tbyte [y]
+    fld tbyte [x]
+    fpatan
+    fwait
   end;}
 
 
@@ -72,6 +77,16 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
     fdivp %st,%st(1)
     fwait
   end;}
+
+
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fld tbyte [x]
+    fyl2x
+    fwait
+  end;
 
 
 {//$define FPC_MATH_HAS_DIVMOD}

@@ -46,6 +46,11 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETANDROID}
+      {$ifdef MIPSEL}
+        ,t_android
+      {$endif MIPSEL}
+    {$endif}
 
 {**************************************
              Assemblers

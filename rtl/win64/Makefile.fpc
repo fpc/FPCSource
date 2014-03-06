@@ -9,18 +9,17 @@ main=rtl
 loaders=$(LOADERS)
 units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinfo lnfodwrf
 implicitunits=ctypes strings \
-      heaptrc matrix \
-      dos crt objects messages \
-      windows winsock winsock2 cmem dynlibs \
+      heaptrc \
+      dos messages \
+      windows cmem dynlibs \
       rtlconsts sysconst sysutils math types \
-      strutils convutils dateutils \
-      varutils variants typinfo fgl classes getopts \
-      stdconvs sockets printer charset character ucomplex fmtbcd fpwidestring \
-      winevent video mouse keyboard \
+      strutils \
+      typinfo fgl classes getopts \
+      printer charset character fpwidestring \
       sharemem exeinfo fpintres windirs \
       cpu signals \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
       unicodedata unicodeducet unicodenumtable \
       collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
 
@@ -30,7 +29,7 @@ implicitunits=ctypes strings \
 #     no cygwin so far
 #	initc
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math typinfo classes sysconst
 
 programs=
 

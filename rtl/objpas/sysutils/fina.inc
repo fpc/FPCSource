@@ -117,17 +117,24 @@ begin
 end;
 
 function ExtractShortPathName(Const FileName : PathStr) : PathStr;
-
+{$if defined(MSWINDOWS) and not defined(SYSUTILSUNICODE)}
+var
+  TempFile, TempResult: UnicodeString;
+{$endif}
 begin
 {$ifdef MSWINDOWS}
+{$if not defined(SYSUTILSUNICODE)}
+  TempFile:=FileName;
+  SetLength(TempResult,Max_Path);
+  SetLength(TempResult,GetShortPathNameW(PWideChar(TempFile), PWideChar(TempResult),Length(TempResult)));
+  widestringmanager.Unicode2AnsiMoveProc(PWideChar(TempResult),Result,DefaultRTLFileSystemCodePage,Length(TempResult));
+{$else not SYSUTILSUNICODE}
   SetLength(Result,Max_Path);
-  if sizeof(FileName[1])=1 then
-    SetLength(Result,GetShortPathNameA(PChar(FileName), PChar(Result),Length(Result)))
-  else
-    SetLength(Result,GetShortPathNameW(PWideChar(FileName), PWideChar(Result),Length(Result)));
-{$else}
+  SetLength(Result,GetShortPathNameW(PWideChar(FileName), PWideChar(Result),Length(Result)));
+{$endif not SYSUTILSUNICODE}
+{$else MSWindows}
   Result:=FileName;
-{$endif}
+{$endif MSWindows}
 end;
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}

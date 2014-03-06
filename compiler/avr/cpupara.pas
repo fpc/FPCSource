@@ -38,7 +38,6 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -65,45 +64,6 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
-      end;
-
-
-    procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
-      begin
-        if nr<1 then
-          internalerror(2002070801);
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=std_param_align;
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-          begin
-            size:=def_cgsize(pdef);
-            def:=pdef;
-            { the four first parameters are passed into registers }
-            if nr<=9 then
-              begin
-                loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,RS_R25-(nr-1)*2,R_SUBWHOLE);
-              end
-            else
-              begin
-                { the other parameters are passed on the stack }
-                loc:=LOC_REFERENCE;
-                reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=(nr-10)*2;
-              end;
-          end;
       end;
 
 
@@ -181,6 +141,8 @@ unit cpupara;
             result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+        else
+          result:=def.size>4;
         end;
       end;
 
@@ -202,7 +164,10 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            result:=inherited ret_in_param(def,pd);
+            if (def.size > 4) then
+              result:=true
+            else
+              result:=inherited ret_in_param(def,pd);
         end;
       end;
 
@@ -481,7 +446,57 @@ unit cpupara;
           { Return in register }
         else
           begin
-            if retcgsize in [OS_64,OS_S64] then
+            case retcgsize of
+              OS_32,OS_S32:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R22;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R23;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R25;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              OS_16,OS_S16:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R25;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              OS_8,OS_S8:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_R24;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              else
+                internalerror(2014030101);
+            end;
+
+            {if retcgsize in [OS_64,OS_S64] then
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
@@ -497,9 +512,9 @@ unit cpupara;
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
-                paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
-              end;
+                paraloc^.size:=OS_INT;
+                paraloc^.def:=u16inttype;
+              end;}
           end;
       end;
 

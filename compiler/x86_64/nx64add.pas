@@ -49,8 +49,10 @@ interface
 
     procedure tx8664addnode.second_addordinal;
     begin
-      { filter unsigned MUL opcode, which requires special handling }
+      { filter unsigned MUL opcode, which requires special handling.
+        Note that when overflow checking is off, we can use IMUL instead. }
       if (nodetype=muln) and
+        (cs_check_overflow in current_settings.localswitches) and
         (not(is_signed(left.resultdef)) or
          not(is_signed(right.resultdef))) then
       begin
@@ -74,6 +76,9 @@ interface
         cgsize:TCgSize;
         opsize:topsize;
       begin
+        reference_reset(ref,0);
+        reg:=NR_NO;
+
         cgsize:=def_cgsize(resultdef);
         opsize:=TCGSize2OpSize[cgsize];
         case cgsize of

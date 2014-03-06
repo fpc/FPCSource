@@ -63,10 +63,8 @@ function fpc_setjmp(var S:jmp_buf):longint;assembler;[public,alias:'FPC_SETJMP']
 procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_LONGJMP'];nostackframe;compilerproc;
   asm
 {$ifdef win64}
-    test     %edx,%edx
-    jne      .L1
-    incl     %edx
-.L1:
+    cmpl     $1,%edx
+    adcl     $0,%edx
     movl     %edx,%eax
     movq     jmp_buf.rbx(%rcx),%rbx
     movq     jmp_buf.rbp(%rcx),%rbp
@@ -92,10 +90,8 @@ procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_
     fldcw    jmp_buf.fpucw(%rcx)
     jmpq     jmp_buf.rip(%rcx)
 {$else win64}
-    test     %esi,%esi
-    jne      .L1
-    incl     %esi
-.L1:
+    cmpl     $1,%esi
+    adcl     $0,%esi
     movl     %esi,%eax
     movq     jmp_buf.rbx(%rdi),%rbx
     movq     jmp_buf.rbp(%rdi),%rbp

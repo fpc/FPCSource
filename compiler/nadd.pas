@@ -67,6 +67,10 @@ interface
           { and resultdef of the muln s64bit or u64bit           }
           function use_generic_mul32to64: boolean; virtual;
 
+          { override and return false if code generator can handle }
+          { full 64 bit multiplies.                                }
+          function use_generic_mul64bit: boolean; virtual;
+
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -369,6 +373,10 @@ implementation
         b       : boolean;
       begin
         result:=nil;
+        l1:=0;
+        l2:=0;
+        s1:=nil;
+        s2:=nil;
 
         { load easier access variables }
         rd:=right.resultdef;
@@ -572,11 +580,7 @@ implementation
                    result := left.getcopy;
                 end;
               end
-{$ifdef VER2_2}
-            else if (tordconstnode(right).value.svalue = -1) and (tordconstnode(right).value.signed) then
-{$else}
             else if tordconstnode(right).value = -1 then
-{$endif}
               begin
                 case nodetype of
                   muln:
@@ -1004,6 +1008,11 @@ implementation
 
       begin
          result:=nil;
+         rlow:=0;
+         llow:=0;
+         rhigh:=0;
+         lhigh:=0;
+
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
            begin
@@ -1375,44 +1384,34 @@ implementation
              { size either as long as both values are signed or unsigned   }
              { "xor" and "or" also don't care about the sign if the values }
              { occupy an entire register                                   }
-             { don't do it if either type is 64 bit, since in that case we }
-             { can't safely find a "common" type                           }
+             { don't do it if either type is 64 bit (except for "and"),    }
+             { since in that case we can't safely find a "common" type     }
              else if is_integer(ld) and is_integer(rd) and
-                     not is_64bitint(ld) and not is_64bitint(rd) and
                      ((nodetype=andn) or
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
-                       not(is_signed(ld) xor is_signed(rd)))) then
+                        not is_64bitint(ld) and not is_64bitint(rd) and
+                       (is_signed(ld)=is_signed(rd)))) then
                begin
-                 if (rd.size>ld.size) or
-                    { Delphi-compatible: prefer unsigned type for "and" with equal size }
-                    ((rd.size=ld.size) and
-                     not is_signed(rd)) then
-                   begin
-                     if (rd.size=ld.size) and
-                        is_signed(ld) then
-                       inserttypeconv_internal(left,rd)
-                     else
-                       begin
-                         { not to left right.resultdef, because that may
-                           cause a range error if left and right's def don't
-                           completely overlap }
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
-                   end
+                 { Delphi-compatible: prefer unsigned type for "and", when the
+                   unsigned type is bigger than the signed one, and also bigger
+                   than min(native_int, 32-bit) }
+                 if (is_oversizedint(rd) or is_nativeint(rd) or is_32bitint(rd)) and
+                    (rd.size>=ld.size) and
+                    not is_signed(rd) and is_signed(ld) then
+                      inserttypeconv_internal(left,rd)
+                 else if (is_oversizedint(ld) or is_nativeint(ld) or is_32bitint(ld)) and
+                    (ld.size>=rd.size) and
+                    not is_signed(ld) and is_signed(rd) then
+                      inserttypeconv_internal(right,ld)
                  else
                    begin
-                     if (rd.size=ld.size) and
-                        is_signed(rd) then
-                       inserttypeconv_internal(right,ld)
-                     else
-                       begin
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
-                   end
+                     { not to left right.resultdef, because that may
+                       cause a range error if left and right's def don't
+                       completely overlap }
+                     nd:=get_common_intdef(torddef(ld),torddef(rd),true);
+                     inserttypeconv(left,nd);
+                     inserttypeconv(right,nd);
+                   end;
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
@@ -2148,6 +2147,7 @@ implementation
         cmpfuncname: string;
         para: tcallparanode;
       begin
+        result:=nil;
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
         case nodetype of
@@ -2395,6 +2395,8 @@ implementation
                         right := tempn;
                       end;
                     end;
+                  else
+                    internalerror(2013112911);
                 end;
                 result := ccallnode.createinternres(procname,
                   ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
@@ -2510,6 +2512,12 @@ implementation
       end;
 
 
+    function taddnode.use_generic_mul64bit: boolean;
+      begin
+        result := true;
+      end;
+
+
     function taddnode.try_make_mul32to64: boolean;
 
       function canbe32bitint(v: tconstexprint): boolean;
@@ -2518,21 +2526,30 @@ implementation
                     ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))))
         end;
 
+      function is_32bitordconst(n: tnode): boolean;
+        begin
+          result := (n.nodetype = ordconstn) and
+                    canbe32bitint(tordconstnode(n).value);
+        end;
+
+      function is_32to64typeconv(n: tnode): boolean;
+        begin
+          result := (n.nodetype = typeconvn) and
+                    is_integer(ttypeconvnode(n).left.resultdef) and
+                    not is_64bit(ttypeconvnode(n).left.resultdef);
+        end;
+
       var
         temp: tnode;
       begin
         result := false;
-        if ((left.nodetype = typeconvn) and
-            is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
-           (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
-            ((right.nodetype = typeconvn) and
-             is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
+        if is_32to64typeconv(left) and
+           (is_32bitordconst(right) or
+            is_32to64typeconv(right) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
-               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit]))))) then
+               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit])))) then
           begin
             temp := ttypeconvnode(left).left;
             ttypeconvnode(left).left := nil;
@@ -2595,31 +2612,58 @@ implementation
             exit;
           end;
 
-        if not(use_generic_mul32to64) and
-           try_make_mul32to64 then
-          exit;
-
-        { when currency is used set the result of the
-          parameters to s64bit, so they are not converted }
-        if is_currency(resultdef) then
+        if try_make_mul32to64 then
           begin
-            left.resultdef:=s64inttype;
-            right.resultdef:=s64inttype;
-          end;
+            { if the code generator can handle 32 to 64-bit muls, we're done here }
+            if not use_generic_mul32to64 then
+              exit;
 
-        { otherwise, create the parameters for the helper }
-        right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
-          ccallparanode.create(right,ccallparanode.create(left,nil)));
-        left := nil;
-        { only qword needs the unsigned code, the
-          signed code is also used for currency }
-        if is_signed(resultdef) then
-          procname := 'fpc_mul_int64'
+            { this uses the same criteria for signedness as the 32 to 64-bit mul
+              handling in the i386 code generator }
+            if is_signed(left.resultdef) and is_signed(right.resultdef) then
+              procname := 'fpc_mul_longint_to_int64'
+            else
+              procname := 'fpc_mul_dword_to_qword';
+
+            right := ccallparanode.create(right,ccallparanode.create(left,nil));
+            result := ccallnode.createintern(procname,right);
+            left := nil;
+            right := nil;
+          end
         else
-          procname := 'fpc_mul_qword';
-        result := ccallnode.createintern(procname,right);
-        right := nil;
+          begin
+            { can full 64-bit multiplication be handled inline? }
+            if not use_generic_mul64bit then
+              begin
+                { generic handling replaces this node with call to fpc_mul_int64,
+                  whose result is int64 }
+                if is_currency(resultdef) then
+                  resultdef:=s64inttype;
+                exit;
+              end;
+
+            { when currency is used set the result of the
+              parameters to s64bit, so they are not converted }
+            if is_currency(resultdef) then
+              begin
+                left.resultdef:=s64inttype;
+                right.resultdef:=s64inttype;
+              end;
+
+            { otherwise, create the parameters for the helper }
+            right := ccallparanode.create(
+              cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
+              ccallparanode.create(right,ccallparanode.create(left,nil)));
+            left := nil;
+            { only qword needs the unsigned code, the
+              signed code is also used for currency }
+            if is_signed(resultdef) then
+              procname := 'fpc_mul_int64'
+            else
+              procname := 'fpc_mul_qword';
+            result := ccallnode.createintern(procname,right);
+            right := nil;
+          end;
       end;
 
 
@@ -2632,6 +2676,7 @@ implementation
       begin
         result := nil;
         notnode := false;
+        fdef := nil;
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
@@ -2720,7 +2765,10 @@ implementation
               unequaln:
                 procname:='NE';
               else
-                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                begin
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                  exit;
+                end;
             end;
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -2870,21 +2918,7 @@ implementation
                     expectloc:=LOC_JUMP;
                end
 {$endif cpu64bitalu}
-{$ifndef cpuneedsmulhelper}
-             { is there a cardinal? }
-             else if (torddef(ld).ordtype=u32bit) then
-               begin
-                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    expectloc:=LOC_REGISTER
-                  else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
-                    expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
-               end
-{$endif cpuneedsmulhelper}
-             { generic s32bit conversion }
+             { generic 32bit conversion }
              else
                begin
 {$ifdef cpuneedsmulhelper}
@@ -2905,7 +2939,7 @@ implementation
                          internalerror(2011022301);
                      end;
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(0,pasbool8type,false),
+                       ccallparanode.create(cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false),
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil))));
                      left := nil;
@@ -2916,12 +2950,10 @@ implementation
 {$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
+                  else if torddef(ld).size>sizeof(aint) then
+                    expectloc:=LOC_JUMP
                   else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
               end;
            end
 

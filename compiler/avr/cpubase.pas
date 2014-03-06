@@ -235,11 +235,11 @@ unit cpubase;
       }
       NR_PIC_OFFSET_REG = NR_R9;
       { Results are returned in this register (32-bit values) }
-      NR_FUNCTION_RETURN_REG = NR_R0;
-      RS_FUNCTION_RETURN_REG = RS_R0;
+      NR_FUNCTION_RETURN_REG = NR_R24;
+      RS_FUNCTION_RETURN_REG = RS_R24;
       { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64_LOW_REG = NR_R0;
-      RS_FUNCTION_RETURN64_LOW_REG = RS_R0;
+      NR_FUNCTION_RETURN64_LOW_REG = NR_R22;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_R22;
       { High part of 64bit return value }
       NR_FUNCTION_RETURN64_HIGH_REG = NR_R1;
       RS_FUNCTION_RETURN64_HIGH_REG = RS_R1;
@@ -322,6 +322,8 @@ unit cpubase;
     function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
     { returns the register with the offset of ofs of a continuous set of register starting with r and being continued with rhi }
     function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
+
+    function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
   implementation
 
@@ -473,6 +475,12 @@ unit cpubase;
           result:=TRegister(longint(rhi)+ofs-4)
         else
           result:=TRegister(longint(r)+ofs);
+      end;
+
+
+    function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        is_calljmp:= o in jmp_instructions;
       end;
 
 

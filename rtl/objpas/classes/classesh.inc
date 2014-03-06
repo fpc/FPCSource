@@ -215,11 +215,6 @@ Type
     property Current: Pointer read GetCurrent;
   end;
 
-{$ifdef VER2_4}
-type
-  TDirection = (FromBeginning, FromEnd);
-{$endif}
-
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -459,8 +454,8 @@ type
     FOwnerInterface: IInterface;
   protected
     { IInterface }
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   public
     function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure AfterConstruction; override;
@@ -1776,8 +1771,8 @@ type
     procedure ValidateInsert(AComponent: TComponent); dynamic;
     { IUnknown }
     function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): Hresult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     function iicrGetComponent: TComponent;
     { IDispatch }
     function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
@@ -2146,5 +2141,5 @@ procedure ObjectTextToResource(Input, Output: TStream);
 function LineStart(Buffer, BufPos: PChar): PChar;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
 function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 

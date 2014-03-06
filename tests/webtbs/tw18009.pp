@@ -1,6 +1,7 @@
 { %CPU=i386 }
 { %TARGET=go32v2,win32,linux }
 { %NOTE=This test requires an installed Nasm }
+{ %OPT=-Cg- }
 
 {$ASMMODE INTEL}
 var

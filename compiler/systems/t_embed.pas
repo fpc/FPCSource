@@ -635,8 +635,7 @@ begin
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
-      Add('    *(.vectors)');
-      Add('    KEEP(*(.vectors))');
+      Add('    KEEP(*(.init, .init.*))');
       Add('    /* For data that needs to reside in the lower 64k of progmem.  */');
       Add('    *(.progmem.gcc*)');
       Add('    *(.progmem*)');
@@ -862,6 +861,10 @@ begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename,'.elf')+' '+
         ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+      if success then
+        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+          ChangeFileExt(current_module.exefilename,'.elf')+' '+
+          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

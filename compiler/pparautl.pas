@@ -119,7 +119,7 @@ implementation
                (pd.owner.defowner.typ<>procdef) then
               begin
                 vs:=tparavarsym.create('$parentfp',paranr,vs_value
-                      ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
+                      ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
                 vs.varregable:=vr_none;
               end
             else

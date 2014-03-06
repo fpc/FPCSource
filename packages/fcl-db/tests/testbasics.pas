@@ -8,7 +8,7 @@ interface
 
 uses
   fpcunit, testutils, testregistry, testdecorator,
-  Classes, SysUtils;
+  Classes, SysUtils, db;
 
 type
 
@@ -16,6 +16,7 @@ type
 
   TTestBasics = class(TTestCase)
   private
+    function CreateDatasetWith3Fields: TDataset;
   protected
   published
     procedure TestParseSQL;
@@ -24,16 +25,36 @@ type
     procedure TestFieldDefWithoutDS;
     procedure TestGetParamList;
     procedure TestGetFieldList;
-    procedure TestExtractFieldName;
+    procedure TestExtractFieldName; //move record then copy. Is copy identical? Has record position changed?
+    procedure TestCheckFieldNames;
+    procedure TestFindField;
   end;
 
 implementation
 
-uses db, toolsunit;
+uses toolsunit;
 
 Type HackedDataset = class(TDataset);
 
 { TTestBasics }
+
+function TTestBasics.CreateDatasetWith3Fields: TDataset;
+var
+  F: TField;
+begin
+  Result := TDataSet.Create(nil);
+  F := TIntegerField.Create(Result);
+  F.FieldName := 'Field1';
+  F.DataSet := Result;
+
+  F := TIntegerField.Create(Result);
+  F.FieldName := 'Field2';
+  F.DataSet := Result;
+
+  F := TIntegerField.Create(Result);
+  F.FieldName := 'Field3';
+  F.DataSet := Result;
+end;
 
 procedure TTestBasics.TestParseSQL;
 var Params  : TParams;
@@ -116,6 +137,14 @@ begin
     SQLStr := format('%s field%d=:par%d', [SQLStr,i,i]);
   AssertEquals( StringReplace(SQLStr, ':par', '$', [rfReplaceAll]),
     Params.ParseSQL(SQLStr, True, True, True, psPostgreSQL) );
+
+// Test comments:
+  // Simple comment
+  AssertEquals(     'select * from table where id= --comment :c'#10'$1-$2 or id= --:c'#13'-$3',
+    Params.ParseSQL('select * from table where id= --comment :c'#10':a-:b or id= --:c'#13'-:d', True, True, True, psPostgreSQL));
+  // Bracketed comment
+  AssertEquals(     'select * from table where id=/*comment :c*/$1-$2',
+    Params.ParseSQL('select * from table where id=/*comment :c*/:a-:b', True, True, True, psPostgreSQL));
 
   Params.Free;
 end;
@@ -206,24 +235,11 @@ end;
 procedure TTestBasics.TestGetFieldList;
 var
   ds: TDataSet;
-  F: TField;
   List: TList;
   ExceptionRaised: Boolean;
 begin
-  ds := TDataSet.Create(nil);
+  ds := CreateDatasetWith3Fields;
   try
-    F := TIntegerField.Create(ds);
-    F.FieldName := 'Field1';
-    F.DataSet := ds;
-
-    F := TIntegerField.Create(ds);
-    F.FieldName := 'Field2';
-    F.DataSet := ds;
-
-    F := TIntegerField.Create(ds);
-    F.FieldName := 'Field3';
-    F.DataSet := ds;
-
     List := TList.Create;
     try
       //should not
@@ -366,6 +382,61 @@ begin
   FieldName := ExtractFieldName(Fields, i);
   AssertEquals(9, i);
   AssertEquals('xxx', FieldName);
+end;
+
+procedure TTestBasics.TestCheckFieldNames;
+var
+  ds: TDataSet;
+  ExceptionRaised: Boolean;
+begin
+  ds := CreateDatasetWith3Fields;
+  try
+    ExceptionRaised := False;
+    try
+      ds.Fields.CheckFieldNames('');
+    except
+      ExceptionRaised := True;
+    end;
+    AssertFalse(ExceptionRaised);
+
+    ExceptionRaised := False;
+    try
+      ds.Fields.CheckFieldNames('Field1;Field2');
+    except
+      ExceptionRaised := True;
+    end;
+    AssertFalse(ExceptionRaised);
+
+    ExceptionRaised := False;
+    try
+      ds.Fields.CheckFieldNames('Field1;NonExistentField');
+    except
+      ExceptionRaised := True;
+    end;
+    AssertTrue(ExceptionRaised);
+  finally
+    ds.Destroy;
+  end;
+end;
+
+procedure TTestBasics.TestFindField;
+var
+  ds: TDataSet;
+  F: TField;
+begin
+  ds := CreateDatasetWith3Fields;
+  try
+    F := ds.FindField('');
+    AssertTrue(F = nil);
+
+    F := ds.FindField('field3');
+    AssertTrue(F <> nil);
+
+    F := ds.FindField('NonExistentField');
+    AssertTrue(F = nil);
+  finally
+    ds.Destroy;
+  end;
 end;
 
 initialization

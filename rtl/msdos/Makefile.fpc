@@ -5,11 +5,11 @@
 main=rtl
 [target]
 loaders=prt0s prt0t prt0m # exceptn fpu
-units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
-      math macpas iso7185 rtlconst typinfo varutils variants types dateutil \
-      convutil strutils stdconvs matrix ucomplex getopts fgl classes objects \
-      msmouse ports keyboard \
-      printer charset cpall fmtbcd ctypes
+units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
+      math macpas iso7185 rtlconst typinfo types \
+      strutils getopts fgl classes \
+      msmouse ports  \
+      printer charset cpall ctypes
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf \
@@ -17,7 +17,7 @@ units=system uuchar objpas strings dos crt heaptrc lineinfo sysconst sysutils \
 # rsts=math varutils typinfo classes variants dateutil sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 #      cp932 cp936 cp949 cp950 
 [require]
 nortl=y
@@ -66,11 +66,11 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 prt0s$(OEXT) : prt0s.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
 prt0t$(OEXT) : prt0t.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
 prt0m$(OEXT) : prt0m.asm prt0stm.asm
-        nasm -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
+        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
 #
 # System Units (System, Objpas, Strings)
 #

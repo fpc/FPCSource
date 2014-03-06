@@ -77,7 +77,7 @@ implementation
         tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         current_asmdata.getjumplabel(labelcmp64_1);
         current_asmdata.getjumplabel(labelcmp64_2);
@@ -102,7 +102,7 @@ implementation
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
         result:=tmpreg;
@@ -116,7 +116,7 @@ implementation
         tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         current_asmdata.getjumplabel(labelcmp64_1);
         current_asmdata.getjumplabel(labelcmp64_2);
@@ -135,7 +135,7 @@ implementation
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
         result:=tmpreg;
@@ -150,7 +150,7 @@ implementation
         current_asmdata.getjumplabel(labelcmp64);
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         { is the high order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
@@ -161,7 +161,7 @@ implementation
         current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64);
         result:=tmpreg;
@@ -176,7 +176,7 @@ implementation
         current_asmdata.getjumplabel(labelcmp64);
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         { is the high order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
@@ -187,7 +187,7 @@ implementation
         current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64);
         result:=tmpreg;
@@ -201,7 +201,7 @@ implementation
         tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         current_asmdata.getjumplabel(labelcmp64_1);
         current_asmdata.getjumplabel(labelcmp64_2);
@@ -226,7 +226,7 @@ implementation
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
         result:=tmpreg;
@@ -240,7 +240,7 @@ implementation
         tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
 
         { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
 
         current_asmdata.getjumplabel(labelcmp64_1);
         current_asmdata.getjumplabel(labelcmp64_2);
@@ -259,7 +259,7 @@ implementation
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
+        cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
         result:=tmpreg;

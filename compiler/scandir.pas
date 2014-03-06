@@ -133,6 +133,7 @@ unit scandir;
     procedure dir_align;
       var
         hs : string;
+        b : byte;
       begin
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
@@ -162,7 +163,8 @@ unit scandir;
          end
         else
          begin
-           case current_scanner.readval of
+           b:=current_scanner.readval;
+           case b of
              1 : current_settings.packrecords:=1;
              2 : current_settings.packrecords:=2;
              4 : current_settings.packrecords:=4;
@@ -170,7 +172,7 @@ unit scandir;
             16 : current_settings.packrecords:=16;
             32 : current_settings.packrecords:=32;
            else
-            Message1(scan_e_illegal_pack_records,hs);
+            Message1(scan_e_illegal_pack_records,tostr(b));
            end;
          end;
       end;
@@ -1509,7 +1511,7 @@ unit scandir;
             s:=current_scanner.readcomment;
             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
               current_settings.sourcecodepage:=CP_UTF8
-            else if not(cpavailable(s)) then
+            else if not cpavailable(s) then
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);

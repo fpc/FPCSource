@@ -93,7 +93,7 @@ unit optconstprop;
           iterate manually here so we have full controll how all nodes are processed }
 
         { We cannot analyze beyond those nodes, so we terminate to be on the safe side }
-        if (n.nodetype in [addrn,derefn,dataconstn,asmn,withn,casen,whilerepeatn,forn,labeln,continuen,breakn,
+        if (n.nodetype in [addrn,derefn,dataconstn,asmn,withn,casen,whilerepeatn,labeln,continuen,breakn,
                            tryexceptn,raisen,tryfinallyn,onn,loadparentfpn,loadvmtaddrn,guidconstn,rttin,addoptn,asn,goton,
                            objcselectorn,objcprotocoln]) then
           exit(false)
@@ -123,6 +123,15 @@ unit optconstprop;
           end
         else if n.nodetype=statementn then
           result:=replaceBasicAssign(tstatementnode(n).left, arg, tree_modified)
+        else if n.nodetype=forn then
+          begin
+            result:=replaceBasicAssign(tfornode(n).right, arg, tree_modified);
+            if result then
+              replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
+            tree_modified:=tree_modified or tree_modified2;
+            { after a for node we cannot continue with our simple approach }
+            result:=false;
+          end
         else if n.nodetype=blockn then
           begin
             changed:=false;
@@ -249,14 +258,20 @@ unit optconstprop;
 
                     l:=a.left;
 
-                    if (((l.nodetype=loadn) and
-                         (tloadnode(l).symtableentry.typ=localvarsym) and
-                         (tloadnode(l).symtable=current_procinfo.procdef.localst)
-                        ) or
-                        ((l.nodetype=loadn) and
-                         (tloadnode(l).symtableentry.typ=paravarsym) and
-                         (tloadnode(l).symtable=current_procinfo.procdef.parast)
-                        ) or
+                    if ((((l.nodetype=loadn) and
+                         { its address cannot have escaped the current routine }
+                         not(tabstractvarsym(tloadnode(l).symtableentry).addr_taken)) and
+                         ((
+                           (tloadnode(l).symtableentry.typ=localvarsym) and
+                           (tloadnode(l).symtable=current_procinfo.procdef.localst)
+                          ) or
+                          ((tloadnode(l).symtableentry.typ=paravarsym) and
+                           (tloadnode(l).symtable=current_procinfo.procdef.parast)
+                          ) or
+                          ((tloadnode(l).symtableentry.typ=staticvarsym) and
+                           (tloadnode(l).symtable.symtabletype=staticsymtable)
+                          )
+                         )) or
                         (l.nodetype = temprefn)) and
                        (is_constintnode(a.right) or
                         is_constboolnode(a.right) or
@@ -305,15 +320,20 @@ unit optconstprop;
     function do_optconstpropagate(var rootnode: tnode): tnode;
       var
         changed: boolean;
+        runsimplify : Boolean;
       begin
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ before constant propagation ***************************');
         printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
+        runsimplify:=false;
         repeat
           changed:=false;
           foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
+          runsimplify:=runsimplify or changed;
         until changed=false;
+        if runsimplify then
+          doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ after constant propagation ***************************');
         printnode(rootnode);

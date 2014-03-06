@@ -157,7 +157,7 @@ begin
     AFieldNode := item[i];
     if AFieldNode.CompareName('FIELD')=0 then
       begin
-      AFieldDef := TFieldDef.Create(DataSet.FieldDefs);
+      AFieldDef := Dataset.FieldDefs.AddFieldDef;
       AFieldDef.DisplayName:=GetNodeAttribute(AFieldNode,'fieldname');
       AFieldDef.Name:=GetNodeAttribute(AFieldNode,'attrname');
       AFieldDef.Size:=StrToIntDef(GetNodeAttribute(AFieldNode,'width'),0);

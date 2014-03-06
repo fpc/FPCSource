@@ -110,14 +110,30 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     GetLocaleChar := nl_langinfo(item)^;
   end;
 
-  procedure OmitModifiers(const s: string; var i: integer);
+  function SkipModifiers(const s: string; var i: integer): string;
   var
     l: Integer;
   begin
+    Result := '';
     l := Length(s);
     //possible flag, with specifier or modifier - glibc exension
-    while (i<=l) and (s[i] in ['0'..'9', '_', '-', '^', '#', 'E', 'O']) do 
+    while (i<=l) and (s[i] in ['0'..'9', '_', '-', '^', '#', 'E', 'O']) do begin
+      Result := Result + s[i];
       inc(i);
+    end;
+  end;
+
+  function IsModifier(const Mods: string; m: char): boolean;
+  var
+    i: integer;
+  begin
+    Result := False;
+    for i := 1 to Length(Mods) do begin
+      if Mods[i] = m then begin
+        Result := True;
+        Break;
+      end;
+    end;
   end;
 
   function FindSeparator(const s: string; Def: char): char;
@@ -129,7 +145,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     if i=0 then
       Exit;
     inc(i);
-    OmitModifiers(s, i);
+    SkipModifiers(s, i);
     inc(i);
     if i<=Length(s) then
       FindSeparator := s[i];
@@ -139,6 +155,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
   var
     i, l: integer;
     clock12:boolean;
+    LastMod: string;
   begin
     clock12:=false; // should ampm get appended?
     TransformFormatStr := '';
@@ -147,7 +164,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     while i<=l do begin
       if s[i]='%' then begin
         inc(i);
-        OmitModifiers(s, i);
+        LastMod := SkipModifiers(s, i);
         if i>l then
           Exit;
         case s[i] of
@@ -157,7 +174,10 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
           'B': TransformFormatStr := TransformFormatStr + 'mmmm';
           'c': TransformFormatStr := TransformFormatStr + 'c';
           //'C':
-          'd': TransformFormatStr := TransformFormatStr + 'dd';
+          'd': if IsModifier(LastMod, '-') then
+                 TransformFormatStr := TransformFormatStr + 'd'
+               else
+                 TransformFormatStr := TransformFormatStr + 'dd';
           'D': TransformFormatStr := TransformFormatStr + 'mm"/"dd"/"yy';
           'e': TransformFormatStr := TransformFormatStr + 'd';
           'F': TransformFormatStr := TransformFormatStr + 'yyyy-mm-dd';
@@ -175,7 +195,10 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
 		  TransformFormatStr := TransformFormatStr + 'h';
                   clock12:=true;
                end;
-          'm': TransformFormatStr := TransformFormatStr + 'mm';
+          'm': if IsModifier(LastMod, '-') then
+                 TransformFormatStr := TransformFormatStr + 'm'
+               else
+                 TransformFormatStr := TransformFormatStr + 'mm';
           'M': TransformFormatStr := TransformFormatStr + 'nn';
           'n': TransformFormatStr := TransformFormatStr + sLineBreak;
           'p','P': 

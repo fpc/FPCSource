@@ -1143,6 +1143,12 @@ type
                     result:=texprvalue.create_ord(lv shl rv);
                   _OP_SHR:
                     result:=texprvalue.create_ord(lv shr rv);
+                  else
+                    begin
+                      { actually we should never get here but this avoids a warning }
+                      Message(parser_e_illegal_expression);
+                      result:=texprvalue.create_error;
+                    end;
                 end;
               end
             else
@@ -1214,6 +1220,8 @@ type
           end
         else
           result:=texprvalue.create_error;
+        else
+          result:=texprvalue.create_error;
       end;
     end;
 
@@ -1267,6 +1275,8 @@ type
               if b in pconstset(value.valueptr)^ then
                 result:=result+tostr(b)+',';
           end;
+        else
+          internalerror(2013112801);
       end;
     end;
 
@@ -1284,6 +1294,12 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
+        constord,
+        { error values }
+        constnone:
+          ;
+        else
+          internalerror(2013112802);
       end;
       inherited destroy;
     end;
@@ -1542,6 +1558,7 @@ type
            ns:tnormalset;
         begin
           result:=nil;
+          hasKlammer:=false;
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
@@ -1906,7 +1923,7 @@ type
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                result:=preproc_sub_expr(opcompare,true);
+                result:=preproc_sub_expr(opcompare,eval);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
@@ -1966,7 +1983,7 @@ type
              begin
                hs1:=result;
                preproc_consume(op);
-               if (op=_OP_OR)and hs1.isBoolean and hs1.asBool then
+               if (op=_OP_OR) and hs1.isBoolean and hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(true);
@@ -1975,7 +1992,7 @@ type
                    else
                      hs2:=preproc_sub_expr(succ(pred_level),false);
                  end
-               else if (op=_OP_AND)and hs1.isBoolean and not hs1.asBool then
+               else if (op=_OP_AND) and hs1.isBoolean and not hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(false);
@@ -2598,6 +2615,7 @@ type
 
     function tscannerfile.tempopeninputfile:boolean;
       begin
+        tempopeninputfile:=false;
         if inputfile.is_macro then
           exit;
         tempopeninputfile:=inputfile.tempopen;
@@ -2812,7 +2830,9 @@ type
      else if size=2 then
        result:=tokenreadword
      else if size=4 then
-       result:=tokenreadlongword;
+       result:=tokenreadlongword
+     else
+       internalerror(2013112901);
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
@@ -2841,6 +2861,9 @@ type
 {$endif}
    begin
 {$ifdef FPC_BIG_ENDIAN}
+     { satisfy DFA because it assumes that size may be 0 and doesn't know that
+       recordtokenbuf.write wouldn't use tmpset in that case }
+     tmpset[0]:=0;
      for i:=0 to size-1 do
        tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
      recordtokenbuf.write(tmpset,size);
@@ -3255,14 +3278,12 @@ type
                         mesgnb:=tokenreadsizeint;
                         if mesgnb>0 then
                           Comment(V_Error,'Message recordind not yet supported');
+                        prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
                             new(pmsg);
                             if i=1 then
-                              begin
-                                current_settings.pmessage:=pmsg;
-                                prevmsg:=nil;
-                              end
+                              current_settings.pmessage:=pmsg
                             else
                               prevmsg^.next:=pmsg;
                             pmsg^.value:=tokenreadlongint;
@@ -5337,7 +5358,10 @@ exit_label:
                checkpreprocstack;
              end;
            else
-             Illegal_Char(c);
+             begin
+               Illegal_Char(c);
+               readpreproc:=NOTOKEN;
+             end;
          end;
       end;
 

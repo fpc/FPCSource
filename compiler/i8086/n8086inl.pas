@@ -36,6 +36,7 @@ interface
          function typecheck_seg: tnode; override;
          function first_seg: tnode; override;
          procedure second_seg; override;
+         procedure second_get_frame;override;
        end;
 
 implementation
@@ -54,7 +55,7 @@ implementation
     nbas,ncon,ncal,ncnv,nld,ncgutil,
     tgobj,
     cga,cgutils,cgx86,cgobj,hlcgobj,
-    htypechk;
+    htypechk,procinfo;
 
      function ti8086inlinenode.typecheck_seg: tnode;
        begin
@@ -73,6 +74,21 @@ implementation
          location_reset(location,LOC_REGISTER,OS_16);
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
          current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
+       end;
+
+     procedure ti8086inlinenode.second_get_frame;
+       begin
+         if current_settings.x86memorymodel in x86_far_data_models then
+           begin
+             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+               internalerror(2014030201);
+             location_reset(location,LOC_REGISTER,OS_32);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             emit_reg_reg(A_MOV,S_W,current_procinfo.framepointer,location.register);
+             current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(location.register)));
+           end
+         else
+           inherited second_get_frame;
        end;
 
 begin

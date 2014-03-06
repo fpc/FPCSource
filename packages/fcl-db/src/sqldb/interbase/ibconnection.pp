@@ -142,27 +142,13 @@ type
 implementation
 
 uses
-  strutils, FmtBCD;
+  StrUtils, FmtBCD;
 
 const
   SQL_BOOLEAN_INTERBASE = 590;
   SQL_BOOLEAN_FIREBIRD = 32764;
   INVALID_DATA = -1;
 
-type
-  TTm = packed record
-    tm_sec : longint;
-    tm_min : longint;
-    tm_hour : longint;
-    tm_mday : longint;
-    tm_mon : longint;
-    tm_year : longint;
-    tm_wday : longint;
-    tm_yday : longint;
-    tm_isdst : longint;
-    __tm_gmtoff : longint;
-    __tm_zone : Pchar;
-  end;
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
@@ -713,9 +699,9 @@ begin
         else
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
         // Always force the creation of slqind for parameters. It could be
-        // that a database-trigger takes care of inserting null-values, so
-        // it should always be possible to pass null-parameters. If that fails,
-        // the database-server will generate the appropiate error.
+        // that a database trigger takes care of inserting null values, so
+        // it should always be possible to pass null parameters. If that fails,
+        // the database server will generate the appropriate error.
         sqltype := sqltype or 1;
         new(sqlind);
         end;
@@ -866,7 +852,7 @@ begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen);
 
-      FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
+      FD := FieldDefs.Add(FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
          TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
       if TransType in [ftBCD, ftFmtBCD] then
         case (SQLDA^.SQLVar[x].sqltype and not 1) of
@@ -988,7 +974,6 @@ var
   VSQLVar: ^XSQLVAR;
   P: TParam;
   ft : TFieldType;
-  D : TDateTime;
 begin
   {$push}
   {$R-}
@@ -1210,9 +1195,26 @@ end;
 
 {$DEFINE SUPPORT_MSECS}
 {$IFDEF SUPPORT_MSECS}
-const
-  IBDateOffset = 15018; //an offset from 17 Nov 1858.
-  IBTimeFractionsPerDay  = SecsPerDay * ISC_TIME_SECONDS_PRECISION; //Number of Firebird time fractions per day
+  const
+    IBDateOffset = 15018; //an offset from 17 Nov 1858.
+    IBTimeFractionsPerDay  = SecsPerDay * ISC_TIME_SECONDS_PRECISION; //Number of Firebird time fractions per day
+{$ELSE}
+  {$PACKRECORDS C}
+  type
+    TTm = record
+      tm_sec  : longint;
+      tm_min  : longint;
+      tm_hour : longint;
+      tm_mday : longint;
+      tm_mon  : longint;
+      tm_year : longint;
+      tm_wday : longint;
+      tm_yday : longint;
+      tm_isdst: longint;
+      __tm_gmtoff : PtrInt;    // Seconds east of UTC
+      __tm_zone   : PAnsiChar; // Timezone abbreviation
+    end;
+  {$PACKRECORDS DEFAULT}
 {$ENDIF}
 
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);

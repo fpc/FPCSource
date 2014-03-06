@@ -42,7 +42,7 @@ unit cgcpu;
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        //procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
@@ -67,11 +67,11 @@ unit cgcpu;
         procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
-        //procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
+        procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); override;
 
-        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
-          l : tasmlabel);override;
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister; l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
@@ -85,8 +85,8 @@ unit cgcpu;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
 
-//        procedure g_restore_frame_pointer(list : TAsmList);override;
-//        procedure g_return_from_proc(list : TAsmList;parasize : tcgint);override;
+        procedure g_save_registers(list:TAsmList);override;
+        procedure g_restore_registers(list:TAsmList);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef:tprocdef;ioffset:tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
@@ -121,6 +121,7 @@ unit cgcpu;
         is 32K
      }
      function isvalidrefoffset(const ref: treference): boolean;
+     function isvalidreference(const ref: treference): boolean;
 
     procedure create_codegen;
 
@@ -156,6 +157,28 @@ unit cgcpu;
        A_NONE
       );
 
+      { opcode with extend bits table lookup, used by 64bit cg }
+      topcg2tasmopx: Array[topcg] of tasmop =
+      (
+       A_NONE,
+       A_NONE,
+       A_ADDX,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NEGX,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_NONE,
+       A_SUBX,
+       A_NONE,
+       A_NONE,
+       A_NONE
+      );
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond =
       (
@@ -172,14 +195,26 @@ unit cgcpu;
        C_HI
       );
 
+     function isvalidreference(const ref: treference): boolean;
+       begin
+         isvalidreference:=isvalidrefoffset(ref) and
+
+           { don't try to generate addressing with symbol and base reg and offset
+             it might fail in linking stage if the symbol is more than 32k away (KB) }
+           not (assigned(ref.symbol) and (ref.base <> NR_NO) and (ref.offset <> 0)) and
+
+           { coldfire and 68000 cannot handle non-addressregs as bases }
+           not ((current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
+                not isaddressregister(ref.base));
+       end;
 
      function isvalidrefoffset(const ref: treference): boolean;
       begin
          isvalidrefoffset := true;
          if ref.index <> NR_NO then
            begin
-             if ref.base <> NR_NO then
-                internalerror(2002081401);
+//             if ref.base <> NR_NO then
+//                internalerror(2002081401);
              if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                 isvalidrefoffset := false
            end
@@ -364,7 +399,7 @@ unit cgcpu;
           inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
-
+{
     procedure tcg68k.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
@@ -403,7 +438,7 @@ unit cgcpu;
               inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
-
+}
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
        var
@@ -705,11 +740,24 @@ unit cgcpu;
 
 
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);
+      var
+        opsize: topsize;
       begin
+        opsize:=tcgsize2opsize[size];
+
         if isaddressregister(register) then
-         begin
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
-         end
+          begin
+            { an m68k manual I have recommends SUB Ax,Ax to be used instead of CLR for address regs }
+            if a = 0 then
+              list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
+            else
+              { ISA B/C Coldfire has MOV3Q which can move -1 or 1..7 to any reg }
+              if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+                 ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
+                list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
+              else
+                list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register));
+          end
         else
         if a = 0 then
            list.concat(taicpu.op_reg(A_CLR,S_L,register))
@@ -719,15 +767,28 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
              begin
-               { clear the register first, for unsigned and positive values, so
-                  we don't need to zero extend after }
-               if (size in [OS_16,OS_8]) or
-                  ((size in [OS_S16,OS_S8]) and (a > 0)) then
-                 list.concat(taicpu.op_reg(A_CLR,S_L,register));
-               list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[size],longint(a),register));
-               { only sign extend if we need to, zero extension is not necessary because the CLR.L above }
-               if (size in [OS_S16,OS_S8]) and (a < 0) then
-                 sign_extend(list,size,register);
+               { ISA B/C Coldfire has sign extend/zero extend moves }
+               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+                  (size in [OS_16, OS_8, OS_S16, OS_S8]) and 
+                  ((longint(a) >= low(smallint)) and (longint(a) <= high(smallint))) then
+                 begin
+                   if size in [OS_16, OS_8] then
+                     list.concat(taicpu.op_const_reg(A_MVZ,opsize,longint(a),register))
+                   else
+                     list.concat(taicpu.op_const_reg(A_MVS,opsize,longint(a),register));
+                 end
+               else
+                 begin
+                   { clear the register first, for unsigned and positive values, so
+                     we don't need to zero extend after }
+                   if (size in [OS_16,OS_8]) or
+                      ((size in [OS_S16,OS_S8]) and (a > 0)) then
+                     list.concat(taicpu.op_reg(A_CLR,S_L,register));
+                   list.concat(taicpu.op_const_reg(A_MOVE,opsize,longint(a),register));
+                   { only sign extend if we need to, zero extension is not necessary because the CLR.L above }
+                   if (size in [OS_S16,OS_S8]) and (a < 0) then
+                     sign_extend(list,size,register);
+                 end;
              end;
          end;
       end;
@@ -1007,7 +1068,7 @@ unit cgcpu;
        instr : taicpu;
        paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
         case op of
           OP_NONE :
@@ -1111,15 +1172,25 @@ unit cgcpu;
          end;
       end;
 
-{
+
     procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         opcode: tasmop;
+        opsize : topsize;
       begin
-        writeln('a_op_const_ref');
-
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
+        opsize := TCGSize2OpSize[size];
+
+        { on ColdFire all arithmetic operations are only possible on 32bit }
+        if not isvalidreference(ref) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+           and not (op in [OP_NONE,OP_MOVE])) then
+          begin
+            inherited;
+            exit;
+          end;
+
         case op of
           OP_NONE :
             begin
@@ -1130,13 +1201,32 @@ unit cgcpu;
               { Optimized, replaced with a simple load }
               a_load_const_ref(list,size,a,ref);
             end;
-          else
+          OP_ADD,
+          OP_SUB :
             begin
-              internalerror(2007010101);
+              { add/sub works the same way, so have it unified here }
+              if (a >= 1) and (a <= 8) then
+                begin
+                  if (op = OP_ADD) then
+                    opcode:=A_ADDQ
+                  else
+                    opcode:=A_SUBQ;
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref));
+                end
+              else
+                if current_settings.cputype = cpu_mc68000 then
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref))
+                else
+                  { on ColdFire, ADDI/SUBI cannot act on memory
+                    so we can only go through a register }
+                  inherited;
             end;
+          else begin
+//            list.concat(tai_comment.create(strpnew('a_op_const_ref inherited')));
+            inherited;
+          end;
         end;
       end;
-}
 
     procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
@@ -1246,6 +1336,36 @@ unit cgcpu;
       end;
 
 
+    procedure tcg68k.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference);
+      var
+        opcode : tasmop;
+        opsize : topsize;
+      begin
+        opcode := topcg2tasmop[op];
+        opsize := TCGSize2OpSize[size];
+
+        { on ColdFire all arithmetic operations are only possible on 32bit 
+          and addressing modes are limited }
+        if not isvalidreference(ref) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+          begin
+            inherited;
+            exit;
+          end;
+
+        case op of
+          OP_ADD,
+          OP_SUB :
+            begin
+              { add/sub works the same way, so have it unified here }
+              list.concat(taicpu.op_reg_ref(opcode, opsize, reg, ref));
+            end;
+          else begin
+//            list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited')));
+            inherited;
+          end;
+        end;
+      end;
 
     procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);
@@ -1572,65 +1692,57 @@ unit cgcpu;
           end;
       end;
 
-{    procedure tcg68k.g_restore_frame_pointer(list : TAsmList);
-      var
-        r:Tregister;
-      begin
-        r:=NR_FRAME_POINTER_REG;
-        list.concat(taicpu.op_reg(A_UNLK,S_NO,r));
-      end;
-}
-
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
         r,hregister : TRegister;
-        localsize: tcgint;
         spr : TRegister;
         fpr : TRegister;
         ref : TReference;
       begin
         if not nostackframe then
           begin
-            localsize := current_procinfo.calc_stackframe_size;
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-	    parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
-	                                                            correct here, but at least it looks less
-								    hacky, and makes some sense (KB) }
-            if (parasize<>0) then
+            parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
+                                                                    correct here, but at least it looks less
+                                                                    hacky, and makes some sense (KB) }
+
+            { if parasize is less than zero here, we probably have a cdecl function.
+              According to the info here: http://www.makestuff.eu/wordpress/gcc-68000-abi/
+              68k GCC uses two different methods to free the stack, depending if the target
+              architecture supports RTD or not, and one does callee side, the other does
+              caller side free, which looks like a PITA to support. We have to figure this 
+              out later. More info welcomed. (KB) }
+
+            if (parasize > 0) then
               begin
-                { only 68020+ supports RTD, so this needs another code path
-                  for 68000 and Coldfire (KB) }
-{ TODO: 68020+ only code generation, without fallback}
                 if current_settings.cputype=cpu_mc68020 then
                   list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
                 else
                   begin
-
                     { We must pull the PC Counter from the stack, before  }
                     { restoring the stack pointer, otherwise the PC would }
                     { point to nowhere!                                   }
 
-                    { save the PC counter (pop it from the stack)         }
-                    { use A0 for this which is defined as a scratch       }
-                    { register                                            }
+                    { Instead of doing a slow copy of the return address while trying    }
+                    { to feed it to the RTS instruction, load the PC to A0 (scratch reg) }
+                    { then free up the stack allocated for paras, then use a JMP (A0) to }
+                    { return to the caller with the paras freed. (KB) }
+
                     hregister:=NR_A0;
                     cg.a_reg_alloc(list,hregister);
                     reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
                     ref.direction:=dir_inc;
                     list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
-                    { can we do a quick addition ... }
+
                     r:=NR_SP;
+                    { can we do a quick addition ... }
                     if (parasize > 0) and (parasize < 9) then
                        list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
                     else { nope ... }
                        list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
 
-                    { restore the PC counter (push it on the stack)       }
-                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
-                    ref.direction:=dir_dec;
-                    cg.a_reg_alloc(list,hregister);
-                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
-                    list.concat(taicpu.op_none(A_RTS,S_NO));
+                    reference_reset_base(ref,hregister,0,4);
+                    list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
                   end;
               end
             else
@@ -1641,9 +1753,9 @@ unit cgcpu;
             list.concat(taicpu.op_none(A_RTS,S_NO));
           end;
 
-//         writeln('g_proc_exit');
          { Routines with the poclearstack flag set use only a ret.
-           also  routines with parasize=0     }
+           also  routines with parasize=0 }
+         { TODO: figure out if these are still relevant to us (KB) }
            (*
          if current_procinfo.procdef.proccalloption in clearstack_pocalls then
            begin
@@ -1658,41 +1770,115 @@ unit cgcpu;
              list.concat(taicpu.op_none(A_RTS,S_NO));
            end
          else
-           begin
-            { return with immediate size possible here
-              signed!
-              RTD is not supported on the coldfire     }
-            if (current_settings.cputype=cpu_MC68020) and (parasize<$7FFF) then
-                list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
-            { manually restore the stack }
-            else
-              begin
-                { We must pull the PC Counter from the stack, before  }
-                { restoring the stack pointer, otherwise the PC would }
-                { point to nowhere!                                   }
-
-                { save the PC counter (pop it from the stack)         }
-                hregister:=NR_A3;
-                cg.a_reg_alloc(list,hregister);
-                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-                ref.direction:=dir_inc;
-                list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
-                { can we do a quick addition ... }
-                r:=NR_SP;
-                if (parasize > 0) and (parasize < 9) then
-                   list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
-                else { nope ... }
-                   list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
-
-                { restore the PC counter (push it on the stack)       }
-                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-                ref.direction:=dir_dec;
-                cg.a_reg_alloc(list,hregister);
-                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
-                list.concat(taicpu.op_none(A_RTS,S_NO));
-               end;
-           end;
            *)
+      end;
+
+
+    procedure tcg68k.g_save_registers(list:TAsmList);
+      var
+        dataregs: tcpuregisterset;
+        addrregs: tcpuregisterset;
+        href : treference;
+        hreg : tregister;
+        size : longint;
+        r : integer;
+      begin
+        { The code generated by the section below, particularly the movem.l
+          instruction is known to cause an issue when compiled by some GNU 
+          assembler versions (I had it with 2.17, while 2.24 seems OK.) 
+          when you run into this problem, just call inherited here instead
+          to skip the movem.l generation. But better just use working GNU
+          AS version instead. (KB) }
+        dataregs:=[];
+        addrregs:=[];
+
+        { calculate temp. size }
+        size:=0;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              hreg:=newreg(R_INTREGISTER,saved_address_registers[r],R_SUBWHOLE);
+              inc(size,sizeof(aint));
+              dataregs:=dataregs + [saved_standard_registers[r]];
+            end;
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              begin
+                hreg:=newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                inc(size,sizeof(aint));
+                addrregs:=addrregs + [saved_address_registers[r]];
+              end;
+
+        { 68k has no MM registers }
+        if uses_registers(R_MMREGISTER) then
+          internalerror(2014030201);
+
+        if size>0 then
+          begin
+            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
+            include(current_procinfo.flags,pi_has_saved_regs);
+
+            { Copy registers to temp }
+            href:=current_procinfo.save_regs_ref;
+            if size = sizeof(aint) then
+              a_load_reg_ref(list, OS_32, OS_32, hreg, href)
+            else
+              list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,dataregs,addrregs,href));
+          end;
+      end;
+
+
+    procedure tcg68k.g_restore_registers(list:TAsmList);
+      var
+        dataregs: tcpuregisterset;
+        addrregs: tcpuregisterset;
+        href    : treference;
+        r       : integer;
+        hreg    : tregister;
+        size    : longint;
+      begin
+        { see the remark about buggy GNU AS versions in g_save_registers() (KB) }
+        dataregs:=[];
+        addrregs:=[];
+
+        if not(pi_has_saved_regs in current_procinfo.flags) then
+          exit;
+        { Copy registers from temp }
+        size:=0;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              inc(size,sizeof(aint));
+              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              { Allocate register so the optimizer does not remove the load }
+              a_reg_alloc(list,hreg);
+              dataregs:=dataregs + [saved_standard_registers[r]];
+            end;
+
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              begin
+                inc(size,sizeof(aint));
+                hreg:=newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                { Allocate register so the optimizer does not remove the load }
+                a_reg_alloc(list,hreg);
+                addrregs:=addrregs + [saved_address_registers[r]];
+              end;
+
+        { 68k has no MM registers }
+        if uses_registers(R_MMREGISTER) then
+          internalerror(2014030202);
+
+        { Restore registers from temp }
+        href:=current_procinfo.save_regs_ref;
+        if size = sizeof(aint) then
+          a_load_ref_reg(list, OS_32, OS_32, href, hreg)
+        else
+          list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,href,dataregs,addrregs));
+
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
 
@@ -1909,156 +2095,127 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG64F68K                                    }
 {****************************************************************************}
- procedure tcg64f68k.a_op64_reg_reg(list : TAsmList;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
-  var
-   hreg1, hreg2 : tregister;
-   opcode : tasmop;
-   instr : taicpu;
-  begin
-//    writeln('a_op64_reg_reg');
-    opcode := topcg2tasmop[op];
-    case op of
-      OP_ADD :
-         begin
-            { if one of these three registers is an address
-              register, we'll really get into problems!
-            }
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regdst.reghi) or
-               isaddressregister(regsrc.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_ADD,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_ADDX,S_L,regsrc.reghi,regdst.reghi));
-         end;
-      OP_AND,OP_OR :
-          begin
-            { at least one of the registers must be a data register }
-            if (isaddressregister(regdst.reglo) and
-                isaddressregister(regsrc.reglo)) or
-               (isaddressregister(regsrc.reghi) and
-                isaddressregister(regdst.reghi))
-               then
-                 internalerror(20020817);
-            cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
-            cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
-          end;
-      { this is handled in 1st pass for 32-bit cpu's (helper call) }
-      OP_IDIV,OP_DIV,
-      OP_IMUL,OP_MUL: internalerror(2002081701);
-      { this is also handled in 1st pass for 32-bit cpu's (helper call) }
-      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
-      OP_SUB:
-         begin
-            { if one of these three registers is an address
-              register, we'll really get into problems!
-            }
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regdst.reghi) or
-               isaddressregister(regsrc.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_SUB,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_SUBX,S_L,regsrc.reghi,regdst.reghi));
-         end;
-      OP_XOR:
-        begin
-            if isaddressregister(regdst.reglo) or
-               isaddressregister(regsrc.reglo) or
-               isaddressregister(regsrc.reghi) or
-               isaddressregister(regdst.reghi) then
-                 internalerror(20020817);
-            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reglo,regdst.reglo));
-            list.concat(taicpu.op_reg_reg(A_EOR,S_L,regsrc.reghi,regdst.reghi));
-        end;
-      OP_NEG:
-        begin
-          if isaddressregister(regdst.reglo) or
-              isaddressregister(regdst.reghi) then
-            internalerror(2012110402);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
-          list.concat(taicpu.op_reg(A_NEGX,S_L,regdst.reghi));
-        end;
-      OP_NOT:
-        begin
-          if isaddressregister(regdst.reglo) or
-              isaddressregister(regdst.reghi) then
-            internalerror(2012110401);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
-          cg.add_move_instruction(instr);
-          list.concat(instr);
-          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
-          list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
-        end;
-    end; { end case }
-  end;
+    procedure tcg64f68k.a_op64_reg_reg(list : TAsmList;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
+      var
+        hreg1, hreg2 : tregister;
+        opcode : tasmop;
+        xopcode : tasmop;
+        instr : taicpu;
+      begin
+        opcode := topcg2tasmop[op];
+        xopcode := topcg2tasmopx[op];
+
+        case op of
+          OP_ADD,OP_SUB:
+            begin
+              { if one of these three registers is an address
+              register, we'll really get into problems! }
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regdst.reghi) or
+                 isaddressregister(regsrc.reghi) then
+                internalerror(2014030101);
+              list.concat(taicpu.op_reg_reg(opcode,S_L,regsrc.reglo,regdst.reglo));
+              list.concat(taicpu.op_reg_reg(xopcode,S_L,regsrc.reghi,regdst.reghi));
+            end;
+          OP_AND,OP_OR:
+            begin
+              { at least one of the registers must be a data register }
+              if (isaddressregister(regdst.reglo) and
+                  isaddressregister(regsrc.reglo)) or
+                 (isaddressregister(regsrc.reghi) and
+                  isaddressregister(regdst.reghi)) then
+                internalerror(2014030102);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          { this is handled in 1st pass for 32-bit cpu's (helper call) }
+          OP_IDIV,OP_DIV,
+          OP_IMUL,OP_MUL: 
+            internalerror(2002081701);
+          { this is also handled in 1st pass for 32-bit cpu's (helper call) }
+          OP_SAR,OP_SHL,OP_SHR:
+            internalerror(2002081702);
+          OP_XOR:
+            begin
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regsrc.reglo) or
+                 isaddressregister(regsrc.reghi) or
+                 isaddressregister(regdst.reghi) then
+                internalerror(2014030103);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          OP_NEG,OP_NOT:
+            begin
+              if isaddressregister(regdst.reglo) or
+                 isaddressregister(regdst.reghi) then
+               internalerror(2014030104);
+              instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reglo,regdst.reglo);
+              cg.add_move_instruction(instr);
+              list.concat(instr);
+              instr:=taicpu.op_reg_reg(A_MOVE,S_L,regsrc.reghi,regdst.reghi);
+              cg.add_move_instruction(instr);
+              list.concat(instr);
+              if (op = OP_NOT) then
+                xopcode:=opcode;
+              list.concat(taicpu.op_reg(opcode,S_L,regdst.reglo));
+              list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
+            end;
+        end; { end case }
+      end;
 
 
- procedure tcg64f68k.a_op64_const_reg(list : TAsmList;op:TOpCG;size: tcgsize; value : int64;regdst : tregister64);
-  var
-   lowvalue : cardinal;
-   highvalue : cardinal;
-   hreg : tregister;
-  begin
-//    writeln('a_op64_const_reg');
-    { is it optimized out ? }
-//    if cg.optimize64_op_const_reg(list,op,value,reg) then
-//       exit;
+    procedure tcg64f68k.a_op64_const_reg(list : TAsmList;op:TOpCG;size: tcgsize; value : int64;regdst : tregister64);
+      var
+        lowvalue : cardinal;
+        highvalue : cardinal;
+        opcode : tasmop;
+        xopcode : tasmop;
+        hreg : tregister;
+      begin
+        { is it optimized out ? }
+        { optimize64_op_const_reg doesn't seem to be used in any cg64f32 right now. why? (KB) }
+        { if cg.optimize64_op_const_reg(list,op,value,reg) then
+            exit; }
 
-    lowvalue := cardinal(value);
-    highvalue:= value shr 32;
+        lowvalue := cardinal(value);
+        highvalue := value shr 32;
 
-   { the destination registers must be data registers }
-   if  isaddressregister(regdst.reglo) or
-       isaddressregister(regdst.reghi) then
-         internalerror(20020817);
-   case op of
-      OP_ADD :
-         begin
-           hreg:=cg.getintregister(list,OS_INT);
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
-           list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_ADDX,S_L,hreg,regdst.reghi));
-         end;
-      OP_AND :
-          begin
-            list.concat(taicpu.op_const_reg(A_AND,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_AND,S_L,highvalue,regdst.reghi));
-          end;
-      OP_OR :
-          begin
-            list.concat(taicpu.op_const_reg(A_OR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reghi));
-          end;
-      { this is handled in 1st pass for 32-bit cpus (helper call) }
-      OP_IDIV,OP_DIV,
-      OP_IMUL,OP_MUL: internalerror(2002081701);
-      { this is also handled in 1st pass for 32-bit cpus (helper call) }
-      OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
-      OP_SUB:
-         begin
-           hreg:=cg.getintregister(list,OS_INT);
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
-           list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
-           list.concat(taicpu.op_reg_reg(A_SUBX,S_L,hreg,regdst.reghi));
-         end;
-      OP_XOR:
-        begin
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_EOR,S_L,highvalue,regdst.reghi));
-        end;
-      { these should have been handled already by earlier passes }
-      OP_NOT, OP_NEG:
-        internalerror(2012110403);
-    end; { end case }
-  end;
+        opcode := topcg2tasmop[op];
+        xopcode := topcg2tasmopx[op];
+
+        { the destination registers must be data registers }
+        if isaddressregister(regdst.reglo) or
+           isaddressregister(regdst.reghi) then
+          internalerror(2014030105);
+        case op of
+          OP_ADD,OP_SUB:
+            begin
+              hreg:=cg.getintregister(list,OS_INT);
+              { cg.a_load_const_reg provides optimized loading to register for special cases }
+              cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
+              { don't use cg.a_op_const_reg() here, because a possible optimized
+                ADDQ/SUBQ wouldn't set the eXtend bit }
+              list.concat(taicpu.op_const_reg(opcode,S_L,lowvalue,regdst.reglo));
+              list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
+            end;
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg(list,op,OS_S32,longint(lowvalue),regdst.reglo);
+              cg.a_op_const_reg(list,op,OS_S32,longint(highvalue),regdst.reghi);
+            end;
+          { this is handled in 1st pass for 32-bit cpus (helper call) }
+          OP_IDIV,OP_DIV,
+          OP_IMUL,OP_MUL:
+            internalerror(2002081701);
+          { this is also handled in 1st pass for 32-bit cpus (helper call) }
+          OP_SAR,OP_SHL,OP_SHR: 
+            internalerror(2002081702);
+          { these should have been handled already by earlier passes }
+          OP_NOT,OP_NEG:
+            internalerror(2012110403);
+        end; { end case }
+      end;
 
 
 procedure create_codegen;

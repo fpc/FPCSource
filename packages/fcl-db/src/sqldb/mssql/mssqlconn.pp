@@ -137,9 +137,9 @@ type
 
   { EMSSQLDatabaseError }
 
-  EMSSQLDatabaseError = class(EDatabaseError)
+  EMSSQLDatabaseError = class(ESQLDatabaseError)
     public
-      DBErrorCode : integer;
+      property DBErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
   end;
 
   { TMSSQLConnectionDef }
@@ -168,7 +168,7 @@ var
 
 implementation
 
-uses DBConst, StrUtils, FmtBCD;
+uses StrUtils, FmtBCD;
 
 type
 
@@ -293,7 +293,6 @@ end;
 
 function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
 var E: EMSSQLDatabaseError;
-    CompName: string;
 begin
   if Ret=FAIL then
   begin
@@ -301,9 +300,7 @@ begin
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
       end;
-    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
-    E:=EMSSQLDatabaseError.CreateFmt('%s : Error %d : %s'+LineEnding+'%s', [CompName, DBErrorNo, DBErrorStr, DBMsgStr]);
-    E.DBErrorCode:=DBErrorNo;
+    E:=EMSSQLDatabaseError.CreateFmt('Error %d : %s'+LineEnding+'%s', [DBErrorNo, DBErrorStr, DBMsgStr], Self, DBErrorNo, '');
     DBErrorStr:='';
     DBMsgStr:='';
     raise E;
@@ -704,7 +701,7 @@ begin
         FieldType := ftAutoInc;
     end;
 
-    with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
+    with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
     begin
       // identity, timestamp and calculated column are not updatable
       if col.Updatable = 0 then Attributes := Attributes + [faReadonly];

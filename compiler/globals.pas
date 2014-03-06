@@ -228,6 +228,9 @@ interface
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
 
+       { external assembler extra option }
+       asmextraopt       : string;
+
        { things specified with parameters }
        paratarget        : tsystem;
        paratargetdbg     : tdbg;
@@ -253,8 +256,11 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+       { Path to ppc }
+       exepath       : TPathStr;
+       { Path to unicode charmap/collation binaries }
+       unicodepath   : TPathStr;
        { path for searching units, different paths can be seperated by ; }
-       exepath            : TPathStr;  { Path to ppc }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
@@ -324,7 +330,7 @@ interface
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
-       { Application type (platform specific) 
+       { Application type (platform specific)
          see globtype.pas for description }
        apptype : tapptype;
 
@@ -560,11 +566,7 @@ implementation
       macutils,
 {$endif}
 {$ifdef mswindows}
-{$ifdef VER2_4}
-      cwindirs,
-{$else VER2_4}
       windirs,
-{$endif VER2_4}
 {$endif}
       comphook;
 
@@ -916,7 +918,7 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
-        if (length(GetEnvPChar)=0) then 
+        if (length(GetEnvPChar)=0) then
           begin
             FreeEnvPChar(GetEnvPChar);
             GetEnvPChar:=nil;
@@ -1107,7 +1109,9 @@ implementation
              (abiinfo[t].name=hs) then
             begin
               a:=t;
-              result:=true;
+              { abi_old_win32_gnu is a win32 i386 specific "feature" }
+              if (t<>abi_old_win32_gnu) or (target_info.system=system_i386_win32) then
+                result:=true;
               break;
             end;
       end;
@@ -1299,6 +1303,7 @@ implementation
 {$endif need_path_search}
      begin
        localexepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
+       exeName := '';
        if localexepath='' then
          begin
            exeName := FixFileName(system.paramstr(0));
@@ -1364,6 +1369,7 @@ implementation
         sysrootpath:='';
 
         { Search Paths }
+        unicodepath:='';
         librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;

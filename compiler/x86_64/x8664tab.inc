@@ -11691,6 +11691,13 @@
     flags   : if_bmi1 or if_x86_64
   ),
   (
+    opcode  : A_TZCNT;
+    ops     : 2;
+    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_rm_gpr,ot_none,ot_none);
+    code    : #208#219#2#15#188#72;
+    flags   : if_bmi1 or if_sm
+  ),
+  (
     opcode  : A_RORX;
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_immediate or ot_bits8,ot_none);

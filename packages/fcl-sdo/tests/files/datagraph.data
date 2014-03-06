@@ -1,0 +1,47 @@
+<sdo:datagraph xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:company="company.xsd"
+xmlns:sdo="commonj.sdo">
+<xsd>
+<xsd:schema targetNamespace="company.xsd">
+<xsd:element name="company" type="company:CompanyType"/>
+<xsd:complexType name="CompanyType">
+<xsd:sequence>
+<xsd:element name="departments" type="company:DepartmentType"
+maxOccurs="unbounded"/>
+</xsd:sequence>
+<xsd:attribute name="name" type="xsd:string"/>
+<xsd:attribute name="employeeOfTheMonth" type="xsd:string"/>
+</xsd:complexType>
+<xsd:complexType name="DepartmentType">
+<xsd:sequence>
+<xsd:element name="employees" type="company:EmployeeType"
+maxOccurs="unbounded"/>
+</xsd:sequence>
+<xsd:attribute name="name" type="xsd:string"/>
+<xsd:attribute name="location" type="xsd:string"/>
+<xsd:attribute name="number" type="xsd:int"/>
+</xsd:complexType>
+<xsd:complexType name="EmployeeType">
+<xsd:attribute name="name" type="xsd:string"/>
+<xsd:attribute name="SN" type="xsd:ID"/>
+<xsd:attribute name="manager" type="xsd:boolean"/>
+</xsd:complexType>
+</xsd:schema>
+</xsd>
+<changeSummary create="E0004" delete="E0002">
+<company sdo:ref="#/company" name="ACME" employeeOfTheMonth="E0002"/>
+<departments sdo:ref="#/company/departments[1]">
+<employees sdo:ref="E0001"/>
+<employees name="Mary Smith" SN="E0002" manager="true"/>
+<employees sdo:ref="E0003"/>
+</departments>
+</changeSummary>
+<company:company name="MegaCorp" employeeOfTheMonth="E0004">
+<departments name="Advanced Technologies" location="NY" number="123">
+<employees name="John Jones" SN="E0001"/>
+<employees name="Jane Doe" SN="E0003"/>
+<employees name="Al Smith" SN="E0004" manager="true"/>
+</departments>
+</company:company>
+</sdo:datagraph>

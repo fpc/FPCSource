@@ -34,8 +34,11 @@ interface
           function  GetResFlags(unsigned:Boolean):TResFlags;
        public
           function pass_1 : tnode;override;
+          function use_generic_mul32to64: boolean; override;
+          function use_generic_mul64bit: boolean; override;
        protected
           function first_addfloat: tnode; override;
+          procedure second_addordinal;override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
@@ -481,11 +484,7 @@ interface
           begin
             asmList := current_asmdata.CurrAsmList;
             pass_left_right;
-
-            if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,left.location,left.resultdef,left.resultdef,true);
-            if not(right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,right.location,right.resultdef,right.resultdef,true);
+            force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT));
             set_result_location_reg;
 
             { shortcuts to register64s }
@@ -507,19 +506,7 @@ interface
       var
         unsigned : boolean;
       begin
-        { prepare for MUL64 inlining }
-        if (not(cs_check_overflow in current_settings.localswitches)) and
-           (nodetype in [muln]) and
-           (is_64bitint(left.resultdef)) and
-           (not (GenerateThumbCode)) then
-          begin
-            result := nil;
-            firstpass(left);
-            firstpass(right);
-            expectloc := LOC_REGISTER;
-          end
-        else
-          result:=inherited pass_1;
+        result:=inherited pass_1;
 
         if not(assigned(result)) then
           begin
@@ -642,6 +629,43 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+      end;
+
+    const
+      multops: array[boolean] of TAsmOp = (A_SMULL, A_UMULL);
+
+    procedure tarmaddnode.second_addordinal;
+      var
+        unsigned: boolean;
+      begin
+        if (nodetype=muln) and
+           is_64bit(resultdef) and
+           not(GenerateThumbCode) and
+           (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+          begin
+            pass_left_right;
+            force_reg_left_right(true, false);
+            set_result_location_reg;
+            unsigned:=not(is_signed(left.resultdef)) or
+                      not(is_signed(right.resultdef));
+            current_asmdata.CurrAsmList.Concat(
+              taicpu.op_reg_reg_reg_reg(multops[unsigned], location.register64.reglo, location.register64.reghi,
+                                        left.location.register,right.location.register));
+          end
+        else
+          inherited second_addordinal;
+      end;
+
+    function tarmaddnode.use_generic_mul32to64: boolean;
+      begin
+        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]);
+      end;
+
+    function tarmaddnode.use_generic_mul64bit: boolean;
+      begin
+        result:=GenerateThumbCode or
+          not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) or
+          (cs_check_overflow in current_settings.localswitches);
       end;
 
 begin

@@ -2503,7 +2503,7 @@ wpo_cant_create_feedback_file=12019_E_евозможно создать файл обратной связи "$1"
 #
 option_logo=11023_[
 Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
-Copyright (c) 1993-2013 by Florian Klaempfl
+Copyright (c) 1993-2014 by Florian Klaempfl
 ]
 
 #

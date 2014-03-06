@@ -1357,7 +1357,8 @@ implementation
          { allow Ordinal(Value) for type declarations since it
            can be an enummeration declaration or a set lke:
            (OrdinalType(const1)..OrdinalType(const2) }
-         if (not typeonly or is_ordinal(hdef))and try_to_consume(_LKLAMMER) then
+         if (not typeonly or is_ordinal(hdef)) and
+            try_to_consume(_LKLAMMER) then
           begin
             result:=comp_expr(true,false);
             consume(_RKLAMMER);
@@ -1368,9 +1369,9 @@ implementation
             else
               result:=ctypeconvnode.create_explicit(result,hdef);
           end
-         else { not LKLAMMER }
-          if (token=_POINT) and
-             (is_object(hdef) or is_record(hdef)) then
+         { not LKLAMMER }
+         else if (token=_POINT) and
+            (is_object(hdef) or is_record(hdef)) then
            begin
              consume(_POINT);
              { handles calling methods declared in parent objects
@@ -1781,11 +1782,21 @@ implementation
 
                { iso file buf access? }
                if (m_iso in current_settings.modeswitches) and
-                 (p1.resultdef.typ=filedef) and
-                 (tfiledef(p1.resultdef).filetyp=ft_text) then
+                 (p1.resultdef.typ=filedef) then
                  begin
-                   p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf',ccallparanode.create(p1,nil)));
-                   typecheckpass(p1);
+                   case tfiledef(p1.resultdef).filetyp of
+                     ft_text:
+                       begin
+                         p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf_text',ccallparanode.create(p1,nil)));
+                         typecheckpass(p1);
+                       end;
+                     ft_typed:
+                       begin
+                         p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil)),
+                           getpointerdef(tfiledef(p1.resultdef).typedfiledef)));
+                         typecheckpass(p1);
+                       end;
+                   end;
                  end
                else if (p1.resultdef.typ<>pointerdef) then
                  begin
@@ -2060,6 +2071,8 @@ implementation
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
+                     else
+                       internalerror(2013112903);
                    end;
                    if try_type_helper(p1,strdef) then
                      goto skippointdefcheck;
@@ -2424,6 +2437,7 @@ implementation
                srsym:=generrorsym;
                srsymtable:=nil;
                consume(_ID);
+               unit_found:=false;
              end
            else
              begin
@@ -2764,6 +2778,7 @@ implementation
            old_allow_array_constructor : boolean;
          begin
            buildp:=nil;
+           lastp:=nil;
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
            if token=_RECKKLAMMER then
@@ -2838,6 +2853,7 @@ implementation
         p1:=nil;
         filepos:=current_tokenpos;
         again:=false;
+        pd:=nil;
         if token=_ID then
          begin
            again:=true;

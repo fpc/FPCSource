@@ -223,6 +223,7 @@ FPC_INT00_HANDLER:
         push dx
 %endif
         push cx
+        cld
 %ifdef __FAR_CODE__
         jmp far FPC_HANDLEERROR
 %else
@@ -307,9 +308,9 @@ FPC_MSDOS:
 FPC_INTR:
         push bp
         mov bp, sp
-        mov al, byte [ss:bp + 6 + extra_param_offset]
+        mov al, byte [bp + 6 + extra_param_offset]
         mov byte [cs:int_number], al
-        mov si, [ss:bp + 4 + extra_param_offset]
+        mov si, [bp + 4 + extra_param_offset]
         push ds
         mov ax, word [si + 16]
         mov es, ax
@@ -333,9 +334,9 @@ int_number:
         push si
         push bp
         mov bp, sp
-        mov si, word [ss:bp + 8]
+        mov si, word [bp + 8]
         mov ds, si
-        mov si, word [ss:bp + 14 + extra_param_offset]
+        mov si, word [bp + 14 + extra_param_offset]
         mov word [si], ax
         mov word [si + 2], bx
         mov word [si + 4], cx
@@ -360,6 +361,29 @@ int_number:
         ret 4
 %endif
 
+        global FPC_CHECK_NULLAREA
+FPC_CHECK_NULLAREA:
+%ifdef __TINY__
+        ; tiny model has no nil pointer assignment checking; always return true.
+        mov al, 1
+%else
+        push ds
+        pop es
+        xor di, di
+        mov cx, 32
+        mov al, 1
+        cld
+        repe scasb
+        je .skip
+        dec ax   ; 1 byte shorter than dec al
+.skip:
+%endif
+%ifdef __FAR_CODE__
+        retf
+%else
+        ret
+%endif
+
         segment data
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
@@ -369,6 +393,15 @@ not_enough_mem_msg:
         segment bss class=bss
 
 %ifndef __TINY__
+        segment _NULL align=16 class=BEGDATA
+        global __nullarea
+__nullarea:
+        dd 01010101h, 01010101h, 01010101h, 01010101h
+        dd 01010101h, 01010101h, 01010101h, 01010101h
+
+        segment _AFTERNULL align=2 class=BEGDATA
+        dw 0
+
         segment stack stack class=stack
         resb 256
         stacktop:
@@ -377,5 +410,5 @@ not_enough_mem_msg:
 %ifdef __TINY__
         group dgroup text data bss
 %else
-        group dgroup data bss stack
+        group dgroup _NULL _AFTERNULL data bss stack
 %endif

@@ -37,8 +37,6 @@ Interface
 Type longstring = pchar;
      ShortString = string;
 
-{$i textrec.inc}
-
 { Internal functions, will not appear in systemh.inc }
 
 Function  NewLongString (Len : Longint) : LongString;

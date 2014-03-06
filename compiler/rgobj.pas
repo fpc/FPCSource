@@ -1404,7 +1404,7 @@ unit rgobj;
         colourednodes : Tsuperregisterset;
         adj_colours:set of 0..255;
         found : boolean;
-
+        tmpr: tregister;
     begin
       spillednodes.clear;
       {Reset colours}
@@ -1428,7 +1428,10 @@ unit rgobj;
                 if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
                   include(adj_colours,reginfo[a].colour);
               end;
-          if regtype=R_INTREGISTER then
+          { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+          {        while compiling the compiler. }
+          tmpr:=NR_STACK_POINTER_REG;
+          if regtype=getregtype(tmpr) then
             include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           found:=false;
@@ -1875,7 +1878,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(index,reginfo[u].colour);
                                       end;
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                                     if (segment<>NR_NO) and
                                        (getregtype(segment)=regtype) then
                                       begin
@@ -1886,7 +1889,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(segment,reginfo[u].colour);
                                       end;
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                                   end;
                             end;
 {$ifdef arm}
@@ -2151,11 +2154,11 @@ unit rgobj;
                         if (index <> NR_NO) and
                             (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                         if (segment <> NR_NO) and
                             (getregtype(segment)=regtype) then
                           addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                       end;
                 end;
 {$ifdef ARM}
@@ -2173,7 +2176,7 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$if defined(x86) or defined(mips)}
+{$if defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
         { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions
 
@@ -2188,7 +2191,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif defined(x86) or defined(mips)}
+{$endif defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
 
         {
           There are registers that need are spilled. We generate the
@@ -2267,8 +2270,13 @@ unit rgobj;
                 (ssa_safe or
                  not regwritten) then
                 begin
-                  { The original instruction will be the next that uses this register }
-                  add_reg_instruction(instr,loadreg,1);
+                  { The original instruction will be the next that uses this register
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,loadreg,reginfo[orgreg].weight+1);
                   ungetregisterinline(list,loadreg);
                 end;
             end;
@@ -2294,8 +2302,13 @@ unit rgobj;
                   else
                     storereg:=loadreg;
                   { The original instruction will be the next that uses this register, this
-                    also needs to be done for read-write registers }
-                  add_reg_instruction(instr,storereg,1);
+                    also needs to be done for read-write registers,
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,storereg,reginfo[orgreg].weight+1);
                 end;
             end;
 
@@ -2339,11 +2352,11 @@ unit rgobj;
                           (getregtype(ref^.index)=regtype) then
                         tryreplacereg(ref^.index,
                           not ssa_safe or (instr.spilling_get_operation_type_ref(counter,ref^.index)=operand_read));
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                       if (ref^.segment <> NR_NO) and
                           (getregtype(ref^.segment)=regtype) then
                         tryreplacereg(ref^.segment,true { always read-only });
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                     end;
                 end;
 {$ifdef ARM}

@@ -31,6 +31,20 @@ type
   end;
 
   { TPQCursor }
+  // TField and TFieldDef only support a limited amount of fields.
+  // TFieldBinding and TExtendedFieldType can be used to map PQ types
+  // on standard fields and retain mapping info.
+  TExtendedFieldType = (eftNone,eftEnum);
+
+  TFieldBinding = record
+    FieldDef : TSQLDBFieldDef; // FieldDef this is associated with
+    Index : Integer; // Tuple index
+    TypeOID : oid; // Filled with type OID if it is not standard.
+    TypeName : String; // Filled with type name by getextendedfieldInfo
+    ExtendedFieldType: TExtendedFieldType; //
+  end;
+  PFieldBinding = ^TFieldBinding;
+  TFieldBindings = Array of TFieldBinding;
 
   TPQCursor = Class(TSQLCursor)
   protected
@@ -39,7 +53,8 @@ type
     tr           : TPQTrans;
     res          : PPGresult;
     CurTuple     : integer;
-    FieldBinding : array of integer;
+    FieldBinding : TFieldBindings;
+    Function GetFieldBinding(F : TFieldDef): PFieldBinding;
    Public
     Destructor Destroy; override;
   end;
@@ -71,9 +86,12 @@ type
     FVerboseErrors       : Boolean;
     procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
-    function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
+    function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer; Out ATypeOID : oid) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
+    Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
   protected
+    procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); override;
+    Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
     procedure AddConnection(T: TPQTranConnection);
     // Release connection in pool.
@@ -139,10 +157,7 @@ ResourceString
   SErrCommitFailed = 'Commit transaction failed';
   SErrConnectionFailed = 'Connection to database failed';
   SErrTransactionFailed = 'Start of transacion failed';
-  SErrClearSelection = 'Clear of selection failed';
   SErrExecuteFailed = 'Execution of query failed';
-  SErrFieldDefsFailed = 'Can not extract field information from query';
-  SErrFetchFailed = 'Fetch of data failed';
   SErrPrepareFailed = 'Preparation of query failed.';
   SErrUnPrepareFailed = 'Unpreparation of query failed.';
 
@@ -211,6 +226,29 @@ begin
 end;
 
 { TPQCursor }
+
+function TPQCursor.GetFieldBinding(F: TFieldDef): PFieldBinding;
+
+Var
+  I : Integer;
+
+begin
+  Result:=Nil;
+  if (F=Nil) then exit;
+  // This is an optimization: it is so for 99% of cases (FieldNo-1=array index)
+  if F is TSQLDBFieldDef then
+    Result:=PFieldBinding(TSQLDBFieldDef(F).SQLDBData)
+  else If (FieldBinding[F.FieldNo-1].FieldDef=F) then
+    Result:=@FieldBinding[F.FieldNo-1]
+  else
+    begin
+    I:=Length(FieldBinding)-1;
+    While (I>=0) and (FieldBinding[i].FieldDef<>F) do
+      Dec(I);
+    if I>=0 then
+      Result:=@FieldBinding[i];
+    end;
+end;
 
 destructor TPQCursor.Destroy;
 begin
@@ -281,6 +319,67 @@ begin
 {$IfDef LinkDynamically}
   ReleasePostgres3;
 {$EndIf}
+end;
+
+procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor; Bindings: TFieldBindings);
+
+Var
+  tt,tc,Tn,S : String;
+  I,J : Integer;
+  Res : PPGResult;
+  toid : oid;
+  O : Array of integer;
+
+begin
+  SetLength(O,Length(Bindings));
+  For I:=0 to Length(Bindings)-1 do
+    if (Bindings[i].TypeOID>0) then
+      begin
+      if (S<>'') then
+        S:=S+', ';
+      S:=S+IntToStr(Bindings[i].TypeOID);
+      end;
+  if (S='') then
+    exit;
+  S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
+  Res:=PQExec(Cursor.tr.PGConn,PChar(S));
+  if (PQresultStatus(res)<>PGRES_TUPLES_OK) then
+    CheckResultError(Res,Cursor.tr.PGConn,'Error getting type info');
+  try
+    For I:=0 to PQntuples(Res)-1 do
+      begin
+      toid:=Strtoint(pqgetvalue(Res,i,0));
+      tn:=pqgetvalue(Res,i,1);
+      tt:=pqgetvalue(Res,i,2);
+      tc:=pqgetvalue(Res,i,3);
+      J:=length(Bindings)-1;
+      while (J>=0) and (Bindings[j].TypeOID<>toid) do
+        Dec(J);
+      if (J>=0) then
+        begin
+        Bindings[j].TypeName:=TN;
+        Case tt of
+          'e': // Enum
+            Bindings[j].ExtendedFieldType:=eftEnum;
+        end;
+        end;
+      end;
+  finally
+    PQClear(Res);
+  end;
+end;
+
+procedure TPQConnection.ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField;
+  UseOldValue: Boolean);
+begin
+  inherited ApplyFieldUpdate(C,P, F, UseOldValue);
+  if (C is TPQCursor) then
+    P.SQLDBData:=TPQCursor(C).GetFieldBinding(F.FieldDef);
+end;
+
+function TPQConnection.ErrorOnUnknownType: Boolean;
+begin
+  Result:=False;
 end;
 
 procedure TPQConnection.AddConnection(T: TPQTranConnection);
@@ -382,7 +481,7 @@ begin
   t:=Nil;
   L:=FConnectionPool.LockList;
   try
-    while (I<L.Count-1) do
+    while (I<L.Count) do
       begin
       T:=TPQTranConnection(L[i]);
       if (T.FPGConn=nil) or not T.FTranActive then
@@ -592,12 +691,20 @@ begin
     end;
 end;
 
-function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
-const VARHDRSZ=sizeof(longint);
-var li : longint;
+function TPQConnection.TranslateFldType(res: PPGresult; Tuple: integer; out
+  Size: integer; out ATypeOID: oid): TFieldType;
+
+const
+  VARHDRSZ=sizeof(longint);
+var
+  li : longint;
+  aoid : oid;
+
 begin
   Size := 0;
-  case PQftype(res,Tuple) of
+  ATypeOID:=0;
+  AOID:=PQftype(res,Tuple);
+  case AOID of
     Oid_varchar,Oid_bpchar,
     Oid_name               : begin
                              Result := ftstring;
@@ -661,7 +768,8 @@ begin
                              end;
     Oid_Unknown            : Result := ftUnknown;
   else
-    Result := ftUnknown;
+    Result:=ftUnknown;
+    ATypeOID:=AOID;
   end;
 end;
 
@@ -729,8 +837,11 @@ const TypeStrings : array[TFieldType] of string =
     );
 
 
-var s : string;
-    i : integer;
+var
+  s,ts : string;
+  i : integer;
+  P : TParam;
+  PQ : TSQLDBParam;
 
 begin
   with (cursor as TPQCursor) do
@@ -751,8 +862,21 @@ begin
         begin
         s := s + '(';
         for i := 0 to AParams.Count-1 do
-          if TypeStrings[AParams[i].DataType] <> 'Unknown' then
-            s := s + TypeStrings[AParams[i].DataType] + ','
+          begin
+          P:=AParams[i];
+          If (P is TSQLDBParam) then
+            PQ:=TSQLDBParam(P)
+          else
+            PQ:=Nil;
+          TS:=TypeStrings[P.DataType];
+          if (TS<>'Unknown') then
+            begin
+            If Assigned(PQ)
+               and Assigned(PQ.SQLDBData)
+               and (PFieldBinding(PQ.SQLDBData)^.ExtendedFieldType=eftEnum) then
+                ts:='unknown';
+            s := s + ts + ','
+            end
           else
             begin
             if AParams[i].DataType = ftUnknown then
@@ -765,6 +889,7 @@ begin
             else
               DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
             end;
+          end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
@@ -913,21 +1038,61 @@ procedure TPQConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs)
 var
   i         : integer;
   size      : integer;
+  eft       : TExtendedFieldType;
+  aoid       : oid;
   fieldtype : tfieldtype;
   nFields   : integer;
+  b : Boolean;
+  Q : TPQCursor;
+  FD : TSQLDBFieldDef;
+  FB : PFieldBinding;
+  C : TFieldDefClass;
 
 begin
-  with cursor as TPQCursor do
+  B:=False;
+  Q:=cursor as TPQCursor;
+  with Q do
     begin
     nFields := PQnfields(Res);
     setlength(FieldBinding,nFields);
     for i := 0 to nFields-1 do
       begin
-      fieldtype := TranslateFldType(Res, i,size);
-      with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(PQfname(Res, i)), fieldtype,size, False, (i + 1)) do
-        FieldBinding[FieldNo-1] := i;
+      fieldtype := TranslateFldType(Res, i,size, aoid );
+      FD:=FieldDefs.Add(FieldDefs.MakeNameUnique(PQfname(Res, i)),fieldtype,Size,False,I+1) as TSQLDBFieldDef;
+      With FD do
+        begin
+        SQLDBData:=@FieldBinding[i];
+        FieldBinding[i].Index:=i;
+        FieldBinding[i].FieldDef:=FD;
+        FieldBinding[i].TypeOID:=aOID;
+        B:=B or (aOID>0);
+        end;
       end;
     CurTuple := -1;
+    end;
+  if B then
+    begin
+    // get all information in 1 go.
+    GetExtendedFieldInfo(Q,Q.FieldBinding);
+    For I:=0 to Length(Q.FieldBinding)-1 do
+      begin
+      FB:=@Q.FieldBinding[i];
+      if (FB^.TypeOID>0) then
+        begin
+        FD:=FB^.FieldDef;
+        Case FB^.ExtendedFieldType of
+          eftEnum :
+            begin
+            FD.DataType:=ftString;
+            FD.Size:=64;
+            //FD.Attributes:=FD.Attributes+[faReadonly];
+            end
+        else
+          if ErrorOnUnknownType then
+            DatabaseError('unhandled field type :'+FB^.TypeName,Self);
+        end;
+        end;
+      end;
     end;
 end;
 
@@ -968,6 +1133,7 @@ begin
     PQsetClientEncoding(T.FPGConn, pchar(CharSet));
   result:=T.FPGConn;
 end;
+
 
 function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
 
@@ -1023,7 +1189,7 @@ begin
   Createblob := False;
   with cursor as TPQCursor do
     begin
-    x := FieldBinding[FieldDef.FieldNo-1];
+    x := GetFieldBinding(FieldDef)^.Index;
 
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
@@ -1300,7 +1466,7 @@ var
 begin
   with cursor as TPQCursor do
     begin
-    x := FieldBinding[FieldDef.FieldNo-1];
+    x := FieldBinding[FieldDef.FieldNo-1].Index;
     li := pqgetlength(res,curtuple,x);
     ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
     Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.BlobBuffer^.Buffer^, li);

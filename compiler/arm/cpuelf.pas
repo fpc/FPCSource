@@ -168,6 +168,16 @@ implementation
 
     TCB_SIZE = 8;
 
+    { ELF header e_flags }
+    EF_ARM_BE8          = $00800000;
+    EF_ARM_EABIMASK     = $FF000000;
+    EF_ARM_EABI_UNKNOWN = $00000000;
+    EF_ARM_EABI_VER1    = $01000000;
+    EF_ARM_EABI_VER2    = $02000000;
+    EF_ARM_EABI_VER3    = $03000000;
+    EF_ARM_EABI_VER4    = $04000000;
+    EF_ARM_EABI_VER5    = $05000000;
+
   { Using short identifiers to save typing. This ARM thing has more relocations
     than it has instructions... }
   const

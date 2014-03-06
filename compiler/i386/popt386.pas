@@ -320,7 +320,7 @@ begin
                          12: begin
                             {imul 12, reg1, reg2 to
                                lea (,reg1,4), reg2
-                               lea (,reg1,8) reg2
+                               lea (reg2,reg1,8), reg2
                              imul 12, reg1 to
                                lea (reg1,reg1,2), reg1
                                lea (,reg1,4), reg1}
@@ -853,6 +853,8 @@ begin
                         S_B: v:=$80;
                         S_W: v:=$8000;
                         S_L: v:=aint($80000000);
+                        else
+                          internalerror(2013112905);
                       end;
                       if (taicpu(p).oper[0]^.typ=Top_const) and
                          (taicpu(p).oper[0]^.val=v) and
@@ -1399,6 +1401,7 @@ begin
                                   taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
                                   taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                                   taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
+                                  taicpu(hp1).fileinfo := taicpu(p).fileinfo;
                                 end
                         end;
                       if GetNextInstruction(p, hp1) and
@@ -1973,10 +1976,9 @@ procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
     end;
 
 var
-  p,hp1,hp2: tai;
+  p,hp1,hp2,hp3: tai;
   l : longint;
   condition : tasmcond;
-  hp3: tai;
   UsedRegs, TmpUsedRegs: TRegSet;
   carryadd_opcode: Tasmop;
 

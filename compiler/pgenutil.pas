@@ -1,7 +1,7 @@
 {
     Copyright (c) 2011
 
-    Contains different functions that are used in the context of 
+    Contains different functions that are used in the context of
     parsing generics.
 
     This program is free software; you can redistribute it and/or modify
@@ -464,6 +464,7 @@ uses
                       for the symbol }
                     if not assigned(tt) then
                       begin
+                      srsym:=nil;
                       if not searchsym(ugenname,srsym,st) or
                           (srsym.typ<>typesym) then
                         begin
@@ -705,6 +706,10 @@ uses
             { Reparse the original type definition }
             if not err then
               begin
+                old_current_specializedef:=nil;
+                old_current_genericdef:=nil;
+                old_current_structdef:=nil;
+
                 if parse_class_parent then
                   begin
                     old_current_structdef:=current_structdef;

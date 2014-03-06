@@ -1515,6 +1515,36 @@ begin
        Val(SS,fpc_Val_longint_UnicodeStr,Code);
     end;
 end;
+
+
+Function fpc_Val_word_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): word; [public, alias:'FPC_VAL_WORD_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_word_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_word_UnicodeStr,Code);
+    end;
+end;
+
+
+Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): SmallInt; [public, alias:'FPC_VAL_SMALLINT_UNICODESTR']; compilerproc;
+Var
+  SS: ShortString;
+begin
+  fpc_Val_smallint_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       SS:=ShortString(S);
+       Val(SS,fpc_Val_smallint_UnicodeStr,Code);
+    end;
+end;
 {$endif CPU16 or CPU8}
 
 
@@ -1609,6 +1639,24 @@ end;
 
 
 Procedure fpc_UnicodeStr_LongWord(v : LongWord;Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  str(v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+
+Procedure fpc_UnicodeStr_SmallInt(v : SmallInt; Len : SizeInt; out S : UnicodeString);compilerproc;
+Var
+  SS: ShortString;
+begin
+  Str (v:Len,SS);
+  S:=UnicodeString(SS);
+end;
+
+
+Procedure fpc_UnicodeStr_Word(v : Word;Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
   SS: ShortString;
 begin

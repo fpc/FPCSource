@@ -50,10 +50,10 @@ unit cgcpu;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_reg_cgpara(list : TAsmList; size : tcgsize;r : tregister; const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
-        procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister); override;
@@ -205,25 +205,138 @@ unit cgcpu;
       end;
 
 
+    procedure tcgavr.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+
+      procedure load_para_loc(r : TRegister;paraloc : PCGParaLocation);
+        var
+          ref : treference;
+        begin
+          paramanager.allocparaloc(list,paraloc);
+          case paraloc^.loc of
+             LOC_REGISTER,LOC_CREGISTER:
+               a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
+             LOC_REFERENCE,LOC_CREFERENCE:
+               begin
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2);
+                  a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
+               end;
+             else
+               internalerror(2002071004);
+          end;
+        end;
+
+      var
+        i, i2 : longint;
+        hp : PCGParaLocation;
+
+      begin
+{        if use_push(cgpara) then
+          begin
+            if tcgsize2size[cgpara.Size] > 2 then
+              begin
+                if tcgsize2size[cgpara.Size] <> 4 then
+                  internalerror(2013031101);
+                if cgpara.location^.Next = nil then
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 4 then
+                      internalerror(2013031101);
+                  end
+                else
+                  begin
+                    if tcgsize2size[cgpara.location^.size] <> 2 then
+                      internalerror(2013031101);
+                    if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                      internalerror(2013031101);
+                    if cgpara.location^.Next^.Next <> nil then
+                      internalerror(2013031101);
+                  end;
+
+                if tcgsize2size[cgpara.size]>cgpara.alignment then
+                  pushsize:=cgpara.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                pushsize2 := int_cgsize(tcgsize2size[pushsize] - 2);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize2],makeregsize(list,GetNextReg(r),pushsize2)));
+                list.concat(taicpu.op_reg(A_PUSH,S_W,makeregsize(list,r,OS_16)));
+              end
+            else
+              begin
+                cgpara.check_simple_location;
+                if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+                  pushsize:=cgpara.location^.size
+                else
+                  pushsize:=int_cgsize(cgpara.alignment);
+                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+              end;
+
+          end
+        else }
+          begin
+            if not(tcgsize2size[cgpara.Size] in [1..4]) then
+              internalerror(2014011101);
+
+            hp:=cgpara.location;
+
+            i:=0;
+            while i<tcgsize2size[cgpara.Size] do
+              begin
+                if not(assigned(hp)) then
+                  internalerror(2014011102);
+
+                inc(i, tcgsize2size[hp^.Size]);
+
+                if hp^.Loc=LOC_REGISTER then
+                  begin
+                    load_para_loc(r,hp);
+                    hp:=hp^.Next;
+                    r:=GetNextReg(r);
+                  end
+                else
+                  begin
+                    load_para_loc(r,hp);
+
+                    for i2:=1 to tcgsize2size[hp^.Size] do
+                      r:=GetNextReg(r);
+
+                    hp:=hp^.Next;
+                  end;
+              end;
+            if assigned(hp) then
+              internalerror(2014011103);
+          end;
+      end;
+
+
     procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);
       var
-        ref: treference;
+        i : longint;
+        hp : PCGParaLocation;
       begin
-        paraloc.check_simple_location;
-        paramanager.allocparaloc(list,paraloc.location);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-               reference_reset(ref,paraloc.alignment);
-               ref.base:=paraloc.location^.reference.index;
-               ref.offset:=paraloc.location^.reference.offset;
-               a_load_const_ref(list,size,a,ref);
+        if not(tcgsize2size[paraloc.Size] in [1..4]) then
+          internalerror(2014011101);
+
+        hp:=paraloc.location;
+
+        for i:=1 to tcgsize2size[paraloc.Size] do
+          begin
+            if not(assigned(hp)) or
+              (tcgsize2size[hp^.size]<>1) or
+              (hp^.shiftval<>0) then
+              internalerror(2014011105);
+             case hp^.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 a_load_const_reg(list,hp^.size,(a shr (i-1)) and $ff,hp^.register);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 begin
+                   list.concat(taicpu.op_const(A_PUSH,(a shr (i-1)) and $ff));
+                 end;
+               else
+                 internalerror(2002071004);
             end;
-          else
-            internalerror(2002081101);
-        end;
+            hp:=hp^.Next;
+          end;
+        if assigned(hp) then
+          internalerror(2014011104);
       end;
 
 
@@ -271,26 +384,11 @@ unit cgcpu;
 
     procedure tcgavr.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
-        ref: treference;
         tmpreg: tregister;
       begin
-        paraloc.check_simple_location;
-        paramanager.allocparaloc(list,paraloc.location);
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_loadaddr_ref_reg(list,r,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-              reference_reset(ref,paraloc.alignment);
-              ref.base := paraloc.location^.reference.index;
-              ref.offset := paraloc.location^.reference.offset;
-              tmpreg := getintregister(list,OS_ADDR);
-              a_loadaddr_ref_reg(list,r,tmpreg);
-              a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-            end;
-          else
-            internalerror(2002080701);
-        end;
+        tmpreg:=getaddressregister(list);
+        a_loadaddr_ref_reg(list,r,tmpreg);
+        a_load_reg_cgpara(list,OS_ADDR,tmpreg,paraloc);
       end;
 
 
@@ -313,19 +411,6 @@ unit cgcpu;
         a_reg_alloc(list,NR_ZHI);
         list.concat(taicpu.op_reg_reg(A_MOV,NR_ZLO,reg));
         list.concat(taicpu.op_reg_reg(A_MOV,NR_ZHI,GetHigh(reg)));
-        list.concat(taicpu.op_none(A_ICALL));
-        a_reg_dealloc(list,NR_ZLO);
-        a_reg_dealloc(list,NR_ZHI);
-
-        include(current_procinfo.flags,pi_do_call);
-      end;
-
-
-    procedure tcgavr.a_call_ref(list : TAsmList;ref: treference);
-      begin
-        a_reg_alloc(list,NR_ZLO);
-        a_reg_alloc(list,NR_ZHI);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_ZLO);
         list.concat(taicpu.op_none(A_ICALL));
         a_reg_dealloc(list,NR_ZLO);
         a_reg_dealloc(list,NR_ZHI);
@@ -414,7 +499,15 @@ unit cgcpu;
            OP_NEG:
              begin
                if src<>dst then
-                 a_load_reg_reg(list,size,size,src,dst);
+                 begin
+                   if size in [OS_S64,OS_64] then
+                     begin
+                       a_load_reg_reg(list,OS_32,OS_32,src,dst);
+                       a_load_reg_reg(list,OS_32,OS_32,srchi,dsthi);
+                     end
+                   else
+                     a_load_reg_reg(list,size,size,src,dst);
+                 end;
 
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
@@ -428,7 +521,7 @@ unit cgcpu;
                    tmpreg:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       list.concat(taicpu.op_reg_const(A_SBCI,dst,-1));
+                       list.concat(taicpu.op_reg_const(A_SBCI,tmpreg,-1));
                        NextTmp;
                    end;
                  end;
@@ -488,7 +581,7 @@ unit cgcpu;
                current_asmdata.getjumplabel(l2);
                countreg:=getintregister(list,OS_8);
                a_load_reg_reg(list,size,OS_8,src,countreg);
-               list.concat(taicpu.op_reg_const(A_CP,countreg,0));
+               list.concat(taicpu.op_reg_const(A_CPI,countreg,0));
                a_jmp_flags(list,F_EQ,l2);
                cg.a_label(list,l1);
                case op of
@@ -606,7 +699,7 @@ unit cgcpu;
              end;
            OP_SUB:
              begin
-               list.concat(taicpu.op_reg_const(A_SUBI,reg,a));
+               list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
                    for i:=2 to tcgsize2size[size] do
@@ -618,6 +711,20 @@ unit cgcpu;
                      end;
                  end;
              end;
+           {OP_ADD:
+             begin
+               list.concat(taicpu.op_reg_const(A_SUBI,reg,(-a) and mask));
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       list.concat(taicpu.op_reg_const(A_ADC,reg,(a and mask) shr shift));
+                     end;
+                 end;
+             end; }
          else
            begin
              if size in [OS_64,OS_S64] then
@@ -716,11 +823,11 @@ unit cgcpu;
         else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
           begin
             maybegetcpuregister(list,tmpreg);
-            emit_mov(list,tmpreg,ref.index);
+            emit_mov(list,tmpreg,ref.base);
             maybegetcpuregister(list,GetNextReg(tmpreg));
-            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
-            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
-            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
+            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
+            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
@@ -1175,6 +1282,7 @@ unit cgcpu;
       begin
         if a=0 then
           begin
+            swapped:=false;
             { swap parameters? }
             case cmp_op of
               OC_GT:
@@ -1195,7 +1303,7 @@ unit cgcpu;
               OC_A:
                 begin
                   swapped:=true;
-                  cmp_op:=OC_A;
+                  cmp_op:=OC_B;
                 end;
             end;
 
@@ -1227,6 +1335,7 @@ unit cgcpu;
         tmpreg : tregister;
         i : byte;
       begin
+        swapped:=false;
         { swap parameters? }
         case cmp_op of
           OC_GT:
@@ -1247,7 +1356,7 @@ unit cgcpu;
           OC_A:
             begin
               swapped:=true;
-              cmp_op:=OC_A;
+              cmp_op:=OC_B;
             end;
         end;
         if swapped then
@@ -1256,13 +1365,13 @@ unit cgcpu;
             reg1:=reg2;
             reg2:=tmpreg;
           end;
-        list.concat(taicpu.op_reg_reg(A_CP,reg1,reg2));
+        list.concat(taicpu.op_reg_reg(A_CP,reg2,reg1));
 
         for i:=2 to tcgsize2size[size] do
           begin
             reg1:=GetNextReg(reg1);
             reg2:=GetNextReg(reg2);
-            list.concat(taicpu.op_reg_reg(A_CPC,reg1,reg2));
+            list.concat(taicpu.op_reg_reg(A_CPC,reg2,reg1));
           end;
 
         a_jmp_cond(list,cmp_op,l);
@@ -1338,7 +1447,7 @@ unit cgcpu;
         case value of
           0:
             ;
-          -14..-1:
+          {-14..-1:
             begin
               if ((-value) mod 2)<>0 then
                 list.concat(taicpu.op_reg(A_PUSH,NR_R0));
@@ -1349,7 +1458,7 @@ unit cgcpu;
             begin
               for i:=1 to value do
                 list.concat(taicpu.op_reg(A_POP,NR_R0));
-            end;
+            end;}
           else
             begin
               list.concat(taicpu.op_reg_const(A_SUBI,NR_R28,lo(word(-value))));
@@ -1440,6 +1549,8 @@ unit cgcpu;
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 a_adjust_sp(list,LocalSize);
                 regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  regs:=regs+[RS_R28,RS_R29];
 
                 for reg:=RS_R0 to RS_R31 do
                   if reg in regs then
@@ -1780,7 +1891,7 @@ unit cgcpu;
 
     procedure tcgavr.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       begin
-        internalerror(2011021324);
+        //internalerror(2011021324);
       end;
 
 

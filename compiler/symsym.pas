@@ -189,10 +189,14 @@ interface
       tabstractnormalvarsym = class(tabstractvarsym)
           defaultconstsym : tsym;
           defaultconstsymderef : tderef;
-          localloc      : TLocation; { register/reference for local var }
-          initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
-          currentregloc  : TLocation; { current registers for register variables with moving register numbers }
-          inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
+          { register/reference for local var }
+          localloc      : TLocation;
+          { initial location so it can still be initialized later after the location was changed by SSA }
+          initialloc    : TLocation;
+          { current registers for register variables with moving register numbers }
+          currentregloc  : TLocation;
+          { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
+          inparentfpstruct : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
@@ -235,6 +239,10 @@ interface
 {$endif symansistr}
       public
           section : ansistring;
+          { if a text buffer has been defined as being initialized from command line
+            parameters as it is done by iso pascal with the program symbols,
+            isoindex contains the parameter number }
+          isoindex : dword;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
           constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
@@ -683,6 +691,8 @@ implementation
          d : tderef;
       begin
          inherited ppuwrite(ppufile);
+         if fprocdefdereflist=nil then
+           internalerror(2013121801);
          ppufile.putword(FProcdefDerefList.Count);
          for i:=0 to FProcdefDerefList.Count-1 do
            begin

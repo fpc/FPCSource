@@ -76,7 +76,7 @@ Type
     Property Value : TJSValue Read FValue Write FValue;
   end;
 
-  { TJSStringLiteral }
+(*  { TJSStringLiteral }
 
   TJSStringLiteral = Class(TJSElement)
   private
@@ -84,7 +84,7 @@ Type
   Public
     Property Value : TJSString Read FValue Write FValue;
   end;
-
+*)
   { TJSRegularExpressionLiteral }
 
   TJSRegularExpressionLiteral = Class(TJSElement)
@@ -103,14 +103,15 @@ Type
   end;
 
   { TJSPrimaryExpressionIdent }
+  TJSPrimaryExpression = Class(TJSElement);
 
-  TJSPrimaryExpressionIdent = Class(TJSElement)
+  TJSPrimaryExpressionIdent = Class(TJSPrimaryExpression)
   private
-    FString: TJSString;
+    FName: TJSString;
   Public
-    Property AString : TJSString Read FString Write FString;
+    Property Name : TJSString Read FName Write FName;
   end;
-  TJSPrimaryExpressionThis = Class(TJSElement);
+  TJSPrimaryExpressionThis = Class(TJSPrimaryExpression);
 
   { TJSArrayLiteralElement }
 
@@ -878,9 +879,16 @@ begin
 end;
 
 destructor TJSSourceElements.Destroy;
+
+Var
+  i : integer;
+
 begin
   FreeAndNil(FStatements);
   FreeAndNil(FFunctions);
+  // Vars are owned by their statements, and those have been freed
+  For I:=0 to FVars.Count-1 do
+    FVars.Nodes[i].Node:=nil;
   FreeAndNil(FVars);
   inherited Destroy;
 end;
@@ -914,7 +922,7 @@ end;
 
 destructor TJSElementNode.Destroy;
 begin
-  //FreeAndNil(FNode);
+  FreeAndNil(FNode);
   inherited Destroy;
 end;
 
@@ -933,6 +941,7 @@ end;
 
 destructor TJSFuncDef.Destroy;
 begin
+  FreeAndNil(FBody);
   FreeAndNil(FParams);
   inherited Destroy;
 end;

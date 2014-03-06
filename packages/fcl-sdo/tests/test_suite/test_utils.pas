@@ -41,8 +41,8 @@ type
 
 implementation
 uses
-  Contnrs, sdo_imp_utils, sdo, sdo_dataobjectlist, sdo_datafactory,
-  sdo_copyhelper, Math, test_suite_utils;
+  Contnrs, sdo_imp_utils, sdo, sdo_datafactory, sdo_dataobject,
+  Math, test_suite_utils;
 
 
 const

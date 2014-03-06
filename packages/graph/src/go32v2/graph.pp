@@ -829,7 +829,7 @@ begin
       AndPut:
         begin
           { optimization }
-          if CurrentColor = 1 then
+          if CurrentColor = 3 then
             exit;
           Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and (LBackMask or LForeMask);
         end;
@@ -882,9 +882,8 @@ begin
       AndPut:
         begin
           { optimization }
-          if CurrentColor = 1 then
+          if CurrentColor = 3 then
             exit;
-          { therefore, CurrentColor must be 0 }
           while MiddleAreaLength > 0 do
           begin
             Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and ForeMask;
@@ -927,7 +926,7 @@ begin
       AndPut:
         begin
           { optimization }
-          if CurrentColor = 1 then
+          if CurrentColor = 3 then
             exit;
           Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and (RBackMask or RForeMask);
         end;

@@ -58,43 +58,37 @@ interface
        { natural size for the processor                          }
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
-{$ifdef FPC_HAS_TYPE_FLOAT128}
+{$if defined(FPC_HAS_TYPE_FLOAT128)}
       type
          float = float128;
 
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
-{$else FPC_HAS_TYPE_FLOAT128}
-  {$ifdef FPC_HAS_TYPE_EXTENDED}
+{$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
          float = extended;
 
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
-  {$else FPC_HAS_TYPE_EXTENDED}
-    {$ifdef FPC_HAS_TYPE_DOUBLE}
+{$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
          float = double;
 
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
-    {$else FPC_HAS_TYPE_DOUBLE}
-      {$ifdef FPC_HAS_TYPE_SINGLE}
+{$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
          float = single;
 
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
-      {$else FPC_HAS_TYPE_SINGLE}
+{$else}
         {$fatal At least one floating point type must be supported}
-      {$endif FPC_HAS_TYPE_SINGLE}
-    {$endif FPC_HAS_TYPE_DOUBLE}
-  {$endif FPC_HAS_TYPE_EXTENDED}
-{$endif FPC_HAS_TYPE_FLOAT128}
+{$endif}
 
     type
        PFloat = ^Float;
@@ -309,7 +303,7 @@ function log10(x : float) : float;
 function log2(x : float) : float;
 function logn(n,x : float) : float;
 
-{ returns natural logarithm of x+1 }
+{ returns natural logarithm of x+1, accurate for x values near zero }
 function lnxp1(x : float) : float;
 
 { exponential functions }
@@ -743,21 +737,20 @@ begin
 end;
 
 
-{ ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
-
-
 function arcsin(x : float) : float;
 begin
-  if abs(x) > 1 then InvalidArgument
-  else if abs(x) < 0.5 then
-    arcsin := arctan(x/sqrt(1-sqr(x)))
-  else
-    arcsin := sign(x) * (pi*0.5 - arctan(sqrt(1 / sqr(x) - 1)));
+  arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
 
 function Arccos(x : Float) : Float;
 begin
-  arccos := pi*0.5 - arcsin(x);
+  if abs(x)=1.0 then
+    if x<0.0 then
+      arccos:=Pi
+    else
+      arccos:=0
+  else
+    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 
 
@@ -827,8 +820,8 @@ function arctanh(x : float) : float;inline;
 
 function arcosh(x : float) : float;
   begin
-     if x<1 then InvalidArgument;
-     arcosh:=Ln(x+Sqrt(x*x-1));
+    { Provides accuracy about 4*eps near 1.0 }
+    arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
   end;
 
 function arsinh(x : float) : float;
@@ -838,8 +831,7 @@ function arsinh(x : float) : float;
 
 function artanh(x : float) : float;
   begin
-    If abs(x)>1 then InvalidArgument;
-    artanh:=(Ln((1+x)/(1-x)))*0.5;
+    artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
 
 function hypot(x,y : float) : float;
@@ -856,25 +848,35 @@ function hypot(x,y : float) : float;
 
 function log10(x : float) : float;
   begin
-     log10:=ln(x)/ln(10);
+    log10:=ln(x)*0.43429448190325182765;  { 1/ln(10) }
   end;
 
+{$ifndef FPC_MATH_HAS_LOG2}
 function log2(x : float) : float;
   begin
-     log2:=ln(x)/ln(2)
+    log2:=ln(x)*1.4426950408889634079;    { 1/ln(2) }
   end;
+{$endif FPC_MATH_HAS_LOG2}
 
 function logn(n,x : float) : float;
   begin
-     if n<0 then InvalidArgument;
      logn:=ln(x)/ln(n);
   end;
 
 function lnxp1(x : float) : float;
+  var
+    y: float;
   begin
-     if x<-1 then
-       InvalidArgument;
-     lnxp1:=ln(1+x);
+    if (x>=4.0) then
+      lnxp1:=ln(1.0+x)
+    else
+      begin
+        y:=1.0+x;
+        if (y=1.0) then
+          lnxp1:=x
+        else
+          lnxp1:=ln(y)+(x-(y-1.0))/y;
+      end;
   end;
 
 function power(base,exponent : float) : float;
@@ -886,10 +888,8 @@ function power(base,exponent : float) : float;
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
       result:=intpower(base,trunc(exponent))
-    else if base>0.0 then
-      result:=exp(exponent * ln (base))
     else
-      InvalidArgument;
+      result:=exp(exponent * ln (base));
   end;
 
 function intpower(base : float;const exponent : Integer) : float;

@@ -44,11 +44,6 @@ Function GetFS(Var F:File):longint;
 
 implementation
 
-{ Get the definitions of textrec and filerec }
-{$i textrec.inc}
-{$i filerec.inc}
-
-
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs

@@ -39,6 +39,7 @@ begin
       if f=-1 then
         Error('Creating utf8string');
       FileClose(f);
+	  DeleteFile(u);
     end
   else
     warn('utf8string');
@@ -52,6 +53,7 @@ begin
       if f=-1 then
         Error('Creating tcpstr866');
       FileClose(f);
+	  DeleteFile(c);
     end
   else
     warn('tcpstr866');
@@ -72,6 +74,7 @@ begin
       if f=-1 then
         Error('Creating unicodestring 1');
       FileClose(f);
+	  DeleteFile(u);
     end
   else
     warn('random unicodestring');
@@ -83,6 +86,7 @@ begin
       if f=-1 then
         Error('Creating unicodestring 2');
       FileClose(f);
+	  DeleteFile(u);
     end
   else
     warn('cp866 unicodestring');

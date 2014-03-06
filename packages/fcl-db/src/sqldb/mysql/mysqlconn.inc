@@ -1,3 +1,12 @@
+{$IFDEF MYSQL56_UP}
+  {$DEFINE MYSQL55_UP}
+{$ENDIF}
+{$IFDEF MYSQL55_UP}
+  {$DEFINE MYSQL51_UP}
+{$ENDIF}
+{$IFDEF MYSQL51_UP}
+  {$DEFINE MYSQL50_UP}
+{$ENDIF}
 
 {$mode objfpc}{$H+}
 
@@ -5,9 +14,12 @@ interface
 
 uses
   Classes, SysUtils,bufdataset,sqldb,db,ctypes,
- {$IFDEF mysql55}
+{$IFDEF mysql56}
+  mysql56dyn;
+{$ELSE}
+{$IFDEF mysql55}
   mysql55dyn;
- {$ELSE}
+{$ELSE}
 {$IFDEF mysql51}
    mysql51dyn;
 {$ELSE}  
@@ -17,38 +29,37 @@ uses
     {$IfDef mysql41}
       mysql41dyn;
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-        mysql40dyn;
-      {$ELSE}
-        mysql40dyn;
-      {$EndIf}
+      mysql40dyn;
     {$EndIf}
   {$EndIf}
 {$endif}
 {$endif}
+{$ENDIF}
 
 Const
+  MySQLVersion =
+{$IFDEF mysql56}
+    '5.6';
+{$ELSE}
 {$IFDEF mysql55}
-   MySQLVersion = '5.5';
-{$else}
+    '5.5';
+{$ELSE}
 {$IFDEF mysql51}
-    MySQLVersion = '5.1';
+    '5.1';
 {$else}    
   {$IfDef mysql50}
-    MySQLVersion = '5.0';
+    '5.0';
   {$ELSE}
     {$IfDef mysql41}
-      MySQLVersion = '4.1';
+      '4.1';
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-        MySQLVersion = '4.0';
-      {$ELSE}
-        MySQLVersion = '4.0';
-      {$EndIf}
+      '4.0';
     {$EndIf}
   {$EndIf}
 {$endif}
 {$endif}
+{$ENDIF}
+
 Type
   TTransactionName = Class(TSQLHandle)
   protected
@@ -151,7 +162,12 @@ Type
   end;
 
 
-  EMySQLError = Class(Exception);
+  {$IFDEF mysql56}
+    TMySQL56Connection = Class(TConnectionName);
+    TMySQL56ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL56Transaction = Class(TTransactionName);
+    TMySQL56Cursor = Class(TCursorName);
+  {$ELSE}
   {$ifdef mysql55}
     TMySQL55Connection = Class(TConnectionName);
     TMySQL55ConnectionDef = Class(TMySQLConnectionDef);
@@ -176,20 +192,14 @@ Type
           TMySQL41Transaction = Class(TTransactionName);
           TMySQL41Cursor = Class(TCursorName);
         {$ELSE}
-          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-            TMySQLConnection = Class(TConnectionName);
-            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-            TMySQLTransaction = Class(TTransactionName);
-            TMySQLCursor = Class(TCursorName);
-          {$ELSE}
-            TMySQL40Connection = Class(TConnectionName);
-            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-            TMySQL40Transaction = Class(TTransactionName);
-            TMySQL40Cursor = Class(TCursorName);
-          {$EndIf}
+          TMySQL40Connection = Class(TConnectionName);
+          TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+          TMySQL40Transaction = Class(TTransactionName);
+          TMySQL40Cursor = Class(TCursorName);
         {$EndIf}
       {$endif}
     {$EndIf}
+  {$ENDIF}
   {$ENDIF}
 
 implementation
@@ -214,9 +224,17 @@ const
 {$IFDEF MYSQL50_UP}
      ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
 {$IFDEF mysql51_UP}
-         ,'MYSQL_OPT_SSL_VERIFY_SERVER_CERT'
-{$IFDEF mysql55}
-         ,'MYSQL_PLUGIN_DIR', 'MYSQL_DEFAULT_AUTH'
+     ,'MYSQL_OPT_SSL_VERIFY_SERVER_CERT'
+{$IFDEF mysql55_UP}
+     ,'MYSQL_PLUGIN_DIR', 'MYSQL_DEFAULT_AUTH'
+{$IFDEF MYSQL56_UP}
+     ,'MYSQL_OPT_BIND'
+     ,'MYSQL_OPT_SSL_KEY', 'MYSQL_OPT_SSL_CERT', 'MYSQL_OPT_SSL_CA', 'MYSQL_OPT_SSL_CAPATH', 'MYSQL_OPT_SSL_CIPHER', 'MYSQL_OPT_SSL_CRL', 'MYSQL_OPT_SSL_CRLPATH'
+     ,'MYSQL_OPT_CONNECT_ATTR_RESET', 'MYSQL_OPT_CONNECT_ATTR_ADD', 'MYSQL_OPT_CONNECT_ATTR_DELETE'
+     ,'MYSQL_SERVER_PUBLIC_KEY'
+     ,'MYSQL_ENABLE_CLEARTEXT_PLUGIN'
+     ,'MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS'
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 {$ENDIF}
@@ -235,19 +253,27 @@ Resourcestring
   SErrVersionMismatch = '%s can not work with the installed MySQL client version: Expected (%s), got (%s).';
   SErrSettingParameter = 'Error setting parameter "%s"';
 
-Procedure MySQLError(R : PMySQL;Msg: String;Comp : TComponent);
+Procedure MySQLError(R : PMySQL; Msg: String; Comp : TComponent);
 
 Var
-  MySQLMsg : String;
+  MySQLError, MySQLState : String;
+  MySQLErrno: integer;
 
 begin
- If (R<>Nil) then
-   begin
-   MySQLMsg:=Strpas(mysql_error(R));
-   DatabaseErrorFmt(Msg,[MySQLMsg],Comp);
-   end
- else
-   DatabaseError(Msg,Comp);
+  If (R<>Nil) then
+    begin
+    MySQLError:=StrPas(mysql_error(R));
+    MySQLErrno:=mysql_errno(R);
+    MySQLState:=StrPas(mysql_sqlstate(R));
+    end
+  else
+    begin
+    MySQLError:='';
+    MySQLErrno:=0;
+    MySQLState:='';
+    end;
+
+  raise ESQLDatabaseError.CreateFmt(Msg, [MySQLError], Comp, MySQLErrno, MySQLState);
 end;
 
 function MysqlOption(const OptionName: string; out AMysql_Option: mysql_option) : boolean;
@@ -469,6 +495,9 @@ end;
 
 function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
+  {$IFDEF mysql56}
+    Result:=TMySQL56Cursor.Create;
+  {$ELSE}
   {$IfDef mysql55}
     Result:=TMySQL55Cursor.Create;
   {$ELSE}
@@ -481,15 +510,12 @@ begin
         {$IfDef mysql41}
           Result:=TMySQL41Cursor.Create;
         {$ELSE}
-          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-            Result:=TMySQLCursor.Create;
-          {$ELSE}
-            Result:=TMySQL40Cursor.Create;
-          {$EndIf}
+          Result:=TMySQL40Cursor.Create;
         {$EndIf}
       {$EndIf}
     {$EndIf}
-  {$endif}
+  {$EndIf}
+  {$ENDIF}
 end;
 
 Procedure TConnectionName.DeAllocateCursorHandle(var cursor : TSQLCursor);
@@ -739,9 +765,9 @@ begin
 
     if MySQLDataType(field, DFT, DFS) then
       begin
-      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
-                       (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
-                       TF);
+      FieldDefs.Add(FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
+                    (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
+                    TF);
       c.MapDSRowToMSQLRow[TF-1] := I;
       inc(TF);
       end
@@ -1216,6 +1242,9 @@ end;
 
 class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
+  {$IFDEF mysql56}
+    Result:=TMySQL56Connection;
+  {$ELSE}
   {$IfDef mysql55}
      Result:=TMySQL55Connection;
   {$ELSE}
@@ -1228,15 +1257,12 @@ begin
         {$IfDef mysql41}
           Result:=TMySQL41Connection;
         {$ELSE}
-          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-            Result:=TMySQLConnection;
-          {$ELSE}
-            Result:=TMySQL40Connection;
-          {$EndIf}
+          Result:=TMySQL40Connection;
         {$EndIf}
       {$EndIf}
     {$endif}
   {$endif}
+  {$ENDIF}
 end;
 
 class function TMySQLConnectionDef.Description: String;
@@ -1264,6 +1290,12 @@ begin
   Result:=MysqlLoadedLibrary;
 end;
 
+{$IFDEF mysql56}
+  initialization
+    RegisterConnection(TMySQL56ConnectionDef);
+  finalization
+    UnRegisterConnection(TMySQL56ConnectionDef);
+{$ELSE}
 {$IfDef mysql55}
   initialization
     RegisterConnection(TMySQL55ConnectionDef);
@@ -1288,20 +1320,14 @@ end;
         finalization
           UnRegisterConnection(TMySQL41ConnectionDef);
       {$ELSE}
-        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-          initialization
-            RegisterConnection(TMySQL40ConnectionDef);
-          finalization
-            UnRegisterConnection(TMySQL40ConnectionDef);
-        {$ELSE}
-          initialization
-            RegisterConnection(TMySQL40ConnectionDef);
-          finalization
-            UnRegisterConnection(TMySQL40ConnectionDef);
-        {$EndIf}
+        initialization
+          RegisterConnection(TMySQL40ConnectionDef);
+        finalization
+          UnRegisterConnection(TMySQL40ConnectionDef);
       {$EndIf}
     {$EndIf}
   {$ENDIF}
 {$endif}
+{$ENDIF}
 
 end.

@@ -228,7 +228,6 @@ unit cgobj;
           }
           procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
-          procedure a_call_ref(list : TAsmList;ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;const s : string);virtual;
@@ -337,11 +336,12 @@ unit cgobj;
              to emit, and the constant value to emit. This function can opcode OP_NONE to
              remove the opcode and OP_MOVE to replace it with a simple load
 
+             @param(size Size of the operand in constant)
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be emitted)
           }
-          procedure optimize_op_const(var op: topcg; var a : tcgint);virtual;
+          procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -765,7 +765,7 @@ implementation
           No IE can be generated, because the VMT is written
           without a valid rg[] }
         if assigned(rg[rt]) then
-          rg[rt].add_reg_instruction(instr,r,cg.executionweight);
+          rg[rt].add_reg_instruction(instr,r,executionweight);
       end;
 
 
@@ -1137,7 +1137,7 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+             a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
@@ -1293,6 +1293,7 @@ implementation
         tmpreg,
         tmpreg2 : tregister;
         i : longint;
+        hisize : tcgsize;
       begin
         if ref.alignment in [1,2] then
           begin
@@ -1305,14 +1306,18 @@ implementation
                   a_load_ref_reg(list,fromsize,tosize,tmpref,register)
                 else
                   begin
+                    if FromSize=OS_16 then
+                      hisize:=OS_8
+                    else
+                      hisize:=OS_S8;
                     { first load in tmpreg, because the target register }
                     { may be used in ref as well                        }
                     if target_info.endian=endian_little then
                       inc(tmpref.offset);
                     tmpreg:=getintregister(list,OS_8);
-                    a_load_ref_reg(list,OS_8,OS_8,tmpref,tmpreg);
-                    tmpreg:=makeregsize(list,tmpreg,OS_16);
-                    a_op_const_reg(list,OP_SHL,OS_16,8,tmpreg);
+                    a_load_ref_reg(list,hisize,hisize,tmpref,tmpreg);
+                    tmpreg:=makeregsize(list,tmpreg,FromSize);
+                    a_op_const_reg(list,OP_SHL,FromSize,8,tmpreg);
                     if target_info.endian=endian_little then
                       dec(tmpref.offset)
                     else
@@ -1444,10 +1449,39 @@ implementation
       end;
 
 
-    procedure tcg.optimize_op_const(var op: topcg; var a : tcgint);
+    procedure tcg.optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);
       var
         powerval : longint;
+        signext_a, zeroext_a: tcgint;
       begin
+        case size of
+          OS_64,OS_S64:
+            begin
+              signext_a:=int64(a);
+              zeroext_a:=int64(a);
+            end;
+          OS_32,OS_S32:
+            begin
+              signext_a:=longint(a);
+              zeroext_a:=dword(a);
+            end;
+          OS_16,OS_S16:
+            begin
+              signext_a:=smallint(a);
+              zeroext_a:=word(a);
+            end;
+          OS_8,OS_S8:
+            begin
+              signext_a:=shortint(a);
+              zeroext_a:=byte(a);
+            end
+          else
+            begin
+              { Should we internalerror() here instead? }
+              signext_a:=a;
+              zeroext_a:=a;
+            end;
+        end;
         case op of
           OP_OR :
             begin
@@ -1456,13 +1490,13 @@ implementation
                 op:=OP_NONE
               else
               { or with max returns max }
-                if a = -1 then
+                if signext_a = -1 then
                   op:=OP_MOVE;
             end;
           OP_AND :
             begin
               { and with max returns same result }
-              if (a = -1) then
+              if (signext_a = -1) then
                 op:=OP_NONE
               else
               { and with 0 returns 0 }
@@ -1474,7 +1508,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+              else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -1492,7 +1526,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+               else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
@@ -2058,7 +2092,7 @@ implementation
            (tcgsize2size[tosize]<>4) then
           internalerror(2009112504);
         tg.gettemp(list,8,8,tt_normal,tmpref);
-        cg.a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
+        a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
         a_load_ref_reg(list,tosize,tosize,tmpref,intreg);
         tg.ungettemp(list,tmpref);
       end;
@@ -2334,7 +2368,7 @@ implementation
 
     procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
-        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
@@ -2382,16 +2416,6 @@ implementation
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
         a_call_name(list,s,false);
-      end;
-
-
-    procedure tcg.a_call_ref(list : TAsmList;ref: treference);
-      var
-        tempreg : TRegister;
-      begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
       end;
 
 

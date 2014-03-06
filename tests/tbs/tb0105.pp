@@ -1,6 +1,6 @@
 { %TARGET=linux,go32v2 }
 { %CPU=i386 }
-{ %OPT= -Aas }
+{ %OPT= -Aas -Cg- }
 
 { Old file: tbs0124.pp }
 { Asm, problem with -Rintel switch and indexing         OK 0.99.11 (PM/PFV) }

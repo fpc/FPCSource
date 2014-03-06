@@ -1066,7 +1066,7 @@ asm
   dec bx
   mov es, bx
   mov dx, es:[3]
-  mov al, exitcode
+  mov ax, exitcode
   mov ah, 31h
   int 21h
 end;

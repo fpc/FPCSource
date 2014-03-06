@@ -109,6 +109,7 @@ type
 
   protected
     procedure WriteDef(Output: TPpuOutput); virtual;
+    procedure Done; virtual;
 
   public
     DefType: TPpuDefType;
@@ -140,6 +141,7 @@ type
   protected
     procedure WriteDef(Output: TPpuOutput); override;
     procedure BeforeWriteItems(Output: TPpuOutput); virtual;
+    procedure Done; override;
 
   public
     ItemsName: string;
@@ -279,6 +281,9 @@ type
     constructor Create(AParent: TPpuContainerDef); override;
   end;
 
+  TPpuPropOption = (poDefault);
+  TPpuPropOptions = set of TPpuPropOption;
+
   { TPpuPropDef }
   TPpuPropDef = class(TPpuContainerDef)
   protected
@@ -286,6 +291,7 @@ type
   public
     PropType: TPpuRef;
     Getter, Setter: TPpuRef;
+    Options: TPpuPropOptions;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
   end;
@@ -313,7 +319,7 @@ type
   TPpuArrayOptions = set of TPpuArrayOption;
 
   { TPpuArrayDef }
-  TPpuArrayDef = class(TPpuDef)
+  TPpuArrayDef = class(TPpuContainerDef)
   protected
     procedure WriteDef(Output: TPpuOutput); override;
   public
@@ -455,6 +461,9 @@ const
 
   ObjOptionNames: array[TPpuObjOption] of string =
     ('abstract','copied');
+
+  PropOptionNames: array[TPpuPropOption] of string =
+    ('default');
 
   ArrayOptionNames: array[TPpuArrayOption] of string =
     ('dynamic');
@@ -751,6 +760,7 @@ end;
 constructor TPpuArrayDef.Create(AParent: TPpuContainerDef);
 begin
   inherited Create(AParent);
+  ItemsName:='Types';
   DefType:=dtArray;
   ElType:=TPpuRef.Create;
   RangeType:=TPpuRef.Create;
@@ -807,11 +817,20 @@ end;
 { TPpuPropDef }
 
 procedure TPpuPropDef.BeforeWriteItems(Output: TPpuOutput);
+var
+  opt: TPpuPropOption;
 begin
   inherited BeforeWriteItems(Output);
   PropType.Write(Output, 'PropType');
   Getter.Write(Output, 'Getter');
   Setter.Write(Output, 'Setter');
+  if Options <> [] then begin
+    Output.WriteArrayStart('Options');
+    for opt:=Low(opt) to High(opt) do
+      if opt in Options then
+        Output.WriteStr('', PropOptionNames[opt]);
+    Output.WriteArrayEnd('Options');
+  end;
 end;
 
 constructor TPpuPropDef.Create(AParent: TPpuContainerDef);
@@ -1217,6 +1236,7 @@ procedure TPpuUnitDef.WriteDef(Output: TPpuOutput);
 var
   i: integer;
 begin
+  Done;
   with Output do begin
     if Version <> 0 then
       WriteInt('Version', Version);
@@ -1316,6 +1336,21 @@ procedure TPpuContainerDef.BeforeWriteItems(Output: TPpuOutput);
 begin
 end;
 
+procedure TPpuContainerDef.Done;
+var
+  i: integer;
+  d: TPpuDef;
+begin
+  i:=0;
+  while i < Count do begin
+    d:=Items[i];
+    d.Done;
+    if d.Parent = Self then
+      Inc(i);
+  end;
+  inherited Done;
+end;
+
 constructor TPpuContainerDef.Create(AParent: TPpuContainerDef);
 begin
   inherited Create(AParent);
@@ -1404,6 +1439,27 @@ end;
 procedure TPpuDef.SetSymId(AId: integer);
 begin
   Id:=cardinal(AId) or SymIdBit;
+end;
+
+procedure TPpuDef.Done;
+var
+  symdef: TPpuDef;
+begin
+  if IsSymId(FId) then
+    exit;
+  if not Ref.IsNull and Ref.IsCurUnit and (Name = '') then begin
+    // If there is no definition name, but there is a symbol ref -
+    // get the name from the symbol and move the def to the symbol container
+    symdef:=ParentUnit.FindById(Ref.Id, True);
+    if symdef <> nil then begin
+      Name:=symdef.Name;
+      Visibility:=symdef.Visibility;
+      Parent.FItems.Remove(Self);
+      symdef.Parent.FItems.Add(Self);
+      // Hide the symbol, since it is not needed anymore
+      symdef.Visibility:=dvHidden;
+    end;
+  end;
 end;
 
 procedure TPpuDef.WriteDef(Output: TPpuOutput);

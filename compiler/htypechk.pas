@@ -870,6 +870,8 @@ implementation
       begin
         isbinaryoverloaded:=false;
         operpd:=nil;
+        ppn:=nil;
+
         { load easier access variables }
         ld:=tbinarynode(t).left.resultdef;
         rd:=tbinarynode(t).right.resultdef;
@@ -972,6 +974,8 @@ implementation
     { marks an lvalue as "unregable" }
     procedure make_not_regable_intern(p : tnode; how: tregableinfoflags; records_only: boolean);
       begin
+        if ra_addr_taken in how then
+          include(p.flags,nf_address_taken);
         repeat
           case p.nodetype of
             subscriptn:
@@ -1153,6 +1157,9 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
+                 { dyn. arrays and dyn. strings are read }
+                 if is_implicit_array_pointer(tunarynode(p).left.resultdef) then
+                   newstate:=vs_read;
                  if (newstate in [vs_read,vs_readwritten]) or
                     not(tunarynode(p).left.resultdef.typ in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid)
@@ -1510,8 +1517,8 @@ implementation
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resultdef.typ=pointerdef) then
-                        gotderef:=true;
+                       if ttypeconvnode(hp).convtype=tc_pointer_2_array then
+                         gotderef:=true;
                      end;
                  end;
                  hp:=ttypeconvnode(hp).left;

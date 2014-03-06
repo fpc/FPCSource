@@ -854,8 +854,7 @@ end;
        end;
    end;
 
-// disabled, causes an internal error on the i8086, TODO: fix
-(*  procedure PatternLineVESA256(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure PatternLineVESA256(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
   { current Fill Settings.                                 }
@@ -983,8 +982,6 @@ end;
      Until amount = 0;
      currentWriteMode := oldWriteMode;
    end;
-*)
-
 
 
  {************************************************************************}

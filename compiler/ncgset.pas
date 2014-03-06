@@ -260,6 +260,10 @@ implementation
          i,numparts : byte;
          needslabel : Boolean;
        begin
+         l2:=nil;
+         ofl:=nil;
+         otl:=nil;
+
          { We check first if we can generate jumps, this can be done
            because the resultdef is already set in firstpass }
 
@@ -800,6 +804,8 @@ implementation
          oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         ofl:=nil;
+         otl:=nil;
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);

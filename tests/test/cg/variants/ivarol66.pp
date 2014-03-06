@@ -20,7 +20,6 @@ procedure test66(a: currency); overload;
 procedure test66(a: widechar); overload;
   begin
     writeln('widechar called instead of currency');
-    halt(1)
   end;
 
 var
@@ -43,9 +42,11 @@ begin
   try
     v := y66;
     test66(v);
+    Writeln('Expected exception, none was raised');
+    Halt(1);
   except
     on E : TObject do
-      halt(1);
+      Writeln('Caught exception, as expected: ',E.ClassName);
   end;
 end;
 

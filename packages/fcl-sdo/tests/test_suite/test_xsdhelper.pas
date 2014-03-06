@@ -76,7 +76,7 @@ uses
 {$ENDIF}
   sdo_xsdintf,
   test_suite_utils, sdo_datafactory, sdo_xsdparser, sdo_type, xsd_consts,
-  parserutils;
+  sdo_parserutils;
 
 
 const
@@ -369,7 +369,7 @@ procedure TXsdHelper_Test.GenerateFile();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locFileName : string;
@@ -385,7 +385,7 @@ begin
     locPasFactory := TSDODataFactory.Create();
     AddTypeTree(locPasFactory);
     locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
-    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
     xsdPrsr.ParseTypes();
     CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
   finally
@@ -398,7 +398,7 @@ procedure TXsdHelper_Test.GenerateStream();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locStream : TStringStream;
@@ -416,7 +416,7 @@ begin
       locPasFactory := TSDODataFactory.Create();
       AddTypeTree(locPasFactory);
       locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
-      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
       xsdPrsr.ParseTypes();
       CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
     finally
@@ -432,7 +432,7 @@ procedure TXsdHelper_Test.GenerateString();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locStream : TStringStream;
@@ -452,7 +452,7 @@ begin
       locPasFactory := TSDODataFactory.Create();
       AddTypeTree(locPasFactory);
       locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
-      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
       xsdPrsr.ParseTypes();
       CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
     finally
@@ -473,7 +473,7 @@ procedure TXsdHelper_Test.LoadFromFile();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locPasFactory : ISDODataFactory;
@@ -488,7 +488,7 @@ begin
   locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
   try
     ReadXMLFile(locDoc,GetFileName());
-    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
     xsdPrsr.ParseTypes();
     CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
   finally
@@ -501,7 +501,7 @@ procedure TXsdHelper_Test.LoadFromStream();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locStream : TMemoryStream;
@@ -521,7 +521,7 @@ begin
     locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
     try
       ReadXMLFile(locDoc,GetFileName());
-      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
       xsdPrsr.ParseTypes();
       CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
     finally
@@ -538,7 +538,7 @@ procedure TXsdHelper_Test.LoadFromString();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locStream : TMemoryStream;
@@ -561,7 +561,7 @@ begin
     locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
     try
       ReadXMLFile(locDoc,GetFileName());
-      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+      xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
       xsdPrsr.ParseTypes();
       CompareModule(locTree.getDataObject(s_CurrentModule),fct,locTree);
     finally
@@ -739,7 +739,7 @@ procedure TXsdHelper_Test.TypeDerivation();
 var
   helper : IXSDHelper;
   fct : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locDoc : TXMLDocument;
   locFileName : string;
@@ -755,7 +755,7 @@ begin
     locPasFactory := TSDODataFactory.Create();
     AddTypeTree(locPasFactory);
     locTree := locPasFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
-    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdPaser;
+    xsdPrsr := TXsdParser.Create(locDoc,locTree,'') as IXsdParser;
     xsdPrsr.ParseTypes();
     CompareModule(s_uri,FindModule(locTree,s_uri),fct);
   finally
@@ -787,7 +787,7 @@ procedure TXsdHelper_Test.TypeDerivation2();
 var
   helper : IXSDHelper;
   fct, fctLoaded : ISDODataFactory;
-  xsdPrsr : IXsdPaser;
+  xsdPrsr : IXsdParser;
   locTree : ISDODataObject;
   locFileName : string;
 begin

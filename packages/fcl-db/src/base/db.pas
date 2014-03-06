@@ -198,7 +198,7 @@ type
     property Precision: Longint read FPrecision write SetPrecision;
     property Size: Integer read FSize write SetSize;
   end;
-
+  TFieldDefClass = Class of TFieldDef;
 { TFieldDefs }
 
   TFieldDefs = class(TDefCollection)
@@ -206,9 +206,12 @@ type
     FHiddenFields : Boolean;
     function GetItem(Index: Longint): TFieldDef;
     procedure SetItem(Index: Longint; const AValue: TFieldDef);
+  Protected
+    Class Function FieldDefClass : TFieldDefClass; virtual;
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
+    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum : Integer) : TFieldDef; overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean); overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
     procedure Add(const AName: string; ADataType: TFieldType); overload;
@@ -222,6 +225,7 @@ type
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
+  TFieldDefsClass = Class of TFieldDefs;
 
 { TField }
 
@@ -272,6 +276,7 @@ type
     FDisplayLabel : String;
     FDisplayWidth : Longint;
     FEditMask: TEditMask;
+    FFieldDef: TFieldDef;
     FFieldKind : TFieldKind;
     FFieldName : String;
     FFieldNo : Longint;
@@ -302,7 +307,7 @@ type
     function GetIndex : longint;
     function GetLookup: Boolean;
     procedure SetAlignment(const AValue: TAlignMent);
-    procedure SetIndex(const AValue: Integer);
+    procedure SetIndex(const AValue: Longint);
     function GetDisplayText: String;
     function GetEditText: String;
     procedure SetEditText(const AValue: string);
@@ -419,6 +424,7 @@ type
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
     property LookupList: TLookupList read GetLookupList;
+    Property FieldDef : TFieldDef Read FFieldDef;
   published
     property Alignment : TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
@@ -1000,6 +1006,7 @@ type
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions); overload;
+  published    
     property Expression: string read GetExpression write SetExpression;
     property Fields: string read FFields write FFields;
     property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
@@ -1080,10 +1087,11 @@ type
       FOnChange : TNotifyEvent;
       FValidFieldKinds : TFieldKinds;
     Protected
+      Procedure ClearFieldDefs;
       Procedure Changed;
       Procedure CheckfieldKind(Fieldkind : TFieldKind; Field : TField);
       Function GetCount : Longint;
-      Function GetField (Index : longint) : TField;
+      Function GetField (Index : Integer) : TField;
       Procedure SetField(Index: Integer; Value: TField);
       Procedure SetFieldIndex (Field : TField;Value : Integer);
       Property OnChange : TNotifyEvent Read FOnChange Write FOnChange;
@@ -1106,7 +1114,7 @@ type
       Property Dataset : TDataset Read FDataset;
       Property Fields [Index : Integer] : TField Read GetField Write SetField; default;
     end;
-
+  TFieldsClass = Class of TFields;
 
   { TParam }
 
@@ -1213,7 +1221,7 @@ type
     Property Size : Integer read FSize write FSize default 0;
     Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
   end;
-
+  TParamClass = Class of TParam;
 
   { TParams }
 
@@ -1228,7 +1236,9 @@ type
     Procedure AssignTo(Dest: TPersistent); override;
     Function  GetDataSet: TDataSet;
     Function  GetOwner: TPersistent; override;
+    Class Function ParamClass : TParamClass; virtual;
   public
+    Constructor Create(AOwner: TPersistent; AItemClass : TCollectionItemClass); overload;
     Constructor Create(AOwner: TPersistent); overload;
     Constructor Create; overload;
     Procedure AddParam(Value: TParam);
@@ -1382,7 +1392,7 @@ type
     FDisableControlsCount : Integer;
     FDisableControlsState : TDatasetState;
     FCurrentRecord: Longint;
-    FDataSources : TList;
+    FDataSources : TFPList;
     FDefaultFields: Boolean;
     FEOF: Boolean;
     FEnableControlsEvent : TDataEvent;
@@ -1565,6 +1575,8 @@ type
     procedure PSSetCommandText(const CommandText: string); virtual;
     procedure PSSetParams(AParams: TParams); virtual;
     procedure PSStartTransaction; virtual;
+    class function FieldDefsClass : TFieldDefsClass; virtual;
+    class function FieldsClass : TFieldsClass; virtual;
     function PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet)
                                 : Boolean; virtual;
   public
@@ -1864,6 +1876,10 @@ type
     Procedure CheckDatabase;
     Procedure CheckActive;
     Procedure CheckInactive;
+    procedure Commit; virtual;
+    procedure CommitRetaining; virtual;
+    procedure Rollback; virtual;
+    procedure RollbackRetaining; virtual;
     procedure EndTransaction; virtual; abstract;
     procedure StartTransaction; virtual; abstract;
     procedure InternalHandleException; virtual;
@@ -2199,7 +2215,7 @@ procedure TNamedItem.SetDisplayName(const AValue: string);
 Var TmpInd : Integer;
 begin
   if FName=AValue then exit;
-  if (AValue <> '') and (Collection is TFieldDefs) then
+  if (AValue <> '') and (Collection is TFieldDefs ) then
     begin
     TmpInd :=  (TDefCollection(Collection).IndexOf(AValue));
     if (TmpInd >= 0) and (TmpInd <> Index) then

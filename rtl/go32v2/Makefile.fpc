@@ -7,16 +7,16 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system uuchar objpas macpas iso7185 strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos crt objects printer cmem \
-      sysutils classes math typinfo matrix \
-      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
-      msmouse charset cpall varutils \
-      video mouse keyboard variants vesamode types fmtbcd \
-      sysconst rtlconst dateutil convutil strutils stdconvs
-rsts=math varutils typinfo classes variants dateutil sysconst
+      dos printer cmem \
+      sysutils classes math typinfo \
+      cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl \
+      msmouse charset cpall \
+      types \
+      sysconst rtlconst strutils
+rsts=math typinfo classes sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
 [require]
 nortl=y
 [install]

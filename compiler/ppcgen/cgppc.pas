@@ -450,6 +450,7 @@ unit cgppc;
         tmpref: treference;
         tmpreg: tregister;
       begin
+        tmpreg:=NR_NO;
         if target_info.system in systems_aix then
           begin
             { load function address in R0, and swap "reg" for R0 }

@@ -584,8 +584,16 @@ asm
   sub r3, r3, #0x3F
 
   sub r1, r0, #1 // Decrement value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
-
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // MOVS sets the Z flag when the result reaches zero, this can be used later on
   // The C-Flag will not be modified by this because we're not doing any shifting
   movcss r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
@@ -675,8 +683,16 @@ asm
   sub r3, r3, #0x3F
 
   add r1, r0, #1 // Increment value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
-
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
@@ -738,8 +754,16 @@ asm
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
   mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
-
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // restore the original value if needed
   movcs   r0, r4
   ldmcsfd r13!, {r4, pc}
@@ -803,7 +827,16 @@ asm
   sub r3, r3, #0x3F
 
   add r1, r0, r4 // Add to value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // r1 does not get clobbered, so just get back the original value
   // Otherwise we would have to allocate one more register and store the
   // temporary value
@@ -866,8 +899,16 @@ asm
   // r1 and r2 will not be clobbered by kuser_cmpxchg
   // If we have to loop, r0 will be set to the original Comperand
   .Linterlocked_compare_exchange_loop:
-
-  blx   r3       // Call kuser_cmpxchg sets C-Flag on success
+{$ifdef CPUARM_HAS_BLX}
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   movcs r0, r4   // Return the previous value on success
   ldmcsfd r13!, {r4, pc}
   // The error case is a bit tricky, kuser_cmpxchg does not return the current value

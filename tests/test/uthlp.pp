@@ -2,6 +2,7 @@ unit uthlp;
 
 {$ifdef fpc}
   {$mode delphi}{$H+}
+  {$modeswitch typehelpers}
 {$endif}
 
 interface

@@ -69,7 +69,7 @@ procedure do_truncate(handle, pos: longint);
 begin
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PFileTextRecChar;flags:longint; pchangeable: boolean);
 begin
 end;
 

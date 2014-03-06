@@ -1010,7 +1010,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
-{$i textrec.inc}
+
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of

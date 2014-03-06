@@ -169,7 +169,7 @@ implementation
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hsym.localloc,location.register);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
@@ -228,6 +228,7 @@ implementation
         hp2 : tnode;
         extraoffset : tcgint;
       begin
+         sym:=nil;
          { assume natural alignment, except for packed records }
          if not(resultdef.typ in [recorddef,objectdef]) or
             (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
@@ -325,15 +326,16 @@ implementation
 
     procedure tcgsubscriptnode.pass_generate_code;
       var
-        sym: tasmsymbol;
+        asmsym: tasmsymbol;
         paraloc1 : tcgpara;
         tmpref: treference;
         sref: tsubsetreference;
         offsetcorrection : aint;
         pd : tprocdef;
-        srym : tsym;
+        sym : tsym;
         st : tsymtable;
       begin
+         sym:=nil;
          secondpass(left);
          if codegenerror then
            exit;
@@ -385,10 +387,10 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',srym,st) or
-                       (srym.typ<>procsym) then
+                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+                       (sym.typ<>procsym) then
                       internalerror(2012010602);
-                    pd:=tprocdef(tprocsym(srym).ProcdefList[0]);
+                    pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                     paramanager.getintparaloc(pd,1,paraloc1);
                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -412,10 +414,15 @@ implementation
                LOC_REFERENCE,
                LOC_CREFERENCE:
                  ;
+               LOC_CONSTANT,
                LOC_REGISTER,
                LOC_CREGISTER,
+               { if a floating point value is casted into a record, it
+                 can happen that we get here an fpu or mm register }
                LOC_MMREGISTER,
-               LOC_FPUREGISTER:
+               LOC_FPUREGISTER,
+               LOC_CMMREGISTER,
+               LOC_CFPUREGISTER:
                  begin
                    { in case the result is not something that can be put
                      into an integer register (e.g.
@@ -430,7 +437,12 @@ implementation
                         memory as well }
                       ((left.location.size in [OS_PAIR,OS_SPAIR]) and
                        (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
-                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
+                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_CFPUREGISTER,
+                        { actually, we should be able to "subscript" a constant, but this would require some code
+                          which enables dumping and reading constants from a temporary memory buffer. This
+                          must be done a CPU dependent way, so it is not easy and probably not worth the effort (FK)
+                        }
+                        LOC_CONSTANT]) then
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
                      begin
@@ -514,8 +526,8 @@ implementation
                classes can be changed without breaking programs compiled against
                earlier versions)
              }
-             sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
-             reference_reset_symbol(tmpref,sym,0,sizeof(pint));
+             asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
@@ -1047,6 +1059,8 @@ implementation
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 internalerror(200304237);
               isjump:=(right.expectloc=LOC_JUMP);
+              otl:=nil;
+              ofl:=nil;
               if isjump then
                begin
                  otl:=current_procinfo.CurrTrueLabel;
@@ -1057,7 +1071,8 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or (right.location.size<>OS_ADDR) then
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
 
               if isjump then
                begin

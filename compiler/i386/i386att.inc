@@ -946,6 +946,7 @@
 'vzeroupper',
 'andn',
 'bextr',
+'tzcnt',
 'rorx',
 'sarx',
 'shlx',

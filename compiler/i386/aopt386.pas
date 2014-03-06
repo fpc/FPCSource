@@ -64,13 +64,16 @@ Begin
    { or nil                                                                }
      While Assigned(BlockStart) Do
        Begin
-         if pass = 0 then
-           PrePeepHoleOpts(AsmL, BlockStart, BlockEnd);
-        { Peephole optimizations }
-         PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
-        { Only perform them twice in the first pass }
-         if pass = 0 then
-           PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
+         if (cs_opt_peephole in current_settings.optimizerswitches) then
+           begin
+            if (pass = 0) then
+              PrePeepHoleOpts(AsmL, BlockStart, BlockEnd);
+              { Peephole optimizations }
+               PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
+              { Only perform them twice in the first pass }
+               if pass = 0 then
+                 PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
+           end;
         { Data flow analyzer }
          If (cs_opt_asmcse in current_settings.optimizerswitches) Then
            begin
@@ -79,9 +82,12 @@ Begin
                changed := CSE(asmL, blockStart, blockEnd, pass) or changed;
            end;
         { More peephole optimizations }
-         PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
-         if lastLoop then
-           PostPeepHoleOpts(AsmL, BlockStart, BlockEnd);
+         if (cs_opt_peephole in current_settings.optimizerswitches) then
+           begin
+             PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
+             if lastLoop then
+               PostPeepHoleOpts(AsmL, BlockStart, BlockEnd);
+           end;
 
         { Free memory }
         dfa.clear;

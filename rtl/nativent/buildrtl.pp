@@ -5,18 +5,15 @@ unit buildrtl;
     uses
       ndk, ndkutils, ddk,
       ctypes, strings,
-      matrix,
       rtlconsts, sysconst, sysutils, math, types,
-      strutils, dateutils, varutils, variants, typinfo, fgl, classes,
-      convutils, stdconvs,
+      strutils, typinfo, fgl, classes,
 {$ifdef cpui386}
       mmx, cpu,
 {$endif}
 {$ifdef cpux86_64}
       cpu,
 {$endif}
-      charset, cpall, ucomplex, getopts,
-      fmtbcd;
+      charset, cpall, getopts;
 
   implementation
 

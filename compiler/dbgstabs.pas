@@ -241,6 +241,7 @@ implementation
       len:=0;
       varcounter:=0;
       varptr:=@varvaluedata[0];
+      varvalues[0]:=nil;
       while i<=length(s) do
         begin
           if (s[i]='$') and (i<length(s)) then

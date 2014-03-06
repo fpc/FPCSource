@@ -715,3 +715,28 @@ asm
 end;
 
 {$endif}
+
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+{$define FPC_SYSTEM_HAS_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+asm
+{ %o0=high(AValue) %o1=low(AValue), result: %o0:%o1 }
+    and    %o2,63,%o2
+    subcc  %o2,32,%g0
+    bcc    .L1
+    nop
+    srl    %o1,%o2,%o1
+    subcc  %o2,%g0,%g0
+    be     .Lexit
+    sra    %o0,%o2,%o0
+    sub    %g0,%o2,%o3
+    sll    %o0,%o3,%o3
+    ba     .Lexit
+    or     %o3,%o1,%o1
+.L1:
+    sra    %o0,%o2,%o1
+    sra    %o0,31,%o0
+.Lexit:
+end;
+{$endif FPC_SYSTEM_HAS_SAR_QWORD}
+

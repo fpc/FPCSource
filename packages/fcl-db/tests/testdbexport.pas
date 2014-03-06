@@ -27,11 +27,12 @@ uses
 
 type
   TDetailedExportFormats = (efDBaseIII, efDBaseIV, efDBaseVII, efCSV, efFixedLengthText, efFoxpro,
-    efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset, efXMLXSDExcel);
+    efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset,
+    efXMLXSDExcel, efVisualFoxpro);
 const
   TDetailedExportExtensions: array [TDetailedExportFormats] of string[5] =
     ('.dbf','.dbf','.dbf','.csv','.txt','.dbf','.json','.rtf','.sql','.tex',
-    '.xml','.xml','.xml','.xml','.xml'); //File extension for the corresponding TExportFormat
+    '.xml','.xml','.xml','.xml','.xml','.dbf'); //File extension for the corresponding TDetailedExportFormats
 type
   { TTestDBExport }
   TTestDBExport = class(TTestCase)
@@ -49,6 +50,7 @@ type
     procedure TestDBFExport_DBaseIV;
     procedure TestDBFExport_DBaseVII;
     procedure TestDBFExport_FoxPro;
+    procedure TestDBFExport_VisualFoxPro;
     procedure TestCSVExport; //tests csv export with default values
     procedure TestCSVExport_RFC4180WithHeader; //tests csv export with settings that match RFC4180
     procedure TestCSVExport_TweakSettingsSemicolon; //tests semicolon delimited, custom country values
@@ -73,8 +75,17 @@ implementation
 function TTestDBExport.FieldSupported(const FieldType: TFieldType;
   const ExportSubFormat: TDetailedExportFormats): boolean;
 const
-  DBaseVIIUnsupported=[ftUnknown,ftCurrency,ftBCD,ftTime,ftBytes,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
-  FoxProUnsupported=[ftUnknown,ftTime,ftVarBytes,ftGraphic,ftFmtMemo,ftParadoxOle,ftTypedBinary,ftCursor,ftADT,ftArray,ftReference,ftDataSet,ftOraBlob,ftOraClob,ftVariant,ftInterface,ftIDispatch,ftGuid,ftTimeStamp,ftFMTBcd];
+  // Alphabetically sorted for quick review:
+  DBaseVIIUnsupported=[ftADT,ftArray,ftBCD,ftBytes,ftCurrency,ftCursor,ftDataSet,
+    ftFixedWideChar,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
+    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftUnknown,ftVarBytes,ftVariant,ftWidememo,ftWideString];
+  FoxProUnsupported=  [ftADT,ftArray,      ftBytes,           ftCursor,ftDataSet,
+    ftFixedWideChar,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
+    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftUnknown,ftVarBytes,ftVariant,ftWideMemo,ftWideString];
 begin
   result:=true;
   case ExportSubFormat of
@@ -84,6 +95,7 @@ begin
     efCSV: result:=true;
     efFixedLengthText: result:=true; //todo: verify if all fields are really supported. Quick glance would indicate so
     efFoxpro: if FieldType in FoxProUnsupported then result:=false;
+    efVisualFoxpro: if FieldType in FoxProUnsupported-[ftVarBytes] then result:=false;
     efJSON: result:=true;
     efRTF: result:=true;
     efSQL: result:=true;
@@ -118,16 +130,14 @@ begin
       if not FieldSupported(
         Exporter.Dataset.Fields[i].DataType,
         ExportFormat) then
-        FieldMapping.Delete(i);
+          FieldMapping.Delete(i);
     end;
     for i:=0 to FieldMapping.Count-1 do
-    begin
       Exporter.ExportFields.Add.Assign(FieldMapping[i]);
-    end;
     NumberExported := Exporter.Execute;
     Exporter.Dataset.Last;
     Exporter.Dataset.First;
-    AssertEquals('Number of records exported', NumberExported,
+    AssertEquals('Number of records exported matches recordcount', NumberExported,
       Exporter.Dataset.RecordCount);
     Exporter.Dataset.Close;
   finally
@@ -177,6 +187,7 @@ begin
   try
     ExportFormat:=efDBaseVII;
     ExportSettings.TableFormat:=tfDBaseVII;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     // Use export subtype position to differentiate output filenames:
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
@@ -204,6 +215,7 @@ begin
   try
     ExportFormat:=efDBaseIV;
     ExportSettings.TableFormat:=tfDBaseIV;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];
@@ -230,6 +242,34 @@ begin
   try
     ExportFormat:=efFoxpro;
     ExportSettings.TableFormat:=tfFoxPro;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestDBFExport_VisualFoxPro;
+var
+  Exporter: TFPDBFExport;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TDBFExportFormatSettings;
+begin
+  Exporter := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efVisualFoxpro;
+    ExportSettings.TableFormat:=tfVisualFoxPro;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];

@@ -592,7 +592,8 @@ Interface
 
     function TSparcReader.is_asmopcode(const s: string):boolean;
       var
-        cond:TAsmCond;
+        cond,condlo,condhi:TAsmCond;
+        condstr:string[15];
       Begin
         { making s a value parameter would break other assembler readers }
         is_asmopcode:=false;
@@ -612,23 +613,31 @@ Interface
            end;
 
         { not found, check branch instructions }
-        if (Upcase(s[1])='B') or
-           ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
+        if (Upcase(s[1])='B') then
           begin
-            { we can search here without an extra table which is sorted by string length
-              because we take the whole remaining string without the leading B }
-            if (Upcase(s[1])='F') then
-              actopcode := A_FBxx
-            else
-              actopcode := A_Bxx;
-            for cond:=low(TAsmCond) to high(TAsmCond) do
-              if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
-                begin
-                  actasmtoken:=AS_OPCODE;
-                  actcondition:=cond;
-                  is_asmopcode:=true;
-                end;
-          end;
+            condstr:=lower(copy(s,2,maxint));
+            condlo:=firstIntCond;
+            condhi:=lastIntCond;
+            actopcode:=A_Bxx;
+          end
+        else if ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
+          begin
+            condstr:=lower(copy(s,3,maxint));
+            condlo:=firstFloatCond;
+            condhi:=lastFloatCond;
+            actopcode:=A_FBxx;
+          end
+        else
+          exit;
+
+        for cond:=condlo to condhi do
+          if (condstr=Cond2Str[cond]) then
+            begin
+              actasmtoken:=AS_OPCODE;
+              actcondition:=cond;
+              is_asmopcode:=true;
+              break;
+            end;
       end;
 
 

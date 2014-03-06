@@ -358,6 +358,8 @@ implementation
                              if p2.nodetype=ordconstn then
                                begin
                                  found:=false;
+                                 { we do not have dynamic dfa, so avoid warning on variantselectsymbol below }
+                                 variantselectsymbol:=nil;
                                  for i:=0 to high(variantdesc^.branches) do
                                    begin
                                      for j:=0 to high(variantdesc^.branches[i].values) do

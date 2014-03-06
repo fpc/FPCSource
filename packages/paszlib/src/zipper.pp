@@ -675,7 +675,7 @@ begin
   MS:=0;
   S:=(ZT and 31) shl 1;
   N:=(ZT shr 5) and 63;
-  H:=(ZT shr 12) and 31;
+  H:=ZT shr 11;
   D:=ZD and 31;
   M:=(ZD shr 5) and 15;
   Y:=((ZD shr 9) and 127)+1980;

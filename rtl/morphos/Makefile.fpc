@@ -9,22 +9,22 @@ main=rtl
 loaders=prt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       dos heaptrc ctypes \
-      sysutils classes fgl strutils math typinfo varutils \
-      charset cpall ucomplex getopts matrix fmtbcd \
-      variants types rtlconsts sysconst dateutil objects \
+      sysutils classes fgl strutils math typinfo \
+      charset cpall getopts \
+      types rtlconsts sysconst \
       exec timer doslib utility hardware inputevent keymap graphics layers \
       intuition aboxlib mui \
 # these units are here, because they depend on system interface units above
-      kvm video mouse keyboard \
+      kvm \
 # disabled temporarily because it doesn't build
 #     sockets \
 # these can be moved to packages later
       clipboard datatypes asl ahi tinygl get9 muihelper
 #implicitunits=exeinfo\
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
 
-rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
+rsts=math rtlconsts typinfo classes sysconst
 
 [require]
 nortl=y
@@ -238,7 +238,7 @@ muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT
 
 kvm$(PPUEXT) : kvm.pp
 
-video$(PPUEXT) : video.pp 
+#video$(PPUEXT) : video.pp 
 #windows$(PPUEXT) dos$(PPUEXT)
 
 mouse$(PPUEXT) : mouse.pp 
@@ -249,5 +249,3 @@ keyboard$(PPUEXT) : keyboard.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

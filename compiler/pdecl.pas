@@ -454,6 +454,7 @@ implementation
          old_checkforwarddefs:=current_module.checkforwarddefs;
          current_module.checkforwarddefs:=TFPObjectList.Create(false);
          block_type:=bt_type;
+         hdef:=nil;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -570,7 +571,7 @@ implementation
                     hdef:=newtype.typedef;
                   end
                  else
-                   message1(parser_h_type_redef,genorgtypename);
+                  message1(parser_h_type_redef,genorgtypename);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -885,7 +886,7 @@ implementation
       begin
          consume(_PROPERTY);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-           message(parser_e_resourcestring_only_sg);
+           message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat

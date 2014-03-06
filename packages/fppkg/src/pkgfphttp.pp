@@ -23,6 +23,7 @@ begin
   With TFPHTTPClient.Create(Nil) do
     try
       Get(URL,Dest);
+      Dest.Position:=0;
     finally
       Free;
     end;

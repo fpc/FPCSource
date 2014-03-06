@@ -157,8 +157,8 @@ password=
 ; See mssqlconn documentation
 hostname=127.0.0.1
 
-; TDBf: DBase/FoxPro database:
 [dbf]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 ; Connectorparams specifies table level/compatibility level:
 ; 3=DBase III
@@ -168,30 +168,31 @@ connector=dbf
 ; 30=Visual FoxPro
 connectorparams=4
 
-; TDBf: DBase/FoxPro database:
+
 [dbase3]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 connectorparams=3
 
-; TDBf: DBase/FoxPro database:
 [dbase4]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 connectorparams=4
 
-; TDBf: DBase/FoxPro database:
 [dbase7]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 ; 7=Visual DBase 7 for Windows
 connectorparams=7
 
-; TDBf: DBase/FoxPro database:
 [foxpro]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 ; 25=FoxPro
 connectorparams=25
 
-; TDBf: DBase/FoxPro database:
 [visualfoxpro]
+; TDBf: DBase/FoxPro database:
 connector=dbf
 ; 30=Visual FoxPro
 connectorparams=25

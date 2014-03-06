@@ -152,7 +152,7 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
       VOLATILE_FPUREGISTERS = [];
-      VOLATILE_ADDRESSREGISTER = [RS_A0,RS_A1];
+      VOLATILE_ADDRESSREGISTERS = [RS_A0,RS_A1];
 
     type
       totherregisterset = set of tregisterindex;

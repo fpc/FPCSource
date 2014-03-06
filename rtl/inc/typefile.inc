@@ -97,6 +97,7 @@ Begin
     DoAssign(f);
 
   Reset(UnTypedFile(f),Size);
+  BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1);
 End;
 
 
@@ -142,4 +143,20 @@ Begin
     else inOutRes := 103;
   end;
 End;
+
+
+Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ_ISO']; compilerproc;
+var
+  Result : Longint;
+Begin
+  move((pbyte(@f)+sizeof(TypedFile))^,Buf,TypeSize);
+  if not(eof(f)) then
+    BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+End;
+
+
+function fpc_GetBuf_TypedFile(var f : TypedFile) : pointer; [IOCheck]; compilerproc;
+Begin
+  Result:=pbyte(@f)+sizeof(TypedFile);
+end;
 

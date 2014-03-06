@@ -250,6 +250,7 @@ end;
 Function TExprParse.RPNPop : aint;
 { Get the operand at the top of the RPN stack }
 begin
+  RPNPop:=0;
   if RPNTop > 0 then
    begin
      RPNPop:=RPNStack[RPNTop];
@@ -384,6 +385,7 @@ Function TExprParse.Priority(_Operator : Char) : aint;
 { Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
+  Priority:=0;
   Case _Operator OF
     '(' :
       Priority:=0;

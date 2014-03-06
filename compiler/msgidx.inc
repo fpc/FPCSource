@@ -432,6 +432,7 @@ const
   parser_e_not_allowed_in_record=03332;
   parser_e_dir_not_allowed=03333;
   parser_e_no_assembler_in_generic=03334;
+  parser_e_property_only_sgr=03335;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -818,6 +819,7 @@ const
   exec_t_using_util=09017;
   exec_e_exe_not_supported=09018;
   exec_e_dll_not_supported=09019;
+  exec_e_static_lib_not_supported=09035;
   exec_i_closing_script=09020;
   exec_e_res_not_found=09021;
   exec_i_compilingresource=09022;
@@ -953,6 +955,8 @@ const
   option_invalid_iphoneos_deployment_target=11051;
   option_illegal_fpu_eabihf=11052;
   option_w_unsupported_debug_format=11053;
+  option_missing_arg=11054;
+  option_malformed_para=11055;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -977,9 +981,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 70076;
+  MsgTxtSize = 70977;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,95,335,121,88,56,126,27,202,64,
-    54,20,1,1,1,1,1,1,1,1
+    26,95,336,121,88,56,126,27,202,64,
+    56,20,1,1,1,1,1,1,1,1
   );

@@ -56,8 +56,8 @@ unit widestr;
     procedure unicode2ascii(r : pcompilerwidestring;p : pchar;cp : tstringencoding);
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
     function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
-    function cpavailable(const s : string) : boolean;
-    function cpavailable(cp : word) : boolean;
+    function cpavailable(const s: string) : boolean;
+    function cpavailable(cp: word) : boolean;
     procedure changecodepage(
       s : pchar; l : SizeInt; scp : tstringencoding;
       d : pchar; dcp : tstringencoding
@@ -68,7 +68,17 @@ unit widestr;
 
     uses
       {$if FPC_FULLVERSION>20700}
-      cpall,
+      { use only small codepage maps, others will be }
+      { loaded on demand from -FM path               }
+
+      { cyrillic code pages }
+      cp1251,cp866,cp8859_5,
+      { greek code page }
+      cp1253,
+      { other code pages }
+      cp8859_1,cp850,cp437,cp1252,cp646,
+      cp874, cp856,
+      cp1250,cp1254,cp1255,cp1256,cp1257,cp1258,
       {$endif}
       globals,cutils;
 
@@ -282,14 +292,22 @@ unit widestr;
       end;
 
 
-    function cpavailable(const s : string) : boolean;
+    function cpavailable(const s: string): boolean;
       begin
-          cpavailable:=mappingavailable(lower(s));
+        result:=mappingavailable(lower(s));
+        {$if FPC_FULLVERSION>20700}
+        if not result then
+          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset',lower(s)));
+        {$ifend}
       end;
 
-    function cpavailable(cp : word) : boolean;
+    function cpavailable(cp: word): boolean;
       begin
-          cpavailable:=mappingavailable(cp);
+        result:=mappingavailable(cp);
+        {$if FPC_FULLVERSION>20700}
+        if not result then
+          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset','cp'+tostr(cp)));
+        {$ifend}
       end;
 
     procedure changecodepage(

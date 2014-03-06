@@ -71,6 +71,7 @@ var
   href:  treference;
   jumpsegment: TAsmlist;
   opcgsize: tcgsize;
+  labeltyp: taiconst_type;
 
   procedure genitem(t: pcaselabel);
   var
@@ -80,9 +81,9 @@ var
       genitem(t^.less);
     { fill possible hole }
     for i := last.svalue+1 to t^._low.svalue-1 do
-      jumpSegment.concat(Tai_const.Create_sym(elselabel));
+      jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
     for i := t^._low.svalue to t^._high.svalue do
-      jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+      jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
     last := t^._high;
     if assigned(t^.greater) then
       genitem(t^.greater);
@@ -107,6 +108,14 @@ begin
   href.base:=indexreg;
   jmpreg := cg.getaddressregister(current_asmdata.CurrAsmList);
   cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
+
+  if (cs_create_pic in current_settings.moduleswitches) then
+    begin
+      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
+      labeltyp:=aitconst_gotoff_symbol;
+    end
+  else
+    labeltyp:=aitconst_ptr;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_JR, jmpreg));
   { Delay slot }

@@ -135,7 +135,7 @@ begin
 {$endif x86_64}
 
 {$ifdef arm}
-  { some newver Debian have the crt*.o files at uncommon locations,
+  { some newer Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
   if not Dontlinkstdlibpath Then
 {$ifdef FPC_ARMHF}
@@ -145,6 +145,9 @@ begin
     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
 {$endif}
 {$endif arm}
+{$ifdef x86_64}
+    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
+{$endif x86_64}
 end;
 
 {$ifdef m68k}
@@ -1503,10 +1506,6 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
-
-  RegisterImport(system_x86_6432_linux,timportliblinux);
-  RegisterExport(system_x86_6432_linux,texportliblinux);
-  RegisterTarget(system_x86_6432_linux_info);
 {$endif i386}
 {$ifdef m68k}
   RegisterImport(system_m68k_linux,timportliblinux);

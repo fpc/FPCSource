@@ -104,20 +104,17 @@ uses
       );
 
     const
+      firstIntCond=C_A;
+      lastIntCond=C_Z;
+      firstFloatCond=C_FE;
+      lastFloatCond=C_FNE;
+      floatAsmConds=[C_FE..C_FNE];
+
       cond2str:array[TAsmCond] of string[3]=('',
         'gu','cc','cs','leu','cs','e','g','ge','l','le','leu','cs',
         'cc','gu','cc','ne','le','l','ge','g','vc','XX',
         'pos','ne','vs','XX','XX','XX','vs','e',
         'e','g','l','ge','le','ne'
-      );
-
-    const
-      CondAsmOps=2;
-      CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(
-        A_Bxx,A_FBxx
-      );
-      CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
-        'B','FB'
       );
 
 

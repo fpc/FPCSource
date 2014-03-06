@@ -203,8 +203,10 @@ Type
   {$ifdef FPUSOFT}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
-    {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$endif}
+
+  { m68k int64 shl/shr uses soft helper for non constaznt values }
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
@@ -472,8 +474,8 @@ Type
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
 
-  PNativeInt 	      = PPtrInt;
-  PNativeUInt	      = PPtrUint;
+  PNativeInt 	      = ^NativeInt;
+  PNativeUInt	      = ^NativeUint;
   pInt8   	      = PShortInt;
   pInt16  	      = PSmallint;
   pInt32  	      = PLongint;
@@ -605,8 +607,9 @@ const
   { will be detected at startup }
   { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
   Test8086 : byte = 0; public name '__Test8086';
-  { Always 387 or newer. Emulated if needed. }
-  Test8087 : byte = 3;
+  { will be detected at startup }
+  { 0=NO FPU, 1=8087, 2=80287, 3=80387 or newer }
+  Test8087 : byte = 0;
   { will be detected at startup }
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;
@@ -904,10 +907,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$ifdef FPC_HAS_INTERNAL_SAR}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel) or defined(sparc)}
 {$define FPC_HAS_INTERNAL_SAR_BYTE}
 {$define FPC_HAS_INTERNAL_SAR_WORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel) or defined(sparc)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
 { $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
@@ -984,34 +987,34 @@ function BsrByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ifdef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_WORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_WORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_DWORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_DWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_QWORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
 function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];

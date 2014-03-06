@@ -159,7 +159,8 @@
              system_jvm_android32,      { 76 }
              system_arm_android,        { 77 }
              system_i386_android,       { 78 }
-             system_i8086_msdos         { 79 }
+             system_i8086_msdos,        { 79 }
+             system_mipsel_android      { 80 }
        );
 
      type
@@ -195,6 +196,15 @@
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
              ,as_jvm_jasmin
+             ,as_yasm
+             ,as_i386_nasm
+             ,as_i386_nasmdarwin
+             ,as_x86_64_nasm
+             ,as_x86_64_nasmwin64
+             ,as_x86_64_nasmelf
+             ,as_x86_64_nasmdarwin
+             ,as_i8086_nasm
+             ,as_i8086_nasmobj
              ,as_llvm
        );
 
@@ -238,6 +248,7 @@
             ,ar_gnu_ar_scripted
             ,ar_gnu_gar
             ,ar_watcom_wlib_omf
+            ,ar_watcom_wlib_omf_scripted
        );
 
        tres = (res_none
@@ -263,6 +274,7 @@
        tabi = (abi_default
             ,abi_powerpc_sysv,abi_powerpc_aix
             ,abi_eabi,abi_armeb,abi_eabihf
+            ,abi_old_win32_gnu
        );
 
 

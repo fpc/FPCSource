@@ -2264,6 +2264,8 @@ begin
     SetLength(locRes, ( 2 * Length(AValue) ) );
     BinToHex(PAnsiChar(@(AValue[0])),PAnsiChar(@(locRes[1])),Length(AValue));
     Result := locRes;
+  end else begin
+    Result := '';
   end;
 end;
 
@@ -2415,6 +2417,8 @@ begin
     locValue := AValue;
     SetLength(Result,( Length(locValue) div 2 ));
     HexToBin(PAnsiChar(locValue),PAnsiChar(@(Result[0])),Length(Result));
+  end else begin
+    Result := nil;
   end;
 end;
 

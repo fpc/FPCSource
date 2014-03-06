@@ -206,6 +206,7 @@ begin
   sequenceEnd := false;
   reg1Modified := false;
   reg2Modified := false;
+  switchLast := false;
   endP := start;
   while tmpResult and not sequenceEnd do
     begin

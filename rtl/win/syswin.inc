@@ -81,9 +81,22 @@ const
   STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
 
+  { Exceptions raised by RTL use this code }
+  FPC_EXCEPTION_CODE                      = $E0465043;
+
   EXCEPTION_EXECUTE_HANDLER               = 1;
   EXCEPTION_CONTINUE_EXECUTION            = -1;
   EXCEPTION_CONTINUE_SEARCH               = 0;
+
+  { exception flags (not everything applies to Win32!) }
+  EXCEPTION_NONCONTINUABLE  = $01;
+  EXCEPTION_UNWINDING       = $02;
+  EXCEPTION_EXIT_UNWIND     = $04;
+  EXCEPTION_STACK_INVALID   = $08;
+  EXCEPTION_NESTED_CALL     = $10;
+  EXCEPTION_TARGET_UNWIND   = $20;
+  EXCEPTION_COLLIDED_UNWIND = $40;
+
 
   CONTEXT_X86                             = $00010000;
   CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
@@ -96,6 +109,87 @@ const
   CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
   MAXIMUM_SUPPORTED_EXTENSION             = 512;
+
+type
+  EXCEPTION_DISPOSITION=(
+    ExceptionContinueExecution,
+    ExceptionContinueSearch,
+    ExceptionNestedException,
+    ExceptionCollidedUnwind
+  );
+
+  TUnwindProc=procedure(frame: PtrUInt);
+
+  PFilterRec=^TFilterRec;
+  TFilterRec=record
+    RvaClass: DWord;
+    RvaHandler: DWord;
+  end;
+
+  TExceptObjProc=function(code: Longint; const rec: TExceptionRecord): Pointer; { Exception }
+  TExceptClsProc=function(code: Longint): Pointer; { ExceptClass }
+
+
+procedure RaiseException(
+  dwExceptionCode: DWORD;
+  dwExceptionFlags: DWORD;
+  dwArgCount: DWORD;
+  lpArguments: Pointer);  // msdn: *ULONG_PTR
+  stdcall; external 'kernel32.dll' name 'RaiseException';
+
+
+function RunErrorCode(const rec: TExceptionRecord): longint;
+begin
+  { negative result means 'FPU reset required' }
+  case rec.ExceptionCode of
+    STATUS_INTEGER_DIVIDE_BY_ZERO:      result := 200;    { reDivByZero }
+    STATUS_FLOAT_DIVIDE_BY_ZERO:        result := -208;   { !!reZeroDivide }
+    STATUS_ARRAY_BOUNDS_EXCEEDED:       result := 201;    { reRangeError }
+    STATUS_STACK_OVERFLOW:              result := 202;    { reStackOverflow }
+    STATUS_FLOAT_OVERFLOW:              result := -205;   { reOverflow }
+    STATUS_FLOAT_DENORMAL_OPERAND,
+    STATUS_FLOAT_UNDERFLOW:             result := -206;   { reUnderflow }
+    STATUS_FLOAT_INEXACT_RESULT,
+    STATUS_FLOAT_INVALID_OPERATION,
+    STATUS_FLOAT_STACK_CHECK:           result := -207;   { reInvalidOp }
+    STATUS_INTEGER_OVERFLOW:            result := 215;    { reIntOverflow }
+    STATUS_ILLEGAL_INSTRUCTION:         result := -216;
+    STATUS_ACCESS_VIOLATION:            result := 216;    { reAccessViolation }
+    STATUS_CONTROL_C_EXIT:              result := 217;    { reControlBreak }
+    STATUS_PRIVILEGED_INSTRUCTION:      result := 218;    { rePrivilegedInstruction }
+  else
+    result := 255;                                        { reExternalException }
+  end;
+end;
+
+
+function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord): Pointer;
+var
+  ExClass: TClass;
+  i: Longint;
+  Filter: Pointer;
+  curFilt: PFilterRec;
+begin
+  result:=nil;
+  if rec.ExceptionCode=FPC_EXCEPTION_CODE then
+    ExClass:=TObject(rec.ExceptionInformation[1]).ClassType
+  else if Assigned(ExceptClsProc) then
+    ExClass:=TClass(TExceptClsProc(ExceptClsProc)(abs(RunErrorCode(rec))))
+  else
+    Exit; { if we cannot determine type of exception, don't handle it }
+  Filter:=Pointer(imagebase+filterRva);
+  for i:=0 to PLongint(Filter)^-1 do
+  begin
+    CurFilt:=@PFilterRec(Filter+sizeof(Longint))[i];
+    if (CurFilt^.RvaClass=$FFFFFFFF) or
+      { TODO: exception might be coming from another module, need more advanced comparing }
+      (ExClass.InheritsFrom(TClass(imagebase+CurFilt^.RvaClass))) then
+    begin
+      result:=Pointer(imagebase+CurFilt^.RvaHandler);
+      exit;
+    end;
+  end;
+end;
 
   {*****************************************************************************
                                 Parameter Handling
@@ -323,7 +417,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
                     Error Message writing using messageboxes
 ****************************************************************************}
 
-function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
+function MessageBox(w1:THandle;l1,l2:pointer;w2:longint):longint;
    stdcall;external 'user32' name 'MessageBoxA';
 
 const
@@ -332,7 +426,7 @@ var
   ErrorBuf : array[0..ErrorBufferLength] of char;
   ErrorLen : SizeInt;
 
-Function ErrorWrite(Var F: TextRec): Integer;
+procedure ErrorWrite(Var F: TextRec);
 {
   An error message should always end with #13#10#13#10
 }
@@ -357,11 +451,10 @@ Begin
         end;
       Dec(F.BufPos,i);
     end;
-  ErrorWrite:=0;
 End;
 
 
-Function ErrorClose(Var F: TextRec): Integer;
+procedure ErrorClose(Var F: TextRec);
 begin
   if ErrorLen>0 then
    begin
@@ -369,17 +462,15 @@ begin
      ErrorLen:=0;
    end;
   ErrorLen:=0;
-  ErrorClose:=0;
 end;
 
 
-Function ErrorOpen(Var F: TextRec): Integer;
+procedure ErrorOpen(Var F: TextRec);
 Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
   ErrorLen:=0;
-  ErrorOpen:=0;
 End;
 
 
@@ -546,7 +637,7 @@ type
 
   PWStrInitTablesTable = ^TWStrInitTablesTable;
   TWStrInitTablesTable = packed record
-    count  : longint;
+    count  : {$ifdef VER2_6}longint{$else}nativeint{$endif};
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 
@@ -606,7 +697,7 @@ procedure InitWin32Widestrings;
 
     DefaultSystemCodePage:=GetACP;
     DefaultUnicodeCodePage:=CP_UTF16;
-    DefaultFileSystemCodePage:=DefaultSystemCodePage;
-    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
+    DefaultFileSystemCodePage:=CP_UTF8;
+    DefaultRTLFileSystemCodePage:=DefaultSystemCodePage;
   end;
 

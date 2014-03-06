@@ -391,7 +391,6 @@ end;
 procedure TLinearWriter.WriteClassDecl(ClassDecl: TPasClassType);
 var
   DocNode: TDocNode;
-  Vis: TPasMemberVisibilities;
   Member: TPasElement;
   i: Integer;
 begin
@@ -431,17 +430,10 @@ begin
 
   // Determine visibilities
 
-  Vis := AllVisibilities;
-  if Engine.HidePrivate then
-    Exclude(Vis,visPrivate);
-  if Engine.HideProtected then
-    Exclude(Vis,visProtected);
-
   for i := 0 to ClassDecl.Members.Count - 1 do
     begin
     Member := TPasElement(ClassDecl.Members[i]);
-    if ((Member.InheritsFrom(TPasProcedureBase)) and
-        (Member.Visibility in Vis)) then
+    if Member.InheritsFrom(TPasProcedureBase) and Engine.ShowElement(Member) then
       WriteProcedure(TPasProcedureBase(Member));
     end;
 
@@ -450,8 +442,7 @@ begin
   for i := 0 to ClassDecl.Members.Count - 1 do
     begin
     Member := TPasElement(ClassDecl.Members[i]);
-    if ((Member.InheritsFrom(TPasProperty)) and
-        (Member.Visibility in Vis)) then
+    if Member.InheritsFrom(TPasProperty) and Engine.ShowElement(Member) then
       WriteProperty(TPasProperty(Member));
     end;
 end;
@@ -1184,9 +1175,7 @@ end;
 Function TLinearWriter.ShowMember(M : TPasElement) : boolean;
 
 begin
-  Result:=not ((M.Visibility=visPrivate) and Engine.HidePrivate);
-  If Result then
-    Result:=Not ((M.Visibility=visProtected) and Engine.HideProtected)
+  Result:=Engine.ShowElement(M);
 end;
 
 procedure TLinearWriter.WriteClasses(ASection: TPasSection);
@@ -1320,8 +1309,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
-            if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+            if Not Engine.ShowElement(FPEl) then
               continue;
 
             DocNode := Engine.FindDocNode(FPEl);

@@ -59,10 +59,13 @@ const
   fieldSetCookie       = 'Set-Cookie';
   fieldUserAgent       = 'User-Agent';
   fieldWWWAuthenticate = 'WWW-Authenticate';
+  // These cannot be added to the NoHTTPFields constant
+  // They are in the extra array.
   fieldHost            = 'Host';
   fieldCacheControl    = 'Cache-Control';
+  fieldXRequestedWith  = 'X-Requested-With';
 
-  NoHTTPFields = 26;
+  NoHTTPFields    = 27;
 
   HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
   SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
@@ -81,9 +84,12 @@ const
 
 
 Type
-  THttpFields = Array[1..NoHTTPFields] of string;
+  THttpFields  = Array[1..NoHTTPFields] of string;
+  THttpIndexes = Array[1..NoHTTPFields] of integer;
+
 
 Const
+  // For this constant, the header names corresponds to the property index used in THTTPHeader.
   HTTPFieldNames : THttpFields
              = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding, 
                 fieldAcceptLanguage, fieldAuthorization, fieldConnection,
@@ -91,9 +97,20 @@ Const
                 fieldContentType, fieldCookie, fieldDate, fieldExpires, 
                 fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
                 fieldPragma, fieldReferer, fieldRetryAfter, fieldServer, 
-                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate, fieldHost,
-                fieldCacheControl);
-                
+                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
+                fieldHost, fieldCacheControl,fieldXRequestedWith);
+  // Map header names on indexes in property getter/setter. 0 means not mapped !
+  HTTPFieldIndexes : THTTPIndexes
+                   =  (1,2,3,
+                       4,5,6,
+                       7,8,9,
+                       10,11,12,13,
+                       14,15,16,17,
+                       18,19,20,21,
+                       22,23,24,
+                       34,0,36);
+
+
 
 type
   TRequest = Class;
@@ -156,6 +173,7 @@ type
     // Note that this will free the file stream, to be able to close it - file is share deny write locked!
     Procedure DeleteTempUploadedFile; virtual;
     function GetStream: TStream; virtual;
+    Procedure FreeStream; virtual;
   Public
     Destructor Destroy; override;
     Property FieldName : String Read FFieldName Write FFieldName;
@@ -244,7 +262,6 @@ type
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
-    Function GetFieldName(Index : Integer) : String;
     Function GetContentLength : Integer;
     Procedure SetContentLength(Value : Integer);
     Function GetFieldIndex(AIndex : Integer) : Integer;
@@ -333,16 +350,19 @@ type
     FHandleGetOnPost: Boolean;
     FOnUnknownEncoding: TOnUnknownEncodingEvent;
     FPathInfo,
+    FHost : string;
+    FRequestedWith : String;
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
     FServerPort : String;
+    FContentRead : Boolean;
+    FContent : String;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
   Protected
-    FContentRead : Boolean;
-    FContent : String;
+    Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
     Function CreateMimeItems : TMimeItems; virtual;
     procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
@@ -360,6 +380,8 @@ type
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
+    Procedure InitContent(Var AContent : String);
+    Property ContentRead : Boolean Read FContentRead Write FContentRead;
   public
     constructor Create; override;
     destructor destroy; override;
@@ -381,6 +403,7 @@ type
 
   TResponse = class(THttpHeader)
   private
+    FCacheControl: String;
     FContents: TStrings;
     FContentStream : TStream;
     FCode: Integer;
@@ -414,6 +437,7 @@ type
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
+    Property CacheControl : String Read FCacheControl Write FCacheControl;
     Property FirstHeaderLine : String Read GetFirstHeaderLine Write SetFirstHeaderLine;
     Property ContentStream : TStream Read FContentStream Write SetContentStream;
     Property Content : String Read GetContent Write SetContent;
@@ -518,6 +542,8 @@ begin
   Result:=NoHTTPFields;
   While (Result>0) and (UpperCase(HTTPFieldNames[Result])<>Name) do
     Dec(Result);
+  If Result>0 then
+    Result:=HTTPFieldIndexes[Result];
 end;
 
 function HTTPDecode(const AStr: String): String;
@@ -834,17 +860,6 @@ begin
 end;
 
 
-function THttpHeader.GetFieldName(Index: Integer): String;
-
-Var
-  I : Integer;
-
-begin
-  I:=GetFieldIndex(Index);
-  If (I<>-1) then
-    Result := HTTPFieldNames[i];
-end;
-
 Function THttpHeader.GetFieldValue(Index : Integer) : String;
 
 begin
@@ -940,7 +955,9 @@ var
 begin
   I:=GetFieldNameIndex(AName);
   If (I<>0) then
-    Result:=self.GetFieldValue(i);
+    Result:=self.GetFieldValue(i)
+  else
+    Result:='';
 end;
 
 Function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand : Boolean) : Integer;
@@ -1185,7 +1202,7 @@ end;
   TRequest
   -------------------------------------------------------------------}
   
-constructor TRequest.create;
+constructor TRequest.Create;
 begin
   inherited create;
   FHandleGetOnPost:=True;
@@ -1194,7 +1211,7 @@ begin
   FLocalPathPrefix:='-';
 end;
 
-Function  TRequest.CreateUploadedFiles : TUploadedFiles;
+function TRequest.CreateUploadedFiles: TUploadedFiles;
 
 Var
   CC : TUploadedFilesClass;
@@ -1301,15 +1318,20 @@ begin
   result := FLocalPathPrefix;
 end;
 
-function TRequest.GetFieldValue(AIndex: integer): String;
+function TRequest.GetFieldValue(AIndex: Integer): String;
 begin
   Case AIndex of
     25 : Result:=FPathInfo;
     31 : Result:=FCommand;
     32 : Result:=FURI;
+    34 : Result:=FHost;
+    36 : Result:=FRequestedWith;
     35 : begin
-         If Not FContentRead then
+         If Not FContentRead and AllowReadContent then
+           begin
            ReadContent;
+           FContentRead:=True; // in case InitContent was not called.
+           end;
          Result:=FContent;
          end
   else
@@ -1324,6 +1346,8 @@ begin
     30 : FServerPort:=Value;
     31 : FCommand:=Value;
     32 : FURI:=Value;
+    34 : FHost:=Value;
+    36 : FRequestedWith:=Value;
   else
     inherited SetFieldValue(Index, Value);
   end
@@ -1336,7 +1360,13 @@ begin
     Result := Result + ' HTTP/' + HttpVersion;
 end;
 
-procedure TRequest.HandleUnknownEncoding(Const AContentType : String;Stream : TStream);
+function TRequest.AllowReadContent: Boolean;
+begin
+  Result:=True;
+end;
+
+procedure TRequest.HandleUnknownEncoding(const AContentType: String;
+  Stream: TStream);
 begin
   If Assigned(FOnUnknownEncoding) then
     FOnUnknownEncoding(Self,AContentType,Stream);
@@ -1347,7 +1377,7 @@ begin
   // Implement in descendents
 end;
 
-Procedure TRequest.ProcessQueryString(Const FQueryString : String; SL:TStrings);
+procedure TRequest.ProcessQueryString(const FQueryString: String; SL: TStrings);
 
 
 var
@@ -1456,13 +1486,14 @@ begin
 {$ifdef CGIDEBUG}SendMethodExit('ProcessQueryString');{$endif CGIDEBUG}
 end;
 
-Function TRequest.RequestUploadDir : String;
+function TRequest.RequestUploadDir: String;
 
 begin
   Result:='';
 end;
 
-Function TRequest.GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
+function TRequest.GetTempUploadFileName(const AName, AFileName: String;
+  ASize: Int64): String;
 
 Var
   D : String;
@@ -1474,7 +1505,7 @@ begin
   Result:=GetTempFileName(D, 'CGI');
 end;
 
-Procedure TRequest.DeleteTempUploadedFiles;
+procedure TRequest.DeleteTempUploadedFiles;
 begin
   FFiles.DeleteTempUploadedFiles;
 end;
@@ -1562,8 +1593,15 @@ begin
 {$endif}
 end;
 
+procedure TRequest.InitContent(var AContent: String);
+begin
+  FContent:=AContent;
+  FContentRead:=True;
+end;
 
-Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String; SL:TStrings);
+
+procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
+  SL: TStrings);
 
 Var
   L : TMimeItems;
@@ -1605,7 +1643,7 @@ begin
 {$ifdef CGIDEBUG}  SendMethodExit('ProcessMultiPart');{$endif CGIDEBUG}
 end;
 
-Procedure TRequest.ProcessURLEncoded(Stream: TStream; SL:TStrings);
+procedure TRequest.ProcessURLEncoded(Stream: TStream; SL: TStrings);
 
 var
   S : String;
@@ -1710,13 +1748,15 @@ Var
   s: String;
 
 begin
-  if Assigned(FStream) and (FStream is TFileStream) then
-    FreeAndNil(FStream);
+  if (FStream is TFileStream) then
+    FreeStream;
   if (LocalFileName<>'') and FileExists(LocalFileName) then
     DeleteFile(LocalFileName);
 end;
 
+
 function TUploadedFile.GetStream: TStream;
+
 begin
   If (FStream=Nil) then
     begin
@@ -1727,9 +1767,15 @@ begin
   Result:=FStream;
 end;
 
-destructor TUploadedFile.Destroy;
+Procedure TUploadedFile.FreeStream;
+
 begin
   FreeAndNil(FStream);
+end;
+
+destructor TUploadedFile.Destroy;
+begin
+  FreeStream;
   Inherited;
 end;
 

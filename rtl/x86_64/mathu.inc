@@ -42,6 +42,16 @@ function cotan(x : float) : float;assembler;
     fdivp %st,%st(1)
     fwait
   end;
+
+
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fldt x
+    fyl2x
+    fwait
+  end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 

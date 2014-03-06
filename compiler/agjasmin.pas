@@ -687,7 +687,8 @@ implementation
        if cs_asm_extern in current_settings.globalswitches then
          Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)))
        else
-         Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar))
+         Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar));
+       Replace(result,'$EXTRAOPT',asmextraopt);
      end;
 
 
@@ -1223,7 +1224,7 @@ implementation
          id     : as_jvm_jasmin;
          idtxt  : 'Jasmin';
          asmbin : 'java';
-         asmcmd : '-jar $JASMINJAR $ASM -d $OBJDIR';
+         asmcmd : '-jar $JASMINJAR $ASM $EXTRAOPT -d $OBJDIR';
          supported_targets : [system_jvm_java32,system_jvm_android32];
          flags : [];
          labelprefix : 'L';

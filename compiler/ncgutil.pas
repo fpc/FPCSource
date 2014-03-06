@@ -94,7 +94,7 @@ interface
       uses rv.myregvars as scratch (so that two uses of the same regvar
       in a single tree to make it appear in commonregvars). Useful to
       find out which regvars are used in two different node trees
-      (e.g. in the "else" and "then" path, or in various case blocks }
+      e.g. in the "else" and "then" path, or in various case blocks }
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
@@ -138,6 +138,7 @@ interface
     function getprocalign : shortint;
 
     procedure gen_fpc_dummy(list : TAsmList);
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
 
 implementation
 
@@ -997,7 +998,7 @@ implementation
                     LOC_REGISTER:
                       begin
                         case para.locations_count of
-{$ifdef cpu16bitalu}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                           { 4 paralocs? }
                           4:
                             if (target_info.endian=ENDIAN_BIG) then
@@ -1029,7 +1030,7 @@ implementation
                                 unget_para(paraloc^.next^.next^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,GetNextReg(destloc.register64.reghi),2);
                               end;
-{$endif cpu16bitalu}
+{$endif defined(cpu16bitalu) or defined(cpu8bitalu)}
                           2:
                             if (target_info.endian=ENDIAN_BIG) then
                               begin
@@ -1080,13 +1081,27 @@ implementation
                           gen_alloc_regloc(list,destloc);
                           cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
-                          gen_alloc_regloc(list,destloc);
                           {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
                           {$else}
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,destloc.registerhi,sizeof(aint));
                           {$endif}
                         end
+{$if defined(cpu8bitalu)}
+                      else if (destloc.size in [OS_32,OS_S32]) and
+                        (para.Size in [OS_32,OS_S32]) then
+                        begin
+                          unget_para(paraloc^);
+                          gen_alloc_regloc(list,destloc);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
+                          unget_para(paraloc^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
+                        end
+{$endif defined(cpu8bitalu)}
                       else
                         internalerror(200410105);
                     end
@@ -1366,7 +1381,8 @@ implementation
         current_asmdata.asmcfi.start_frame(list);
 
         { All temps are know, write offsets used for information }
-        if (cs_asm_source in current_settings.globalswitches) then
+        if (cs_asm_source in current_settings.globalswitches) and
+           (current_procinfo.tempstart<>tg.lasttemp) then
           begin
             if tg.direction>0 then
               begin
@@ -1539,10 +1555,10 @@ implementation
                   vs:=tabstractnormalvarsym(sym);
                   { Parameters passed to assembler procedures need to be kept
                     in the original location }
-                  if (po_assembler in current_procinfo.procdef.procoptions) then
+                  if (po_assembler in pd.procoptions) then
                     tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc)
                   { exception filters receive their frame pointer as a parameter }
-                  else if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) and
+                  else if (pd.proctypeoption=potype_exceptfilter) and
                     (vo_is_parentfp in vs.varoptions) then
                     begin
                       location_reset(vs.initialloc,LOC_REGISTER,OS_ADDR);
@@ -1550,7 +1566,7 @@ implementation
                     end
                   else
                     begin
-                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,current_procinfo.procdef.proccalloption);
+                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
                         vs.initialloc.size:=OS_ADDR
                       else
@@ -1581,7 +1597,7 @@ implementation
                 begin
                   vs:=tabstractnormalvarsym(sym);
                   vs.initialloc.size:=def_cgsize(vs.vardef);
-                  if ([po_assembler,po_nostackframe] * current_procinfo.procdef.procoptions = [po_assembler,po_nostackframe]) and
+                  if ([po_assembler,po_nostackframe] * pd.procoptions = [po_assembler,po_nostackframe]) and
                      (vo_is_funcret in vs.varoptions) then
                     begin
                       paramanager.create_funcretloc_info(pd,calleeside);
@@ -1595,7 +1611,7 @@ implementation
                         pd.funcretloc[calleeside].get_location(vs.initialloc);
                     end
                   else if (m_delphi in current_settings.modeswitches) and
-                     (po_assembler in current_procinfo.procdef.procoptions) and
+                     (po_assembler in pd.procoptions) and
                      (vo_is_funcret in vs.varoptions) and
                      (vs.refs=0) then
                     begin
@@ -1931,13 +1947,15 @@ implementation
             exit;
         end;
 
-        if not is_void(current_procinfo.procdef.returndef) and
+        { self is implicitly returned from constructors, even if there are no
+          references to it; additionally, funcretsym is not set for constructor
+          procdefs }
+        if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+          rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
+        else if not is_void(current_procinfo.procdef.returndef) and
            assigned(current_procinfo.procdef.funcretsym) and
            (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
-          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
-         else
-            rr.ressym:=current_procinfo.procdef.funcretsym;
+          rr.ressym:=current_procinfo.procdef.funcretsym;
 
         if not foreachnodestatic(n,@doreplace,@rr) then
           exit;
@@ -2198,5 +2216,19 @@ implementation
 {$endif i386}
       end;
 
+
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
+      var
+        para: tparavarsym;
+      begin
+        para:=tparavarsym(current_procinfo.procdef.paras[0]);
+        if not (vo_is_parentfp in para.varoptions) then
+          InternalError(201201142);
+        if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+          (para.paraloc[calleeside].location^.next<>nil) then
+          InternalError(201201143);
+        cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,para.paraloc[calleeside].location^.register,
+          NR_FRAME_POINTER_REG);
+      end;
 
 end.

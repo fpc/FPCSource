@@ -173,6 +173,8 @@ implementation
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
+        otl:=nil;
+        ofl:=nil;
 
         cmpop:=false;
         if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
@@ -381,6 +383,8 @@ implementation
         opdone,
         cmpop  : boolean;
       begin
+        cgop:=OP_None;
+
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }

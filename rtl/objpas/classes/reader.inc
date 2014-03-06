@@ -207,20 +207,41 @@ begin
 end;
 
 function TBinaryObjectReader.ReadSingle: Single;
+var
+  r: record
+    case byte of
+      1: (d: dword);
+      2: (s: single);
+  end;
 begin
-  Result:=single(ReadDWord);
+  r.d:=ReadDWord;
+  Result:=r.s;
 end;
 {$endif}
 
 function TBinaryObjectReader.ReadCurrency: Currency;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (c: currency);
+  end;
 begin
-  Result:=currency(ReadQWord);
+  r.c:=ReadQWord;
+  Result:=r.c;
 end;
 
 {$ifndef FPUNONE}
 function TBinaryObjectReader.ReadDate: TDateTime;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (d: TDateTime);
+  end;
 begin
-  Result:=TDateTime(ReadQWord);
+  r.q:=ReadQWord;
+  Result:=r.d;
 end;
 {$endif}
 

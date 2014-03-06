@@ -7,13 +7,13 @@ uses HeapTrc,
   custapp, Classes, SysUtils, fpcunit, testregistry, xmltestreport, plaintestreport,
 
   sdo, sdo_datafactory, sdo_dataobject,
-  sdo_dataobjectlist, sdo_field_imp, sdo_imp_utils, sdo_linked_list,
-  sdo_property, sdo_type, test_type, test_field_imp, test_dataobjectlist,
+  sdo_field_imp, sdo_imp_utils, sdo_linked_list,
+  sdo_type, test_type, test_field_imp, test_dataobjectlist,
   test_dataobject, test_utils, test_xsdhelper, test_serializer,
   test_equalityhelper, test_changesummary, test_suite_utils, sdo_xsd_helper,
-  test_xpathhelper, sdo_xpath_helper, sdo_copyhelper, test_copyhelper,
-  sdo_consts, sdo_equalityhelper, sdo_serialization, sdo_serialization_utils,
-  sdo_types, sdo_utils, sdo_changesummary, sdo_convert_helper,
+  test_xpathhelper, sdo_xpath_helper, test_copyhelper,
+  sdo_consts, sdo_serialization, sdo_serialization_utils,
+  sdo_types, sdo_utils, sdo_changesummary,
   sdo_serialization_xml, test_convert_helper, test_property, test_xsdparser;
 
 

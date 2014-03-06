@@ -749,7 +749,7 @@ const
 
 procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
 begin
-  optimize_op_const(op,a);
+  optimize_op_const(size,op,a);
   case op of
     OP_NONE:
       exit;
@@ -796,8 +796,6 @@ end;
 
 
 procedure TCGMIPS.a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
-var
-  hreg: tregister;
 begin
   if (TOpcg2AsmOp[op]=A_NONE) then
     InternalError(2013070305);
@@ -805,11 +803,10 @@ begin
     begin
       if (size in [OS_S8,OS_S16]) then
         begin
-          { Shift left by 16/24 bits and increase amount of right shift by same value }
+          { Sign-extend before shiting }
           list.concat(taicpu.op_reg_reg_const(A_SLL, dst, src2, 32-(tcgsize2size[size]*8)));
-          hreg:=GetIntRegister(list,OS_INT);
-          a_op_const_reg_reg(list,OP_ADD,OS_INT,32-(tcgsize2size[size]*8),src1,dst);
-          src1:=hreg;
+          list.concat(taicpu.op_reg_reg_const(A_SRA, dst, dst, 32-(tcgsize2size[size]*8)));
+          src2:=dst;
         end
       else if not (size in [OS_32,OS_S32]) then
         InternalError(2013070306);
@@ -826,7 +823,7 @@ var
   asmop: TAsmOp;
 begin
   ovloc.loc := LOC_VOID;
-  optimize_op_const(op,a);
+  optimize_op_const(size,op,a);
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
   if (setflags and (not signed) and (src=dst) and (op in [OP_ADD,OP_SUB])) then
     hreg:=GetIntRegister(list,OS_INT)
@@ -1198,6 +1195,7 @@ var
   helplist : TAsmList;
   largeoffs : boolean;
 begin
+  list.concat(tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
   a_reg_alloc(list,NR_STACK_POINTER_REG);
 
   if nostackframe then
@@ -1399,6 +1397,7 @@ begin
        list.concat(Taicpu.op_none(A_P_SET_MACRO));
        list.concat(Taicpu.op_none(A_P_SET_REORDER));
     end;
+  list.concat(tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
 end;
 
 
@@ -1565,8 +1564,8 @@ begin
     { generate a loop }
     if len > 4 then
     begin
-      countreg := cg.GetIntRegister(list, OS_INT);
-      tmpreg1  := cg.GetIntRegister(list, OS_INT);
+      countreg := GetIntRegister(list, OS_INT);
+      tmpreg1  := GetIntRegister(list, OS_INT);
       a_load_const_reg(list, OS_INT, len, countreg);
       current_asmdata.getjumplabel(lab);
       a_label(list, lab);
@@ -1580,7 +1579,7 @@ begin
     else
     begin
       { unrolled loop }
-      tmpreg1 := cg.GetIntRegister(list, OS_INT);
+      tmpreg1 := GetIntRegister(list, OS_INT);
       for i := 1 to len do
       begin
         list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));
@@ -1761,7 +1760,6 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  { Override this function to prevent loading the reference twice }
   if target_info.endian = endian_big then
     begin
       tmpreg := reg.reglo;
@@ -1769,9 +1767,10 @@ begin
       reg.reghi := tmpreg;
     end;
   tmpref := ref;
-  cg.a_load_reg_ref(list, OS_S32, OS_S32, reg.reglo, tmpref);
+  tcgmips(cg).make_simple_ref(list,tmpref);
+  list.concat(taicpu.op_reg_ref(A_SW,reg.reglo,tmpref));
   Inc(tmpref.offset, 4);
-  cg.a_load_reg_ref(list, OS_S32, OS_S32, reg.reghi, tmpref);
+  list.concat(taicpu.op_reg_ref(A_SW,reg.reghi,tmpref));
 end;
 
 
@@ -1780,7 +1779,6 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  { Override this function to prevent loading the reference twice }
   if target_info.endian = endian_big then
     begin
       tmpreg := reg.reglo;
@@ -1788,9 +1786,10 @@ begin
       reg.reghi := tmpreg;
     end;
   tmpref := ref;
-  cg.a_load_ref_reg(list, OS_S32, OS_S32, tmpref, reg.reglo);
+  tcgmips(cg).make_simple_ref(list,tmpref);
+  list.concat(taicpu.op_reg_ref(A_LW,reg.reglo,tmpref));
   Inc(tmpref.offset, 4);
-  cg.a_load_ref_reg(list, OS_S32, OS_S32, tmpref, reg.reghi);
+  list.concat(taicpu.op_reg_ref(A_LW,reg.reghi,tmpref));
 end;
 
 

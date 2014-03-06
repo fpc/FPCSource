@@ -47,7 +47,7 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
-  ExceptTryLevel    : longint;
+  ExceptTryLevel    : nativeint;
 
 Function RaiseList : PExceptObject;
 begin
@@ -102,16 +102,9 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-  { get_caller_XX funxctions can generate exceptions on their own
-    for instance ifd the stack got corrupted
-    Here we protect calls to those function by a
-    try/except bloc, with a global indicator TryExceptLevel
-    to avoid calling get_caller_XXX functions again if
-    any exception appears while calling them }
-  {$define FPC_CHECK_GET_CALLER_EXCEPTIONS}
-{$endif}
-
+{ This routine is called only from fpc_raiseexception, which uses ExceptTryLevel
+  flag to guard against repeated exceptions which can occur due to corrupted stack
+  or heap. }
 Procedure PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);
 var
   Newobj : PExceptObject;
@@ -143,52 +136,27 @@ begin
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
-  if ExceptTryLevel = 0 then
-    begin
-      Inc(ExceptTrylevel);
-{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
-      try
-{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
-      prev_frame:=get_caller_frame(curr_frame, curr_addr);
-{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
-      except
-        halt(217);
-      end;
-{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
-      while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-            (curr_frame<(StackBottom + StackLength)) do
-        Begin
-{$ifdef FPC_CHECK_GET_CALLER_EXCEPTIONS}
-          try
-            caller_addr := get_caller_addr(curr_frame, curr_addr);
-          except
-            halt(217);
-          end;
-          try
-            caller_frame := get_caller_frame(curr_frame, curr_addr);
-          except
-            halt(217);
-          end;
-{$else not FPC_CHECK_GET_CALLER_EXCEPTIONS}
-          caller_addr := get_caller_addr(curr_frame, curr_addr);
-          caller_frame := get_caller_frame(curr_frame, curr_addr);
-{$endif FPC_CHECK_GET_CALLER_EXCEPTIONS}
-          if (caller_addr=nil) or
-             (caller_frame=nil) then
-            break;
-          if (framecount>=framebufsize) then
-            begin
-              inc(framebufsize,16);
-              reallocmem(frames,framebufsize*sizeof(codepointer));
-            end;
-          frames[framecount]:=caller_addr;
-          inc(framecount);
-          prev_frame:=curr_frame;
-          curr_addr:=caller_addr;
-          curr_frame:=caller_frame;
-        End;
-      Dec(ExceptTryLevel);
-    end;
+  { The frame pointer of this procedure is used as initial stack bottom value. }
+  prev_frame:=get_frame;
+  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
+        (curr_frame<(StackBottom + StackLength)) do
+    Begin
+      caller_addr := get_caller_addr(curr_frame, curr_addr);
+      caller_frame := get_caller_frame(curr_frame, curr_addr);
+      if (caller_addr=nil) or
+         (caller_frame=nil) then
+        break;
+      if (framecount>=framebufsize) then
+        begin
+          inc(framebufsize,16);
+          reallocmem(frames,framebufsize*sizeof(codepointer));
+        end;
+      frames[framecount]:=caller_addr;
+      inc(framecount);
+      prev_frame:=curr_frame;
+      curr_addr:=caller_addr;
+      curr_frame:=caller_frame;
+    End;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
 end;
@@ -211,7 +179,7 @@ begin
 end;
 
 {$ifndef FPC_SYSTEM_HAS_RAISEEXCEPTION}
-Function fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
+procedure fpc_RaiseException (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
@@ -219,8 +187,13 @@ begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
-  fpc_Raiseexception:=nil;
+  if ExceptTryLevel<>0 then
+    Halt(217);
+  ExceptTryLevel:=1;
   PushExceptObject(Obj,AnAddr,AFrame);
+  { if PushExceptObject causes another exception, the following won't be executed,
+    causing halt upon entering this routine recursively. }
+  ExceptTryLevel:=0;
   _ExceptAddrstack:=ExceptAddrStack;
   If _ExceptAddrStack=Nil then
     DoUnhandledException;
@@ -257,13 +230,13 @@ end;
 
 function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; compilerproc;
 var
-  hp,_ExceptObjectStack : PExceptObject;
+  hp : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
 {$endif}
-  _ExceptObjectStack:=ExceptObjectStack;
-  If _ExceptObjectStack=nil then
+  hp:=ExceptObjectStack;
+  if hp=nil then
     begin
 {$ifdef excdebug}
       writeln ('At end of ExceptionObjectStack');
@@ -273,13 +246,11 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       if _ExceptObjectStack^.refcount = 0 then begin
-         fpc_PopObjectStack:=_ExceptObjectStack^.FObject;
-       end else begin
+       if hp^.refcount = 0 then
+         fpc_PopObjectStack:=hp^.FObject
+       else
          fpc_PopObjectStack:=nil;
-       end;
-       hp:=_ExceptObjectStack;
-       ExceptObjectStack:=_ExceptObjectStack^.next;
+       ExceptObjectStack:=hp^.next;
        if assigned(hp^.frames) then
          freemem(hp^.frames);
        dispose(hp);
@@ -397,10 +368,12 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_DONEEXCEPTION}
 procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
 begin
   Internal_PopObjectStack.Free;
 end;
+{$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
 
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
@@ -408,6 +381,7 @@ begin
   Internal_Reraise;
 end;
 
+{$ifndef FPC_SYSTEM_HAS_SAFECALLHANDLER}
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;
 var
   raiselist: PExceptObject;
@@ -426,4 +400,5 @@ begin
     result:=E_UNEXPECTED;
   exc.Free;
 end;
+{$endif FPC_SYSTEM_HAS_SAFECALLHANDLER}
 

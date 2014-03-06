@@ -1584,7 +1584,9 @@ implementation
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
-          end;
+          end
+        else
+          internalerror(2013112913);
       end;
 
 
@@ -1595,7 +1597,9 @@ implementation
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
-          end;
+          end
+        else
+          internalerror(2013112914);
       end;
 
 
@@ -2103,8 +2107,8 @@ implementation
         if (nf_absolute in flags) then
           begin
             convtype:=tc_equal;
-            if not(tstoreddef(resultdef).is_intregable) and
-               not(tstoreddef(resultdef).is_fpuregable) then
+            if (tstoreddef(resultdef).is_intregable<>tstoreddef(left.resultdef).is_intregable) or
+            (tstoreddef(resultdef).is_fpuregable<>tstoreddef(left.resultdef).is_fpuregable) then
               make_not_regable(left,[ra_addr_regable]);
             exit;
           end;
@@ -2280,13 +2284,6 @@ implementation
                          else
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
-
-                     { check if the result could be in a register }
-                     if (not(tstoreddef(resultdef).is_intregable) and
-                         not(tstoreddef(resultdef).is_fpuregable)) or
-                        ((left.resultdef.typ = floatdef) and
-                         (resultdef.typ <> floatdef))  then
-                       make_not_regable(left,[ra_addr_regable]);
 
                      { class/interface to class/interface, with checkobject support }
                      if is_class_or_interface_or_objc(resultdef) and
@@ -2464,7 +2461,7 @@ implementation
                 gotsint:=true;
               exit(true);
             end;
-          if (torddef(n.resultdef).ordtype=s64bit) and
+          if (torddef(n.resultdef).ordtype in [u64bit,s64bit]) and
              { nf_explicit is also set for explicitly typecasted }
              { ordconstn's                                       }
              ([nf_internal,nf_explicit]*n.flags=[]) and
@@ -2514,8 +2511,10 @@ implementation
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
-                  docheckremove64bittypeconvs(tbinarynode(n).left) and
-                  docheckremove64bittypeconvs(tbinarynode(n).right);
+                  (docheckremove64bittypeconvs(tbinarynode(n).left) and
+                   docheckremove64bittypeconvs(tbinarynode(n).right)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
               end;
           end;
         end;
@@ -2548,14 +2547,21 @@ implementation
                   doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
                   n.resultdef:=u32inttype
                 end;
+              //if ((n.nodetype=andn) and (tbinarynode(n).left.nodetype=ordconstn) and
+              //    ((tordconstnode(tbinarynode(n).left).value and $7fffffff)=tordconstnode(tbinarynode(n).left).value)
+              //   ) then
+              //  inserttypeconv_internal(tbinarynode(n).right,n.resultdef)
+              //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
+              //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
+              //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
             end;
-          ordconstn:
-            inserttypeconv_internal(n,todef);
           typeconvn:
             begin
               n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
             end;
+          else
+            inserttypeconv_internal(n,todef);
         end;
       end;
 {$endif not CPUNO32BITOPS}
@@ -2691,12 +2697,7 @@ implementation
                        if is_pasbool(resultdef) then
                          tordconstnode(left).value:=ord(tordconstnode(left).value<>0)
                        else
-{$ifdef VER2_2}
-                         tordconstnode(left).value:=ord(tordconstnode(left).value<>0);
-                         tordconstnode(left).value:=-tordconstnode(left).value;
-{$else}
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
-{$endif VER2_2}
                      end
                    else
                      testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
@@ -3046,21 +3047,11 @@ implementation
       begin
          first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+           be accepted for var parameters }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
-         { when converting to 64bit, first convert to a 32bit int and then   }
-         { convert to a 64bit int (only necessary for 32bit processors) (JM) }
-         if resultdef.size > sizeof(aint) then
-           begin
-             result := ctypeconvnode.create_internal(left,sinttype);
-             result := ctypeconvnode.create(result,resultdef);
-             left := nil;
-             firstpass(result);
-             exit;
-           end;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -3524,6 +3515,15 @@ implementation
         if codegenerror then
          exit;
         expectloc:=left.expectloc;
+
+        if nf_explicit in flags then
+          { check if the result could be in a register }
+          if (not(tstoreddef(resultdef).is_intregable) and
+              not(tstoreddef(resultdef).is_fpuregable)) or
+             ((left.resultdef.typ = floatdef) and
+              (resultdef.typ <> floatdef))  then
+            make_not_regable(left,[ra_addr_regable]);
+
         result:=first_call_helper(convtype);
       end;
 

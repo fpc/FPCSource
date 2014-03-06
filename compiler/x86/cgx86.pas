@@ -32,7 +32,7 @@ unit cgx86;
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgobj,rgx86,rgcpu,
-       symconst,symtype,symdef;
+       symconst,symtype,symdef, cclasses;
 
     type
 
@@ -61,8 +61,6 @@ unit cgx86;
         procedure a_call_name_static_near(list : TAsmList;const s : string);
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
         procedure a_call_reg_near(list : TAsmList;reg : tregister);
-        procedure a_call_ref(list : TAsmList;ref : treference);override;
-        procedure a_call_ref_near(list : TAsmList;ref : treference);
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
@@ -404,6 +402,7 @@ unit cgx86;
         add_hreg: boolean;
 {$endif not  x86_64}
       begin
+        hreg:=NR_NO;
         { make_simple_ref() may have already been called earlier, and in that
           case make sure we don't perform the PIC-simplifications twice }
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
@@ -487,7 +486,6 @@ unit cgx86;
                     href.refaddr:=addr_pic;
                     href.base:=NR_RIP;
                     list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
-
                     ref.symbol:=nil;
                   end;
 
@@ -503,8 +501,8 @@ unit cgx86;
                     { don't use add, as the flags may contain a value }
                     reference_reset_base(href,ref.base,0,8);
                     href.index:=hreg;
-                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
-                    ref.base:=hreg;
+                    ref.base:=getaddressregister(list);
+                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
                   end;
               end
             else
@@ -538,8 +536,8 @@ unit cgx86;
                           { don't use add, as the flags may contain a value }
                           reference_reset_base(href,ref.base,0,8);
                           href.index:=hreg;
-                          list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
-                          ref.base:=hreg;
+                          ref.base:=getaddressregister(list);
+                          list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
                         end;
                     end;
 
@@ -563,7 +561,7 @@ unit cgx86;
                  begin
                    include(current_procinfo.flags,pi_needs_got);
                    { make a copy of the got register, hreg can get modified }
-                   hreg:=cg.getaddressregister(list);
+                   hreg:=getaddressregister(list);
                    a_load_reg_reg(list,OS_ADDR,OS_ADDR,current_procinfo.got,hreg);
                    ref.relsymbol:=current_procinfo.CurrGOTLabel;
                  end;
@@ -577,7 +575,7 @@ unit cgx86;
             href.base:=current_procinfo.got;
             href.refaddr:=addr_pic;
             include(current_procinfo.flags,pi_needs_got);
-            hreg:=cg.getaddressregister(list);
+            hreg:=getaddressregister(list);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
             ref.symbol:=nil;
             add_hreg:=true;
@@ -708,8 +706,13 @@ unit cgx86;
          floatstoreops(t,op,s);
          list.concat(Taicpu.Op_ref(op,s,tmpref));
          { storing non extended floats can cause a floating point overflow }
-         if (t<>OS_F80) and
-            (cs_fpu_fwait in current_settings.localswitches) then
+         if ((t<>OS_F80) and (cs_fpu_fwait in current_settings.localswitches))
+{$ifdef i8086}
+           { 8087 and 80287 need a FWAIT after a memory store, before it can be
+             read with the integer unit }
+           or (current_settings.cputype<=cpu_286)
+{$endif i8086}
+           then
            list.concat(Taicpu.Op_none(A_FWAIT,S_NO));
          dec_fpu_stack;
       end;
@@ -841,18 +844,6 @@ unit cgx86;
     procedure tcgx86.a_call_reg_near(list: TAsmList; reg: tregister);
       begin
         list.concat(taicpu.op_reg(A_CALL,S_NO,reg));
-      end;
-
-
-    procedure tcgx86.a_call_ref(list : TAsmList;ref : treference);
-      begin
-        a_call_ref_near(list,ref);
-      end;
-
-
-    procedure tcgx86.a_call_ref_near(list: TAsmList; ref: treference);
-      begin
-        list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
 
@@ -1080,6 +1071,12 @@ unit cgx86;
               end;
             if segment<>NR_NO then
               begin
+{$ifdef i8086}
+                if is_segment_reg(segment) then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,S_W,segment,GetNextReg(r)))
+                else
+                  a_load_reg_reg(list,OS_16,OS_16,segment,GetNextReg(r));
+{$else i8086}
                 if (tf_section_threadvars in target_info.flags) then
                   begin
                     { Convert thread local address to a process global addres
@@ -1100,6 +1097,7 @@ unit cgx86;
                   end
                 else
                   cgmessage(cg_e_cant_use_far_pointer_there);
+{$endif i8086}
               end;
           end;
       end;
@@ -1559,6 +1557,7 @@ unit cgx86;
         power  : longint;
         href : treference;
       begin
+        power:=0;
         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
@@ -1572,10 +1571,18 @@ unit cgx86;
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a),power) and (power in [1..3]) then
           begin
-            reference_reset_base(href,src,0,0);
+            reference_reset_base(href,NR_NO,0,0);
             href.index:=src;
             href.scalefactor:=a;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
+          end
+        else if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
+          (a>1) and not ispowerof2(int64(a),power) then
+          begin
+            { MUL with overflow checking should be handled specifically in the code generator }
+            if (op=OP_MUL) and (cs_check_overflow in current_settings.localswitches) then
+              internalerror(2014011801);
+            list.concat(taicpu.op_const_reg_reg(A_IMUL,TCgSize2OpSize[size],a,src,dst));
           end
         else if (op=OP_ADD) and
           ((size in [OS_32,OS_S32]) or
@@ -1599,6 +1606,19 @@ unit cgx86;
             reference_reset_base(href,src,-a,0);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op in [OP_ROR,OP_ROL]) and
+          (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+          (size in [OS_32,OS_S32
+{$ifdef x86_64}
+            ,OS_64,OS_S64
+{$endif x86_64}
+          ]) then
+          begin
+            if op=OP_ROR then
+              list.concat(taicpu.op_const_reg_reg(A_RORX,TCgSize2OpSize[size], a,src,dst))
+            else
+              list.concat(taicpu.op_const_reg_reg(A_RORX,TCgSize2OpSize[size],TCgSize2Size[size]*8-a,src,dst));
+          end
         else
           inherited a_op_const_reg_reg(list,op,size,a,src,dst);
       end;
@@ -1616,6 +1636,19 @@ unit cgx86;
             href.index:=src2;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
+        else if (op in [OP_SHR,OP_SHL]) and
+          (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+          (size in [OS_32,OS_S32
+{$ifdef x86_64}
+            ,OS_64,OS_S64
+{$endif x86_64}
+          ]) then
+          begin
+            if op=OP_SHL then
+              list.concat(taicpu.op_reg_reg_reg(A_SHLX,TCgSize2OpSize[size],src1,src2,dst))
+            else
+              list.concat(taicpu.op_reg_reg_reg(A_SHRX,TCgSize2OpSize[size],src1,src2,dst));
+          end
         else
           inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
       end;
@@ -1632,7 +1665,7 @@ unit cgx86;
         tmpreg : tregister;
 {$endif x86_64}
       begin
-        optimize_op_const(op, a);
+        optimize_op_const(size, op, a);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
         if not(op in [OP_NONE,OP_MOVE]) and
@@ -1658,30 +1691,14 @@ unit cgx86;
             end;
           OP_DIV, OP_IDIV:
             begin
-              if ispowerof2(int64(a),power) then
-                begin
-                  case op of
-                    OP_DIV:
-                      opcode := A_SHR;
-                    OP_IDIV:
-                      opcode := A_SAR;
-                  end;
-                  list.concat(taicpu.op_const_reg(opcode,TCgSize2OpSize[size],power,reg));
-                  exit;
-                end;
-              { the rest should be handled specifically in the code      }
+              { should be handled specifically in the code               }
               { generator because of the silly register usage restraints }
               internalerror(200109224);
             end;
           OP_MUL,OP_IMUL:
             begin
-              if not(cs_check_overflow in current_settings.localswitches) and
-                 ispowerof2(int64(a),power) then
-                begin
-                  list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
-                  exit;
-                end;
-
+              if not (cs_check_overflow in current_settings.localswitches) then
+                op:=OP_IMUL;
               if op = OP_IMUL then
                 list.concat(taicpu.op_const_reg(A_IMUL,TCgSize2OpSize[size],a,reg))
               else
@@ -1689,36 +1706,28 @@ unit cgx86;
                 { generator because of the silly register usage restraints }
                 internalerror(200109225);
             end;
-          OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+          OP_ADD, OP_SUB:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) and
                UseIncDec then
-               begin
-                 if op = OP_ADD then
-                   list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
-                 else
-                   list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
-               end
-            else if (a = 0) then
-              if (op <> OP_AND) then
-                exit
-              else
-                list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],0,reg))
-            else if (aword(a) = high(aword)) and
-                    (op in [OP_AND,OP_OR,OP_XOR]) then
-                   begin
-                     case op of
-                       OP_AND:
-                         exit;
-                       OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,TCgSize2OpSize[size],aint(high(aword)),reg));
-                       OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg));
-                     end
-                   end
+              begin
+                if op = OP_ADD then
+                  list.concat(taicpu.op_reg(A_INC,TCgSize2OpSize[size],reg))
+                else
+                  list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
+              end
             else
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
+          OP_AND,OP_OR:
+            list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
+          OP_XOR:
+            if (aword(a)=high(aword)) then
+              list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg))
+            else
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$if defined(x86_64)}
@@ -1763,58 +1772,40 @@ unit cgx86;
 {$endif x86_64}
         tmpref  : treference;
       begin
-        optimize_op_const(op, a);
-        tmpref:=ref;
-        make_simple_ref(list,tmpref);
+        optimize_op_const(size, op, a);
+        if op in [OP_NONE,OP_MOVE] then
+          begin
+            if (op=OP_MOVE) then
+              a_load_const_ref(list,size,a,ref);
+            exit;
+          end;
+
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
-        if not(op in [OP_NONE,OP_MOVE]) and
-           (size in [OS_S64,OS_64]) and
+        if (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
           begin
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
-            a_op_reg_ref(list,op,size,tmpreg,tmpref);
+            a_op_reg_ref(list,op,size,tmpreg,ref);
             exit;
           end;
 {$endif x86_64}
+
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+
         Case Op of
-          OP_NONE :
-            begin
-              { Opcode is optimized away }
-            end;
-          OP_MOVE :
-            begin
-              { Optimized, replaced with a simple load }
-              a_load_const_ref(list,size,a,ref);
-            end;
           OP_DIV, OP_IDIV:
             Begin
-              if ispowerof2(int64(a),power) then
-                begin
-                  case op of
-                    OP_DIV:
-                      opcode := A_SHR;
-                    OP_IDIV:
-                      opcode := A_SAR;
-                  end;
-                  list.concat(taicpu.op_const_ref(opcode,
-                    TCgSize2OpSize[size],power,tmpref));
-                  exit;
-                end;
-              { the rest should be handled specifically in the code      }
+              { should be handled specifically in the code               }
               { generator because of the silly register usage restraints }
               internalerror(200109231);
             End;
           OP_MUL,OP_IMUL:
             begin
-              if not(cs_check_overflow in current_settings.localswitches) and
-                 ispowerof2(int64(a),power) then
-                begin
-                  list.concat(taicpu.op_const_ref(A_SHL,TCgSize2OpSize[size],
-                    power,tmpref));
-                  exit;
-                end;
+              if not (cs_check_overflow in current_settings.localswitches) then
+                op:=OP_IMUL;
               { can't multiply a memory location directly with a constant }
               if op = OP_IMUL then
                 inherited a_op_const_ref(list,op,size,a,tmpref)
@@ -1823,37 +1814,28 @@ unit cgx86;
                 { generator because of the silly register usage restraints }
                 internalerror(200109232);
             end;
-          OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
+          OP_ADD, OP_SUB:
             if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
-               (op in [OP_ADD,OP_SUB]) and
                UseIncDec then
-               begin
-                 if op = OP_ADD then
-                   list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
-                 else
-                   list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
-               end
-            else if (a = 0) then
-              if (op <> OP_AND) then
-                exit
-              else
-                a_load_const_ref(list,size,0,tmpref)
-            else if (aword(a) = high(aword)) and
-                    (op in [OP_AND,OP_OR,OP_XOR]) then
-                   begin
-                     case op of
-                       OP_AND:
-                         exit;
-                       OP_OR:
-                         list.concat(taicpu.op_const_ref(A_MOV,TCgSize2OpSize[size],aint(high(aword)),tmpref));
-                       OP_XOR:
-                         list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],tmpref));
-                     end
-                   end
+              begin
+                if op = OP_ADD then
+                  list.concat(taicpu.op_ref(A_INC,TCgSize2OpSize[size],tmpref))
+                else
+                  list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],tmpref))
+              end
             else
-              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
-                TCgSize2OpSize[size],a,tmpref));
+              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
+          OP_AND,OP_OR:
+            list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
+          OP_XOR:
+            if (aword(a)=high(aword)) then
+              list.concat(taicpu.op_ref(A_NOT,TCgSize2OpSize[size],tmpref))
+            else
+              list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,tmpref));
+
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$if defined(x86_64)}
@@ -1891,7 +1873,10 @@ unit cgx86;
 
     procedure tcgx86.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
       const
-{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu)}
+        REGCX=NR_RCX;
+        REGCX_Size = OS_64;
+{$elseif defined(cpu32bitalu)}
         REGCX=NR_ECX;
         REGCX_Size = OS_32;
 {$elseif defined(cpu16bitalu)}
@@ -1905,6 +1890,8 @@ unit cgx86;
         check_register_size(size,src);
         check_register_size(size,dst);
         dstsize := tcgsize2opsize[size];
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT:
             begin
@@ -1942,6 +1929,8 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT,OP_IMUL:
             begin
@@ -1967,6 +1956,8 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
+          op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT:
             begin
@@ -2185,9 +2176,9 @@ unit cgx86;
         push_segment_size = S_W;
 {$endif}
 
-    type  copymode=(copy_move,copy_mmx,copy_string);
+    type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref:Treference;
+    var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
@@ -2199,6 +2190,28 @@ unit cgx86;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
         helpsize:=2*sizeof(aword);
+{$ifndef i8086}
+      { avx helps only to reduce size, using it in general does at least not help on
+        an i7-4770 (FK) }
+      if (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]) and
+        // (cs_opt_size in current_settings.optimizerswitches) and
+         ((len=8) or (len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
+         cm:=copy_avx
+      else
+{$ifdef dummy}
+      { I'am not sure what CPUs would benefit from using sse instructions for moves (FK) }
+      if
+{$ifdef x86_64}
+        ((current_settings.fputype>=fpu_sse64)
+{$else x86_64}
+        ((current_settings.fputype>=fpu_sse)
+{$endif x86_64}
+          or (CPUX86_HAS_SSEUNIT in cpu_capabilities[current_settings.cputype])) and
+         ((len=8) or (len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
+         cm:=copy_mm
+      else
+{$endif dummy}
+{$endif i8086}
       if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
@@ -2206,7 +2219,7 @@ unit cgx86;
       if (len>helpsize) then
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
-         not((len<=16) and (cm=copy_mmx)) and
+         not((len<=16) and (cm in [copy_mmx,copy_mm,copy_avx])) and
          not(len in copy_len_sizes) then
         cm:=copy_string;
 {$ifndef i8086}
@@ -2256,11 +2269,15 @@ unit cgx86;
                 inc(dstref.offset,copysize);
               end;
           end;
+
         copy_mmx:
           begin
             dstref:=dest;
             srcref:=source;
             r0:=getmmxregister(list);
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
             a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r0,nil);
             if len>=16 then
               begin
@@ -2295,6 +2312,129 @@ unit cgx86;
               begin
                 inc(dstref.offset,8);
                 a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
+              end;
+          end;
+
+        copy_mm:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            r0:=NR_NO;
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
+            if len>=16 then
+              begin
+                r0:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r0,nil);
+                inc(srcref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                r1:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r1,nil);
+                inc(srcref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                r2:=getmmregister(list,OS_M128);
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r2,nil);
+                inc(srcref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                r3:=getmmregister(list,OS_M64);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r3,nil);
+              end;
+
+            if len>=16 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r0,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r1,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                a_loadmm_reg_ref(list,OS_M128,OS_M128,r2,dstref,nil);
+                inc(dstref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
+              end;
+          end;
+
+        copy_avx:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            r0:=NR_NO;
+            r1:=NR_NO;
+            r2:=NR_NO;
+            r3:=NR_NO;
+            if len>=16 then
+              begin
+                r0:=getmmregister(list,OS_M128);
+                { we want to force the use of vmovups, so do not use a_loadmm_ref_reg }
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r0));
+                inc(srcref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                r1:=getmmregister(list,OS_M128);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r1));
+                inc(srcref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                r2:=getmmregister(list,OS_M128);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r2));
+                inc(srcref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                r3:=getmmregister(list,OS_M64);
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r3));
+              end;
+
+            if len>=16 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if len>=32 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if len>=48 then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,tmpref));
+                inc(dstref.offset,16);
+              end;
+            if (len=8) or (len=24) or (len=40) then
+              begin
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,tmpref));
               end;
           end
         else {copy_string, should be a good fallback in case of unhandled}
@@ -2555,7 +2695,6 @@ unit cgx86;
     procedure tcgx86.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
         stackmisalignment: longint;
-        para: tparavarsym;
         regsize: longint;
 {$ifdef i8086}
         dgroup: treference;
@@ -2637,7 +2776,18 @@ unit cgx86;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
+                else
+                  begin
+                    push_regs;
+                    gen_load_frame_for_exceptfilter(list);
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    localsize:=current_procinfo.maxpushedparasize;
+                  end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
               end;
 
@@ -2650,7 +2800,7 @@ unit cgx86;
               begin
                 if target_info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
-                cg.g_stackpointer_alloc(list,localsize);
+                g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
@@ -2658,7 +2808,8 @@ unit cgx86;
 
 {$ifdef i386}
             if (not paramanager.use_fixed_stack) and
-               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+               (current_procinfo.framepointer<>NR_STACK_POINTER_REG) and
+               (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
               begin
                 regsize:=0;
                 push_regs;

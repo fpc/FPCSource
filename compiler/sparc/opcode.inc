@@ -70,6 +70,8 @@ A_tst,
 A_FMOVd,
 A_FABSd,
 A_FABSq,
+A_FNEGd,
+A_FNEGq,
 { Memory barrier instructions }
 A_STBAR,
 A_MEMBAR

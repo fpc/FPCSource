@@ -807,6 +807,7 @@ constructor TStringStream.Create(const AString: string);
 begin
   Inherited create;
   FDataString:=AString;
+  UniqueString(FDataString);
 end;
 
 
@@ -853,7 +854,8 @@ function TStringStream.Write(const Buffer; Count: Longint): Longint;
 
 begin
   Result:=Count;
-  SetSize(FPosition+Count);
+  if FPosition+Count>Size then
+    SetSize(FPosition+Count);
   // This supposes that FDataString is of type AnsiString)
   Move (Buffer,PChar(FDataString)[Fposition],Count);
   FPosition:=FPosition+Count;

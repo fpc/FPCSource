@@ -317,6 +317,8 @@ unit nx86add;
                      lten : getresflags:=F_GE;
                      gtn : getresflags:=F_L;
                      gten : getresflags:=F_LE;
+                     else
+                       internalerror(2013120105);
                   end
                 else
                   case nodetype of
@@ -324,6 +326,8 @@ unit nx86add;
                      lten : getresflags:=F_LE;
                      gtn : getresflags:=F_G;
                      gten : getresflags:=F_GE;
+                     else
+                       internalerror(2013120106);
                   end;
              end
            else
@@ -334,6 +338,8 @@ unit nx86add;
                      lten : getresflags:=F_AE;
                      gtn : getresflags:=F_B;
                      gten : getresflags:=F_BE;
+                     else
+                       internalerror(2013120107);
                   end
                 else
                   case nodetype of
@@ -341,6 +347,8 @@ unit nx86add;
                      lten : getresflags:=F_BE;
                      gtn : getresflags:=F_A;
                      gten : getresflags:=F_AE;
+                     else
+                       internalerror(2013120108);
                   end;
              end;
          end;
@@ -1234,9 +1242,11 @@ unit nx86add;
             if current_settings.cputype < cpu_286 then
               begin
                 tg.gettemp(current_asmdata.CurrAsmList,2,2,tt_normal,tmpref);
-                emit_ref(A_FNSTSW,S_NO,tmpref);
+                emit_ref(A_FSTSW,S_NO,tmpref);
                 cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
-                emit_ref_reg(A_MOV,S_W,tmpref,NR_AX);
+                inc(tmpref.offset);
+                emit_ref_reg(A_MOV,S_B,tmpref,NR_AH);
+                dec(tmpref.offset);
                 emit_none(A_SAHF,S_NO);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
                 tg.ungettemp(current_asmdata.CurrAsmList,tmpref);
@@ -1308,11 +1318,25 @@ unit nx86add;
 
          pass_left_right;
 
-         left_must_be_reg(opdef,opsize,false);
-         emit_generic_code(A_CMP,opsize,unsigned,false,false);
-         location_freetemp(current_asmdata.CurrAsmList,right.location);
-         location_freetemp(current_asmdata.CurrAsmList,left.location);
-
+         if (right.location.loc=LOC_CONSTANT) and
+            (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE])
+{$ifdef x86_64}
+              and ((not (opsize in [OS_64,OS_S64])) or (
+              (right.location.value>=low(longint)) and (right.location.value<=high(longint))
+            ))
+{$endif x86_64}
+         then
+           begin
+             emit_const_ref(A_CMP, TCGSize2Opsize[opsize], right.location.value, left.location.reference);
+             location_freetemp(current_asmdata.CurrAsmList,left.location);
+           end
+         else
+           begin
+             left_must_be_reg(opdef,opsize,false);
+             emit_generic_code(A_CMP,opsize,unsigned,false,false);
+             location_freetemp(current_asmdata.CurrAsmList,right.location);
+             location_freetemp(current_asmdata.CurrAsmList,left.location);
+           end;
          location_reset(location,LOC_FLAGS,OS_NO);
          location.resflags:=getresflags(unsigned);
       end;

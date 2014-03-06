@@ -294,7 +294,7 @@ begin
   end;
 end;
 
-Procedure TDBTransaction.InternalHandleException;
+procedure TDBTransaction.InternalHandleException;
 
 begin
   if assigned(classes.ApplicationHandleException) then
@@ -303,33 +303,55 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
-Procedure TDBTransaction.CheckActive;
+procedure TDBTransaction.CheckActive;
 
 begin
   If not FActive Then
     DatabaseError(STransNotActive,Self);
 end;
 
-Procedure TDBTransaction.CheckInActive;
+procedure TDBTransaction.CheckInactive;
 
 begin
   If FActive Then
     DatabaseError(STransActive,Self);
 end;
 
-Procedure TDBTransaction.CloseTrans;
+procedure TDBTransaction.Commit;
+begin
+  EndTransaction;
+end;
+
+procedure TDBTransaction.CommitRetaining;
+begin
+  Commit;
+  StartTransaction;
+end;
+
+procedure TDBTransaction.Rollback;
+begin
+  EndTransaction;
+end;
+
+procedure TDBTransaction.RollbackRetaining;
+begin
+  RollBack;
+  StartTransaction;
+end;
+
+procedure TDBTransaction.CloseTrans;
 
 begin
   FActive := false;
 end;
 
-Procedure TDBTransaction.OpenTrans;
+procedure TDBTransaction.openTrans;
 
 begin
   FActive := true;
 end;
 
-Procedure TDBTransaction.SetDatabase (Value : TDatabase);
+procedure TDBTransaction.SetDatabase(Value: TDatabase);
 
 begin
   If Value<>FDatabase then
@@ -343,14 +365,14 @@ begin
     end;
 end;
 
-constructor TDBTransaction.create(AOwner : TComponent);
+constructor TDBTransaction.Create(AOwner: TComponent);
 
 begin
   inherited create(AOwner);
   FDatasets:=TList.Create;
 end;
 
-Procedure TDBTransaction.CheckDatabase;
+procedure TDBTransaction.CheckDatabase;
 
 begin
   If (FDatabase=Nil) then
@@ -369,7 +391,7 @@ begin
     end;
 end;
 
-Destructor TDBTransaction.Destroy;
+destructor TDBTransaction.destroy;
 
 begin
   Database:=Nil;
@@ -389,7 +411,7 @@ begin
       TDBDataset(FDataSets[i]).Transaction:=Nil;
 end;
 
-Function TDBTransaction.GetDataSetCount : Longint;
+function TDBTransaction.GetDataSetCount: Longint;
 
 begin
   If Assigned(FDatasets) Then
@@ -422,7 +444,7 @@ begin
     DatabaseErrorFmt(SDatasetRegistered,[DS.Name]);
 end;
 
-Function TDBTransaction.GetDataset(Index : longint) : TDBDataset;
+function TDBTransaction.GetDataset(Index: longint): TDBDataset;
 
 begin
   If Assigned(FDatasets) then

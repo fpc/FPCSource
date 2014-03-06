@@ -748,6 +748,9 @@ implementation
           end;
 
       begin
+        sp:='';
+        orgsp:='';
+
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
         old_parse_generic:=parse_generic;
@@ -755,6 +758,7 @@ implementation
         result:=false;
         pd:=nil;
         aprocsym:=nil;
+        srsym:=nil;
 
         consume_proc_name;
 
@@ -1012,6 +1016,9 @@ implementation
         { parse parameters }
         if token=_LKLAMMER then
           begin
+            old_current_structdef:=nil;
+            old_current_genericdef:=nil;
+            old_current_specializedef:=nil;
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
             if assigned(pd.struct) and
@@ -1069,6 +1076,9 @@ implementation
             old_parse_generic:=parse_generic;
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
+            old_current_structdef:=nil;
+            old_current_genericdef:=nil;
+            old_current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then

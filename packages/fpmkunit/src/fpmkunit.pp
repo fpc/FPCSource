@@ -96,7 +96,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos
+    aix,java,android,nativent,msdos,wii
   );
   TOSes = Set of TOS;
 
@@ -152,7 +152,7 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllLimit83fsOses= [go32v2,os2,emx,watcom,msdos];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos]; // OSes that use .a library files for smart-linking
+  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -190,9 +190,10 @@ Const
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false),
-    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true , false),
+    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true )
+    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false )
   );
 
   // Useful
@@ -203,6 +204,7 @@ Const
   IncExt  = '.inc';
   ObjExt  = '.o';
   RstExt  = '.rst';
+  RsjExt  = '.rsj';
   LibExt  = '.a';
   SharedLibExt = '.so';
   DLLExt  = '.dll';
@@ -545,7 +547,8 @@ Type
     Function GetUnitFileName : String; virtual;
     function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
-    Function GetRSTFileName : String; Virtual;
+    function GetRSTFileName : String; Virtual;
+    function GetRSJFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
     Function GetProgramDebugFileName(AOS : TOS) : String; Virtual;
@@ -572,6 +575,7 @@ Type
     Property UnitFileName : String Read GetUnitFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
+    Property RSJFileName : String Read GetRSJFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
     Property Extension : String Read FExtension Write FExtension;
     Property FileType : TFileType Read FFileType Write FFileType;
@@ -2202,8 +2206,10 @@ end;
 
 function GetImportLibraryFilename(const UnitName: string; AOS: TOS): string;
 begin
-  if AOS in [go32v2,watcom,os2,emx] then
+  if AOS in [go32v2,watcom] then
     Result := 'libimp'+UnitName
+  else if AOS in [os2,emx] then
+    Result := UnitName
   else if AOS in [netware,netwlibc,macos] then
     Result := 'lib'+UnitName
   else
@@ -7129,8 +7135,6 @@ function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
   if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
     Result := Name+LibExt
-  else if AOS in [amiga,morphos] then
-    Result:='lib'+Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'
   else if AOS in [macos] then
@@ -7168,6 +7172,12 @@ end;
 function TTarget.GetRSTFileName: String;
 begin
   Result:=Name+RSText;
+end;
+
+
+function TTarget.GetRSJFileName: String;
+begin
+  Result:=Name+RSJext;
 end;
 
 
@@ -7235,7 +7245,13 @@ begin
       List.Add(APrefixB + GetProgramDebugFileName(AOS));
     end;
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
   // Maybe add later ?  AddConditionalStrings(List,CleanFiles);
 end;
 
@@ -7256,7 +7272,13 @@ begin
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
 end;
 
 

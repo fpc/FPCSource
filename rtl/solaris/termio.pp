@@ -30,8 +30,6 @@ Uses UnixType,BaseUnix;          // load base unix typing
 
 implementation
 
-{$i textrec.inc}
-
 // load implementation for prototypes from current dir.
 {$i termiosproc.inc}
 

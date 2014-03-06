@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
+    P.Dependencies.Add('rtl-extra');
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';

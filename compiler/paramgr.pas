@@ -181,7 +181,7 @@ implementation
       begin
          if handle_common_ret_in_param(def,pd,result) then
            exit;
-         ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
+         ret_in_param:=(def.typ=arraydef) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
@@ -223,12 +223,12 @@ implementation
           vs_constref,
           vs_out,
           vs_var :
-            push_size:=sizeof(pint);
+            push_size:=voidpointertype.size;
           vs_value,
           vs_const :
             begin
                 if push_addr_param(varspez,def,calloption) then
-                  push_size:=sizeof(pint)
+                  push_size:=voidpointertype.size
                 else
                   begin
                     { special array are normally pushed by addr, only for
@@ -589,8 +589,10 @@ implementation
     function tparamanager.handle_common_ret_in_param(def: tdef;
       pd: tabstractprocdef; out retinparam: boolean): boolean;
       begin
-        { this must be system independent safecall and record constructor result
-          is always return in param }
+        { This must be system independent: safecall and record constructor result
+          is always returned in param.
+          Furthermore, any managed type is returned in param, in order to avoid
+          its finalization on exception at callee side. }
         if (tf_safecall_exceptions in target_info.flags) and
            (pd.proccalloption=pocall_safecall) or
            (
@@ -603,7 +605,7 @@ implementation
                  is_objectpascal_helper(tdef(pd.owner.defowner))
                )
              )
-           ) then
+           ) or is_managed_type(def) then
           begin
             retinparam:=true;
             exit(true);

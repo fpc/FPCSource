@@ -103,7 +103,7 @@ type
 
 implementation
 uses
-  xsd_consts, sdo_xsdintf, test_suite_utils, sdo_datafactory, locators, sdo_imp_utils;
+  xsd_consts, sdo_xsdintf, test_suite_utils, sdo_datafactory, sdo_locators, sdo_imp_utils;
 
 const
   x_complexType_SampleArrayIntFieldType     = 'TArrayIntFieldType';
@@ -1196,7 +1196,7 @@ end;
 function TTest_XsdParser.ParseDoc(var AFactory : ISDODataFactory; const ADoc: string): ISDODataObject;
 var
   locDoc : TXMLDocument;
-  prs : IXsdPaser;
+  prs : IXsdParser;
   prsCtx : IParserContext;
   fileName : string;
 begin

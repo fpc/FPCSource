@@ -103,6 +103,15 @@ implementation
 
      function tx86inlinenode.first_arctan_real : tnode;
       begin
+{$ifdef i8086}
+        { FPATAN's range is limited to (0 <= value < 1) on the 8087 and 80287,
+          so we need to use the RTL helper on these FPUs }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
         if (tfloatdef(pbestrealtype^).floattype=s80real) then
           begin
             expectloc:=LOC_FPUREGISTER;
@@ -160,8 +169,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_cos_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
@@ -174,8 +188,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_sin_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
 
@@ -215,7 +234,12 @@ implementation
      function tx86inlinenode.first_popcnt: tnode;
        begin
          Result:=nil;
-         if (current_settings.fputype<fpu_sse42)
+         if
+{$ifdef i8086}
+           true
+{$else i8086}
+           not(CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+{$endif i8086}
 {$ifdef i386}
            or is_64bit(left.resultdef)
 {$endif i386}
@@ -280,18 +304,39 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-             location:=left.location;
+             if left.location.loc<>LOC_MMREGISTER then
+               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+             if UseAVX then
+               begin
+                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+               end
+             else
+               location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPS,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register));
+                 end;
                s64real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPD,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPD,S_XMM,href,location.register))
+                 end;
                else
                  internalerror(200506081);
              end;
-             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
            end
          else
            begin
@@ -388,8 +433,19 @@ implementation
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
-                emit_ref(A_FNSTCW,S_NO,newcw);
-                emit_ref(A_FNSTCW,S_NO,oldcw);
+{$ifdef i8086}
+                if current_settings.cputype<=cpu_286 then
+                  begin
+                    emit_ref(A_FSTCW,S_NO,newcw);
+                    emit_ref(A_FSTCW,S_NO,oldcw);
+                    emit_none(A_FWAIT,S_NO);
+                  end
+                else
+{$endif i8086}
+                  begin
+                    emit_ref(A_FNSTCW,S_NO,newcw);
+                    emit_ref(A_FNSTCW,S_NO,oldcw);
+                  end;
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location(left);
                 emit_ref(A_FLDCW,S_NO,newcw);

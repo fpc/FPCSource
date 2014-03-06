@@ -492,7 +492,7 @@ begin
                end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
-    tfielddef.create(fielddefs,FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
+    Fielddefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
     end;
 end;
 

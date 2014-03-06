@@ -695,7 +695,7 @@ Resourcestring
   SErrInvalidNumber = 'Invalid numerical value : %s';
   SErrNoOperand = 'No operand for unary operation %s';
   SErrNoleftOperand = 'No left operand for binary operation %s';
-  SErrNoRightOperand = 'No left operand for binary operation %s';
+  SErrNoRightOperand = 'No right operand for binary operation %s';
   SErrNoNegation = 'Cannot negate expression of type %s : %s';
   SErrNoNOTOperation = 'Cannot perform "not" on expression of type %s: %s';
   SErrTypesDoNotMatch = 'Type mismatch: %s<>%s for expressions "%s" and "%s".';

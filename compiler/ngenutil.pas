@@ -72,6 +72,11 @@ interface
       { insert a single bss sym, called by insert bssdata (factored out
         non-common part for llvm) }
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint); virtual;
+
+      { initialization of iso styled program parameters }
+      class procedure initialize_textrec(p : TObject; statn : pointer);
+      { finalization of iso styled program parameters }
+      class procedure finalize_textrec(p : TObject; statn : pointer);
      public
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
@@ -264,6 +269,42 @@ implementation
     end;
 
 
+  class procedure tnodeutils.initialize_textrec(p:TObject;statn:pointer);
+    var
+      stat: ^tstatementnode absolute statn;
+    begin
+      if (tsym(p).typ=staticvarsym) and
+       (tstaticvarsym(p).vardef.typ=filedef) and
+       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
+       (tstaticvarsym(p).isoindex<>0) then
+       begin
+         addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
+           ccallparanode.create(
+             cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+           ccallparanode.create(
+             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+           nil))));
+       end;
+    end;
+
+
+  class procedure tnodeutils.finalize_textrec(p:TObject;statn:pointer);
+    var
+      stat: ^tstatementnode absolute statn;
+    begin
+      if (tsym(p).typ=staticvarsym) and
+       (tstaticvarsym(p).vardef.typ=filedef) and
+       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
+       (tstaticvarsym(p).isoindex<>0) then
+       begin
+         addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
+           ccallparanode.create(
+             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+           nil)));
+       end;
+    end;
+
+
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
@@ -271,6 +312,17 @@ implementation
       psym: tsym;
     begin
       result:=maybe_insert_trashing(pd,n);
+
+      if (m_iso in current_settings.modeswitches) and
+        (pd.proctypeoption=potype_proginit) then
+        begin
+          block:=internalstatements(stat);
+          pd.localst.SymList.ForEachCall(@initialize_textrec,@stat);
+          addstatement(stat,result);
+          pd.localst.SymList.ForEachCall(@finalize_textrec,@stat);
+          result:=block;
+        end;
+
       if target_info.system in systems_typed_constants_node_init then
         begin
           case pd.proctypeoption of
@@ -643,8 +695,8 @@ implementation
           inc(count);
         end;
       { Insert TableCount,InitCount at start }
-      unitinits.insert(Tai_const.Create_32bit(0));
-      unitinits.insert(Tai_const.Create_32bit(count));
+      unitinits.insert(Tai_const.Create_pint(0));
+      unitinits.insert(Tai_const.Create_pint(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(pint));
@@ -763,7 +815,7 @@ implementation
          inc(count);
        end;
       { Insert TableCount at start }
-      hlist.insert(Tai_const.Create_32bit(count));
+      hlist.insert(Tai_const.Create_pint(count));
       { insert in data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));

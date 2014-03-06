@@ -539,8 +539,8 @@ type
 implementation
 
 uses
-  sdo_datafactory, Math, sdo_copyhelper, sdo_equalityhelper,
-  sdo_consts, sdo_convert_helper, DateUtils, sdo_date_utils;
+  sdo_datafactory, Math,
+  sdo_consts, DateUtils, sdo_date_utils;
 
 const
   s_uri              = 'urn-test';

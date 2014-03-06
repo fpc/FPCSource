@@ -203,7 +203,7 @@ unit agavrgas;
 
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_avr_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';

@@ -135,50 +135,6 @@ procedure tx64onnode.pass_generate_code;
   end;
 
 { tx64tryfinallynode }
-var
-  seq: longint=0;
-
-
-function create_pd: tprocdef;
-  var
-    st:TSymTable;
-    checkstack: psymtablestackitem;
-    oldsymtablestack: tsymtablestack;
-    sym:tprocsym;
-  begin
-    { get actual procedure symtable (skip withsymtables, etc.) }
-    st:=nil;
-    checkstack:=symtablestack.stack;
-    while assigned(checkstack) do
-      begin
-        st:=checkstack^.symtable;
-          if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
-            break;
-          checkstack:=checkstack^.next;
-      end;
-    { Create a nested procedure, even from main_program_level.
-      Furthermore, force procdef and procsym into the same symtable
-      (by default, defs are registered with symtablestack.top which may be
-      something temporary like exceptsymtable - in that case, procdef can be
-      destroyed before procsym, leaving invalid pointers). }
-    oldsymtablestack:=symtablestack;
-    symtablestack:=nil;
-    result:=tprocdef.create(max(normal_function_level,st.symtablelevel)+1);
-    symtablestack:=oldsymtablestack;
-    st.insertdef(result);
-    result.struct:=current_procinfo.procdef.struct;
-    result.proctypeoption:=potype_exceptfilter;
-    handle_calling_convention(result);
-    sym:=tprocsym.create('$fin$'+tostr(seq));
-    st.insert(sym);
-    inc(seq);
-
-    result.procsym:=sym;
-    proc_add_definition(result);
-    result.forwarddef:=false;
-    result.aliasnames.insert(result.mangledname);
-    alloc_proc_symbol(result);
-  end;
 
 function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
   begin
@@ -203,47 +159,53 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_x86_64_win64) or (
+    if (target_info.system=system_x86_64_win64) and
+       (
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-        assigned(current_procinfo.procdef.struct) and
-        (df_generic in current_procinfo.procdef.struct.defoptions)
-      ) then
-      exit;
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_pd;
-    finalizepi.entrypos:=r.fileinfo;
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.exitswitches:=current_settings.localswitches;
-    { Regvar optimization for symbols is suppressed when using exceptions, but
-      temps may be still placed into registers. This must be fixed. }
-    foreachnodestatic(r,@reset_regvars,finalizepi);
+        not assigned(current_procinfo.procdef.struct) or
+        not(df_generic in current_procinfo.procdef.struct.defoptions)
+       ) then
+      begin
+        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
+        finalizepi.force_nested;
+        finalizepi.procdef:=create_finalizer_procdef;
+        finalizepi.entrypos:=r.fileinfo;
+        finalizepi.entryswitches:=r.localswitches;
+        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
+        finalizepi.exitswitches:=current_settings.localswitches;
+        { the init/final code is messing with asm nodes, so inform the compiler about this }
+        include(finalizepi.flags,pi_has_assembler_block);
+        { Regvar optimization for symbols is suppressed when using exceptions, but
+          temps may be still placed into registers. This must be fixed. }
+        foreachnodestatic(r,@reset_regvars,finalizepi);
+      end;
   end;
 
 constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
   begin
     inherited create_implicit(l, r, _t1);
-    if (target_info.system<>system_x86_64_win64) then
-      exit;
+    if (target_info.system=system_x86_64_win64) then
+      begin
+        if assigned(current_procinfo.procdef.struct) and
+          (df_generic in current_procinfo.procdef.struct.defoptions) then
+          InternalError(2013012501);
 
-    if assigned(current_procinfo.procdef.struct) and
-      (df_generic in current_procinfo.procdef.struct.defoptions) then
-      InternalError(2013012501);
+        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
+        finalizepi.force_nested;
+        finalizepi.procdef:=create_finalizer_procdef;
 
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_pd;
-
-    finalizepi.entrypos:=current_filepos;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitswitches:=current_settings.localswitches;
-    include(finalizepi.flags,pi_do_call);
-    finalizepi.allocate_push_parasize(32);
+        finalizepi.entrypos:=current_filepos;
+        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
+        finalizepi.entryswitches:=r.localswitches;
+        finalizepi.exitswitches:=current_settings.localswitches;
+        include(finalizepi.flags,pi_do_call);
+        { the init/final code is messing with asm nodes, so inform the compiler about this }
+        include(finalizepi.flags,pi_has_assembler_block);
+        finalizepi.allocate_push_parasize(32);
+      end;
   end;
 
 function tx64tryfinallynode.simplify(forinline: boolean): tnode;
@@ -436,6 +398,10 @@ procedure tx64tryexceptnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
+    exceptflowcontrol:=[];
+    continueexceptlabel:=nil;
+    breakexceptlabel:=nil;
+
     flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
     { this can be called recursivly }
     oldBreakLabel:=nil;

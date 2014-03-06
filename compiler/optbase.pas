@@ -55,6 +55,9 @@ unit optbase;
     { add s to d }
     procedure DFASetIncludeSet(var d : tdfaset;const s : tdfaset);
 
+    { remove s to d }
+    procedure DFASetExcludeSet(var d : tdfaset;const s : tdfaset);
+
     { remove e from s }
     procedure DFASetExclude(var s : tdfaset;e : integer);
 
@@ -100,6 +103,17 @@ unit optbase;
           SetLength(d,length(s));
         for i:=0 to high(s) do
           d[i]:=d[i] or s[i];
+      end;
+
+
+    procedure DFASetExcludeSet(var d : tdfaset;const s : tdfaset);
+      var
+        i : integer;
+      begin
+        if length(s)>length(d) then
+          SetLength(d,length(s));
+        for i:=0 to high(s) do
+          d[i]:=d[i] and not(s[i]);
       end;
 
 

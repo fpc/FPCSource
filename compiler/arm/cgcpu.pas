@@ -47,7 +47,6 @@ unit cgcpu;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
-        procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         { move instructions }
         procedure a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
@@ -681,16 +680,6 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.a_call_ref(list : TAsmList;ref: treference);
-      begin
-        a_reg_alloc(list,NR_R12);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_R12);
-        a_call_reg(list,NR_R12);
-        a_reg_dealloc(list,NR_R12);
-        include(current_procinfo.flags,pi_do_call);
-      end;
-
-
      procedure tcgarm.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
        begin
           a_op_const_reg_reg(list,op,size,a,reg,reg);
@@ -894,12 +883,26 @@ unit cgcpu;
 
     procedure tcgarm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
-        shift : byte;
+        shift, lsb, width : byte;
         tmpreg : tregister;
         so : tshifterop;
         l1 : longint;
         imm1, imm2: DWord;
       begin
+        optimize_op_const(size, op, a);
+        case op of
+          OP_NONE:
+            begin
+              if src <> dst then
+                a_load_reg_reg(list, size, size, src, dst);
+              exit;
+            end;
+          OP_MOVE:
+            begin
+              a_load_const_reg(list, size, a, dst);
+              exit;
+            end;
+        end;
         ovloc.loc:=LOC_VOID;
         if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
           case op of
@@ -927,18 +930,13 @@ unit cgcpu;
               begin
                 if a>32 then
                   internalerror(200308294);
-                if a<>0 then
-                  begin
-                    shifterop_reset(so);
-                    so.shiftmode:=opshift2shiftmode(op);
-                    if op = OP_ROL then
-                      so.shiftimm:=32-a
-                    else
-                      so.shiftimm:=a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
+                shifterop_reset(so);
+                so.shiftmode:=opshift2shiftmode(op);
+                if op = OP_ROL then
+                  so.shiftimm:=32-a
                 else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+                  so.shiftimm:=a;
+                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
               end;
             else
               {if (op in [OP_SUB, OP_ADD]) and
@@ -972,11 +970,7 @@ unit cgcpu;
         else
           begin
             { there could be added some more sophisticated optimizations }
-            if (op in [OP_MUL,OP_IMUL,OP_DIV,OP_IDIV]) and (a=1) then
-              a_load_reg_reg(list,size,size,src,dst)
-            else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
-              a_load_const_reg(list,size,0,dst)
-            else if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
+            if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
               a_op_reg_reg(list,OP_NEG,size,src,dst)
             { we do this here instead in the peephole optimizer because
               it saves us a register }
@@ -1006,23 +1000,48 @@ unit cgcpu;
               begin
                 { nothing to do on success }
               end
-            { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
-              Just using mov x, #0 might allow some easier optimizations down the line. }
-            else if (op = OP_AND) and (dword(a)=0) then
-              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
-            { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
-            else if (op = OP_AND) and (not(dword(a))=0) then
-              list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
             { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
               broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
+            { Doing two shifts instead of two bics might allow the peephole optimizer to fold the second shift
+              into the following instruction}
+            else if (op = OP_AND) and
+                    is_continuous_mask(a, lsb, width) and
+                    ((lsb = 0) or ((lsb + width) = 32)) then
+              begin
+                shifterop_reset(so);
+                if (width = 16) and
+                   (lsb = 0) and
+                   (current_settings.cputype >= cpu_armv6) then
+                  list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
+                else if (width = 8) and
+                   (lsb = 0) and
+                   (current_settings.cputype >= cpu_armv6) then
+                  list.concat(taicpu.op_reg_reg(A_UXTB,dst,src))
+                else if lsb = 0 then
+                  begin
+                    so.shiftmode:=SM_LSL;
+                    so.shiftimm:=32-width;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    so.shiftmode:=SM_LSR;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,dst,so));
+                  end
+                else
+                  begin
+                    so.shiftmode:=SM_LSR;
+                    so.shiftimm:=lsb;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                    so.shiftmode:=SM_LSL;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,dst,so));
+                  end;
+              end
             else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
               begin
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,imm1));
                 list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,imm2));
               end
-            else if (op in [OP_ADD, OP_SUB, OP_OR]) and
+            else if (op in [OP_ADD, OP_SUB, OP_OR, OP_XOR]) and
                     not(cgsetflags or setflags) and
                     split_into_shifter_const(a, imm1, imm2) then
               begin
@@ -1155,7 +1174,7 @@ unit cgcpu;
         if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020701);
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
@@ -1752,6 +1771,7 @@ unit cgcpu;
         { call instruction does not put anything on the stack }
         stackmisalignment:=0;
         tarmprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
+        lastfloatreg:=RS_NO;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
@@ -1978,7 +1998,9 @@ unit cgcpu;
           begin
             stackmisalignment:=0;
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             mmregs:=[];
+            saveregs:=[];
             case current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
@@ -2203,7 +2225,7 @@ unit cgcpu;
         if (tmpref.base=NR_NO) then
           begin
             if tmpref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020702);
             if tmpref.signindex<0 then
               internalerror(200312023);
             tmpref.base:=tmpref.index;
@@ -2271,6 +2293,7 @@ unit cgcpu;
         cg.a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
         piclabel:=nil;
+        tmpreg:=NR_NO;
 
         indirection_done:=false;
         if assigned(ref.symbol) then
@@ -3773,7 +3796,7 @@ unit cgcpu;
            OS_S32:
              oppostfix:=PF_None;
            else
-             InternalError(200308297);
+             InternalError(200308298);
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
@@ -4255,7 +4278,7 @@ unit cgcpu;
            OS_S32:
              oppostfix:=PF_None;
            else
-             InternalError(200308297);
+             InternalError(200308299);
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
@@ -4403,7 +4426,7 @@ unit cgcpu;
             OP_SHL:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020703);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4417,7 +4440,7 @@ unit cgcpu;
             OP_ROL:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020704);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4431,7 +4454,7 @@ unit cgcpu;
             OP_ROR:
               begin
                 if a>32 then
-                  internalerror(200308294);
+                  internalerror(2014020705);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -4712,6 +4735,7 @@ unit cgcpu;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             { save floating point registers? }
             for r:=RS_F0 to RS_F7 do
               if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
@@ -4816,6 +4840,7 @@ unit cgcpu;
             stackmisalignment:=0;
             { restore floating point register }
             firstfloatreg:=RS_NO;
+            lastfloatreg:=RS_NO;
             { save floating point registers? }
             for r:=RS_F0 to RS_F7 do
               if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
@@ -4910,7 +4935,7 @@ unit cgcpu;
         if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
-              internalerror(200308294);
+              internalerror(2014020706);
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;

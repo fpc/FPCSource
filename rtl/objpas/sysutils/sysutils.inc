@@ -231,6 +231,10 @@ end;
        fhelpcontext:=AHelpContext;
     end;
 
+    Function Exception.ToString : String;
+    begin
+      Result:=ClassName+': '+Message;
+    end;
 
     procedure EHeapMemoryError.FreeInstance;
     begin

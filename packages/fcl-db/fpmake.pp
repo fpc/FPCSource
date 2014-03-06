@@ -68,6 +68,7 @@ begin
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('ibase', SqldbConnectionOSes);
     P.Dependencies.Add('mysql', SqldbConnectionOSes);
     P.Dependencies.Add('odbc', SqldbConnectionOSes);
@@ -583,6 +584,7 @@ begin
         begin
           AddUnit('db');
         end;
+
     T:=P.Targets.AddUnit('mysql40conn.pas', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -603,16 +605,7 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('mysql4conn.pas', SqldbConnectionOSes);
-    T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddInclude('mysqlconn.inc');
-          AddUnit('bufdataset');
-          AddUnit('sqldb');
-          AddUnit('db');
-          AddUnit('dbconst');
-        end;
+
     T:=P.Targets.AddUnit('mysql50conn.pas', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -636,6 +629,17 @@ begin
         end;
 
     T:=P.Targets.AddUnit('mysql55conn.pas', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddInclude('mysqlconn.inc');
+          AddUnit('bufdataset');
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+        end;
+
+    T:=P.Targets.AddUnit('mysql56conn.pas', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin

@@ -111,10 +111,10 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
 {$ifdef llvm}
-       { override create_hlcodegen from hlcgcpu }
-       hlcgllvm,
+      { override create_hlcodegen from hlcgcpu }
+      hlcgllvm,
 {$endif}
        ncgutil,regvars,
        optbase,
@@ -456,9 +456,9 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
-                        { if vmt>1 then newinstance }
+                        { if vmt=1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create_internal(gtn,
+                            caddnode.create_internal(equaln,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
@@ -467,7 +467,9 @@ implementation
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
-                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node,[])),
+                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,
+                                  ctypeconvnode.create_internal(load_self_pointer_node,tclassrefdef.create(current_structdef)),
+                                  [])),
                             nil));
                       end
                     else
@@ -655,28 +657,6 @@ implementation
       end;
 
 
-    function generate_except_block:tnode;
-      var
-        newstatement : tstatementnode;
-      begin
-        generate_except_block:=internalstatements(newstatement);
-
-        { a constructor needs call destructor (if available) when it
-          is not inherited }
-        if not assigned(current_structdef) or
-           (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-          begin
-            { no constructor }
-            { must be the return value finalized before reraising the exception? }
-            if (not is_void(current_procinfo.procdef.returndef)) and
-               is_managed_type(current_procinfo.procdef.returndef) and
-               (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
-               (not is_class(current_procinfo.procdef.returndef)) then
-              addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
-          end;
-      end;
-
-
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -784,19 +764,37 @@ implementation
                 pd:=tobjectdef(procdef.struct).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
-                if assigned(pd) then
+                if assigned(pd) or is_object(procdef.struct) then
                   begin
                     current_filepos:=exitpos;
                     exceptblock:=internalstatements(newstatement);
                     { first free the instance if non-nil }
-                    { if vmt<>0 then call destructor }
-                    addstatement(newstatement,cifnode.create(
-                      caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                      { cnf_create_failed -> don't call BeforeDestruction }
-                      ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                      nil));
+                    if assigned(pd) then
+                      { if vmt<>0 then call destructor }
+                      addstatement(newstatement,
+                        cifnode.create(
+                          caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create),
+                          { cnf_create_failed -> don't call BeforeDestruction }
+                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                          nil))
+                    else
+                      { object without destructor, call 'fail' helper }
+                      addstatement(newstatement,
+                        ccallnode.createintern('fpc_help_fail',
+                          ccallparanode.create(
+                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_vmt_pointer_node,
+                              voidpointertype),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_self_pointer_node,
+                              voidpointertype),
+                          nil))))
+                      );
                     { then re-raise the exception }
                     addstatement(newstatement,craisenode.create(nil,nil,nil));
                     current_filepos:=entrypos;
@@ -824,7 +822,6 @@ implementation
         finalcode,
         bodyentrycode,
         bodyexitcode,
-        exceptcode,
         wrappedbody,
         newblock     : tnode;
         codestatement,
@@ -868,10 +865,15 @@ implementation
            not(po_assembler in procdef.procoptions) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
+            { Any result of managed type must be returned in parameter }
+            if is_managed_type(procdef.returndef) and
+               (not paramanager.ret_in_param(procdef.returndef,procdef)) and
+               (not is_class(procdef.returndef)) then
+               InternalError(2013121301);
+
             { Generate special exception block only needed when
               implicit finaly is used }
             current_filepos:=exitpos;
-            exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
@@ -881,7 +883,7 @@ implementation
             wrappedbody:=ctryfinallynode.create_implicit(
                code,
                finalcode,
-               exceptcode);
+               cnothingnode.create);
             { afterconstruction must be called after final_asmnode, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount
@@ -935,18 +937,12 @@ implementation
                begin
                  cg.translate_register(tabstractnormalvarsym(p).localloc.register);
                  if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
-                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+                   cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
                end;
              if cs_asm_source in current_settings.globalswitches then
                begin
-                 if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
-                   begin
-                     TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                       std_regname(tabstractnormalvarsym(p).localloc.registerhi)+':'+std_regname(tabstractnormalvarsym(p).localloc.register))));
-                   end
-                 else
-                   TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                     std_regname(tabstractnormalvarsym(p).localloc.register))));
+                 TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                   location_reg2string(tabstractnormalvarsym(p).localloc))));
                end;
            end;
       end;
@@ -1164,7 +1160,7 @@ implementation
         n:=nil;
         foreachnodestatic(code,@searchusercode,@n);
         if not(assigned(n)) then
-          internalerror(2013111001);
+          internalerror(2013111004);
         result:=n;
       end;
 
@@ -1215,9 +1211,9 @@ implementation
 
         { add wrapping code if necessary (initialization of typed constants on
           some platforms, initing of local variables and out parameters with
-          trashing values, ... }
+          trashing values, ...) }
         { init/final code must be wrapped later (after code for main proc body
-          has been generated }
+          has been generated) }
         if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
           code:=cnodeutils.wrap_proc_body(procdef,code);
 
@@ -1297,51 +1293,19 @@ implementation
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
-            { when life info is available, we can give more sophisticated warning about unintialized
-              variables }
-
-            { iterate through life info of the first node }
-            for i:=0 to dfabuilder.nodemap.count-1 do
-              begin
-                if DFASetIn(GetUserCode.optinfo^.life,i) then
-                  case tnode(dfabuilder.nodemap[i]).nodetype of
-                    loadn:
-                      begin
-                        varsym:=tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry);
-
-                        { Give warning/note for living locals, result and parameters, but only about the current
-                          symtables }
-                        if assigned(varsym.owner) and
-                          (((varsym.owner=procdef.localst) and
-                            (procdef.localst.symtablelevel=varsym.owner.symtablelevel)
-                           ) or
-                           ((varsym.owner=procdef.parast) and
-                            (varsym.typ=paravarsym) and
-                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
-                            { all parameters except out parameters are initialized by the caller }
-                            (tparavarsym(varsym).varspez=vs_out)
-                           ) or
-                           ((vo_is_funcret in varsym.varoptions) and
-                            (procdef.parast.symtablelevel=varsym.owner.symtablelevel)
-                           )
-                          ) and
-                          not(vo_is_external in varsym.varoptions) then
-                          begin
-                            if (vo_is_funcret in varsym.varoptions) then
-                              CGMessage(sym_w_function_result_uninitialized)
-                            else
-                              begin
-                                if not (vo_is_typed_const in varsym.varoptions) then
-                                  if varsym.typ=paravarsym then
-                                    CGMessage1(sym_w_uninitialized_variable,varsym.realname)
-                                  else
-                                    CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
-                              end;
-                          end;
-                      end;
-                  end;
-              end;
             include(flags,pi_dfaavailable);
+
+            { when life info is available, we can give more sophisticated warning about uninitialized
+              variables ...
+              ... but not for the finalization section of a unit, we would need global dfa to handle
+              it properly }
+            if potype_unitfinalize<>procdef.proctypeoption then
+              { iterate through life info of the first node }
+              for i:=0 to dfabuilder.nodemap.count-1 do
+                begin
+                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                    CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                end;
           end;
 
         if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
@@ -1355,9 +1319,6 @@ implementation
             {RedoDFA:=}OptimizeInductionVariables(code);
           end;
 
-        if cs_opt_nodecse in current_settings.optimizerswitches then
-          do_optcse(code);
-
         if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
           (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
           (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
@@ -1365,6 +1326,9 @@ implementation
 
         { add implicit entry and exit code }
         add_entry_exit_code;
+
+        if cs_opt_nodecse in current_settings.optimizerswitches then
+          do_optcse(code);
 
         { only do secondpass if there are no errors }
         if (ErrorCount=0) then
@@ -1902,6 +1866,7 @@ implementation
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
+        oldfailtokenmode:=[];
 
         { create a new procedure }
         current_procinfo:=cprocinfo.create(old_current_procinfo);

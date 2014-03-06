@@ -1,5 +1,5 @@
 { Unit for handling the serial interfaces for Linux and similar Unices.
-  (c) 2000 Sebastian Guenther, sg@freepascal.org
+  (c) 2000 Sebastian Guenther, sg@freepascal.org; modified MarkMLl 2012.
 }
 
 unit Serial;
@@ -36,8 +36,26 @@ function SerOpen(const DeviceName: String): TSerialHandle;
 { Closes a serial device previously opened with SerOpen. }
 procedure SerClose(Handle: TSerialHandle);
 
-{ Flushes the data queues of the given serial device. }
-procedure SerFlush(Handle: TSerialHandle);
+{ Flushes the data queues of the given serial device. DO NOT USE THIS:
+  use either SerSync (non-blocking) or SerDrain (blocking). }
+procedure SerFlush(Handle: TSerialHandle); deprecated;
+
+{ Suggest to the kernel that buffered output data should be sent. This
+  is unlikely to have a useful effect except possibly in the case of
+  buggy ports that lose Tx interrupts, and is implemented as a preferred
+  alternative to the deprecated SerFlush procedure. }
+procedure SerSync(Handle: TSerialHandle);
+
+{ Wait until all buffered output has been transmitted. It is the caller's
+  responsibility to ensure that this won't block permanently due to an
+  inappropriate handshake state. }
+procedure SerDrain(Handle: TSerialHandle);
+
+{ Discard all pending input. }
+procedure SerFlushInput(Handle: TSerialHandle);
+
+{ Discard all unsent output. }
+procedure SerFlushOutput(Handle: TSerialHandle);
 
 { Reads a maximum of "Count" bytes of data into the specified buffer.
   Result: Number of bytes read. }
@@ -60,7 +78,37 @@ procedure SerSetDTR(Handle: TSerialHandle; State: Boolean);
 procedure SerSetRTS(Handle: TSerialHandle; State: Boolean);
 function SerGetCTS(Handle: TSerialHandle): Boolean;
 function SerGetDSR(Handle: TSerialHandle): Boolean;
+function SerGetCD(Handle: TSerialHandle): Boolean;
 function SerGetRI(Handle: TSerialHandle): Boolean;
+
+{ Set a line break state. If the requested time is greater than zero this is in
+  mSec, in the case of unix this is likely to be rounded up to a few hundred
+  mSec and to increase by a comparable increment; on unix if the time is less
+  than or equal to zero its absolute value will be passed directly to the
+  operating system with implementation-specific effect. If the third parameter
+  is omitted or true there will be an implicit call of SerDrain() before and
+  after the break.
+
+  NOTE THAT on Linux, the only reliable mSec parameter is zero which results in
+  a break of around 250 mSec. Might be completely ineffective on Solaris.
+ }
+procedure SerBreak(Handle: TSerialHandle; mSec: LongInt=0; sync: boolean= true); 
+
+type    TSerialIdle= procedure(h: TSerialHandle);
+
+{ Set this to a shim around Application.ProcessMessages if calling SerReadTimeout(),
+  SerBreak() etc. from the main thread so that it doesn't lock up a Lazarus app. }
+var     SerialIdle: TSerialIdle= nil;
+
+{ This is similar to SerRead() but adds a mSec timeout. Note that this variant
+  returns as soon as a single byte is available, or as dictated by the timeout. }
+function SerReadTimeout(Handle: TSerialHandle; var Buffer; mSec: LongInt): LongInt;
+
+{ This is similar to SerRead() but adds a mSec timeout. Note that this variant
+  attempts to accumulate as many bytes as are available, but does not exceed
+  the timeout. Set up a SerIdle callback if using this in a main thread in a
+  Lazarus app. }
+function SerReadTimeout(Handle: TSerialHandle; var Buffer: array of byte; count, mSec: LongInt): LongInt;
 
 
 { ************************************************************************** }
@@ -78,9 +126,29 @@ begin
   fpClose(Handle);
 end;
 
-procedure SerFlush(Handle: TSerialHandle);
+procedure SerFlush(Handle: TSerialHandle); deprecated;
 begin
   fpfsync(Handle);
+end;
+
+procedure SerSync(Handle: TSerialHandle);
+begin
+  fpfsync(Handle)
+end;
+
+procedure SerDrain(Handle: TSerialHandle);
+begin
+  tcdrain(Handle)
+end;
+
+procedure SerFlushInput(Handle: TSerialHandle);
+begin
+  tcflush(Handle, TCIFLUSH)
+end;
+
+procedure SerFlushOutput(Handle: TSerialHandle);
+begin
+  tcflush(Handle, TCOFLUSH)
 end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
@@ -124,8 +192,10 @@ begin
 {$endif}
     else tios.c_cflag := B9600;
   end;
+{$ifndef SOLARIS}
   tios.c_ispeed := tios.c_cflag;
   tios.c_ospeed := tios.c_ispeed;
+{$endif}
 
   tios.c_cflag := tios.c_cflag or CREAD or CLOCAL;
 
@@ -202,6 +272,14 @@ begin
   Result := (Flags and TIOCM_DSR) <> 0;
 end;
 
+function SerGetCD(Handle: TSerialHandle): Boolean;
+var
+  Flags: Cardinal;
+begin
+  fpioctl(Handle, TIOCMGET, @Flags);
+  Result := (Flags and TIOCM_CD) <> 0
+end;
+
 function SerGetRI(Handle: TSerialHandle): Boolean;
 var
   Flags: Cardinal;
@@ -209,6 +287,105 @@ begin
   fpioctl(Handle, TIOCMGET, @Flags);
   Result := (Flags and TIOCM_RI) <> 0;
 end;
+
+procedure SerBreak(Handle: TSerialHandle; mSec: LongInt= 0; sync: boolean= true);
+begin
+  if sync then
+    tcdrain(Handle);
+  if mSec <= 0 then
+    tcsendbreak(Handle, Abs(mSec))
+  else
+    tcsendbreak(Handle, Trunc(mSec / 250));
+  if sync then
+    tcdrain(Handle)
+end; 
+
+function SerReadTimeout(Handle: TSerialHandle; var Buffer; mSec: LongInt): LongInt;
+
+VAR     readSet: TFDSet;
+        selectTimeout: TTimeVal;
+
+begin
+  fpFD_ZERO(readSet);
+  fpFD_SET(Handle, readSet);
+  selectTimeout.tv_sec := mSec div 1000;
+  selectTimeout.tv_usec := (mSec mod 1000) * 1000;
+  result := 0;
+  if fpSelect(Handle + 1, @readSet, nil, nil, @selectTimeout) > 0 then
+    result := fpRead(Handle, Buffer, 1)
+end { SerReadTimeout } ;
+
+{$ifdef LINUX}
+  {$define SELECT_UPDATES_TIMEOUT}
+{$endif}
+
+{$ifdef SELECT_UPDATES_TIMEOUT}
+
+function SerReadTimeout(Handle: TSerialHandle; var Buffer: array of byte; count, mSec: LongInt): LongInt;
+
+VAR     readSet: TFDSet;
+        selectTimeout: TTimeVal;
+
+begin
+  fpFD_ZERO(readSet);
+  fpFD_SET(Handle, readSet);
+  selectTimeout.tv_sec := mSec div 1000;
+  selectTimeout.tv_usec := (mSec mod 1000) * 1000;
+  result := 0;
+
+// Note: this variant of fpSelect() is a thin wrapper around the kernel's syscall.
+// In the case of Linux the syscall DOES update the timeout parameter.
+
+  while fpSelect(Handle + 1, @readSet, nil, nil, @selectTimeout) > 0 do begin
+    Inc(result,fpRead(Handle, Buffer[result], count - result));
+    if result >= count then
+      break;
+    if Assigned(SerialIdle) then
+      SerialIdle(Handle)
+  end
+end { SerReadTimeout } ;
+
+{$else}
+
+function SerReadTimeout(Handle: TSerialHandle; var Buffer: array of byte; count, mSec: LongInt): LongInt;
+
+VAR     readSet: TFDSet;
+        selectTimeout: TTimeVal;
+        uSecOnEntry, uSecElapsed: QWord;
+
+  function now64uSec: QWord;
+
+  var   tv: timeval;
+
+  begin
+    fpgettimeofday(@tv, nil);
+    result := tv.tv_sec * 1000000 + tv.tv_usec
+  end { now64uSec } ;
+
+begin
+  fpFD_ZERO(readSet);
+  fpFD_SET(Handle, readSet);
+  selectTimeout.tv_sec := mSec div 1000;
+  selectTimeout.tv_usec := (mSec mod 1000) * 1000;
+  result := 0;
+  uSecOnEntry := now64uSec;
+
+// Note: this variant of fpSelect() is a thin wrapper around the kernel's syscall.
+// In the case of Solaris the syscall DOES NOT update the timeout parameter.
+
+  while fpSelect(Handle + 1, @readSet, nil, nil, @selectTimeout) > 0 do begin
+    Inc(result,fpRead(Handle, Buffer[result], count - result));
+    uSecElapsed := now64uSec - uSecOnEntry;
+    if (result >= count) or (uSecElapsed >= mSec * 1000) then
+      break;
+    selectTimeout.tv_sec := (mSec * 1000 - uSecElapsed) div 1000000;
+    selectTimeout.tv_usec := (mSec * 1000 - uSecElapsed) mod 1000000;
+    if Assigned(SerialIdle) then
+      SerialIdle(Handle)
+  end
+end { SerReadTimeout } ;
+
+{$endif}
 
 
 end.

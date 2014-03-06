@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="location" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="number" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="list_int" type="xsd:int" maxOccurs="unbounded" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary>
+    <DepartmentType sdo:ref="#/DepartmentType">
+      <name>R &amp; D</name>
+      <location>Ouaga, BF</location>
+      <list_int>
+        <listChanges kind="change" index="0" dataValues="1"/>
+        <listChanges kind="append" index="3"/>
+        <listChanges kind="append" index="4"/>
+        <listChanges kind="change" index="1" dataValues="2"/>
+        <listChanges kind="delete" index="0" dataValues="10"/>
+        <listChanges kind="delete" index="1" dataValues="3"/>
+        <listChanges kind="insert" index="2"/>
+        <listChanges kind="append" index="4"/>
+      </list_int>
+    </DepartmentType>
+  </changeSummary>
+  <ns1:DepartmentType>
+    <name>R &amp; D Department</name>
+    <location>Ouaga 01, BF</location>
+    <number>1210</number>
+    <list_int>20</list_int>
+    <list_int>123</list_int>
+    <list_int>1076</list_int>
+    <list_int>456</list_int>
+    <list_int>789</list_int>
+  </ns1:DepartmentType>
+</sdo:datagraph>

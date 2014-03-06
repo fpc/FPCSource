@@ -198,7 +198,10 @@ begin
         {$IFDEF DEFAULT_UNICODE}
           AObject.setString(AProp,AField.AsString);
         {$ELSE DEFAULT_UNICODE}
-          AObject.setString(AProp,UTF8Decode(AField.AsString));
+          if (AField.DataType in [ftWideString,ftWideMemo,ftFixedWideChar]) then
+            AObject.setString(AProp,AField.AsWideString)
+          else
+            AObject.setString(AProp,UTF8Decode(AField.AsString));
         {$ENDIF DEFAULT_UNICODE}
         end
       else

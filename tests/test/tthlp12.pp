@@ -3,6 +3,7 @@
 program tthlp12;
 
 {$mode objfpc}
+{$modeswitch typehelpers}
 
 type
   TLongIntHelper = type helper for LongInt

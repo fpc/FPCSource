@@ -835,17 +835,32 @@ var
       else if AnExpr[I2] = FDecimalSeparator then
         ReadConstant(AnExpr, false)
       else
+        // String constants can be delimited by ' or "
+        // but need not be - see below
+        // To use a delimiter inside the string, double it up to escape it
         case AnExpr[I2] of
           '''', '"':
             begin
               isConstant := true;
               constChar := AnExpr[I2];
               Inc(I2);
-              while (I2 <= Len) and (AnExpr[I2] <> constChar) do
-                Inc(I2);
-              if I2 <= Len then
-                Inc(I2);
+              while (I2 <= Len) do
+              begin
+                // Regular character?
+                if (AnExpr[I2] <> constChar) then
+                  Inc(I2)
+                else // we do have a const, now check for escaped consts
+                if (I2+1 <= Len) and
+                  (AnExpr[I2+1]=constChar) then
+                    Inc(I2,2) //skip past, deal with duplicates later
+                else //at the trailing delimiter
+                begin
+                  Inc(I2); //move past delimiter
+                  break;
+                end;
+              end;
             end;
+          // However string constants can also appear without delimiters
           'a'..'z', 'A'..'Z', '_':
             begin
               while (I2 <= Len) and (AnExpr[I2] in ['a'..'z', 'A'..'Z', '_', '0'..'9']) do
@@ -933,8 +948,12 @@ begin
         W := IntToStr(StrToInt(W));
       end;
       if (W[1] = '''') or (W[1] = '"') then
-        TempWord := TStringConstant.Create(W)
-      else begin
+      begin
+        // StringConstant will handle any escaped quotes
+        TempWord := TStringConstant.Create(W);
+      end
+      else
+      begin
         DecSep := Pos(FDecimalSeparator, W);
         if (DecSep > 0) then
         begin

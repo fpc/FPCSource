@@ -8,7 +8,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}
@@ -650,19 +650,24 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOldValue;
+var OldValue: string;
+    Fmemo: TField;
 begin
-  with DBConnector.GetNDataset(1) as TDataset do
+  with DBConnector.GetFieldDataset as TCustomBufDataset do
   begin;
     Open;
     First;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
+    Next;
+    OldValue := Fields[0].AsString;
+
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
     CheckTrue(UpdateStatus=usUnmodified, 'Unmodified');
 
     Edit;
     Fields[0].AsInteger := -1;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
     Post;
-    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
     CheckTrue(UpdateStatus=usModified, 'Modified');
 
     Append;
@@ -671,6 +676,22 @@ begin
     Post;
     CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
     CheckTrue(UpdateStatus=usInserted, 'Inserted');
+
+    // Blobs are stored in a special way
+    // Use TMemoField because it implements AsVariant as AsString
+    First;
+    Next;
+    Fmemo := FieldByName('F'+FieldTypeNames[ftMemo]);
+    OldValue := Fmemo.AsString;
+
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue');
+    Edit;
+    Fmemo.AsString := 'Changed Memo value';
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue before Post');
+    Post;
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue after Post');
+    MergeChangeLog;
+    CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
   end;
 end;
 
@@ -1320,7 +1341,7 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestStringFilter;
-// Tests a string expression filter
+// Tests string expression filters
 var
   Counter : byte;
 begin
@@ -1331,56 +1352,111 @@ begin
     // Check equality
     Filter := '(name=''TestName3'')';
     Filtered := True;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Simple equality');
+    CheckEquals(3,FieldByName('ID').asinteger,'Simple equality');
+    CheckEquals('TestName3',FieldByName('NAME').asstring,'Simple equality');
     next;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Simple equality');
 
     // Check partial compare
     Filter := '(name=''*Name5'')';
-    CheckFalse(EOF);
-    CheckEquals(5,FieldByName('ID').asinteger);
-    CheckEquals('TestName5',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Partial compare');
+    CheckEquals(5,FieldByName('ID').asinteger,'Partial compare');
+    CheckEquals('TestName5',FieldByName('NAME').asstring,'Partial compare');
     next;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Partial compare');
 
     // Check case-sensitivity
     Filter := '(name=''*name3'')';
     first;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Case-sensitive search');
 
     FilterOptions:=[foCaseInsensitive];
     Filter := '(name=''testname3'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Case-insensitive search');
+    CheckEquals(3,FieldByName('ID').asinteger,'Case-insensitive search');
+    CheckEquals('TestName3',FieldByName('NAME').asstring,'Case-insensitive search');
     next;
     CheckTrue(EOF);
 
     // Check case-insensitive partial compare
     Filter := '(name=''*name3'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(3,FieldByName('ID').asinteger);
-    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    CheckFalse(EOF, 'Case-insensitive partial compare');
+    CheckEquals(3,FieldByName('ID').asinteger, 'Case-insensitive partial compare');
+    CheckEquals('TestName3',FieldByName('NAME').asstring, 'Case-insensitive partial compare');
     next;
     CheckTrue(EOF);
 
+    // Multiple records with partial compare
     Filter := '(name=''*name*'')';
     first;
-    CheckFalse(EOF);
-    CheckEquals(1,FieldByName('ID').asinteger);
-    CheckEquals('TestName1',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Partial compare multiple records');
+    CheckEquals(1,FieldByName('ID').asinteger,'Partial compare multiple records');
+    CheckEquals('TestName1',FieldByName('NAME').asstring,'Partial compare multiple records');
     next;
-    CheckFalse(EOF);
-    CheckEquals(2,FieldByName('ID').asinteger);
-    CheckEquals('TestName2',FieldByName('NAME').asstring);
+    CheckFalse(EOF,'Partial compare multiple records');
+    CheckEquals(2,FieldByName('ID').asinteger,'Partial compare multiple records');
+    CheckEquals('TestName2',FieldByName('NAME').asstring,'Partial compare multiple records');
 
+    // Invalid data with partial compare
     Filter := '(name=''*neme*'')';
     first;
-    CheckTrue(EOF);
+    CheckTrue(EOF,'Invalid data, partial compare');
+
+    // Multiple string filters
+    Filter := '(name=''*a*'') and (name=''*m*'')';
+    first;
+    CheckFalse(EOF,'Multiple string filters');
+    CheckEquals(1,FieldByName('ID').asinteger,'Multiple string filters');
+    CheckEquals('TestName1',FieldByName('NAME').asstring,'Multiple string filters');
+    next;
+    CheckFalse(EOF,'Multiple string filters');
+    CheckEquals(2,FieldByName('ID').asinteger,'Multiple string filters');
+    CheckEquals('TestName2',FieldByName('NAME').asstring,'Multiple string filters');
+
+    // Modify so we can use some tricky data
+    Filter := ''; //show all records again and allow edits
+    First;
+    Edit;
+    // Record 1=O'Malley
+    FieldByName('NAME').AsString := 'O''Malley';
+    Post;
+
+    Next;
+    Edit;
+    // Record 2="Magic" Mushroom
+    FieldByName('NAME').AsString := '"Magic" Mushroom';
+    Post;
+
+    Next;
+    Edit;
+    // Record 3=O'Malley's "Magic" Mushroom
+    FieldByName('NAME').AsString := 'O''Malley''s "Magic" Mushroom';
+    Post;
+
+    // Test searching on " which can be a delimiter
+    Filter := '(name=''*"Magic"*'')'; //should give record 2 and 3
+    first;
+    CheckFalse(EOF);
+    CheckEquals(2,FieldByName('ID').asinteger,'Search for strings with ", partial compare');
+    CheckEquals('"Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with ", partial compare');
+    next;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger,'Search for strings with ", partial compare');
+    CheckEquals('O''Malley''s "Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with ", partial compare');
+
+    // Search for strings with ' escaped, partial compare delimited by '
+    Filter := '(name=''O''''Malley*'')'; //should give record 1 and 3
+    first;
+    CheckFalse(EOF);
+    CheckEquals(1,FieldByName('ID').asinteger,'Search for strings with '' escaped, partial compare delimited by ''');
+    CheckEquals('O''Malley',FieldByName('NAME').asstring,'Search for strings with '' escaped, partial compare delimited by ''');
+    next;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger,'Search for strings with '' escaped, partial compare delimited by ''');
+    CheckEquals('O''Malley''s "Magic" Mushroom',FieldByName('NAME').asstring,'Search for strings with '' escaped, partial compare delimited by ''');
 
     Close;
     end;
@@ -1621,7 +1697,7 @@ begin
     i := fields[0].AsInteger;
     s := fields[1].AsString;
     fields[0].AsInteger:=64;
-    fields[1].AsString:='Changed';
+    fields[1].AsString:='Changed1';
     Post;
     checkequals(fields[0].OldValue,i);
     checkequals(fields[1].OldValue,s);
@@ -1631,7 +1707,7 @@ begin
     i := fields[0].AsInteger;
     s := fields[1].AsString;
     fields[0].AsInteger:=23;
-    fields[1].AsString:='hanged';
+    fields[1].AsString:='Changed2';
     Post;
     checkequals(fields[0].OldValue,i);
     checkequals(fields[1].OldValue,s);
@@ -1639,7 +1715,7 @@ begin
     MergeChangeLog;
     CheckEquals(ChangeCount,0);
     checkequals(fields[0].OldValue,23);
-    checkequals(fields[1].OldValue,'hanged');
+    checkequals(fields[1].OldValue,'Changed2');
     end;
 
   // Test handling of [Update]BlobBuffers in TBufDataset

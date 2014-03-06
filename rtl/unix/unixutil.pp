@@ -49,9 +49,6 @@ Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
 
 implementation
 
-{$I textrec.inc}
-{$i filerec.inc}
-
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only

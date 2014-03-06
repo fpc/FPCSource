@@ -612,11 +612,54 @@ end;
                               OS utility functions
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+var
+  StrOfPaths: String;
 
+function GetPathString: String;
+var
+   f : text;
+   s : string;
+   tmpBat: string;
+   tmpList: string;
 begin
-  Result:=Dos.Getenv(shortstring(EnvVar));
+   s := '';
+   result := '';
+
+   tmpBat:='T:'+HexStr(FindTask(nil));
+   tmpList:=tmpBat+'_path.tmp';
+   tmpBat:=tmpBat+'_path.sh';
+
+   assign(f,tmpBat);
+   rewrite(f);
+   writeln(f,'path >'+tmpList);
+   close(f);
+   exec('C:Execute',tmpBat);
+   erase(f);
+
+   assign(f,tmpList);
+   reset(f);
+   { skip the first line, garbage }
+   if not eof(f) then readln(f,s);
+   while not eof(f) do begin
+      readln(f,s);
+      if result = '' then
+        result := s
+      else 
+        result := result + ';' + s;
+   end;
+   close(f);
+   erase(f);
 end;
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+begin
+  if UpCase(envvar) = 'PATH' then begin
+    if StrOfpaths = '' then StrOfPaths := GetPathString;
+    Result:=StrOfPaths;
+  end else
+    Result:=Dos.Getenv(shortstring(EnvVar));
+end;
+
 Function GetEnvironmentVariableCount : Integer;
 
 begin
@@ -709,6 +752,8 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=Nil;          { No SysBeep() on MorphOS, for now. Figure out if we want 
                           to use intuition.library/DisplayBeep() for this (KB) }
+  StrOfPaths:='';
+
 Finalization
   DoneExceptions;
 end.

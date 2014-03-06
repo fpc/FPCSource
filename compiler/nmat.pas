@@ -573,17 +573,63 @@ implementation
  ****************************************************************************}
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
+      var
+        lvalue,rvalue : Tconstexprint;
       begin
         result:=nil;
         { constant folding }
-        if is_constintnode(left) and is_constintnode(right) then
+        if is_constintnode(right) then
           begin
-             case nodetype of
-                shrn:
-                  result:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
-                shln:
-                  result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
-             end;
+            if forinline then
+              begin
+                { shl/shr are unsigned operations, so cut off upper bits }
+                case resultdef.size of
+                  1:
+                    rvalue:=tordconstnode(right).value and byte($7);
+                  2:
+                    rvalue:=tordconstnode(right).value and byte($f);
+                  4:
+                    rvalue:=tordconstnode(right).value and byte($1f);
+                  8:
+                    rvalue:=tordconstnode(right).value and byte($3f);
+                  else
+                    internalerror(2013122302);
+                end;
+              end
+            else
+              rvalue:=tordconstnode(right).value;
+            if is_constintnode(left) then
+               begin
+                 if forinline then
+                   begin
+                     { shl/shr are unsigned operations, so cut off upper bits }
+                     case resultdef.size of
+                       1:
+                         lvalue:=tordconstnode(left).value and byte($ff);
+                       2:
+                         lvalue:=tordconstnode(left).value and word($ffff);
+                       4:
+                         lvalue:=tordconstnode(left).value and dword($ffffffff);
+                       8:
+                         lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                       else
+                         internalerror(2013122301);
+                     end;
+                   end
+                 else
+                   lvalue:=tordconstnode(left).value;
+                 case nodetype of
+                    shrn:
+                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
+                    shln:
+                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
+                 end;
+               end
+            else if rvalue=0 then
+              begin
+                result:=left;
+                left:=nil;
+              end;
           end;
       end;
 
@@ -1028,15 +1074,17 @@ implementation
                pasbool8,
                pasbool16,
                pasbool32,
-               pasbool64,
+               pasbool64:
+                 v:=byte(not(boolean(int64(v))));
                bool8bit,
                bool16bit,
                bool32bit,
                bool64bit:
                  begin
-                   v:=byte(not(boolean(int64(v))));
-                   if is_cbool(left.resultdef) then
-                     v:=-v;
+                   if v=0 then
+                     v:=-1
+                   else
+                     v:=0;
                  end;
                uchar,
                uwidechar,

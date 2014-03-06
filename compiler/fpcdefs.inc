@@ -74,6 +74,7 @@
   {$define cpurox}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucapabilities}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -89,6 +90,7 @@
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucapabilities}
 {$endif x86_64}
 
 {$ifdef ia64}
@@ -222,6 +224,7 @@
   {$define cpurefshaveindexreg}
   {$define fpc_compiler_has_fixup_jmps}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif mips}
 
 {$ifdef jvm}

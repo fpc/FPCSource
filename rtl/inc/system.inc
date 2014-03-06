@@ -644,7 +644,7 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_PTR}
-Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Ptr(sel,off : {$ifdef CPU16}Word{$else}Longint{$endif}) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
@@ -832,7 +832,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : longint;
+    InitCount  : {$ifdef VER2_6}longint{$else}nativeint{$endif};
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;
@@ -846,7 +846,7 @@ var
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
-  i : longint;
+  i : nativeint;
 {$ifdef DEBUG}
   pt : PInitFinalTable;
 {$endif}
@@ -1013,8 +1013,10 @@ Begin
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
   FinalizeHeap;
-{$endif HAS_MEMORYMANAGER}
+{$endif not FPC_NO_DEFAULT_HEAP}
+{$endif not HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 End;
 

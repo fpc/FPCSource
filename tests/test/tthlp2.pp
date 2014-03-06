@@ -5,6 +5,7 @@
 program tthlp2;
 
 {$mode delphi}{$H+}
+{$modeswitch typehelpers}
 
 type
   TTest = record helper for LongInt

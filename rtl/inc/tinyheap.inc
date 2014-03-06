@@ -180,6 +180,11 @@
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('SysTinyFreeMem(', ptruint(Addr), ')');
 {$endif DEBUG_TINY_HEAP}
+        if addr=nil then
+          begin
+            result:=0;
+            exit;
+          end;
         sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
 
         InternalTinyFreeMem(@pptruint(addr)[-1], sz);
@@ -211,7 +216,10 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyReAllocMem(', ptruint(p), ',', size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        result := AllocMem(size);
+        if size=0 then
+          result := nil
+        else
+          result := AllocMem(size);
         if result <> nil then
           begin
             if p <> nil then

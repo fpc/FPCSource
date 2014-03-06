@@ -295,7 +295,7 @@ Type
    end;
 
    TResourceStringTableList = Packed Record
-     Count : ptrint;
+     Count : nativeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
        TableStart,
        TableEnd   : PResourceStringRecord;
@@ -311,7 +311,7 @@ Type
    end;
 
    TResStrInitTable = packed record
-     Count: longint;
+     Count: {$ifdef VER2_6}longint{$else}nativeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
 
@@ -320,7 +320,7 @@ var
 
 procedure UpdateResourceStringRefs;
 var
-  i: Longint;
+  i: nativeint;
   ptable: PResStrInitEntry;
 begin
   for i:=1 to ResStrInitTable.Count do
@@ -341,7 +341,7 @@ Var
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : Longint;
+  i      : nativeint;
   s      : AnsiString;
 begin
   With ResourceStringTable do
@@ -369,7 +369,7 @@ end;
 Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : Longint;
+  i      : nativeint;
   s,
   UpUnitName : AnsiString;
 begin
@@ -403,7 +403,7 @@ end;
 Procedure ResetResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : Longint;
+  i      : nativeint;
 begin
   With ResourceStringTable do
     begin
@@ -425,7 +425,7 @@ end;
 Procedure FinalizeResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : Longint;
+  i      : nativeint;
 begin
   With ResourceStringTable do
     begin

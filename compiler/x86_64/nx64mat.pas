@@ -179,7 +179,7 @@ implementation
 
     procedure tx8664shlshrnode.pass_generate_code;
       var
-        op : Tasmop;
+        op : topcg;
         opsize : tcgsize;
         mask : aint;
       begin
@@ -188,9 +188,9 @@ implementation
 
         { determine operator }
         if nodetype=shln then
-          op:=A_SHL
+          op:=OP_SHL
         else
-          op:=A_SHR;
+          op:=OP_SHR;
 
         { special treatment of 32bit values for backwards compatibility }
         { mul optimizations require to keep the sign (FK) }
@@ -212,21 +212,29 @@ implementation
           end;
 
         { load left operators in a register }
-        location_copy(location,left.location);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,cgsize_orddef(opsize),false);
+        if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+          { location_force_reg can be also used to change the size of a register }
+          (left.location.size<>opsize) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
+        location_reset(location,LOC_REGISTER,opsize);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
-          emit_const_reg(op,tcgsize2opsize[opsize],tordconstnode(right).value and mask,location.register)
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+            tordconstnode(right).value.uvalue and mask,left.location.register,location.register)
         else
           begin
-            { load right operators in a RCX }
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_RCX);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_RCX);
+            { load right operators in a register - this
+              is done since most target cpu which will use this
+              node do not support a shift count in a mem. location (cec)
+            }
+            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+               { location_force_reg can be also used to change the size of a register }
+              (right.location.size<>opsize) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(opsize),true);
 
-            { right operand is in ECX }
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RCX);
-            emit_reg_reg(op,tcgsize2opsize[opsize],NR_CL,location.register);
+            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,right.location.register,left.location.register,location.register);
           end;
       end;
 

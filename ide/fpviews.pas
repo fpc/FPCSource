@@ -4346,6 +4346,7 @@ end;
 procedure TFPASCIIChart.HandleEvent(var Event: TEvent);
 var W: PSourceWindow;
 begin
+  writeln(stderr,'all what=',event.what,' cmd=', event.command);
   case Event.What of
     evKeyDown :
       case Event.KeyCode of
@@ -4356,6 +4357,16 @@ begin
           end;
       end;
     evCommand :
+      begin
+      writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);
+      if Event.Command=(AsciiTableCommandBase+1) then // variable
+          begin
+            W:=FirstEditorWindow;
+            if Assigned(W) and Assigned(Report) then
+              Message(W,evCommand,cmAddChar,Event.InfoPtr);
+            ClearEvent(Event);
+          end
+      else
       case Event.Command of
         cmTransfer :
           begin
@@ -4364,9 +4375,11 @@ begin
               Message(W,evCommand,cmAddChar,pointer(ptrint(ord(Report^.AsciiChar))));
             ClearEvent(Event);
           end;
+        
         cmSearchWindow+1..cmSearchWindow+99 :
           if (Event.Command-cmSearchWindow=Number) then
               ClearEvent(Event);
+      end;
       end;
   end;
   inherited HandleEvent(Event);

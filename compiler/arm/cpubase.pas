@@ -571,35 +571,23 @@ unit cpubase;
         i : longint;
         imm : byte;
       begin
-        result:=false;
+        {Loading 0-255 is simple}
         if (d and $FF) = d then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d and $FF00FF00) = 0) and
-           ((d shr 16)=(d and $FFFF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d and $00FF00FF) = 0) and
-           ((d shr 16)=(d and $FFFF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d shr 16)=(d and $FFFF)) and
-           ((d shr 8)=(d and $FF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if is_shifter_const(d,imm) then
-          begin
-            result:=true;
-            exit;
-          end;
+          result:=true
+        { If top and bottom are equal, check if either all 4 bytes are equal
+          or byte 0 and 2 or byte 1 and 3 are equal }
+        else if ((d shr 16)=(d and $FFFF)) and
+                (
+                  ((d and $FF00FF00) = 0) or
+                  ((d and $00FF00FF) = 0) or
+                  ((d shr 8)=(d and $FF))
+                ) then
+          result:=true
+        {Can an 8-bit value be shifted accordingly?}
+        else if is_shifter_const(d,imm) then
+          result:=true
+        else
+          result:=false;
       end;
     
     function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;

@@ -7,5 +7,3 @@ Targets.ResetDefaults;
 Targets.DefaultDir:='db/sqldb/mysql';
 { Drivers only for the following OSes }
 Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
-T:=Targets.AddUnit('mysql4conn');
-T.ResourceStrings:=True;

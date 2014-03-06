@@ -153,12 +153,11 @@ type
   TStackItem = class
   private
     FScopeObject: PDataBuffer;
-    FScopeType: TScopeType;
   protected
     procedure CopyTo(const AClone : TStackItem);virtual;
   Public
-    constructor Create(const AScopeObject : PDataBuffer;AScopeType : TScopeType);
-    function Clone() : TStackItem;virtual; abstract;
+    constructor Create(const AScopeObject : PDataBuffer);virtual;
+    function Clone() : TStackItem;virtual;
     function GetItemCount():Integer;virtual;abstract;
     function Find(var AName : TDataName):PDataBuffer;virtual;abstract;
     function GetByIndex(const AIndex : Integer):PDataBuffer;virtual;abstract;
@@ -171,17 +170,15 @@ type
     procedure NilCurrentScope();virtual;abstract;
     function IsCurrentScopeNil():Boolean;virtual;abstract;
     property ScopeObject : PDataBuffer Read FScopeObject;
-    property ScopeType : TScopeType Read FScopeType;
 
     function GetScopeItemNames(const AReturnList : TStrings) : Integer;virtual;abstract;
   End;
+  TStackItemClass = class of TStackItem;
 
   { TObjectStackItem }
 
   TObjectStackItem = class(TStackItem)
   Public
-    constructor Create(const AScopeObject : PDataBuffer);
-    function Clone() : TStackItem; override;
     function GetItemCount():Integer;override;
     function Find(var AName : TDataName):PDataBuffer;override;
     function GetByIndex(const AIndex : Integer):PDataBuffer;override;
@@ -197,6 +194,21 @@ type
   End;
   TObjectStackItemClass = class of TObjectStackItem;
 
+
+  { TObjectBaseArrayStackItem }
+
+  TObjectBaseArrayStackItem = class(TObjectStackItem)
+  private
+    FIndex : Integer;
+    FItemName : TDataName;
+  protected
+    procedure CopyTo(const AClone : TStackItem);override;
+  public
+    function GetItemCount():Integer;override;
+    function Find(var AName : TDataName):PDataBuffer;override;
+    procedure SetItemName(const AValue : TDataName);
+  end;
+
   { TArrayStackItem }
 
   TArrayStackItem = class(TStackItem)
@@ -205,8 +217,6 @@ type
   protected
     procedure CopyTo(const AClone : TStackItem);override;
   Public
-    constructor Create(const AScopeObject : PDataBuffer);
-    function Clone() : TStackItem; override;
     function GetItemCount():Integer;override;
     function Find(var AName : TDataName):PDataBuffer;override;
     function GetByIndex(const AIndex : Integer):PDataBuffer;override;
@@ -763,7 +773,7 @@ Begin
     Exit;
   i := AStoreRdr.ReadInt32S();
   s := AStoreRdr.ReadAnsiStr();
-  If ( TDataType(i) < dtArray ) Then
+  if (TDataType(i) < dtArray) or (TDataType(i) = dtByteDynArray) then
     Result := CreateObjBuffer(TDataType(i),s);
   Case TDataType(i) Of
     dtInt8S   : Result^.Int8S := AStoreRdr.ReadInt8S();
@@ -888,8 +898,10 @@ Begin
       Begin
         eltLen := SizeOf(TDataBuffer);
         For j := 0 to Pred(AOwner^.ArrayData^.Count) Do Begin
-          ClearObj(AOwner^.ArrayData^.Items^[j]);
-          Freemem(AOwner^.ArrayData^.Items^[j],eltLen);
+          if (AOwner^.ArrayData^.Items^[j] <> nil) then begin
+            ClearObj(AOwner^.ArrayData^.Items^[j]);
+            Freemem(AOwner^.ArrayData^.Items^[j],eltLen);
+          end;
           AOwner^.ArrayData^.Items^[j] := Nil;
         End;
         i := AOwner^.ArrayData^.Count * SizeOf(PDataBuffer);
@@ -910,28 +922,80 @@ Begin
   End;
 End;
 
+{ TObjectBaseArrayStackItem }
+
+procedure TObjectBaseArrayStackItem.CopyTo(const AClone: TStackItem);
+begin
+  inherited CopyTo(AClone);
+  TObjectBaseArrayStackItem(AClone).FIndex := FIndex;
+  TObjectBaseArrayStackItem(AClone).FItemName := FItemName;
+end;
+
+function TObjectBaseArrayStackItem.GetItemCount: Integer;
+var
+  p : PObjectBufferItem;
+begin
+  Result := 0;
+  p := FScopeObject^.ObjectData^.Head;
+  while (p <> nil) do begin
+    if AnsiSameText(FItemName,p^.Data^.Name) then
+      Inc(Result);
+    p := p^.Next;
+  end;
+end;
+
+function TObjectBaseArrayStackItem.Find(var AName: TDataName): PDataBuffer;
+var
+  p : PObjectBufferItem;
+  i : Integer;
+begin
+  Result := nil;
+  if (FIndex >= ScopeObject^.ObjectData^.Count) then
+    exit;
+  i := -1;
+  p := FScopeObject^.ObjectData^.Head;
+  while (i < FIndex) and (p <> nil) do begin
+    if AnsiSameText(FItemName,p^.Data^.Name) then begin
+      Inc(i);
+      if (i = FIndex) then begin
+        Result := p^.Data;
+        Inc(FIndex);
+      end;
+    end;
+    p := p^.Next;
+  end;
+end;
+
+procedure TObjectBaseArrayStackItem.SetItemName(const AValue: TDataName);
+begin
+  FItemName := AValue;
+end;
 
 { TStackItem }
 
 procedure TStackItem.CopyTo(const AClone: TStackItem);
 begin
   AClone.FScopeObject := Self.FScopeObject;
-  AClone.FScopeType := Self.FScopeType;
 end;
 
-constructor TStackItem.Create(const AScopeObject: PDataBuffer; AScopeType: TScopeType);
+constructor TStackItem.Create(const AScopeObject: PDataBuffer);
 begin
   Assert(Assigned(AScopeObject));
   FScopeObject := AScopeObject;
-  FScopeType := AScopeType;
+end;
+
+function TStackItem.Clone() : TStackItem;
+begin
+  Result := TStackItemClass(Self.ClassType).Create(FScopeObject);
+  try
+    CopyTo(Result);
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 { TObjectStackItem }
-
-constructor TObjectStackItem.Create(const AScopeObject: PDataBuffer);
-begin
-  Inherited Create(AScopeObject,stObject);
-end;
 
 function TObjectStackItem.GetItemCount(): Integer;
 begin
@@ -1003,17 +1067,6 @@ begin
   Result := AReturnList.Count;
 end;
 
-function TObjectStackItem.Clone() : TStackItem;
-begin
-  Result := TObjectStackItemClass(Self.ClassType).Create(FScopeObject);
-  try
-    CopyTo(Result);
-  except
-    FreeAndNil(Result);
-    raise;
-  end;
-end;
-
 { TSDOSerializationStreamBinary }
 
 procedure TSDOSerializationStreamBinary.ClearStack();
@@ -1027,12 +1080,16 @@ end;
 
 procedure TSDOSerializationStreamBinary.PushStack(AScopeObject: PDataBuffer;const AScopeType: TScopeType);
 begin
-  If ( AScopeType = stObject ) Then
+  if ( AScopeType = stObject ) then begin
     FStack.Push(TObjectStackItem.Create(AScopeObject))
-  Else If ( AScopeType = stArray ) Then
-    FStack.Push(TArrayStackItem.Create(AScopeObject))
-  Else
+  end else if (AScopeType = stArray) then begin
+    if (AScopeObject^.DataType = dtObject) then
+      FStack.Push(TObjectBaseArrayStackItem.Create(AScopeObject))
+    else
+      FStack.Push(TArrayStackItem.Create(AScopeObject));
+  end else begin
     Assert(False);
+  end;
 end;
 
 function TSDOSerializationStreamBinary.StackTop(): TStackItem;
@@ -1161,8 +1218,8 @@ var
 begin
   stk := StackTop();
   locNode := stk.Find(AScopeName);
-  if not Assigned(locNode) then
-    Error(SERR_ScopeNotFound,[AScopeName]);
+  if (locNode = nil) then
+    exit(-1);
   PushStack(locNode,stObject);
   Result := StackTop().GetItemCount();
 end;
@@ -1176,13 +1233,17 @@ var
   locNode : PDataBuffer;
   stk : TStackItem;
 begin
+  Result := -1;
   stk := StackTop();
   locNode := stk.Find(AScopeName);
-  if ( locNode <> nil ) then begin
-    PushStack(locNode,stArray);
+  if (locNode <> nil) then begin
+    if (locNode^.DataType <> dtArray) then begin
+      PushStack(stk.ScopeObject,stArray);
+      (StackTop() as TObjectBaseArrayStackItem).SetItemName(AItemName);
+    end else begin
+      PushStack(locNode,stArray);
+    end;
     Result := StackTop().GetItemCount();
-  end else begin
-    Result := -1;
   end;
 end;
 
@@ -1774,12 +1835,13 @@ begin
   Result := False;
   if ( AValue <> nil ) then begin
     locBM := AValue as TStreamBinaryBookmark;
-    if ( locBM.FRootData = Self.FRootData ) then begin
+    if (locBM.FRootData = Self.FRootData) then begin
       ClearStack();
       FreeAndNil(FStack);
       FStack := locBM.FStack.Clone({$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}CopyStackItem);
       FSerializationStyle := locBM.SerializationStyle;
       FNameStyle := locBM.NameStyle;
+      FRootData := locBM.RootData;
       Result := True;
     end;
   end;
@@ -1792,10 +1854,19 @@ begin
     PushStack(FRootData);
 end;
 
-procedure TSDOSerializationStreamBinary.LoadFromFile(
-  const AFileName: string);
+procedure TSDOSerializationStreamBinary.LoadFromFile(const AFileName: string);
+var
+  locStream : TStream;
 begin
-
+  if not FileExists(AFileName) then
+    Error(SMSG_FileNotFound,[AFileName]);
+  locStream := TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    locStream.Position := 0;
+    LoadFromStream(locStream);
+  finally
+    locStream.Free();
+  end;
 end;
 
 procedure TSDOSerializationStreamBinary.PutBoolean(const AName: string; const AData: TSDOBoolean);
@@ -1871,10 +1942,16 @@ begin
 {$ENDIF}
 end;
 
-procedure TSDOSerializationStreamBinary.SaveToFile(
-  const AFileName: string);
+procedure TSDOSerializationStreamBinary.SaveToFile(const AFileName: string);
+var
+  locStream : TStream;
 begin
-
+  locStream := TFileStream.Create(AFileName,fmCreate);
+  try
+    SaveToStream(locStream);
+  finally
+    locStream.Free();
+  end;
 end;
 
 procedure TSDOSerializationStreamBinary.SetNameStyle(const AValue: TNameStyle);
@@ -1884,12 +1961,6 @@ begin
 end;
 
 { TArrayStackItem }
-
-constructor TArrayStackItem.Create(const AScopeObject: PDataBuffer);
-begin
-  Inherited Create(AScopeObject,stArray);
-  FIndex := 0;
-end;
 
 function TArrayStackItem.GetItemCount(): Integer;
 begin
@@ -1966,17 +2037,6 @@ procedure TArrayStackItem.CopyTo(const AClone: TStackItem);
 begin
   inherited CopyTo(AClone);
   TArrayStackItem(AClone).FIndex := Self.FIndex;
-end;
-
-function TArrayStackItem.Clone: TStackItem;
-begin
-  Result := TArrayStackItemClass(Self.ClassType).Create(Self.FScopeObject);
-  try
-    CopyTo(Result);
-  except
-    FreeAndNil(Result);
-    raise;
-  end;
 end;
 
 { TStreamBinaryBookmark }

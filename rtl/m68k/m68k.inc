@@ -95,7 +95,7 @@ asm
          the stack ATM (KB) }
   move.l value, d0      { fill data                     }
   tst.l  d1             { anything to fill at all?      }
-  beq    @LMEMSET5
+  ble    @LMEMSET5
 {$ifdef CPUM68K_HAS_DBRA}
 { FIXME: Any reason why not always just use DBRA mode on
          CPUs which support it? (KB) }
@@ -263,7 +263,7 @@ begin
     clr.l      d0
     move.l   count, d0   {  number of bytes }
     tst.l  d0            { anything to copy at all? }
-    beq    @LMOVE5
+    ble    @LMOVE5
   @LMOVE0:
     move.l   dest, a1    {  destination          }
     move.l   source, a0  {  source               }
@@ -325,7 +325,7 @@ asm
          the stack ATM (KB) }
   move.l value, d0     { fill data                }
   tst.l  d1            { anything to fill at all? }
-  beq @LMEMSET3
+  ble @LMEMSET3
   bra @LMEMSET21
 @LMEMSET11:
   move.w d0,(a0)+

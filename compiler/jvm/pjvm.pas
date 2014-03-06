@@ -80,6 +80,7 @@ implementation
         sstate: tscannerstate;
         needclassconstructor: boolean;
       begin
+        ps:=nil;
         { if there is at least one constructor for a class, do nothing (for
            records, we'll always also need a parameterless constructor) }
         if not is_javaclass(obj) or
@@ -733,6 +734,8 @@ implementation
         conststr: ansistring;
         first: boolean;
       begin
+        result:=nil;
+        esym:=nil;
         case csym.constdef.typ of
           enumdef:
             begin

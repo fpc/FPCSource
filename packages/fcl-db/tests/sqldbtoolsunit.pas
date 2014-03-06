@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, toolsunit
   ,db, sqldb
-  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn
   ,ibconnection
   ,pqconnection
   ,odbcconn
@@ -20,15 +20,15 @@ uses
   ;
 
 type
-  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
 const
-  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56];
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
-  STestNotApplicable = 'This test does not apply to this sqldb-connection type';
+  STestNotApplicable = 'This test does not apply to this sqldb connection type';
 
 
 type
@@ -135,7 +135,7 @@ const
 
   // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
   SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
-    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
 { TSQLDBConnector }
@@ -144,6 +144,7 @@ procedure TSQLDBConnector.CreateFConnection;
 var t : TSQLConnType;
     i : integer;
     s : string;
+    TempTrans: TSQLTransaction;
 begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
@@ -153,6 +154,7 @@ begin
   if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
   if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
   if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
+  if SQLConnType = MYSQL56 then Fconnection := TMySQL56Connection.Create(nil);
   if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
   if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
   if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
@@ -197,9 +199,11 @@ begin
 
   FieldtypeDefinitions := FieldtypeDefinitionsConst;
 
+  // Server-specific initialization
   case SQLServerType of
     ssFirebird:
       begin
+      // Firebird < 3.0 has no support for Boolean data type:
       FieldtypeDefinitions[ftBoolean] := '';
       FieldtypeDefinitions[ftMemo]    := 'BLOB SUB_TYPE TEXT';
       end;
@@ -225,11 +229,26 @@ begin
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
+
+      TempTrans:=TSQLTransaction.Create(nil);
+      FConnection.Transaction:=TempTrans;
+      TempTrans.StartTransaction;
+      // Proper blob support:
+      FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
+      // When running CREATE TABLE statements, allow NULLs by default - without
+      // having to specify NULL all the time:
+      // http://msdn.microsoft.com/en-us/library/ms174979.aspx
+      FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+      TempTrans.Commit;
+      TempTrans.Free;
+      FConnection.Transaction:=nil;
+
       end;
     ssMySQL:
       begin
+      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES"
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
-      //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
+      // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
       // Use 'DATETIME' for datetime-fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
@@ -241,9 +260,11 @@ begin
       end;
     ssOracle:
       begin
-      FieldtypeDefinitions[ftBoolean] := '';
-      FieldtypeDefinitions[ftTime]    := 'TIMESTAMP';
-      FieldtypeDefinitions[ftMemo]    := 'CLOB';
+      FieldtypeDefinitions[ftBoolean]  := '';
+      // At least Oracle 10, 11 do not support a BIGINT field:
+      FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19,0)';
+      FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
+      FieldtypeDefinitions[ftMemo]     := 'CLOB';
       end;
     ssPostgreSQL:
       begin
@@ -286,14 +307,14 @@ begin
       end;
     end;
 
-  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssPostgreSQL, ssSybase] then
+  if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssOracle, ssPostgreSQL, ssSybase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
     testValues[ftTime,3]:='13:25:15.000';
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       begin
-      // Firebird does not support time = 24:00:00
+      // Firebird, Oracle do not support time = 24:00:00
       testTimeValues[2]:='23:00:00.000';
       testValues[ftTime,2]:='23:00:00.000';
       end;
@@ -378,9 +399,21 @@ begin
 end;
 
 procedure TSQLDBConnector.CreateFieldDataset;
-var CountID : Integer;
-    FType   : TFieldType;
-    Sql,sql1: String;
+var
+  CountID : Integer;
+  FType   : TFieldType;
+  Sql,sql1: String;
+
+function String2Hex(Source: string): string;
+// Converts ASCII codes into hex
+var
+  i: integer;
+begin
+  result := '';
+  for i := 1 to length(Source) do
+    result := result + inttohex(ord(Source[i]),2);
+end;
+
 begin
   try
     Ftransaction.StartTransaction;
@@ -389,7 +422,8 @@ begin
     Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
     for FType := low(TFieldType)to high(TFieldType) do
       if FieldtypeDefinitions[FType]<>'' then
-        sql := sql + 'F' + Fieldtypenames[FType] + ' ' +FieldtypeDefinitions[FType]+ ',';
+        sql := sql + 'F' + Fieldtypenames[FType] + ' ' +
+          FieldtypeDefinitions[FType] + ',';
     Sql := Sql + 'PRIMARY KEY (ID))';
 
     FConnection.ExecuteDirect(Sql);
@@ -405,10 +439,46 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            if FType in [ftCurrency] then
-              sql1 := sql1 + ',' + testValues[FType,CountID]
-            else
-              sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            case FType of
+              ftBlob, ftBytes, ftGraphic, ftVarBytes:
+                if SQLServerType in [ssOracle] then
+                  // Oracle does not accept string literals in blob insert statements
+                  // convert 'DEADBEEF' hex literal to binary:
+                    sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
+                  else // other dbs have no problems with the original string values
+                    sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              ftCurrency:
+                sql1 := sql1 + ',' + testValues[FType,CountID];
+              ftDate:
+                // Oracle requires date conversion; otherwise
+                // ORA-01861: literal does not match format string
+                if SQLServerType in [ssOracle] then
+                  // ANSI/ISO date literal:
+                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              ftDateTime:
+                // similar to ftDate handling
+                if SQLServerType in [ssOracle] then
+                begin
+                  // Could be a real date+time or only date. Does not consider only time.
+                  if pos(' ',testValues[FType,CountID])>0 then
+                    sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
+                  else
+                    sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
+                end
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              ftTime:
+                // similar to ftDate handling
+                if SQLServerType in [ssOracle] then
+                  // More or less arbitrary default time; there is no time-only data type in Oracle.
+                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
+                else
+                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
+              else
+                sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            end
           else
             sql1 := sql1 + ',NULL';
           end;
@@ -481,8 +551,8 @@ end;
 
 procedure TSQLDBConnector.TryDropIfExist(ATableName: String);
 begin
-  // This makes life soo much easier, since it avoids the exception if the table already
-  // exists. And while this exeption is in a try..except statement, the debugger
+  // This makes life so much easier, since it avoids the exception if the table already
+  // exists. And while this exception is in a try..except statement, the debugger
   // always shows the exception, which is pretty annoying.
   try
     case SQLServerType of
@@ -503,6 +573,22 @@ begin
           'begin '+
           'drop table ' + ATableName + ' '+
           'end');
+        end;
+      ssMySQL:
+        begin
+        FConnection.ExecuteDirect('drop table if exists ' + ATableName);
+        end;
+      ssOracle:
+        begin
+          FConnection.ExecuteDirect(
+          'declare ' +
+          '   c int; ' +
+          'begin ' +
+          '   select count(*) into c from all_tables where table_name = upper(''' + ATableName + '''); ' +
+          '   if c = 1 then ' +
+          '      execute immediate ''drop table ' + ATableName + '''; ' +
+          '   end if; ' +
+          'end; ');
         end;
       ssSybase:
         begin

@@ -186,6 +186,8 @@ type
   private
     FValue: string;
   public
+    // Allow undelimited, delimited by single quotes, delimited by double quotes
+    // If delimited, allow escaping inside string with double delimiters
     constructor Create(AValue: string);
 
     function AsPointer: PChar; override;
@@ -606,7 +608,10 @@ begin
   firstChar := AValue[1];
   lastChar := AValue[Length(AValue)];
   if (firstChar = lastChar) and ((firstChar = '''') or (firstChar = '"')) then
-    FValue := Copy(AValue, 2, Length(AValue) - 2)
+  begin
+    FValue := Copy(AValue, 2, Length(AValue) - 2);
+    FValue := StringReplace(FValue, firstChar+FirstChar, firstChar, [rfReplaceAll,rfIgnoreCase])
+  end
   else
     FValue := AValue;
 end;

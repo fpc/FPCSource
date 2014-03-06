@@ -9,9 +9,9 @@
 {$Q-}
 {$R-}
 
-const Inf=1/0;
-      NaN=0/0;
-      MinusInf=-Inf;
+const Inf=extended(1/0);
+      NaN=extended(0/0);
+      MinusInf=extended(-Inf);
 
 function make_str( tail: string ): string;
 var

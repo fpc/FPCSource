@@ -9,13 +9,11 @@ main=rtl
 units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       lineinfo heaptrc \
       windows messages dynlibs \
-      dos objects \
+      dos \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
-      strutils convutils math dateutils \
-      varutils variants fmtbcd \
-      matrix ucomplex \
-      charset cpall getopts winsock winsock2 sockets \
+      strutils math \
+      charset cpall getopts \
       cmem sharemem
 #    initc  signals \
 #    crt graph \
@@ -26,7 +24,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
 # rsts=math varutils typinfo variants classes dateutils sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
 
 # fake dll
 # programs=fpcmemdll
@@ -129,11 +127,11 @@ messages$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMU
 
 #opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                   $(INC)/sockets.inc $(INC)/socketsh.inc
-	$(COMPILER) $(WINDIR)/sockets.pp
+#sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+#                   $(INC)/sockets.inc $(INC)/socketsh.inc
+#	$(COMPILER) $(WINDIR)/sockets.pp
 
 #initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 

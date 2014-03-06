@@ -54,6 +54,9 @@ unit cpunode;
        n386mem,
        n386set,
        n386inl,
+{$ifdef TEST_WIN32_SEH}
+       n386flw,
+{$endif TEST_WIN32_SEH}
        n386mat
        ;
 

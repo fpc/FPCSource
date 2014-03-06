@@ -102,6 +102,7 @@ interface
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify(forinline:boolean):tnode;override;
           function docompare(p: tnode): boolean; override;
           procedure addlabel(blockid:longint;l,h : TConstExprInt); overload;
           procedure addlabel(blockid:longint;l,h : tstringconstnode); overload;
@@ -638,8 +639,19 @@ implementation
 
 
     function tcasenode.pass_typecheck : tnode;
+      var
+        i : integer;
       begin
         result:=nil;
+
+        do_typecheckpass(left);
+
+        for i:=0 to blocks.count-1 do
+          typecheckpass(pcaseblock(blocks[i])^.statement);
+
+        if assigned(elseblock) then
+          typecheckpass(elseblock);
+
         resultdef:=voidtype;
       end;
 
@@ -829,6 +841,46 @@ implementation
       end;
 
 
+    function tcasenode.simplify(forinline:boolean):tnode;
+      var
+        tmp: pcaselabel;
+        walkup: boolean;
+      begin
+        result:=nil;
+        if left.nodetype=ordconstn then
+          begin
+            tmp:=labels;
+            { check all case labels until we find one that fits }
+            walkup:=assigned(tmp^.greater);
+            while assigned(tmp) do
+              begin
+                if (tmp^._low<=tordconstnode(left).value) and
+                    (tmp^._high>=tordconstnode(left).value) then
+                  begin
+                    if tmp^.blockid>=blocks.count then
+                      internalerror(2014022101);
+                    result:=pcaseblock(blocks[tmp^.blockid])^.statement;
+                    if not assigned(result) then
+                      internalerror(2014022102);
+                    result:=result.getcopy;
+                    exit;
+                  end;
+
+                if walkup then
+                  tmp:=tmp^.greater
+                else
+                  tmp:=tmp^.less;
+              end;
+            { no label did match; use the else block if available }
+            if assigned(elseblock) then
+              result:=elseblock.getcopy
+            else
+              { no else block, so there is no code to execute at all }
+              result:=cnothingnode.create;
+          end;
+      end;
+
+
     function tcasenode.dogetcopy : tnode;
       var
          n : tcasenode;
@@ -995,6 +1047,7 @@ implementation
                begin
                  dispose(hcaselabel);
                  Message(parser_e_double_caselabel);
+                 result:=nil;
                end
           end;
 
@@ -1032,6 +1085,7 @@ implementation
               hcaselabel^._high_str.free;
               dispose(hcaselabel);
               Message(parser_e_double_caselabel);
+              result:=nil;
             end;
         end;
 

@@ -4,14 +4,14 @@ unit buildrtl;
 
     uses
       ctypes, strings,
-      heaptrc, matrix,
-      windows, winsock, winsock2, cmem, dynlibs,
-      dos, crt, objects, messages,
+      heaptrc, 
+      windows,  cmem, dynlibs,
+      dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
-      strutils, dateutils, varutils, variants, typinfo, fgl, classes,
-      convutils, stdconvs, charset, character, ucomplex, getopts,
-      winevent, sockets, printer,
-      video, mouse, keyboard, fmtbcd, fpwidestring,
+      strutils, typinfo, fgl, classes,
+      charset, character, getopts,
+      printer,
+      fpwidestring,
       sharemem, fpintres, windirs,
       cpu, signals;
 

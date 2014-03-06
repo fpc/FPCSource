@@ -284,12 +284,22 @@
                   HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
-            f1overflowed:=f1overflowed or ((f1 and (1 shl 63))<>0);
+            f1overflowed:=f1overflowed or ((f1 and (qword(1) shl 63))<>0);
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_QWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
+    function fpc_mul_qword_compilerproc(f1,f2 : qword;checkoverflow : longbool) : qword; external name 'FPC_MUL_QWORD';
+
+    function fpc_mul_dword_to_qword(f1,f2 : dword) : qword;[public,alias: 'FPC_MUL_DWORD_TO_QWORD']; compilerproc;
+      begin
+        fpc_mul_dword_to_qword:=fpc_mul_qword_compilerproc(f1,f2,false);
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_DWORD_TO_QWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INT64}
@@ -300,39 +310,56 @@
          q1,q2,q3 : qword;
 
       begin
-           begin
-              sign:=false;
-              if f1<0 then
-                begin
-                   sign:=not(sign);
-                   q1:=qword(-f1);
-                end
-              else
-                q1:=f1;
-              if f2<0 then
-                begin
-                   sign:=not(sign);
-                   q2:=qword(-f2);
-                end
-              else
-                q2:=f2;
-              { the q1*q2 is coded as call to mulqword }
-              q3:=q1*q2;
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { qword(f1)*qword(f2) is coded as a call to mulqword }
+          fpc_mul_int64:=int64(qword(f1)*qword(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
+                sign:=not(sign);
+                q1:=qword(-f1);
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
+                sign:=not(sign);
+                q2:=qword(-f2);
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to mulqword }
+            q3:=q1*q2;
 
-              if checkoverflow and (q1 <> 0) and (q2 <>0) and
+            if (q1 <> 0) and (q2 <>0) and
               ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
                 (q3 shr 63<>0) and
                  ((q3<>qword(qword(1) shl 63)) or not(sign))
                 ) then
-                HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-              if sign then
-                fpc_mul_int64:=-q3
-              else
-                fpc_mul_int64:=q3;
-           end;
+            if sign then
+              fpc_mul_int64:=-q3
+            else
+              fpc_mul_int64:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
+    function fpc_mul_int64_compilerproc(f1,f2 : int64;checkoverflow : longbool) : int64; external name 'FPC_MUL_INT64';
+
+    function fpc_mul_longint_to_int64(f1,f2 : longint) : int64;[public,alias: 'FPC_MUL_LONGINT_TO_INT64']; compilerproc;
+      begin
+        fpc_mul_longint_to_int64:=fpc_mul_int64_compilerproc(f1,f2,false);
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
 

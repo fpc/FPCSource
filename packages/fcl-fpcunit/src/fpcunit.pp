@@ -80,6 +80,7 @@ type
   TAssert = class(TTest)
   public
     class procedure Fail(const AMessage: string);
+    class procedure Fail(const AFmt: string; Args : Array of const);
     class procedure AssertTrue(const AMessage: string; ACondition: boolean); overload;
     class procedure AssertTrue(ACondition: boolean); overload;
     class procedure AssertFalse(const AMessage: string; ACondition: boolean); overload;
@@ -449,32 +450,38 @@ end;
 
 { TAssert }
 
-class procedure TAssert.Fail(const AMessage: String);
+class procedure TAssert.Fail(const AMessage: string);
 begin
   raise EAssertionFailedError.Create(AMessage);
 end;
 
+class procedure TAssert.Fail(const AFmt: string; Args: array of const);
+begin
+  raise EAssertionFailedError.CreateFmt(AFmt,Args);
+end;
 
-class procedure TAssert.AssertTrue(const AMessage: String; ACondition: Boolean);
+
+class procedure TAssert.AssertTrue(const AMessage: string; ACondition: boolean);
 begin
   if (not ACondition) then
     Fail(AMessage);
 end;
 
 
-class procedure TAssert.AssertTrue(ACondition: Boolean);
+class procedure TAssert.AssertTrue(ACondition: boolean);
 begin
   AssertTrue('', ACondition);
 end;
 
 
-class procedure TAssert.AssertFalse(const AMessage: String; ACondition: Boolean);
+class procedure TAssert.AssertFalse(const AMessage: string; ACondition: boolean
+  );
 begin
   AssertTrue(AMessage, not ACondition);
 end;
 
 
-class procedure TAssert.AssertFalse(ACondition: Boolean);
+class procedure TAssert.AssertFalse(ACondition: boolean);
 begin
   AssertFalse('', ACondition);
 end;
@@ -702,7 +709,7 @@ begin
 end;
 
 
-class procedure TAssert.AssertNullINtf(AInterface: IInterface);
+class procedure TAssert.AssertNullIntf(AInterface: IInterface);
 begin
   AssertNull('', AInterface);
 end;

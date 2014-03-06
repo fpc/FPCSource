@@ -147,7 +147,10 @@ interface
           aitconst_64bit_unaligned,
           { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
           aitconst_farptr,
-          aitconst_got
+          { offset of symbol's GOT slot in GOT }
+          aitconst_got,
+          { offset of symbol itself from GOT }
+          aitconst_gotoff_symbol
         );
 
     const
@@ -1873,6 +1876,8 @@ implementation
             result:=LengthSleb128(value);
           aitconst_half16bit:
             result:=2;
+          aitconst_gotoff_symbol:
+            result:=4;
           else
             internalerror(200603253);
         end;

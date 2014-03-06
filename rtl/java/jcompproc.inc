@@ -27,6 +27,7 @@ type
   fpc_normal_set = bitpacked array[0..255] of 0..1;
   fpc_normal_set_byte = array[0..31] of byte;
   fpc_normal_set_long = array[0..7] of longint;
+  fpc_stub_dynarray = array of byte;
 
 { used by Default() in code blocks }
 //procedure fpc_zeromem(p:pointer;len:ptruint);compilerproc;
@@ -374,7 +375,7 @@ procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_variant_copy_overwrite(source, dest : pointer);compilerproc;
 {$endif FPC_VARIANTCOPY_FIXED}
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
-function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : fpc_stub_dynarray;compilerproc;
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
 function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
@@ -493,7 +494,7 @@ procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: 
 (*
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
-Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject; compilerproc;
+procedure fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
 Procedure fpc_PopAddrStack; compilerproc;
 function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;

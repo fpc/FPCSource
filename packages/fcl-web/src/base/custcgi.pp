@@ -26,17 +26,25 @@ uses
 Type
   { TCGIRequest }
   TCGIHandler = Class;
+  // Content read handler. PByte points to rad content, len is length. Return False in ContinueReading to abort reading.
+  TCGIContentReadEvent = Procedure (Sender : TRequest; Content : PByte; Len : Integer; Var ContinueReading : Boolean) of object;
 
   TCGIRequest = Class(TRequest)
   Private
     FCGI : TCGIHandler;
+    FOnContentRead: TCGIContentReadEvent;
     function GetCGIVar(Index: integer): String;
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
-    Procedure InitFromEnvironment;
+    Procedure InitFromEnvironment; virtual;
+    // Read content from STDin. Calls DoContentRead to see if reading must be aborted.
     procedure ReadContent; override;
+    // Called whenever input is read from stdin. Calls OnContentRead.
+    // If Return True to continue reading, false to abort reading.
+    Function DoContentRead(B : PByte; Len : Integer) : Boolean; virtual;
   Public
     Constructor CreateCGI(ACGI : TCGIHandler);
+    Property OnContentRead  : TCGIContentReadEvent Read FOnContentRead Write FOnContentRead;
     Property GatewayInterface : String Index 1 Read GetCGIVar;
     Property RemoteIdent : String Index 2 read GetCGIVar;
     Property RemoteUser : String Index 3 read GetCGIVar;
@@ -45,7 +53,7 @@ Type
     Property ServerProtocol : String Index 6 read GetCGIVar;
     Property ServerSoftware : String Index 7 read GetCGIVar;
   end;
-  
+  TCGIRequestClass = Class of TCGIRequest;
   { TCGIResponse }
 
   TCGIResponse = Class(TResponse)
@@ -58,8 +66,11 @@ Type
   Public
     Constructor CreateCGI(ACGI : TCGIHandler; AStream : TStream);
   end;
+  TCGIResponseClass = Class of TCGIResponse;
 
   { TCustomCgiApplication }
+
+  { TCgiHandler }
 
   TCgiHandler = Class(TWebHandler)
   Private
@@ -71,6 +82,7 @@ Type
     Function GetAdministrator : String; override;
     Function CreateResponse(AOutput : TStream) : TCGIResponse; virtual;
     Function CreateRequest : TCGIRequest; virtual;
+    Procedure InitRequest(ARequest : TRequest); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
@@ -78,6 +90,7 @@ Type
     Property Request : TCGIRequest read FRequest;
     Property Response: TCGIResponse Read FResponse;
   end;
+  TCgiHandlerClass = Class of TCgiHandler;
 
   { TCustomCgiApplication }
 
@@ -104,6 +117,12 @@ Type
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
 
+Var
+  CGIRequestClass : TCGIRequestClass = TCGIRequest;
+  CGIResponseClass : TCGIResponseClass = TCGIResponse;
+  CGIWebHandlerClass : TCgiHandlerClass = TCgiHandler;
+  ContentReadRetryInterval : Word = 100;
+  ContentReadMaxRetryCount : Word = 150;
 
 ResourceString
   SWebMaster = 'webmaster';
@@ -159,7 +178,7 @@ Const
     { 37: 'XHTTPREQUESTEDWITH'     } FieldAuthorization
   );
 
-Procedure TCgiHandler.GetCGIVarList(List : TStrings);
+procedure TCgiHandler.GetCGIVarList(List: TStrings);
 
 Var
   I : Integer;
@@ -170,7 +189,7 @@ begin
     List.Add(CGIVarNames[i]+'='+GetEnvironmentVariable(CGIVarNames[i]));
 end;
 
-Function TCgiHandler.GetEmail : String;
+function TCgiHandler.GetEmail: String;
 
 Var
   H : String;
@@ -185,7 +204,7 @@ begin
     end;
 end;
 
-Function TCgiHandler.GetAdministrator : String;
+function TCgiHandler.GetAdministrator: String;
 
 begin
   Result:=Inherited GetAdministrator;
@@ -194,23 +213,46 @@ begin
 end;
 
 function TCgiHandler.CreateResponse(AOutput : TStream): TCGIResponse;
+
+Var
+  C : TCGIResponseClass;
+
 begin
-  result := TCGIResponse.CreateCGI(Self,AOutput);
+  C:=CGIResponseClass;
+  if (C=Nil) then
+    C:=TCGIResponse;
+  Result:=TCGIResponse.CreateCGI(Self,AOutput);
 end;
 
 function TCgiHandler.CreateRequest: TCGIRequest;
+
+Var
+  C : TCGIRequestClass;
+
 begin
-  Result:=TCGIRequest.CreateCGI(Self);
+  C:=CGIRequestClass;
+  if (C=Nil) then
+    C:=TCGIRequest;
+  Result:=C.CreateCGI(Self);
+end;
+
+procedure TCgiHandler.InitRequest(ARequest: TRequest);
+begin
+  inherited InitRequest(ARequest);
+  if (ARequest is TCGIRequest) then
+    With (ARequest as TCGIRequest) do
+      begin
+      InitFromEnvironment;
+      InitRequestVars;
+      end;
 end;
 
 function TCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
-  FRequest:=CreateRequest;
-  InitRequest(FRequest);
-  FRequest.InitFromEnvironment;
-  FRequest.InitRequestVars;
   FOutput:=TIOStream.Create(iosOutput);
+  FRequest:=CreateRequest;
   FResponse:=CreateResponse(FOutput);
+  InitRequest(FRequest);
   InitResponse(FResponse);
   ARequest:=FRequest;
   AResponse:=FResponse;
@@ -224,7 +266,7 @@ begin
   Terminate;
 end;
 
-constructor TCgiRequest.CreateCGI(ACGI: TCgiHandler);
+constructor TCGIRequest.CreateCGI(ACGI: TCGIHandler);
 begin
   Inherited Create;
   FCGI:=ACGI;
@@ -250,7 +292,7 @@ begin
   Result:=HTTPDecode(R);
 end;
 
-Procedure TCGIRequest.InitFromEnvironment;
+procedure TCGIRequest.InitFromEnvironment;
 
 
 Var
@@ -267,7 +309,11 @@ begin
       OV:=GetFieldByName(N);
       V:=GetEnvironmentVariable(CGIVarNames[I]);
       If (OV='') or (V<>'') then
-        SetFieldByName(N,HTTPDecode(V));
+        begin
+        if (N<>'QUERY_STRING') then
+          V:=HTTPDecode(V);
+        SetFieldByName(N,V);
+        end;
       end;
     end;
 end;
@@ -279,7 +325,11 @@ var
   B : Byte;
   retrycount: integer;
   BytesRead, a: longint;
+  AbortRead : Boolean;
+  S : String;
+
 begin
+  S:='';
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
@@ -287,42 +337,48 @@ begin
       begin
       // It can be that the complete content is not yet send by the server so repeat the read
       // until all data is really read
-      SetLength(FContent,Cl);
+      SetLength(S,Cl);
       BytesRead:=0;
+      RetryCount:=0;
+      AbortRead:=False;
       repeat
-      a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
-      BytesRead:=BytesRead+a;
-      if a=0 then // In fact this can not happen, but the content could be delayed...
-        begin
-        sleep(10);
-        a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
-        if a=0 then for retrycount := 0 to 149 do // timeout of about 15 seconds
-          begin
-          sleep(100);
-          a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
-          if a<>0 then break;
-          end;
+        a := I.Read(S[BytesRead+1],Cl-BytesRead);
         BytesRead:=BytesRead+a;
-        end;
-      until (BytesRead>=Cl) or (a=0);
+        if (A=0) then // In fact this can not happen, but the content could be delayed...
+          begin
+          Inc(RetryCount);
+          AbortRead:=RetryCount>ContentReadMaxRetryCount;
+          if not AbortRead then
+            Sleep(ContentReadRetryInterval);
+          end
+        else
+          AbortRead:=DoContentRead(PByte(@S[BytesRead+1]),A);
+        BytesRead:=BytesRead+a;
+      until (BytesRead>=Cl) or (AbortRead);
       // In fact the request is incomplete, but this is not the place thrown an error for that
       if BytesRead<Cl then
-        SetLength(FContent,BytesRead);
+        SetLength(S,BytesRead);
       end
     else
       begin
-      FContent:='';
       B:=0;
       While (I.Read(B,1)>0) do
-        FContent:=FContent + chr(B);
+        S:=S + chr(B);
       end;
+    InitContent(S);
   Finally
     I.Free;
   end;
-  FContentRead:=True;
 end;
 
-Function TCGIRequest.GetFieldValue(Index : Integer) : String;
+function TCGIRequest.DoContentRead(B: PByte; Len: Integer): Boolean;
+begin
+  Result:=True;
+  if Assigned(FOnContentRead) then
+    FOnContentRead(Self,B,Len,Result);
+end;
+
+function TCGIRequest.GetFieldValue(Index: Integer): String;
 
   Function DecodeVar(I : Integer; DoDecode : Boolean = true) : String;
   
@@ -417,8 +473,15 @@ begin
 end;
 
 function TCustomCGIApplication.InitializeWebHandler: TWebHandler;
+
+Var
+  C : TCGIHandlerClass;
+
 begin
-  Result:=TCgiHandler.Create(self);
+  C:=CGIWebHandlerClass;
+  if C=Nil then
+    C:=TCgiHandler;
+  Result:=C.Create(self);
 end;
 
 Procedure TCustomCGIApplication.ShowException(E: Exception);

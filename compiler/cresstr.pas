@@ -32,7 +32,7 @@ implementation
 
 uses
    SysUtils,
-   cclasses,
+   cclasses,widestr,
    cutils,globtype,globals,systems,
    symconst,symtype,symdef,symsym,
    verbose,fmodule,ppu,
@@ -64,7 +64,7 @@ uses
         constructor Create;
         destructor  Destroy;override;
         procedure CreateResourceStringData;
-        Procedure WriteResourceFile;
+        procedure WriteRSJFile;
         procedure RegisterResourceStrings;
       end;
 
@@ -214,89 +214,73 @@ uses
           current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_sym(endsymlab));
       end;
 
-
-    Procedure Tresourcestrings.WriteResourceFile;
-      Type
-        TMode = (quoted,unquoted);
+    procedure Tresourcestrings.WriteRSJFile;
       Var
-        F : Text;
-        Mode : TMode;
-        R : TResourceStringItem;
-        C : char;
-        Col,i : longint;
-        ResFileName : string;
-
-        Procedure Add(Const S : String);
-        begin
-          Write(F,S);
-          inc(Col,length(s));
-        end;
-
+        F: Text;
+        R: TResourceStringItem;
+        ResFileName: string;
+        I: Integer;
+        C: tcompilerwidechar;
+        W: pcompilerwidestring;
       begin
-        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rst');
+        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rsj');
         message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$push}{$i-}
         Rewrite(f);
         {$pop}
-        If IOresult<>0 then
+        if IOresult<>0 then
           begin
             message1(general_e_errorwritingresourcefile,ResFileName);
             exit;
           end;
+        writeln(f,'{"version":1,"strings":[');
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            writeln(f);
-            Writeln(f,'# hash value = ',R.Hash);
-            col:=0;
-            Add(R.Name+'=');
-            Mode:=unquoted;
-            For I:=0 to R.Len-1 do
-             begin
-               C:=R.Value[i];
-               If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
-                begin
-                  If mode=Quoted then
-                   Add(c)
+            write(f, '{"hash":',R.Hash,',"name":"',R.Name,'","value":"');
+            initwidestring(W);
+            ascii2unicode(R.Value,R.Len,current_settings.sourcecodepage,W);
+            for I := 0 to W^.len - 1 do
+              begin
+                C := W^.Data[I];
+                case C of
+                  Ord('"'), Ord('\'), Ord('/'):
+                    write(f, '\', Chr(C));
+                  8:
+                    write(f, '\b');
+                  9:
+                    write(f, '\t');
+                  10:
+                    write(f, '\n');
+                  13:
+                    write(f, '\r');
+                  12:
+                    write(f, '\f');
                   else
-                   begin
-                     Add(''''+c);
-                     mode:=quoted
-                   end;
-                end
-               else
-                begin
-                  If Mode=quoted then
-                   begin
-                     Add('''');
-                     mode:=unquoted;
-                   end;
-                  Add('#'+tostr(ord(c)));
+                  if (C < 32) or (C > 127) then
+                    write(f,'\u',hexStr(Longint(C), 4))
+                  else
+                    write(f,Chr(C));
                 end;
-               If Col>72 then
-                begin
-                  if mode=quoted then
-                   Write (F,'''');
-                  Writeln(F,'+');
-                  Col:=0;
-                  Mode:=unQuoted;
-                end;
-             end;
-            if mode=quoted then
-             writeln (f,'''');
-            Writeln(f);
+              end;
+            donewidestring(W);
+            write(f,'"}');
             R:=TResourceStringItem(R.Next);
+            if assigned(R) then
+              writeln(f,',')
+            else
+              writeln(f);
           end;
+        writeln(f,']}');
         close(f);
       end;
-
 
     procedure Tresourcestrings.ConstSym_Register(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=constsym) and
            (tconstsym(p).consttyp=constresourcestring) then
-          List.Concat(tResourceStringItem.Create(TConstsym(p)));
+          List.Concat(TResourceStringItem.Create(TConstsym(p)));
       end;
 
 
@@ -318,7 +302,7 @@ uses
           begin
             current_module.flags:=current_module.flags or uf_has_resourcestrings;
             resstrs.CreateResourceStringData;
-            resstrs.WriteResourceFile;
+            resstrs.WriteRSJFile;
           end;
         resstrs.Free;
       end;

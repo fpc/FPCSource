@@ -171,7 +171,7 @@ var
   CurrentPos : TPoint;
   Handled : boolean;
 
-  procedure SetTo(xpos, ypos : sw_integer);
+  procedure SetTo(xpos, ypos : sw_integer;press:integer);
   var
     newchar : ptrint;
   begin
@@ -180,6 +180,10 @@ var
     SetCursor(xpos,ypos);
     Message(Owner,evCommand,AsciiTableCommandBase,
       pointer(newchar));
+    if press>0 then
+      begin
+        Message(Owner,evCommand,AsciiTableCommandBase+press,pointer(newchar));
+      end;
     DrawCurPos(true);
     ClearEvent(Event);
   end;
@@ -191,7 +195,7 @@ begin
         If MouseInView(Event.Where) then
           begin
             MakeLocal(Event.Where, CurrentPos);
-            SetTo(CurrentPos.X, CurrentPos.Y);
+            SetTo(CurrentPos.X, CurrentPos.Y,1);
             exit;
           end;
       end;
@@ -200,15 +204,16 @@ begin
         Handled:=true;
         case Event.Keycode of
           kbUp   : if Cursor.Y>0 then
-                   SetTo(Cursor.X,Cursor.Y-1);
+                   SetTo(Cursor.X,Cursor.Y-1,0);
           kbDown : if Cursor.Y<Size.Y-1 then
-                   SetTo(Cursor.X,Cursor.Y+1);
+                   SetTo(Cursor.X,Cursor.Y+1,0);
           kbLeft : if Cursor.X>0 then
-                   SetTo(Cursor.X-1,Cursor.Y);
+                   SetTo(Cursor.X-1,Cursor.Y,0);
           kbRight: if Cursor.X<Size.X-1 then
-                   SetTo(Cursor.X+1,Cursor.Y);
-          kbHome : SetTo(0,0);
-          kbEnd  : SetTo(Size.X-1,Size.Y-1);
+                   SetTo(Cursor.X+1,Cursor.Y,0);
+          kbHome : SetTo(0,0,0);
+          kbEnd  : SetTo(Size.X-1,Size.Y-1,0);
+          kbEnter: SetTo(Cursor.X,Cursor.Y,1);
         else
           Handled:=false;
         end;
@@ -301,6 +306,7 @@ end;
 
 procedure TASCIIChart.HandleEvent(var Event:TEvent);
 begin
+  writeln(stderr,'ascii cmd',event.what, ' ', event.command);
   if (Event.what=evCommand) and
      (Event.Command =  AsciiTableCommandBase) then
     begin

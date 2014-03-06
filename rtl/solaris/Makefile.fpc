@@ -11,24 +11,24 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil unixcp \
       termio unix initc cmem \
-      crt printer \
-      sysutils typinfo math fgl classes matrix varutils \
-      charset cpall ucomplex getopts \
-      errors sockets \
+      printer \
+      sysutils typinfo math fgl classes \
+      charset cpall buildcollations getopts \
+      errors \
       # ipc serial
       terminfo dl dynlibs \
-      video mouse \
-      keyboard variants types dateutils sysconst \
-      strutils fmtbcd rtlconsts cthreads \
-      convutils stdconvs \
-      dos objects \
+      types sysconst character \
+      strutils rtlconsts cthreads \
+      dos \
       cwstring fpintres clocale $(CPU_UNITS)
 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
-
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconst stdconvs
+      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      unicodedata unicodeducet unicodenumtable \
+      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+ 
+rsts=math typinfo classes sysconst rtlconst
 
 [require]
 nortl=y
@@ -53,7 +53,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
-      errors sockets ipc
+      errors  ipc
 
 [prerules]
 RTL=..
@@ -235,7 +235,10 @@ stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 
-
+# let it depend on buildcollations to prevent simultaneous building of unicodedata
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/character.pas
+ 
 #
 # Mac Pascal Model
 #
@@ -281,12 +284,14 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
+buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
+
+
 #
 # Other system-dependent RTL Units
 #
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -306,7 +311,6 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp sysutils$(PPUEXT) baseunix$(PPUEXT) u
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
-gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 

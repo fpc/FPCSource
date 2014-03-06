@@ -195,7 +195,6 @@ unit hlcgobj;
           }
           function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;virtual;
@@ -987,22 +986,6 @@ implementation
          end;
     end;
 
-  procedure thlcgobj.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
-    var
-      reg: tregister;
-      size: tdef;
-    begin
-      { the loaded data is always a pointer to a procdef. A procvardef is
-        implicitly a pointer already, but a procdef isn't -> create one }
-      if pd.typ=procvardef then
-        size:=pd
-      else
-        size:=getpointerdef(pd);
-      reg:=getaddressregister(list,size);
-      a_load_ref_reg(list,size,size,ref,reg);
-      a_call_reg(list,pd,reg);
-    end;
-
   function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
     begin
       result:=a_call_name(list,pd,s,forceresdef,false);
@@ -1562,6 +1545,8 @@ implementation
                   tmpreg:=getintregister(list,locsize);
                   a_load_const_reg(list,locsize,loc.value,tmpreg);
                 end;
+              else
+                internalerror(2013112909);
             end;
             a_bit_test_reg_reg_reg(list,bitnumbersize,locsize,destsize,bitnumber,tmpreg,destreg);
           end;
@@ -2229,7 +2214,9 @@ implementation
       tmpreg: tregister;
       subsetregdef: torddef;
       stopbit: byte;
+
     begin
+      tmpreg:=NR_NO;
       subsetregdef:=cgsize_orddef(sreg.subsetregsize);
       stopbit:=sreg.startbit+sreg.bitlen;
       // on x86(64), 1 shl 32(64) = 1 instead of 0
@@ -2245,7 +2232,10 @@ implementation
            if (slopt<>SL_REGNOSRCMASK) then
             a_op_const_reg(list,OP_AND,subsetregdef,tcgint(not(bitmask)),tmpreg);
         end;
-      if (slopt<>SL_SETMAX) then
+      if (slopt<>SL_SETMAX) and
+      { the "and" is not needed if the whole register is modified (except for SL_SETZERO),
+        because later on we do a move in this case instead of an or }
+        ((sreg.bitlen<>AIntBits) or (slopt=SL_SETZERO)) then
         a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),sreg.subsetreg);
 
       case slopt of
@@ -2257,8 +2247,11 @@ implementation
               sreg.subsetreg)
           else
             a_load_const_reg(list,subsetregdef,-1,sreg.subsetreg);
+        { if the whole register is modified, no "or" is needed }
+        else if sreg.bitlen=AIntBits then
+          a_load_reg_reg(list,subsetregdef,subsetregdef,tmpreg,sreg.subsetreg)
         else
-          a_op_reg_reg(list,OP_OR,subsetregdef,tmpreg,sreg.subsetreg);
+          a_op_reg_reg(list,OP_OR,subsetregdef,tmpreg,sreg.subsetreg)
        end;
     end;
 
@@ -3565,6 +3558,8 @@ implementation
           toreg:=getaddressregister(list,regsize);
         R_FPUREGISTER:
           toreg:=getfpuregister(list,regsize);
+        else
+          internalerror(2013112910);
       end;
       a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
     end;
@@ -3580,6 +3575,8 @@ implementation
             toreg:=getaddressregister(list,regsize);
           R_FPUREGISTER:
             toreg:=getfpuregister(list,regsize);
+        else
+          internalerror(2013112915);
         end;
         a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
       end;
@@ -3878,12 +3875,6 @@ implementation
     end;
 
 
-  function use_ent : boolean;
-    begin
-	  use_ent := (target_info.system in [system_mipsel_linux,system_mipseb_linux])
-	             or (target_info.cpu=cpu_alpha);
-    end;
-
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);
     var
       item,
@@ -3917,15 +3908,11 @@ implementation
           previtem:=item;
           item := TCmdStrListItem(item.next);
         end;
-      if (use_ent) then
-        list.concat(Tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
       current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-      if (use_ent) then
-        list.concat(Tai_directive.create(asd_ent_end,current_procinfo.procdef.mangledname));
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
       current_procinfo.procdef.procendtai:=tai(list.last);

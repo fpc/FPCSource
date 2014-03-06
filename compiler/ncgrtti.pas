@@ -699,6 +699,8 @@ implementation
                  vs_var     : paraspec := pfVar;
                  vs_out     : paraspec := pfOut;
                  vs_constref: paraspec := pfConstRef;
+                 else
+                   internalerror(2013112904);
                end;
                { Kylix also seems to always add both pfArray and pfReference
                  in this case

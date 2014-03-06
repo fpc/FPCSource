@@ -67,7 +67,7 @@ unit i_embed;
             linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
             res          : res_none;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -79,7 +79,7 @@ unit i_embed;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 4;

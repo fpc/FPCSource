@@ -17,6 +17,9 @@ Type
   jmp_buf = packed record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
+{$ifdef FPC_USE_WIN32_SEH}
+    exhead: Pointer;
+{$endif FPC_USE_WIN32_SEH}
     end;
   PJmp_buf = ^jmp_buf;
 

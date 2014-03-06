@@ -263,7 +263,7 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,
+         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,cs_userbp,
          cs_opt_reorder_fields,cs_opt_fastmath,
          { Allow removing expressions whose result is not used, even when this
            can change program behaviour (range check errors disappear,
@@ -308,7 +308,7 @@ interface
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
-         'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
+         'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
          'DEADSTORE'
@@ -336,7 +336,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
@@ -389,8 +389,10 @@ interface
          m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
-         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
-                                   ansistring; similarly, char becomes unicodechar rather than ansichar }
+         m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
+                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
+         m_type_helpers         { allows the declaration of "type helper" (non-Delphi) or "record helper"
+                                  (Delphi) for primitive types }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -554,7 +556,8 @@ interface
          'ISOUNARYMINUS',
          'SYSTEMCODEPAGE',
          'FINALFIELDS',
-         'UNICODESTRINGS');
+         'UNICODESTRINGS',
+         'TYPEHELPERS');
 
 
      type

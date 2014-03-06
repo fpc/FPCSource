@@ -390,6 +390,7 @@ implementation
          srsymtable : tsymtable;
        begin
          dospecialize:=false;
+         srsym:=nil;
          repeat
            again:=false;
              case token of
@@ -1434,6 +1435,8 @@ implementation
         st: tsymtable;
       begin
          def:=nil;
+         v:=0;
+         l:=0;
          if assigned(newsym) then
            name:=newsym.RealName
          else
@@ -1742,8 +1745,8 @@ implementation
                 end
               else
                 if hadtypetoken and
-                    { don't allow "type helper" in mode delphi and require modeswitch class }
-                    ([m_delphi,m_class]*current_settings.modeswitches=[m_class]) and
+                    { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
+                    ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) and
                     (token=_ID) and (idtoken=_HELPER) then
                   begin
                     consume(_HELPER);

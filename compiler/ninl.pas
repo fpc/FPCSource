@@ -645,6 +645,7 @@ implementation
       para:=Tcallparanode(params);
       found_error:=false;
       do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
+      name:='';
       while assigned(para) do
         begin
           { is this parameter faulty? }
@@ -1043,7 +1044,8 @@ implementation
 
     {Read/write for typed files.}
 
-    const  procprefixes:array[boolean] of string[15]=('fpc_typed_write','fpc_typed_read');
+    const  procprefixes:array[boolean,boolean] of string[19]=(('fpc_typed_write','fpc_typed_read'),
+                                                              ('fpc_typed_write','fpc_typed_read_iso'));
            procnamesdisplay:array[boolean,boolean] of string[8] = (('Write','Read'),('WriteStr','ReadStr'));
 
     var found_error,do_read,is_rwstr:boolean;
@@ -1055,6 +1057,7 @@ implementation
       para:=Tcallparanode(params);
       do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
       is_rwstr := inlinenumber in [in_readstr_x,in_writestr_x];
+      temp:=nil;
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
         filepara.right := ccallparanode.create(cordconstnode.create(
@@ -1132,7 +1135,7 @@ implementation
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
-            Ccallnode.createintern(procprefixes[do_read],para
+            Ccallnode.createintern(procprefixes[m_iso in current_settings.modeswitches,do_read],para
           ));
 
           { if we used a temp, free it }
@@ -1259,6 +1262,11 @@ implementation
             { parameter chain                                         }
             left:=filepara.right;
             filepara.right:=ccallparanode.create(ctemprefnode.create(filetemp),nil);
+            { in case of a writestr() to an ansistring, also pass the string's
+              code page }
+            if not do_read and
+               is_ansistring(filepara.left.resultdef) then
+              filepara:=ccallparanode.create(genintconstnode(tstringdef(filepara.left.resultdef).encoding),filepara);
             { pass the temp text file and the source/destination string to the
               setup routine, which will store the string's address in the
               textrec }
@@ -1429,6 +1437,8 @@ implementation
            CGMessage1(parser_e_wrong_parameter_size,'Val');
            exit;
          end;
+
+         suffix:='';
 
          { in case we are in a generic definition, we cannot
            do all checks, the parameters might be type parameters }
@@ -1645,7 +1655,9 @@ implementation
               inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
-         end;
+         end
+        else
+         internalerror(2013112912);
         if dims=0 then
          begin
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
@@ -2834,72 +2846,75 @@ implementation
               in_dec_x:
                 begin
                   resultdef:=voidtype;
-                  if assigned(left) then
+                  if not(df_generic in current_procinfo.procdef.defoptions) then
                     begin
-                       { first param must be var }
-                       valid_for_var(tcallparanode(left).left,true);
-                       set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
-
-                       if (left.resultdef.typ in [enumdef,pointerdef]) or
-                          is_ordinal(left.resultdef) or
-                          is_currency(left.resultdef) then
+                      if assigned(left) then
                         begin
-                          { value of left gets changed -> must be unique }
-                          set_unique(tcallparanode(left).left);
-                          { two paras ? }
-                          if assigned(tcallparanode(left).right) then
-                           begin
-                             if is_integer(tcallparanode(left).right.resultdef) then
+                           { first param must be var }
+                           valid_for_var(tcallparanode(left).left,true);
+                           set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
+
+                           if (left.resultdef.typ in [enumdef,pointerdef]) or
+                              is_ordinal(left.resultdef) or
+                              is_currency(left.resultdef) then
+                            begin
+                              { value of left gets changed -> must be unique }
+                              set_unique(tcallparanode(left).left);
+                              { two paras ? }
+                              if assigned(tcallparanode(left).right) then
                                begin
-                                 set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                                 { when range/overflow checking is on, we
-                                   convert this to a regular add, and for proper
-                                   checking we need the original type }
-                                 if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
-                                   if (tcallparanode(left).left.resultdef.typ=pointerdef) then
-                                     begin
-                                       { don't convert values added to pointers into the pointer types themselves,
-                                         because that will turn signed values into unsigned ones, which then
-                                         goes wrong when they have to be multiplied with the size of the elements
-                                         to which the pointer points in ncginl (mantis #17342) }
-                                       if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
-                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                 if is_integer(tcallparanode(left).right.resultdef) then
+                                   begin
+                                     set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                                     { when range/overflow checking is on, we
+                                       convert this to a regular add, and for proper
+                                       checking we need the original type }
+                                     if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
+                                       if (tcallparanode(left).left.resultdef.typ=pointerdef) then
+                                         begin
+                                           { don't convert values added to pointers into the pointer types themselves,
+                                             because that will turn signed values into unsigned ones, which then
+                                             goes wrong when they have to be multiplied with the size of the elements
+                                             to which the pointer points in ncginl (mantis #17342) }
+                                           if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                           else
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
+                                         end
+                                       else if is_integer(tcallparanode(left).left.resultdef) then
+                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
                                        else
-                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
-                                     end
-                                   else if is_integer(tcallparanode(left).left.resultdef) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
-                                   else
-                                     inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
-                                 if assigned(tcallparanode(tcallparanode(left).right).right) then
-                                   { should be handled in the parser (JM) }
-                                   internalerror(2006020901);
-                               end
-                             else
-                               CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
-                           end;
-                        end
-                       { generic type parameter? }
-                       else if is_typeparam(left.resultdef) then
-                         begin
-                           result:=cnothingnode.create;
-                           exit;
-                         end
-                       else
-                         begin
-                           hp:=self;
-                           if isunaryoverloaded(hp) then
+                                         inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
+                                     if assigned(tcallparanode(tcallparanode(left).right).right) then
+                                       { should be handled in the parser (JM) }
+                                       internalerror(2006020901);
+                                   end
+                                 else
+                                   CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
+                               end;
+                            end
+                           { generic type parameter? }
+                           else if is_typeparam(left.resultdef) then
                              begin
-                               { inc(rec) and dec(rec) assigns result value to argument }
-                               result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);
+                               result:=cnothingnode.create;
                                exit;
                              end
                            else
-                             CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
-                         end;
-                    end
-                  else
-                    CGMessagePos(fileinfo,type_e_mismatch);
+                             begin
+                               hp:=self;
+                               if isunaryoverloaded(hp) then
+                                 begin
+                                   { inc(rec) and dec(rec) assigns result value to argument }
+                                   result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);
+                                   exit;
+                                 end
+                               else
+                                 CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                             end;
+                        end
+                      else
+                        CGMessagePos(fileinfo,type_e_mismatch);
+                    end;
                 end;
 
               in_read_x,
@@ -3266,7 +3281,7 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := ctypeconvnode.create_internal(cshlshrnode.create(shrn,left,
-                    cordconstnode.create(shiftconst,u32inttype,false)),resultdef)
+                    cordconstnode.create(shiftconst,sinttype,false)),resultdef)
               else
                 result := ctypeconvnode.create_internal(left,resultdef);
               left := nil;
@@ -3401,7 +3416,13 @@ implementation
 
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
-                   if node_complexity(tcallparanode(left).left) > 1 then
+                   { Storing address is not always an optimization: alignment of left is not known
+                     at this point, so we must assume the worst and use an unaligned pointer.
+                     This results in larger and slower code on alignment-sensitive targets.
+                     Therefore the complexity condition below is questionable, maybe just filtering
+                     out calls with "= NODE_COMPLEXITY_INF" is sufficient.
+                     Value of 3 corresponds to subscript nodes, i.e. record field. }
+                   if node_complexity(tcallparanode(left).left) > 3 then
                      begin
                        tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);

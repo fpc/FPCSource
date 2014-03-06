@@ -19,7 +19,12 @@ begin
   try
  { When I don't do "uses Libc",
    this line raises RE 205 (EOverflow). }
- A:=1e800; Writeln(Exp(A));
+{$ifdef FPC_SUPPORT_EXTENDED}
+ A:=1e800;
+{$else FPC_SUPPORT_EXTENDED}
+ A:=1e200;
+{$endif FPC_SUPPORT_EXTENDED}
+ Writeln(Exp(A));
  except
    writeln('Exception raised');
    err:=false;

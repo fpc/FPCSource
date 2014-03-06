@@ -338,16 +338,23 @@ implementation
         else
            cgop:=OP_ADD;
 
-        { we need a value in a register }
-        location_copy(location,left.location);
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
 {$ifndef cpu64bitalu}
         if def_cgsize(resultdef) in [OS_64,OS_S64] then
-          cg64.a_op64_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,location.register64)
+          begin
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),1,left.location.register64,location.register64);
+          end
         else
 {$endif not cpu64bitalu}
-          hlcg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,resultdef,1,location.register);
+          begin
+            location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,1,left.location.register,location.register);
+          end;
       end;
 
 
@@ -367,6 +374,11 @@ implementation
         begin
           { set defaults }
           addconstant:=true;
+          hregister:=NR_NO;
+{$ifndef cpu64bitalu}
+          hregisterhi:=NR_NO;
+{$endif not cpu64bitalu}
+
           { first secondpass second argument, because if the first arg }
           { is used in that expression then SSL may move it to another }
           { register                                                   }
@@ -419,7 +431,12 @@ implementation
               else
 {$endif not cpu64bitalu}
                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],left.resultdef,
-                  aint(addvalue.svalue),tcallparanode(left).left.location);
+{$ifdef cpu64bitalu}
+                  aint(addvalue.svalue),
+{$else cpu64bitalu}
+                  longint(addvalue.svalue),  // can't use aint, because it breaks 16-bit and 8-bit CPUs
+{$endif cpu64bitalu}
+                  tcallparanode(left).left.location);
             end
            else
              begin
@@ -606,6 +623,8 @@ implementation
       use_frame_pointer:boolean;
 
     begin
+      frame_reg:=NR_NO;
+
       if left<>nil then
         begin
           secondpass(left);
@@ -687,6 +706,8 @@ implementation
           in_sar_x,
           in_sar_x_y:
             op:=OP_SAR;
+          else
+            internalerror(2013120110);
         end;
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);

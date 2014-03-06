@@ -356,7 +356,7 @@ unit agarmgas;
 
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_arm_linux,system_arm_wince,system_arm_gba,system_arm_palmos,system_arm_nds,
                                  system_arm_embedded,system_arm_symbian,system_arm_android];
             flags : [af_needar,af_smartlink_sections];
@@ -370,7 +370,7 @@ unit agarmgas;
             id     : as_darwin;
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch $ARCH';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';

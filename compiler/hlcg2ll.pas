@@ -151,7 +151,6 @@ unit hlcg2ll;
 
           function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
@@ -460,11 +459,6 @@ implementation
   procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
     begin
       cg.a_call_reg(list,reg);
-    end;
-
-  procedure thlcg2ll.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
-    begin
-      cg.a_call_ref(list,ref);
     end;
 
   function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
@@ -1021,7 +1015,7 @@ implementation
       hl: tasmlabel;
       oldloc : tlocation;
       const_location: boolean;
-      dst_cgsize: tcgsize;
+      dst_cgsize,tmpsize: tcgsize;
     begin
       oldloc:=l;
       dst_cgsize:=def_cgsize(dst_size);
@@ -1051,7 +1045,7 @@ implementation
 {$ifdef cpuflags}
               LOC_FLAGS :
                 begin
-                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+                  cg.g_flags2reg(list,OS_32,l.resflags,hregister);
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
 {$endif cpuflags}
@@ -1064,6 +1058,9 @@ implementation
                   cg.a_label(list,current_procinfo.CurrFalseLabel);
                   cg.a_load_const_reg(list,OS_INT,0,hregister);
                   cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                  cg.a_load_reg_reg(list,OS_INT,OS_32,hregister,hregister);
+{$endif}
                 end;
               else
                 a_load_loc_reg(list,src_size,u32inttype,l,hregister);
@@ -1149,13 +1146,21 @@ implementation
 {$endif cpuflags}
             LOC_JUMP :
               begin
+                tmpsize:=dst_cgsize;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                if TCGSize2Size[dst_cgsize]>TCGSize2Size[OS_INT] then
+                  tmpsize:=OS_INT;
+{$endif}
                 cg.a_label(list,current_procinfo.CurrTrueLabel);
-                cg.a_load_const_reg(list,dst_cgsize,1,hregister);
+                cg.a_load_const_reg(list,tmpsize,1,hregister);
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
                 cg.a_label(list,current_procinfo.CurrFalseLabel);
-                cg.a_load_const_reg(list,dst_cgsize,0,hregister);
+                cg.a_load_const_reg(list,tmpsize,0,hregister);
                 cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                cg.a_load_reg_reg(list,tmpsize,dst_cgsize,hregister,hregister);
+{$endif}
               end;
             else
               begin

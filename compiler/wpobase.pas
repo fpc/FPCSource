@@ -388,8 +388,8 @@ implementation
 
       inherited destroy;
     end;
-    
-    
+
+
   procedure tunitwpoinfobase.resetdefs;
     var
       i: ptrint;

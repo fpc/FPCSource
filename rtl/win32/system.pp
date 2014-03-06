@@ -29,6 +29,13 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
 
+{$ifdef FPC_USE_WIN32_SEH}
+  {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
+  {$define FPC_SYSTEM_HAS_RERAISE}
+  {$define FPC_SYSTEM_HAS_DONEEXCEPTION}
+  {$define FPC_SYSTEM_HAS_SAFECALLHANDLER}
+{$endif FPC_USE_WIN32_SEH}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -70,34 +77,12 @@ const
 
   System_exception_frame : PEXCEPTION_FRAME =nil;
 
-type
-  TStartupInfo=packed record
-    cb : longint;
-    lpReserved : Pointer;
-    lpDesktop : Pointer;
-    lpTitle : Pointer;
-    dwX : longint;
-    dwY : longint;
-    dwXSize : longint;
-    dwYSize : longint;
-    dwXCountChars : longint;
-    dwYCountChars : longint;
-    dwFillAttribute : longint;
-    dwFlags : longint;
-    wShowWindow : Word;
-    cbReserved2 : Word;
-    lpReserved2 : Pointer;
-    hStdInput : longint;
-    hStdOutput : longint;
-    hStdError : longint;
-  end;
-
 var
 { C compatible arguments }
   argc : longint; public name 'operatingsystem_parameter_argc';
   argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
-  startupinfo : tstartupinfo;
+  startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
   MainInstance,
   cmdshow     : longint;
   DLLreason : dword; public name 'operatingsystem_dllreason';
@@ -138,6 +123,11 @@ const
     valgrind_used : false;
     );
 
+{$ifdef FPC_USE_WIN32_SEH}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
+procedure OutermostHandler; external name '__FPC_DEFAULT_HANDLER';
+{$endif FPC_USE_WIN32_SEH}
+
 { include system independent routines }
 {$I system.inc}
 
@@ -149,8 +139,10 @@ const
                          System Dependent Exit code
 *****************************************************************************}
 
+{$ifndef FPC_USE_WIN32_SEH}
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
+{$endif FPC_USE_WIN32_SEH}
 
 Procedure system_exit;
 begin
@@ -177,8 +169,10 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
+{$ifndef FPC_USE_WIN32_SEH}
   if not IsLibrary then
     remove_exception_handlers;
+{$endif FPC_USE_WIN32_SEH}
 
   { do cleanup required by the startup code }
   EntryInformation.asm_exit();
@@ -194,25 +188,32 @@ var
 
 procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
   var
-    ST : pointer;
+    xframe: TEXCEPTION_FRAME;
   begin
      EntryInformation:=info;
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
+{$ifndef FPC_USE_WIN32_SEH}
      install_exception_handlers;
+{$endif FPC_USE_WIN32_SEH}
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
-         { allocate space for an exception frame }
-        pushl $0
-        pushl %fs:(0)
         { movl  %esp,%fs:(0)
           but don't insert it as it doesn't
           point to anything yet
           this will be used in signals unit }
-        movl %esp,%eax
+        leal xframe,%eax
+        movl %fs:(0),%ecx
+        movl %ecx,TException_Frame.next(%eax)
         movl %eax,System_exception_frame
+{$ifndef FPC_USE_WIN32_SEH}
+        movl $0,TException_Frame.handler(%eax)
+{$else}
+        movl $OutermostHandler,TException_Frame.handler(%eax)
+        movl %eax,%fs:(0)
+{$endif FPC_USE_WIN32_SEH}
         pushl %ebp
         xorl %eax,%eax
         movw %ss,%ax
@@ -348,6 +349,9 @@ type
 { type of functions that should be used for exception handling }
   TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
 
+{$i seh32.inc}
+
+{$ifndef FPC_USE_WIN32_SEH}
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
         stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
 
@@ -515,37 +519,15 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
   end;
 
 procedure install_exception_handlers;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-  var
-    oldexceptaddr,
-    newexceptaddr : Longint;
-{$endif SYSTEMEXCEPTIONDEBUG}
-
   begin
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,oldexceptaddr
-    end;
-{$endif SYSTEMEXCEPTIONDEBUG}
     SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,newexceptaddr
-    end;
-    if IsConsole then
-      writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-                     ' new exception  ',hexstr(newexceptaddr,8));
-{$endif SYSTEMEXCEPTIONDEBUG}
   end;
 
 procedure remove_exception_handlers;
   begin
     SetUnhandledExceptionFilter(nil);
   end;
+{$endif not FPC_USE_WIN32_SEH}
 
 {$else not cpui386 (Processor specific !!)}
 procedure install_exception_handlers;
@@ -701,8 +683,6 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  { Reset internal error variable }
-  errno:=0;
   initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

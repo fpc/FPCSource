@@ -111,10 +111,14 @@ unit cpupi;
             localsize:=0;
             for i:=0 to procdef.parast.SymList.Count-1 do
               if tsym(procdef.parast.SymList[i]).typ=paravarsym then
-                if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
-                  inc(localsize,256)
-                else
-                  inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                begin
+                  if tabstractnormalvarsym(procdef.parast.SymList[i]).varspez in [vs_var,vs_out,vs_constref] then
+                    inc(localsize,4)
+                  else if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
+                    inc(localsize,256)
+                  else
+                    inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                end;
 
             inc(stackframesize,localsize);
 
@@ -154,6 +158,7 @@ unit cpupi;
                 begin
                   { save floating point registers? }
                   firstfloatreg:=RS_NO;
+                  lastfloatreg:=RS_NO;
                   regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
                   for r:=RS_F0 to RS_F7 do
                     if r in regs then

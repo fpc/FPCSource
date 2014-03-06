@@ -18,7 +18,7 @@
 
 program rstconv;
 
-uses sysutils, classes;
+uses sysutils, classes, jsonparser, fpjson;
 
 resourcestring
   help =
@@ -117,6 +117,40 @@ begin
   Close(f);
 end;
 
+procedure ReadRSJFile;
+var
+  Stream: TFileStream;
+  Parser: TJSONParser;
+  JsonItems: TJSONArray;
+  JsonData, JsonItem: TJSONObject;
+  S: String;
+  item: TConstItem;
+  DotPos, I: Integer;
+begin
+  Stream := TFileStream.Create(InFilename, fmOpenRead or fmShareDenyNone);
+  Parser := TJSONParser.Create(Stream);
+  try
+    JsonData := Parser.Parse as TJSONObject;
+    try
+      JsonItems := JsonData.Arrays['strings'];
+      for I := 0 to JsonItems.Count - 1 do
+      begin
+        item := TConstItem(ConstItems.Add);
+        JsonItem := JsonItems.Items[I] as TJSONObject;
+        S := JsonItem.Get('name');
+        DotPos := Pos('.', s);
+        item.ModuleName := Copy(s, 1, DotPos - 1);
+        item.ConstName := Copy(s, DotPos + 1, Length(S) - DotPos);
+        item.Value := JsonItem.Get('value');
+      end;
+    finally
+      JsonData.Free;
+    end;
+  finally
+    Parser.Free;
+    Stream.Free;
+  end;
+end;
 
 procedure ConvertToGettextPO;
 var
@@ -422,7 +456,10 @@ begin
 
   ConstItems := TCollection.Create(TConstItem);
 
-  ReadRSTFile;
+  if ExtractFileExt(InFilename) = '.rsj' then
+    ReadRSJFile
+  else
+    ReadRSTFile;
 
   ConversionProc;
 end.

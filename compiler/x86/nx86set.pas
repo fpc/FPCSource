@@ -72,8 +72,9 @@ implementation
         indexreg : tregister;
         href : treference;
         jtlist: tasmlist;
-        sectype: TAsmSectiontype;
         opcgsize: tcgsize;
+        jumpreg: tregister;
+        labeltyp: taiconst_type;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -85,21 +86,13 @@ implementation
             i:=last.svalue+1;
             while i<=t^._low.svalue-1 do
               begin
-{$ifdef i8086}
-                list.concat(Tai_const.Create_sym_near(elselabel));
-{$else i8086}
-                list.concat(Tai_const.Create_sym(elselabel));
-{$endif i8086}
+                list.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
                 inc(i);
               end;
             i:=t^._low.svalue;
             while i<=t^._high.svalue do
               begin
-{$ifdef i8086}
-                list.concat(Tai_const.Create_sym_near(blocklabel(t^.blockid)));
-{$else i8086}
-                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
-{$endif i8086}
+                list.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
                 inc(i);
               end;
             last:=t^._high;
@@ -109,6 +102,8 @@ implementation
 
       begin
         last:=min_;
+        { This generates near pointers on i8086 }
+        labeltyp:=aitconst_ptr;
         opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
           begin
@@ -131,19 +126,24 @@ implementation
 {$else i8086}
         href.scalefactor:=sizeof(aint);
 {$endif i8086}
-        emit_ref(A_JMP,S_NO,href);
-        { generate jump table }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+
+        if (not (target_info.system in [system_i386_darwin,system_i386_iphonesim])) and
+           (cs_create_pic in current_settings.moduleswitches) then
           begin
-            jtlist:=current_asmdata.asmlists[al_const];
-            sectype:=sec_rodata;
+            labeltyp:=aitconst_gotoff_symbol;
+            jumpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,current_procinfo.got,jumpreg);
+            emit_reg(A_JMP,S_NO,jumpreg);
           end
         else
-          begin
-            jtlist:=current_procinfo.aktlocaldata;
-            sectype:=sec_data;
-          end;
-        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,sizeof(aint));
+          emit_ref(A_JMP,S_NO,href);
+        { generate jump table }
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+          jtlist:=current_asmdata.asmlists[al_const]
+        else
+          jtlist:=current_procinfo.aktlocaldata;
+        new_section(jtlist,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
         jtlist.concat(Tai_label.Create(table));
         genitem(jtlist,hp);
       end;
@@ -375,6 +375,10 @@ implementation
 {$endif i8086}
 
        begin
+         ranges:=false;
+         numparts:=0;
+         fillchar(setparts,sizeof(setparts),0);
+
          { We check first if we can generate jumps, this can be done
            because the resultdef is already set in firstpass }
 

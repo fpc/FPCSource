@@ -370,7 +370,7 @@ uses Messages, Windows;
      EDITSTREAMCALLBACK = function (dwCookie:PDWORD; pbBuff:LPBYTE; cb:LONG; var pcb:LONG):DWORD;
 
      _editstream = record
-          dwCookie : DWORD;
+          dwCookie : DWORD_PTR;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
        end;

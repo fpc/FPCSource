@@ -83,91 +83,57 @@ implementation
 
 
     function TSPARCInstrWriter.GetReferenceString(var ref:TReference):string;
-      var
-        asm_comment : string;
       begin
-        GetReferenceString:='';
-        asm_comment:='';
-        with ref do
+        result:='';
+        if assigned(ref.symbol) then
           begin
-            if (base=NR_NO) and (index=NR_NO) then
-              begin
-                 if assigned(symbol) then
-                   GetReferenceString:=symbol.name;
-                 if offset>0 then
-                   GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
-                 else if offset<0 then
-                   GetReferenceString:=GetReferenceString+ToStr(offset);
-                 case refaddr of
-                   addr_high:
-                     GetReferenceString:='%hi('+GetReferenceString+')';
-                   addr_low:
-                     GetReferenceString:='%lo('+GetReferenceString+')';
-                   addr_pic:
-                     begin
-                       asm_comment:='addr_pic should use %l7 register as base or index: '+GetReferenceString;
-                       Comment(V_Warning,asm_comment);
-                       GetReferenceString:='%l7+'+GetReferenceString;
-                     end;
-                 end;
-              end
-            else
-              begin
-                if (base=NR_NO) and (index<>NR_NO) then
-                  begin
-                    base:=index;
-                    index:=NR_NO;
-                  end;
-{$ifdef extdebug}
-                if assigned(symbol) and
-                  not(refaddr in [addr_pic,addr_low]) then
-                  internalerror(2003052601);
-{$endif extdebug}
-                GetReferenceString:=GetReferenceString+gas_regname(base);
-                if index=NR_NO then
-                  begin
-                    { if (Offset<simm13lo) or (Offset>simm13hi) then
-                      internalerror(2003053008); }
-                    if offset>0 then
-                      GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
-                    else if offset<0 then
-                      GetReferenceString:=GetReferenceString+ToStr(offset);
-                    {
-                    else if (offset=0) and not(assigned(symbol)) then
-                      GetReferenceString:=GetReferenceString+ToStr(offset);
-                    }
-                    if assigned(symbol) then
-                      begin
-                        if refaddr=addr_low then
-                          GetReferenceString:='%lo('+symbol.name+')+'+GetReferenceString
-                        else if refaddr=addr_pic then
-                          begin
-                            if assigned(current_procinfo) and (base <> current_procinfo.got) then
-                              begin
-                                asm_comment:=' pic address should use %l7 register: '+GetReferenceString; 
-                                Comment(V_Warning,asm_comment);
-                              end;
-                            GetReferenceString:=GetReferenceString+'+'+symbol.name;
-                          end
-                        else
-                          GetReferenceString:=symbol.name+'+'+GetReferenceString;
-                      end;
-                  end
-                else
-                  begin
-{$ifdef extdebug}
-                    if (Offset<>0) or assigned(symbol) then
-                      internalerror(2003052603);
-{$endif extdebug}
-                    GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
-                    
-                  end;
-              end;
+            result:=ref.symbol.name;
+            if assigned(ref.relsymbol) then
+              result:=result+'-'+ref.relsymbol.name;
           end;
-        if asm_comment <> '' then
+        if (ref.offset<0) then
+          result:=result+tostr(ref.offset)
+        else if (ref.offset>0) then
           begin
-            owner.AsmWrite(target_asm.comment+' '+asm_comment);
-            owner.AsmLn;
+            if assigned(ref.symbol) then
+              result:=result+'+';
+            result:=result+tostr(ref.offset);
+          end
+        { asmreader appears to treat literal numbers as references }
+        else if (ref.symbol=nil) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:='0';
+
+        case ref.refaddr of
+          addr_high:
+            result:='%hi('+result+')';
+          addr_low:
+            result:='%lo('+result+')';
+        end;
+
+        if assigned(ref.symbol) or (ref.offset<>0) then
+          begin
+            if (ref.base<>NR_NO) then
+              begin
+                if (ref.index<>NR_NO) then
+                  InternalError(2013013001);
+                if (result[1]='-') then
+                  result:=gas_regname(ref.base)+result
+                else
+                  result:=gas_regname(ref.base)+'+'+result;
+              end
+            else if (ref.index<>NR_NO) then
+              InternalError(2013122501);
+          end
+        else
+          begin
+            if (ref.base<>NR_NO) then
+              begin
+                result:=gas_regname(ref.base);
+                if (ref.index<>NR_NO) then
+                  result:=result+'+'+gas_regname(ref.index);
+              end
+            else if (ref.index<>NR_NO) then
+              result:=gas_regname(ref.index);
           end;
       end;
 
@@ -194,6 +160,23 @@ implementation
 
 
     procedure TSPARCInstrWriter.WriteInstruction(hp:Tai);
+
+      procedure writePseudoInstruction(opc: TAsmOp);
+        begin
+          if (taicpu(hp).ops<>2) or
+             (taicpu(hp).oper[0]^.typ<>top_reg) or
+             (taicpu(hp).oper[1]^.typ<>top_reg) then
+            internalerror(200401045);
+          { Fxxxs %f<even>,%f<even> }
+          owner.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          { FMOVs %f<odd>,%f<odd> }
+          inc(taicpu(hp).oper[0]^.reg);
+          inc(taicpu(hp).oper[1]^.reg);
+          owner.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          dec(taicpu(hp).oper[0]^.reg);
+          dec(taicpu(hp).oper[1]^.reg);
+        end;
+
       var
         Op:TAsmOp;
         s:String;
@@ -202,43 +185,20 @@ implementation
         if hp.typ<>ait_instruction then
           exit;
         op:=taicpu(hp).opcode;
+        if (op=A_Bxx) and (taicpu(hp).condition in floatAsmConds) then
+          op:=A_FBxx;
         { translate pseudoops, this should be move to a separate pass later, so it's done before
           peephole optimization }
         case op of
           A_FABSd:
-            begin
-              if (taicpu(hp).ops<>2) or
-                 (taicpu(hp).oper[0]^.typ<>top_reg) or
-                 (taicpu(hp).oper[1]^.typ<>top_reg) then
-                internalerror(200401045);
-              { FABSs %f<even>,%f<even> }
-              s:=#9+std_op2str[A_FABSs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              owner.AsmWriteLn(s);
-              { FMOVs %f<odd>,%f<odd> }
-              inc(taicpu(hp).oper[0]^.reg);
-              inc(taicpu(hp).oper[1]^.reg);
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              dec(taicpu(hp).oper[0]^.reg);
-              dec(taicpu(hp).oper[1]^.reg);
-              owner.AsmWriteLn(s);
-            end;
+            writePseudoInstruction(A_FABSs);
+
           A_FMOVd:
-            begin
-              if (taicpu(hp).ops<>2) or
-                 (taicpu(hp).oper[0]^.typ<>top_reg) or
-                 (taicpu(hp).oper[1]^.typ<>top_reg) then
-                internalerror(200401045);
-              { FMOVs %f<even>,%f<even> }
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              owner.AsmWriteLn(s);
-              { FMOVs %f<odd>,%f<odd> }
-              inc(taicpu(hp).oper[0]^.reg);
-              inc(taicpu(hp).oper[1]^.reg);
-              s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              dec(taicpu(hp).oper[0]^.reg);
-              dec(taicpu(hp).oper[1]^.reg);
-              owner.AsmWriteLn(s);
-            end
+            writePseudoInstruction(A_FMOVs);
+
+          A_FNEGd:
+            writePseudoInstruction(A_FNEGs);
+
           else
             begin
               { call maybe not translated to call }
@@ -264,9 +224,9 @@ implementation
            idtxt  : 'AS';
            asmbin : 'as';
 {$ifdef FPC_SPARC_V8_ONLY}
-           asmcmd : '$PIC -o $OBJ $ASM';
+           asmcmd : '$PIC -o $OBJ $EXTRAOPT $ASM';
 {$else}
-           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
 {$endif}
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
@@ -280,7 +240,7 @@ implementation
            id     : as_ggas;
            idtxt  : 'GAS';
            asmbin : 'gas';
-           asmcmd : '$ARCH $PIC -o $OBJ $ASM';
+           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';

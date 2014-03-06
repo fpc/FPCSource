@@ -2,14 +2,14 @@
 
 {$mode delphi}
 {$r+}
-procedure Test;
 var
   Count: Word;
+
+procedure Test;
+var
   I: Integer;
 
 begin
-  Count := 0;
-
   for I := 0 to Pred(Count) do
     begin
       WriteLn(I);
@@ -18,6 +18,8 @@ begin
 end;
 
 begin
+  Count := 0;
+
   test;
 end.
 

@@ -336,11 +336,12 @@ Var
 begin
   WriteResponseFile:=False;
   ReOrder:=False;
+  linkdynamic:=False;
   IsDarwin:=target_info.system in systems_darwin;
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and 
+      if isdll and
          (target_info.system in systems_bsd) then
         begin
           prtobj:='dllprt0';
@@ -645,6 +646,7 @@ begin
   StripStr:='';
   DynLinkStr:='';
   GCSectionsStr:='';
+  linkscript:=nil;
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -778,6 +780,7 @@ var
 begin
   MakeSharedLibrary:=false;
   GCSectionsStr:='';
+  linkscript:=nil;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
 

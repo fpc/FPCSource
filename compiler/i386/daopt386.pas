@@ -901,6 +901,7 @@ var
   Cnt: Word;
 begin
   TmpResult := False;
+  Result := False;
   if supreg = RS_INVALID then
     exit;
   if (p1.typ = ait_instruction) then

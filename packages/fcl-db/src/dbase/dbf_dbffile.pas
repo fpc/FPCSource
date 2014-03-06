@@ -2139,9 +2139,14 @@ begin
     'Q': //Visual FoxPro varbinary
       begin
         // copy data, and update varlength flag/varlength byte in field data
-        Len := PWord(Src)^;
-        if Len > FieldSize then
-          Len := FieldSize;
+        if Src = nil then
+          Len := 0
+        else
+        begin
+          Len := PWord(Src)^;
+          if Len > FieldSize then
+            Len := FieldSize;
+        end;
         if Len < FieldSize then
         begin
           // Clear flag and store actual size byte in last data byte

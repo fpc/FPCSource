@@ -188,6 +188,8 @@ program fpc;
                    if processorstr='B' then
                      begin
                        { report the full name of the ppcbin }
+                       if versionstr<>'' then
+                         ppcbin:=ppcbin+'-'+versionstr;
                        findexe(ppcbin);
                        writeln(ppcbin);
                        halt(0);
@@ -226,6 +228,8 @@ program fpc;
                              cpusuffix:='jvm'
                            else if processorstr='i8086' then
                              cpusuffix:='8086'
+                           else if processorstr='avr' then
+                             cpusuffix:='avr'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 

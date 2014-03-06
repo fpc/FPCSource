@@ -196,13 +196,6 @@ interface
           procedure deref;override;
        end;
 
-{$ifdef x86}
-    const
-       { TODO: make this depend on the memory model, when other memory models are supported }
-       default_x86_data_pointer_type = x86pt_near;
-
-    type
-{$endif x86}
 
        { tpointerdef }
 
@@ -283,6 +276,7 @@ interface
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure deref;override;
           function  size:asizeint;override;
           function  alignment : shortint;override;
@@ -545,7 +539,7 @@ interface
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;
-          function address_size:asizeint;
+          function address_type:tdef;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -601,15 +595,53 @@ interface
        end;
 {$endif oldregvars}
 
+       timplprocdefinfo = record
+          resultname : pshortstring;
+          parentfpstruct: tsym;
+          parentfpstructptrtype: tdef;
+          parentfpinitblock: tnode;
+          procstarttai,
+          procendtai   : tai;
+          skpara: pointer;
+          forwarddef,
+          interfacedef : boolean;
+          hasforward  : boolean;
+       end;
+       pimplprocdefinfo = ^timplprocdefinfo;
+
        { tprocdef }
 
        tprocdef = class(tabstractprocdef)
        private
 {$ifdef symansistr}
-          _mangledname : ansistring;
+         _mangledname : ansistring;
 {$else symansistr}
-          _mangledname : pshortstring;
+         _mangledname : pshortstring;
 {$endif}
+         { information that is only required until the implementation of the
+           procdef has been handled }
+         implprocdefinfo : pimplprocdefinfo;
+
+         function GetResultName: PShortString;
+         procedure SetResultName(AValue: PShortString);
+         function GetParentFPStruct: tsym;
+         procedure SetParentFPStruct(AValue: tsym);
+         function GetParentFPStructPtrType: tdef;
+         procedure SetParentFPStructPtrType(AValue: tdef);
+         function GetParentFPInitBlock: tnode;
+         procedure SetParentFPInitBlock(AValue: tnode);
+         function Getprocstarttai: tai;
+         procedure Setprocstarttai(AValue: tai);
+         function Getprocendtai: tai;
+         procedure Setprocendtai(AValue: tai);
+         function Getskpara: pointer;
+         procedure Setskpara(AValue: pointer);
+         function Getforwarddef: boolean;
+         procedure Setforwarddef(AValue: boolean);
+         function Getinterfacedef: boolean;
+         procedure Setinterfacedef(AValue: boolean);
+         function Gethasforward: boolean;
+         procedure Sethasforward(AValue: boolean);
        public
           messageinf : tmessageinf;
           dispid : longint;
@@ -638,8 +670,6 @@ interface
           libsym : tsym;
           libsymderef : tderef;
 {$endif powerpc or m68k}
-          { name of the result variable to insert in the localsymtable }
-          resultname : pshortstring;
           { import info }
           import_dll,
           import_name : pshortstring;
@@ -651,27 +681,9 @@ interface
             easily write out all methods grouped per class }
           exprasmlist      : TAsmList;
 {$endif jvm}
-          { temporary reference to structure containing copies of all local
-            variables and parameters accessed by nested routines; reference to
-            this structure is passed as "parent frame pointer" on targets that
-            lack this concept (at least JVM and LLVM); no need to save to/
-            restore from ppu, since nested routines are always in the same
-            unit (no need to save to ppu) }
-          parentfpstruct: tsym;
-          { pointer to parentfpstruct's type (not yet valid during parsing, so
-            cannot be used for $parentfp parameter) (no need to save to ppu) }
-          parentfpstructptrtype: tdef;
-          { code to copy the parameters accessed from nested routines into the
-            parentfpstruct (no need to save to ppu) }
-          parentfpinitblock: tnode;
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-          { First/last assembler symbol/instruction in aasmoutput list.
-            Note: initialised after compiling the code for the procdef, but
-              not saved to/restored from ppu. Used when inserting debug info }
-          procstarttai,
-          procendtai   : tai;
           import_nr    : word;
           extnumber    : word;
 {$if defined(i386) or defined(i8086)}
@@ -691,17 +703,8 @@ interface
           { set to a value different from tsk_none in case this procdef is for
             a routine that has to be internally generated by the compiler }
           synthetickind : tsynthetickind;
-          { optional parameter for the synthetic routine generation logic }
-          skpara: pointer;
           { true, if the procedure contains no code }
-          isempty,
-          { true, if the procedure is only declared
-            (forward procedure) }
-          forwarddef,
-          { true if the procedure is declared in the interface }
-          interfacedef : boolean;
-          { true if the procedure has a forward declaration }
-          hasforward  : boolean;
+          isempty: boolean;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -734,6 +737,37 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
+
+          { aliases to fields only required when a function is implemented in
+            the current unit }
+          property resultname: PShortString read GetResultName write SetResultName;
+          { temporary reference to structure containing copies of all local
+            variables and parameters accessed by nested routines; reference to
+            this structure is passed as "parent frame pointer" on targets that
+            lack this concept (at least JVM and LLVM); no need to save to/
+            restore from ppu, since nested routines are always in the same
+            unit }
+          property parentfpstruct: tsym read GetParentFPStruct write SetParentFPStruct;
+          { pointer to parentfpstruct's type (not yet valid during parsing, so
+            cannot be used for $parentfp parameter) (no need to save to ppu) }
+          property parentfpstructptrtype: tdef read GetParentFPStructPtrType write SetParentFPStructPtrType;
+          { code to copy the parameters accessed from nested routines into the
+            parentfpstruct (no need to save to ppu) }
+          property parentfpinitblock: tnode read GetParentFPInitBlock write SetParentFPInitBlock;
+          { First/last assembler symbol/instruction in aasmoutput list.
+            Note: initialised after compiling the code for the procdef, but
+              not saved to/restored from ppu. Used when inserting debug info }
+          property procstarttai: tai read Getprocstarttai write Setprocstarttai;
+          property procendtai: tai read Getprocendtai write Setprocendtai;
+          { optional parameter for the synthetic routine generation logic }
+          property skpara: pointer read Getskpara write Setskpara;
+          { true, if the procedure is only declared
+            (forward procedure) }
+          property forwarddef: boolean read Getforwarddef write Setforwarddef;
+          { true if the procedure is declared in the interface }
+          property interfacedef: boolean read Getinterfacedef write Setinterfacedef;
+          { true if the procedure has a forward declaration }
+          property hasforward: boolean read Gethasforward write Sethasforward;
        end;
 
        { single linked list of overloaded procs }
@@ -851,6 +885,7 @@ interface
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
+       parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
        voidnearpointertype,
        voidnearcspointertype,
@@ -1047,6 +1082,8 @@ interface
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_implicit_pointer_object_type(def: tdef): boolean;
+    { returns true, if def is a type which is an implicit pointer to an array (dyn. array or dyn. string) }
+    function is_implicit_array_pointer(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
     function is_record(def: tdef): boolean;
 
@@ -1071,6 +1108,10 @@ interface
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef;
     function getparaencoding(def:tdef):tstringencoding; inline;
+
+{$ifdef x86}
+    function default_x86_data_pointer_type: tx86pointertyp;
+{$endif x86}
 
 implementation
 
@@ -1160,6 +1201,7 @@ implementation
         hp  : tparavarsym;
       begin
         prefix:='';
+        hp:=nil;
         if not assigned(st) then
          internalerror(200204212);
         { sub procedures }
@@ -2786,11 +2828,19 @@ implementation
     procedure tfiledef.setsize;
       begin
        case filetyp of
-         ft_text    :
+         ft_text:
            savesize:=search_system_type('TEXTREC').typedef.size;
-         ft_typed,
-         ft_untyped :
+         ft_typed:
+           begin
+             savesize:=search_system_type('FILEREC').typedef.size;
+             { allocate put/get buffer in iso mode }
+             if m_iso in current_settings.modeswitches then
+               inc(savesize,typedfiledef.size);
+           end;
+         ft_untyped:
            savesize:=search_system_type('FILEREC').typedef.size;
+         else
+           internalerror(2013113001);
          end;
       end;
 
@@ -2814,6 +2864,8 @@ implementation
              GetTypeName:='File Of '+typedfiledef.typename;
            ft_text:
              GetTypeName:='Text'
+           else
+             internalerror(2013113002);
          end;
       end;
 
@@ -2827,6 +2879,8 @@ implementation
              getmangledparaname:='FILE$OF$'+typedfiledef.mangledparaname;
            ft_text:
              getmangledparaname:='TEXT'
+           else
+             internalerror(2013113003);
          end;
       end;
 
@@ -2888,6 +2942,8 @@ implementation
              GetTypeName:='Variant';
            vt_olevariant:
              GetTypeName:='OleVariant';
+           else
+             internalerror(2013113004);
          end;
       end;
 
@@ -3020,25 +3076,42 @@ implementation
 
     function tpointerdef.GetTypeName : string;
       begin
+        { parameter types and the resultdef of a procvardef can contain a
+          pointer to this procvardef itself, resulting in endless recursion ->
+          use the typesym's name instead if it exists (if it doesn't, such as
+          for anynonymous procedure types in macpas/iso mode, then there cannot
+          be any recursive references to it either) }
+        if (pointeddef.typ<>procvardef) or
+           not assigned(pointeddef.typesym) then
+          GetTypeName:='^'+pointeddef.typename
+        else
+          GetTypeName:='^'+pointeddef.typesym.realname;
 {$ifdef x86}
-         if x86pointertyp = default_x86_data_pointer_type then
-           GetTypeName:='^'+pointeddef.typename
-         else
-           case x86pointertyp of
-             x86pt_near: GetTypeName:='^'+pointeddef.typename+';near';
-             x86pt_near_cs: GetTypeName:='^'+pointeddef.typename+';near ''CS''';
-             x86pt_near_ds: GetTypeName:='^'+pointeddef.typename+';near ''DS''';
-             x86pt_near_ss: GetTypeName:='^'+pointeddef.typename+';near ''SS''';
-             x86pt_near_es: GetTypeName:='^'+pointeddef.typename+';near ''ES''';
-             x86pt_near_fs: GetTypeName:='^'+pointeddef.typename+';near ''FS''';
-             x86pt_near_gs: GetTypeName:='^'+pointeddef.typename+';near ''GS''';
-             x86pt_far: GetTypeName:='^'+pointeddef.typename+';far';
-             x86pt_huge: GetTypeName:='^'+pointeddef.typename+';huge';
-             else
-               internalerror(2013050301);
-           end;
-{$else x86}
-         GetTypeName:='^'+pointeddef.typename;
+        if x86pointertyp<>default_x86_data_pointer_type then
+          begin
+            case x86pointertyp of
+              x86pt_near:
+                GetTypeName:=Result+';near';
+              x86pt_near_cs:
+                GetTypeName:=Result+';near ''CS''';
+              x86pt_near_ds:
+                GetTypeName:=Result+';near ''DS''';
+              x86pt_near_ss:
+                GetTypeName:=Result+';near ''SS''';
+              x86pt_near_es:
+                GetTypeName:=Result+';near ''ES''';
+              x86pt_near_fs:
+                GetTypeName:=Result+';near ''FS''';
+              x86pt_near_gs:
+                GetTypeName:=Result+';near ''GS''';
+              x86pt_far:
+                GetTypeName:=Result+';far';
+              x86pt_huge:
+                GetTypeName:=Result+';huge';
+              else
+                internalerror(2013050301);
+            end;
+          end;
 {$endif x86}
       end;
 
@@ -3552,7 +3625,9 @@ implementation
 
     procedure tabstractrecorddef.check_forwards;
       begin
-        tstoredsymtable(symtable).check_forwards;
+        { the defs of a copied def are defined for the original type only }
+        if not(df_copied_def in defoptions) then
+          tstoredsymtable(symtable).check_forwards;
       end;
 
     function tabstractrecorddef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
@@ -3852,6 +3927,14 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
+      end;
+
+
+    procedure trecorddef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
       end;
 
 
@@ -4427,14 +4510,16 @@ implementation
 {$endif}
       end;
 
-    function tabstractprocdef.address_size: asizeint;
+    function tabstractprocdef.address_type: tdef;
       begin
 {$ifdef i8086}
         if po_far in procoptions then
-          result:=sizeof(pint)+2
+          result:=voidfarpointertype
         else
+          result:=voidnearpointertype;
+{$else i8086}
+          result:=voidpointertype;
 {$endif i8086}
-          result:=sizeof(pint);
       end;
 
 
@@ -4442,9 +4527,170 @@ implementation
                                   TPROCDEF
 ***************************************************************************}
 
+    function tprocdef.GetResultName: PShortString;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010301);
+        result:=implprocdefinfo^.resultname;
+      end;
+
+
+    procedure tprocdef.SetResultName(AValue: PShortString);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010302);
+        implprocdefinfo^.resultname:=AValue;
+      end;
+
+
+    function tprocdef.GetParentFPInitBlock: tnode;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010303);
+        result:=implprocdefinfo^.parentfpinitblock;
+      end;
+
+
+    function tprocdef.GetParentFPStruct: tsym;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010304);
+        result:=implprocdefinfo^.parentfpstruct;
+      end;
+
+
+    function tprocdef.GetParentFPStructPtrType: tdef;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010305);
+        result:=implprocdefinfo^.parentfpstructptrtype;
+      end;
+
+
+    procedure tprocdef.SetParentFPInitBlock(AValue: tnode);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010306);
+        implprocdefinfo^.parentfpinitblock:=AValue;
+      end;
+
+
+    function tprocdef.Getprocendtai: tai;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010307);
+        result:=implprocdefinfo^.procendtai;
+      end;
+
+
+    function tprocdef.Getprocstarttai: tai;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010308);
+        result:=implprocdefinfo^.procstarttai;
+      end;
+
+
+    procedure tprocdef.Setprocendtai(AValue: tai);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010309);
+        implprocdefinfo^.procendtai:=AValue;
+      end;
+
+
+    function tprocdef.Getskpara: pointer;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010310);
+        result:=implprocdefinfo^.skpara;
+      end;
+
+
+    procedure tprocdef.Setskpara(AValue: pointer);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010311);
+        implprocdefinfo^.skpara:=AValue;
+      end;
+
+
+    function tprocdef.Getforwarddef: boolean;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010312);
+        result:=implprocdefinfo^.forwarddef;
+      end;
+
+
+    function tprocdef.Gethasforward: boolean;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010313);
+        result:=implprocdefinfo^.hasforward;
+      end;
+
+
+    function tprocdef.Getinterfacedef: boolean;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010314);
+        result:=implprocdefinfo^.interfacedef;
+      end;
+
+
+    procedure tprocdef.Setforwarddef(AValue: boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010315);
+        implprocdefinfo^.forwarddef:=AValue;
+      end;
+
+
+    procedure tprocdef.Sethasforward(AValue: boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010316);
+        implprocdefinfo^.hasforward:=AValue;
+      end;
+
+
+    procedure tprocdef.Setinterfacedef(AValue: boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010317);
+        implprocdefinfo^.interfacedef:=AValue;
+      end;
+
+
+    procedure tprocdef.Setprocstarttai(AValue: tai);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010318);
+        implprocdefinfo^.procstarttai:=AValue;
+      end;
+
+
+    procedure tprocdef.SetParentFPStruct(AValue: tsym);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010319);
+        implprocdefinfo^.parentfpstruct:=AValue;
+      end;
+
+
+    procedure tprocdef.SetParentFPStructPtrType(AValue: tdef);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2014010320);
+        implprocdefinfo^.parentfpstructptrtype:=AValue;
+      end;
+
+
     constructor tprocdef.create(level:byte);
       begin
          inherited create(procdef,level);
+         implprocdefinfo:=allocmem(sizeof(implprocdefinfo^));
          localst:=tlocalsymtable.create(self,parast.symtablelevel);
 {$ifdef symansistr}
          _mangledname:='';
@@ -4559,9 +4805,6 @@ implementation
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
-         forwarddef:=false;
-         interfacedef:=false;
-         hasforward:=false;
          { Disable po_has_inlining until the derefimpl is done }
          exclude(procoptions,po_has_inlininginfo);
 {$ifdef i386}
@@ -4601,7 +4844,12 @@ implementation
 {$ifdef jvm}
          exprasmlist.free;
 {$endif}
-         stringdispose(resultname);
+         if assigned(implprocdefinfo) then
+           begin
+            stringdispose(implprocdefinfo^.resultname);
+            freemem(implprocdefinfo);
+            implprocdefinfo:=nil;
+           end;
          stringdispose(import_dll);
          stringdispose(import_name);
          stringdispose(deprecatedmsg);
@@ -4884,8 +5132,11 @@ implementation
 {$if defined(powerpc) or defined(m68k)}
         tprocdef(result).libsym:=libsym;
 {$endif powerpc or m68k}
-        if assigned(resultname) then
-          tprocdef(result).resultname:=stringdup(resultname^);
+        if assigned(implprocdefinfo) then
+          begin
+            if assigned(resultname) then
+              tprocdef(result).resultname:=stringdup(resultname^);
+          end;
         if assigned(import_dll) then
           tprocdef(result).import_dll:=stringdup(import_dll^);
         if assigned(import_name) then
@@ -4930,16 +5181,16 @@ implementation
       begin
          inherited buildderefimpl;
 
-         { Localst is not available for main/unit init }
-         if assigned(localst) then
-           begin
-             tlocalsymtable(localst).buildderef;
-             tlocalsymtable(localst).buildderefimpl;
-           end;
-
          { inline tree }
          if (po_has_inlininginfo in procoptions) then
            begin
+             { Localst is not available for main/unit init }
+             if assigned(localst) then
+               begin
+                 tlocalsymtable(localst).buildderef;
+                 tlocalsymtable(localst).buildderefimpl;
+               end;
+
              funcretsymderef.build(funcretsym);
              inlininginfo^.code.buildderefimpl;
            end;
@@ -4968,16 +5219,16 @@ implementation
          if assigned(inlininginfo) then
            include(procoptions,po_has_inlininginfo);
 
-         { Locals }
-         if assigned(localst) then
-           begin
-             tlocalsymtable(localst).deref;
-             tlocalsymtable(localst).derefimpl;
-           end;
-
         { Inline }
         if (po_has_inlininginfo in procoptions) then
           begin
+            { Locals }
+            if assigned(localst) then
+              begin
+                tlocalsymtable(localst).deref;
+                tlocalsymtable(localst).derefimpl;
+              end;
+
             inlininginfo^.code.derefimpl;
             { funcretsym, this is always located in the localst }
             funcretsym:=tsym(funcretsymderef.resolve);
@@ -5056,6 +5307,7 @@ implementation
         oldlen,
         i    : integer;
       begin
+        hp:=nil;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
@@ -6358,6 +6610,8 @@ implementation
                           internalerror(2009092501);
                       end;
                     end;
+                  else
+                    internalerror(2013113005);
                 end;
               end;
             result:=result+objextname^;
@@ -7071,6 +7325,11 @@ implementation
             (def.typ=recorddef)));
       end;
 
+    function is_implicit_array_pointer(def: tdef): boolean;
+      begin
+        result:=is_dynamic_array(def) or is_dynamicstring(def);
+      end;
+
     function is_class_or_object(def: tdef): boolean;
       begin
         result:=
@@ -7233,5 +7492,17 @@ implementation
         result:=tarraydef(res^.Data);
       end;
 
+
+{$ifdef x86}
+    function default_x86_data_pointer_type: tx86pointertyp;
+      begin
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          result:=x86pt_far
+        else
+{$endif i8086}
+          result:=x86pt_near;
+      end;
+{$endif x86}
 
 end.
