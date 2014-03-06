@@ -39,6 +39,7 @@ interface
         procedure second_add64bit; override;
         procedure second_cmp64bit; override;
         procedure second_addfloat; override;
+        procedure second_cmpfloat; override;
       end;
 
 
@@ -258,6 +259,12 @@ implementation
           current_asmdata.CurrAsmList.concat(taillvm.op_reg_fpcond_size_reg_reg(op,
             location.register,llvmfpcmp,size,left.location.register,right.location.register))
         end;
+    end;
+
+
+  procedure tllvmaddnode.second_cmpfloat;
+    begin
+      second_addfloat;
     end;
 
 
