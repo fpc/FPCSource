@@ -123,7 +123,7 @@ implementation
        begin
          spillednodes.clear;
          { there should be only one round of spilling per register type, we
-           shouldn't generate multiple writes so a single register here }
+           shouldn't generate multiple writes to a single register here }
          if spillcounter<>0 then
            exit;
          { registers must be in SSA form -> determine all registers that are
