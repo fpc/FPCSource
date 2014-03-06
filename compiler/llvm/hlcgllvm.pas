@@ -707,7 +707,7 @@ implementation
             list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,llv_default,lll_default));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmprocdef.create(current_procinfo.procdef));
+      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef));
     end;
 
 

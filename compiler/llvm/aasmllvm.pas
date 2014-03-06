@@ -35,6 +35,9 @@ interface
     type
       { taillvm }
       taillvm = class(tai_cpu_abstract_sym)
+       private
+        procedure maybe_declare(def: tdef; const ref: treference);
+       public
         llvmopcode: tllvmop;
 
         constructor create_llvm(op: tllvmop);
@@ -131,16 +134,12 @@ interface
       constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
     end;
 
-    { start of a procedure }
-    taillvmprocdef = class(tailineinfo)
-      procdef: tprocdef;
-      constructor create(_procdef: tprocdef);
-    end;
-
-    { global variable definition }
-    taillvmvarsym = class(tailineinfo)
-      varsym: tstaticvarsym;
-      constructor create(_varsym: tstaticvarsym);
+    { declarations/definitions of symbols (procedures, variables), both defined
+      here and external }
+    taillvmdecl = class(tai)
+      namesym: tasmsymbol;
+      def: tdef;
+      constructor create(_namesym: tasmsymbol; _def: tdef);
     end;
 
 
@@ -149,13 +148,14 @@ implementation
 uses
   cutils, cclasses, strings, aasmcpu;
 
-    { taillvmvarsym }
+    { taillvmprocdecl }
 
-    constructor taillvmvarsym.create(_varsym: tstaticvarsym);
+    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef);
       begin
         inherited create;
-        typ:=ait_llvmvarsym;
-        varsym:=_varsym;
+        typ:=ait_llvmdecl;
+        namesym:=_namesym;
+        def:=_def;
       end;
 
     { taillvmalias }
@@ -171,20 +171,30 @@ uses
         linkage:=_linkage;
       end;
 
-    { taillvmprocdef }
-    constructor taillvmprocdef.create(_procdef: tprocdef);
-      begin
-        inherited create;
-        typ:=ait_llvmprocdef;
-        procdef:=_procdef;
-      end;
-
 
 
 
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
+
+    procedure taillvm.maybe_declare(def: tdef; const ref: treference);
+      begin
+        { add llvm declarations for imported symbols }
+        if not assigned(ref.symbol) or
+           (ref.symbol.declared) or
+           not(ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
+          exit;
+        if ref.refaddr<>addr_full then
+          begin
+            if def.typ<>pointerdef then
+              internalerror(2014020701);
+            def:=tpointerdef(def).pointeddef;
+          end;
+        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def));
+        ref.symbol.declared:=true;
+      end;
+
 
     constructor taillvm.create_llvm(op: tllvmop);
       begin
@@ -555,24 +565,26 @@ uses
       end;
 
 
-    { store i32 3, i32* %ptr }
     constructor taillvm.op_reg_size_ref_size(op: tllvmop; dst: tregister; fromsize: tdef; const src: treference; tosize: tdef);
       begin
         create_llvm(op);
         ops:=4;
         loadreg(0,dst);
+        maybe_declare(fromsize,src);
         loaddef(1,fromsize);
         loadref(2,src);
         loaddef(3,tosize);
       end;
 
 
+    { store i32 3, i32* %ptr }
     constructor taillvm.op_size_reg_size_ref(op: tllvmop; fromsize: tdef; src: tregister; ptrsize: tdef; const toref: treference);
       begin
         create_llvm(op);
         ops:=4;
         loaddef(0,fromsize);
         loadreg(1,src);
+        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -582,8 +594,10 @@ uses
       begin
         create_llvm(op);
         ops:=4;
+        maybe_declare(fromsize,src);
         loaddef(0,fromsize);
         loadref(1,src);
+        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -595,6 +609,7 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadconst(1,src);
+        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -605,6 +620,7 @@ uses
         create_llvm(op);
         ops:=3;
         loadreg(0,dst);
+        maybe_declare(fromsize,fromref);
         loaddef(1,fromsize);
         loadref(2,fromref);
       end;
@@ -682,6 +698,7 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
+        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then
@@ -707,6 +724,7 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
+        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then

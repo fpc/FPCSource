@@ -51,12 +51,18 @@ implementation
 
     uses
       verbose,cutils,globals,fmodule,
-      aasmtai,cpubase,llvmbase,aasmllvm,
+      aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
       symbase,symtable,defutil;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint);
+    var
+      asmsym: tasmsymbol;
     begin
-      list.concat(taillvmvarsym.Create(sym));
+      if sym.globalasmsym then
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
+      else
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
+      list.concat(taillvmdecl.Create(asmsym,sym.vardef));
     end;
 
 

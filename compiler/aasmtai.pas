@@ -104,9 +104,8 @@ interface
 {$endif JVM}
 {$ifdef llvm}
           ait_llvmins, { llvm instruction }
-          ait_llvmprocdef, { start of an llvm procedure }
-          ait_llvmvarsym, { global variable }
           ait_llvmalias, { alias for a symbol }
+          ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive
@@ -223,10 +222,9 @@ interface
           'jcatch',
 {$endif JVM}
 {$ifdef llvm}
-          'llvmins', { llvm instruction }
-          'llvmprocdef',
-          'llvmvarsym',
+          'llvmins',
           'llvmalias',
+          'llvmdecl',
 {$endif}
           'seh_directive'
           );
@@ -356,6 +354,9 @@ interface
 {$ifdef JVM}
                      ait_jvar, ait_jcatch,
 {$endif JVM}
+{$ifdef llvm}
+                     ait_llvmdecl,
+{$endif llvm}
                      ait_seh_directive
                     ];
 

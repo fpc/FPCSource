@@ -598,22 +598,47 @@ implementation
                asmwriteln(tai_symbol(hp).sym.name);
 //               internalerror(2013010705);
              end;
-           ait_llvmprocdef:
+           ait_llvmdecl:
              begin
-               asmwrite('define ');
-               asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),'',lpd_decl));
-               asmwriteln(' {');
-             end;
-           ait_llvmvarsym:
-             begin
-               asmwrite(taillvmvarsym(hp).varsym.mangledname);
-               if not taillvmvarsym(hp).varsym.globalasmsym then
-                  asmwrite(' = internal global ')
+               if taillvmdecl(hp).def.typ=procdef then
+                 begin
+                   if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL] then
+                     begin
+                       asmwrite('declare');
+                       asmwriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),taillvmdecl(hp).namesym.name,lpd_decl));
+                     end
+                   else
+                     begin
+                       asmwrite('define');
+                       asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),'',lpd_decl));
+                       asmwriteln(' {');
+                     end;
+                 end
                else
-                  asmwrite(' = global ');
-               asmwrite(llvmencodetype(taillvmvarsym(hp).varsym.vardef));
-               asmwrite(' zeroinitializer, align ');
-               asmwriteln(tostr(taillvmvarsym(hp).varsym.vardef.alignment));
+                 begin
+                   asmwrite(taillvmdecl(hp).namesym.name);
+                   case taillvmdecl(hp).namesym.bind of
+                     AB_EXTERNAL:
+                       asmwrite(' = external global ');
+                     AB_COMMON:
+                       asmwrite(' = common global ');
+                     AB_LOCAL:
+                       asmwrite(' = internal global ');
+                     AB_GLOBAL:
+                       asmwrite(' = global ');
+                     AB_WEAK_EXTERNAL:
+                       asmwrite(' = extern_weak global ');
+                     AB_PRIVATE_EXTERN:
+                       asmwrite('= linker_private global ');
+                     else
+                       internalerror(2014020104);
+                   end;
+                   asmwrite(llvmencodetype(taillvmdecl(hp).def));
+                   if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
+                     asmwrite(' zeroinitializer');
+                   asmwrite(', align ');
+                   asmwriteln(tostr(taillvmdecl(hp).def.alignment));
+                 end;
              end;
            ait_llvmalias:
              begin
