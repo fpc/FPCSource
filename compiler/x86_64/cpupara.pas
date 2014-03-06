@@ -183,7 +183,11 @@ unit cpupara;
              begin
                cl.typ:=X86_64_INTEGER_CLASS;
                if not assigned(cl.def) or
-                  (cl.def.size<size) then
+                  (cl.def.size<size) or
+                  (not(cl.def.typ in [orddef,floatdef,pointerdef]) and
+                   not is_implicit_pointer_object_type(cl.def) and
+                   not is_dynamicstring(cl.def) and
+                   not is_dynamic_array(cl.def)) then
                  cl.def:=u64inttype;
              end;
          end;
