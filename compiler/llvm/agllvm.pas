@@ -256,7 +256,7 @@ implementation
            end;
 {$endif cpuextended}
          else
-           internalerror(2013060224);
+           internalerror(2013060227);
        end;
      end;
 
