@@ -257,6 +257,7 @@ interface
 {$endif jvm}
 {$ifdef llvm}
        { llvm only }
+       ,top_single
        ,top_double
 {$ifdef cpuextended}
        ,top_extended80
@@ -311,6 +312,7 @@ interface
           top_wstring : (pwstrval: pcompilerwidestring);
       {$endif jvm}
       {$ifdef llvm}
+          top_single : (sval:single);
           top_double : (dval:double);
         {$ifdef cpuextended}
           top_extended80 : (eval:extended);

@@ -96,6 +96,7 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
 
         procedure loaddef(opidx: longint; _def: tdef);
+        procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
 {$ifdef cpuextended}
         procedure loadextended(opidx: longint; _eval: extended);
@@ -201,6 +202,19 @@ uses
              clearop(opidx);
            def:=_def;
            typ:=top_def;
+         end;
+      end;
+
+
+    procedure taillvm.loadsingle(opidx: longint; _sval: single);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_single then
+             clearop(opidx);
+           sval:=_sval;
+           typ:=top_single;
          end;
       end;
 
@@ -503,7 +517,16 @@ uses
         ops:=4;
         loadreg(0,dst);
         loaddef(1,fromsize);
-        loaddouble(2,src);
+        if fromsize.typ<>floatdef then
+          internalerror(2014012214);
+        case tfloatdef(fromsize).floattype of
+          s32real:
+            loadsingle(2,src);
+          s64real:
+            loaddouble(2,src);
+          else
+            internalerror(2014012215);
+        end;
         loaddef(3,tosize);
       end;
 

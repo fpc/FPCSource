@@ -261,6 +261,7 @@ implementation
            begin
              getopstr:=llvm_fpcond2str[o.fpcond];
            end;
+         top_single,
          top_double:
            begin
              { "When using the hexadecimal form, constants of types half,
@@ -269,7 +270,10 @@ implementation
 
                And always in big endian form (sign bit leftmost)
              }
-             doubleval.d:=o.dval;
+             if o.typ=top_double then
+               doubleval.d:=o.dval
+             else
+               doubleval.d:=o.sval;
              result:='0x'+hexstr(doubleval.i,16);
            end;
          top_para:
