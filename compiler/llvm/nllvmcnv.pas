@@ -36,7 +36,7 @@ interface
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
          { procedure second_array_to_pointer;override; }
-         { procedure second_pointer_to_array;override; }
+         procedure second_pointer_to_array;override;
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
          { procedure second_int_to_real;override; }
@@ -62,6 +62,18 @@ uses
   cgbase,cgutils,hlcgobj;
 
 { tllvmtypeconvnode }
+
+procedure tllvmtypeconvnode.second_pointer_to_array;
+  var
+    hreg: tregister;
+  begin
+    inherited;
+    { insert type conversion }
+    hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,getpointerdef(resultdef),location.reference,hreg);
+    reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+  end;
+
 
 procedure tllvmtypeconvnode.second_nothing;
   var

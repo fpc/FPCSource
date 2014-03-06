@@ -147,7 +147,7 @@ interface
               begin
                 location.register := cg.getintregister(current_asmdata.CurrAsmList,newsize);
                 location.loc := LOC_REGISTER;
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,orgsize,newsize,left.location.register,location.register);
+                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end;
           end;
       end;
@@ -424,7 +424,7 @@ interface
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
              tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
-             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
+             hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
              left.resultdef:=resultdef;
@@ -479,14 +479,14 @@ interface
                 case expectloc of
                   LOC_FPUREGISTER:
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
-                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,mms_movescalar);
+                      location.register:=hlcg.getmmregister(current_asmdata.CurrAsmList,resultdef);
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
                     end;
                   else
                     internalerror(2003012261);
