@@ -139,7 +139,7 @@ implementation
       locref:=nil;
       if not arraytopointerconverted then
         begin
-          { the result is currently a pointer left.resultdef (the array type)
+          { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
