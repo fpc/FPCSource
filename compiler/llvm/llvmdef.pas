@@ -160,9 +160,9 @@ implementation
                 st_shortstring:
                   { length byte followed by string bytes }
                   if tstringdef(def).len>0 then
-                    encodedstr:=encodedstr+'{i8, ['+tostr(tstringdef(def).len)+' x i8]}'
+                    encodedstr:=encodedstr+'['+tostr(tstringdef(def).len+1)+' x i8]}'
                   else
-                    encodedstr:=encodedstr+'{i8, [0 x i8]}';
+                    encodedstr:=encodedstr+'[0 x i8]';
                 else
                   internalerror(2013100201);
               end;
