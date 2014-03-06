@@ -41,6 +41,10 @@ interface
     function llvmencodeproctype(def: tabstractprocdef; withprocname, withparanames: boolean): TSymStr;
     procedure llvmaddencodedproctype(def: tabstractprocdef; withprocname, withparanames: boolean; var encodedstr: TSymStr);
 
+    { returns whether a def is representated by an aggregate type in llvm
+      (struct, array) }
+    function llvmaggregatetype(def: tdef): boolean;
+
 
 implementation
 
@@ -55,6 +59,20 @@ implementation
 {******************************************************************
                           Type encoding
 *******************************************************************}
+
+  function llvmaggregatetype(def: tdef): boolean;
+    begin
+      result:=
+        (def.typ in [recorddef,filedef,variantdef]) or
+        ((def.typ=arraydef) and
+         not is_dynamic_array(def)) or
+        ((def.typ=setdef) and
+         not is_smallset(def)) or
+        is_shortstring(def) or
+        is_object(def) or
+        ((def.typ=procvardef) and
+         not tprocvardef(def).is_addressonly)
+    end;
 
 
     procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
