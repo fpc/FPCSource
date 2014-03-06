@@ -254,7 +254,10 @@ implementation
               { just an array as far as llvm is concerned; don't use a "packed
                 array of i1" or so, this requires special support in backends
                 and guarantees nothing about the internal format }
-              encodedstr:=encodedstr+'['+tostr(tsetdef(def).size)+' x i8]';
+              if is_smallset(def) then
+                llvmaddencodedtype_intern(cgsize_orddef(def_cgsize(def)),inaggregate,false,encodedstr)
+              else
+                encodedstr:=encodedstr+'['+tostr(tsetdef(def).size)+' x i8]';
             end;
           formaldef :
             begin
