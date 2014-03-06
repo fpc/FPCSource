@@ -2939,7 +2939,7 @@ option_debug_external_unsupported=11048_W_Disabling external debug information b
 % Mac OS X only DWARF debug information can be stored externally.
 option_invalid_macosx_deployment_target=11049_E_Invalid value for MACOSX_DEPLOYMENT_TARGET environment variable: $1
 option_invalid_iphoneos_deployment_target=11050_E_Invalid value for IPHONEOS_DEPLOYMENT_TARGET environment variable: $1
-% On Mac OS X, the MACOSX_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
+% On Mac OS X, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
 % used to set the default target OS version. In case of Mac OS X, it has to be of the format
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
