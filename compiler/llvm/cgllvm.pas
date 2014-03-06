@@ -83,6 +83,8 @@ implementation
           [0],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=Trgllvm.create(R_FPUREGISTER,R_SUBWHOLE,
           [0],first_fpu_imreg,[]);
+        rg[R_MMREGISTER]:=Trgllvm.create(R_MMREGISTER,R_SUBWHOLE,
+          [0],first_mm_imreg,[]);
         { every temp gets its own "base register" to uniquely identify it }
         rg[R_TEMPREGISTER]:=trgllvm.Create(R_TEMPREGISTER,R_SUBWHOLE,
           [0],1,[]);
