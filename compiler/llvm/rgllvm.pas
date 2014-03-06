@@ -130,7 +130,7 @@ implementation
            written to more than once }
          hp:=headertai;
          { 2 bits per superregister, rounded up to a byte }
-         writtenregs:=allocmem((maxreg*2+7) shr 3);
+         writtenregs:=allocmem((maxreg*bitsizeof(twrittenregs[low(tsuperregister)])+7) shr 3);
          while assigned(hp) do
            begin
              case hp.typ of
