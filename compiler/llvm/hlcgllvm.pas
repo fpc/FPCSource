@@ -690,6 +690,7 @@ implementation
     var
       item: TCmdStrListItem;
       mangledname: TSymStr;
+      asmsym: tasmsymbol;
     begin
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       mangledname:=current_procinfo.procdef.mangledname;
@@ -697,13 +698,13 @@ implementation
         refer to the symbol and get the binding correct }
       if (cs_profile in current_settings.moduleswitches) or
          (po_global in current_procinfo.procdef.procoptions) then
-        current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION)
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION)
       else
-        current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION);
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION);
       while assigned(item) do
         begin
           if mangledname<>item.Str then
-            list.concat(taillvmalias.Create(mangledname,item.str,current_procinfo.procdef,llv_default,lll_default));
+            list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,llv_default,lll_default));
           item:=TCmdStrListItem(item.next);
         end;
       list.concat(taillvmprocdef.create(current_procinfo.procdef));

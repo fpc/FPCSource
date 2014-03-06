@@ -128,7 +128,7 @@ interface
       linkage: tllvmlinkage;
       oldsym, newsym: TAsmSymbol;
       def: tdef;
-      constructor Create(const oldname, newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
     end;
 
     { start of a procedure }
@@ -160,10 +160,11 @@ uses
 
     { taillvmalias }
 
-    constructor taillvmalias.Create(const oldname, newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
       begin
         inherited Create;
-        oldsym:=current_asmdata.RefAsmSymbol(oldname,AT_FUNCTION);
+        typ:=ait_llvmalias;
+        oldsym:=_oldsym;
         newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
         def:=_def;
         vis:=_vis;

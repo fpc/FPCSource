@@ -617,14 +617,16 @@ implementation
              end;
            ait_llvmalias:
              begin
-               asmwrite(taillvmalias(hp).newsym.name);
-               asmwrite(' = ');
+               asmwrite('@'+taillvmalias(hp).newsym.name);
+               asmwrite(' = alias ');
                if taillvmalias(hp).linkage<>lll_default then
                  begin
                    str(taillvmalias(hp).linkage,s);
                    asmwrite(copy(s,length('lll_'),255));
                    asmwrite(' ');
-                 end;
+                 end
+               else
+                 asmwrite('external ');
                if taillvmalias(hp).vis<>llv_default then
                  begin
                    str(taillvmalias(hp).vis,s);
@@ -632,7 +634,7 @@ implementation
                    asmwrite(' ');
                  end;
                asmwrite(llvmencodetype(taillvmalias(hp).def));
-               asmwrite(' ');
+               asmwrite('* ');
                asmwriteln(taillvmalias(hp).oldsym.name);
              end;
 {$ifdef arm}
