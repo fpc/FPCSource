@@ -915,6 +915,7 @@ implementation
 
   function thlcgllvm.make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
     var
+      ptrindex: tcgint;
       hreg1,
       hreg2: tregister;
       tmpref: treference;
@@ -926,6 +927,22 @@ implementation
          (ref.offset=0) then
         begin
           result:=ref;
+          exit;
+        end;
+
+      hreg2:=getaddressregister(list,getpointerdef(def));
+      { symbol+offset or base+offset with offset a multiple of the size ->
+        use getelementptr }
+      if (ref.index=NR_NO) and
+         (ref.offset mod def.size=0) then
+        begin
+          ptrindex:=ref.offset div def.size;
+          if assigned(ref.symbol) then
+            reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
+          else
+            reference_reset_base(tmpref,ref.base,0,ref.alignment);
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,getpointerdef(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
+          reference_reset_base(result,hreg2,0,ref.alignment);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -963,7 +980,6 @@ implementation
           a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
-      hreg2:=getaddressregister(list,getpointerdef(def));
       a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
       reference_reset_base(result,hreg2,0,ref.alignment);
     end;
