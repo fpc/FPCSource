@@ -75,7 +75,9 @@ implementation
     end;
 
 
-    procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
+    procedure llvmaddencodedabstractrecordtype(def: tabstractrecorddef; var encodedstr: TSymStr); forward;
+
+    procedure llvmaddencodedtype_intern(def: tdef; inaggregate, noimplicitderef: boolean; var encodedstr: TSymStr);
       begin
         case def.typ of
           stringdef :
@@ -121,7 +123,7 @@ implementation
                 encodedstr:=encodedstr+'i8*'
               else
                 begin
-                  llvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr);
+                  llvmaddencodedtype_intern(tpointerdef(def).pointeddef,inaggregate,false,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end;
             end;
@@ -159,27 +161,21 @@ implementation
             begin
               case tfiledef(def).filetyp of
                 ft_text    :
-                  llvmaddencodedtype(search_system_type('TEXTREC').typedef,false,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('TEXTREC').typedef,inaggregate,false,encodedstr);
                 ft_typed,
                 ft_untyped :
-                  llvmaddencodedtype(search_system_type('FILEREC').typedef,false,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,inaggregate,false,encodedstr);
                 else
                   internalerror(2013100203);
               end;
             end;
           recorddef :
             begin
-              { for now don't encode the individual fields, because handling
-                variant records is a pain. As far as correctness is concerned,
-                the types of the fields only matter for the parameters and
-                function result types, but for those we have to use what the
-                parameter manager calculates anyway (because e.g. a record
-                with two floats has to be passed in an SSE register on x86-64) }
-              encodedstr:=encodedstr+'{[i8 x '+tostr(def.size)+']}'
+              llvmaddencodedabstractrecordtype(trecorddef(def),encodedstr);
             end;
           variantdef :
             begin
-              llvmaddencodedtype(search_system_type('TVARDATA').typedef,false,encodedstr);
+              llvmaddencodedtype_intern(search_system_type('TVARDATA').typedef,inaggregate,false,encodedstr);
             end;
           classrefdef :
             begin
@@ -203,18 +199,18 @@ implementation
               if is_array_of_const(def) then
                 begin
                   encodedstr:=encodedstr+'[0 x ';
-                  llvmaddencodedtype(search_system_type('TVARREC').typedef,true,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('TVARREC').typedef,true,false,encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else if is_open_array(def) then
                 begin
                   encodedstr:=encodedstr+'[0 x ';
-                  llvmaddencodedtype(tarraydef(def).elementdef,true,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,true,false,encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else if is_dynamic_array(def) then
                 begin
-                  llvmaddencodedtype(tarraydef(def).elementdef,false,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,false,false,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else if is_packed_array(def) then
@@ -222,13 +218,13 @@ implementation
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).size div tarraydef(def).elementdef.packedbitsize)+' x ';
                   { encode as an array of integers with the size on which we
                     perform the packedbits operations }
-                  llvmaddencodedtype(cgsize_orddef(int_cgsize(packedbitsloadsize(tarraydef(def).elementdef.packedbitsize))),true,encodedstr);
+                  llvmaddencodedtype_intern(cgsize_orddef(int_cgsize(packedbitsloadsize(tarraydef(def).elementdef.packedbitsize))),true,false,encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else
                 begin
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).elecount)+' x ';
-                  llvmaddencodedtype(tarraydef(def).elementdef,true,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,true,false,encodedstr);
                   encodedstr:=encodedstr+']';
                 end;
             end;
@@ -258,7 +254,8 @@ implementation
                 begin
                   { for now don't handle fields yet }
                   encodedstr:=encodedstr+'{[i8 x '+tostr(def.size)+']}';
-                  if is_implicit_pointer_object_type(def) then
+                  if not noimplicitderef and
+                     is_implicit_pointer_object_type(def) then
                     encodedstr:=encodedstr+'*'
                 end;
               odt_interfacecom,
@@ -284,6 +281,51 @@ implementation
         else
           internalerror(2013100603);
         end;
+      end;
+
+
+    procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
+      begin
+        llvmaddencodedtype_intern(def,inaggregate,false,encodedstr);
+      end;
+
+
+    procedure llvmaddencodedabstractrecordtype(def: tabstractrecorddef; var encodedstr: TSymStr);
+      var
+        st: tllvmshadowsymtable;
+        symdeflist: tfpobjectlist;
+        i: longint;
+      begin
+        st:=tabstractrecordsymtable(def.symtable).llvmst;
+        symdeflist:=st.symdeflist;
+
+        if tabstractrecordsymtable(def.symtable).usefieldalignment<>C_alignment then
+          encodedstr:=encodedstr+'<';
+        encodedstr:=encodedstr+'{ ';
+        if symdeflist.count>0 then
+          begin
+            i:=0;
+            if (def.typ=objectdef) and
+               assigned(tobjectdef(def).childof) and
+               is_class_or_interface_or_dispinterface(tllvmshadowsymtableentry(symdeflist[0]).def) then
+              begin
+                { insert the struct for the class rather than a pointer to the struct }
+                if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
+                  internalerror(2008070601);
+                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[0]).def,true,true,encodedstr);
+                inc(i);
+              end;
+            while i<symdeflist.count do
+              begin
+                if i<>0 then
+                  encodedstr:=encodedstr+', ';
+                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[i]).def,true,false,encodedstr);
+                inc(i);
+              end;
+          end;
+        encodedstr:=encodedstr+' }';
+        if tabstractrecordsymtable(def.symtable).usefieldalignment<>C_alignment then
+          encodedstr:=encodedstr+'>';
       end;
 
 
