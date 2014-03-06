@@ -119,9 +119,11 @@ type
       constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
         AHelpContext: Integer);
+      Function ToString : String; override;  
       { !!!! }
       property HelpContext : longint read fhelpcontext write fhelpcontext;
       property Message : string read fmessage write fmessage;
+      
    end;
 
    ExceptClass = class of Exception;
