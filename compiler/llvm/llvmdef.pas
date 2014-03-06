@@ -154,9 +154,9 @@ implementation
                 st_unicodestring:
                   { the variable does not point to the header, but to a
                     null-terminated string/array with undefined bounds }
-                  encodedstr:=encodedstr+'[0 x i16]';
+                  encodedstr:=encodedstr+'i16*';
                 st_ansistring:
-                  encodedstr:=encodedstr+'[0 x i8]';
+                  encodedstr:=encodedstr+'i8*';
                 st_shortstring:
                   { length byte followed by string bytes }
                   if tstringdef(def).len>0 then
