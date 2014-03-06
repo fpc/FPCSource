@@ -146,7 +146,6 @@ implementation
     procedure tcgcallnode.reorder_parameters;
       var
         hpcurr,hpprev,hpnext,hpreversestart : tcgcallparanode;
-        currloc : tcgloc;
       begin
         { All parameters are now in temporary locations. If we move them to
           their regular locations in the same order, then we get the
