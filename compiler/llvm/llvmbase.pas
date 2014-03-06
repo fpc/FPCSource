@@ -69,10 +69,16 @@ interface
       la_type { type definition }
     );
 
+    tllvmvalueextension = (lve_none, lve_zeroext, lve_signext);
+
   const
     llvmterminatoropcodes = [la_ret, la_br, la_switch, la_indirectbr,
       la_invoke, la_resume,
       la_unreachable];
+
+    llvmvalueextension2str: array[tllvmvalueextension] of TSymStr = ('',
+      ' zeroext',' signext');
+
 
   type
     tllvmfpcmp = (

@@ -144,6 +144,9 @@ interface
         symlist       : TFPObjectList;
         ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+{$ifdef llvm}
+        llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
+{$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -548,6 +551,9 @@ implementation
         symlist:=TFPObjectList.Create(false);
         ptrdefs:=THashSet.Create(64,true,false);
         arraydefs:=THashSet.Create(64,true,false);
+{$ifdef llvm}
+        llvmdefs:=THashSet.Create(64,true,false);
+{$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
@@ -662,6 +668,9 @@ implementation
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+{$ifdef llvm}
+        llvmdefs.free;
+{$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
@@ -726,6 +735,10 @@ implementation
         ptrdefs:=THashSet.Create(64,true,false);
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
+{$ifdef llvm}
+        llvmdefs.free;
+        llvmdefs:=THashSet.Create(64,true,false);
+{$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;

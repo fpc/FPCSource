@@ -58,11 +58,11 @@ unit llvmpara;
   implementation
 
     uses
+      verbose,
       aasmbase,
       llvmsym,
-      paramgr,
-      cgbase,hlcgobj;
-
+      paramgr,defutil,llvmdef,
+      cgbase,cgutils,tgobj,hlcgobj;
 
   { tllvmparamanager }
 
@@ -93,102 +93,60 @@ unit llvmpara;
         add_llvm_callee_paraloc_names(p)
     end;
 
+
+  function tllvmparamanager.get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    var
+      paraloc: pcgparalocation;
+    begin
+      result:=inherited;
+      paraloc:=result.location;
+      repeat
+        paraloc^.llvmvalueloc:=true;
+        paraloc:=paraloc^.next;
+      until not assigned(paraloc);
+    end;
+
+
   { hp non-nil: parasym to check
     hp nil: function result
   }
   procedure tllvmparamanager.set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
-
-    { the default for llvm is to pass aggregates in integer registers or
-      on the stack (as the ABI prescribes). Records that require special
-      handling, e.g. (partly) passing in fpu registers, have to be handled
-      explicitly. This function returns whether an aggregate is handled
-      specially }
-    function has_non_default_paraloc: boolean;
-      var
-        loc: PCGParaLocation;
-      begin
-        loc:=para.Location;
-        result:=true;
-        while assigned(loc) do
-          begin
-            if not(loc^.loc in [LOC_REGISTER,LOC_REFERENCE]) then
-              exit;
-          end;
-        result:=false;
-      end;
-
     var
       paraloc: PCGParaLocation;
-      signextstr: TSymStr;
-      usedef: tdef;
       paralocnr: longint;
     begin
-      { byval: a pointer to a type that should actually be passed by
-          value (e.g. a record that should be passed on the stack) }
-       if (assigned(hp) and
-           (hp.vardef.typ in [arraydef,recorddef,objectdef]) and
-           not paramanager.push_addr_param(hp.varspez,hp.vardef,p.proccalloption) and
-           not has_non_default_paraloc) or
-          (not assigned(hp) and
-           ret_in_param(para.def,p)) then
-        begin
-          { the first location is the name of the "byval" parameter }
-          paraloc:=para.location;
-          if assigned(hp) then
-             begin
-              paraloc^.llvmloc:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,0),AB_LOCAL,AT_DATA);
-              paraloc^.llvmvalueloc:=false;
-             end
-          else
-            begin
-              paraloc^.llvmloc:=current_asmdata.DefineAsmSymbol('%f.result',AB_LOCAL,AT_DATA);
-              paraloc^.llvmvalueloc:=true;
-            end;
-          { the other locations, if any, are not represented individually; llvm
-            takes care of them behind the scenes }
-          while assigned(paraloc^.next) do
-            begin
-              paraloc:=paraloc^.next;
-              paraloc^.llvmloc:=nil;
-            end;
-          exit;
-        end;
       paraloc:=hp.paraloc[calleeside].location;
       paralocnr:=0;
       repeat
-        paraloc^.llvmloc:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_LOCAL,AT_DATA);
-        paraloc^.llvmvalueloc:=true;
+        paraloc^.llvmloc.loc:=LOC_REFERENCE;
+        paraloc^.llvmloc.sym:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_LOCAL,AT_DATA);
+        { byval: a pointer to a type that should actually be passed by
+            value (e.g. a record that should be passed on the stack) }
+        paraloc^.llvmvalueloc:=
+          paramanager.push_addr_param(hp.varspez,hp.vardef,p.proccalloption) or
+          not llvmbyvalparaloc(paraloc);
         paraloc:=paraloc^.next;
         inc(paralocnr);
       until not assigned(paraloc);
     end;
 
 
-  function tllvmparamanager.get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+  procedure tllvmparamanager.add_llvm_callee_paraloc_names(p: tabstractprocdef);
+    var
+      paranr: longint;
+      hp: tparavarsym;
     begin
-      result:=inherited;
-      { TODO: initialise result.llvmloc }
+      for paranr:=0 to p.paras.count-1 do
+        begin
+          hp:=tparavarsym(p.paras[paranr]);
+          set_llvm_paraloc_name(p,hp,hp.paraloc[calleeside]);
+        end;
     end;
 
-    procedure tllvmparamanager.add_llvm_callee_paraloc_names(p: tabstractprocdef);
-      var
-        paranr: longint;
-        para: tcgpara;
-        hp: tparavarsym;
-        first: boolean;
-      begin
-        first:=true;
-        for paranr:=0 to p.paras.count-1 do
-          begin
-            hp:=tparavarsym(p.paras[paranr]);
-            set_llvm_paraloc_name(p,hp,hp.paraloc[calleeside]);
-          end;
-      end;
-
 begin
-  { replace the native code generator. Maybe this has to be moved to a procedure
-    like the creations of the code generators, but possibly not since we still
-    call the original paramanager }
+  { replace the native parameter manager. Maybe this has to be moved to a
+    procedure like the creations of the code generators, but possibly not since
+    we still call the original paramanager }
   paramanager.free;
   paramanager:=tllvmparamanager.create;
 end.

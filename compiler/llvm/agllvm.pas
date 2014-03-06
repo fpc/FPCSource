@@ -601,7 +601,7 @@ implementation
            ait_llvmprocdef:
              begin
                asmwrite('define ');
-               asmwrite(llvmencodeproctype(taillvmprocdef(hp).procdef,true,true));
+               asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),'',lpd_decl));
                asmwriteln(' {');
              end;
            ait_llvmvarsym:
@@ -633,7 +633,7 @@ implementation
                    asmwrite(copy(s,length('llv_'),255));
                    asmwrite(' ');
                  end;
-               asmwrite(llvmencodetype(taillvmalias(hp).def));
+               asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def),'',lpd_alias));
                asmwrite('* ');
                asmwriteln(taillvmalias(hp).oldsym.name);
              end;

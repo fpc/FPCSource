@@ -27,8 +27,23 @@ unit llvmdef;
 interface
 
     uses
-      globtype,
-      symbase,symtype,symdef;
+      cclasses,globtype,
+      parabase,
+      symbase,symtype,symdef,
+      llvmbase;
+
+   type
+     { there are three different circumstances in which procdefs are used:
+        a) definition of a procdef that's implemented in the current module or
+           declaration of an external routine that's called in the current one
+        b) alias declaration of a procdef implemented in the current module
+        c) defining a procvar type
+       The main differences between the contexts are:
+        a) information about sign extension of result type, proc name, parameter names & types
+        b) no information about sign extension of result type, proc name, no parameter names, parameter types
+        c) information about sign extension of result type, no proc name, no parameter names, parameter types
+      }
+     tllvmprocdefdecltype = (lpd_decl,lpd_alias,lpd_procvar);
 
     { Encode a type into the internal format used by LLVM. }
     function llvmencodetype(def: tdef): TSymStr;
@@ -38,8 +53,42 @@ interface
       aggregate type (array, record, ...) }
     procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
 
-    function llvmencodeproctype(def: tabstractprocdef; withprocname, withparanames: boolean): TSymStr;
-    procedure llvmaddencodedproctype(def: tabstractprocdef; withprocname, withparanames: boolean; var encodedstr: TSymStr);
+    { encode a procdef/procvardef into the internal format used by LLVM }
+    function llvmencodeproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype): TSymStr;
+    { incremental version of the above }
+    procedure llvmaddencodedproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype; var encodedstr: TSymStr);
+
+    { function result types may have to be represented differently, e.g. a
+      record consisting of 4 longints must be returned as a record consisting of
+      two int64's on x86-64. This function is used to create (and reuse)
+      temporary recorddefs for such purposes.}
+    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords: shortint): trecorddef;
+
+    { get the llvm type corresponding to a parameter, e.g. a record containing
+      two integer int64 for an arbitrary record split over two individual int64
+      parameters, or an int32 for an int16 parameter on a platform that requires
+      such parameters to be zero/sign extended. The second parameter can be used
+      to get the type before zero/sign extension, as e.g. required to generate
+      function declarations. }
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+
+    { can be used to extract the value extension info from acgpara. Pass in
+      the def of the cgpara as first parameter and a local variable holding
+      a copy of the def of the location (value extension only makes sense for
+      ordinal parameters that are smaller than a single location). The routine
+      will return the def of the location without sign extension (if applicable)
+      and the kind of sign extension that was originally performed in the
+      signext parameter }
+    procedure llvmextractvalueextinfo(paradef: tdef; var paralocdef: tdef; out signext: tllvmvalueextension);
+
+    { returns whether a paraloc should be translated into an llvm "byval"
+      parameter. These are declared as pointers to a particular type, but
+      usually turned into copies onto the stack. The exact behaviour for
+      parameters that should be passed in registers is undefined and depends on
+      the platform, and furthermore this modifier sometimes inhibits
+      optimizations.  As a result,we only use it for aggregate parameters of
+      which we know that they should be passed on the stack }
+    function llvmbyvalparaloc(paraloc: pcgparalocation): boolean;
 
     { returns whether a def is representated by an aggregate type in llvm
       (struct, array) }
@@ -49,12 +98,13 @@ interface
 implementation
 
   uses
-    cutils,cclasses,constexp,
+    cutils,constexp,
     verbose,systems,
     fmodule,
     symtable,symconst,symsym,
     llvmsym,
-    defutil,cgbase,parabase,paramgr;
+    defutil,cgbase,paramgr;
+
 
 {******************************************************************
                           Type encoding
@@ -72,6 +122,23 @@ implementation
         is_object(def) or
         ((def.typ=procvardef) and
          not tprocvardef(def).is_addressonly)
+    end;
+
+
+  function llvmbyvalparaloc(paraloc: pcgparalocation): boolean;
+    begin
+      { "byval" is broken for register paras on several platforms in llvm
+        (search for "byval" in llvm's bug tracker). Additionally, it should only
+        be used to pass aggregate parameters on the stack, because it reportedly
+        inhibits llvm's midlevel optimizers.
+
+        Exception (for now?): parameters that have special shifting
+          requirements, because modelling those in llvm is not easy (and clang
+          nor llvm-gcc seem to do so either) }
+      result:=
+        ((paraloc^.loc=LOC_REFERENCE) and
+         llvmaggregatetype(paraloc^.def)) or
+        (paraloc^.shiftval<>0)
     end;
 
 
@@ -210,7 +277,7 @@ implementation
                 end
               else if is_dynamic_array(def) then
                 begin
-                  llvmaddencodedtype_intern(tarraydef(def).elementdef,false,false,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,inaggregate,false,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else if is_packed_array(def) then
@@ -232,14 +299,14 @@ implementation
             begin
               if tprocvardef(def).is_addressonly then
                 begin
-                  llvmaddencodedproctype(tprocdef(def),false,false,encodedstr);
+                  llvmaddencodedproctype(tprocdef(def),'',lpd_procvar,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else
                 begin
                   encodedstr:=encodedstr+'{';
                   { code pointer }
-                  llvmaddencodedproctype(tprocvardef(def),false,false,encodedstr);
+                  llvmaddencodedproctype(tprocvardef(def),'',lpd_procvar,encodedstr);
                   { data pointer (maybe todo: generate actual layout if
                     available) }
                   encodedstr:=encodedstr+'*, i8*}';
@@ -276,7 +343,8 @@ implementation
             internalerror(2013100604);
           procdef :
             begin
-              llvmaddencodedproctype(tprocdef(def),true,false,encodedstr);
+              { should be handled via llvmencodeproctype/llvmaddencodedproctype }
+              internalerror(2014012601);
             end;
         else
           internalerror(2013100603);
@@ -329,7 +397,7 @@ implementation
       end;
 
 
-    procedure llvmrefineordinaldef(paradef, paralocdef: tdef; out usedef: tdef; out signextstr: TSymStr);
+    procedure llvmextractvalueextinfo(paradef: tdef; var paralocdef: tdef; out signext: tllvmvalueextension);
       begin
         { implicit zero/sign extension for ABI compliance? (yes, if the size
           of a paraloc is larger than the size of the entire parameter) }
@@ -337,79 +405,28 @@ implementation
            is_ordinal(paralocdef) and
            (paradef.size<paralocdef.size) then
           begin
-            usedef:=paradef;
+            paralocdef:=paradef;
             if is_signed(paradef) then
-              signextstr:='signext '
+              signext:=lve_signext
             else
-              signextstr:='zeroext '
+              signext:=lve_zeroext
           end
         else
-          begin
-            usedef:=paralocdef;
-            signextstr:='';
-          end;
+          signext:=lve_none;
       end;
 
 
-    procedure llvmaddencodedparaloctype(hp: tparavarsym; const para: tcgpara; proccalloption: tproccalloption; withparaname: boolean; var first: boolean; var encodedstr: TSymStr);
-
-      { the default for llvm is to pass aggregates in integer registers or
-        on the stack (as the ABI prescribes). Records that require special
-        handling, e.g. (partly) passing in fpu registers, have to be handled
-        explicitly. This function returns whether an aggregate is handled
-        specially }
-      function hasnondefaultparaloc: boolean;
-        var
-          loc: PCGParaLocation;
-        begin
-          loc:=para.Location;
-          result:=true;
-          while assigned(loc) do
-            begin
-              if not(loc^.loc in [LOC_REGISTER,LOC_REFERENCE]) then
-                exit;
-            end;
-          result:=false;
-        end;
-
+    procedure llvmaddencodedparaloctype(hp: tparavarsym; proccalloption: tproccalloption; withparaname: boolean; var first: boolean; var encodedstr: TSymStr);
       var
         paraloc: PCGParaLocation;
-        signextstr: TSymStr;
+        signext: tllvmvalueextension;
         usedef: tdef;
-        closestruct: boolean;
       begin
-        { byval: a pointer to a type that should actually be passed by
-            value (e.g. a record that should be passed on the stack) }
-         if assigned(hp) and
-            (hp.vardef.typ in [arraydef,recorddef,objectdef]) and
-            not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
-            not hasnondefaultparaloc then
-          begin
-            llvmaddencodedtype(hp.vardef,false,encodedstr);
-            encodedstr:=encodedstr+'* byval';
-            if withparaname then
-              encodedstr:=encodedstr+' '+para.location^.llvmloc.name;
-            exit;
-          end;
-
-        closestruct:=false;
-        paraloc:=para.location;
-        if not assigned(hp) then
-          begin
-            { if a function returns a composite value (e.g. 2 sse register),
-              those are represented as a struct }
-            if assigned(paraloc^.next) then
-              begin
-                encodedstr:=encodedstr+'{';
-                closestruct:=true;
-              end;
-          end;
+        paraloc:=hp.paraloc[calleeside].location;
         repeat
           usedef:=paraloc^.def;
-          llvmrefineordinaldef(para.def,paraloc^.def,usedef,signextstr);
+          llvmextractvalueextinfo(hp.vardef,usedef,signext);
           { implicit zero/sign extension for ABI compliance? }
-          if not assigned(hp) then
-            encodedstr:=encodedstr+signextstr;
           if not first then
              encodedstr:=encodedstr+', '
           else
@@ -418,57 +435,182 @@ implementation
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
             original parameter) }
-          if assigned(hp) then
-            encodedstr:=encodedstr+signextstr;
-          if assigned(hp) then
-            begin
-              { sret: hidden pointer for structured function result }
-              if vo_is_funcret in hp.varoptions then
-                encodedstr:=encodedstr+' sret'
-            end;
+          encodedstr:=encodedstr+llvmvalueextension2str[signext];
+          { sret: hidden pointer for structured function result }
+          if vo_is_funcret in hp.varoptions then
+            encodedstr:=encodedstr+' sret'
+          else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
+             llvmbyvalparaloc(paraloc) then
+            encodedstr:=encodedstr+'* byval';
           if withparaname then
-            encodedstr:=encodedstr+' '+paraloc^.llvmloc.name;
+            begin
+              if paraloc^.llvmloc.loc<>LOC_REFERENCE then
+                internalerror(2014010803);
+              encodedstr:=encodedstr+' '+paraloc^.llvmloc.sym.name;
+            end;
           paraloc:=paraloc^.next;
         until not assigned(paraloc);
-        if closestruct then
-          encodedstr:=encodedstr+'}'
       end;
 
 
-    function llvmencodeproctype(def: tabstractprocdef; withprocname, withparanames: boolean): TSymStr;
+    function llvmencodeproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype): TSymStr;
       begin
         result:='';
-        llvmaddencodedproctype(def,withprocname,withparanames,result);
+        llvmaddencodedproctype(def,customname,pddecltype,result);
       end;
 
 
-    procedure llvmaddencodedproctype(def: tabstractprocdef; withprocname, withparanames: boolean; var encodedstr: TSymStr);
+    procedure llvmaddencodedproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype; var encodedstr: TSymStr);
       var
+        usedef: tdef;
         paranr: longint;
-        para: tcgpara;
         hp: tparavarsym;
+        signext: tllvmvalueextension;
         first: boolean;
       begin
         def.init_paraloc_info(calleeside);
         first:=true;
         { function result (return-by-ref is handled explicitly) }
         if not paramanager.ret_in_param(def.returndef,def) then
-          llvmaddencodedparaloctype(nil,def.funcretloc[calleeside],def.proccalloption,false,first,encodedstr)
+          begin
+            usedef:=llvmgetcgparadef(def.funcretloc[calleeside],false);
+            llvmextractvalueextinfo(def.returndef,usedef,signext);
+            { specifying result sign extention information for an alias causes
+              an error for some reason }
+            if pddecltype in [lpd_decl,lpd_procvar] then
+              encodedstr:=encodedstr+llvmvalueextension2str[signext];
+            encodedstr:=encodedstr+' ';
+            llvmaddencodedtype_intern(usedef,false,false,encodedstr);
+          end
         else
-          llvmaddencodedtype(voidtype,false,encodedstr);
+          begin
+            encodedstr:=encodedstr+' ';
+            llvmaddencodedtype(voidtype,false,encodedstr);
+          end;
         encodedstr:=encodedstr+' ';
-        if withprocname and
+        { add procname? }
+        if (pddecltype in [lpd_decl]) and
            (def.typ=procdef) then
-          encodedstr:=encodedstr+tprocdef(def).mangledname;
+          if customname='' then
+            encodedstr:=encodedstr+tprocdef(def).mangledname
+          else
+            encodedstr:=encodedstr+customname;
         encodedstr:=encodedstr+'(';
         { parameters }
         first:=true;
         for paranr:=0 to def.paras.count-1 do
           begin
             hp:=tparavarsym(def.paras[paranr]);
-            llvmaddencodedparaloctype(hp,hp.paraloc[calleeside],def.proccalloption,withparanames,first,encodedstr);
+            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],first,encodedstr);
           end;
         encodedstr:=encodedstr+')'
+      end;
+
+
+    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords: shortint): trecorddef;
+      var
+        i: longint;
+        res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
+        hrecst: trecordsymtable;
+        hdef: tdef;
+        hrecdef: trecorddef;
+        sym: tfieldvarsym;
+        typename: string;
+      begin
+        typename:='$llvmstruct_';
+        for i:=0 to fieldtypes.count-1 do
+          begin
+            hdef:=tdef(fieldtypes[i]);
+            case hdef.typ of
+              orddef:
+                case torddef(hdef).ordtype of
+                  s8bit,
+                  u8bit:
+                    typename:=typename+'i8';
+                  s16bit,
+                  u16bit:
+                    typename:=typename+'i16';
+                  s32bit,
+                  u32bit:
+                    typename:=typename+'i32';
+                  s64bit,
+                  u64bit:
+                    typename:=typename+'i64';
+                  else
+                    { other types should not appear currently, add as needed }
+                    internalerror(2014012001);
+                end;
+              floatdef:
+                case tfloatdef(hdef).floattype of
+                  s32real:
+                    typename:=typename+'f32';
+                  s64real:
+                    typename:=typename+'f64';
+                  else
+                    { other types should not appear currently, add as needed }
+                    internalerror(2014012008);
+                  end;
+              else
+                { other types should not appear currently, add as needed }
+                internalerror(2014012009);
+            end;
+          end;
+        if not assigned(current_module) then
+          internalerror(2014012002);
+        res:=current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
+        if not assigned(res^.Data) then
+          begin
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
+
+            hrecst:=trecordsymtable.create(typename,packrecords);
+            hrecdef:=trecorddef.create(typename,hrecst);
+            for i:=0 to fieldtypes.count-1 do
+              begin
+                sym:=tfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
+                hrecst.insert(sym);
+                hrecst.addfield(sym,vis_hidden);
+              end;
+
+            res^.Data:=hrecdef;
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
+          end;
+        result:=trecorddef(res^.Data);
+      end;
+
+
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+      var
+        retdeflist: tfplist;
+        retloc: pcgparalocation;
+        usedef: tdef;
+        valueext: tllvmvalueextension;
+      begin
+        { single location }
+        if not assigned(cgpara.location^.next) then
+          begin
+            { def of the location, except in case of zero/sign-extension }
+            usedef:=cgpara.location^.def;
+            if beforevalueext then
+              llvmextractvalueextinfo(cgpara.def,usedef,valueext);
+            result:=usedef;
+            exit
+          end;
+        { multiple locations -> create temp record }
+        retdeflist:=tfplist.create;
+        retloc:=cgpara.location;
+        repeat
+          retdeflist.add(retloc^.def);
+          retloc:=retloc^.next;
+        until not assigned(retloc);
+        result:=llvmgettemprecorddef(retdeflist,C_alignment);
       end;
 
 
