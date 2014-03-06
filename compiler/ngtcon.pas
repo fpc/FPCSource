@@ -350,12 +350,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         inc(bp.curbitoffset,bp.packedbitsize);
       end;
 
-{$pop}
-
     procedure flush_packed_value(list: tasmlist; var bp: tbitpackedval);
       var
         bitstowrite: longint;
-        writeval : byte;
+        writeval : AInt;
       begin
         if (bp.curbitoffset < AIntBits) then
           begin
@@ -368,27 +366,35 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             bitstowrite:=AIntBits;
             dec(bp.curbitoffset,AIntBits);
           end;
-        while (bitstowrite>=8) do
+        while (bitstowrite>=bp.loadbitsize) do
           begin
             if (target_info.endian=endian_little) then
               begin
-                { write lowest byte }
-                writeval:=byte(bp.curval);
-                bp.curval:=bp.curval shr 8;
+                { write lowest "loadbitsize" bits }
+                writeval:=bp.curval and (aint(-1) shr ((sizeof(aint)*8)-bp.loadbitsize));
+                bp.curval:=bp.curval shr bp.loadbitsize;
               end
             else
               begin
-                { write highest byte }
-                writeval:=bp.curval shr (AIntBits-8);
-                bp.curval:=(bp.curval and (not($ff shl (AIntBits-8)))) shl 8;
+                { write highest "loadbitsize" bits }
+                writeval:=bp.curval shr (AIntBits-bp.loadbitsize);
+                bp.curval:=bp.curval shl bp.loadbitsize;
               end;
-            list.concat(tai_const.create_8bit(writeval));
-            dec(bitstowrite,8);
+            case bp.loadbitsize of
+              8: list.concat(tai_const.create_8bit(writeval));
+              16: list.concat(tai_const.create_16bit(writeval));
+              32: list.concat(tai_const.create_32bit(writeval));
+              64: list.concat(tai_const.create_64bit(writeval));
+              else
+                internalerror(2013111101);
+            end;
+            dec(bitstowrite,bp.loadbitsize);
           end;
         bp.curval:=bp.nextval;
         bp.nextval:=0;
       end;
 
+    {$pop}
 
 
     { parses a packed array constant }
