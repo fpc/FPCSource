@@ -27,11 +27,12 @@ uses
 
 type
   TDetailedExportFormats = (efDBaseIII, efDBaseIV, efDBaseVII, efCSV, efFixedLengthText, efFoxpro,
-    efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset, efXMLXSDExcel);
+    efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset,
+    efXMLXSDExcel, efVisualFoxpro);
 const
   TDetailedExportExtensions: array [TDetailedExportFormats] of string[5] =
     ('.dbf','.dbf','.dbf','.csv','.txt','.dbf','.json','.rtf','.sql','.tex',
-    '.xml','.xml','.xml','.xml','.xml'); //File extension for the corresponding TDetailedExportFormats
+    '.xml','.xml','.xml','.xml','.xml','.dbf'); //File extension for the corresponding TDetailedExportFormats
 type
   { TTestDBExport }
   TTestDBExport = class(TTestCase)
@@ -49,6 +50,7 @@ type
     procedure TestDBFExport_DBaseIV;
     procedure TestDBFExport_DBaseVII;
     procedure TestDBFExport_FoxPro;
+    procedure TestDBFExport_VisualFoxPro;
     procedure TestCSVExport; //tests csv export with default values
     procedure TestCSVExport_RFC4180WithHeader; //tests csv export with settings that match RFC4180
     procedure TestCSVExport_TweakSettingsSemicolon; //tests semicolon delimited, custom country values
@@ -93,6 +95,7 @@ begin
     efCSV: result:=true;
     efFixedLengthText: result:=true; //todo: verify if all fields are really supported. Quick glance would indicate so
     efFoxpro: if FieldType in FoxProUnsupported then result:=false;
+    efVisualFoxpro: if FieldType in FoxProUnsupported-[ftVarBytes] then result:=false;
     efJSON: result:=true;
     efRTF: result:=true;
     efSQL: result:=true;
@@ -239,6 +242,33 @@ begin
   try
     ExportFormat:=efFoxpro;
     ExportSettings.TableFormat:=tfFoxPro;
+    ExportSettings.AutoRenameFields:=true; //rename conflicting column names
+    Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
+      lowercase(rightstr(TestName,5)) +
+      TDetailedExportExtensions[ExportFormat];
+    Exporter.FormatSettings:=ExportSettings;
+    GenericExportTest(Exporter, ExportFormat);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+  finally
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    ExportSettings.Free;
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestDBFExport_VisualFoxPro;
+var
+  Exporter: TFPDBFExport;
+  ExportFormat: TDetailedExportFormats;
+  ExportSettings:TDBFExportFormatSettings;
+begin
+  Exporter := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
+  try
+    ExportFormat:=efVisualFoxpro;
+    ExportSettings.TableFormat:=tfVisualFoxPro;
     ExportSettings.AutoRenameFields:=true; //rename conflicting column names
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
