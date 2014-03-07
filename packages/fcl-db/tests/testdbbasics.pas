@@ -44,6 +44,7 @@ type
     procedure TestSupportMemoFields;
 
     procedure TestDoubleClose;
+    procedure TestFieldDefsUpdate;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
     procedure TestAssignFieldftFixedChar;
@@ -2768,6 +2769,17 @@ begin
     open;
     close;
     close;
+    end;
+end;
+
+procedure TTestDBBasics.TestFieldDefsUpdate;
+begin
+  // FieldDefs.Update is called also by Lazarus IDE Fields editor
+  with DBConnector.GetNDataset(0) do
+    begin
+    // call Update on closed unprepared dataset
+    FieldDefs.Update;
+    CheckEquals(2, FieldDefs.Count);
     end;
 end;
 

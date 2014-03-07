@@ -525,6 +525,7 @@ type
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure DoBeforeClose; override;
+    procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
     function GetRecordSize: Word; override;
@@ -1185,22 +1186,20 @@ begin
     FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
 end;
 
+procedure TCustomBufDataset.InternalInitFieldDefs;
+begin
+  if FileName<>'' then
+    IntLoadFieldDefsFromFile;
+end;
+
 procedure TCustomBufDataset.InternalOpen;
 
 var IndexNr : integer;
     i : integer;
 
 begin
-  if not Assigned(FDatasetReader) and (FileName<>'') then
-    begin
-    FFileStream := TFileStream.Create(FileName,fmOpenRead);
-    FDatasetReader := GetPacketReader(dfAny, FFileStream);
-    end;
-  if assigned(FDatasetReader) then
-    begin
-    FReadFromFile := True;
-    IntLoadFielddefsFromFile;
-    end;
+  if assigned(FDatasetReader) or (FileName<>'') then
+    IntLoadFieldDefsFromFile;
 
   // This checks if the dataset is actually created (by calling CreateDataset,
   // or reading from a stream in some other way implemented by a descendent)
@@ -1242,6 +1241,13 @@ begin
   ParseFilter(Filter);
 
   if assigned(FDatasetReader) then IntLoadRecordsFromFile;
+end;
+
+procedure TCustomBufDataset.DoBeforeClose;
+begin
+  inherited DoBeforeClose;
+  if FFileName<>'' then
+    SaveToFile(FFileName);
 end;
 
 procedure TCustomBufDataset.InternalClose;
@@ -1705,13 +1711,6 @@ begin
     else if (Result = grError) and DoCheck then
       DatabaseError('No record');
     until Acceptable;
-end;
-
-procedure TCustomBufDataset.DoBeforeClose;
-begin
-  inherited DoBeforeClose;
-  if FFileName<>'' then
-    SaveToFile(FFileName);
 end;
 
 function TCustomBufDataset.GetActiveRecordUpdateBuffer : boolean;
@@ -3016,6 +3015,13 @@ end;
 procedure TCustomBufDataset.IntLoadFieldDefsFromFile;
 
 begin
+  FReadFromFile := True;
+  if not assigned(FDatasetReader) then
+    begin
+    FFileStream := TFileStream.Create(FileName, fmOpenRead);
+    FDatasetReader := GetPacketReader(dfAny, FFileStream);
+    end;
+
   FieldDefs.Clear;
   FDatasetReader.LoadFieldDefs(FAutoIncValue);
   if DefaultFields then
