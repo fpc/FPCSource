@@ -253,7 +253,8 @@ interface
          f_heap,f_init_final,f_rtti,f_classes,f_exceptions,f_exitcode,
          f_ansistrings,f_widestrings,f_textio,f_consoleio,f_fileio,
          f_random,f_variants,f_objects,f_dynarrays,f_threading,f_commandargs,
-         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources,
+         f_unicodestring
        );
        tfeatures = set of tfeature;
 
@@ -344,11 +345,12 @@ interface
        }
        WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
 
-       featurestr : array[tfeature] of string[12] = (
+       featurestr : array[tfeature] of string[14] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
          'ANSISTRINGS','WIDESTRINGS','TEXTIO','CONSOLEIO','FILEIO',
          'RANDOM','VARIANTS','OBJECTS','DYNARRAYS','THREADING','COMMANDARGS',
-         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES'
+         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES',
+         'UNICODESTRINGS'
        );
 
     type

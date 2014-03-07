@@ -78,7 +78,13 @@
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
 {$define FPC_HAS_FEATURE_OBJECTIVEC1}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
+
+{ bootstrapping, the starting compiler cannot be a downstripped compiler without unicodestring support }
+{$ifdef VER2_6}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
+{$endif VER2_6}
 
 {****************************************************************************
                          Global Types and Constants
