@@ -241,6 +241,10 @@ begin
         // having to specify NULL all the time:
         // http://msdn.microsoft.com/en-us/library/ms174979.aspx
         FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+        // Padding character fields is expected by ANSI and sqldb, as well as
+        // recommended by Microsoft:
+        // http://msdn.microsoft.com/en-us/library/ms187403.aspx
+        FConnection.ExecuteDirect('SET ANSI_PADDING ON');
       end;
       TempTrans.Commit;
       TempTrans.Free;
