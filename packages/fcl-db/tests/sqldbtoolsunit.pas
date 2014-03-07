@@ -235,10 +235,13 @@ begin
       TempTrans.StartTransaction;
       // Proper blob support:
       FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
-      // When running CREATE TABLE statements, allow NULLs by default - without
-      // having to specify NULL all the time:
-      // http://msdn.microsoft.com/en-us/library/ms174979.aspx
-      FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+      if SQLServerType=ssMSSQL then
+      begin
+        // When running CREATE TABLE statements, allow NULLs by default - without
+        // having to specify NULL all the time:
+        // http://msdn.microsoft.com/en-us/library/ms174979.aspx
+        FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+      end;
       TempTrans.Commit;
       TempTrans.Free;
       FConnection.Transaction:=nil;
