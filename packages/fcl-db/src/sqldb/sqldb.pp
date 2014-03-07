@@ -403,9 +403,11 @@ type
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
+    Function Cursor : TSQLCursor;
+    Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
-    Function Cursor : TSQLCursor;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
@@ -430,9 +432,6 @@ type
     class function FieldDefsClass : TFieldDefsClass; override;
     // IProviderSupport methods
     function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
-
-    Function LogEvent(EventType : TDBEventType) : Boolean;
-    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -2063,9 +2062,9 @@ procedure TCustomSQLQuery.Prepare;
 
 begin
   FStatement.Prepare;
-  If Assigned(Fstatement.FCursor) then
-    With FStatement.FCursor do
-      FInitFieldDef:=FSelectable;
+  if Assigned(FStatement.FCursor) then
+    with FStatement.FCursor do
+      FInitFieldDef := FSelectable;
 end;
 
 procedure TCustomSQLQuery.UnPrepare;
@@ -2117,6 +2116,11 @@ begin
   Result:=Transaction as TSQLTransaction;
 end;
 
+function TCustomSQLQuery.Cursor: TSQLCursor;
+begin
+  Result:=FStatement.Cursor;
+end;
+
 function TCustomSQLQuery.Fetch : boolean;
 begin
   if Not Assigned(Cursor) then
@@ -2127,11 +2131,6 @@ begin
     Log(detFetch,FSQLBuf);
   if not FIsEof then FIsEOF := not SQLConnection.Fetch(Cursor);
   Result := not FIsEOF;
-end;
-
-function TCustomSQLQuery.Cursor: TSQLCursor;
-begin
-  Result:=FStatement.Cursor;
 end;
 
 procedure TCustomSQLQuery.Execute;
@@ -2189,11 +2188,11 @@ begin
 
   try
     FieldDefs.Clear;
-    if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
+    Prepare;
     SQLConnection.AddFieldDefs(Cursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
-    if Assigned(Cursor) then Cursor.FInitFieldDef := false;
+    if assigned(Cursor) then Cursor.FInitFieldDef := False;
   end;
 end;
 
