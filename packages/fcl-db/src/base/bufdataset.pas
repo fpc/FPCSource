@@ -1189,7 +1189,11 @@ end;
 procedure TCustomBufDataset.InternalInitFieldDefs;
 begin
   if FileName<>'' then
+    begin
     IntLoadFieldDefsFromFile;
+    FreeAndNil(FDatasetReader);
+    FreeAndNil(FFileStream);
+    end;
 end;
 
 procedure TCustomBufDataset.InternalOpen;
