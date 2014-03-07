@@ -134,7 +134,7 @@ unit i_sunos;
             assemextern  : as_ggas;
             link         : ld_none;
             linkextern   : ld_solaris;
-            ar           : ar_gnu_ar;
+            ar           : ar_gnu_gar;
             res          : res_elf;
             dbg          : dbg_dwarf2;
             script       : script_unix;
