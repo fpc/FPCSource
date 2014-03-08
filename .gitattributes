@@ -2362,8 +2362,10 @@ packages/fcl-js/src/jsparser.pp svneol=native#text/plain
 packages/fcl-js/src/jsscanner.pp svneol=native#text/plain
 packages/fcl-js/src/jstoken.pp svneol=native#text/plain
 packages/fcl-js/src/jstree.pp svneol=native#text/plain
+packages/fcl-js/src/jswriter.pp svneol=native#text/plain
 packages/fcl-js/tests/tcparser.pp svneol=native#text/plain
 packages/fcl-js/tests/tcscanner.pp svneol=native#text/plain
+packages/fcl-js/tests/tcwriter.pp svneol=native#text/plain
 packages/fcl-js/tests/testjs.ico -text
 packages/fcl-js/tests/testjs.lpi svneol=native#text/plain
 packages/fcl-js/tests/testjs.lpr svneol=native#text/plain

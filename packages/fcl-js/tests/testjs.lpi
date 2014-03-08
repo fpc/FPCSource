@@ -1,19 +1,21 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="7"/>
+    <Version Value="9"/>
     <General>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=""/>
-      <Icon Value="0"/>
       <UseXPManifest Value="True"/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
-      <ProjectVersion Value=""/>
       <Language Value=""/>
       <CharSet Value=""/>
+      <StringTable ProductVersion=""/>
     </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -23,228 +25,365 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-a --format=plain"/>
+        <CommandLineParams Value="--suite=TTestStatementWriter"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="16">
       <Unit0>
         <Filename Value="testjs.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testjs"/>
-        <CursorPos X="11" Y="7"/>
+        <WindowIndex Value="1"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="0"/>
+        <CursorPos X="48" Y="3"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcscanner.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcscanner"/>
-        <CursorPos X="27" Y="427"/>
-        <TopLine Value="416"/>
-        <EditorIndex Value="2"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="17" Y="22"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../src/jsbase.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="jsbase"/>
-        <CursorPos X="1" Y="153"/>
-        <TopLine Value="132"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="196"/>
-        <Loaded Value="True"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="12"/>
+        <UsageCount Value="200"/>
       </Unit2>
       <Unit3>
         <Filename Value="../src/jsparser.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="jsparser"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="2032"/>
+        <CursorPos X="57" Y="2068"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="../src/jsscanner.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="JSScanner"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="342"/>
+        <CursorPos X="76" Y="345"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="../src/jstree.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="jstree"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="838"/>
+        <CursorPos X="3" Y="856"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="tcparser.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcparser"/>
-        <CursorPos X="3" Y="2059"/>
-        <TopLine Value="2051"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="97"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="../src/jswriter.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jswriter"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="90"/>
+        <CursorPos X="27" Y="120"/>
+        <UsageCount Value="202"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="tctextwriter.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tctextwriter"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="4"/>
+        <CursorPos X="15" Y="22"/>
+        <UsageCount Value="201"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../../../../projects/lazarus/components/fpcunit/console/consoletestrunner.pas"/>
+        <UnitName Value="consoletestrunner"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="157"/>
+        <CursorPos X="1" Y="175"/>
+        <UsageCount Value="5"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="tcwriter.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcwriter"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1822"/>
+        <CursorPos X="3" Y="1841"/>
+        <UsageCount Value="220"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../../../released/packages/fcl-json/src/fpjson.pp"/>
+        <UnitName Value="fpjson"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="558"/>
+        <CursorPos X="21" Y="580"/>
+        <UsageCount Value="62"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../src/jstoken.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="jstoken"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="4"/>
+        <CursorPos X="82" Y="11"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../../../../released/packages/fcl-fpcunit/src/testregistry.pp"/>
+        <UnitName Value="testregistry"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="106"/>
+        <CursorPos X="22" Y="108"/>
+        <UsageCount Value="14"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="../../../rtl/tests/punit.pp"/>
+        <UnitName Value="punit"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="405"/>
+        <CursorPos X="41" Y="415"/>
+        <UsageCount Value="19"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="../../../../released/rtl/inc/mathh.inc"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="60"/>
+        <CursorPos X="14" Y="78"/>
+        <UsageCount Value="14"/>
+      </Unit15>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1752" Column="1" TopLine="1730"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1017" Column="16" TopLine="1000"/>
       </Position1>
       <Position2>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1767" Column="32" TopLine="1733"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1024" Column="19" TopLine="1007"/>
       </Position2>
       <Position3>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1790" Column="30" TopLine="1766"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1027" Column="24" TopLine="1010"/>
       </Position3>
       <Position4>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1763" Column="26" TopLine="1736"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="161" Column="28" TopLine="142"/>
       </Position4>
       <Position5>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1791" Column="1" TopLine="1758"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="1463" Column="39" TopLine="1450"/>
       </Position5>
       <Position6>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="114" Column="30" TopLine="93"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="1617" Column="110" TopLine="1598"/>
       </Position6>
       <Position7>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1806" Column="23" TopLine="1798"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="162" Column="33" TopLine="143"/>
       </Position7>
       <Position8>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1828" Column="3" TopLine="1819"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="163" Column="29" TopLine="143"/>
       </Position8>
       <Position9>
-        <Filename Value="../../../../source/fcl-js/jsparser.pp"/>
-        <Caret Line="515" Column="28" TopLine="507"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="164" Column="36" TopLine="145"/>
       </Position9>
       <Position10>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1824" Column="24" TopLine="1803"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="165" Column="34" TopLine="146"/>
       </Position10>
       <Position11>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1828" Column="17" TopLine="1803"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="1727" Column="184" TopLine="1709"/>
       </Position11>
       <Position12>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1849" Column="34" TopLine="1820"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="166" Column="41" TopLine="147"/>
       </Position12>
       <Position13>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="118" Column="27" TopLine="96"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1067" Column="1" TopLine="1064"/>
       </Position13>
       <Position14>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1900" Column="29" TopLine="1888"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1082" Column="15" TopLine="1064"/>
       </Position14>
       <Position15>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1898" Column="12" TopLine="1877"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1086" Column="29" TopLine="1070"/>
       </Position15>
       <Position16>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1904" Column="80" TopLine="1883"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="167" Column="1" TopLine="148"/>
       </Position16>
       <Position17>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1914" Column="29" TopLine="1883"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="721" Column="6" TopLine="697"/>
       </Position17>
       <Position18>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1948" Column="18" TopLine="1914"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="168" Column="30" TopLine="149"/>
       </Position18>
       <Position19>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="20" Column="1" TopLine="1"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="1770" Column="20" TopLine="1766"/>
       </Position19>
       <Position20>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="2165" Column="1" TopLine="2124"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="114" Column="20" TopLine="78"/>
       </Position20>
       <Position21>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="121" Column="27" TopLine="99"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="73" Column="1" TopLine="73"/>
       </Position21>
       <Position22>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1969" Column="3" TopLine="1960"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="2329" Column="1" TopLine="2293"/>
       </Position22>
       <Position23>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1971" Column="46" TopLine="1950"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1219" Column="6" TopLine="1212"/>
       </Position23>
       <Position24>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1986" Column="14" TopLine="1961"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position24>
       <Position25>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1993" Column="33" TopLine="1960"/>
+        <Filename Value="../src/jswriter.pp"/>
+        <Caret Line="120" Column="27" TopLine="90"/>
       </Position25>
       <Position26>
-        <Filename Value="../../../../source/fcl-js/jsparser.pp"/>
-        <Caret Line="1702" Column="24" TopLine="1685"/>
+        <Filename Value="../src/jsparser.pp"/>
+        <Caret Line="1771" Column="21" TopLine="1746"/>
       </Position26>
       <Position27>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="124" Column="25" TopLine="100"/>
+        <Filename Value="../src/jsparser.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="2038" Column="10" TopLine="2035"/>
+        <Filename Value="../src/jsparser.pp"/>
+        <Caret Line="103" Column="51" TopLine="73"/>
       </Position28>
       <Position29>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="2075" Column="56" TopLine="2051"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="170" Column="40" TopLine="145"/>
       </Position29>
       <Position30>
-        <Filename Value="../../../../source/fcl-js/jsparser.pp"/>
-        <Caret Line="1747" Column="29" TopLine="1740"/>
+        <Filename Value="tcwriter.pp"/>
+        <Caret Line="1808" Column="24" TopLine="1789"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)/"/>
-      <OtherUnitFiles Value="/home/michael/source/fcl-js/;../"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="/home/michael/source/fcl-js/;..;../src"/>
     </SearchPaths>
     <CodeGeneration>
       <Optimizations>
         <OptimizationLevel Value="0"/>
       </Optimizations>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="1">
+    <BreakPoints Count="7">
       <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsGlobal"/>
+        <WatchKind Value="wpkWrite"/>
         <Source Value="../jsscanner.pp"/>
         <Line Value="717"/>
       </Item1>
+      <Item2>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="tcparser.pp"/>
+        <Line Value="2086"/>
+      </Item2>
+      <Item3>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="tcparser.pp"/>
+        <Line Value="2566"/>
+      </Item3>
+      <Item4>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../src/jsparser.pp"/>
+        <Line Value="845"/>
+      </Item4>
+      <Item5>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../src/jsparser.pp"/>
+        <Line Value="754"/>
+      </Item5>
+      <Item6>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../src/jsparser.pp"/>
+        <Line Value="1287"/>
+      </Item6>
+      <Item7>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="tcparser.pp"/>
+        <Line Value="2253"/>
+      </Item7>
     </BreakPoints>
     <Exceptions Count="3">
       <Item1>
@@ -258,4 +397,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>
