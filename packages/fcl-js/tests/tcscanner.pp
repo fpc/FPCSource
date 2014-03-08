@@ -5,7 +5,7 @@ unit tcscanner;
 interface
 
 uses
-  Classes, SysUtils, Typinfo, fpcunit, testutils, testregistry, jsscanner;
+  Classes, SysUtils, Typinfo, fpcunit, testutils, testregistry, jstoken, jsscanner;
 
 type
 
