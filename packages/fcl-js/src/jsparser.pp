@@ -6,45 +6,12 @@ unit jsparser;
 interface
 
 uses
-  Classes, SysUtils, jsscanner, jstree;
+  Classes, SysUtils, jsscanner, jstree, jstoken;
 
 Const
    SEmptyLabel = '';
 
 Type
-
-
-  { TJSLabelSet }
-
-  TJSLabelSet = Class(TObject)
-  private
-    FCOnt: Boolean;
-    FNext: TJSLabelSet;
-    FTarget: Cardinal;
-  Public
-    Property Target : Cardinal Read FTarget Write FTarget;
-    Property Next : TJSLabelSet Read FNext Write FNext; // Linked list
-    Property Continuable : Boolean Read FCOnt Write FCont;
-  end;
-
-  { TJSLabel }
-
-  TJSLabel = Class(TObject)
-  private
-    FLabelSet: TJSLabelSet;
-    FLocationLine: Integer;
-    FLocationPos: Integer;
-    FLocationSource: String;
-    FName: String;
-    FNext: TJSLabel;
-  Public
-    Property Name : String Read FName Write FName;
-    Property LabelSet : TJSLabelSet Read FLabelSet Write FLabelSet;
-    Property LocationSource : String Read FLocationSource Write FLocationSource;
-    Property LocationLine : Integer Read FLocationLine Write FLocationLine;
-    Property LocationPos : Integer Read FLocationPos Write FLocationPos;
-    Property Next : TJSLabel Read FNext Write FNext;
-  end;
 
   { TJSParser }
 
@@ -601,7 +568,7 @@ begin
       begin
       While CurrentToken=tjsComma do
          GetNextToken;
-      If (CurrentToken in [tjsIdentifier,jsscanner.tjsString,tjsnumber]) then
+      If (CurrentToken in [tjsIdentifier,jstoken.tjsString,tjsnumber]) then
          begin
          E:=N.Elements.AddElement;
          E.Name:=CurrenttokenString;
@@ -724,7 +691,7 @@ begin
               GetNextToken;
               end;
     tjsNumber : Result:=ParseNumericLiteral;
-    jsscanner.tjsString : Result:=ParseStringLiteral;
+    jstoken.tjsString : Result:=ParseStringLiteral;
     tjsDiv,
     tjsDivEq : Result:=ParseRegularExpressionLiteral
   else
@@ -777,6 +744,7 @@ function TJSParser.ParseMemberExpression: TJSElement;
 
 Var
   M  : TJSDotMemberExpression;
+  N  : TJSNewMemberExpression;
   B  : TJSBracketMemberExpression;
   C : TJSCallExpression;
   Done : Boolean;
@@ -787,7 +755,16 @@ begin
     tjsFunction : Result:=ParseFunctionExpression();
     tjsNew      : begin
                   GetNextToken;
-                  Result:=ParseMemberExpression();
+                  N:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression));
+                  try
+                    Result:=N;
+                    N.Mexpr:=ParseMemberExpression();
+                    if (CurrentToken=tjsBraceOpen) then
+                      N.Args:=ParseArguments;
+                  except
+                    FreeAndNil(N);
+                    Raise;
+                  end;
                   end;
   else
     Result:=ParsePrimaryExpression()
@@ -1481,7 +1458,7 @@ begin
       tjsDo :
         begin
         GetNextToken;
-        W:=TJSWhileStatement(CreateElement(TJSWhileStatement));
+        W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement));
         Result:=W;
         W.Body:=ParseStatement;
         Consume(tjsWhile);
@@ -1604,6 +1581,7 @@ begin
       end;
     Consume(tjsSemicolon,True);
     C.Target:=L.Labelset.Target;
+    C.TargetName:=L.Name;
   except
     FreeAndNil(C);
     Raise;
@@ -1631,6 +1609,7 @@ begin
       end;
     Consume(tjsSemicolon,True);
     B.Target:=L.Labelset.Target;
+    B.TargetName:=L.Name;
   except
     FreeAndNil(B);
     Raise;
@@ -1722,7 +1701,9 @@ begin
       Consume(tjsCurlyBraceClose);
     finally
       LeaveLabel;
+      FreeCurrentLabelSet;
     end;
+    Result:=N;
   except
     FreeAndNil(N);
     Raise;
@@ -1753,7 +1734,7 @@ function TJSParser.ParseTryStatement : TJSElement;
 
 Var
   BO,BC,BF : TJSElement;
-  Id : TJSString;
+  Id : jstree.TJSString;
   T : TJSTryStatement;
 
 begin
@@ -1913,7 +1894,7 @@ begin
       FCurrentLabelSet:=Nil;
       LS.target:=CurrentLabelSet.Target;
       Repeat
-        EnterLabel(CurrentTokenString);
+        LS.TheLabel:=EnterLabel(CurrentTokenString);
         Consume(tjsIdentifier);
         Consume(tjsColon);
       Until (CurrentToken<>tjsIdentifier) or (PeekNextToken<>tjsColon);
@@ -2037,13 +2018,13 @@ function TJSParser.ParseSourceElements : TJSSourceElements;
 
 Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
-      tjsTHIS, tjsIdentifier,jsscanner.tjsSTRING,tjsNUMBER,
+      tjsTHIS, tjsIdentifier,jstoken.tjsSTRING,tjsNUMBER,
       tjsBraceOpen,tjsCurlyBraceOpen,tjsSquaredBraceOpen,
       tjsNew,tjsDelete,tjsVoid,tjsTypeOf,
       tjsPlusPlus,tjsMinusMinus,
       tjsPlus,tjsMinus,tjsNot,tjsNE,tjsSNE,tjsSemicolon,
-      tjsVAR,tjsIF,tjsDO,tjsWHILE,tjsFOR,jsscanner.tjsCONTINUE,jsscanner.tjsBREAK,jsscanner.tjsReturn,
-      tjsWith,jsscanner.tjsSWITCH,tjsThrow,TjsTry,tjsDIV,tjsDIVEQ];
+      tjsVAR,tjsIF,tjsDO,tjsWHILE,tjsFOR,jstoken.tjsCONTINUE,jstoken.tjsBREAK,jstoken.tjsReturn,
+      tjsWith,jstoken.tjsSWITCH,tjsThrow,TjsTry,tjsDIV,tjsDIVEQ];
 
 Var
   F : TJSFunctionDeclarationStatement;
@@ -2060,7 +2041,7 @@ begin
       FCurrentVars:=Result.Vars;
       Repeat
         {$ifdef debugparser} Writeln('Sourceelements start:',GetEnumName(TypeInfo(TJSToken),Ord(CurrentToken)), ' As string: ',CurrentTokenString);{$endif debugparser}
-        If (CurrentToken=jsscanner.tjsFunction) then
+        If (CurrentToken=jstoken.tjsFunction) then
           begin
           If (PeekNextToken<>tjsBraceOpen) then
             begin
