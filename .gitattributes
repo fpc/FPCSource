@@ -2360,6 +2360,7 @@ packages/fcl-js/fpmake.pp svneol=native#text/plain
 packages/fcl-js/src/jsbase.pp svneol=native#text/plain
 packages/fcl-js/src/jsparser.pp svneol=native#text/plain
 packages/fcl-js/src/jsscanner.pp svneol=native#text/plain
+packages/fcl-js/src/jstoken.pp svneol=native#text/plain
 packages/fcl-js/src/jstree.pp svneol=native#text/plain
 packages/fcl-js/tests/tcparser.pp svneol=native#text/plain
 packages/fcl-js/tests/tcscanner.pp svneol=native#text/plain
