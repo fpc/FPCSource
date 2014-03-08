@@ -40,7 +40,7 @@ interface
         function CodeSectionName: string;
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
-        procedure WriteOper_jmp(const o:toper; op : tasmop);
+        procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteSection(atype:TAsmSectiontype;const aname:string);
       public
         procedure WriteTree(p:TAsmList);override;
@@ -428,9 +428,7 @@ interface
                   asmwrite('dword ');
 {$endif i386}
 {$ifdef i8086}
-                  if o.ref^.refaddr=addr_far then
-                    asmwrite('far ')
-                  else if o.ref^.refaddr=addr_seg then
+                  if o.ref^.refaddr=addr_seg then
                     asmwrite('SEG ')
                   else
                     asmwrite('word ');
@@ -454,39 +452,39 @@ interface
       end;
 
 
-    procedure TX86NasmAssembler.WriteOper_jmp(const o:toper; op : tasmop);
+    procedure TX86NasmAssembler.WriteOper_jmp(const o:toper; ai : taicpu);
       begin
         case o.typ of
           top_reg :
             AsmWrite(nasm_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no{$ifdef i8086},addr_far_ref{$endif}] then
+            if o.ref^.refaddr=addr_no then
               begin
-{$ifdef i8086}
-                if o.ref^.refaddr=addr_far_ref then
+                if ai.opsize=S_FAR then
                   AsmWrite('far ');
-{$endif i8086}
                 WriteReference(o.ref^);
               end
             else
               begin
+                if ai.opsize=S_FAR then
+                  AsmWrite('far ')
+                else
+                  begin
 { NEAR forces NASM to emit near jumps, which are 386+ }
 {$ifndef i8086}
                 if not(
-                       (op=A_JCXZ) or (op=A_JECXZ) or
+                       (ai.opcode=A_JCXZ) or (ai.opcode=A_JECXZ) or
     {$ifdef x86_64}
-                       (op=A_JRCXZ) or
+                       (ai.opcode=A_JRCXZ) or
     {$endif x86_64}
-                       (op=A_LOOP) or (op=A_LOOPE) or
-                       (op=A_LOOPNE) or (op=A_LOOPNZ) or
-                       (op=A_LOOPZ)
+                       (ai.opcode=A_LOOP) or (ai.opcode=A_LOOPE) or
+                       (ai.opcode=A_LOOPNE) or (ai.opcode=A_LOOPNZ) or
+                       (ai.opcode=A_LOOPZ)
                       ) then
                   AsmWrite('NEAR ');
 {$endif i8086}
-{$ifdef i8086}
-                if o.ref^.refaddr=addr_far then
-                  AsmWrite('far ');
-{$endif i8086}
+                  end;
+
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
@@ -1057,7 +1055,7 @@ interface
                      if is_calljmp(fixed_opcode) then
                       begin
                         AsmWrite(#9);
-                        WriteOper_jmp(taicpu(hp).oper[0]^,fixed_opcode);
+                        WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp));
                       end
                      else
                       begin

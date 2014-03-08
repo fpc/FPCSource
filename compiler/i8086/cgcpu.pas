@@ -192,15 +192,12 @@ unit cgcpu;
       weak: boolean);
       var
         sym : tasmsymbol;
-        r : treference;
       begin
         if not(weak) then
           sym:=current_asmdata.RefAsmSymbol(s)
         else
           sym:=current_asmdata.WeakRefAsmSymbol(s);
-        reference_reset_symbol(r,sym,0,sizeof(pint));
-        r.refaddr:=addr_far;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+        list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
 
@@ -216,12 +213,9 @@ unit cgcpu;
     procedure tcg8086.a_call_name_static_far(list: TAsmList; const s: string);
       var
         sym : tasmsymbol;
-        r : treference;
       begin
         sym:=current_asmdata.RefAsmSymbol(s);
-        reference_reset_symbol(r,sym,0,sizeof(pint));
-        r.refaddr:=addr_far;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+        list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
 
@@ -251,8 +245,7 @@ unit cgcpu;
         a_load_reg_ref(list,OS_32,OS_32,reg,href);
         cg.getcpuregister(list,NR_BX);
         cg.getcpuregister(list,NR_SI);
-        href.refaddr:=addr_far_ref;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,href));
+        list.concat(taicpu.op_ref(A_CALL,S_FAR,href));
         tg.ungettemp(list,href);
       end;
 
@@ -2193,11 +2186,7 @@ unit cgcpu;
             lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
 
             if current_settings.x86memorymodel in x86_far_code_models then
-              begin
-                reference_reset_symbol(href,lab,0,sizeof(pint));
-                href.refaddr:=addr_far;
-                list.concat(taicpu.op_ref(A_JMP,S_NO,href));
-              end
+              list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))
             else
               list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
           end;

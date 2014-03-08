@@ -116,8 +116,9 @@ implementation
     procedure ti8086callnode.do_call_ref(ref: treference);
       begin
         if current_settings.x86memorymodel in x86_far_code_models then
-          ref.refaddr:=addr_far_ref;
-        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
+        else
+          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
 
 

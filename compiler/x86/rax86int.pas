@@ -2135,8 +2135,7 @@ Unit Rax86int;
             if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
               if current_settings.x86memorymodel in x86_far_code_models then
                 begin
-                  instr.operands[i].InitRef;
-                  ref.refaddr:=addr_far;
+                  instr.opsize:=S_FAR;
                 end;
 {$endif i8086}
       end;

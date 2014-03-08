@@ -99,8 +99,6 @@ interface
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
-         ,addr_far         // used for emitting 'call/jmp far label' instructions
-         ,addr_far_ref     // used for emitting 'call far [reference]' instructions
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          );
