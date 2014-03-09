@@ -17,7 +17,7 @@ type
  locateoptionsty  = set of locateoptionty;
 
  imselocate = interface(inullinterface)['{2680958F-F954-DA11-9015-00C0CA1308FF}']
-   function locate(const key: integer; const field: tfield;
+   function locate(const key: longint; const field: tfield;
                      const options: locateoptionsty = []): locateresultty;
  end;
 

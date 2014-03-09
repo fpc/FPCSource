@@ -6,7 +6,7 @@ program Test1;
 {$mode delphi}
 
 var
-  AnInt : Integer;
+  AnInt : Longint;
   
 begin
 

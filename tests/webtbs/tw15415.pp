@@ -2,7 +2,7 @@
 
 type
  TMyClass = class
-   i, i2 :Integer;
+   i, i2 :LongInt;
  end;
 
 begin

@@ -8,7 +8,7 @@ type
     public
       constructor Create(Val: _T);
 
-      function Bug: Integer;
+      function Bug: LongInt;
   end;
 
 {--- TGen.Create ---}
@@ -19,7 +19,7 @@ begin
 end;
 
 {--- TGen.Bug ---}
-function TGen.Bug : Integer;
+function TGen.Bug : LongInt;
 begin
   Result := 100000 div SizeOf(_T);  // *** DIVISION BY ZERO ***
 
