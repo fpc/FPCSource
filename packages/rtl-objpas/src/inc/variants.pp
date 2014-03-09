@@ -163,8 +163,8 @@ type
     FVarType: TVarType;
   protected
     function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure SimplisticClear(var V: TVarData);
     procedure SimplisticCopy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean = False);
     procedure RaiseInvalidOp;
@@ -603,7 +603,7 @@ begin
 end;
 
 
-function Sysvartoint (const v : Variant) : Integer;
+function Sysvartoint (const v : Variant) : Longint;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
@@ -2192,7 +2192,7 @@ var
   Iterator    : TVariantArrayIterator;
 
   Dims        : Integer;
-  HighBound   : Integer;
+  HighBound   : Longint;
   i           : Integer;
 begin
   with aSource do begin
@@ -3662,13 +3662,13 @@ function TCustomVariantType.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$EL
   end;
 
 
-function TCustomVariantType._AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TCustomVariantType._AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     result := -1;
   end;
 
 
-function TCustomVariantType._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TCustomVariantType._Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     result := -1;
   end;
