@@ -64,7 +64,7 @@ var
   AOS_DOSBase    : Pointer;
   AOS_UtilityBase: Pointer;
 
-{$IFDEF CPUPOWERPC}
+{$IFDEF AMIGAOS4}
 {$WARNING iExec, iDOS and iUtility should be typed pointer later}
 var
   IExec : Pointer; external name '_IExec';
