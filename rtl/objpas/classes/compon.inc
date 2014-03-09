@@ -661,7 +661,7 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TComponent._AddRef: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TComponent._AddRef: Longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject)._AddRef
@@ -669,7 +669,7 @@ begin
     Result := -1;
 end;
 
-function TComponent._Release: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TComponent._Release: Longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject)._Release

@@ -289,7 +289,9 @@ end;
 
 function TBinaryObjectReader.ReadSet(EnumType: Pointer): Integer;
 type
-  tset = set of 0..31;
+{$packset 1}
+  tset = set of 0..(SizeOf(Integer)*8-1);
+{$packset default}
 var
   Name: String;
   Value: Integer;
