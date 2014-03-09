@@ -1554,7 +1554,7 @@ unit cgx86;
     procedure tcgx86.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                         a:tcgint;src,dst:Tregister);
       var
-        power  : longint;
+        power,al  : longint;
         href : treference;
       begin
         power:=0;
@@ -1592,7 +1592,13 @@ unit cgx86;
           ) and
           not(cs_check_overflow in current_settings.localswitches) then
           begin
-            reference_reset_base(href,src,a,0);
+            { a might still be in the range 0x80000000 to 0xffffffff
+              which might trigger a range check error as
+              reference_reset_base expects a longint value. }
+{$push} {$R-}{$Q-}
+            al := longint (a); 
+{$pop}
+            reference_reset_base(href,src,al,0);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op=OP_SUB) and
