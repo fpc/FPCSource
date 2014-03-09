@@ -579,7 +579,8 @@ implementation
               end;
           end;
 
-        if (node_complexity(expression) > 1) and not is_open_array(expression.resultdef) then
+        if (node_complexity(expression) > 1) and
+          not(is_open_array(expression.resultdef)) and not(is_array_of_const(expression.resultdef)) then
           begin
             { create a temp variable for expression }
             arrayvar := ctempcreatenode.create(
