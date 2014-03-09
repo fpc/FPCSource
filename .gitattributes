@@ -12334,6 +12334,8 @@ tests/test/units/system/tres3.pp svneol=native#text/plain
 tests/test/units/system/tres3ext.pp svneol=native#text/plain
 tests/test/units/system/tres4.pp svneol=native#text/plain
 tests/test/units/system/tres4.res -text
+tests/test/units/system/tres5.pp svneol=native#text/plain
+tests/test/units/system/tres5.rc svneol=native#text/plain
 tests/test/units/system/tresb.rc svneol=native#text/plain
 tests/test/units/system/tresb.res -text
 tests/test/units/system/tresext.pp svneol=native#text/plain
