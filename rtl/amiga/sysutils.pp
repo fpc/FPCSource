@@ -25,6 +25,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 
@@ -72,17 +73,6 @@ var
   MOS_fileList: Pointer; external name 'AOS_FILELIST';
 
 
-function dosLock(const name: String;
-                 accessmode: Longint) : LongInt;
-var
-  buffer: array[0..255] of Char;
-begin
-  move(name[1],buffer,length(name));
-  buffer[length(name)]:=#0;
-  dosLock:=Lock(buffer,accessmode);
-end;
-
-
 function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
 var
   tmpSecs: DWord;
@@ -94,7 +84,7 @@ begin
     tmpSecs:=(ds_Days * (24 * 60 * 60)) + (ds_Minute * 60) + (ds_Tick div TICKS_PER_SECOND);
 
   Amiga2Date(tmpSecs,@clockData);
-{$WARNING TODO: implement msec values, if possible}
+{$HINT TODO: implement msec values, if possible}
   with clockData do begin
      success:=TryEncodeDate(year,month,mday,tmpDate) and
               TryEncodeTime(hour,min,sec,0,tmpTime);
@@ -103,6 +93,26 @@ begin
   result:=ComposeDateTime(tmpDate,tmpTime);
 end;
 
+function DateTimeToAmigaDateStamp(dateTime: TDateTime): TDateStamp;
+var
+  tmpSecs: DWord;
+  clockData: TClockData;
+  tmpMSec: Word;
+begin
+{$HINT TODO: implement msec values, if possible}
+  with clockData do begin
+     DecodeDate(dateTime,year,month,mday);
+     DecodeTime(dateTime,hour,min,sec,tmpMSec);
+  end;
+
+  tmpSecs:=Date2Amiga(@clockData);
+
+  with result do begin
+     ds_Days:= tmpSecs div (24 * 60 * 60);
+     ds_Minute:= (tmpSecs div 60) mod ds_Days;
+     ds_Tick:= (((tmpSecs mod 60) mod ds_Minute) mod ds_Days) * TICKS_PER_SECOND;
+  end;
+end;
 
 
 {****************************************************************************
@@ -131,15 +141,58 @@ end;
 
 
 function FileGetDate(Handle: LongInt) : LongInt;
+var
+  tmpFIB : PFileInfoBlock;
+  tmpDateTime: TDateTime;
+  validFile: boolean;
 begin
-  {$WARNING filegetdate call is dummy}
+  validFile:=false;
+
+  if (Handle <> 0) then begin
+    new(tmpFIB);
+    if ExamineFH(Handle,tmpFIB) then begin
+      tmpDateTime:=AmigaFileDateToDateTime(tmpFIB^.fib_Date,validFile);
+    end;
+    dispose(tmpFIB);
+  end;
+
+  if validFile then
+    result:=DateTimeToFileDate(tmpDateTime)
+  else
+    result:=-1;
 end;
 
 
 function FileSetDate(Handle, Age: LongInt) : LongInt;
+var
+  tmpDateStamp: TDateStamp;
+  tmpName: array[0..255] of char;
 begin
-  // Impossible under unix from FileHandle !!
-  FileSetDate:=-1;
+  result:=0;
+  if (Handle <> 0) then begin
+    if (NameFromFH(Handle, @tmpName, 256) = dosTrue) then begin
+      tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
+      if not SetFileDate(@tmpName,@tmpDateStamp) then begin
+        IoErr(); // dump the error code for now (TODO)
+        result:=-1;
+      end;
+    end;
+  end;
+end;
+
+
+function FileSetDate(const FileName: RawByteString; Age: LongInt) : LongInt;
+var
+  tmpDateStamp: TDateStamp;
+  SystemFileName: RawByteString;
+begin
+  result:=0;
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
+  if not SetFileDate(PChar(SystemFileName),@tmpDateStamp) then begin
+    IoErr(); // dump the error code for now (TODO)
+    result:=-1;
+  end;
 end;
 
 
@@ -148,16 +201,24 @@ var
   SystemFileName: RawByteString;
   dosResult: LongInt;
 begin
- SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
- dosResult:=Open(PChar(FileName),MODE_NEWFILE);
- if dosResult=0 then
-   dosResult:=-1
- else
-   AddToList(MOS_fileList,dosResult);
+  dosResult:=-1;
 
- FileCreate:=dosResult;
+  { Open file in MODDE_READWRITE, then truncate it by hand rather than
+    opening it in MODE_NEWFILE, because that returns an exclusive lock 
+    so some operations might fail with it (KB) }
+  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  dosResult:=Open(PChar(SystemFileName),MODE_READWRITE);
+  if dosResult = 0 then exit;
+
+  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 
+    AddToList(MOS_fileList,dosResult)
+  else begin
+    dosClose(dosResult);
+    dosResult:=-1;
+  end;
+
+  FileCreate:=dosResult;
 end;
-
 
 function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
@@ -165,14 +226,14 @@ begin
   FileCreate:=FileCreate(FileName);
 end;
 
-function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : Integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
 
-function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: LongInt; out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
   if (Count<=0) or (Handle<=0) then exit;
@@ -222,13 +283,15 @@ begin
 end;
 
 
-function FileTruncate(Handle: longint; Size: Int64): Boolean;
+function FileTruncate(Handle: THandle; Size: Int64): Boolean;
 var
   dosResult: LongInt;
 begin
   FileTruncate:=False;
+  
   if Size > high (longint) then exit;
 {$WARNING Possible support for 64-bit FS to be checked!}
+
   if (Handle<=0) then exit;
 
   dosResult:=SetFileSize(Handle, Size, OFFSET_BEGINNING);
@@ -243,18 +306,16 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-
   DeleteFile:=dosDeleteFile(PChar(SystemFileName));
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
 var
   OldSystemFileName, NewSystemFileName: RawByteString;
 begin
   OldSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(OldName));
   NewSystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(NewName));
-
   RenameFile:=dosRename(PChar(OldSystemFileName), PChar(NewSystemFileName));
 end;
 
@@ -264,17 +325,16 @@ end;
 
 function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpName: RawByteString;
   tmpLock: Longint;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
   validFile: boolean;
-
+  SystemFileName: RawByteString;
 begin
   validFile:=false;
-  tmpName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(tmpName, SHARED_LOCK);
-
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
+  
   if (tmpLock <> 0) then begin
     new(tmpFIB);
     if Examine(tmpLock,tmpFIB) then begin
@@ -298,8 +358,8 @@ var
   SystemFileName: RawByteString;
 begin
   result:=false;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(PChar(SystemFileName), SHARED_LOCK);
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -319,7 +379,8 @@ var
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
-  tmpStr:=PathConv(ToSingleByteEncodedFileName(path));
+
+  tmpStr:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
@@ -472,16 +533,15 @@ End;
 
 function DirectoryExists(const Directory: RawByteString): Boolean;
 var
-  tmpStr : String;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
-  SystemFileName: RawByteString;
+  SystemDirName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
 
-  tmpLock:=dosLock(PChar(SystemFileName),SHARED_LOCK);
+  SystemDirName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
+  tmpLock:=Lock(PChar(SystemDirName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
@@ -493,16 +553,6 @@ begin
   if assigned(FIB) then dispose(FIB);
 end;
 
-
-
-{****************************************************************************
-                              Misc Functions
-****************************************************************************}
-
-procedure SysBeep;
-begin
-// TODO
-end;
 
 
 {****************************************************************************
@@ -562,11 +612,54 @@ end;
                               OS utility functions
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+var
+  StrOfPaths: String;
 
+function GetPathString: String;
+var
+   f : text;
+   s : string;
+   tmpBat: string;
+   tmpList: string;
 begin
-  Result:=Dos.Getenv(shortstring(EnvVar));
+   s := '';
+   result := '';
+
+   tmpBat:='T:'+HexStr(FindTask(nil));
+   tmpList:=tmpBat+'_path.tmp';
+   tmpBat:=tmpBat+'_path.sh';
+
+   assign(f,tmpBat);
+   rewrite(f);
+   writeln(f,'path >'+tmpList);
+   close(f);
+   exec('C:Execute',tmpBat);
+   erase(f);
+
+   assign(f,tmpList);
+   reset(f);
+   { skip the first line, garbage }
+   if not eof(f) then readln(f,s);
+   while not eof(f) do begin
+      readln(f,s);
+      if result = '' then
+        result := s
+      else 
+        result := result + ';' + s;
+   end;
+   close(f);
+   erase(f);
 end;
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+begin
+  if UpCase(envvar) = 'PATH' then begin
+    if StrOfpaths = '' then StrOfPaths := GetPathString;
+    Result:=StrOfPaths;
+  end else
+    Result:=Dos.Getenv(shortstring(EnvVar));
+end;
+
 Function GetEnvironmentVariableCount : Integer;
 
 begin
@@ -584,18 +677,43 @@ end;
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
+  tmpPath: AnsiString;
+  convPath: AnsiString;
   CommandLine: AnsiString;
+  tmpLock: longint;
+
   E: EOSError;
-
 begin
-  Dos.Exec (Path, ComLine);
-  if DosError <> 0 then begin
+  DosError:= 0;
+  
+  convPath:=PathConv(Path);
+  tmpPath:=convPath+' '+ComLine;
+  
+  { Here we must first check if the command we wish to execute }
+  { actually exists, because this is NOT handled by the        }
+  { _SystemTagList call (program will abort!!)                 }
 
+  { Try to open with shared lock }
+  tmpLock:=Lock(PChar(convPath),SHARED_LOCK);
+  if tmpLock<>0 then
+    begin
+      { File exists - therefore unlock it }
+      Unlock(tmpLock);
+      result:=SystemTagList(PChar(tmpPath),nil);
+      { on return of -1 the shell could not be executed }
+      { probably because there was not enough memory    }
+      if result = -1 then
+        DosError:=8;
+    end
+  else
+    DosError:=3;
+  
+  if DosError <> 0 then begin
     if ComLine = '' then
       CommandLine := Path
     else
       CommandLine := Path + ' ' + ComLine;
-
+    
     E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, DosError]);
     E.ErrorCode := DosError;
     raise E;
@@ -632,6 +750,10 @@ end;
 Initialization
   InitExceptions;
   InitInternational;    { Initialize internationalization settings }
+  OnBeep:=Nil;          { No SysBeep() on Amiga, for now. Figure out if we want 
+                          to use intuition.library/DisplayBeep() for this (KB) }
+  StrOfPaths:='';
+
 Finalization
   DoneExceptions;
 end.
