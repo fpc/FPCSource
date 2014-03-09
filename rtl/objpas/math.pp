@@ -151,10 +151,10 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 
 // Sign functions
 Type
@@ -2174,7 +2174,7 @@ end;
 // Some CPUs probably allow a faster way of doing this in a single operation...
 // There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef FPC_MATH_HAS_DIVMOD}
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: Word);
 begin
   if Dividend < 0 then
     begin
@@ -2195,7 +2195,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 begin
   if Dividend < 0 then
     begin
@@ -2223,7 +2223,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 begin
   if Dividend < 0 then
     begin
