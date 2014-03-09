@@ -307,8 +307,8 @@ type
     // if it's in format 'ismxrg-ismxrg'.
     procedure SetModifierStr (const AModifiers : RegExprString);
 
-    function GetModifier (AIndex : integer) : boolean;
-    procedure SetModifier (AIndex : integer; ASet : boolean);
+    function GetModifier (AIndex : longint) : boolean;
+    procedure SetModifier (AIndex : longint; ASet : boolean);
 
     procedure Error (AErrorID : integer); virtual; // error handler.
     // Default handler raise exception ERegExpr with
@@ -1386,7 +1386,7 @@ procedure TRegExpr.SetModifierStr (const AModifiers : RegExprString);
  end; { of procedure TRegExpr.SetModifierStr
 --------------------------------------------------------------}
 
-function TRegExpr.GetModifier (AIndex : integer) : boolean;
+function TRegExpr.GetModifier (AIndex : longint) : boolean;
  var
   Mask : integer;
  begin
@@ -1407,7 +1407,7 @@ function TRegExpr.GetModifier (AIndex : integer) : boolean;
  end; { of function TRegExpr.GetModifier
 --------------------------------------------------------------}
 
-procedure TRegExpr.SetModifier (AIndex : integer; ASet : boolean);
+procedure TRegExpr.SetModifier (AIndex : longint; ASet : boolean);
  var
   Mask : integer;
  begin
