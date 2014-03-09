@@ -317,9 +317,9 @@ begin
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
   end;
 
-  AOS_DOSBase:=OpenLibrary('dos.library',50);
+  AOS_DOSBase:=OpenLibrary('dos.library',37);
   if AOS_DOSBase=nil then Halt(1);
-  AOS_UtilityBase:=OpenLibrary('utility.library',50);
+  AOS_UtilityBase:=OpenLibrary('utility.library',37);
   if AOS_UtilityBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}
