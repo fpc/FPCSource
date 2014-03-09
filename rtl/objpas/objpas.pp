@@ -22,11 +22,19 @@ unit objpas;
   interface
 
     { first, in object pascal, the integer type must be redefined }
+{$ifdef CPU16}
+    const
+       MaxInt  = MaxSmallint;
+    type
+       Integer  = smallint;
+       PInteger = ^Integer;
+{$else CPU16}
     const
        MaxInt  = MaxLongint;
     type
        Integer  = longint;
        PInteger = ^Integer;
+{$endif CPU16}
 
        { Ansistring are the default }
        PString = PAnsiString;
