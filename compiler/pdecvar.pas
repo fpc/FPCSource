@@ -456,15 +456,23 @@ implementation
                    consume(_INDEX);
                    pt:=comp_expr(true,false);
                    { Only allow enum and integer indexes. Convert all integer
-                     values to s32int to be compatible with delphi, because the
-                     procedure matching requires equal parameters }
+                     values to objpas.integer (s32int on 32- and 64-bit targets,
+                     s16int on 16- and 8-bit) to be compatible with delphi,
+                     because the procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resultdef)
                       and (not is_64bitint(pt.resultdef))
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                      and (not is_32bitint(pt.resultdef))
+{$endif}
                       then
                      begin
                        if is_integer(pt.resultdef) then
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                         inserttypeconv_internal(pt,s16inttype);
+{$else}
                          inserttypeconv_internal(pt,s32inttype);
+{$endif}
                        p.index:=tordconstnode(pt).value.svalue;
                      end
                    else
