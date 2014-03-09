@@ -32,9 +32,6 @@ interface
 
 
     uses
-{$ifdef hasamiga}
-      exec,
-{$endif}
       SysUtils,
       systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,finput;
 
@@ -180,6 +177,9 @@ interface
 Implementation
 
     uses
+{$ifdef hasamiga}
+      exec,
+{$endif}
 {$ifdef hasunix}
       unix,
 {$endif}
