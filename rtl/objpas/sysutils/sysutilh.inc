@@ -156,7 +156,7 @@ type
    { Run-time and I/O Errors }
    EInOutError = class(Exception)
      public
-       ErrorCode : Longint;
+       ErrorCode : Integer;
    end;
 
    EHeapMemoryError = class(Exception)
