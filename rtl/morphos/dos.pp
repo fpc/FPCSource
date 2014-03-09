@@ -225,7 +225,7 @@ begin
     IOReq := NIL;
     if port <> NIL then
     begin
-        IOReq := execAllocMem(size, MEMF_CLEAR or MEMF_PUBLIC);
+        IOReq := execAllocMem(size, MEMF_CLEAR);
         if IOReq <> NIL then
         begin
             IOReq^.io_Message.mn_Node.ln_Type   := 7;
@@ -254,7 +254,7 @@ var
 begin
    sigbit := AllocSignal(-1);
    if sigbit = -1 then CreatePort := nil;
-   port := execAllocMem(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
+   port := execAllocMem(sizeof(tMsgPort),MEMF_CLEAR);
    if port = nil then begin
       FreeSignal(sigbit);
       CreatePort := nil;
