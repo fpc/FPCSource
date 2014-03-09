@@ -130,7 +130,7 @@ begin
       delete(path,tmppos,2);
       tmppos:=pos('./',path);
     end;
-    { convert wildstart to #? }
+    { convert wildstar to #? }
     tmppos:=pos('*',path);
     while tmppos<>0 do begin
       delete(path,tmppos,1);
@@ -167,7 +167,7 @@ begin
       delete(PathConv,tmppos,2);
       tmppos:=pos('./',PathConv);
     end;
-    { convert wildstart to #? }
+    { convert wildstar to #? }
     tmppos:=pos('*',PathConv);
     while tmppos<>0 do begin
       delete(PathConv,tmppos,1);
