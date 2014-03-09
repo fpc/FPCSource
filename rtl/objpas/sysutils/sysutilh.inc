@@ -113,12 +113,12 @@ type
       constructor CreateFmt(const msg : string; const args : array of const);
       constructor CreateRes(ResString: PString);
       constructor CreateResFmt(ResString: PString; const Args: array of const);
-      constructor CreateHelp(const Msg: string; AHelpContext: Integer);
+      constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
-        AHelpContext: Integer);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
+        AHelpContext: Longint);
+      constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
-        AHelpContext: Integer);
+        AHelpContext: Longint);
       Function ToString : String; override;  
       { !!!! }
       property HelpContext : longint read fhelpcontext write fhelpcontext;

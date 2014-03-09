@@ -194,7 +194,7 @@ end;
       end;
 
 
-    constructor Exception.CreateHelp(const Msg: string; AHelpContext: Integer);
+    constructor Exception.CreateHelp(const Msg: string; AHelpContext: Longint);
 
       begin
          inherited create;
@@ -204,7 +204,7 @@ end;
 
 
     constructor Exception.CreateFmtHelp(const Msg: string; const Args: array of const;
-      AHelpContext: Integer);
+      AHelpContext: Longint);
 
     begin
        inherited create;
@@ -213,7 +213,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Integer);
+    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Longint);
 
     begin
        inherited create;
@@ -223,7 +223,7 @@ end;
 
 
     constructor Exception.CreateResFmtHelp(ResString: PString; const Args: array of const;
-      AHelpContext: Integer);
+      AHelpContext: Longint);
 
     begin
        inherited create;
