@@ -60,6 +60,7 @@ type
    BSTR	               = POLESTR;
    TOleDate	       = DATE;
    POleDate	       = ^TOleDate;	
+   TOleBool	       = wordbool;
    OLE_HANDLE	       = UINT;
    OLE_XSIZE_HIMETRIC = LONG;
    OLE_YSIZE_HIMETRIC = LONG;
@@ -570,6 +571,45 @@ Const
     DISPID_DESTRUCTOR           = -7;
     DISPID_COLLECT              = -8;
 
+    DISPID_AUTOSIZE             = -500;
+    DISPID_BACKCOLOR            = -501;
+    DISPID_BACKSTYLE            = -502;
+    DISPID_BORDERCOLOR          = -503;
+    DISPID_BORDERSTYLE          = -504;
+    DISPID_BORDERWIDTH          = -505;
+    DISPID_DRAWMODE             = -507;
+    DISPID_DRAWSTYLE            = -508;
+    DISPID_DRAWWIDTH            = -509;
+    DISPID_FILLCOLOR            = -510;
+    DISPID_FILLSTYLE            = -511;
+    DISPID_FONT                 = -512;
+    DISPID_FORECOLOR            = -513;
+    DISPID_ENABLED              = -514;
+    DISPID_HWND                 = -515;
+    DISPID_TABSTOP              = -516;
+    DISPID_TEXT                 = -517;
+    DISPID_CAPTION              = -518;
+    DISPID_BORDERVISIBLE        = -519;
+    DISPID_APPEARANCE           = -520;
+    DISPID_MOUSEPOINTER         = -521;
+    DISPID_MOUSEICON            = -522;
+    DISPID_PICTURE              = -523;
+    DISPID_VALID                = -524;
+    DISPID_READYSTATE           = -525;
+    DISPID_REFRESH              = -550;
+    DISPID_DOCLICK              = -551;
+    DISPID_ABOUTBOX             = -552;
+    DISPID_CLICK                = -600;
+    DISPID_DBLCLICK             = -601;
+    DISPID_KEYDOWN              = -602;
+    DISPID_KEYPRESS             = -603;
+    DISPID_KEYUP                = -604;
+    DISPID_MOUSEDOWN            = -605;
+    DISPID_MOUSEMOVE            = -606;
+    DISPID_MOUSEUP              = -607;
+    DISPID_ERROREVENT           = -608;
+    DISPID_READYSTATECHANGE     = -609;
+
     DISPID_AMBIENT_BACKCOLOR              = -701;
     DISPID_AMBIENT_DISPLAYNAME            = -702;
     DISPID_AMBIENT_FONT                   = -703;
@@ -1009,6 +1049,33 @@ Const
     OLECMDID_UPDATEVSCROLL= $0000000000000035;
     OLECMDID_UPDATEHSCROLL= $0000000000000036;
     OLECMDID_FITTOSCREEN  = $0000000000000037;
+
+    OLECLOSE_SAVEIFDIRTY  = 0;
+    OLECLOSE_NOSAVE       = 1;
+    OLECLOSE_PROMPTSAVE   = 2;
+
+    OLEMISC_RECOMPOSEONRESIZE             = $1;
+    OLEMISC_ONLYICONIC                    = $2;
+    OLEMISC_INSERTNOTREPLACE              = $4;
+    OLEMISC_STATIC                        = $8;
+    OLEMISC_CANTLINKINSIDE                = $10;
+    OLEMISC_CANLINKBYOLE1                 = $20;
+    OLEMISC_ISLINKOBJECT                  = $40;
+    OLEMISC_INSIDEOUT                     = $80;
+    OLEMISC_ACTIVATEWHENVISIBLE           = $100;
+    OLEMISC_RENDERINGISDEVICEINDEPENDENT  = $200;
+    OLEMISC_INVISIBLEATRUNTIME            = $400;
+    OLEMISC_ALWAYSRUN                     = $800;
+    OLEMISC_ACTSLIKEBUTTON                = $1000;
+    OLEMISC_ACTSLIKELABEL                 = $2000;
+    OLEMISC_NOUIACTIVATE                  = $4000;
+    OLEMISC_ALIGNABLE                     = $8000;
+    OLEMISC_SIMPLEFRAME                   = $10000;
+    OLEMISC_SETCLIENTSITEFIRST            = $20000;
+    OLEMISC_IMEMODE                       = $40000;
+    OLEMISC_IGNOREACTIVATEWHENVISIBLE     = $80000;
+    OLEMISC_WANTSTOMENUMERGE              = $100000;
+    OLEMISC_SUPPORTSMULTILEVELUNDO        = $200000;
 
 TYPE
     TVarType            = USHORT;
@@ -3413,6 +3480,13 @@ TYPE
      Function  Write(pszPropName: pOleStr; CONST pVar: VARIANT):HResult;StdCall;
      End;
 
+   IPersistPropertyBag = interface(IPersist)
+     ['{37D84F60-42CB-11CE-8135-00AA004BB851}']
+     function InitNew:HResult;stdcall;
+     function Load(pPropBag:IPropertyBag;pErrorLog:IErrorLog):HResult;stdcall;
+     function Save(pPropBag:IPropertyBag;fClearDirty:Integer;fSaveAllProperties:Integer):HResult;stdcall;
+     end;
+
    IEnumGUID = interface(IUnknown)
      ['{0002E000-0000-0000-C000-000000000046}']
      Function Next(celt: UINT; OUT rgelt: TGUID;  pceltFetched: pUINT=nil):HResult;StdCall;
@@ -3796,6 +3870,8 @@ type
        cmdID : LongWord;
        cmdf : LongWord;
    end;
+   POLECMD = P_tagOLECMD;
+   TOLECMD = _tagOLECMD;
 
    P_tagOLECMDTEXT = ^_tagOLECMDTEXT;
 
@@ -3805,6 +3881,8 @@ type
        cwBuf : LongWord;
        rgwz : PWord;
    end;
+   POLECMDTEXT = P_tagOLECMDTEXT;
+   TOLECMDTEXT = _tagOLECMDTEXT;
 
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
@@ -3944,6 +4022,12 @@ type
       function SetObjectRects(lprcPosRect:LPRect;lprcClipRect:LPRect):hresult; stdcall;
       function ReactivateAndUndo : HResult;stdcall;
      end;
+
+    IOleInPlaceObjectWindowless = interface(IOleInPlaceObject)
+      ['{1C2056CC-5EF4-101B-8BC8-00AA003E3B29}']
+      function OnWindowMessage(msg:UInt;wParam:UINT_PTR;lParam:LONG_PTR;out plResult:LONG_PTR):HRESULT;stdcall;
+      function GetDropTarget(out ppDropTarget:IDropTarget):HRESULT;stdcall;
+    end;
 
     IOleDocumentView = interface(IUnknown)
         ['{b722bcc6-4e68-101b-a2bc-00aa00404770}']
