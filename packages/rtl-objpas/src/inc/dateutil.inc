@@ -1610,9 +1610,8 @@ begin
         begin
         Inc(YEDOW);
         if (YEDOW>7) then
-          YEDOW:=1
-        else
-      end;
+          YEDOW:=1;
+        end;
       if (YEDOW<4) then // Really next year.
         begin
         Inc(AYear);
