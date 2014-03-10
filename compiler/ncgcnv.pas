@@ -421,7 +421,7 @@ interface
             (left.location.size in [OS_F80,OS_C64]) then
            begin
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-               location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
              { round them down to the proper precision }
              tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
@@ -479,7 +479,7 @@ interface
                 case expectloc of
                   LOC_FPUREGISTER:
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                       cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
                     end;

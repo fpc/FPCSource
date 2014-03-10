@@ -53,7 +53,7 @@ uses
   cgbase, pass_2,
   cpubase, paramgr,
   nbas, ncon, ncal, ncnv, nld,
-  ncgutil, cgobj, cgutils;
+  hlcgobj, ncgutil, cgobj, cgutils;
 
 {*****************************************************************************
                               tMIPSELinlinenode
@@ -62,7 +62,7 @@ uses
 procedure tMIPSELinlinenode.load_fpu_location;
 begin
   secondpass(left);
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
   location_copy(location, left.location);
   if left.location.loc = LOC_CFPUREGISTER then
   begin

@@ -63,7 +63,7 @@ uses
   procinfo,
   symconst,symdef,
   ncon, nset, nadd,
-  ncgutil, cgobj;
+  ncgutil, hlcgobj, cgobj;
 
 {*****************************************************************************
                                tmipsaddnode
@@ -210,8 +210,8 @@ begin
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
 
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -271,8 +271,8 @@ begin
   if nf_swapped in flags then
     swapleftright;
 
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
   location_reset(location, LOC_JUMP, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];

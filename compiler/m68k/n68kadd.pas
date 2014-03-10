@@ -406,8 +406,8 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
         if not cmpop then
@@ -454,8 +454,8 @@ implementation
 }
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);

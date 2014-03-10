@@ -401,7 +401,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             begin
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               location:=left.location;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
                 location.register,left.location.register,0),

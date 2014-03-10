@@ -75,7 +75,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             begin
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
               if left.location.loc=LOC_CFPUREGISTER then
                 begin

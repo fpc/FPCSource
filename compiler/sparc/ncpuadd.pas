@@ -56,7 +56,7 @@ interface
       cgbase,cgcpu,cgutils,
       cpupara,
       ncon,nset,nadd,
-      ncgutil,cgobj;
+      hlcgobj, ncgutil,cgobj;
 
 {*****************************************************************************
                                TSparcAddNode
@@ -170,8 +170,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,(left.location.loc<>LOC_CFPUREGISTER));
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,(left.location.loc<>LOC_CFPUREGISTER));
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         if left.location.loc<>LOC_CFPUREGISTER then
@@ -227,8 +227,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getfpuresflags;

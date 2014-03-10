@@ -341,8 +341,8 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
         if not cmpop then

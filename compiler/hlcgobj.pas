@@ -3669,7 +3669,7 @@ implementation
         begin
           { if it's in an mm register, store to memory first }
           if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-            internalerror(2011012903);
+            location_force_mem(list,l,size);
           reg:=getfpuregister(list,size);
           a_loadfpu_loc_reg(list,size,size,l,reg);
           location_freetemp(list,l);

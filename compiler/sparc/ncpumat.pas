@@ -293,7 +293,7 @@ implementation
     procedure tsparcunaryminusnode.second_float;
       begin
         secondpass(left);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         case location.size of

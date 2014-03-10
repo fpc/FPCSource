@@ -142,8 +142,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -258,8 +258,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then

@@ -60,7 +60,6 @@ interface
     procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_allocate_register(list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
@@ -484,31 +483,6 @@ implementation
 {*****************************************************************************
                                      TLocation
 *****************************************************************************}
-
-
-    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-      var
-        reg : tregister;
-        href : treference;
-      begin
-        if (l.loc<>LOC_FPUREGISTER)  and
-           ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then
-          begin
-            { if it's in an mm register, store to memory first }
-            if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-              begin
-                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
-                cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
-                location_reset_ref(l,LOC_REFERENCE,l.size,0);
-                l.reference:=href;
-              end;
-            reg:=cg.getfpuregister(list,l.size);
-            cg.a_loadfpu_loc_reg(list,l.size,l,reg);
-            location_freetemp(list,l);
-            location_reset(l,LOC_FPUREGISTER,l.size);
-            l.register:=reg;
-          end;
-      end;
 
 
     procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);

@@ -241,9 +241,9 @@ unit nx86add;
          begin
            if (force_fpureg) then
              begin
-               location_force_fpureg(current_asmdata.CurrAsmList,right.location,false);
+               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
                 if (left.location.loc<>LOC_FPUREGISTER) then
-                  location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
+                  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
                 else
                   { left was on the stack => swap }
                   toggleflag(nf_swapped);
@@ -253,7 +253,7 @@ unit nx86add;
         else if (left.location.loc<>LOC_FPUREGISTER) then
           begin
             if (force_fpureg) then
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
           end
         else
           begin
