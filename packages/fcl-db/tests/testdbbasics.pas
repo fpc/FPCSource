@@ -80,6 +80,7 @@ type
     procedure TestDoubleDelete;
     procedure TestReadOnly;
     procedure TestMergeChangeLog;
+    procedure TestEditedBlobBeforePost; //bug 15376
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -1739,6 +1740,30 @@ begin
     RecNo:=11; CheckEquals('b11', FieldByName(FN).AsString);
     Next;      CheckEquals('b12', FieldByName(FN).AsString);
     end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestEditedBlobBeforePost;
+// Edit memo fields should read back new contents even before post
+// Bug 15376
+var
+  ds : TBufDataset;
+begin
+  ds := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,50);
+  DS.FIeldDefs.Add('MEMO1',ftMemo);
+  DS.CreateDataset;
+  DS.Open;
+  with DS do
+    begin
+    Append;
+    FieldByName('ID').AsInteger:=1;
+    FieldByName('NAME').AsString:='NAME1';
+    FieldByName('MEMO1').AsString:='NAME1';
+    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match before post');
+    Post;
+    end;
+  DS.Close;
 end;
 
 procedure TTestBufDatasetDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);

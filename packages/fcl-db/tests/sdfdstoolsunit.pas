@@ -7,7 +7,9 @@ interface
 uses
   Classes, SysUtils, toolsunit,
   db,
-  SdfData;
+  SdfData
+  ,csvdataset {for testing}
+  ;
 
 type
 
