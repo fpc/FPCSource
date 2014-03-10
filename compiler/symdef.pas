@@ -4741,10 +4741,10 @@ implementation
          else
            deprecatedmsg:=nil;
          synthetickind:=tsynthetickind(ppufile.getbyte);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
          { library symbol for AmigaOS/MorphOS }
          ppufile.getderef(libsymderef);
-{$endif powerpc}
+{$endif powerpc or m68k}
          { import stuff }
          if po_has_importdll in procoptions then
            import_dll:=stringdup(ppufile.getstring)
@@ -4896,10 +4896,10 @@ implementation
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.putbyte(byte(synthetickind));
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
          { library symbol for AmigaOS/MorphOS }
          ppufile.putderef(libsymderef);
-{$endif powerpc}
+{$endif powerpc or m68k}
          { import }
          if po_has_importdll in procoptions then
            ppufile.putstring(import_dll^);
@@ -5166,10 +5166,10 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
          { library symbol for AmigaOS/MorphOS }
          libsymderef.build(libsym);
-{$endif powerpc}
+{$endif powerpc or m68k}
       end;
 
 
@@ -5200,10 +5200,10 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
          { library symbol for AmigaOS/MorphOS }
          libsym:=tsym(libsymderef.resolve);
-{$endif powerpc}
+{$endif powerpc or m68k}
       end;
 
 
