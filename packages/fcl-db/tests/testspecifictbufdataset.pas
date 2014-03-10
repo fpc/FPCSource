@@ -39,6 +39,7 @@ type
     procedure TestAutoIncField;
     procedure TestAutoIncFieldStreaming;
     procedure TestAutoIncFieldStreamingXML;
+    procedure TestEditedBlobBeforePost; //bug 15376
   end;
 
 implementation
@@ -246,6 +247,33 @@ end;
 procedure TTestSpecificTBufDataset.TestAutoIncFieldStreamingXML;
 begin
   IntTestAutoIncFieldStreaming(true);
+end;
+
+procedure TTestSpecificTBufDataset.TestEditedBlobBeforePost;
+var
+  ds : TBufDataset;
+begin
+  ds := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,50);
+  DS.FIeldDefs.Add('MEMO1',ftMemo);
+  DS.CreateDataset;
+  DS.Open;
+  with DS do
+    begin
+    Append;
+    FieldByName('ID').AsInteger:=1;
+    FieldByName('NAME').AsString:='NAME1';
+    FieldByName('MEMO1').AsString:='NAME1';
+    CheckEquals(1,FieldByName('ID').AsInteger,'Integer field must match before post');
+    CheckEquals('NAME1',FieldByName('NAME').AsString,'String field must match before post');
+    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match before post');
+    Post;
+    CheckEquals(1,FieldByName('ID').AsInteger,'Integer field must match after post');
+    CheckEquals('NAME1',FieldByName('NAME').AsString,'String field must match after post');
+    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match after post');
+    end;
+  DS.Close;
 end;
 
 initialization
