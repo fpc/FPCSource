@@ -1322,9 +1322,9 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    SQL.Add('select * from FPDEV where name=''test '''' and :ThisIsNotAParameter  ''');
-    open;
-    close;
+    SQL.Add('select * from FPDEV where NAME=''test '''' and :ThisIsNotAParameter ''');
+    Open;
+    Close;
     end;
 end;
 
@@ -1381,33 +1381,33 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
-    sql.append('insert into FPDEV2 (field1) values (:field1)');
+    sql.append('insert into FPDEV2 (FIELD1) values (:field1)');
     Params.ParamByName('field1').AsInteger := 1;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,decoy) values (:field1,:field2,'''+DecoyFieldData1+''')');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,DECOY) values (:field1,:field2,'''+DecoyFieldData1+''')');
     Params.ParamByName('field1').AsInteger := 2;
     Params.ParamByName('field2').DataType := ftInteger;
     Params.ParamByName('field2').Value := Null;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field3)');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3) values (:field1,:field2,:field3)');
     Params.ParamByName('field1').AsInteger := 3;
     Params.ParamByName('field2').AsInteger := 2;
     Params.ParamByName('field3').AsInteger := 3;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3,decoy) values (:field1,:field2,:field3,'''+DecoyFieldData2+''')');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3,DECOY) values (:field1,:field2,:field3,'''+DecoyFieldData2+''')');
     Params.ParamByName('field1').AsInteger := 4;
     Params.ParamByName('field2').AsInteger := 2;
     Params.ParamByName('field3').AsInteger := 3;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field1)');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3) values (:field1,:field2,:field1)');
     Params.ParamByName('field1').AsInteger := 5;
     Params.ParamByName('field2').AsInteger := 2;
     ExecSQL;
@@ -2255,7 +2255,7 @@ end;
 
 procedure TTestFieldTypes.TestEmptyUpdateQuery;
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set name=''nothing'' where (1=0)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set NAME=''nothing'' where (1=0)');
 end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
