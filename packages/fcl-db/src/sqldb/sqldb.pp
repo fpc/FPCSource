@@ -432,6 +432,7 @@ type
     class function FieldDefsClass : TFieldDefsClass; override;
     // IProviderSupport methods
     function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
+    Property TableName : String Read FTableName Write FTableName;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
