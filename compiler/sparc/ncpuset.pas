@@ -90,12 +90,14 @@ unit ncpuset;
 
       begin
         opcgsize:=def_cgsize(opsize);
+        last:=min_;
         if not(jumptable_no_range) then
           begin
-             { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(min_),hregister,elselabel);
-             { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_gt,aint(max_),hregister,elselabel);
+            { a <= x <= b <-> unsigned(x-a) <= (b-a) }
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+            { case expr greater than max_ => goto elselabel }
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+            min_:=0;
           end;
         current_asmdata.getjumplabel(table);
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -137,7 +139,6 @@ unit ncpuset;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_O7);
         { generate jump table }
-        last:=min_;
         cg.a_label(current_asmdata.CurrAsmList,table);
         genitem(current_asmdata.CurrAsmList,hp);
       end;

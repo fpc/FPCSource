@@ -91,13 +91,15 @@ var
 
 begin
   opcgsize:=def_cgsize(opsize);
+  last:=min_;
   jumpsegment := current_procinfo.aktlocaldata;
   if not (jumptable_no_range) then
     begin
-      { case expr less than min_ => goto elselabel }
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_lt, aint(min_), hregister, elselabel);
+      { a <= x <= b <-> unsigned(x-a) <= (b-a) }
+      cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
       { case expr greater than max_ => goto elselabel }
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_gt, aint(max_), hregister, elselabel);
+      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+      min_:=0;
     end;
   current_asmdata.getjumplabel(table);
   indexreg := cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -123,7 +125,6 @@ begin
   { generate jump table }
   new_section(jumpSegment,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
   jumpSegment.concat(Tai_label.Create(table));
-  last := min_;
   genitem(hp);
 end;
 
