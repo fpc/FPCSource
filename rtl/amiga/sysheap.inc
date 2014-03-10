@@ -30,7 +30,7 @@ begin
   values[0]:=dword(result);
   values[1]:=dword(size);
   values[2]:=DWord(Sptr-StackBottom);
-  RawDoFmt('FPC_MEM_DEBUG: $%lx:=SysOSAlloc(%ld), free stack: %ld bytes'+#10,@values,pointer(1),nil);
+  RawDoFmt('FPC_MEM_DEBUG: $%lx:=SysOSAlloc(%lu), free stack: %ld bytes'+#10,@values,pointer(1),nil);
 {$ENDIF}
 end;
 
@@ -46,6 +46,6 @@ begin
   values[0]:=dword(p);
   values[1]:=dword(size);
   values[2]:=DWord(Sptr-StackBottom);
-  RawDoFmt('FPC_MEM_DEBUG: SysOSFree($%lx,%ld), free stack: %ld bytes'+#10,@values,pointer(1),nil);
+  RawDoFmt('FPC_MEM_DEBUG: SysOSFree($%lx,%lu), free stack: %ld bytes'+#10,@values,pointer(1),nil);
 {$ENDIF}
 end;
