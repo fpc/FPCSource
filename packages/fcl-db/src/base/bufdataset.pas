@@ -2087,7 +2087,10 @@ end;
 
 function TCustomBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-var CurrBuff : TRecordBuffer;
+var
+  CurrBuff : TRecordBuffer;
+  BlobBuff : TBufBlobField;
+  i        : integer;
 
 begin
   Result := False;
@@ -2105,10 +2108,28 @@ begin
   else
     CurrBuff := GetCurrentBuffer;
 
-  if not assigned(CurrBuff) then Exit;
+  if not assigned(CurrBuff) then Exit; //Null value
 
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
+    if (State <> dsOldValue) and Assigned(Buffer) and (Field is TBlobField) then
+      for i := High(FUpdateBlobBuffers) downto Low(FUpdateBlobBuffers) do
+        if Assigned(FUpdateBlobBuffers[i]) and
+          (FUpdateBlobBuffers[i]^.FieldNo = Field.FieldNo) then
+          begin
+          // The right blob buffer:
+          FillChar(BlobBuff, SizeOf(TBufBlobField),#0);
+          if not GetFieldIsNull(pbyte(CurrBuff), Field.FieldNo-1) then
+            begin
+            inc(CurrBuff, FFieldBufPositions[Field.FieldNo-1]);
+            Move(CurrBuff^, BlobBuff, SizeOf(BlobBuff.ConnBlobBuffer));
+            end;
+          BlobBuff.BlobBuffer := FUpdateBlobBuffers[i];
+          Move(BlobBuff, Buffer^, SizeOf(TBufBlobField));
+          Result := True;
+          Exit;
+          end;
+
     if GetFieldIsNull(pbyte(CurrBuff),Field.FieldNo-1) then
       Exit;
     if assigned(buffer) then
