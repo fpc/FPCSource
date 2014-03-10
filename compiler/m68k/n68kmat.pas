@@ -176,31 +176,15 @@ implementation
                                TM68KMODDIVNODE
 *****************************************************************************}
   procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
-   var
-     continuelabel : tasmlabel;
-     reg_d0,reg_d1 : tregister;
-     paraloc1,paraloc2 : tcgpara;
    begin
-     { no RTL call, so inline a zero denominator verification }
-(*     if current_settings.cputype=cpu_MC68020 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
-         { verify if denominator is zero }
-         current_asmdata.getjumplabel(continuelabel);
-         { compare against zero, if not zero continue }
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_NE,0,denum,continuelabel);
-//       paraloc1.init;
-//         cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
-
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
-         cg.a_label(current_asmdata.CurrAsmList, continuelabel);
          if signed then
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
          else
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
-         { result should be in denuminator }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,denum);
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
        end
-     else*)
+     else
        begin
          { On MC68000/68010/Coldfire we must pass through RTL routines }
          if signed then
@@ -217,42 +201,18 @@ implementation
           signlabel : tasmlabel;
           reg_d0,reg_d1 : tregister;
     begin
-//     writeln('emit mod reg reg');
-     { no RTL call, so inline a zero denominator verification }
-(*     if current_settings.cputype=cpu_MC68020 then
+     if current_settings.cputype=cpu_MC68020 then
        begin
-         { verify if denominator is zero }
-         current_asmdata.getjumplabel(continuelabel);
-         { compare against zero, if not zero continue }
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_NE,0,denum,continuelabel);
-//         cg.a_load_const_cgpara(current_asmdata.CurrAsmList, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
-         cg.a_label(current_asmdata.CurrAsmList, continuelabel);
-
          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-
-         { we have to prepare the high register with the  }
-         { correct sign. i.e we clear it, check if the low dword reg }
-         { which will participate in the division is signed, if so we}
-         { we extend the sign to the high doword register by inverting }
-         { all the bits.                                             }
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_CLR,S_L,tmpreg));
-         current_asmdata.getjumplabel(signlabel);
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,tmpreg));
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_A,0,tmpreg,signlabel);
-         { its a negative value, therefore change sign }
-         cg.a_label(current_asmdata.CurrAsmList,signlabel);
-         { tmpreg:num / denum }
-
+         { copy the numerator to the tmpreg, so we can use it as quotient, which
+           means we'll get the remainder immediately in the numerator }
+         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,tmpreg);
          if signed then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVSL,S_L,denum,tmpreg,num))
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVSL,S_L,denum,num,tmpreg))
          else
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,tmpreg,num));
-         { remainder in tmpreg }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,tmpreg,denum);
-//         cg.ungetcpuregister(current_asmdata.CurrAsmList,tmpreg);
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,num,tmpreg));
        end
-     else*)
+     else
        begin
          { On MC68000/68010/coldfire we must pass through RTL routines }
          if signed then
@@ -260,7 +220,6 @@ implementation
          else
            call_rtl_divmod_reg_reg(denum,num,'fpc_mod_dword');
        end;
-//      writeln('exits');
     end;
 
 
