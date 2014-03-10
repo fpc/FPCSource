@@ -182,7 +182,7 @@ implementation
      paraloc1,paraloc2 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype=cpu_MC68020 then
+(*     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -200,7 +200,7 @@ implementation
          { result should be in denuminator }
          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,denum);
        end
-     else
+     else*)
        begin
          { On MC68000/68010/Coldfire we must pass through RTL routines }
          if signed then
@@ -219,7 +219,7 @@ implementation
     begin
 //     writeln('emit mod reg reg');
      { no RTL call, so inline a zero denominator verification }
-     if current_settings.cputype=cpu_MC68020 then
+(*     if current_settings.cputype=cpu_MC68020 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -252,7 +252,7 @@ implementation
          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,tmpreg,denum);
 //         cg.ungetcpuregister(current_asmdata.CurrAsmList,tmpreg);
        end
-     else
+     else*)
        begin
          { On MC68000/68010/coldfire we must pass through RTL routines }
          if signed then
