@@ -113,7 +113,7 @@ type
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
-      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS],
       { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
       { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
       { cpu_isaa     } [],
