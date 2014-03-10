@@ -84,21 +84,16 @@ implementation
 
         { check whether left_reg.reghi is less than right_reg.reghi }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reghi,left_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_NO,labelcmp64_2));
 
         { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64_1));
 
         { is left_reg.reglo less than right_reg.reglo? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_2));
 
-        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
-        else
-          { better use JMP? }
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
-
+        current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_NO,labelcmp64_1));
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
@@ -123,14 +118,14 @@ implementation
 
         { check whether right_reg.reghi is less than left_reg.reghi }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_NO,labelcmp64_1));
 
         { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64_2));
 
         { is right_reg.reglo less than left_reg.reglo? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_1));
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
@@ -154,11 +149,11 @@ implementation
 
         { is the high order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64));
 
         { is the low order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64));
 
         { load the value for "true" }
         cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,1,tmpreg);
@@ -180,11 +175,11 @@ implementation
 
         { is the high order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64));
 
         { is the low order longword equal? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64));
 
         { load the value for "false" }
         cg.a_load_const_reg(current_asmdata.currasmlist,OS_INT,0,tmpreg);
@@ -208,21 +203,16 @@ implementation
 
         { check whether left_reg.reghi is less than right_reg.reghi }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reghi,left_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_2));
 
         { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64_1));
 
         { is left_reg.reglo less than right_reg.reglo? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_2));
 
-        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
-        else
-          { ToDo : use JMP? }
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
-
+        current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_NO,labelcmp64_1));
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
         { load the value for "true" }
@@ -247,14 +237,14 @@ implementation
 
         { check whether right_reg.reghi is less than left_reg.reghi }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_1));
 
         { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_2));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_NO,labelcmp64_2));
 
         { is right_reg.reglo less than left_reg.reglo? }
         current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
+        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_NO,labelcmp64_1));
 
         cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
 
