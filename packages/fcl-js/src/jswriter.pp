@@ -1204,6 +1204,7 @@ end;
 Function TTextWriter.Write(Const Args: Array of const) : Integer;
 
 Var
+  I : Integer;
   V : TVarRec;
   S : String;
   U : UnicodeString;
@@ -1211,8 +1212,9 @@ Var
 
 begin
   Result:=0;
-  For V in Args do
+  For I:=Low(Args) to High(Args) do
     begin
+    V:=Args[i];
     S:='';
     U:='';
     case V.VType of
