@@ -328,7 +328,7 @@ var
 
 procedure UpdateResourceStringRefs;
 var
-  i: nativeint;
+  i: integer;
   ptable: PResStrInitEntry;
 begin
   for i:=1 to ResStrInitTable.Count do
@@ -349,7 +349,7 @@ Var
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
   s      : AnsiString;
 begin
   With ResourceStringTable do
@@ -377,7 +377,7 @@ end;
 Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
   s,
   UpUnitName : AnsiString;
 begin
@@ -411,7 +411,7 @@ end;
 Procedure ResetResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
 begin
   With ResourceStringTable do
     begin
@@ -433,7 +433,7 @@ end;
 Procedure FinalizeResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
 begin
   With ResourceStringTable do
     begin
