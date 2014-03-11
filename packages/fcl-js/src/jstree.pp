@@ -1,13 +1,68 @@
 unit jstree;
 
 {$mode objfpc}{$H+}
+{ $DEFINE NOCLASSES}
 
 interface
 
 uses
-  Classes, SysUtils, jsbase, jstoken;
+{$IFNDEF NOCLASSES}  Classes, {$ENDIF} SysUtils, jsbase, jstoken;
 
 Type
+{$IFDEF NOCLASSES}
+
+  { TStrings }
+{$M+}
+  TStrings = Class(TObject)
+  private
+    FCount: Integer;
+    FStrings : Array of String;
+    function GetCount: Integer;
+    function GetS(AIndex : Integer): String;
+    procedure SetS(AIndex : Integer; AValue: String);
+  Public
+    Function Add(Const S : String) : Integer;
+    Procedure Assign(Source : TStrings);
+    Property Strings[AIndex : Integer] : String Read GetS Write SetS; default;
+    Property Count : Integer Read GetCount;
+  end;
+  TStringList = TStrings;
+  EListError = Class(Exception);
+
+  TCollection = Class;
+
+  { TCollectionItem }
+
+  TCollectionItem = Class
+  Private
+    FCollection : TCollection;
+  Public
+    Constructor Create(ACollection : TCollection);
+    Destructor Destroy; override;
+  end;
+  TCollectionItemClass = Class of TCollectionItem;
+
+  { TCollection }
+
+  TCollection = Class
+  private
+    FCount: Integer;
+    FItems : Array of TCollectionItem;
+    FItemClass : TCollectionItemClass;
+    function GetCount: Integer;
+    function GetI(AIndex : Integer): TCollectionItem;
+  public
+    Constructor Create(AItemClass : TCollectionItemClass);
+    Destructor Destroy; override;
+    Procedure Clear;
+    Procedure Remove(AItem : TCollectionItem);
+    Function Add : TCollectionItem;
+    Property Items[AIndex : Integer] : TCollectionItem Read GetI;default;
+    Property Count : Integer Read GetCount;
+  end;
+
+{$M-}
+{$ENDIF}
   TJSElementFlag = (elIsConst,elIsConstValid);
   TJSElementFlags = set of TJSElementFlag;
 
@@ -155,10 +210,9 @@ Type
   TJSArrayLiteralElements = Class(TCollection)
   private
     function GetE(AIndex : Integer): TJSArrayLiteralElement;
-    procedure SetE(AIndex : Integer; const AValue: TJSArrayLiteralElement);
   Public
     Function AddElement : TJSArrayLiteralElement;
-    Property Elements[AIndex : Integer] : TJSArrayLiteralElement Read GetE Write SetE; default;
+    Property Elements[AIndex : Integer] : TJSArrayLiteralElement Read GetE ; default;
   end;
 
   { TJSArrayLiteral }
@@ -189,10 +243,9 @@ Type
   TJSObjectLiteralElements = Class(TCollection)
   private
     function GetE(AIndex : Integer): TJSObjectLiteralElement;
-    procedure SetE(AIndex : Integer; const AValue: TJSObjectLiteralElement);
   Public
     Function AddElement : TJSObjectLiteralElement;
-    Property Elements[AIndex : Integer] : TJSObjectLiteralElement Read GetE Write SetE; default;
+    Property Elements[AIndex : Integer] : TJSObjectLiteralElement Read GetE ; default;
   end;
 
   { TJSObjectLiteral }
@@ -758,10 +811,9 @@ Type
   TJSCaseElements = Class(TCollection)
   private
     function GetC(AIndex : Integer): TJSCaseElement;
-    procedure SetC(AIndex : Integer; const AValue: TJSCaseElement);
   Public
     Function AddCase : TJSCaseElement;
-    Property Cases[AIndex : Integer] : TJSCaseElement Read GetC Write SetC;default;
+    Property Cases[AIndex : Integer] : TJSCaseElement Read GetC ;default;
   end;
 
   { TJSSwitch }
@@ -846,10 +898,9 @@ Type
   TJSElementNodes = Class(TCollection)
   private
     function GetN(AIndex : Integer): TJSElementNode;
-    procedure SetN(AIndex : Integer; const AValue: TJSElementNode);
   Public
     Function AddNode : TJSElementNode;
-    Property Nodes[AIndex : Integer] : TJSElementNode Read GetN Write SetN; default;
+    Property Nodes[AIndex : Integer] : TJSElementNode Read GetN ; default;
   end;
 
   { TJSSourceElements }
@@ -868,6 +919,148 @@ Type
 
 
 implementation
+
+{$IFDEF NOCLASSES}
+{ TCollectionItem }
+
+Constructor TCollectionItem.Create(ACollection: TCollection);
+begin
+  FCollection:=ACollection;
+end;
+
+Destructor TCollectionItem.Destroy;
+begin
+  if Assigned(FCollection) then
+    FCollection.Remove(Self);
+  inherited Destroy;
+end;
+
+{ TCollection }
+
+function TCollection.GetI(AIndex : Integer): TCollectionItem;
+begin
+  if (AIndex>=0) and (AIndex<FCount) then
+    Result:=FItems[AIndex]
+  else
+    Raise EListError.CreateFmt('Collection index (%d) out of bounds.',[AIndex]);
+end;
+
+function TCollection.GetCount: Integer;
+begin
+  Result:=FCount;
+end;
+
+Procedure TCollection.Remove(AItem: TCollectionItem);
+
+Var
+  I,J : Integer;
+
+begin
+  if (AItem=Nil)  then exit;
+  I:=Count-1;
+  While (I>=0) and (FItems[I]<>AItem) do
+    Dec(i);
+  For J:=I to Count-2 do
+    FItems[I]:=FItems[i+1];
+  Dec(FCount);
+end;
+
+Constructor TCollection.Create(AItemClass: TCollectionItemClass);
+begin
+  FItemClass:=AItemClass;
+end;
+
+Destructor TCollection.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+Procedure TCollection.Clear;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to Count-1 do
+    begin
+    FItems[i].FCollection:=Nil;
+    FItems[i].Destroy;
+    end;
+  FCount:=0;
+  SetLength(Fitems,0);
+end;
+
+Function TCollection.Add: TCollectionItem;
+Var
+  NL : Integer;
+begin
+  If FCount=Length(FItems) then
+    begin
+    NL:=Length(FItems)*3 div 2;
+    if NL=0 then NL:=10;
+    SetLength(FItems,NL);
+    end;
+  Result:=FItemClass.Create(Self);
+  FItems[FCount]:=Result;
+  Inc(FCount);
+end;
+
+{ TStrings }
+
+function TStrings.GetCount: Integer;
+begin
+  Result:=FCount;
+end;
+
+function TStrings.GetS(AIndex : Integer): String;
+begin
+  if (AIndex>=0) and (AIndex<FCount) then
+    Result:=FStrings[AIndex]
+  else
+    Raise EListError.CreateFmt('List index (%d) out of bounds.',[AIndex]);
+end;
+
+procedure TStrings.SetS(AIndex : Integer; AValue: String);
+begin
+  if (AIndex>=0) and (AIndex<=FCount) then
+    begin
+    if (AIndex=FCount) then
+      Add(AValue)
+    else
+      FStrings[AIndex]:=AValue;
+    end
+  else
+    Raise EListError.CreateFmt('List index (%d) out of bounds.',[AIndex]);
+end;
+
+Function TStrings.Add(Const S: String): Integer;
+
+Var
+  NL : Integer;
+begin
+  If FCount=Length(FStrings) then
+    begin
+    NL:=Length(FStrings)*3 div 2;
+    if NL=0 then NL:=10;
+    SetLength(FStrings,NL);
+    end;
+  FStrings[FCount]:=S;
+  Inc(FCount);
+end;
+
+Procedure TStrings.Assign(Source: TStrings);
+
+Var
+  I : Integer;
+
+begin
+  SetLength(FStrings,Length(Source.FStrings));
+  FCount:=Source.FCount;
+  For I:=0 to FCount-1 do
+    FStrings[i]:=Source.FStrings[i];
+end;
+{$ENDIF NOCLASSES}
 
 { TJSXOREqAssignStatement }
 
@@ -1293,12 +1486,6 @@ begin
   Result:=TJSArrayLiteralElement(Items[AIndex]);
 end;
 
-procedure TJSArrayLiteralElements.SetE(AIndex : Integer;
-  const AValue: TJSArrayLiteralElement);
-begin
-  Items[AIndex]:=AValue;
-end;
-
 function TJSArrayLiteralElements.AddElement: TJSArrayLiteralElement;
 begin
   Result:=TJSArrayLiteralElement(Add);
@@ -1326,11 +1513,6 @@ begin
   Result:=TJSObjectLiteralElement(Items[AIndex]);
 end;
 
-procedure TJSObjectLiteralElements.SetE(AIndex : Integer;
-  const AValue: TJSObjectLiteralElement);
-begin
-  Items[AIndex]:=AValue;
-end;
 
 function TJSObjectLiteralElements.AddElement: TJSObjectLiteralElement;
 begin
@@ -1578,10 +1760,6 @@ begin
   Result:=TJSCaseElement(Items[AIndex]);
 end;
 
-procedure TJSCaseElements.SetC(AIndex : Integer; const AValue: TJSCaseElement);
-begin
-  Items[AIndex]:=AValue;
-end;
 
 function TJSCaseElements.AddCase: TJSCaseElement;
 begin
@@ -1631,10 +1809,6 @@ begin
   Result:=TJSElementNode(Items[Aindex])
 end;
 
-procedure TJSElementNodes.SetN(AIndex : Integer; const AValue: TJSElementNode);
-begin
-  Items[AIndex]:=Avalue;
-end;
 
 function TJSElementNodes.AddNode: TJSElementNode;
 begin
