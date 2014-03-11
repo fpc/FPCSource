@@ -533,17 +533,17 @@ begin
   { retrieve backtrace info }
   bp:=get_frame;
   pcaddr:=get_pc_addr;
+  oldbp:=bp;
   get_caller_stackinfo(bp,pcaddr);
-  { valid bp? }
-  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
-    for i:=1 to tracesize do
-     begin
-       oldbp:=bp;
-       get_caller_stackinfo(bp,pcaddr);
-       pp^.calls[i]:=pcaddr;
-       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-         break;
-     end;
+
+  for i:=1 to tracesize do
+    begin
+      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+        break;
+      oldbp:=bp;
+      get_caller_stackinfo(bp,pcaddr);
+      pp^.calls[i]:=pcaddr;
+    end;
 
   { insert in the linked list }
   if loc_info^.heap_mem_root<>nil then
@@ -576,6 +576,7 @@ function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean; inline;
 var
   i: ptruint;
+  oldbp,
   bp : pointer;
   pcaddr : codepointer;
   ptext : ^text;
@@ -638,16 +639,17 @@ begin
     begin
        bp:=get_frame;
        pcaddr:=get_pc_addr;
+       oldbp:=bp;
        get_caller_stackinfo(bp,pcaddr);
 
-       if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
-         for i:=(tracesize div 2)+1 to tracesize do
-          begin
-            get_caller_stackinfo(bp,pcaddr);
-            pp^.calls[i]:=pcaddr;
-            if not((bp>=StackBottom) and (bp<(StackBottom + StackLength))) then
+       for i:=(tracesize div 2)+1 to tracesize do
+         begin
+           if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
               break;
-          end;
+           oldbp:=bp;
+           get_caller_stackinfo(bp,pcaddr);
+           pp^.calls[i]:=pcaddr;
+         end;
     end;
   inc(loc_info^.freemem_cnt);
   { clear the memory, $F0 will lead to GFP if used as pointer ! }
@@ -920,16 +922,16 @@ begin
   { generate new backtrace }
   bp:=get_frame;
   pcaddr:=get_pc_addr;
+  oldbp:=bp;
   get_caller_stackinfo(bp,pcaddr);
-  if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
-    for i:=1 to tracesize do
-     begin
-       oldbp:=bp;
-       get_caller_stackinfo(bp,pcaddr);
-       pp^.calls[i]:=pcaddr;
-       if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-         break;
-     end;
+  for i:=1 to tracesize do
+    begin
+      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+        break;
+      oldbp:=bp;
+      get_caller_stackinfo(bp,pcaddr);
+      pp^.calls[i]:=pcaddr;
+    end;
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
