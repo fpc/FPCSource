@@ -33,18 +33,19 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
-    {$IFDEF FPUFPV4_S16}
+{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11)}
+
+    rfs r0
+    and r0,r0,#0xffe0ffff
+    orr r0,r0,#0x00070000
+    wfs r0
+{$else}
     movw r0, #(0xed88)
     movt r0, #(0xe000)
     ldr r1, [r0]
     orr r1, r1, #(0xF << 20)
     str r1, [r0]
-    {$ELSE FPUFPV4_S16}
-    rfs r0
-    and r0,r0,#0xffe0ffff
-    orr r0,r0,#0x00070000
-    wfs r0
-    {$endif FPUFPV4_S16}
+{$endif}
   end;
 end;
 {$endif}
