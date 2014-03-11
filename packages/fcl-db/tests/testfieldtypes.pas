@@ -608,9 +608,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestChangeBlob;
-
 var s : string;
-
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).CommitDDL;
@@ -632,6 +630,13 @@ begin
     AssertEquals(s, Fields[1].AsString); // test before Post
     Cancel;
     AssertEquals('After Cancel', 'Test this blob', Fields[1].AsString); // original value
+
+    Append; // Blob is null
+    Fields[1].AsString := s; // Null flag must be unset
+    AssertEquals(s, Fields[1].AsString);
+    Fields[1].Clear;
+    AssertTrue('Clear', Fields[1].IsNull);
+    Cancel;
 
     Edit;
     With CreateBlobStream(Fields[1], bmWrite) do

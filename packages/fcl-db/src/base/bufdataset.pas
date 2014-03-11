@@ -2422,7 +2422,7 @@ procedure TCustomBufDataset.InternalCancel;
 Var i            : integer;
 
 begin
-  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+  if assigned(FUpdateBlobBuffers) then for i:=0 to high(FUpdateBlobBuffers) do
     if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
       FreeBlobBuffer(FUpdateBlobBuffers[i]);
 end;
@@ -2431,26 +2431,14 @@ procedure TCustomBufDataset.InternalPost;
 
 Var ABuff        : TRecordBuffer;
     i            : integer;
-    bufblob      : TBufBlobField;
-    NullMask     : pbyte;
     ABookmark    : PBufBookmark;
 
 begin
   inherited InternalPost;
 
-  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+  if assigned(FUpdateBlobBuffers) then for i:=0 to high(FUpdateBlobBuffers) do
    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
-    begin
-    bufblob.BlobBuffer := FUpdateBlobBuffers[i];
-    NullMask := PByte(ActiveBuffer);
-
-    if bufblob.BlobBuffer^.Size = 0 then
-      SetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1)
-    else
-      unSetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1);
-
-    bufblob.BlobBuffer^.FieldNo := -1;
-    end;
+    FUpdateBlobBuffers[i]^.FieldNo := -1;
 
   if State = dsInsert then
     begin
@@ -2764,8 +2752,11 @@ begin
       else
         FBlobBuffer^.OrgBufID := -1;
       bufblob.BlobBuffer := FBlobBuffer;
-      // redirect pointer in current record buffer to new write blob buffer
+
       CurrBuff := GetCurrentBuffer;
+      // unset null flag for blob field
+      unSetFieldIsNull(PByte(CurrBuff), Field.FieldNo-1);
+      // redirect pointer in current record buffer to new write blob buffer
       inc(CurrBuff, FDataSet.FFieldBufPositions[Field.FieldNo-1]);
       Move(bufblob, CurrBuff^, FDataSet.GetFieldSize(FDataSet.FieldDefs[Field.FieldNo-1]));
       FModified := True;
@@ -2777,11 +2768,16 @@ begin
   if FModified then
     begin
     // if TBufBlobStream was requested, but no data was written, then Size = 0;
-    //  used by TBlobField.Clear, so in this case set Field to null in InternalPost
+    //  used by TBlobField.Clear, so in this case set Field to null
     //FField.Modified := True; // should be set to True, but TBlobField.Modified is never reset
 
     if not (FDataSet.State in [dsFilter, dsCalcFields, dsNewValue]) then
+      begin
+      if FBlobBuffer^.Size = 0 then // empty blob = IsNull
+        // blob stream should be destroyed while DataSet is in write state
+        SetFieldIsNull(PByte(FDataSet.GetCurrentBuffer), FField.FieldNo-1);
       FDataSet.DataEvent(deFieldChange, PtrInt(FField));
+      end;
     end;
   inherited Destroy;
 end;
