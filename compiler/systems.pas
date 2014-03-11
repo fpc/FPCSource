@@ -345,7 +345,7 @@ interface
          (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),
-         (name: 'OLDWIN32GNU'; supported:{$ifdef CPUI386}true{$else}false{$endif})
+         (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif})
        );
 
     var
