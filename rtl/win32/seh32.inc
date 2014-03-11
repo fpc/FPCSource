@@ -145,17 +145,30 @@ begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
     RtlUnwind(@frame,nil,@rec,nil);
+    asm
+      { RtlUnwind destroys nonvolatile registers, this assembler block prevents
+        regvar optimizations. }
+    end ['ebx','esi','edi'];
+
     if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
     begin
       code:=RunErrorCode(rec);
       if code<0 then
         SysResetFPU;
+      code:=abs(code);
       Adr:=rec.ExceptionAddress;
       Obj:=nil;
       if Assigned(ExceptObjProc) then
-        Obj:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
+        Obj:=TObject(TExceptObjProc(ExceptObjProc)(code,rec));
       if Obj=nil then
-        RunError(abs(code));
+      begin
+        { This works because RtlUnwind does not actually unwind the stack on i386
+          (and only on i386) }
+        errorcode:=word(code);
+        errorbase:=pointer(context.Ebp);
+        erroraddr:=pointer(context.Eip);
+        Halt(code);
+      end;
     end
     else
     begin
@@ -169,7 +182,7 @@ begin
       Halt(217);
     end
     else
-      RunError(abs(code));
+      RunError(code);
   end;
   result:=ExceptionContinueExecution;
 end;
