@@ -1121,6 +1121,15 @@ unit rgobj;
     procedure trgobj.set_alias(u,v:Tsuperregister);
 
     begin
+      { don't make registers that the register allocator shouldn't touch (such
+        as stack and frame pointers) be aliases for other registers, because
+        then it can propagate them and even start changing them if the aliased
+        register gets changed }
+      if ((u<first_imaginary) and
+          not(u in usable_register_set)) or
+         ((v<first_imaginary) and
+          not(v in usable_register_set)) then
+        exit;
       include(reginfo[v].flags,ri_coalesced);
       if reginfo[v].alias<>0 then
         internalerror(200712291);
@@ -1272,9 +1281,15 @@ unit rgobj;
           add_worklist(u);
           add_worklist(v);
         end
-      {Next test: is it possible and a good idea to coalesce??}
-      else if ((u<first_imaginary) and adjacent_ok(u,v)) or
-              conservative(u,v) then
+      {Next test: is it possible and a good idea to coalesce?? Note: don't
+       coalesce registers that should not be touched by the register allocator,
+       such as stack/framepointers, because otherwise they can be changed }
+      else if (((u<first_imaginary) and adjacent_ok(u,v)) or
+               conservative(u,v)) and
+              ((u>first_imaginary) or
+               (u in usable_register_set)) and
+              ((v>first_imaginary) or
+               (v in usable_register_set)) then
         begin
           m.moveset:=ms_coalesced_moves;  {Move coalesced!}
           coalesced_moves.insert(m);
