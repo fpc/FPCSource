@@ -8,7 +8,6 @@ uses
   Classes, SysUtils, toolsunit,
   db,
   SdfData
-  ,csvdataset {for testing}
   ;
 
 type
