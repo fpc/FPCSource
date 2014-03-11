@@ -1139,36 +1139,29 @@ Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
   i : Longint;
   prevfp : Pointer;
-  prevaddr : CodePointer;
   is_dev : boolean;
-  caller_frame : Pointer;
-  caller_addr : CodePointer;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-    prevfp:=fp-1;
-    prevaddr:=nil;
+    { Frame of this procedure acts as StackBottom, fp values below that are invalid. }
+    prevfp:=get_frame;
     i:=0;
     is_dev:=do_isdevice(textrec(f).Handle);
     { sanity checks, new frame pointer must be always greater than the old one, further
       it must point into the stack area, else something went wrong }
-    while (fp>prevfp) and (fp<StackTop) and (fp>StackBottom)  Do
+    while (fp>prevfp) and (fp<StackTop) do
      Begin
-       caller_addr := get_caller_addr(fp,addr);
-       caller_frame := get_caller_frame(fp,addr);
-       if (caller_addr=nil) then
+       prevfp:=fp;
+       get_caller_stackinfo(fp,addr);
+       if (addr=nil) then
          break;
-       Writeln(f,BackTraceStrFunc(caller_addr));
-       if (caller_frame=nil) then
+       Writeln(f,BackTraceStrFunc(addr));
+       if (fp=nil) then
          break;
        Inc(i);
        If ((i>max_frame_dump) and is_dev) or (i>256) Then
          break;
-       prevfp:=fp;
-       prevaddr:=addr;
-       fp:=caller_frame;
-       addr:=caller_addr;
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except

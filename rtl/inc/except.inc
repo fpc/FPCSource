@@ -113,10 +113,8 @@ var
   framecount  : longint;
   frames      : PCodePointer;
   prev_frame,
-  curr_frame,
-  caller_frame : Pointer;
-  curr_addr,
-  caller_addr : CodePointer;
+  curr_frame  : Pointer;
+  curr_addr   : CodePointer;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
@@ -141,21 +139,18 @@ begin
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
         (curr_frame<(StackBottom + StackLength)) do
     Begin
-      caller_addr := get_caller_addr(curr_frame, curr_addr);
-      caller_frame := get_caller_frame(curr_frame, curr_addr);
-      if (caller_addr=nil) or
-         (caller_frame=nil) then
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
+      if (curr_addr=nil) or
+         (curr_frame=nil) then
         break;
       if (framecount>=framebufsize) then
         begin
           inc(framebufsize,16);
           reallocmem(frames,framebufsize*sizeof(codepointer));
         end;
-      frames[framecount]:=caller_addr;
+      frames[framecount]:=curr_addr;
       inc(framecount);
-      prev_frame:=curr_frame;
-      curr_addr:=caller_addr;
-      curr_frame:=caller_frame;
     End;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
