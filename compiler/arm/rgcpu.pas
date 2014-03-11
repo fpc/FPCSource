@@ -301,11 +301,8 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
                   begin
                     { str expects the register in oper[0] }
-                    oper[0]^.typ:=top_reg;
-                    oper[0]^.reg:=oper[1]^.reg;
-                    oper[1]^.typ:=top_ref;
-                    new(oper[1]^.ref);
-                    oper[1]^.ref^:=spilltemp;
+                    instr.loadreg(0,oper[1]^.reg);
+                    instr.loadref(1,spilltemp);
                     opcode:=A_STR;
                     result:=true;
                   end
@@ -313,9 +310,7 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
                   begin
-                    oper[1]^.typ:=top_ref;
-                    new(oper[1]^.ref);
-                    oper[1]^.ref^:=spilltemp;
+                    instr.loadref(1,spilltemp);
                     opcode:=A_LDR;
                     result:=true;
                   end;
