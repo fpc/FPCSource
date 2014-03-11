@@ -40,7 +40,6 @@ type
     FQuery         : TSQLQuery;
     FUniDirectional: boolean;
     procedure CreateFConnection;
-    procedure CreateFTransaction;
     Function CreateQuery : TSQLQuery;
   protected
     procedure SetTestUniDirectional(const AValue: boolean); override;
@@ -144,7 +143,6 @@ procedure TSQLDBConnector.CreateFConnection;
 var t : TSQLConnType;
     i : integer;
     s : string;
-    TempTrans: TSQLTransaction;
 begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
@@ -167,8 +165,11 @@ begin
 
   if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
+  FTransaction := TSQLTransaction.Create(nil);
+
   with Fconnection do
   begin
+    Transaction := FTransaction;
     DatabaseName := dbname;
     UserName := dbuser;
     Password := dbpassword;
@@ -214,6 +215,9 @@ begin
       end;
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
+      // note: test database should have case-insensitive collation
+      // todo: SQL Server 2008 and later supports DATE, TIME and DATETIME2 data types,
+      //       but these are not supported by FreeTDS yet
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
@@ -230,9 +234,6 @@ begin
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
 
-      TempTrans:=TSQLTransaction.Create(nil);
-      FConnection.Transaction:=TempTrans;
-      TempTrans.StartTransaction;
       // Proper blob support:
       FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
       if SQLServerType=ssMSSQL then
@@ -240,20 +241,16 @@ begin
         // When running CREATE TABLE statements, allow NULLs by default - without
         // having to specify NULL all the time:
         // http://msdn.microsoft.com/en-us/library/ms174979.aspx
-        FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
+        //
         // Padding character fields is expected by ANSI and sqldb, as well as
         // recommended by Microsoft:
         // http://msdn.microsoft.com/en-us/library/ms187403.aspx
-        FConnection.ExecuteDirect('SET ANSI_PADDING ON');
+        FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS OFF');
       end;
-      TempTrans.Commit;
-      TempTrans.Free;
-      FConnection.Transaction:=nil;
-
+      FTransaction.Commit;
       end;
     ssMySQL:
       begin
-      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES"
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
@@ -264,6 +261,9 @@ begin
       FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
+      FConnection.ExecuteDirect('SET SESSION sql_mode=''PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
+      FTransaction.Commit;
       end;
     ssOracle:
       begin
@@ -348,14 +348,6 @@ begin
   if SQLServerType in [ssSQLite] then
     for i := 0 to testValuesCount-1 do
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
-end;
-
-procedure TSQLDBConnector.CreateFTransaction;
-
-begin
-  Ftransaction := tsqltransaction.create(nil);
-  with Ftransaction do
-    database := Fconnection;
 end;
 
 function TSQLDBConnector.CreateQuery: TSQLQuery;
@@ -650,9 +642,7 @@ constructor TSQLDBConnector.Create;
 begin
   FConnection := nil;
   CreateFConnection;
-  CreateFTransaction;
   FQuery := CreateQuery;
-  FConnection.Transaction := FTransaction;
   Inherited;
 end;
 
