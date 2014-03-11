@@ -23,7 +23,6 @@ interface
 {$endif FPC_HEAPTRC_EXTRA}
 
 {$checkpointer off}
-{$goto on}
 {$TYPEDADDRESS on}
 
 {$if defined(win32) or defined(wince)}
@@ -1013,8 +1012,6 @@ var
   bp : pointer;
   pcaddr : codepointer;
   ptext : ^text;
-label
-  _exit;
 begin
   if p=nil then
     runerror(204);
@@ -1037,11 +1034,11 @@ begin
   stack_top:=__stkbottom+__stklen;
   { allow all between start of code and end of bss }
   if ptruint(p)<=bss_end then
-    goto _exit;
+    exit;
   { stack can be above heap !! }
 
   if (ptruint(p)>=get_ebp) and (ptruint(p)<=stack_top) then
-    goto _exit;
+    exit;
 {$endif go32v2}
 
   { I don't know where the stack is in other OS !! }
@@ -1049,21 +1046,21 @@ begin
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
      (p<StackTop) then
-    goto _exit;
+    exit;
   { inside data ? }
   if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@edata)) then
-    goto _exit;
+    exit;
 
   { inside bss ? }
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
-    goto _exit;
+    exit;
   { is program multi-threaded and p inside Threadvar range? }
   if TlsKey<>-1 then
     begin
       datap:=TlsGetValue(tlskey);
       if ((ptruint(p)>=ptruint(datap)) and
           (ptruint(p)<ptruint(datap)+TlsSize)) then
-        goto _exit;
+        exit;
     end;
 {$endif windows}
 
@@ -1071,27 +1068,27 @@ begin
   { inside stack ? }
   if (PtrUInt (P) > PtrUInt (Get_Frame)) and
      (PtrUInt (P) < PtrUInt (StackTop)) then
-    goto _exit;
+    exit;
   { inside data or bss ? }
   if (PtrUInt (P) >= PtrUInt (@etext)) and (PtrUInt (P) < PtrUInt (@eend)) then
-    goto _exit;
+    exit;
 {$ENDIF OS2}
 
 {$ifdef linux}
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<$c0000000) then      //todo: 64bit!
-    goto _exit;
+    exit;
   { inside data or bss ? }
   if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@eend)) then
-    goto _exit;
+    exit;
 {$endif linux}
 
 {$ifdef morphos}
   { inside stack ? }
   stack_top:=ptruint(StackBottom)+StackLength;
   if (ptruint(p)<stack_top) and (ptruint(p)>ptruint(StackBottom)) then
-    goto _exit;
+    exit;
   { inside data or bss ? }
   {$WARNING data and bss checking missing }
 {$endif morphos}
@@ -1105,7 +1102,7 @@ begin
   // if we find the address in a known area in our current process,
   // then it is a valid one
   if area_for(p) <> B_ERROR then
-    goto _exit;
+    exit;
 {$endif BEOS}
 
   { first try valid list faster }
@@ -1125,7 +1122,7 @@ begin
           { special case of the fill_extra_info call }
              ((pp=loc_info^.heap_valid_last) and usecrc and (pp^.sig=$DEADBEEF)
               and loc_info^.inside_trace_getmem) then
-            goto _exit
+            exit
           else
             begin
               writeln(ptext^,'corrupted heap_mem_info');
@@ -1153,7 +1150,7 @@ begin
         { allocated block }
        if ((pp^.sig=$DEADBEEF) and not usecrc) or
           ((pp^.sig=calculate_sig(pp)) and usecrc) then
-          goto _exit
+          exit
        else
          begin
             writeln(ptext^,'pointer $',hexstr(p),' points into invalid memory block');
@@ -1174,7 +1171,6 @@ begin
   get_caller_stackinfo(bp,pcaddr);
   dump_stack(ptext^,bp,pcaddr);
   runerror(204);
-_exit:
 end;
 
 {*****************************************************************************
