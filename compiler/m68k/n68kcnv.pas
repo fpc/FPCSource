@@ -212,7 +212,7 @@ implementation
                     if isvalidrefoffset(left.location.reference) then
                       begin
                         { Coldfire cannot handle tst.l 123(dX) }
-                        if (current_settings.cputype in cpu_coldfire) and
+                        if (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) and
                            isintregister(left.location.reference.base) then
                           begin
                             tmpreference:=left.location.reference;
