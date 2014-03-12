@@ -682,6 +682,13 @@ End;
                              Miscellaneous
 *****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer;
+begin
+  result:=StackBottom+StackLength;
+end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
+
 {$ifndef FPC_SYSTEM_HAS_GET_PC_ADDR}
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need

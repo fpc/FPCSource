@@ -701,10 +701,10 @@ Var
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
-  StackTop,
   StackBottom : Pointer;
   StackLength : SizeUInt;
 
+function StackTop: Pointer;
 
 { Numbers for routines that have compiler magic }
 {$I innr.inc}

@@ -340,7 +340,6 @@ begin
 end;
 
 begin
-  StackTop := __stktop;
   StackBottom := __stkbottom;
   StackLength := __stktop - __stkbottom;
   InstallInterruptHandlers;

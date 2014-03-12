@@ -1125,11 +1125,10 @@ begin
     end;
 {$ENDIF OS2EXCEPTIONS}
     DosGetInfoBlocks (@TIB, @PIB);
-    StackBottom := TIB^.Stack;
-{ $IFNDEF OS2EXCEPTIONS}
-    StackTop := TIB^.StackLimit;
-{ $ENDIF OS2EXCEPTIONS}
     StackLength := CheckInitialStkLen (InitialStkLen);
+    { TODO: verify if TIB^.StackLimit is correct,
+      from MSWindows point of view TIB^.Stack should be used instead }
+    StackBottom := TIB^.StackLimit - StackLength;
 
     {Set type of application}
     ApplicationType := PIB^.ProcType;

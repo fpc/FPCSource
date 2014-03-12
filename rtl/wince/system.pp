@@ -1350,15 +1350,9 @@ end;
 {$endif WINCE_EXCEPTION_HANDLING}
 
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
-var
-  st: pointer;
 begin
   IsLibrary:=false;
 {$ifdef CPUARM}
-  asm
-    str sp,st
-  end;
-  StackTop:=st;
   asm
     mov fp,#0
     bl PASCALMAIN;
@@ -1373,11 +1367,6 @@ begin
     mov %esp,%fs:(0)
   {$endif WINCE_EXCEPTION_HANDLING}
     pushl %ebp
-    movl %esp,%eax
-    movl %eax,st
-  end;
-  StackTop:=st;
-  asm
     xorl %eax,%eax
     movw %ss,%ax
     movl %eax,_SS
@@ -1758,7 +1747,7 @@ initialization
   if not(IsLibrary) then
     SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := StackTop - StackLength;
+  StackBottom := Sptr - StackLength;
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
