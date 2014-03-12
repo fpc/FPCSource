@@ -144,8 +144,6 @@ type
   TSQLConnection = class (TDatabase)
   private
     FFieldNameQuoteChars : TQuoteChars;
-    FLogEvents: TDBEventTypes;
-    FOnLog: TDBLogNotifyEvent;
     FPassword            : string;
     FTransaction         : TSQLTransaction;
     FUserName            : string;
@@ -153,11 +151,13 @@ type
     FCharSet             : string;
     FRole                : String;
     FStatements          : TFPList;
+    FLogEvents: TDBEventTypes;
+    FOnLog: TDBLogNotifyEvent;
     function GetPort: cardinal;
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
-    FSQLFormatSettings : TFormatSettings;
+    FSQLFormatSettings   : TFormatSettings;
     // Updating of DB records is moved out of TSQLQuery.
     // It is done here, so descendents can override it and implement DB-specific.
     // One day, this may be factored out to a TSQLResolver class.
@@ -432,7 +432,8 @@ type
     class function FieldDefsClass : TFieldDefsClass; override;
     // IProviderSupport methods
     function PSGetUpdateException(E: Exception; Prev: EUpdateError): EUpdateError; override;
-    Property TableName : String Read FTableName Write FTableName;
+    function PSGetTableName: string; override;
+    Property TableName : String Read FTableName Write FTableName; // alternative: procedure DoGetTableName
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -2486,6 +2487,11 @@ begin
     ErrorCode := 0;
 
   Result := EUpdateError.Create(SOnUpdateError, E.Message, ErrorCode, PrevErrorCode, E);
+end;
+
+function TCustomSQLQuery.PSGetTableName: string;
+begin
+  Result := FTableName;
 end;
 
 { TSQLScript }
