@@ -220,6 +220,17 @@ unit cpupara;
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
+        { always use the whole 32 bit register when returning values }
+        if (side=calleeside) and
+           (result.intsize>0) and
+           (result.intsize<sizeof(aint)) then
+          begin
+            result.def:=sinttype;
+            result.intsize:=sizeof(aint);
+            retcgsize:=OS_SINT;
+            result.size:=retcgsize;
+          end;
+
         paraloc:=result.add_location;
         { Return in FPU register? }
         if not (cs_fp_emulation in current_settings.moduleswitches) and
