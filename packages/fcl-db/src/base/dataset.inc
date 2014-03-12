@@ -955,8 +955,8 @@ procedure TDataSet.OpenCursor(InfoQuery: Boolean);
 
 begin
   if InfoQuery then
-    InternalInitfieldDefs
-  else if state <> dsOpening then
+    InternalInitFieldDefs
+  else if State <> dsOpening then
     DoInternalOpen;
 end;
 
@@ -1063,6 +1063,16 @@ end;
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
 begin
   FIsUniDirectional := Value;
+end;
+
+class function TDataSet.FieldDefsClass: TFieldDefsClass;
+begin
+  Result:=TFieldDefs;
+end;
+
+class function TDataSet.FieldsClass: TFieldsClass;
+begin
+  Result:=TFields;
 end;
 
 procedure TDataSet.SetActive(Value: Boolean);
@@ -1383,7 +1393,7 @@ begin
     end;
 end;
 
-function TDataSet.Tempbuffer: TRecordBuffer;
+function TDataSet.TempBuffer: TRecordBuffer;
 
 begin
   Result := FBuffers[FRecordCount];
@@ -2276,7 +2286,7 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataSet.GetFieldValues(const fieldname: string): Variant;
+function TDataSet.GetFieldValues(const FieldName: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2295,7 +2305,7 @@ begin
   end;
 end;
 
-procedure TDataSet.SetFieldValues(const fieldname: string; Value: Variant);
+procedure TDataSet.SetFieldValues(const FieldName: string; Value: Variant);
 
 var
   i, l, h : Integer;
@@ -2461,16 +2471,6 @@ end;
 procedure TDataSet.PSStartTransaction;
 begin
   DatabaseError('Provider support not available', Self);
-end;
-
-class function TDataSet.FieldDefsClass: TFieldDefsClass;
-begin
-  Result:=TFieldDefs;
-end;
-
-class function TDataSet.FieldsClass: TFieldsClass;
-begin
-  Result:=TFields;
 end;
 
 function TDataSet.PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet

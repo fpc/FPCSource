@@ -133,7 +133,7 @@ type
   TFieldAttribute = (faHiddenCol, faReadonly, faRequired, faLink, faUnNamed, faFixed);
   TFieldAttributes = set of TFieldAttribute;
 
-  { TNamedItem }
+{ TNamedItem }
 
   TNamedItem = class(TCollectionItem)
   private
@@ -147,7 +147,7 @@ type
     property Name : string read FName write SetDisplayName;
   end;
 
-  { TDefCollection }
+{ TDefCollection }
 
   TDefCollection = class(TOwnedCollection)
   private
@@ -164,7 +164,7 @@ type
     property Updated: boolean read FUpdated write FUpdated;
   end;
 
-  { TFieldDef }
+{ TFieldDef }
 
   TFieldDef = class(TNamedItem)
   Private
@@ -199,6 +199,7 @@ type
     property Size: Integer read FSize write SetSize;
   end;
   TFieldDefClass = Class of TFieldDef;
+
 { TFieldDefs }
 
   TFieldDefs = class(TDefCollection)
@@ -211,7 +212,7 @@ type
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
-    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum : Integer) : TFieldDef; overload;
+    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo : Integer) : TFieldDef; overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean); overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
     procedure Add(const AName: string; ADataType: TFieldType); overload;
@@ -245,7 +246,7 @@ type
     Value: Variant;
   end;
 
-  { TLookupList }
+{ TLookupList }
 
   TLookupList = class(TObject)
   private
@@ -260,7 +261,7 @@ type
     procedure ValuesToStrings(AStrings: TStrings);
   end;
 
-  { TField }
+{ TField }
 
   TField = class(TComponent)
   private
@@ -512,8 +513,8 @@ type
     property Value: WideString read GetAsWideString write SetAsWideString;
   end;
 
-
 { TNumericField }
+
   TNumericField = class(TField)
   Private
     FDisplayFormat : String;
@@ -1116,7 +1117,7 @@ type
     end;
   TFieldsClass = Class of TFields;
 
-  { TParam }
+{ TParam }
 
   TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
 
@@ -1223,7 +1224,7 @@ type
   end;
   TParamClass = Class of TParam;
 
-  { TParams }
+{ TParams }
 
   TParams = class(TCollection)
   private
@@ -1478,7 +1479,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
-    function  GetFieldValues(const fieldname : string) : Variant; virtual;
+    function  GetFieldValues(const FieldName : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetIndexDefs(IndexDefs : TIndexDefs; IndexTypes : TIndexOptions) : TIndexDefs;
     function  GetNextRecords: Longint; virtual;
@@ -1507,7 +1508,7 @@ type
     procedure SetFiltered(Value: Boolean); virtual;
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
-    procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
+    procedure SetFieldValues(const FieldName: string; Value: Variant); virtual;
     procedure SetFound(const Value: Boolean); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
@@ -1515,7 +1516,7 @@ type
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
-    Function Tempbuffer: TRecordBuffer;
+    Function TempBuffer: TRecordBuffer;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
@@ -1545,6 +1546,8 @@ type
     procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); virtual;
     procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
+    class function FieldDefsClass : TFieldDefsClass; virtual;
+    class function FieldsClass : TFieldsClass; virtual;
   protected { abstract methods }
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
@@ -1575,8 +1578,6 @@ type
     procedure PSSetCommandText(const CommandText: string); virtual;
     procedure PSSetParams(AParams: TParams); virtual;
     procedure PSStartTransaction; virtual;
-    class function FieldDefsClass : TFieldDefsClass; virtual;
-    class function FieldsClass : TFieldsClass; virtual;
     function PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet)
                                 : Boolean; virtual;
   public
@@ -1654,7 +1655,7 @@ type
     property RecordSize: Word read GetRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
-    property FieldValues[fieldname : string] : Variant read GetFieldValues write SetFieldValues; default;
+    property FieldValues[FieldName : string] : Variant read GetFieldValues write SetFieldValues; default;
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write SetFilterOptions;

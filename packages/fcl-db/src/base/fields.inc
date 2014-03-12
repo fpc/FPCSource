@@ -225,9 +225,9 @@ begin
   Inherited Create(ADataset, Owner, FieldDefClass);
 end;
 
-function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum: Integer): TFieldDef;
+function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Integer): TFieldDef;
 begin
-  Result:=FieldDefClass.create(Self,AName,ADataType,ASize,ARequired,AFieldNum);
+  Result:=FieldDefClass.create(Self,AName,ADataType,ASize,ARequired,AFieldNo);
 end;
 
 procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
