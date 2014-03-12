@@ -453,10 +453,12 @@ unit cgcpu;
          }
          { first ensure that base is an address register }
          if ((ref.base<>NR_NO) and (ref.index<>NR_NO)) and
-            (not isaddressregister(ref.base) and isaddressregister(ref.index)) then
+            (not isaddressregister(ref.base) and isaddressregister(ref.index)) and
+            (ref.scalefactor < 2) then
            begin
              { if we have both base and index registers, but base is data and index
-               is address, we can just swap them, as FPC always uses long index }
+               is address, we can just swap them, as FPC always uses long index.
+               but we can only do this, if the index has no scalefactor }
              hreg:=ref.base;
              ref.base:=ref.index;
              ref.index:=hreg;
