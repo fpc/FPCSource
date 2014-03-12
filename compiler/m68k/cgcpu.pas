@@ -936,7 +936,8 @@ unit cgcpu;
          list.concat(instr);
 
          { zero/sign extend register to 32-bit }
-         sign_extend(list, fromsize, reg2);
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           sign_extend(list, fromsize, reg2);
       end;
 
 
@@ -953,7 +954,8 @@ unit cgcpu;
            size:=tosize;
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
-         sign_extend(list, fromsize, register);
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           sign_extend(list, fromsize, register);
       end;
 
 
