@@ -452,6 +452,17 @@ unit cgcpu;
            displacement.
          }
          { first ensure that base is an address register }
+         if ((ref.base<>NR_NO) and (ref.index<>NR_NO)) and
+            (not isaddressregister(ref.base) and isaddressregister(ref.index)) then
+           begin
+             { if we have both base and index registers, but base is data and index
+               is address, we can just swap them, as FPC always uses long index }
+             hreg:=ref.base;
+             ref.base:=ref.index;
+             ref.index:=hreg;
+             //list.concat(tai_comment.create(strpnew('fixref: base and index swapped')));
+           end;
+
          if (not assigned (ref.symbol) and (current_settings.cputype<>cpu_MC68000)) and
             (ref.base<>NR_NO) and not isaddressregister(ref.base) then
            begin
@@ -1176,7 +1187,8 @@ unit cgcpu;
     procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         opcode: tasmop;
-        opsize : topsize;
+        opsize: topsize;
+        href  : treference;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
@@ -1191,6 +1203,8 @@ unit cgcpu;
             exit;
           end;
 
+        href:=ref;
+        fixref(list,href);
         case op of
           OP_NONE :
             begin
@@ -1211,11 +1225,11 @@ unit cgcpu;
                     opcode:=A_ADDQ
                   else
                     opcode:=A_SUBQ;
-                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref));
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, href));
                 end
               else
-                if current_settings.cputype = cpu_mc68000 then
-                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref))
+                if not(current_settings.cputype in cpu_coldfire) then
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, href))
                 else
                   { on ColdFire, ADDI/SUBI cannot act on memory
                     so we can only go through a register }
