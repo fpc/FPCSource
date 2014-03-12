@@ -837,12 +837,16 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
        href : treference;
+       size : tcgsize;
       begin
         href := ref;
         fixref(list,href);
+        if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+          size:=fromsize
+        else
+          size:=tosize;
         { move to destination reference }
-        sign_extend(list, fromsize, tosize, register);
-        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],register,href));
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
       end;
 
 
@@ -939,10 +943,15 @@ unit cgcpu;
     procedure tcg68k.a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
        href : treference;
+       size : tcgsize;
       begin
          href:=ref;
          fixref(list,href);
-         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           size:=fromsize
+         else
+           size:=tosize;
+         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
          sign_extend(list, fromsize, tosize, register);
       end;
