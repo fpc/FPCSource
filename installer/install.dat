@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.6.3
-version=2.6.3
+title=Free Pascal Compiler 2.6.5
+version=2.6.5
 
 #
 # General
