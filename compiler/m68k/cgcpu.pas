@@ -101,6 +101,8 @@ unit cgcpu;
             The new value is left in the same register.
         }
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
+        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
+
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
         procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
@@ -835,16 +837,12 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
        href : treference;
-        size : tcgsize;
       begin
         href := ref;
         fixref(list,href);
-        if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-          size:=fromsize
-        else
-          size:=tosize;
         { move to destination reference }
-        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
+        sign_extend(list, fromsize, tosize, register);
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],register,href));
       end;
 
 
@@ -866,7 +864,7 @@ unit cgcpu;
               register }
             hreg:=getintregister(list,fromsize);
             list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
-            sign_extend(list,fromsize,hreg);
+            sign_extend(list,fromsize,tosize,hreg);
             list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
             exit;
           end;
@@ -931,31 +929,22 @@ unit cgcpu;
         instr : taicpu;
       begin
          { move to destination register }
-         instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2);
+         instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
          add_move_instruction(instr);
          list.concat(instr);
-
-         { zero/sign extend register to 32-bit }
-         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-           sign_extend(list, fromsize, reg2);
+         sign_extend(list, fromsize, tosize, reg2);
       end;
 
 
     procedure tcg68k.a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
        href : treference;
-       size : tcgsize;
       begin
          href:=ref;
          fixref(list,href);
-         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-           size:=fromsize
-         else
-           size:=tosize;
-         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
+         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],href,register));
          { extend the value in the register }
-         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-           sign_extend(list, fromsize, register);
+         sign_extend(list, fromsize, tosize, register);
       end;
 
 
@@ -1899,45 +1888,67 @@ unit cgcpu;
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
+    procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
+      begin
+        case _newsize of
+          OS_S16, OS_16:
+            case _oldsize of
+              OS_S8:
+                begin { 8 -> 16 bit sign extend }
+                  if (isaddressregister(reg)) then
+                     internalerror(2014031201);
+                  list.concat(taicpu.op_reg(A_EXT,S_W,reg));
+                end;
+              OS_8: { 8 -> 16 bit zero extend }
+                begin
+                  if (current_settings.cputype in cpu_coldfire) then
+                    { ColdFire has no ANDI.W }
+                    list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg))
+                  else
+                    list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
+                end;
+            end;
+          OS_S32, OS_32:
+            case _oldsize of
+              OS_S8:
+                begin { 8 -> 32 bit sign extend }
+                  if (isaddressregister(reg)) then
+                    internalerror(2014031202);
+                  if (current_settings.cputype = cpu_MC68000) then
+                    begin
+                      list.concat(taicpu.op_reg(A_EXT,S_W,reg));
+                      list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                    end
+                  else
+                    begin
+                      //list.concat(tai_comment.create(strpnew('sign extend byte')));
+                      list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
+                    end;
+                end;
+              OS_8: { 8 -> 32 bit zero extend }
+                begin
+                  //list.concat(tai_comment.create(strpnew('zero extend byte')));
+                  list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
+                end;
+              OS_S16: { 16 -> 32 bit sign extend }
+                begin
+                  if (isaddressregister(reg)) then
+                    internalerror(2014031203);
+                  //list.concat(tai_comment.create(strpnew('sign extend word')));
+                  list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                end;
+              OS_16:
+                begin
+                  //list.concat(tai_comment.create(strpnew('zero extend byte')));
+                  list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
+                end;
+            end;
+        end; { otherwise the size is already correct }
+      end; 
 
     procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
       begin
-        case _oldsize of
-         { sign extend }
-         OS_S8:
-              begin
-                if (isaddressregister(reg)) then
-                   internalerror(20020729);
-                if (current_settings.cputype = cpu_MC68000) then
-                  begin
-                    list.concat(taicpu.op_reg(A_EXT,S_W,reg));
-                    list.concat(taicpu.op_reg(A_EXT,S_L,reg));
-                  end
-                else
-                  begin
-//    		    list.concat(tai_comment.create(strpnew('sign extend byte')));
-                    list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
-                  end;
-              end;
-         OS_S16:
-              begin
-                if (isaddressregister(reg)) then
-                   internalerror(20020729);
-//    		list.concat(tai_comment.create(strpnew('sign extend word')));
-                list.concat(taicpu.op_reg(A_EXT,S_L,reg));
-              end;
-         { zero extend }
-         OS_8:
-              begin
-//    		list.concat(tai_comment.create(strpnew('zero extend byte')));
-                list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
-              end;
-         OS_16:
-              begin
-//    		list.concat(tai_comment.create(strpnew('zero extend word')));
-                list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
-              end;
-        end; { otherwise the size is already correct }
+        sign_extend(list, _oldsize, OS_INT, reg);
       end;
 
      procedure tcg68k.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
