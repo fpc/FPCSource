@@ -27,6 +27,8 @@ Unit System;
 { Do not use standard memory manager }
 {$define HAS_MEMORYMANAGER}
 
+{$define FPC_ANSI_TEXTFILEREC}
+
 {$I check.inc}
 
 {$I systemh.inc}
