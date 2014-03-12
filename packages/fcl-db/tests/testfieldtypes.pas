@@ -1728,20 +1728,20 @@ begin
   // for the parameter was used.
 
   // To make sure that any changes are cancelled in the case the test fails
-  TSQLDBConnector(DBConnector).GetNDataset(true,5);
+  TSQLDBConnector(DBConnector).GetNDataset(True,1);
 
   ASQLQuery := TSQLDBConnector(DBConnector).Query;
-  ASQLQuery.SQL.text := 'update fpdev set ID=:ID1 where id = :ID2';
+  ASQLQuery.SQL.Text := 'update fpdev set ID=:ID1 where id = :ID2';
   ASQLQuery.Params[0].Clear;
   ASQLQuery.Params[1].AsInteger := 1;
   AssertTrue(ASQLQuery.Params[0].IsNull);
-  Passed:=False;
+  Passed := False;
   try
-    @ASQLQuery.ExecSQL;
+    ASQLQuery.ExecSQL;
   except
     on E: Exception do
       if E.ClassType.InheritsFrom(EDatabaseError) then
-        Passed := true;
+        Passed := True;
   end;
   AssertTrue(Passed);
 end;

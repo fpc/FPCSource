@@ -262,7 +262,7 @@ begin
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
       // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
-      FConnection.ExecuteDirect('SET SESSION sql_mode=''PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
+      FConnection.ExecuteDirect('SET SESSION sql_mode=''STRICT_ALL_TABLES,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
       FTransaction.Commit;
       end;
     ssOracle:
@@ -388,7 +388,7 @@ begin
     FTransaction.CommitRetaining;
 
     for countID := 1 to MaxDataSet do
-      Fconnection.ExecuteDirect('insert into FPDEV (ID,NAME)' +
+      Fconnection.ExecuteDirect('insert into FPDEV (ID,NAME) ' +
                                 'values ('+inttostr(countID)+',''TestName'+inttostr(countID)+''')');
 
     Ftransaction.Commit;
