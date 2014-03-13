@@ -921,7 +921,7 @@ end;
 
 procedure TTestCursorDBBasics.TestFieldOldValueObsolete;
 var v : variant;
-    bufds: TDataset;
+    ds: TDataset;
 begin
   // this test was created as reaction to AV bug found in TCustomBufDataset.GetFieldData
   // when retrieving OldValue (State=dsOldValue) of newly inserted or appended record.
@@ -932,17 +932,19 @@ begin
   // but next to it was restored back also original test.
   // So now we have two tests which test same thing, where this 'old' one is subset of 'new' one
   // Ideal solution would be remove this 'old' test as it does not test anything what is not tested elsewhere ...
-  bufds := DBConnector.GetNDataset(0) as TDataset;
-  bufds.Open;
-  bufds.InsertRecord([0,'name']);
-  v := VarToStr(bufds.fields[1].OldValue);
+  ds := DBConnector.GetNDataset(0) as TDataset;
+  ds.Open;
+  ds.InsertRecord([0,'name']);
+  v := VarToStr(ds.Fields[1].OldValue);
 end;
 
 procedure TTestCursorDBBasics.TestFieldOldValue;
-var OldValue: string;
+var ds: TDataSet;
+    OldValue: string;
     Fmemo: TField;
 begin
-  with DBConnector.GetFieldDataset as TCustomBufDataset do
+  ds := DBConnector.GetFieldDataset;
+  with ds do
   begin;
     Open;
     First;
@@ -979,9 +981,13 @@ begin
     CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue before Post');
     Post;
     CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue after Post');
-    MergeChangeLog;
-    CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
   end;
+  if ds is TCustomBufDataset then
+    with ds as TCustomBufDataset do
+    begin
+      MergeChangeLog;
+      CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
+    end;
 end;
 
 procedure TTestCursorDBBasics.TestChangeBlobFieldBeforePost;
@@ -989,24 +995,34 @@ procedure TTestCursorDBBasics.TestChangeBlobFieldBeforePost;
 // Bug 15376
 // See also TTestFieldTypes.TestChangeBlob
 var
-  DS : TBufDataset;
+  Fmemo: TField;
 begin
-  DS := TBufDataset.Create(nil);
-  DS.FieldDefs.Add('ID',ftInteger);
-  DS.FieldDefs.Add('NAME',ftString,50);
-  DS.FIeldDefs.Add('MEMO1',ftMemo);
-  DS.CreateDataset;
-  DS.Open;
-  with DS do
+  with DBConnector.GetFieldDataset do
     begin
+    Open;
     Append;
-    FieldByName('ID').AsInteger:=1;
-    FieldByName('NAME').AsString:='NAME1';
-    FieldByName('MEMO1').AsString:='NAME1';
-    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match before post');
+    Fmemo := FieldByName('FMEMO');
+    CheckTrue(Fmemo.IsNull, 'IsNull after Append');
+
+    Fmemo.AsString:='MEMO1';
+    CheckFalse(Fmemo.IsNull, 'IsNull after change');
+    CheckEquals('MEMO1', Fmemo.AsString);
+
+    Fmemo.Clear;
+    CheckTrue(Fmemo.IsNull, 'IsNull after Clear');
+
+    Fmemo.AsString:='MEMO2';
+    CheckEquals('MEMO2', Fmemo.AsString);
+
+    Fmemo.AsString:='';
+    CheckTrue(Fmemo.IsNull, 'IsNull');
+
+    Fmemo.AsString:='MEMO3';
+    CheckEquals('MEMO3', Fmemo.AsString);
     Post;
+    CheckEquals('MEMO3', Fmemo.AsString);
+    Close;
     end;
-  DS.Close;
 end;
 
 procedure TTestDBBasics.TestSetFieldValues;
