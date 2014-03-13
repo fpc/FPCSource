@@ -24,6 +24,7 @@ type
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
   published
+    // fields
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
 
@@ -43,9 +44,12 @@ type
     procedure TestSupportBlobFields;
     procedure TestSupportMemoFields;
 
+    procedure TestCalculatedField;
+    procedure TestCanModifySpecialFields;
+
+    // dataset
     procedure TestDoubleClose;
     procedure TestFieldDefsUpdate;
-    procedure TestCalculatedField;
     procedure TestAssignFieldftString;
     procedure TestAssignFieldftFixedChar;
     procedure TestSelectQueryBasics;
@@ -53,13 +57,13 @@ type
     procedure TestMove;                    // bug 5048
     procedure TestActiveBufferWhenClosed;
     procedure TestEOFBOFClosedDataset;
+    procedure TestRecordcountAfterReopen;  // partly bug 8228
+    procedure TestExceptionLocateClosed;    // bug 13938
+    procedure TestDetectionNonMatchingDataset;
+    // events
     procedure TestLayoutChangedEvents;
     procedure TestDataEventsResync;
-    procedure TestRecordcountAfterReopen;  // partly bug 8228
     procedure TestdeFieldListChange;
-    procedure TestExceptionLocateClosed;    // bug 13938
-    procedure TestCanModifySpecialFields;
-    procedure TestDetectionNonMatchingDataset;
   end;
 
   { TTestBufDatasetDBBasics }
@@ -69,18 +73,17 @@ type
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
   published
-    procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
     procedure TestClientDatasetAsMemDataset;
     procedure TestSaveAsXML;
     procedure TestIsEmpty;
+    procedure TestReadOnly;
+  // cached updates
     procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestBufDatasetCancelUpd1;
     procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleDelete;
-    procedure TestReadOnly;
     procedure TestMergeChangeLog;
-    procedure TestEditedBlobBeforePost; //bug 15376
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -100,7 +103,8 @@ type
     procedure TestAddIndexEditDS;
 
     procedure TestIndexFieldNames;
-    procedure TestIndexFieldNamesAct;
+    procedure TestIndexFieldNamesActive;
+    procedure TestIndexFieldNamesClosed; // bug 16695
 
     procedure TestIndexCurRecord;
 
@@ -156,9 +160,11 @@ type
     procedure TestBug7007;
     procedure TestBug6893;
     procedure TestRequired;
-    procedure TestOldValueObsolete;
-    procedure TestOldValue;
     procedure TestModified;
+    // fields
+    procedure TestFieldOldValueObsolete;
+    procedure TestFieldOldValue;
+    procedure TestChangeBlobFieldBeforePost; //bug 15376
   end;
 
 
@@ -312,34 +318,6 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestdeFieldListChange;
-
-var i,count     : integer;
-    aDatasource : TDataSource;
-    aDatalink   : TDataLink;
-    ds          : TDataset;
-
-begin
-  aDatasource := TDataSource.Create(nil);
-  aDatalink := TTestDataLink.Create;
-  aDatalink.DataSource := aDatasource;
-  ds := DBConnector.GetNDataset(1);
-  with ds do
-    begin
-    aDatasource.DataSet := ds;
-    DataEvents := '';
-    Open;
-    Fields.Add(TField.Create(ds));
-    CheckEquals('deUpdateState:0;deFieldListChange:0;',DataEvents);
-    DataEvents := '';
-    Fields.Clear;
-    CheckEquals('deFieldListChange:0;',DataEvents)
-    end;
-  aDatasource.Free;
-  aDatalink.Free;
-end;
-
-
 procedure TTestDBBasics.TestActiveBufferWhenClosed;
 begin
   with DBConnector.GetNDataset(0) do
@@ -434,6 +412,33 @@ begin
     aDatasource.Free;
     aDatalink.Free;
   end;
+end;
+
+procedure TTestDBBasics.TestdeFieldListChange;
+
+var i,count     : integer;
+    aDatasource : TDataSource;
+    aDatalink   : TDataLink;
+    ds          : TDataset;
+
+begin
+  aDatasource := TDataSource.Create(nil);
+  aDatalink := TTestDataLink.Create;
+  aDatalink.DataSource := aDatasource;
+  ds := DBConnector.GetNDataset(1);
+  with ds do
+    begin
+    aDatasource.DataSet := ds;
+    DataEvents := '';
+    Open;
+    Fields.Add(TField.Create(ds));
+    CheckEquals('deUpdateState:0;deFieldListChange:0;',DataEvents);
+    DataEvents := '';
+    Fields.Clear;
+    CheckEquals('deFieldListChange:0;',DataEvents)
+    end;
+  aDatasource.Free;
+  aDatalink.Free;
 end;
 
 procedure TTestDBBasics.TestRecordcountAfterReopen;
@@ -631,72 +636,6 @@ begin
     end;
 end;
 
-
-procedure TTestCursorDBBasics.TestOldValueObsolete;
-var v : variant;
-    bufds: TDataset;
-begin
-  // this test was created as reaction to AV bug found in TCustomBufDataset.GetFieldData
-  // when retrieving OldValue (State=dsOldValue) of newly inserted or appended record.
-  // In this case was CurrBuff set to nil (and not checked),
-  // because OldValuesBuffer for just inserted record is nil. See rev.17704
-  // (So purpose of this test isn't test InsertRecord on empty dataset or so)
-  // Later was this test replaced by more complex TestOldValue (superset of old test),
-  // but next to it was restored back also original test.
-  // So now we have two tests which test same thing, where this 'old' one is subset of 'new' one
-  // Ideal solution would be remove this 'old' test as it does not test anything what is not tested elsewhere ...
-  bufds := DBConnector.GetNDataset(0) as TDataset;
-  bufds.Open;
-  bufds.InsertRecord([0,'name']);
-  v := VarToStr(bufds.fields[1].OldValue);
-end;
-
-procedure TTestCursorDBBasics.TestOldValue;
-var OldValue: string;
-    Fmemo: TField;
-begin
-  with DBConnector.GetFieldDataset as TCustomBufDataset do
-  begin;
-    Open;
-    First;
-    Next;
-    OldValue := Fields[0].AsString;
-
-    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
-    CheckTrue(UpdateStatus=usUnmodified, 'Unmodified');
-
-    Edit;
-    Fields[0].AsInteger := -1;
-    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
-    Post;
-    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
-    CheckTrue(UpdateStatus=usModified, 'Modified');
-
-    Append;
-    Fields[0].AsInteger := -2;
-    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserting'); // dsInsert, there is no update-buffer yet
-    Post;
-    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
-    CheckTrue(UpdateStatus=usInserted, 'Inserted');
-
-    // Blobs are stored in a special way
-    // Use TMemoField because it implements AsVariant as AsString
-    First;
-    Next;
-    Fmemo := FieldByName('F'+FieldTypeNames[ftMemo]);
-    OldValue := Fmemo.AsString;
-
-    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue');
-    Edit;
-    Fmemo.AsString := 'Changed Memo value';
-    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue before Post');
-    Post;
-    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue after Post');
-    MergeChangeLog;
-    CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
-  end;
-end;
-
 procedure TTestCursorDBBasics.TestModified;
 begin
   // Tests TDataSet.Modified property
@@ -721,58 +660,6 @@ begin
 
     Close;
   end;
-end;
-
-procedure TTestDBBasics.TestCanModifySpecialFields;
-var ds    : TDataset;
-    lds   : TDataset;
-    fld   : TField;
-begin
-  lds := DBConnector.GetNDataset(10);
-  ds := DBConnector.GetNDataset(5);
-  with ds do
-    begin
-    Fld := TIntegerField.Create(ds);
-    Fld.FieldName:='ID';
-    Fld.DataSet:=ds;
-
-    Fld := TStringField.Create(ds);
-    Fld.FieldName:='LookupFld';
-    Fld.FieldKind:=fkLookup;
-    Fld.DataSet:=ds;
-    Fld.LookupDataSet:=lds;
-    Fld.LookupResultField:='NAME';
-    Fld.LookupKeyFields:='ID';
-    Fld.KeyFields:='ID';
-
-    lds.Open;
-    Open;
-    if IsUniDirectional then
-      // The CanModify property is always False for UniDirectional datasets
-      CheckFalse(FieldByName('ID').CanModify)
-    else
-      CheckTrue(FieldByName('ID').CanModify);
-    CheckFalse(FieldByName('LookupFld').CanModify);
-    CheckFalse(FieldByName('ID').ReadOnly);
-    CheckFalse(FieldByName('LookupFld').ReadOnly);
-
-    CheckEquals(1,FieldByName('ID').AsInteger);
-    if IsUniDirectional then
-      // Lookup fields are not supported by UniDirectional datasets
-      CheckTrue(FieldByName('LookupFld').IsNull)
-    else
-      CheckEquals('TestName1',FieldByName('LookupFld').AsString);
-    Next;
-    Next;
-    CheckEquals(3,FieldByName('ID').AsInteger);
-    if IsUniDirectional then
-      CheckTrue(FieldByName('LookupFld').IsNull)
-    else
-      CheckEquals('TestName3',FieldByName('LookupFld').AsString);
-
-    Close;
-    lds.Close;
-    end;
 end;
 
 procedure TTestDBBasics.TestDetectionNonMatchingDataset;
@@ -1030,6 +917,96 @@ begin
     CheckEquals(2, FieldByName('id').AsInteger);
     Close;
   end;
+end;
+
+procedure TTestCursorDBBasics.TestFieldOldValueObsolete;
+var v : variant;
+    bufds: TDataset;
+begin
+  // this test was created as reaction to AV bug found in TCustomBufDataset.GetFieldData
+  // when retrieving OldValue (State=dsOldValue) of newly inserted or appended record.
+  // In this case was CurrBuff set to nil (and not checked),
+  // because OldValuesBuffer for just inserted record is nil. See rev.17704
+  // (So purpose of this test isn't test InsertRecord on empty dataset or so)
+  // Later was this test replaced by more complex TestOldValue (superset of old test),
+  // but next to it was restored back also original test.
+  // So now we have two tests which test same thing, where this 'old' one is subset of 'new' one
+  // Ideal solution would be remove this 'old' test as it does not test anything what is not tested elsewhere ...
+  bufds := DBConnector.GetNDataset(0) as TDataset;
+  bufds.Open;
+  bufds.InsertRecord([0,'name']);
+  v := VarToStr(bufds.fields[1].OldValue);
+end;
+
+procedure TTestCursorDBBasics.TestFieldOldValue;
+var OldValue: string;
+    Fmemo: TField;
+begin
+  with DBConnector.GetFieldDataset as TCustomBufDataset do
+  begin;
+    Open;
+    First;
+    Next;
+    OldValue := Fields[0].AsString;
+
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
+    CheckTrue(UpdateStatus=usUnmodified, 'Unmodified');
+
+    Edit;
+    Fields[0].AsInteger := -1;
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
+    Post;
+    CheckEquals(OldValue, VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
+    CheckTrue(UpdateStatus=usModified, 'Modified');
+
+    Append;
+    Fields[0].AsInteger := -2;
+    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserting'); // dsInsert, there is no update-buffer yet
+    Post;
+    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
+    CheckTrue(UpdateStatus=usInserted, 'Inserted');
+
+    // Blobs are stored in a special way
+    // Use TMemoField because it implements AsVariant as AsString
+    First;
+    Next;
+    Fmemo := FieldByName('F'+FieldTypeNames[ftMemo]);
+    OldValue := Fmemo.AsString;
+
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue');
+    Edit;
+    Fmemo.AsString := 'Changed Memo value';
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue before Post');
+    Post;
+    CheckEquals(OldValue, Fmemo.OldValue, 'Memo.OldValue after Post');
+    MergeChangeLog;
+    CheckEquals('Changed Memo value', Fmemo.OldValue, 'Memo.OldValue after MergeChangeLog');
+  end;
+end;
+
+procedure TTestCursorDBBasics.TestChangeBlobFieldBeforePost;
+// Edit memo fields should read back new contents even before post
+// Bug 15376
+// See also TTestFieldTypes.TestChangeBlob
+var
+  DS : TBufDataset;
+begin
+  DS := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,50);
+  DS.FIeldDefs.Add('MEMO1',ftMemo);
+  DS.CreateDataset;
+  DS.Open;
+  with DS do
+    begin
+    Append;
+    FieldByName('ID').AsInteger:=1;
+    FieldByName('NAME').AsString:='NAME1';
+    FieldByName('MEMO1').AsString:='NAME1';
+    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match before post');
+    Post;
+    end;
+  DS.Close;
 end;
 
 procedure TTestDBBasics.TestSetFieldValues;
@@ -1477,16 +1454,6 @@ begin
     end;
 end;
 
-procedure TTestBufDatasetDBBasics.TestClosedIndexFieldNames;
-var s : string;
-    bufds: TCustomBufDataset;
-begin
-  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
-  s := bufds.IndexFieldNames;
-  s := bufds.IndexName;
-  bufds.CompareBookmarks(nil,nil);
-end;
-
 procedure TTestBufDatasetDBBasics.TestSaveAsXML;
 var ds    : TDataset;
     LoadDs: TCustomBufDataset;
@@ -1740,30 +1707,6 @@ begin
     RecNo:=11; CheckEquals('b11', FieldByName(FN).AsString);
     Next;      CheckEquals('b12', FieldByName(FN).AsString);
     end;
-end;
-
-procedure TTestBufDatasetDBBasics.TestEditedBlobBeforePost;
-// Edit memo fields should read back new contents even before post
-// Bug 15376
-var
-  ds : TBufDataset;
-begin
-  ds := TBufDataset.Create(nil);
-  DS.FieldDefs.Add('ID',ftInteger);
-  DS.FieldDefs.Add('NAME',ftString,50);
-  DS.FIeldDefs.Add('MEMO1',ftMemo);
-  DS.CreateDataset;
-  DS.Open;
-  with DS do
-    begin
-    Append;
-    FieldByName('ID').AsInteger:=1;
-    FieldByName('NAME').AsString:='NAME1';
-    FieldByName('MEMO1').AsString:='NAME1';
-    CheckEquals('NAME1',FieldByName('MEMO1').AsString,'Memo field must match before post');
-    Post;
-    end;
-  DS.Close;
 end;
 
 procedure TTestBufDatasetDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
@@ -2095,7 +2038,7 @@ begin
     end;
 end;
 
-procedure TTestBufDatasetDBBasics.TestIndexFieldNamesAct;
+procedure TTestBufDatasetDBBasics.TestIndexFieldNamesActive;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
@@ -2393,69 +2336,17 @@ begin
 
     end;
 end;
+
+procedure TTestBufDatasetDBBasics.TestIndexFieldNamesClosed;
+var s : string;
+    bufds: TCustomBufDataset;
+begin
+  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  s := bufds.IndexFieldNames;
+  s := bufds.IndexName;
+  bufds.CompareBookmarks(nil,nil);
+end;
 {$endif fpc}
-
-procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
-begin
-  case dataset.fieldbyname('ID').asinteger of
-    1 : dataset.fieldbyname('CALCFLD').AsInteger := 5;
-    2 : dataset.fieldbyname('CALCFLD').AsInteger := 70000;
-    3 : dataset.fieldbyname('CALCFLD').Clear;
-    4 : dataset.fieldbyname('CALCFLD').AsInteger := 1234;
-    10 : dataset.fieldbyname('CALCFLD').Clear;
-  else
-    dataset.fieldbyname('CALCFLD').AsInteger := 1;
-  end;
-  CheckTrue(DataSet.State=dsCalcFields, 'State');
-end;
-
-procedure TTestDBBasics.TestCalculatedField;
-var ds   : TDataset;
-    AFld1, AFld2, AFld3 : Tfield;
-begin
-  ds := DBConnector.GetNDataset(5);
-  with ds do
-    begin
-    AFld1 := TIntegerField.Create(ds);
-    AFld1.FieldName := 'ID';
-    AFld1.DataSet := ds;
-
-    AFld2 := TStringField.Create(ds);
-    AFld2.FieldName := 'NAME';
-    AFld2.DataSet := ds;
-
-    AFld3 := TIntegerField.Create(ds);
-    AFld3.FieldName := 'CALCFLD';
-    AFld3.DataSet := ds;
-    Afld3.FieldKind := fkCalculated;
-
-    CheckEquals(3,FieldCount);
-    ds.OnCalcFields := TestcalculatedField_OnCalcfields;
-    open;
-    CheckEquals(1,FieldByName('ID').asinteger);
-    CheckEquals(5,FieldByName('CALCFLD').asinteger);
-    next;
-    CheckEquals(70000,FieldByName('CALCFLD').asinteger);
-    next;
-    CheckTrue(FieldByName('CALCFLD').IsNull, '#3 Null');
-    next;
-    CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
-    if IsUniDirectional then
-      // The CanModify property is always False, so attempts to put the dataset into edit mode always fail
-      CheckException(Edit, EDatabaseError)
-    else
-      begin
-      Edit;
-      FieldByName('ID').AsInteger := 10;
-      Post;
-      CheckTrue(FieldByName('CALCFLD').IsNull, '#10 Null');
-      end;
-    close;
-    AFld1.Free;
-    AFld2.Free;
-    AFld3.Free;
-    end;
-end;
 
 procedure TTestCursorDBBasics.TestFirst;
 var i : integer;
@@ -2783,6 +2674,120 @@ begin
     ds.Next;
     end;
   ds.close;
+end;
+
+procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
+begin
+  case dataset.fieldbyname('ID').asinteger of
+    1 : dataset.fieldbyname('CALCFLD').AsInteger := 5;
+    2 : dataset.fieldbyname('CALCFLD').AsInteger := 70000;
+    3 : dataset.fieldbyname('CALCFLD').Clear;
+    4 : dataset.fieldbyname('CALCFLD').AsInteger := 1234;
+    10 : dataset.fieldbyname('CALCFLD').Clear;
+  else
+    dataset.fieldbyname('CALCFLD').AsInteger := 1;
+  end;
+  CheckTrue(DataSet.State=dsCalcFields, 'State');
+end;
+
+procedure TTestDBBasics.TestCalculatedField;
+var ds   : TDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+begin
+  ds := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    AFld3.FieldName := 'CALCFLD';
+    AFld3.DataSet := ds;
+    Afld3.FieldKind := fkCalculated;
+
+    CheckEquals(3,FieldCount);
+    ds.OnCalcFields := TestcalculatedField_OnCalcfields;
+    open;
+    CheckEquals(1,FieldByName('ID').asinteger);
+    CheckEquals(5,FieldByName('CALCFLD').asinteger);
+    next;
+    CheckEquals(70000,FieldByName('CALCFLD').asinteger);
+    next;
+    CheckTrue(FieldByName('CALCFLD').IsNull, '#3 Null');
+    next;
+    CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
+    if IsUniDirectional then
+      // The CanModify property is always False, so attempts to put the dataset into edit mode always fail
+      CheckException(Edit, EDatabaseError)
+    else
+      begin
+      Edit;
+      FieldByName('ID').AsInteger := 10;
+      Post;
+      CheckTrue(FieldByName('CALCFLD').IsNull, '#10 Null');
+      end;
+    close;
+    AFld1.Free;
+    AFld2.Free;
+    AFld3.Free;
+    end;
+end;
+
+procedure TTestDBBasics.TestCanModifySpecialFields;
+var ds    : TDataset;
+    lds   : TDataset;
+    fld   : TField;
+begin
+  lds := DBConnector.GetNDataset(10);
+  ds := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    Fld := TIntegerField.Create(ds);
+    Fld.FieldName:='ID';
+    Fld.DataSet:=ds;
+
+    Fld := TStringField.Create(ds);
+    Fld.FieldName:='LookupFld';
+    Fld.FieldKind:=fkLookup;
+    Fld.DataSet:=ds;
+    Fld.LookupDataSet:=lds;
+    Fld.LookupResultField:='NAME';
+    Fld.LookupKeyFields:='ID';
+    Fld.KeyFields:='ID';
+
+    lds.Open;
+    Open;
+    if IsUniDirectional then
+      // The CanModify property is always False for UniDirectional datasets
+      CheckFalse(FieldByName('ID').CanModify)
+    else
+      CheckTrue(FieldByName('ID').CanModify);
+    CheckFalse(FieldByName('LookupFld').CanModify);
+    CheckFalse(FieldByName('ID').ReadOnly);
+    CheckFalse(FieldByName('LookupFld').ReadOnly);
+
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    if IsUniDirectional then
+      // Lookup fields are not supported by UniDirectional datasets
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName1',FieldByName('LookupFld').AsString);
+    Next;
+    Next;
+    CheckEquals(3,FieldByName('ID').AsInteger);
+    if IsUniDirectional then
+      CheckTrue(FieldByName('LookupFld').IsNull)
+    else
+      CheckEquals('TestName3',FieldByName('LookupFld').AsString);
+
+    Close;
+    lds.Close;
+    end;
 end;
 
 procedure TTestDBBasics.TestDoubleClose;
