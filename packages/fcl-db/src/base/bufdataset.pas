@@ -1262,6 +1262,8 @@ var r  : integer;
 
 begin
   FOpen:=False;
+  FReadFromFile:=False;
+
   if FIndexesCount>0 then with FIndexes[0] do if IsInitialized then
     begin
     iGetResult:=ScrollFirst;
@@ -1305,7 +1307,6 @@ begin
   if FAutoIncValue>-1 then FAutoIncValue:=1;
 
   if assigned(FParser) then FreeAndNil(FParser);
-  FReadFromFile:=false;
 end;
 
 procedure TCustomBufDataset.InternalFirst;
@@ -2976,7 +2977,7 @@ procedure TCustomBufDataset.CreateDataset;
 var AStoreFileName: string;
 begin
   CheckInactive;
-  if ((FieldCount=0) or (FieldDefs.Count=0)) then
+  if ((Fields.Count=0) or (FieldDefs.Count=0)) then
     begin
     if (FieldDefs.Count>0) then
       CreateFields
@@ -2989,7 +2990,7 @@ begin
       raise Exception.Create(SErrNoFieldsDefined);
     FAutoIncValue:=1;
     end;
-  // When a FileName is set, do not read from this file
+  // When a FileName is set, do not read from this file; we want empty dataset
   AStoreFileName:=FFileName;
   FFileName := '';
   try

@@ -2171,13 +2171,16 @@ begin
     //  so let them do cleanup f.e. cancel pending queries and/or free resultset
     if not Prepared then FStatement.DoUnprepare;
     end;
+
   if DefaultFields then
     DestroyFields;
+
   FIsEOF := False;
   if assigned(FUpdateQry) then FreeAndNil(FUpdateQry);
   if assigned(FInsertQry) then FreeAndNil(FInsertQry);
   if assigned(FDeleteQry) then FreeAndNil(FDeleteQry);
 //  FRecordSize := 0;
+
   inherited InternalClose;
 end;
 
@@ -2201,7 +2204,7 @@ end;
 procedure TCustomSQLQuery.InternalOpen;
 
 var counter, fieldc : integer;
-    f               : TField;
+    F               : TField;
     IndexFields     : TStrings;
 begin
   if IsReadFromPacket then
@@ -2248,7 +2251,7 @@ begin
                 ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].fields),IndexFields);
                 for fieldc := 0 to IndexFields.Count-1 do
                   begin
-                  F := Findfield(IndexFields[fieldc]);
+                  F := FindField(IndexFields[fieldc]);
                   if F <> nil then
                     F.ProviderFlags := F.ProviderFlags + [pfInKey];
                   end;
