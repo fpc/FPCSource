@@ -110,13 +110,11 @@ unit scandir;
           recordpendinglocalswitch(sw,state);
       end;
 
-    procedure do_localswitchdefault(sw:tlocalswitch);
-      var
-        state : char;
+    function do_localswitchdefault(sw:tlocalswitch): char;
       begin
-        state:=current_scanner.readstatedefault;
-        if (sw<>cs_localnone) and (state in ['-','+','*']) then
-          recordpendinglocalswitch(sw,state);
+        result:=current_scanner.readstatedefault;
+        if (sw<>cs_localnone) and (result in ['-','+','*']) then
+          recordpendinglocalswitch(sw,result);
       end;
 
 
@@ -302,8 +300,13 @@ unit scandir;
 
 
     procedure dir_checkpointer;
+      var
+        switch: char;
       begin
-        do_localswitchdefault(cs_checkpointer);
+        switch:=do_localswitchdefault(cs_checkpointer);
+        if (switch='+') and
+           not(target_info.system in systems_support_checkpointer) then
+          Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
       end;
 
 

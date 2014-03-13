@@ -334,6 +334,17 @@ interface
          system_jvm_android32
        ];
 
+       { pointer checking (requires special code in FPC_CHECKPOINTER,
+         and can never work for libc-based targets or any other program
+         linking to an external library)
+       }
+       systems_support_checkpointer = [system_i386_linux,system_powerpc_linux]
+                             + [system_i386_win32]
+                             + [system_i386_GO32V2]
+                             + [system_i386_os2]
+                             + [system_i386_beos,system_i386_haiku]
+                             + [system_powerpc_morphos];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');

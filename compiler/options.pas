@@ -111,17 +111,6 @@ var
 ****************************************************************************}
 
 const
-  { pointer checking (requires special code in FPC_CHECKPOINTER,
-    and can never work for libc-based targets or any other program
-    linking to an external library)
-  }
-  supported_targets_gc = [system_i386_linux,system_powerpc_linux]
-                        + [system_i386_win32]
-                        + [system_i386_GO32V2]
-                        + [system_i386_os2]
-                        + [system_i386_beos,system_i386_haiku]
-                        + [system_powerpc_morphos];
-
   { gprof (requires implementation of g_profilecode in the code generator) }
   supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
                         + [system_i386_win32]
@@ -1306,7 +1295,7 @@ begin
                        begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_checkpointer)
-                         else if (target_info.system in supported_targets_gc) then
+                         else if (target_info.system in systems_support_checkpointer) then
                            include(init_settings.localswitches,cs_checkpointer)
                          else
                            UnsupportedPara('-gc');

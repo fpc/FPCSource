@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02094 is the last used one
+# 02095 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -394,6 +394,8 @@ scan_e_illegal_peflag=02093_E_Illegal argument for SETPEFLAGS
 scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 % The given argument for SETPEOPTFLAGS is neither a correct named value nor an
 % ordinal value
+scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
+% Not all compiler directives are supported on all targets.
 % \end{description}
 #
 # Parser
