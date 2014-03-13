@@ -272,25 +272,25 @@ procedure TDOMTestBase.assertURIEquals(const id: string; scheme, path,
 var
   URI: TURI;
 begin
-  AssertTrue(id, Actual <> '');
+  AssertTrue(id+'#0', Actual <> '');
   URI := ParseURI(utf8Encode(Actual));
   if fragment <> nil then
-    AssertEquals(id, string(fragment), URI.Bookmark);
+    AssertEquals(id+'#1', string(fragment), URI.Bookmark);
   if query <> nil then
-    AssertEquals(id, string(query), URI.Params);
+    AssertEquals(id+'#2', string(query), URI.Params);
   if scheme <> nil then
-    AssertEquals(id, string(scheme), URI.Protocol);
+    AssertEquals(id+'#3', string(scheme), URI.Protocol);
   if host <> nil then
   begin
-    AssertTrue(id, URI.HasAuthority);
-    AssertEquals(id, string(host), URI.Host);
+    AssertTrue(id+'#4', URI.HasAuthority);
+    AssertEquals(id+'#5', string(host), URI.Host);
   end;
   if path <> nil then
-    AssertEquals(id, string(path), '//' + Uri.Host + URI.Path + URI.Document);
+    AssertEquals(id+'#6', string(path), '//' + Uri.Host + URI.Path + URI.Document);
   if file_ <> nil then
-    AssertEquals(id, string(file_), URI.Document);
+    AssertEquals(id+'#7', string(file_), URI.Document);
   if name <> nil then
-    AssertEquals(id, string(name), ChangeFileExt(URI.Document, ''));
+    AssertEquals(id+'#8', string(name), ChangeFileExt(URI.Document, ''));
 end;
 
 function TDOMTestBase.bad_condition(const TagName: XMLString): Boolean;
