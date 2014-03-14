@@ -550,8 +550,7 @@ begin
             begin
                 DosGetInfoBlocks (@TIB, @PIB);
                 StackLength:=CheckInitialStkLen(InitialStklen);
-                { TODO: verify if TIB^.StackLimit is correct,
-                  from MSWindows point of view TIB^.Stack should be used instead }
+                { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
                 StackBottom := TIB^.StackLimit - StackLength;
 
                 Environment := pointer (PIB^.Env);
