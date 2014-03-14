@@ -1117,7 +1117,7 @@ var
 begin
   CheckInactive;
   For I:=0 to Length(FIndexes)-1 do
-    FreeAndNil(Findexes[I]);
+    FreeAndNil(FIndexes[I]);
   SetLength(FIndexes,0);
   FIndexesCount:=0;
 end;
@@ -1339,7 +1339,10 @@ end;
 
 function TBufIndex.CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
 begin
-  Result := (ABookmark1^.BookmarkData=ABookmark2^.BookmarkData);
+  if assigned(ABookmark1) and assigned(ABookmark2) then
+    Result := (ABookmark1^.BookmarkData=ABookmark2^.BookmarkData)
+  else
+    Result := False;
 end;
 
 function TBufIndex.GetRecord(ABookmark: PBufBookmark; GetMode: TGetMode): TGetResult;
@@ -3008,7 +3011,9 @@ end;
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
   ): Longint;
 begin
-  if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2)) then
+  if not assigned(Bookmark1) or not assigned(Bookmark2) then
+    Result := 0
+  else if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2)) then
     Result := 0
   else
     Result := -1;
