@@ -336,8 +336,12 @@ interface
          variables, but emulate it by wrapping nested variables in records
          whose address is passed around }
        systems_fpnestedstruct = [
+{$ifndef llvm}
          system_jvm_java32,
          system_jvm_android32
+{$else not llvm}
+         low(tsystem)..high(tsystem)
+{$endif not llvm}
        ];
 
        cpu2str : array[TSystemCpu] of string[10] =
