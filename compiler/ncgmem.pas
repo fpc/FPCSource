@@ -210,7 +210,7 @@ implementation
              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
            else
              internalerror(2006111510);
-         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
 
