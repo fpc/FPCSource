@@ -97,6 +97,7 @@ implementation
                 hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference.base,newbase);
                 location.reference.base:=newbase;
               end;
+            location.size:=def_cgsize(resultdef);
             result:=true;
           end;
       end;
