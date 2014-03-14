@@ -64,7 +64,9 @@ type
 var SQLConnType : TSQLConnType;
     SQLServerType : TSQLServerType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
-    
+
+function IdentifierCase(const s: string): string;
+
 implementation
 
 uses StrUtils;
@@ -136,6 +138,18 @@ const
   SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
     (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
+
+function IdentifierCase(const s: string): string;
+begin
+  // format unquoted identifier name as required by sql servers
+  case SQLServerType of
+    ssPostgreSQL: Result := LowerCase(s); // PostgreSQL stores unquoted identifiers in lowercase (incompatible with the SQL standard)
+    ssInterbase,
+    ssFirebird  : Result := UpperCase(s);
+    else
+                  Result := s; // mixed case
+  end;
+end;
 
 { TSQLDBConnector }
 

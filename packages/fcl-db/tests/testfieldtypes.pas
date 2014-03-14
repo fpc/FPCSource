@@ -477,7 +477,7 @@ var
   i             : byte;
 
 begin
-  if SQLConnType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLServerType<>ssPostgreSQL then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -1341,12 +1341,12 @@ begin
   with ds do
     begin
     AFld1 := TIntegerField.Create(ds);
-    AFld1.FieldName := 'ID';
+    AFld1.FieldName := IdentifierCase('ID');
     AFld1.DataSet := ds;
     AFld1.ProviderFlags := AFld1.ProviderFlags + [pfInKey];
 
     AFld2 := TStringField.Create(ds);
-    AFld2.FieldName := 'NAME';
+    AFld2.FieldName := IdentifierCase('NAME');
     AFld2.DataSet := ds;
 
     AFld3 := TIntegerField.Create(ds);
@@ -1987,8 +1987,8 @@ begin
     Close;
 
     // tests parsing SELECT with quoted identifiers (MySQL requires sql-mode=ANSI_QUOTES)
-    SQL.Text:='SELECT"ID"FROM"FPDEV"ORDER BY"ID"';
-    if SQLServerType in [ssPostgreSQL] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    SQL.Text:=IdentifierCase('SELECT"ID"FROM"FPDEV"ORDER BY"ID"');
     Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
