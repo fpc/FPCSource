@@ -171,6 +171,7 @@ interface
        public
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function count_locals:longint;
+          function iscurrentunit: boolean; override;
        end;
 
        tlocalsymtable = class(tabstractlocalsymtable)
@@ -1923,6 +1924,13 @@ implementation
                 (tstoredsym(sym).refs>0)) then
               inc(result);
          end;
+      end;
+
+    function tabstractlocalsymtable.iscurrentunit: boolean;
+      begin
+        Result:=
+          assigned(defowner) and
+          defowner.owner.iscurrentunit;
       end;
 
 
