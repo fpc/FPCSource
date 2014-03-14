@@ -1001,6 +1001,8 @@ begin
     begin
     Open;
     Append;
+    FieldByName('ID').AsInteger := -1; // Required - not null
+
     Fmemo := FieldByName('FMEMO');
     CheckTrue(Fmemo.IsNull, 'IsNull after Append');
 
