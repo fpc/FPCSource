@@ -2993,7 +2993,7 @@ begin
       NextToken;
     if CurTokenIsIdentifier('DEFAULT') then
       begin
-      if not isArray then
+      if (Result.VarType<>Nil) and (not isArray) then
         ParseExc('The default property must be an array property');
       NextToken;
       if CurToken = tkSemicolon then

@@ -84,6 +84,10 @@ type
     procedure TestHintFieldUninmplemented;
     Procedure TestMethodSimple;
     Procedure TestClassMethodSimple;
+    Procedure TestConstructor;
+    Procedure TestClassConstructor;
+    Procedure TestDestructor;
+    Procedure TestClassDestructor;
     Procedure TestFunctionMethodSimple;
     Procedure TestClassFunctionMethodSimple;
     Procedure TestMethodOneArg;
@@ -104,6 +108,7 @@ type
     Procedure Test2Methods;
     Procedure Test2MethodsDifferentVisibility;
     Procedure TestPropertyRedeclare;
+    Procedure TestPropertyRedeclareDefault;
     Procedure TestPropertyReadOnly;
     Procedure TestPropertyReadWrite;
     Procedure TestPropertyWriteOnly;
@@ -649,6 +654,62 @@ begin
   AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
 end;
 
+Procedure TTestClassType.TestConstructor;
+begin
+  AddMember('Constructor Create');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 class procedure',TPasConstructor,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertMemberName('Create');
+  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+end;
+
+Procedure TTestClassType.TestClassConstructor;
+begin
+  AddMember('Class Constructor Create');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 class procedure',TPasClassConstructor,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertMemberName('Create');
+  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+end;
+
+Procedure TTestClassType.TestDestructor;
+begin
+  AddMember('Destructor Destroy');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 class procedure',TPasDestructor,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertMemberName('Destroy');
+  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+end;
+
+Procedure TTestClassType.TestClassDestructor;
+begin
+  AddMember('Class Destructor Destroy');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 class procedure',TPasClassDestructor,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertMemberName('Destroy');
+  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+end;
+
 Procedure TTestClassType.TestFunctionMethodSimple;
 begin
   AddMember('Function DoSomething : integer');
@@ -904,6 +965,21 @@ begin
   AssertNull('No Index expression',Property1.IndexExpr);
   AssertNull('No Default expression',Property1.DefaultExpr);
   Assertequals('No default value','',Property1.DefaultValue);
+end;
+
+Procedure TTestClassType.TestPropertyRedeclareDefault;
+begin
+  StartVisibility(visPublic);
+  AddMember('Property Something; default;');
+  ParseClass;
+  AssertProperty(Property1,visPublic,'Something','','','','',0,True,False);
+  AssertNull('No type',Property1.VarType);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No Default expression',Property1.DefaultExpr);
+  Assertequals('No default value','',Property1.DefaultValue);
+  // Actually, already tested in AssertProperty
+  AssertEquals('Is default property',True, Property1.IsDefault);
 end;
 
 Procedure TTestClassType.TestPropertyReadOnly;
