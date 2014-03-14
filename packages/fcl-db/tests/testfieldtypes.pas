@@ -1228,7 +1228,6 @@ procedure TTestFieldTypes.TestReadOnlyParseSQL;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-
     GetFieldDataset(True);
     with query do
       begin
@@ -1260,7 +1259,7 @@ begin
       edit;
       FieldByName('ID').AsInteger:=321;
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // If ParseSQL is true, but the supplied query isn't updateable, then
@@ -1289,7 +1288,7 @@ begin
       AssertTrue(CanModify);
       edit;
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // Also if ParseSQL is False, the query should be updateable if a update-
@@ -1303,9 +1302,9 @@ begin
       AssertFalse(ReadOnly);
       AssertTrue(CanModify);
       edit;
-      FieldByName('ID').AsInteger:=1;
+      FieldByName('ID').AsInteger:=1; // field "ID" from UNION can be marked as ReadOnly
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // But if ReadOnly is true, then CanModify should always be false
