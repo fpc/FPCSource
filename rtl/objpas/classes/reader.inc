@@ -165,7 +165,7 @@ begin
   if (Byte(NextValue) and $f0) = $f0 then
   begin
     Prefix := Byte(ReadValue);
-    Flags := TFilerFlags(longint(Prefix and $0f));
+    Flags := TFilerFlags(TFilerFlagsInt(Prefix and $0f));
     if ffChildPos in Flags then
     begin
       ValueType := ReadValue;

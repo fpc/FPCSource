@@ -1,14 +1,37 @@
 program SetSizes;
 
-{$APPTYPE CONSOLE}
-
 {$ifdef fpc}
+  {$APPTYPE CONSOLE}
   {$mode delphi}
-  {$packset 1}
-{$endif}
+  {$ifdef CPU16}
+    {$define _16BITCOMPILER}
+  {$else}
+    {$packset 1}
+  {$endif}
+{$else fpc}
+  {$ifdef VER70} { Turbo Pascal 7 }
+    {$define _16BITCOMPILER}
+  {$endif}
+  {$ifdef VER80} { Delphi 1 }
+    {$define _16BITCOMPILER}
+    uses
+      WinCrt;
+  {$endif}
+  {$ifdef WIN32}
+    {$APPTYPE CONSOLE}
+  {$endif}
+  {$ifdef WIN64}
+    {$APPTYPE CONSOLE}
+  {$endif}
+{$endif fpc}
 
 const
   _a= 0;
+{$ifdef _16BITCOMPILER}
+  three_or_four = 3;
+{$else}
+  three_or_four = 4;
+{$endif}
 
 type
   TIntRange1_a =  0 + _a.. Pred( 1 * 8) + _a;
@@ -134,7 +157,7 @@ begin
   WriteLn(Low(TIntRange2_a),'..',High(TIntRange2_a),' -> ', SizeOf(TSet2_a));
   test(SizeOf(TSet2_a),2);
   WriteLn(Low(TIntRange3_a),'..',High(TIntRange3_a),' -> ', SizeOf(TSet3_a));
-  test(SizeOf(TSet3_a),4);
+  test(SizeOf(TSet3_a),three_or_four);
   WriteLn(Low(TIntRange4_a),'..',High(TIntRange4_a),' -> ', SizeOf(TSet4_a));
   test(SizeOf(TSet4_a),4);
   WriteLn(Low(TIntRange5_a),'..',High(TIntRange5_a),' -> ', SizeOf(TSet5_a));
@@ -167,7 +190,7 @@ begin
   WriteLn(Low(TIntRange1_b),'..',High(TIntRange1_b),' -> ', SizeOf(TSet1_b));
   test(SizeOf(TSet1_b),2);
   WriteLn(Low(TIntRange2_b),'..',High(TIntRange2_b),' -> ', SizeOf(TSet2_b));
-  test(SizeOf(TSet2_b),4);
+  test(SizeOf(TSet2_b),three_or_four);
   WriteLn(Low(TIntRange3_b),'..',High(TIntRange3_b),' -> ', SizeOf(TSet3_b));
   test(SizeOf(TSet3_b),4);
   WriteLn(Low(TIntRange4_b),'..',High(TIntRange4_b),' -> ', SizeOf(TSet4_b));
@@ -202,7 +225,7 @@ begin
   WriteLn(Low(TIntRange1_c),'..',High(TIntRange1_c),' -> ', SizeOf(TSet1_c));
   test(SizeOf(TSet1_c),2);
   WriteLn(Low(TIntRange2_c),'..',High(TIntRange2_c),' -> ', SizeOf(TSet2_c));
-  test(SizeOf(TSet2_c),4);
+  test(SizeOf(TSet2_c),three_or_four);
   WriteLn(Low(TIntRange3_c),'..',High(TIntRange3_c),' -> ', SizeOf(TSet3_c));
   test(SizeOf(TSet3_c),4);
   WriteLn(Low(TIntRange4_c),'..',High(TIntRange4_c),' -> ', SizeOf(TSet4_c));

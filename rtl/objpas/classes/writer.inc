@@ -132,7 +132,7 @@ begin
   { Only write the flags if they are needed! }
   if Flags <> [] then
   begin
-    Prefix := Longint(Flags) or $f0;
+    Prefix := TFilerFlagsInt(Flags) or $f0;
     Write(Prefix, 1);
     if ffChildPos in Flags then
       WriteInteger(ChildPos);

@@ -15,6 +15,13 @@
  *       Class implementations are in separate files.                 *
  **********************************************************************}
 
+type
+{$ifdef CPU16}
+  TFilerFlagsInt = Byte;
+{$else CPU16}
+  TFilerFlagsInt = LongInt;
+{$endif CPU16}
+
 var
   ClassList : TThreadlist;
   ClassAliasList : TStringList;

@@ -175,7 +175,7 @@ end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
-  Result := TFPUExceptionMask(Longint(Get8087CW and $3F));
+  Result := TFPUExceptionMask(Byte(Get8087CW and $3F));
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
@@ -183,11 +183,11 @@ var
   CtlWord: Word;
 begin
   CtlWord := Get8087CW;
-  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+  Set8087CW( (CtlWord and $FFC0) or Byte(Mask) );
 {  if has_sse_support then
     SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));}
-  softfloat_exception_mask:=dword(Mask);
-  Result := TFPUExceptionMask(Longint(CtlWord and $3F));
+  softfloat_exception_mask:=byte(Mask);
+  Result := TFPUExceptionMask(Byte(CtlWord and $3F));
 end;
 
 procedure ClearExceptions(RaisePending: Boolean);assembler;

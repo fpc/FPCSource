@@ -3179,11 +3179,17 @@ implementation
       var
         setallocbits: aint;
         packedsavesize: aint;
+        actual_setalloc: ShortInt;
       begin
          inherited create(setdef);
          elementdef:=def;
          setmax:=high;
-         if (current_settings.setalloc=0) then
+         actual_setalloc:=current_settings.setalloc;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+         if actual_setalloc=0 then
+           actual_setalloc:=1;
+{$endif}
+         if (actual_setalloc=0) then
            begin
              setbase:=0;
              if (high<32) then
@@ -3195,12 +3201,14 @@ implementation
            end
          else
            begin
-             setallocbits:=current_settings.setalloc*8;
+             setallocbits:=actual_setalloc*8;
              setbase:=low and not(setallocbits-1);
-             packedsavesize:=current_settings.setalloc*((((high+setallocbits)-setbase)) DIV setallocbits);
+             packedsavesize:=actual_setalloc*((((high+setallocbits)-setbase)) DIV setallocbits);
              savesize:=packedsavesize;
+{$if not defined(cpu8bitalu) and not defined(cpu16bitalu)}
              if savesize=3 then
                savesize:=4;
+{$endif}
            end;
       end;
 
