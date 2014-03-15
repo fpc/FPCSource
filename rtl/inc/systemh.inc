@@ -1270,6 +1270,10 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function Get_pc_addr : CodePointer;
 
+{ Writes at most 'count' caller stack frames to pre-allocated buffer pointed to
+  by 'frames', skipping 'skipframes' initial frames. Returns number of frames written. }
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
+
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;
 procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);

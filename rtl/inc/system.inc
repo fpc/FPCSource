@@ -1065,6 +1065,36 @@ begin
 end;
 
 
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
+var
+  curr_frame,prev_frame: pointer;
+  curr_addr: codepointer;
+  i: sizeint;
+begin
+  curr_frame:=get_frame;
+  curr_addr:=get_pc_addr;
+  prev_frame:=curr_frame;
+  get_caller_stackinfo(curr_frame,curr_addr);
+  i:=-skipframes;
+  while (i<count) and (curr_frame>prev_frame) and
+     (curr_frame<StackTop) do
+    begin
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
+      if (curr_addr=nil) or
+         (curr_frame=nil) then
+        break;
+      if (i>=0) then
+        frames[i]:=curr_addr;
+      inc(i);
+    end;
+  if i<0 then
+    result:=0
+  else
+    result:=i;
+end;
+
+
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then

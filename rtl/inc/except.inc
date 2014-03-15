@@ -137,7 +137,7 @@ begin
   { The frame pointer of this procedure is used as initial stack bottom value. }
   prev_frame:=get_frame;
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-        (curr_frame<(StackBottom + StackLength)) do
+        (curr_frame<StackTop) do
     Begin
       prev_frame:=curr_frame;
       get_caller_stackinfo(curr_frame,curr_addr);

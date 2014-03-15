@@ -464,10 +464,7 @@ end;
 
 Function TraceGetMem(size:ptruint):pointer;
 var
-  allocsize,i : ptruint;
-  oldbp,
-  bp : pointer;
-  pcaddr : codepointer;
+  allocsize : ptruint;
   pl : pdword;
   p  : pointer;
   pp : pheap_mem_info;
@@ -531,19 +528,7 @@ begin
   { clear the memory }
   fillchar(p^,size,#255);
   { retrieve backtrace info }
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  oldbp:=bp;
-  get_caller_stackinfo(bp,pcaddr);
-
-  for i:=1 to tracesize do
-    begin
-      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-        break;
-      oldbp:=bp;
-      get_caller_stackinfo(bp,pcaddr);
-      pp^.calls[i]:=pcaddr;
-    end;
+  CaptureBacktrace(1,tracesize-1,@pp^.calls[1]);
 
   { insert in the linked list }
   if loc_info^.heap_mem_root<>nil then
@@ -575,10 +560,6 @@ end;
 function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean; inline;
 var
-  i: ptruint;
-  oldbp,
-  bp : pointer;
-  pcaddr : codepointer;
   ptext : ^text;
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
@@ -636,21 +617,8 @@ begin
          loc_info^.heap_mem_root:=loc_info^.heap_mem_root^.previous;
     end
   else
-    begin
-       bp:=get_frame;
-       pcaddr:=get_pc_addr;
-       oldbp:=bp;
-       get_caller_stackinfo(bp,pcaddr);
+    CaptureBacktrace(1,(tracesize div 2)-1,@pp^.calls[(tracesize div 2)+1]);
 
-       for i:=(tracesize div 2)+1 to tracesize do
-         begin
-           if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-              break;
-           oldbp:=bp;
-           get_caller_stackinfo(bp,pcaddr);
-           pp^.calls[i]:=pcaddr;
-         end;
-    end;
   inc(loc_info^.freemem_cnt);
   { clear the memory, $F0 will lead to GFP if used as pointer ! }
   fillchar((pointer(pp)+sizeof(theap_mem_info))^,size,#240);
@@ -801,11 +769,7 @@ function TraceReAllocMem(var p:pointer;size:ptruint):Pointer;
 var
   newP: pointer;
   allocsize,
-  movesize,
-  i  : ptruint;
-  oldbp,
-  bp : pointer;
-  pcaddr : codepointer;
+  movesize  : ptruint;
   pl : pdword;
   pp : pheap_mem_info;
   oldsize,
@@ -920,18 +884,7 @@ begin
   inc(loc_info^.getmem_size,size);
   inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  oldbp:=bp;
-  get_caller_stackinfo(bp,pcaddr);
-  for i:=1 to tracesize do
-    begin
-      if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
-        break;
-      oldbp:=bp;
-      get_caller_stackinfo(bp,pcaddr);
-      pp^.calls[i]:=pcaddr;
-    end;
+  CaptureBacktrace(1,tracesize-1,@pp^.calls[1]);
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
@@ -1008,9 +961,6 @@ var
 {$ifdef windows}
   datap : pointer;
 {$endif windows}
-{$ifdef morphos}
-  stack_top: longword;
-{$endif morphos}
   bp : pointer;
   pcaddr : codepointer;
   ptext : ^text;
@@ -1088,8 +1038,7 @@ begin
 
 {$ifdef morphos}
   { inside stack ? }
-  stack_top:=ptruint(StackBottom)+StackLength;
-  if (ptruint(p)<stack_top) and (ptruint(p)>ptruint(StackBottom)) then
+  if (ptruint(p)<ptruint(StackTop)) and (ptruint(p)>ptruint(StackBottom)) then
     exit;
   { inside data or bss ? }
   {$WARNING data and bss checking missing }
