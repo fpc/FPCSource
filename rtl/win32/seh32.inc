@@ -48,10 +48,25 @@ end;
 
 
 function GetBacktrace(Context: TContext; StartingFrame: Pointer; out Frames: PPointer): Longint;
+var
+  FrameCount: Longint;
+  oldebp: Cardinal;
 begin
-  // TODO
-  Frames:=nil;
-  result:=0;
+  Frames:=AllocMem(RaiseMaxFrameCount*sizeof(pointer));
+  FrameCount:=0;
+  repeat
+    oldebp:=context.ebp;
+    { get_caller_stackinfo checks against StackTop on i386 }
+    get_caller_stackinfo(pointer(Context.Ebp),codepointer(Context.Eip));
+    if (Context.ebp<=oldebp) or (FrameCount>=RaiseMaxFrameCount) then
+      break;
+    if (Pointer(Context.ebp)>StartingFrame) or (FrameCount>0) then
+    begin
+      Frames[FrameCount]:=Pointer(Context.eip);
+      Inc(FrameCount);
+    end;
+  until False;
+  result:=FrameCount;
 end;
 
 
@@ -60,11 +75,13 @@ var
   ctx: TContext;
   args: array[0..3] of PtrUint;
 begin
-  //RtlCaptureContext(ctx);
+  ctx.Ebp:=Cardinal(AFrame);
+  ctx.Eip:=Cardinal(AnAddr);
   args[0]:=PtrUint(AnAddr);
   args[1]:=PtrUint(Obj);
   args[2]:=GetBacktrace(ctx,AFrame,PPointer(args[3]));
-  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
+  args[4]:=PtrUInt(AFrame);
+  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,5,@args[0]);
 end;
 
 
@@ -141,6 +158,8 @@ var
   code: longint;
   Obj: TObject;
   Adr: Pointer;
+  Frames: PCodePointer;
+  FrameCount: Longint;
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
@@ -169,20 +188,28 @@ begin
         erroraddr:=pointer(context.Eip);
         Halt(code);
       end;
+      FrameCount:=GetBacktrace(context,nil,Frames);
     end
     else
     begin
       Obj:=TObject(rec.ExceptionInformation[1]);
       Adr:=rec.ExceptionInformation[0];
+      Frames:=PCodePointer(rec.ExceptionInformation[3]);
+      FrameCount:=ptruint(rec.ExceptionInformation[2]);
       code:=217;
     end;
     if Assigned(ExceptProc) then
     begin
-      ExceptProc(Obj,Adr,0,nil {TODO: backtrace});
+      ExceptProc(Obj,Adr,FrameCount,Frames);
       Halt(217);
     end
     else
-      RunError(code);
+    begin
+      errorcode:=word(code);
+      errorbase:=pointer(rec.ExceptionInformation[4]);
+      erroraddr:=pointer(Adr);
+      Halt(code);
+    end;
   end;
   result:=ExceptionContinueExecution;
 end;
