@@ -12,7 +12,6 @@
 
 **********************************************************************}
 
-{$ASMMODE intel}
 
 {NOTE: the fpatan instruction on the 8087 and 80287 has the following restrictions:
             0 <= ST(1) < ST(0) < +inf

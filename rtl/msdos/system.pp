@@ -1,7 +1,5 @@
 unit system;
 
-{$ASMMODE intel}
-
 interface
 
 {$DEFINE FPC_NO_DEFAULT_HEAP}

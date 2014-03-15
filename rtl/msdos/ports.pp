@@ -50,8 +50,6 @@ var
 
   implementation
 
-{$asmmode INTEL}
-
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : word;data : byte);assembler;

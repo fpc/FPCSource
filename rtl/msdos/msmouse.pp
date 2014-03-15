@@ -102,7 +102,6 @@ Var
 
 Implementation
 
-{$asmmode INTEL}
 
 Function InitMouse: Boolean;
 begin
