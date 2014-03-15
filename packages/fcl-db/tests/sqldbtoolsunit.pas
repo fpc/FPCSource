@@ -141,11 +141,11 @@ const
 
 function IdentifierCase(const s: string): string;
 begin
-  // format unquoted identifier name as required by sql servers
+  // format unquoted identifier name as required by SQL servers
   case SQLServerType of
     ssPostgreSQL: Result := LowerCase(s); // PostgreSQL stores unquoted identifiers in lowercase (incompatible with the SQL standard)
     ssInterbase,
-    ssFirebird  : Result := UpperCase(s);
+    ssFirebird  : Result := UpperCase(s); // Dialect 1 requires uppercase; dialect 3 is case agnostic
     else
                   Result := s; // mixed case
   end;
@@ -263,12 +263,12 @@ begin
       end;
       FTransaction.Commit;
       end;
-    ssMySQL:
+    ssMySQL:   
       begin
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
-      // Use 'DATETIME' for datetime-fields instead of timestamp, because
+      // Use 'DATETIME' for datetime fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
       // Downside is that fields defined as 'TIMESTAMP' aren't tested
       FieldtypeDefinitions[ftDateTime] := 'DATETIME';
@@ -276,6 +276,7 @@ begin
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
       // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
+      // PAD_CHAR_TO_FULL_LENGTH to avoid trimming trailing spaces contrary to SQL standard (MySQL 5.1.20+)
       FConnection.ExecuteDirect('SET SESSION sql_mode=''STRICT_ALL_TABLES,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
       FTransaction.Commit;
       end;
@@ -356,9 +357,6 @@ begin
       testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
 
   // SQLite does not support fixed length CHAR datatype
-  // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
-  // MSSQL set SET ANSI_PADDING ON
-  // todo: verify Sybase behaviour
   if SQLServerType in [ssSQLite] then
     for i := 0 to testValuesCount-1 do
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
