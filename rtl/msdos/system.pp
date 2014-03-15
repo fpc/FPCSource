@@ -74,10 +74,10 @@ const
   LFNSupport = false;
 {$endif RTLLITE}
 
-procedure DebugWrite(const S: string);
-procedure DebugWriteLn(const S: string);
-
 implementation
+
+procedure DebugWrite(const S: string); forward;
+procedure DebugWriteLn(const S: string); forward;
 
 const
   fCarry = 1;
