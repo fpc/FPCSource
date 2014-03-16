@@ -55,6 +55,7 @@ interface
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
           procedure second_proc_to_procvar;override;
+          procedure second_nil_to_methodprocvar;override;
           procedure second_bool_to_int;override;
           procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
@@ -680,6 +681,17 @@ implementation
     procedure tjvmtypeconvnode.second_proc_to_procvar;
       begin
         internalerror(2011072506);
+      end;
+
+
+    procedure tjvmtypeconvnode.second_nil_to_methodprocvar;
+      var
+        r: Treference;
+      begin
+        tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
+        hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+        location.reference:=r;
       end;
 
 

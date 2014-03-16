@@ -578,19 +578,7 @@ interface
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
-    {$ifdef jvm}
-    var r:Treference;
-    {$endif}
     begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-      tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
-      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
-      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
-      location.reference:=r;
-      exit;
-{$endif}
-{$endif}
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
       cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
