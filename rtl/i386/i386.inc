@@ -43,58 +43,6 @@ function cpuid_support : boolean;assembler;nostackframe;
     setnz   %al
   end;
 
-
-procedure check_sse_support;
-  var
-    _ecx,_edx : longint;
-  begin
-    if cpuid_support then
-     begin
-        asm
-          pushl %ebx
-          movl $1,%eax
-          cpuid
-          movl %edx,_edx
-          movl %ecx,_ecx
-          popl %ebx
-        end;
-        has_sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
-        has_sse2_support:=((_edx and $4000000)<>0) and os_supports_sse;
-        has_sse3_support:=((_ecx and $200)<>0) and os_supports_sse;
-     end
-    else
-      begin
-        { a cpu with without cpuid instruction supports never sse }
-        has_sse_support:=false;
-        has_sse2_support:=false;
-        has_sse3_support:=false;
-      end;
-  end;
-
-
-{ returns true, if the processor supports the mmx instructions }
-function mmx_support : boolean;
-
-  var
-     _edx : longint;
-
-  begin
-     if cpuid_support then
-       begin
-          asm
-             pushl %ebx
-             movl $1,%eax
-             cpuid
-             movl %edx,_edx
-             popl %ebx
-          end;
-          mmx_support:=(_edx and $800000)<>0;
-       end
-     else
-       { a cpu with without cpuid instruction supports never mmx }
-       mmx_support:=false;
-  end;
-
 {$ifndef FPC_PIC}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define USE_FASTMOVE}
@@ -110,10 +58,6 @@ procedure fpc_cpuinit;
     has_mmx_support:=mmx_support;
     setup_fastmove;
     }
-    os_supports_sse:=false;
-    { don't let libraries influence the FPU cw set by the host program }
-    if IsLibrary then
-      Default8087CW:=Get8087CW;
   end;
 
 {$ifndef darwin}
@@ -1449,33 +1393,46 @@ Procedure SysResetFPU;
 
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
+  var
+    _ecx,_edx : longint;
   begin
-    os_supports_sse:=true;
-    check_sse_support;
-    os_supports_sse:=has_sse_support;
-    if os_supports_sse then
+    if cpuid_support then
       begin
-        sse_check:=true;
         asm
-          { force an sse exception if no sse is supported, the exception handler sets
-            os_supports_sse to false then }
-          { don't change this instruction, the code above depends on its size }
-          movaps %xmm7, %xmm6
-        end;
-        sse_check:=false;
+            movl $1,%eax
+            cpuid
+            movl %edx,_edx
+            movl %ecx,_ecx
+        end ['ebx'];
+        has_mmx_support:=(_edx and $800000)<>0;
+        if ((_edx and $2000000)<>0) then
+          begin
+            os_supports_sse:=true;
+            sse_check:=true;
+            asm
+              { force an sse exception if no sse is supported, the exception handler sets
+                os_supports_sse to false then }
+              { don't change this instruction, the code above depends on its size }
+              movaps %xmm7, %xmm6
+            end;
+            sse_check:=false;
+            has_sse_support:=os_supports_sse;
+          end;
+        if has_sse_support then
+          begin
+            has_sse2_support:=((_edx and $4000000)<>0);
+            has_sse3_support:=((_ecx and $200)<>0);
+          end;
       end;
-    has_sse_support:=os_supports_sse;
-    if not(has_sse_support) then
-      begin
-        has_sse2_support:=false;
-        has_sse3_support:=false;
-      end;
-    { don't let libraries influence the FPU cw set by the host program }
-    if has_sse_support and
-       IsLibrary then
-      mxcsr:=GetSSECSR;
 
-    has_mmx_support:=mmx_support;
+    { don't let libraries influence the FPU cw set by the host program }
+    if IsLibrary then
+      begin
+        Default8087CW:=Get8087CW;
+        if has_sse_support then
+          mxcsr:=GetSSECSR;
+      end;
+
     SysResetFPU;
     if not(IsLibrary) then
       SysInitFPU;
