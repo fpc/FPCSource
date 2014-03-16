@@ -583,7 +583,6 @@ var
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
 var
-  i : longint;
   w : LFNSearchRec;
 begin
   { allow slash as backslash }
