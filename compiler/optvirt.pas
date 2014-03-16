@@ -593,7 +593,7 @@ unit optvirt;
         mainsymtab:=objparentsymtab.defowner.owner;
         { main symtable must be static or global }
         if not(mainsymtab.symtabletype in [staticsymtable,globalsymtable]) then
-         internalerror(200204175);
+         internalerror(200204177);
         if (TSymtable(main_module.localsymtable)=mainsymtab) and
             (not main_module.is_unit) then
            { same convention as for mangled names }
