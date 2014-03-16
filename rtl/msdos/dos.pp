@@ -431,18 +431,15 @@ var
       sectreq : TCDSectSizeReq;
       sizereq : TCDVolSizeReq;
       i : integer;
-      status,byteswritten : word;
       drnum : byte;
   begin
     DiskData_CDROM:=false;
-    exit;
-    { TODO: implement }
-(*    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
+    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
 
     { Is this a CDROM drive? }
     dosregs.ax:=$150b;
     dosregs.cx:=drnum;
-    realintr($2f,dosregs);
+    intr($2f,dosregs);
     if (dosregs.bx<>$ADAD) or (dosregs.ax=0) then
       exit; // no, it isn't
 
@@ -450,8 +447,8 @@ var
     FillByte(req,sizeof(req),0);
     req.length:=sizeof(req);
     req.command:=IOCTL_INPUT;
-    req.transf_ofs:=tb_offset+sizeof(req); //CDROM control block will follow
-    req.transf_seg:=tb_segment;            //the request header
+    req.transf_ofs:=Ofs(sectreq);
+    req.transf_seg:=Seg(sectreq);
     req.numbytes:=sizeof(sectreq);
 
     { We're asking the sector size }
@@ -462,23 +459,23 @@ var
     for i:=1 to 2 do
     begin
       { Send the request to the cdrom driver }
-      dosmemput(tb_segment,tb_offset,req,sizeof(req));
-      dosmemput(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
       dosregs.ax:=$1510;
       dosregs.cx:=drnum;
-      dosregs.es:=tb_segment;
-      dosregs.bx:=tb_offset;
-      realintr($2f,dosregs);
-      dosmemget(tb_segment,tb_offset+3,status,2);
+      dosregs.es:=Seg(req);
+      dosregs.bx:=Ofs(req);
+      intr($2f,dosregs);
       { status = $800F means "disk changed". Try once more. }
-      if (status and $800F) <> $800F then break;
+      if (req.status and $800F) <> $800F then break;
     end;
-    dosmemget(tb_segment,tb_offset+$12,byteswritten,2);
-    if (status<>$0100) or (byteswritten<>sizeof(sectreq)) then
+    if (req.status<>$0100) or (req.numbytes<>sizeof(sectreq)) then
       exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
 
   { Update the request header for the next request }
+    FillByte(req,sizeof(req),0);
+    req.length:=sizeof(req);
+    req.command:=IOCTL_INPUT;
+    req.transf_ofs:=Ofs(sizereq);
+    req.transf_seg:=Seg(sizereq);
     req.numbytes:=sizeof(sizereq);
 
     { We're asking the volume size (in blocks) }
@@ -486,22 +483,18 @@ var
     sizereq.size:=0;
 
     { Send the request to the cdrom driver }
-    dosmemput(tb_segment,tb_offset,req,sizeof(req));
-    dosmemput(tb_segment,tb_offset+sizeof(req),sizereq,sizeof(sizereq));
     dosregs.ax:=$1510;
     dosregs.cx:=drnum;
-    dosregs.es:=tb_segment;
-    dosregs.bx:=tb_offset;
-    realintr($2f,dosregs);
-    dosmemget(tb_segment,tb_offset,req,sizeof(req));
+    dosregs.es:=Seg(req);
+    dosregs.bx:=Ofs(req);
+    intr($2f,dosregs);
     if (req.status<>$0100) or (req.numbytes<>sizeof(sizereq)) then
       exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req)+1,sizereq.size,4);
 
     blocksize:=sectreq.secsize;
     freeblocks:=0; //always 0 for a cdrom
     totblocks:=sizereq.size;
-    DiskData_CDROM:=true;*)
+    DiskData_CDROM:=true;
   end;
 
 begin
