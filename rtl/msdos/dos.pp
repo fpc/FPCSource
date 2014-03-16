@@ -552,7 +552,7 @@ type
 
 procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec;from_findfirst : boolean);
 var
-  Len : longint;
+  Len : integer;
 begin
   With w do
    begin
@@ -666,7 +666,7 @@ end;
 
 procedure dossearchrec2searchrec(var f : searchrec);
 var
-  len : longint;
+  len : integer;
 begin
   { Check is necessary!! OS/2's VDM doesn't clear the name with #0 if the }
   { file doesn't exist! (JM)                                              }
@@ -766,7 +766,7 @@ end;
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
-  i,p1   : longint;
+  p1     : integer;
   s      : searchrec;
   newdir : pathstr;
 begin
@@ -1001,7 +1001,7 @@ end;
 Function  GetEnv(envvar: string): string;
 var
   hs    : string;
-  eqpos : longint;
+  eqpos : integer;
   I     : integer;
 begin
   envvar:=upcase(envvar);
