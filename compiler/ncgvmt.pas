@@ -26,23 +26,8 @@ unit ncgvmt;
 interface
 
     uses
-      symbase;
-
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
-
-implementation
-
-    uses
-      cutils,cclasses,
-      globtype,globals,verbose,constexp,
-      systems,
-      symconst,symtype,symdef,symsym,symtable,defutil,
-      aasmbase,aasmtai,aasmdata,
-      wpobase,
-      nobj,
-      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
-      ncgrtti;
+      aasmdata,aasmbase,
+      symbase,symdef;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -93,11 +78,33 @@ implementation
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
       public
-        constructor create(c:tobjectdef);
+        constructor create(c:tobjectdef); virtual;
         { write the VMT to al_globals }
         procedure writevmt;
         procedure writeinterfaceids(list: TAsmList);
+        { should the VMT writer be used at all (e.g., not for the JVM target) }
+        class function use_vmt_writer: boolean; virtual;
       end;
+      TVMTWriterClass = class of TVMTWriter;
+
+    { generate persistent type information like VMT, RTTI and inittables }
+    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+
+  var
+    CVMTWriter: TVMTWriterClass = TVMTWriter;
+
+implementation
+
+    uses
+      cutils,cclasses,
+      globtype,globals,verbose,constexp,
+      systems,
+      symconst,symtype,symsym,symtable,defutil,
+      aasmtai,
+      wpobase,
+      nobj,
+      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
+      ncgrtti;
 
 
 {*****************************************************************************
@@ -686,6 +693,12 @@ implementation
     end;
 
 
+  class function TVMTWriter.use_vmt_writer: boolean;
+    begin
+      result:=true;
+    end;
+
+
     function TVMTWriter.RedirectToEmpty(procdef : tprocdef) : boolean;
       var
         i : longint;
@@ -964,10 +977,8 @@ implementation
         def : tdef;
         vmtwriter  : TVMTWriter;
       begin
-{$ifdef jvm}
-        { no Delphi-style RTTI }
-        exit;
-{$endif jvm}
+        if not CVMTWriter.use_vmt_writer then
+          exit;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -984,7 +995,7 @@ implementation
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
-                      vmtwriter:=TVMTWriter.create(tobjectdef(def));
+                      vmtwriter:=CVMTWriter.create(tobjectdef(def));
                       if is_interface(tobjectdef(def)) then
                         vmtwriter.writeinterfaceids(current_asmdata.AsmLists[al_globals]);
                       if (oo_has_vmt in tobjectdef(def).objectoptions) then

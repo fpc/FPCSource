@@ -303,6 +303,7 @@ compiler/jvm/njvmmem.pas svneol=native#text/plain
 compiler/jvm/njvmset.pas svneol=native#text/plain
 compiler/jvm/njvmtcon.pas svneol=native#text/plain
 compiler/jvm/njvmutil.pas svneol=native#text/plain
+compiler/jvm/njvmvmt.pas svneol=native#text/plain
 compiler/jvm/pjvm.pas svneol=native#text/plain
 compiler/jvm/rgcpu.pas svneol=native#text/plain
 compiler/jvm/rjvmcon.inc svneol=native#text/plain
