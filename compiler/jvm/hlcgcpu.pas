@@ -30,6 +30,7 @@ uses
   globtype,
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
+  node,
   cpubase, hlcgobj, cgbase, cgutils, parabase;
 
   type
@@ -103,6 +104,7 @@ uses
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
       procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
+      procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -1812,6 +1814,11 @@ implementation
         else
           internalerror(2011020603);
       end;
+    end;
+
+  procedure thlcgjvm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
+    begin
+      { don't do anything, all registers become stack locations anyway }
     end;
 
   procedure thlcgjvm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);

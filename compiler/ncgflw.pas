@@ -508,7 +508,7 @@ implementation
              current_procinfo.CurrFalseLabel:=ofl;
            end;
 
-         maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
+         hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,false);
          oldflowcontrol:=flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
          { produce start assignment }

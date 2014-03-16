@@ -263,7 +263,7 @@ implementation
                secondpass(fparainit);
              secondpass(left);
 
-             maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
+             hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and

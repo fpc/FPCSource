@@ -750,8 +750,8 @@ implementation
         else
           begin
             { SSA support }
-            maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
-            maybechangeloadnodereg(current_asmdata.CurrAsmList,right,true);
+            hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,false);
+            hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,right,true);
             case right.location.loc of
               LOC_CONSTANT :
                 begin
