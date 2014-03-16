@@ -579,10 +579,10 @@ unit optvirt;
     { helper routines: decompose an object & procdef combo into a unitname, class name and vmtentry number
       (unit name where the objectdef is declared, class name of the objectdef, vmtentry number of the
        procdef -- procdef does not necessarily belong to objectdef, it may also belong to a descendant
-       or parent)
+       or parent). classprefix is set in case of nested classes.
     }
 
-    procedure defunitclassname(objdef: tobjectdef; out unitname, classname: pshortstring);
+    procedure defunitclassname(objdef: tobjectdef; out unitname, classname: pshortstring; out classprefix: shortstring);
       const
         mainprogname: string[2] = 'P$';
       var
@@ -591,6 +591,12 @@ unit optvirt;
       begin
         objparentsymtab:=objdef.symtable;
         mainsymtab:=objparentsymtab.defowner.owner;
+        classprefix:='';
+        while mainsymtab.symtabletype in [recordsymtable,objectsymtable] do
+          begin
+            classprefix:=mainsymtab.name^+'.'+classprefix;
+            mainsymtab:=mainsymtab.defowner.owner;
+          end;
         { main symtable must be static or global }
         if not(mainsymtab.symtabletype in [staticsymtable,globalsymtable]) then
          internalerror(200204177);
@@ -604,9 +610,9 @@ unit optvirt;
       end;
 
 
-    procedure defsdecompose(objdef: tobjectdef; procdef: tprocdef; out unitname, classname: pshortstring; out vmtentry: longint);
+    procedure defsdecompose(objdef: tobjectdef; procdef: tprocdef; out unitname, classname: pshortstring; out classprefix: shortstring; out vmtentry: longint);
       begin
-        defunitclassname(objdef,unitname,classname);
+        defunitclassname(objdef,unitname,classname,classprefix);
         vmtentry:=procdef.extnumber;
         { if it's $ffff, this is not a valid virtual method }
         if (vmtentry=$ffff) then
@@ -687,6 +693,7 @@ unit optvirt;
     procedure tprogdevirtinfo.converttreenode(node: tinheritancetreenode; arg: pointer);
       var
         i: longint;
+        classprefix: shortstring;
         unitid, classid: pshortstring;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
@@ -698,9 +705,9 @@ unit optvirt;
           fill the vmt's of non-instantiated classes with calls to
           FPC_ABSTRACTERROR during the optimisation phase
         }
-        defunitclassname(node.def,unitid,classid);
+        defunitclassname(node.def,unitid,classid,classprefix);
         unitdevirtinfo:=addunitifnew(unitid^);
-        classdevirtinfo:=unitdevirtinfo.addclass(classid^,node.instantiated);
+        classdevirtinfo:=unitdevirtinfo.addclass(classprefix+classid^,node.instantiated);
         if (node.def.vmtentries.count=0) then
           exit;
         for i:=0 to node.def.vmtentries.count-1 do
@@ -1088,6 +1095,7 @@ unit optvirt;
         classdevirtinfo: tclassdevirtinfo;
         vmtentry: longint;
         realobjdef: tobjectdef;
+        classprefix: shortstring;
       begin
          { if we don't have any devirtualisation info, exit }
          if not assigned(funits) then
@@ -1124,7 +1132,7 @@ unit optvirt;
            end;
 
          { get the component names for the class/procdef combo }
-         defsdecompose(realobjdef,tprocdef(procdef),unitid,classid,vmtentry);
+         defsdecompose(realobjdef,tprocdef(procdef),unitid,classid,classprefix,vmtentry);
 
          { If we don't have information about a particular unit/class/method,
            it means that such class cannot be instantiated. So if we are
@@ -1143,7 +1151,7 @@ unit optvirt;
          if not assigned(unitdevirtinfo) then
            exit;
          { and for this class? }
-         classdevirtinfo:=unitdevirtinfo.findclass(classid^);
+         classdevirtinfo:=unitdevirtinfo.findclass(classprefix+classid^);
          if not assigned(classdevirtinfo) then
            exit;
          if forvmtentry and
