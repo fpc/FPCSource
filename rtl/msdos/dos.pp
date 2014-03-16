@@ -745,21 +745,18 @@ begin
 end;
 
 
-type swap_proc = procedure;
-
+procedure SwapIntVec(IntNo: Byte; var Vector: FarPointer);
 var
-  _swap_in  : swap_proc;external name '_swap_in';
-  _swap_out : swap_proc;external name '_swap_out';
-  _exception_exit : pointer;external name '_exception_exit';
-  _v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
-
-procedure swapvectors;
+  tmpvec: FarPointer;
 begin
-  if _exception_exit<>nil then
-    if _v2prt0_exceptions_on then
-      _swap_out()
-    else
-      _swap_in();
+  GetIntVec(IntNo, tmpvec);
+  SetIntVec(IntNo, Vector);
+  Vector := tmpvec;
+end;
+
+procedure SwapVectors;
+begin
+  SwapIntVec(0, SaveInt00);
 end;
 
 
