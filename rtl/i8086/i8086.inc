@@ -354,6 +354,26 @@ end;
 
 
 {****************************************************************************
+                                  HexStr
+****************************************************************************}
+
+{$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
+function HexStr(Val: NearPointer): ShortString;
+begin
+  HexStr:=HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: FarPointer): ShortString;
+type
+  TFarPointerRec = record
+    Offset, Segment: Word;
+  end;
+begin
+  HexStr:=HexStr(TFarPointerRec(Val).Segment,4)+':'+HexStr(TFarPointerRec(Val).Offset,4);
+end;
+
+
+{****************************************************************************
                                   FPU
 ****************************************************************************}
 

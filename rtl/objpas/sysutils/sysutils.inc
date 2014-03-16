@@ -291,10 +291,7 @@ Var
   hstdout : ^text;
 begin
   hstdout:=@stdout;
-{$if defined(CPUI8086) and (defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE))}
-{$else}
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
-{$endif}
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
   else

@@ -1076,7 +1076,12 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 Function  hexStr(Val:qword;cnt:byte):shortstring;
 Function  OctStr(Val:qword;cnt:byte):shortstring;
 Function  binStr(Val:qword;cnt:byte):shortstring;
+{$ifdef CPUI8086}
+Function  hexStr(Val:NearPointer):shortstring;
+Function  hexStr(Val:FarPointer):shortstring;
+{$else CPUI8086}
 Function  hexStr(Val:Pointer):shortstring;
+{$endif CPUI8086}
 
 { Char functions }
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];

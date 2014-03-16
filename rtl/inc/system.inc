@@ -985,11 +985,7 @@ Begin
   pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
-{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
-     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(DWord(erroraddr) shr 16,4),':',hexstr(DWord(erroraddr) and $FFFF,4));
-{$else}
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
-{$endif}
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
      dump_stack(pstdout^,ErrorBase,ErrorAddr);
@@ -1067,11 +1063,7 @@ end;
 
 function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
-{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
-  SysBackTraceStr:='  $'+hexstr(DWord(addr) shr 16,4)+':'+hexstr(DWord(addr) and $FFFF,4);
-{$else}
   SysBackTraceStr:='  $'+hexstr(addr);
-{$endif}
 end;
 
 
