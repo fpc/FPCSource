@@ -92,8 +92,6 @@ unit cg64f32;
         procedure g_rangecheck64(list: TAsmList; const l:tlocation;fromdef,todef: tdef); override;
       end;
 
-    {# Creates a tregister64 record from 2 32 Bit registers. }
-    function joinreg64(reglo,reghi : tregister) : tregister64;
 
   implementation
 
@@ -106,13 +104,6 @@ unit cg64f32;
 {****************************************************************************
                                      Helpers
 ****************************************************************************}
-
-    function joinreg64(reglo,reghi : tregister) : tregister64;
-      begin
-         result.reglo:=reglo;
-         result.reghi:=reghi;
-      end;
-
 
     procedure swap64(var q : int64);
       begin
