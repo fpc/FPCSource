@@ -302,30 +302,6 @@ begin
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
 end;
 
-{ The only difference from fpc_reraise is removing the topmost exception.
-  Normally this is done in __FPC_specific_handler, but it won't work for implicit
-  frames, as there's no room in scope record to store the end rva of 'except' part.
-
-  This can only happen in functions which return managed result in register;
-  eventually compiler must be fixed to return managed types in parameters only. }
-
-procedure fpc_reraise_implicit; [public,alias:'FPC_RERAISE_IMPLICIT'];
-var
-  hp: PExceptObject;
-  args: array[0..3] of PtrUInt;
-begin
-  hp:=ExceptObjectStack;
-  args[0]:=PtrUint(hp^.addr);
-  args[1]:=PtrUint(hp^.FObject);
-  args[2]:=hp^.FrameCount;
-  args[3]:=PtrUint(hp^.Frames);
-  hp^.refcount:=0;
-  hp^.FObject:=nil;
-  hp^.Frames:=nil;
-  Internal_PopObjectStack.Free;
-  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
-end;
-
 
 {$ifdef DEBUG_SEH}
 procedure PrintScope(idx: integer; scope: PScopeRec);
