@@ -22,33 +22,27 @@ var
   { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
   sse_check : boolean;
 
-{$asmmode intel}
+{$asmmode ATT}
 
-function cpuid_support : boolean;assembler;
+function cpuid_support : boolean;assembler;nostackframe;
   {
     Check if the ID-flag can be changed, if changed then CpuID is supported.
     Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
   }
   asm
-    push   ebx
-    pushfd
-    pushfd
-    pop     eax
-    mov     ebx,eax
-    xor     eax,200000h
-    push    eax
-    popfd
-    pushfd
-    pop     eax
-    popfd
-    and     eax,200000h
-    and     ebx,200000h
-    cmp     eax,ebx
-    setnz   al
-    pop     ebx
+    pushfl
+    movl    (%esp),%eax
+    xorl    $0x200000,%eax
+    pushl   %eax
+    popfl
+    pushfl
+    popl    %eax
+    xorl    (%esp),%eax
+    popfl
+    testl   $0x200000,%eax
+    setnz   %al
   end;
 
-{$asmmode ATT}
 
 procedure check_sse_support;
   var
