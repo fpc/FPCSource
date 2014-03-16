@@ -1192,9 +1192,11 @@ implementation
           be sure that location is valid (PFV) }
         { on the JVM platform, an array can have 0 elements; since the length
           of the array is part of the array itself, make sure we allocate one
-          of the proper length to avoid getting unexpected results later }
+          of the proper length to avoid getting unexpected results later --
+          allocating a temp of size 0 also forces it to be size 4 on regular
+          targets }
          if tarraydef(resultdef).highrange=-1 then
-           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,{$ifdef jvm}0{$else}elesize{$endif},tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,0,tt_normal,location.reference)
          else
            tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
