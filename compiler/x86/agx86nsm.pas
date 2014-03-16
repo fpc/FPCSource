@@ -1423,6 +1423,7 @@ interface
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmbeos_info : tasminfo =
