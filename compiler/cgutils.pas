@@ -43,9 +43,6 @@ unit cgutils;
       { Set type definition for cpuregisters }
       tcpuregisterset = set of 0..maxcpuregister;
 
-{$ifdef jvm}
-      tarrayreftype = (art_none,art_indexreg,art_indexref,art_indexconst);
-{$endif jvm}
       { reference record, reordered for best alignment }
       preference = ^treference;
       treference = record

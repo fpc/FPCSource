@@ -157,6 +157,15 @@ uses
      EVALSTACKLOCS = [LOC_REGISTER,LOC_CREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER,
        LOC_MMREGISTER,LOC_CMMREGISTER,LOC_SUBSETREG,LOC_CSUBSETREG];
 
+
+{*****************************************************************************
+                               References
+*****************************************************************************}
+
+   type
+     { array reference types }
+     tarrayreftype = (art_none,art_indexreg,art_indexref,art_indexconst);
+
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
