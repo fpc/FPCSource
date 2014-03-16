@@ -163,6 +163,21 @@ var
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
+    { Athlon prefetch bug? }
+    if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(context.eip)) then
+    begin
+      result:=ExceptionContinueExecution;
+      exit;
+    end
+    else if (rec.ExceptionCode=STATUS_ILLEGAL_INSTRUCTION) and sse_check then
+    begin
+      os_supports_sse:=False;
+      { skip the offending movaps %xmm7,%xmm6 instruction }
+      inc(context.eip,3);
+      result:=ExceptionContinueExecution;
+      exit;
+    end;
+
     RtlUnwind(@frame,nil,@rec,nil);
     asm
       { RtlUnwind destroys nonvolatile registers, this assembler block prevents
