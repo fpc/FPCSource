@@ -874,7 +874,7 @@ begin
   dosregs.ax:=$5700;
   msdos(dosregs);
   loaddoserror;
-  time:=(dosregs.dx shl 16)+dosregs.cx;
+  time:=(longint(dosregs.dx) shl 16)+dosregs.cx;
 end;
 
 
