@@ -5,8 +5,6 @@ program SetSizes;
   {$mode delphi}
   {$ifdef CPU16}
     {$define _16BITCOMPILER}
-  {$else}
-    {$packset 1}
   {$endif}
 {$else fpc}
   {$ifdef VER70} { Turbo Pascal 7 }
