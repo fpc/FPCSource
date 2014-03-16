@@ -869,10 +869,8 @@ implementation
 {$endif vtentry}
 
              name_to_call:='';
-             if assigned(fobjcforcedprocname) then
-               name_to_call:=fobjcforcedprocname^;
-             { in the JVM, virtual method calls are also name-based }
-{$ifndef jvm}
+             if assigned(fforcedprocname) then
+               name_to_call:=fforcedprocname^;
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (name_to_call='') and
@@ -951,7 +949,6 @@ implementation
                  extra_post_call_code;
                end
              else
-{$endif jvm}
                begin
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
@@ -981,10 +978,9 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       if (name_to_call='') then
-                        if cnf_inherited in callnodeflags then
-                          hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname)
-                        else
-                          hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,typedef,po_weakexternal in procdefinition.procoptions).resetiftemp
+                        name_to_call:=tprocdef(procdefinition).mangledname;
+                      if cnf_inherited in callnodeflags then
+                        hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call)
                       else
                         hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,typedef,po_weakexternal in procdefinition.procoptions).resetiftemp;
                       extra_post_call_code;

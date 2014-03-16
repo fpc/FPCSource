@@ -98,8 +98,10 @@ interface
           pushedparasize : longint;
           { Objective-C support: force the call node to call the routine with
             this name rather than the name of symtableprocentry (don't store
-            to ppu, is set while processing the node) }
-          fobjcforcedprocname: pshortstring;
+            to ppu, is set while processing the node). Also used on the JVM
+            target for calling virtual methods, as this is name-based and not
+            based on VMT entry locations }
+          fforcedprocname: pshortstring;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -1202,7 +1204,7 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
-         stringdispose(fobjcforcedprocname);
+         stringdispose(fforcedprocname);
          inherited destroy;
       end;
 
@@ -2059,7 +2061,7 @@ implementation
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
           Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
-        fobjcforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+        fforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
 
         { B) Handle self }
         { 1) in case of sending a message to a superclass, self is a pointer to

@@ -590,6 +590,10 @@ implementation
           result:=inherited pass_1;
           if assigned(result) then
             exit;
+          { set fforcedprocname so that even virtual method calls will be
+            name-based (instead of based on VMT entry numbers) }
+          if procdefinition.typ=procdef then
+            fforcedprocname:=stringdup(tprocdef(procdefinition).mangledname)
         end;
     end;
 
