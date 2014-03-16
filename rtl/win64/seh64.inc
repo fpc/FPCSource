@@ -379,6 +379,8 @@ begin
   Result:=True;
 end;
 
+{ This is an outermost exception handler, installed using assembler around the
+  entrypoint and thread procedures. Its sole purpose is to provide sensible exitcode. }
 function __FPC_default_handler(
   var rec: TExceptionRecord;
   frame: Pointer;
@@ -415,12 +417,18 @@ begin
         Halt(217);
       end;
 L1:
+      { RtlUnwindEx above resets execution context to the point where the handler
+        was installed, i.e. main_wrapper. It makes exiting this procedure no longer
+        possible, halting is the only possible action here. }
       RunError(217);
     end;
   end;
   result:=ExceptionContinueSearch;
 end;
 
+
+{ This handler is installed by compiler for every try..finally and try..except statement,
+  including implicit ones. }
 function __FPC_specific_handler(
   var rec: TExceptionRecord;
   frame: Pointer;
