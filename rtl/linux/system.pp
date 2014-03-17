@@ -341,9 +341,6 @@ begin
 {$endif}
 
 {$ifndef FPUNONE}
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
 {$if defined(cpupowerpc)}
   // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,
   // disabling all FPU exceptions. Enable them again.

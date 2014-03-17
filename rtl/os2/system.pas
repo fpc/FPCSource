@@ -1121,7 +1121,6 @@ begin
      xorl %eax,%eax
      movw %ss,%ax
      movl %eax,_SS
-     call SysResetFPU
     end;
 {$ENDIF OS2EXCEPTIONS}
     DosGetInfoBlocks (@TIB, @PIB);
