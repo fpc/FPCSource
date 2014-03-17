@@ -250,7 +250,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 }
 var
   regs   : Registers;
-  action : longint;
+  action : word;
   oldp : pchar;
 begin
 { close first if opened }
