@@ -73,7 +73,7 @@ end;
 procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   ctx: TContext;
-  args: array[0..3] of PtrUint;
+  args: array[0..4] of PtrUint;
 begin
   ctx.Ebp:=Cardinal(AFrame);
   ctx.Eip:=Cardinal(AnAddr);
