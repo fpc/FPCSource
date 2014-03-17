@@ -1191,6 +1191,7 @@ begin
   inherited Create(AOwner);
   FSQLFormatSettings:=DefaultSQLFormatSettings;
   FFieldNameQuoteChars:=DoubleQuotes;
+  FLogEvents:=LogAllEvents; //match Property LogEvents...Default LogAllEvents
   FStatements:=TFPList.Create;
 end;
 
