@@ -60,16 +60,9 @@ type
 
 
 const
-      PIO2   =  1.57079632679489661923;       {  pi/2        }
       PIO4   =  7.85398163397448309616E-1;    {  pi/4        }
       SQRT2  =  1.41421356237309504880;       {  sqrt(2)     }
-      SQRTH  =  7.07106781186547524401E-1;    {  sqrt(2)/2   }
       LOG2E  =  1.4426950408889634073599;     {  1/log(2)    }
-      SQ2OPI =  7.9788456080286535587989E-1;  {  sqrt( 2/pi )}
-      LOGE2  =  6.93147180559945309417E-1;    {  log(2)      }
-      LOGSQ2 =  3.46573590279972654709E-1;    {  log(2)/2    }
-      THPIO4 =  2.35619449019234492885;       {  3*pi/4      }
-      TWOOPI =  6.36619772367581343075535E-1; {  2/pi        }
       lossth =  1.073741824e9;
       MAXLOG =  8.8029691931113054295988E1;    { log(2**127)  }
       MINLOG = -8.872283911167299960540E1;     { log(2**-128) }
@@ -1341,124 +1334,162 @@ type
 
 {$ifndef FPC_SYSTEM_HAS_LN}
     function fpc_ln_real(d:ValReal):ValReal;compilerproc;
+    {
+     This code was translated from uclib code, the original code
+     had the following copyright notice:
+
+     *
+     * ====================================================
+     * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+     *
+     * Developed at SunPro, a Sun Microsystems, Inc. business.
+     * Permission to use, copy, modify, and distribute this
+     * software is freely granted, provided that this notice
+     * is preserved.
+     * ====================================================
+     *}
+
     {*****************************************************************}
     { Natural Logarithm                                               }
     {*****************************************************************}
-    {                                                                 }
-    { SYNOPSIS:                                                       }
-    {                                                                 }
-    { double x, y, log();                                             }
-    {                                                                 }
-    { y = ln( x );                                                    }
-    {                                                                 }
-    { DESCRIPTION:                                                    }
-    {                                                                 }
-    { Returns the base e (2.718...) logarithm of x.                   }
-    {                                                                 }
-    { The argument is separated into its exponent and fractional      }
-    { parts.  If the exponent is between -1 and +1, the logarithm     }
-    { of the fraction is approximated by                              }
-    {                                                                 }
-    {     log(1+x) = x - 0.5 x**2 + x**3 P(x)/Q(x).                   }
-    {                                                                 }
-    { Otherwise, setting  z = 2(x-1)/x+1),                            }
-    {                                                                 }
-    {     log(x) = z + z**3 P(z)/Q(z).                                }
-    {                                                                 }
-    {*****************************************************************}
-    const  P : array[0..6] of Real = (
-     {  Coefficients for log(1+x) = x - x**2/2 + x**3 P(x)/Q(x)
-         1/sqrt(2) <= x < sqrt(2) }
+    {*
+     * SYNOPSIS:
+     *
+     * double x, y, log();
+     *
+     * y = ln( x );
+     *
+     * DESCRIPTION:
+     *
+     * Returns the base e (2.718...) logarithm of x.
+     *
+     * Method :
+     *   1. Argument Reduction: find k and f such that
+     *                   x = 2^k * (1+f),
+     *         where  sqrt(2)/2 < 1+f < sqrt(2) .
+     *
+     *   2. Approximation of log(1+f).
+     *      Let s = f/(2+f) ; based on log(1+f) = log(1+s) - log(1-s)
+     *            = 2s + 2/3 s**3 + 2/5 s**5 + .....,
+     *            = 2s + s*R
+     *      We use a special Reme algorithm on [0,0.1716] to generate
+     *   a polynomial of degree 14 to approximate R The maximum error
+     *   of this polynomial approximation is bounded by 2**-58.45. In
+     *   other words,
+     *                      2      4      6      8      10      12      14
+     *          R(z) ~ Lg1*s +Lg2*s +Lg3*s +Lg4*s +Lg5*s  +Lg6*s  +Lg7*s
+     *      (the values of Lg1 to Lg7 are listed in the program)
+     *      and
+     *          |      2          14          |     -58.45
+     *          | Lg1*s +...+Lg7*s    -  R(z) | <= 2
+     *          |                             |
+     *   Note that 2s = f - s*f = f - hfsq + s*hfsq, where hfsq = f*f/2.
+     *   In order to guarantee error in log below 1ulp, we compute log
+     *   by
+     *           log(1+f) = f - s*(f - R)         (if f is not too large)
+     *           log(1+f) = f - (hfsq - s*(hfsq+R)).    (better accuracy)
+     *
+     *   3. Finally,  log(x) = k*ln2 + log(1+f).
+     *                       = k*ln2_hi+(f-(hfsq-(s*(hfsq+R)+k*ln2_lo)))
+     *      Here ln2 is split into two floating point number:
+     *                   ln2_hi + ln2_lo,
+     *      where n*ln2_hi is always exact for |n| < 2000.
+     *
+     * Special cases:
+     *   log(x) is NaN with signal if x < 0 (including -INF) ;
+     *   log(+INF) is +INF; log(0) is -INF with signal;
+     *   log(NaN) is that NaN with no signal.
+     *
+     * Accuracy:
+     *   according to an error analysis, the error is always less than
+     *   1 ulp (unit in the last place).
+     *}
+    const
+      ln2_hi: double = 6.93147180369123816490e-01;    { 3fe62e42 fee00000 }
+      ln2_lo: double = 1.90821492927058770002e-10;    { 3dea39ef 35793c76 }
+      two54:  double = 1.80143985094819840000e+16;    { 43500000 00000000 }
+      Lg1: double = 6.666666666666735130e-01;         { 3FE55555 55555593 }
+      Lg2: double = 3.999999999940941908e-01;         { 3FD99999 9997FA04 }
+      Lg3: double = 2.857142874366239149e-01;         { 3FD24924 94229359 }
+      Lg4: double = 2.222219843214978396e-01;         { 3FCC71C5 1D8E78AF }
+      Lg5: double = 1.818357216161805012e-01;         { 3FC74664 96CB03DE }
+      Lg6: double = 1.531383769920937332e-01;         { 3FC39A09 D078C69F }
+      Lg7: double = 1.479819860511658591e-01;         { 3FC2F112 DF3E5244 }
 
-           4.58482948458143443514E-5,
-           4.98531067254050724270E-1,
-           6.56312093769992875930E0,
-           2.97877425097986925891E1,
-           6.06127134467767258030E1,
-           5.67349287391754285487E1,
-           1.98892446572874072159E1);
-       Q : array[0..5] of Real = (
-           1.50314182634250003249E1,
-           8.27410449222435217021E1,
-           2.20664384982121929218E2,
-           3.07254189979530058263E2,
-           2.14955586696422947765E2,
-           5.96677339718622216300E1);
+      zero: double = 0.0;
 
-     { Coefficients for log(x) = z + z**3 P(z)/Q(z),
-        where z = 2(x-1)/(x+1)
-        1/sqrt(2) <= x < sqrt(2)  }
-
-       R : array[0..2] of Real = (
-           -7.89580278884799154124E-1,
-            1.63866645699558079767E1,
-           -6.41409952958715622951E1);
-       S : array[0..2] of Real = (
-           -3.56722798256324312549E1,
-            3.12093766372244180303E2,
-           -7.69691943550460008604E2);
-
-    var e : Integer;
-       z, y : Real;
-
+    var
+      hfsq,f,s,z,R,w,t1,t2,dk: double;
+      k,hx,i,j: longint;
+      lx: longword;
     begin
-       if( d <= 0.0 ) then
-         begin
-           float_raise(float_flag_invalid);
-           exit;
-         end;
-       d := frexp( d, e );
+      hx := float64high(d);
+      lx := float64low(d);
 
-    { logarithm using log(x) = z + z**3 P(z)/Q(z),
-      where z = 2(x-1)/x+1) }
-
-       if( (e > 2) or (e < -2) ) then
-       begin
-         if( d < SQRTH ) then
-         begin
-           {  2( 2x-1 )/( 2x+1 ) }
-          Dec(e, 1);
-          z := d - 0.5;
-          y := 0.5 * z + 0.5;
-         end
-         else
-         begin
-         {   2 (x-1)/(x+1)   }
-           z := d - 0.5;
-         z := z - 0.5;
-         y := 0.5 * d  + 0.5;
-         end;
-         d := z / y;
-         { /* rational form */ }
-         z := d*d;
-         z := d + d * ( z * polevl( z, R, 2 ) / p1evl( z, S, 3 ) );
-       end
-       else
-       begin
-       { logarithm using log(1+x) = x - .5x**2 + x**3 P(x)/Q(x) }
-         if( d < SQRTH ) then
-         begin
-           Dec(e, 1);
-           d := ldexp( d, 1 ) - 1.0; {  2x - 1  }
-         end
-         else
-           d := d - 1.0;
-
-         { rational form  }
-         z := d*d;
-         y := d * ( z * polevl( d, P, 6 ) / p1evl( d, Q, 6 ) );
-         y := y - ldexp( z, -1 );   {  y - 0.5 * z  }
-         z := d + y;
-       end;
-       { recombine with exponent term }
-       if( e <> 0 ) then
-       begin
-         y := e;
-         z := z - y * 2.121944400546905827679e-4;
-         z := z + y * 0.693359375;
-       end;
-
-       result:= z;
+      k := 0;
+      if (hx < $00100000) then              { x < 2**-1022  }
+      begin
+        if (((hx and $7fffffff) or lx)=0) then
+          exit(-two54/zero);                { log(+-0)=-inf }
+        if (hx<0) then
+          exit((d-d)/zero);                 { log(-#) = NaN }
+        dec(k, 54); d := d * two54;         { subnormal number, scale up x }
+        hx := float64high(d);
+      end;
+      if (hx >= $7ff00000) then
+        exit(d+d);
+      inc(k, (hx shr 20)-1023);
+      hx := hx and $000fffff;
+      i := (hx + $95f64) and $100000;
+      float64sethigh(d,hx or (i xor $3ff00000));   { normalize x or x/2 }
+      inc(k, (i shr 20));
+      f := d-1.0;
+      if (($000fffff and (2+hx))<3) then    { |f| < 2**-20 }
+      begin
+        if (f=zero) then
+        begin
+          if (k=0) then
+            exit(zero)
+          else
+          begin
+            dk := k;
+            exit(dk*ln2_hi+dk*ln2_lo);
+          end;
+        end;
+        R := f*f*(0.5-0.33333333333333333*f);
+        if (k=0) then
+          exit(f-R)
+        else
+        begin
+          dk := k;
+          exit(dk*ln2_hi-((R-dk*ln2_lo)-f));
+        end;
+      end;
+      s := f/(2.0+f);
+      dk := k;
+      z := s*s;
+      i := hx-$6147a;
+      w := z*z;
+      j := $6b851-hx;
+      t1 := w*(Lg2+w*(Lg4+w*Lg6));
+      t2 := z*(Lg1+w*(Lg3+w*(Lg5+w*Lg7)));
+      i := i or j;
+      R := t2+t1;
+      if (i>0) then
+      begin
+        hfsq := 0.5*f*f;
+        if (k=0) then
+          result := f-(hfsq-s*(hfsq+R))
+        else
+          result := dk*ln2_hi-((hfsq-(s*(hfsq+R)+dk*ln2_lo))-f);
+      end
+      else
+      begin
+        if (k=0) then
+          result := f-s*(f-R)
+        else
+          result := dk*ln2_hi-((s*(f-R)-dk*ln2_lo)-f);
+      end;
     end;
 {$endif}
 
