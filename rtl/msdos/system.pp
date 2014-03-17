@@ -195,16 +195,9 @@ var
   len, I: Integer;
 begin
   len := PFarByte(Ptr(dos_psp, $80))^;
-{$ifdef CG_BUG}
-  { doesn't work due to a code generator bug }
   SetLength(GetCommandLine, len);
   for I := 1 to len do
     GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
-{$else CG_BUG}
-  GetCommandLine := '';
-  for I := 1 to len do
-    GetCommandLine := GetCommandLine + PFarChar(Ptr(dos_psp, $80 + I))^;
-{$endif CG_BUG}
 end;
 
 
