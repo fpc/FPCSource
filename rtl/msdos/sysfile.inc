@@ -158,7 +158,7 @@ begin
      do_filepos:=0;
    end
   else
-   do_filepos:=(regs.DX shl 16) + regs.AX;
+   do_filepos:=(longint(regs.DX) shl 16) + regs.AX;
 end;
 
 
@@ -192,7 +192,7 @@ begin
      do_seekend:=0;
    end
   else
-   do_seekend:=(regs.DX shl 16) + regs.AX;
+   do_seekend:=(longint(regs.DX) shl 16) + regs.AX;
 end;
 
 
