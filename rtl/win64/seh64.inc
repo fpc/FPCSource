@@ -264,6 +264,15 @@ begin
   Result:=FrameCount;
 end;
 
+
+function RunErrorCodex64(const rec: TExceptionRecord; const context: TContext): Longint;
+begin
+  result:=RunErrorCode(rec);
+  if (result=-255) then
+    TranslateMxcsr(context.MxCsr,result);
+end;
+
+
 {$push}
 {$codealign localmin=16}          { TContext record requires this }
 procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
@@ -332,7 +341,7 @@ begin
   begin
     Obj:=nil;
     Result:=False;
-    code:=RunErrorCode(rec);
+    code:=RunErrorCodex64(rec,context);
     if Assigned(ExceptObjProc) then
       Obj:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
     if (Obj=nil) and (not AcceptNull) then
@@ -382,7 +391,7 @@ begin
   begin
     Exc:=ExceptObjectStack;
     if Exc^.FObject=nil then
-      RunError(abs(RunErrorCode(rec)))  // !!prints wrong backtrace
+      RunError(abs(RunErrorCodex64(rec,context)))  // !!prints wrong backtrace
     else
     begin
       { if ExceptObjProc=nil, ExceptProc is typically also nil,
@@ -453,7 +462,7 @@ begin
 
         if scope^.Typ>SCOPE_IMPLICIT then  // filtering needed
         begin
-          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ);
+          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ,abs(RunErrorCodex64(rec,context)));
           if TargetAddr=nil then
           begin
             Inc(ScopeIdx);

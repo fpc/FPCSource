@@ -70,6 +70,15 @@ begin
 end;
 
 
+function RunErrorCode386(const rec: TExceptionRecord; const context: TContext): Longint;
+begin
+  result:=RunErrorCode(rec);
+  { deal with SSE exceptions }
+  if (result=-255) and ((context.ContextFlags and CONTEXT_EXTENDED_REGISTERS)<>0) then
+    TranslateMxcsr(PLongword(@context.ExtendedRegisters[24])^,result);
+end;
+
+
 procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   ctx: TContext;
@@ -186,7 +195,7 @@ begin
 
     if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
     begin
-      code:=RunErrorCode(rec);
+      code:=RunErrorCode386(rec,context);
       if code<0 then
         SysResetFPU;
       code:=abs(code);
@@ -265,7 +274,7 @@ begin
   if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
   begin
     Exc.FObject:=nil;
-    code:=RunErrorCode(rec);
+    code:=RunErrorCode386(rec,context);
     if Assigned(ExceptObjProc) then
       Exc.FObject:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
     if (Exc.FObject=nil) and (frame.Addr<>Pointer(@__FPC_except_safecall)) then
@@ -356,7 +365,7 @@ begin
       exit;
     end;
     { Are we going to catch it? }
-    TargetAddr:=FilterException(rec,0,PtrUInt(frame.HandlerArg));
+    TargetAddr:=FilterException(rec,0,PtrUInt(frame.HandlerArg),abs(RunErrorCode386(rec,context)));
     if assigned(TargetAddr) then
       CommonHandler(rec,frame,context,TargetAddr);
   end;

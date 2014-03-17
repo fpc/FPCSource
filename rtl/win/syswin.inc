@@ -157,13 +157,24 @@ begin
     STATUS_ACCESS_VIOLATION:            result := 216;    { reAccessViolation }
     STATUS_CONTROL_C_EXIT:              result := 217;    { reControlBreak }
     STATUS_PRIVILEGED_INSTRUCTION:      result := 218;    { rePrivilegedInstruction }
+    STATUS_FLOAT_MULTIPLE_TRAPS,
+    STATUS_FLOAT_MULTIPLE_FAULTS:       result := -255;   { indicate FPU reset }
   else
     result := 255;                                        { reExternalException }
   end;
 end;
 
+procedure TranslateMxcsr(mxcsr: longword; var code: longint);
+begin
+  case (mxcsr and $3f) of
+    1,32:  code:=-207;  { InvalidOp, Precision }
+    2,16:  code:=-206;  { Denormal, Underflow }
+    4:     code:=-208;  { !!reZeroDivide }
+    8:     code:=-205;  { reOverflow }
+  end;
+end;
 
-function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord): Pointer;
+function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord; errcode: Longint): Pointer;
 var
   ExClass: TClass;
   i: Longint;
@@ -174,7 +185,7 @@ begin
   if rec.ExceptionCode=FPC_EXCEPTION_CODE then
     ExClass:=TObject(rec.ExceptionInformation[1]).ClassType
   else if Assigned(ExceptClsProc) then
-    ExClass:=TClass(TExceptClsProc(ExceptClsProc)(abs(RunErrorCode(rec))))
+    ExClass:=TClass(TExceptClsProc(ExceptClsProc)(errcode))
   else
     Exit; { if we cannot determine type of exception, don't handle it }
   Filter:=Pointer(imagebase+filterRva);
