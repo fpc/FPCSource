@@ -63,6 +63,94 @@ begin
     end;
 end;
 
+
+function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      (taicpu(instr).opcode = op) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchInstruction(const instr: tai; const op1,op2: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchInstruction(const instr: tai; const op1,op2,op3: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2) or
+       (taicpu(instr).opcode = op3)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
+  begin
+    result := (oper.typ = top_reg) and (oper.reg = reg);
+  end;
+
+
+function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
+  begin
+    result := (oper.typ = top_const) and (oper.val = a);
+  end;
+
+function refsequal(const r1, r2: treference): boolean;
+  begin
+    refsequal :=
+      (r1.offset = r2.offset) and
+      (r1.segment = r2.segment) and (r1.base = r2.base) and
+      (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+      (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+      (r1.relsymbol = r2.relsymbol);
+  end;
+
+
+function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+  begin
+    result := oper1.typ = oper2.typ;
+
+    if result then
+      case oper1.typ of
+        top_const:
+          Result:=oper1.val = oper2.val;
+        top_reg:
+          Result:=oper1.reg = oper2.reg;
+        top_ref:
+          Result:=RefsEqual(oper1.ref^, oper2.ref^);
+        else
+          internalerror(2013102801);
+      end
+  end;
+
+
+function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
+  begin
+   Result:=(ref.offset=0) and
+     (ref.scalefactor in [0,1]) and
+     (ref.segment=NR_NO) and
+     (ref.symbol=nil) and
+     (ref.relsymbol=nil) and
+     ((base=NR_INVALID) or
+      (ref.base=base)) and
+     ((index=NR_INVALID) or
+      (ref.index=index));
+  end;
+
+
+
 function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
 var
   next1: tai;
@@ -99,7 +187,66 @@ begin
               asml.remove(p);
               p.Free;
               p:=hp1;
-            end;
+            end
+          else if (taicpu(p).oper[0]^.typ = top_const) and
+            (taicpu(p).oper[1]^.typ = top_reg) and
+            GetNextInstruction(p, hp1) and
+            MatchInstruction(hp1,A_MOVZX,[]) and
+            (taicpu(hp1).oper[0]^.typ = top_reg) and
+            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+            (getsubreg(taicpu(hp1).oper[0]^.reg)=getsubreg(taicpu(hp1).oper[1]^.reg)) and
+             (((taicpu(p).opsize=S_W) and
+               (taicpu(hp1).opsize=S_BW)) or
+              ((taicpu(p).opsize=S_L) and
+               (taicpu(hp1).opsize in [S_WL,S_BL])) or
+               ((taicpu(p).opsize=S_Q) and
+               (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+              ) then
+                begin
+                  if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                      ((taicpu(p).oper[0]^.val and $ff)=taicpu(p).oper[0]^.val)) or
+                     (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
+                      ((taicpu(p).oper[0]^.val and $ffff)=taicpu(p).oper[0]^.val)) or
+                     (((taicpu(hp1).opsize)=S_LQ) and
+                      ((taicpu(p).oper[0]^.val and $ffffffff)=taicpu(p).oper[0]^.val)
+                     ) then
+                     begin
+                       if (cs_asm_source in current_settings.globalswitches) then
+                         asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,AndMovzToAnd')),p);
+                       asml.remove(hp1);
+                       hp1.free;
+                     end;
+                end
+          else if (taicpu(p).oper[0]^.typ = top_const) and
+            (taicpu(p).oper[1]^.typ = top_reg) and
+            GetNextInstruction(p, hp1) and
+            MatchInstruction(hp1,A_MOVSX,A_MOVSXD,[]) and
+            (taicpu(hp1).oper[0]^.typ = top_reg) and
+            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+            (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
+             (((taicpu(p).opsize=S_W) and
+               (taicpu(hp1).opsize=S_BW)) or
+              ((taicpu(p).opsize=S_L) and
+               (taicpu(hp1).opsize in [S_WL,S_BL])) or
+               ((taicpu(p).opsize=S_Q) and
+               (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+              ) then
+                begin
+                  if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                      ((taicpu(p).oper[0]^.val and $7f)=taicpu(p).oper[0]^.val)) or
+                     (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
+                      ((taicpu(p).oper[0]^.val and $7fff)=taicpu(p).oper[0]^.val)) or
+                     (((taicpu(hp1).opsize)=S_LQ) and
+                      ((taicpu(p).oper[0]^.val and $7fffffff)=taicpu(p).oper[0]^.val)
+                     ) then
+                     begin
+                       if (cs_asm_source in current_settings.globalswitches) then
+                         asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,AndMovsxToAnd')),p);
+                       asml.remove(hp1);
+                       hp1.free;
+                     end;
+                end;
+
 (*                      else
   {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
   jump, but only if it's a conditional jump (PFV) }
@@ -133,6 +280,41 @@ begin
                       asml.remove(hp1);
                       hp1.free;
                     end;
+              end
+            { Next instruction is also a MOV ? }
+            else if GetNextIntruction_p and
+              MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
+              begin
+                if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
+                   (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
+                    {mov reg1, mem1     or     mov mem1, reg1
+                     mov mem2, reg2            mov reg2, mem2}
+                  begin
+                    if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
+                      {mov reg1, mem1     or     mov mem1, reg1
+                       mov mem2, reg1            mov reg2, mem1}
+                      begin
+                        if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                          { Removes the second statement from
+                            mov reg1, mem1/reg2
+                            mov mem1/reg2, reg1 }
+                          begin
+                            { if (taicpu(p).oper[0]^.typ = top_reg) then
+                              AllocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs); }
+                            if (cs_asm_source in current_settings.globalswitches) then
+                              asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,MovMov2Mov1')),p);
+                            asml.remove(hp1);
+                            hp1.free;
+                          end;
+                      end
+                    else if (taicpu(p).oper[1]^.typ=top_ref) and
+                      OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                      begin
+                        taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,MovMov2MovMov1')),p);
+                      end;
+                  end
               end
             else if (taicpu(p).oper[1]^.typ = top_reg) and
               GetNextIntruction_p and
