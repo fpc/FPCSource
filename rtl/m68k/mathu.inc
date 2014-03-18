@@ -24,3 +24,27 @@ begin
   { TODO }
 end;
 
+function GetRoundMode: TFPURoundingMode;
+begin
+  Result:=rmNearest;
+end;
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+begin
+  Result:=rmNearest;
+end;
+
+function GetPrecisionMode: TFPUPrecisionMode;
+begin
+  result:=pmDouble;
+end;
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+begin
+  result:=pmDouble;
+end;
+
+procedure ClearExceptions(RaisePending: Boolean);
+begin
+end;
+

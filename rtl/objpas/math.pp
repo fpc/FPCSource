@@ -532,8 +532,22 @@ function RandomFrom(const AValues: array of Double): Double; overload;
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 function RandomFrom(const AValues: array of Int64): Int64; overload;
 
-{ include cpu specific stuff }
-{$i mathuh.inc}
+{ cpu specific stuff }
+type
+  TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
+  TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
+  TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                   exOverflow, exUnderflow, exPrecision);
+  TFPUExceptionMask = set of TFPUException;
+
+function GetRoundMode: TFPURoundingMode;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+function GetPrecisionMode: TFPUPrecisionMode;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+function GetExceptionMask: TFPUExceptionMask;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+procedure ClearExceptions(RaisePending: Boolean =true);
+
 
 implementation
 
