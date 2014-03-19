@@ -303,7 +303,6 @@ type
     po_has_public_name,
     po_forward,
     po_global,
-    po_has_inlininginfo,
     { The different kind of syscalls on MorphOS }
     po_syscall_legacy,
     po_syscall_sysv,
@@ -362,7 +361,9 @@ type
     between the interface and the implementation }
   timplprocoption = (
     { the routine contains no code }
-    pio_empty
+    pio_empty,
+    { the inline body of this routine is available }
+    pio_has_inlininginfo
   );
   timplprocoptions = set of timplprocoption;
 

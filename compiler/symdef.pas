@@ -644,6 +644,8 @@ interface
          procedure Sethasforward(AValue: boolean);
          function GetIsEmpty: boolean;
          procedure SetIsEmpty(AValue: boolean);
+         function GetHasInliningInfo: boolean;
+         procedure SetHasInliningInfo(AValue: boolean);
        public
           messageinf : tmessageinf;
           dispid : longint;
@@ -771,6 +773,8 @@ interface
           property hasforward: boolean read Gethasforward write Sethasforward;
           { true if the routine's body is empty }
           property isempty: boolean read GetIsEmpty write SetIsEmpty;
+          { true if all information required to inline this routine is available }
+          property has_inlininginfo: boolean read GetHasInliningInfo write SetHasInliningInfo;
        end;
 
        { single linked list of overloaded procs }
@@ -4677,6 +4681,21 @@ implementation
       end;
 
 
+    function tprocdef.GetHasInliningInfo: boolean;
+      begin
+        result:=pio_has_inlininginfo in implprocoptions;
+      end;
+
+
+    procedure tprocdef.SetHasInliningInfo(AValue: boolean);
+      begin
+        if AValue then
+          include(implprocoptions,pio_has_inlininginfo)
+        else
+          exclude(implprocoptions,pio_has_inlininginfo);
+      end;
+
+
     procedure tprocdef.Setinterfacedef(AValue: boolean);
       begin
         if not assigned(implprocdefinfo) then
@@ -4788,7 +4807,8 @@ implementation
          if (po_dispid in procoptions) then
            dispid:=ppufile.getlongint;
          { inline stuff }
-         if (po_has_inlininginfo in procoptions) then
+         ppufile.getsmallset(implprocoptions);
+         if has_inlininginfo then
            begin
              ppufile.getderef(funcretsymderef);
              new(inlininginfo);
@@ -4806,13 +4826,11 @@ implementation
          for i:=1 to aliasnamescount do
            aliasnames.insert(ppufile.getstring);
 
-         ppufile.getsmallset(implprocoptions);
-
          { load para symtable }
          parast:=tparasymtable.create(self,level);
          tparasymtable(parast).ppuload(ppufile);
          { load local symtable }
-         if (po_has_inlininginfo in procoptions) then
+         if has_inlininginfo then
           begin
             localst:=tlocalsymtable.create(self,level);
             tlocalsymtable(localst).ppuload(ppufile);
@@ -4820,7 +4838,7 @@ implementation
          else
           localst:=nil;
          { inline stuff }
-         if (po_has_inlininginfo in procoptions) then
+         if has_inlininginfo then
            inlininginfo^.code:=ppuloadnodetree(ppufile);
          { default values for no persistent data }
          if (cs_link_deffile in current_settings.globalswitches) and
@@ -4828,7 +4846,7 @@ implementation
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
          { Disable po_has_inlining until the derefimpl is done }
-         exclude(procoptions,po_has_inlininginfo);
+         has_inlininginfo:=false;
 {$ifdef i386}
          fpu_used:=maxfpuregs;
 {$endif i386}
@@ -4941,7 +4959,8 @@ implementation
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if (po_has_inlininginfo in procoptions) then
+         ppufile.putsmallset(implprocoptions);
+         if has_inlininginfo then
            begin
              ppufile.putderef(funcretsymderef);
              ppufile.putsmallset(inlininginfo^.flags);
@@ -4965,8 +4984,6 @@ implementation
             item:=TCmdStrListItem(item.next);
           end;
 
-         ppufile.putsmallset(implprocoptions);
-
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
@@ -4977,7 +4994,7 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if (po_has_inlininginfo in procoptions) then
+         if has_inlininginfo then
           begin
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
@@ -4988,7 +5005,7 @@ implementation
          { node tree for inlining }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if (po_has_inlininginfo in procoptions) then
+         if has_inlininginfo then
            ppuwritenodetree(ppufile,inlininginfo^.code);
          ppufile.do_crc:=oldintfcrc;
       end;
@@ -5204,7 +5221,7 @@ implementation
          inherited buildderefimpl;
 
          { inline tree }
-         if (po_has_inlininginfo in procoptions) then
+         if has_inlininginfo then
            begin
              { Localst is not available for main/unit init }
              if assigned(localst) then
@@ -5239,10 +5256,10 @@ implementation
            structure is available. The has_inlininginfo was disabled
            after the load, since the data was invalid }
          if assigned(inlininginfo) then
-           include(procoptions,po_has_inlininginfo);
+           has_inlininginfo:=true;
 
         { Inline }
-        if (po_has_inlininginfo in procoptions) then
+        if has_inlininginfo then
           begin
             { Locals }
             if assigned(localst) then

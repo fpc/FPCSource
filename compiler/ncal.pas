@@ -3437,7 +3437,9 @@ implementation
         para : tcallparanode;
       begin
         { Can we inline the procedure? }
-        if ([po_inline,po_has_inlininginfo] <= procdefinition.procoptions) then
+        if (po_inline in procdefinition.procoptions) and
+           (procdefinition.typ=procdef) and
+           tprocdef(procdefinition).has_inlininginfo then
           begin
              include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
@@ -3527,7 +3529,7 @@ implementation
            { allow only certain proc options }
            ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
              po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
-             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,po_has_inlininginfo,
+             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,
              po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
              po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
            begin

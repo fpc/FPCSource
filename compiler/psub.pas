@@ -1128,12 +1128,12 @@ implementation
      procedure TCGProcinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
-        include(procdef.procoptions,po_has_inlininginfo);
         procdef.inlininginfo^.code:=code.getcopy;
         procdef.inlininginfo^.flags:=flags;
         { The blocknode needs to set an exit label }
         if procdef.inlininginfo^.code.nodetype=blockn then
           include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
+        procdef.has_inlininginfo:=true;
        end;
 
 
@@ -1218,7 +1218,7 @@ implementation
            { inlining not turned off? }
            (cs_do_inline in current_settings.localswitches) and
            { no inlining yet? }
-           not(po_has_inlininginfo in procdef.procoptions) and not(has_nestedprocs) and
+           not(procdef.has_inlininginfo) and not(has_nestedprocs) and
             not(procdef.proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize,potype_constructor,
                                            potype_destructor,potype_class_constructor,potype_class_destructor]) and
             ((procdef.procoptions*[po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck])=[]) and

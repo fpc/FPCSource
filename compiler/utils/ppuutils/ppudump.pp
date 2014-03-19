@@ -1717,7 +1717,6 @@ const
      (mask:po_has_public_name; str:'HasPublicName'),
      (mask:po_forward;         str:'Forward'),
      (mask:po_global;          str:'Global'),
-     (mask:po_has_inlininginfo;str:'HasInliningInfo'),
      (mask:po_syscall_legacy;  str:'SyscallLegacy'),
      (mask:po_syscall_sysv;    str:'SyscallSysV'),
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
@@ -1952,7 +1951,7 @@ begin
 end;
 
 
-procedure readprocimploptions(const space: string);
+procedure readprocimploptions(const space: string; out implprocoptions: timplprocoptions);
 type
   tpiopt=record
     mask : timplprocoption;
@@ -1960,10 +1959,10 @@ type
   end;
 const
   piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
-    (mask:pio_empty; str:'IsEmpty')
+    (mask:pio_empty; str:'IsEmpty'),
+    (mask:pio_has_inlininginfo; str:'HasInliningInfo')
   );
 var
-  implprocoptions: timplprocoptions;
   i: timplprocoption;
   first: boolean;
 begin
@@ -2620,6 +2619,7 @@ var
   l,j : longint;
   calloption : tproccalloption;
   procoptions : tprocoptions;
+  implprocoptions: timplprocoptions;
   defoptions: tdefoptions;
   iexpr: Tconstexprint;
   def: TPpuDef;
@@ -2906,7 +2906,8 @@ begin
                writeln([space,'           MsgStr : ',getstring]);
              if (po_dispid in procoptions) then
                writeln([space,'      DispID: ',ppufile.getlongint]);
-             if (po_has_inlininginfo in procoptions) then
+             readprocimploptions(space,implprocoptions);
+             if (pio_has_inlininginfo in implprocoptions) then
               begin
                 write  ([space,'       FuncretSym : ']);
                 readderef('');
@@ -2924,16 +2925,15 @@ begin
                    end;
                  writeln;
                end;
-             readprocimploptions(space);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
              { parast }
              readsymtable('parast', TPpuProcDef(def));
              { localst }
-             if (po_has_inlininginfo in procoptions) then
+             if (pio_has_inlininginfo in implprocoptions) then
                 readsymtable('localst');
-             if (po_has_inlininginfo in procoptions) then
+             if (pio_has_inlininginfo in implprocoptions) then
                readnodetree;
              delete(space,1,4);
            end;
