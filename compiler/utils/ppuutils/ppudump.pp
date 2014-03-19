@@ -1952,6 +1952,41 @@ begin
 end;
 
 
+procedure readprocimploptions(const space: string);
+type
+  tpiopt=record
+    mask : timplprocoption;
+    str  : string[30];
+  end;
+const
+  piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
+    (mask:pio_empty; str:'IsEmpty')
+  );
+var
+  implprocoptions: timplprocoptions;
+  i: timplprocoption;
+  first: boolean;
+begin
+  ppufile.getsmallset(implprocoptions);
+  if implprocoptions<>[] then
+    begin
+      first:=true;
+      write([space,'          Options : ']);
+      for i:=low(piopt) to high(piopt) do
+        begin
+          if i in implprocoptions then
+            begin
+              if first then
+                first:=false
+              else
+                write(', ');
+              write(piopt[i].str);
+            end;
+        end;
+      writeln;
+    end;
+end;
+
 procedure readarraydefoptions(ArrayDef: TPpuArrayDef);
 { type tarraydefoption is in unit symconst }
 const
@@ -2889,7 +2924,7 @@ begin
                    end;
                  writeln;
                end;
-             writeln([space,'            Empty : ',getbyte<>0]);
+             readprocimploptions(space);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;

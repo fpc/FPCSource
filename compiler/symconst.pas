@@ -358,6 +358,14 @@ type
   );
   tprocoptions=set of tprocoption;
 
+  { options that should not trigger the recompilation of a unit if they change
+    between the interface and the implementation }
+  timplprocoption = (
+    { the routine contains no code }
+    pio_empty
+  );
+  timplprocoptions = set of timplprocoption;
+
   { kinds of synthetic procdefs that can be generated }
   tsynthetickind = (
     tsk_none,
