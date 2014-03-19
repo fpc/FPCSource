@@ -100,6 +100,9 @@ Const
      'LIBGCC'
    );
 
+    { We know that there are fields after sramsize
+      but we don't care about this warning }
+   {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    ((
    	controllertypestr:'';

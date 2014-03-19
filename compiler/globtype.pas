@@ -289,10 +289,10 @@ interface
        twpoptimizerswitches = set of twpoptimizerswitch;
 
     type
-       { Used by ARM / AVR to differentiate between specific microcontrollers }
+       { Used by ARM / AVR / MIPSEL to differentiate between specific microcontrollers }
        tcontrollerdatatype = record
           controllertypestr, controllerunitstr: string[20];
-          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
+          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
        end;
 
        ttargetswitchinfo = record

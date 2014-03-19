@@ -162,7 +162,9 @@ const
   { 77 }  'Android-arm',
   { 78 }  'Android-i386',
   { 79 }  'MSDOS-i8086',
-  { 79 }  'Android-MIPSel'
+  { 80 }  'Android-MIPSel',
+  { 81 }  'Embedded-mipseb',
+  { 82 }  'Embedded-mipsel'
   );
 
 const
@@ -1097,9 +1099,9 @@ end;
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;

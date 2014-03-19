@@ -154,6 +154,69 @@ unit i_embed;
             abi : abi_default
           );
 
+       system_mipsel_embedded_info : tsysteminfo =
+          (
+            system       : system_mipsel_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_smartlink_sections];
+            cpu          : cpu_mipsel;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 0;
+            stacksize    : 262144;
+            stackalign   : 8;
+            abi : abi_default
+          );
+
        system_i386_embedded_info : tsysteminfo =
           (
             system       : system_i386_embedded;
@@ -230,6 +293,11 @@ initialization
     set_source_info(system_avr_embedded_info);
   {$endif embedded}
 {$endif CPUAVR}
+{$ifdef CPUMIPSEL}
+  {$ifdef embedded}
+    set_source_info(system_mipsel_embedded_info);
+  {$endif embedded}
+{$endif CPUMIPSEL}
 {$ifdef CPUI386}
   {$ifdef embedded}
     set_source_info(system_i386_embedded_info);

@@ -103,6 +103,7 @@ unit cpugas;
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
          { ARCH selection }
          Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
+//          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');      
       end;
 
 {****************************************************************************}
@@ -380,7 +381,7 @@ unit cpugas;
         idtxt: 'AS';
         asmbin: 'as';
         asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
-        supported_targets: [system_mipsel_linux,system_mipsel_android];
+        supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';

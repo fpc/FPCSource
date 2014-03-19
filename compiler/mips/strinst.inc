@@ -188,4 +188,5 @@
 'mtc0',
 'sdbbp',
 'wrpgpr',
+'eret',
 'end_def'

@@ -1452,7 +1452,7 @@ implementation
                  current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
-{$endif not(defined(sparc)) and not(defined(arm)) and not(defined(avr))}
+{$endif not(defined(sparc)) and not(defined(arm)) and not(defined(avr)) not(defined(mipsel))}
 
         { Flag the result as assigned when it is returned in a
           register.

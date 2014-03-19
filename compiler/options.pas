@@ -193,9 +193,9 @@ var
   wpopt: twpoptimizerswitch;
   abi : tabi;
   asmmode : tasmmode;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -332,7 +332,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-        {$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr) or defined(mipsel)}
         hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
@@ -356,8 +356,8 @@ begin
             Comment(V_Normal,hs);
             hs1:=''
           end;
-        {$else defined(arm) or defined(avr)}
-        {$endif defined(arm) or defined(avr)}
+        {$else defined(arm) or defined(avr) or defined(mipsel)}
+        {$endif defined(arm) or defined(avr) or defined(mipsel)}
       end
      else
       Comment(V_Normal,s);
@@ -1954,7 +1954,7 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
                         if (target_info.system in systems_embedded) then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -1963,7 +1963,7 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':
@@ -3125,6 +3125,8 @@ begin
         system_avr_embedded:
           heapsize:=128;
         system_arm_embedded:
+          heapsize:=256;
+        system_mipsel_embedded:
           heapsize:=256;
         else
           heapsize:=256;
