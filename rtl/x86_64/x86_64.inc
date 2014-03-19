@@ -964,8 +964,6 @@ begin
     { set sse exceptions }
     ldmxcsr localmxcsr
   end ['RAX'];
-  { x86-64 might use softfloat code }
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
 end;
 
 
@@ -984,8 +982,6 @@ Procedure SysResetFPU;
       fldcw   localfpucw
       ldmxcsr localmxcsr
     end;
-    { x86-64 might use softfloat code }
-    softfloat_exception_flags:=0;
   end;
 
 

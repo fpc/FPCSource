@@ -150,7 +150,6 @@ begin
   CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
   SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
-  softfloat_exception_mask:=dword(Mask);
   Result:=GetExceptionMask;
 end;
 

@@ -1362,7 +1362,6 @@ Procedure SysInitFPU;
           ldmxcsr localmxcsr
         end;
       end;
-    softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   end;
 
 
@@ -1387,7 +1386,6 @@ Procedure SysResetFPU;
           ldmxcsr localmxcsr
         end;
       end;
-    softfloat_exception_flags:=0;
   end;
 
 
