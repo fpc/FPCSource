@@ -2915,7 +2915,7 @@ begin
              b:=ppufile.getbyte;
              if b<>0 then
                begin
-                 write  ([space,'       Alias names : ']);
+                 write  ([space,'      Alias names : ']);
                  for j:=1 to b do
                    begin
                      write(ppufile.getstring);
