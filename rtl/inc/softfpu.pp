@@ -2712,11 +2712,11 @@ Procedure
           Begin
             if ( zSign )<> 0 then
               Begin
-                increment := flag( roundingMode = float_round_down ) and zSig2;
+                increment := flag(( roundingMode = float_round_down ) and (zSig2<>0));
               End
             else
               Begin
-                increment := flag( roundingMode = float_round_up ) and zSig2;
+                increment := flag(( roundingMode = float_round_up ) and (zSig2<>0));
               End
           End
       End;
@@ -2760,11 +2760,11 @@ Procedure
               Begin
                 if ( zSign )<>0 then
                   Begin
-                    increment := flag( roundingMode = float_round_down ) and zSig2;
+                    increment := flag(( roundingMode = float_round_down ) and (zSig2<>0);
                   End
                 else
                   Begin
-                    increment := flag( roundingMode = float_round_up ) and zSig2;
+                    increment := flag(( roundingMode = float_round_up ) and (zSig2<>0));
                   End
               End;
         End;
