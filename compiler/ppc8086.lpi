@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="40">
+    <Units Count="42">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -219,6 +219,15 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="n8086cnv"/>
       </Unit39>
+      <Unit40>
+        <Filename Value="systems\i_msdos.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="i_msdos"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="systems\t_msdos.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit41>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
