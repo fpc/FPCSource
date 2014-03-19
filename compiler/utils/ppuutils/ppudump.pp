@@ -2888,7 +2888,7 @@ begin
              readvisibility(def);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
-             write  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
+             writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }
