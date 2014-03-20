@@ -80,13 +80,11 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
