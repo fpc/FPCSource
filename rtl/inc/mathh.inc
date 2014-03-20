@@ -26,39 +26,47 @@
   {$endif not cpui8086}
 {$endif}
 
+  type
+    TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
+    TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
+    TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                     exOverflow, exUnderflow, exPrecision);
+    TFPUExceptionMask = set of TFPUException;
+
 const
 {*
 -------------------------------------------------------------------------------
 Software IEC/IEEE floating-point exception flags.
 -------------------------------------------------------------------------------
 *}
-    float_flag_invalid   =  1;
-    float_flag_denormal  =  2;
-    float_flag_divbyzero =  4;
-    float_flag_overflow  =  8;
-    float_flag_underflow = 16;
-    float_flag_inexact   = 32;
+    float_flag_invalid   =  exInvalidOp;
+    float_flag_denormal  =  exDenormalized;
+    float_flag_divbyzero =  exZeroDivide;
+    float_flag_overflow  =  exOverflow;
+    float_flag_underflow =  exUnderflow;
+    float_flag_inexact   =  exPrecision;
 
 {*
 -------------------------------------------------------------------------------
 Software IEC/IEEE floating-point rounding mode.
 -------------------------------------------------------------------------------
 *}
-    float_round_nearest_even = 0;
-    float_round_down         = 1;
-    float_round_up           = 2;
-    float_round_to_zero      = 3;
+    float_round_nearest_even = rmNearest;
+    float_round_down         = rmDown;
+    float_round_up           = rmUp;
+    float_round_to_zero      = rmTruncate;
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
 {$else FPC_HAS_FEATURE_THREADING}
 Var
 {$endif FPC_HAS_FEATURE_THREADING}
-  softfloat_exception_mask : Byte;
-  softfloat_exception_flags : Byte;
-  softfloat_rounding_mode : Byte;
+  softfloat_exception_mask : TFPUExceptionMask;
+  softfloat_exception_flags : TFPUExceptionMask;
+  softfloat_rounding_mode : TFPURoundingMode;
 
-procedure float_raise(i: shortint);
+procedure float_raise(i: TFPUException);
+procedure float_raise(i: TFPUExceptionMask);
 
 {$ifdef cpui386}
   {$define INTERNMATH}

@@ -587,7 +587,7 @@ implementation
   a threadvar. }
 procedure set_inexact_flag;
 begin
-    softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+    include(softfloat_exception_flags,float_flag_inexact);
 end;
 
 {*----------------------------------------------------------------------------
@@ -603,7 +603,7 @@ end;
 
 function roundAndPackInt32( zSign: flag; absZ : bits64): int32;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven: flag;
     roundIncrement, roundBits: int8;
     z: int32;
@@ -664,7 +664,7 @@ end;
 
 function roundAndPackInt64( zSign: flag; absZ0: bits64; absZ1 : bits64): int64;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven, increment: flag;
     z: int64;
 label
@@ -2446,7 +2446,7 @@ Binary Floating-Point Arithmetic.
 *}
 Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : float32;
  Var
-   roundingMode : BYTE;
+   roundingMode : TFPURoundingMode;
    roundNearestEven : Flag;
    roundIncrement, roundBits : BYTE;
    IsTiny : Flag;
@@ -2483,7 +2483,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
      Begin
         if (( $FD < zExp ) OR  ( zExp = $FD ) AND ( sbits32 ( zSig + roundIncrement ) < 0 ) ) then
           Begin
-             float_raise( float_flag_overflow OR float_flag_inexact );
+             float_raise( [float_flag_overflow,float_flag_inexact] );
              roundAndPackFloat32:=packFloat32( zSign, $FF, 0 ) - Flag( roundIncrement = 0 );
              exit;
           End;
@@ -2697,7 +2697,7 @@ Procedure
  roundAndPackFloat64(
      zSign: Flag; zExp: Int16; zSig0: Bits32; zSig1: Bits32; zSig2: Bits32; Var c: Float64 );
  Var
-   roundingMode : Int8;
+   roundingMode : TFPURoundingMode;
    roundNearestEven, increment, isTiny : Flag;
  Begin
 
@@ -2729,7 +2729,7 @@ Procedure
                 )
            ) then
            Begin
-            float_raise( float_flag_overflow OR  float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (( roundingMode = float_round_to_zero )
                  or ( (zSign<>0) and ( roundingMode = float_round_up ) )
                  or ( (zSign = 0) and ( roundingMode = float_round_down ) )
@@ -2807,7 +2807,7 @@ Procedure
 
 function roundAndPackFloat64( zSign: flag; zExp: int16; zSig : bits64): float64;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven: flag;
     roundIncrement, roundBits: int16;
     isTiny: flag;
@@ -2842,7 +2842,7 @@ begin
                   and ( sbits64( zSig + roundIncrement ) < 0 ) )
            ) then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             result := float64(qword(packFloat64( zSign, $7FF, 0 )) - ord( roundIncrement = 0 ));
             exit;
         end;
@@ -3060,7 +3060,7 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
     aExp, shiftCount: int16;
     aSig, aSigExtra: bits32;
     z: int32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
   Begin
 
     aSig := extractFloat32Frac( a.float32 );
@@ -3420,7 +3420,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
     aSign: flag;
     aExp: int16;
     lastBitMask, roundBitsMask: bits32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: float32;
   Begin
     aExp := extractFloat32Exp( a.float32 );
@@ -4328,7 +4328,7 @@ var
     aExp, shiftCount: int16;
     aSig0, aSig1, absZ, aSigExtra: bits32;
     z: int32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     label invalid;
 Begin
     aSig1 := extractFloat64Frac1( a );
@@ -4664,7 +4664,7 @@ Var
     aSign: flag;
     aExp: int16;
     lastBitMask, roundBitsMask: bits32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: float64;
 Begin
     aExp := extractFloat64Exp( a );
@@ -6415,7 +6415,7 @@ begin
            ) then begin
             roundMask := 0;
  overflow:
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (    ( roundingMode = float_round_to_zero )
                  or ( ( zSign <> 0) and ( roundingMode = float_round_up ) )
                  or ( ( zSign = 0) and ( roundingMode = float_round_down ) )
@@ -7866,7 +7866,7 @@ begin
                 )
            )<>0 then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (    ord( roundingMode = float_round_to_zero )
                  or ( zSign and ord( roundingMode = float_round_up ) )
                  or ( ord( zSign = 0) and ord( roundingMode = float_round_down ) )

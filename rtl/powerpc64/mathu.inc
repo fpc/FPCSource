@@ -82,26 +82,23 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   mode : DWord;
 begin
+  software_rounding_mode:=RoundMode;
   case (RoundMode) of
     rmNearest :
       begin
         mode := FP_RND_RN;
-        softfloat_rounding_mode := float_round_nearest_even;
       end;
     rmTruncate :
       begin
         mode := FP_RND_RZ;
-        softfloat_rounding_mode := float_round_to_zero;
       end;
     rmUp :
       begin
         mode := FP_RND_RP;
-        softfloat_rounding_mode := float_round_up;
       end;
     rmDown :
       begin
         mode := FP_RND_RM;
-        softfloat_rounding_mode := float_round_down;
       end;
   end;
 {$ifndef aix}
@@ -158,35 +155,30 @@ var
   mode : DWord;
 begin
   mode := 0;
-  softfloat_exception_mask := 0;
+  softfloat_exception_mask := mask;
   if (exInvalidOp in Mask) then
     begin
       mode := mode or InvalidOperationMask;
-      softfloat_exception_mask := softfloat_exception_mask or float_flag_invalid;
     end;
   if (exOverflow in Mask) then
     begin
       mode := mode or OverflowMask;
-      softfloat_exception_mask := softfloat_exception_mask or float_flag_overflow;
     end;
   if (exUnderflow in Mask) then
     begin
       mode := mode or UnderflowMask;
-      softfloat_exception_mask := softfloat_exception_mask or float_flag_underflow;
     end;
   if (exZeroDivide in Mask) then
     begin
       mode := mode or ZeroDivideMask;
-      softfloat_exception_mask := softfloat_exception_mask or float_flag_divbyzero;
     end;
   if (exPrecision in Mask) then
     begin
       mode := mode or InexactMask;
-      softfloat_exception_mask := softfloat_exception_mask or float_flag_inexact;
     end;
 
   setFPSCR((getFPSCR or ExceptionMask) and not mode and not ExceptionsPendingMask);
-  softfloat_exception_flags := 0;;
+  softfloat_exception_flags := [];;
   { also clear out pending exceptions on AIX }
 {$ifdef aix}
   { clear pending exceptions }
@@ -206,7 +198,7 @@ begin
   { clear pending exceptions }
   feclearexcept(AllExceptionsMask);
 {$endif}
-  softfloat_exception_flags := 0;
+  softfloat_exception_flags := [];
   { RaisePending has no effect on PPC, always raises them at the correct location }
   setFPSCR(getFPSCR and (not ExceptionsPendingMask));
 end;

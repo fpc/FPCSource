@@ -41,27 +41,27 @@
     procedure checkexcepts;
       var
         feres: longint;
-        sfexcepts: shortint;
+        sfexcepts: TFPUExceptionMask;
       begin
         feres:=fetestexcept(FE_ALL_EXCEPT);
-        sfexcepts:=0;
+        sfexcepts:=[];
         if feres<>0 then
           begin
             if (feres and FE_DIVBYZERO) <> 0 then
-              sfexcepts:=sfexcepts or float_flag_divbyzero;
+              include(sfexcepts,float_flag_divbyzero);
             if (feres and FE_INEXACT) <> 0 then
-              sfexcepts:=sfexcepts or float_flag_inexact;
+              include(sfexcepts,float_flag_inexact);
             if (feres and FE_INVALID) <> 0 then
-              sfexcepts:=sfexcepts or float_flag_invalid;
+              include(sfexcepts,float_flag_invalid);
             if (feres and FE_OVERFLOW) <> 0 then
-              sfexcepts:=sfexcepts or float_flag_overflow;
+              include(sfexcepts,float_flag_overflow);
             if (feres and FE_UNDERFLOW) <> 0 then
-              sfexcepts:=sfexcepts or float_flag_underflow;
+              include(sfexcepts,float_flag_underflow);
           end
         { unknown error }
         else if (geterrno<>0) then
-          sfexcepts:=sfexcepts or float_flag_invalid;
-        if sfexcepts<>0 then
+          include(sfexcepts,float_flag_invalid);
+        if sfexcepts<>[] then
           float_raise(sfexcepts);
       end;
 

@@ -534,11 +534,10 @@ function RandomFrom(const AValues: array of Int64): Int64; overload;
 
 { cpu specific stuff }
 type
-  TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
-  TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
-  TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
-                   exOverflow, exUnderflow, exPrecision);
-  TFPUExceptionMask = set of TFPUException;
+  TFPURoundingMode = system.TFPURoundingMode;
+  TFPUPrecisionMode = system.TFPUPrecisionMode;
+  TFPUException = system.TFPUException;
+  TFPUExceptionMask = system.TFPUExceptionMask;
 
 function GetRoundMode: TFPURoundingMode;
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;

@@ -12,40 +12,6 @@
 
  **********************************************************************}
 
-function FPUExceptionMaskToSoftFloatMask(const Mask: TFPUExceptionMask): byte;
-begin
-    result:=0;
-    if exInvalidOp in Mask then
-      result:=result or (1 shl ord(exInvalidOp));
-    if exDenormalized in Mask then
-      result:=result or (1 shl ord(exDenormalized));
-    if exZeroDivide in Mask then
-      result:=result or (1 shl ord(exZeroDivide));
-    if exOverflow in Mask then
-      result:=result or (1 shl ord(exOverflow));
-    if exUnderflow in Mask then
-      result:=result or (1 shl ord(exUnderflow));
-    if exPrecision in Mask then
-      result:=result or (1 shl ord(exPrecision));
-end;
-
-function SoftFloatMaskToFPUExceptionMask(const Mask: byte): TFPUExceptionMask;
-begin
-    result:=[];
-    if (mask and (1 shl ord(exInvalidOp)) <> 0) then
-      include(result,exInvalidOp);
-    if (mask and (1 shl ord(exDenormalized)) <> 0) then
-      include(result,exDenormalized);
-    if (mask and (1 shl ord(exZeroDivide)) <> 0) then
-      include(result,exZeroDivide);
-    if (mask and (1 shl ord(exOverflow)) <> 0) then
-      include(result,exOverflow);
-    if (mask and (1 shl ord(exUnderflow)) <> 0) then
-      include(result,exUnderflow);
-    if (mask and (1 shl ord(exPrecision)) <> 0) then
-      include(result,exPrecision);
-end;
-
 {$if defined(wince)}
 
 const
@@ -222,26 +188,23 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   var
     mode: dword;
   begin
+    softfloat_rounding_mode:=RoundMode;
     case (RoundMode) of
       rmNearest :
         begin
           mode := 0;
-          softfloat_rounding_mode := float_round_nearest_even;
         end;
       rmUp :
         begin
           mode := 1;
-          softfloat_rounding_mode := float_round_up;
         end;
       rmDown :
         begin
           mode := 2;
-          softfloat_rounding_mode := float_round_down;
         end;
       rmTruncate :
         begin
           mode := 3;
-          softfloat_rounding_mode := float_round_to_zero;
         end;
     end;
     mode:=mode shl _VFP_ROUNDINGMODE_MASK_SHIFT;
@@ -318,7 +281,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     VFP_SetCW(cw);
     result:=Mask;
 
-    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(Mask);
+    softfloat_exception_mask:=Mask;
   end;
 
 
@@ -432,39 +395,13 @@ procedure FPU_SetCW(cw : dword); nostackframe; assembler;
 
 function GetRoundMode: TFPURoundingMode;
   begin
-    case softfloat_rounding_mode of
-      float_round_nearest_even:
-        GetRoundMode:=rmNearest;
-      float_round_up:
-        GetRoundMode:=rmUp;
-      float_round_down:
-        GetRoundMode:=rmDown;
-      float_round_to_zero:
-        GetRoundMode:=rmTruncate;
-    end;
+    GetRoundMode:=softfloat_rounding_mode;
   end;
 
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
-    case (RoundMode) of
-      rmNearest :
-        begin
-          softfloat_rounding_mode := float_round_nearest_even;
-        end;
-      rmUp :
-        begin
-          softfloat_rounding_mode := float_round_up;
-        end;
-      rmDown :
-        begin
-          softfloat_rounding_mode := float_round_down;
-        end;
-      rmTruncate :
-        begin
-          softfloat_rounding_mode := float_round_to_zero;
-        end;
-    end;
+    softfloat_rounding_mode:=RoundMode;
     SetRoundMode:=RoundMode;
   end;
 
@@ -508,7 +445,7 @@ function GetExceptionMask: TFPUExceptionMask;
     if (cw and _FPU_MASK_PM)=0 then
       include(Result,exPrecision);
 {$else}
-    Result:=SoftFloatMaskToFPUExceptionMask(softfloat_exception_mask);
+    Result:=softfloat_exception_mask;
 {$endif}
   end;
 
@@ -540,7 +477,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     FPU_SetCW(cw);
 {$endif}
-    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(Mask);
+    softfloat_exception_mask:=Mask;
     Result:=Mask;
   end;
 

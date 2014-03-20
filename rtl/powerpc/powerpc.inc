@@ -1194,14 +1194,14 @@ begin
      mtfsf 7,f1
   end;
   { powerpc might use softfloat code }
-  softfloat_exception_flags:=0;
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  softfloat_exception_flags:=[];
+  softfloat_exception_mask:=[float_flag_underflow, float_flag_inexact, float_flag_denormal];
 end;
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
+  softfloat_exception_flags:=[];
 end;
 {$ENDIF}
 

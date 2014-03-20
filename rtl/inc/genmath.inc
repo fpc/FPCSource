@@ -97,28 +97,33 @@ to substitute a result value.  If traps are not implemented, this routine
 should be simply `softfloat_exception_flags |= flags;'.
 -------------------------------------------------------------------------------
 *}
-procedure float_raise(i: shortint);
+procedure float_raise(i: TFPUException);
+begin
+  float_raise([i]);
+end;
+
+procedure float_raise(i: TFPUExceptionMask);
 var
-  pflags: pbyte;
-  unmasked_flags: byte;
+  pflags: ^TFPUExceptionMask;
+  unmasked_flags: TFPUExceptionMask;
 Begin
   { taking address of threadvar produces somewhat more compact code }
   pflags := @softfloat_exception_flags;
-  pflags^ := pflags^ or i;
-  unmasked_flags := pflags^ and (not softfloat_exception_mask);
-  if (unmasked_flags and float_flag_invalid) <> 0 then
+  pflags^:=pflags^ + i;
+  unmasked_flags := pflags^ - softfloat_exception_mask;
+  if (float_flag_invalid in unmasked_flags) then
      HandleError(207)
   else
-  if (unmasked_flags and float_flag_divbyzero) <> 0 then
+  if (float_flag_divbyzero in unmasked_flags) then
      HandleError(200)
   else
-  if (unmasked_flags and float_flag_overflow) <> 0 then
+  if (float_flag_overflow in unmasked_flags) then
      HandleError(205)
   else
-  if (unmasked_flags and float_flag_underflow) <> 0 then
+  if (float_flag_underflow in unmasked_flags) then
      HandleError(206)
   else
-  if (unmasked_flags and float_flag_inexact) <> 0 then
+  if (float_flag_inexact in unmasked_flags) then
      HandleError(207);
 end;
 
