@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      lineinfo lnfodwrf heaptrc matrix \
+      lineinfo lnfodwrf heaptrc \
       dos sysconst \
       initc sysutils types typinfo fgl classes \
       cpu mmx getopts \
