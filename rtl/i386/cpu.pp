@@ -27,6 +27,8 @@ unit cpu;
     function cr0 : longint;
 
     function AVXSupport: boolean;inline;
+    function AVX2Support: boolean;inline;
+    function FMASupport: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -35,7 +37,9 @@ unit cpu;
 
 {$ASMMODE INTEL}
     var
-      _AVXSupport : boolean;
+      _AVXSupport,
+      _AVX2Support,
+      _FMASupport : boolean;
 
     function cpuid_support : boolean;assembler;
       {
@@ -90,7 +94,7 @@ unit cpu;
 
     procedure SetupSupport;
       var
-         _ecx : longint;
+         _ecx,_ebx : longint;
       begin
         is_sse3_cpu:=false;
          if cpuid_support then
@@ -110,6 +114,18 @@ unit cpu;
                 ((XGETBV(0) and %110)=%110) and
                 { avx supported? }
                 ((_ecx and $10000000)<>0);
+
+              _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
+
+              asm
+                 pushl %ebx
+                 movl $7,%eax
+                 movl $0,%ecx
+                 cpuid
+                 movl %ebx,_ebx
+                 popl %ebx
+              end;
+              _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
            end;
       end;
 
@@ -117,6 +133,18 @@ unit cpu;
     function AVXSupport: boolean;inline;
       begin
         result:=_AVXSupport;
+      end;
+
+
+    function AVX2Support: boolean;inline;
+      begin
+        result:=_AVX2Support;
+      end;
+
+
+    function FMASupport: boolean;inline;
+      begin
+        result:=_FMASupport;
       end;
 
 begin

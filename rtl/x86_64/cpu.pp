@@ -31,6 +31,8 @@ unit cpu;
     function InterlockedCompareExchange128Support : boolean;inline;
     function AESSupport : boolean;inline;
     function AVXSupport : boolean;inline;
+    function AVX2Support: boolean;inline;
+    function FMASupport: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -42,22 +44,9 @@ unit cpu;
     var
       _AESSupport,
       _AVXSupport,
-      _InterlockedCompareExchange128Support : boolean;
-
-    function InterlockedCompareExchange128Support : boolean;inline;
-      begin
-        result:=_InterlockedCompareExchange128Support;
-      end;
-
-    function AESSupport : boolean;inline;
-      begin
-        result:=_AESSupport;
-      end;
-
-    function AVXSupport: boolean;
-      begin
-        result:=_AVXSupport;
-      end;
+      _InterlockedCompareExchange128Support,
+      _AVX2Support,
+      _FMASupport : boolean;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -140,7 +129,8 @@ unit cpu;
 
     procedure SetupSupport;
       var
-        _ecx : longint;
+        _ecx,
+        _ebx : longint;
       begin
         asm
            pushq %rbx
@@ -161,7 +151,50 @@ unit cpu;
           ((_ecx and $10000000)<>0);
 
         is_sse3_cpu:=(_ecx and $1)<>0;
+
+        _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
+
+        asm
+           pushl %rbx
+           movl $7,%eax
+           movl $0,%ecx
+           cpuid
+           movl %ebx,_ebx
+           popl %rbx
+        end;
+        _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
       end;
+
+
+    function InterlockedCompareExchange128Support : boolean;inline;
+      begin
+        result:=_InterlockedCompareExchange128Support;
+      end;
+
+
+    function AESSupport : boolean;inline;
+      begin
+        result:=_AESSupport;
+      end;
+
+
+    function AVXSupport: boolean;inline;
+      begin
+        result:=_AVXSupport;
+      end;
+
+
+    function AVX2Support: boolean;inline;
+      begin
+        result:=_AVX2Support;
+      end;
+
+
+    function FMASupport: boolean;inline;
+      begin
+        result:=_FMASupport;
+      end;
+
 
 begin
   SetupSupport;
