@@ -227,7 +227,7 @@ interface
       TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize,
                          msiMultiple, msiMultiple8, msiMultiple16, msiMultiple32,
                          msiMultiple64, msiMultiple128, msiMultiple256,
-                         msiMemRegSize, msiMemRegx64y128, msiMemRegx64y256,
+                         msiMemRegSize, msiMemRegx16y32, msiMemRegx32y64, msiMemRegx64y128, msiMemRegx64y256,
                          msiMem8, msiMem16, msiMem32, msiMem64, msiMem128, msiMem256);
 
       TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
@@ -427,6 +427,7 @@ implementation
        IF_SSE41  = $00200000;
        IF_SSE42  = $00200000;
        IF_AVX    = $00200000;
+       IF_AVX2   = $00200000;
        IF_BMI1   = $00200000;
        IF_BMI2   = $00200000;
        IF_16BITONLY = $00200000;
@@ -3247,7 +3248,7 @@ implementation
             actConstSize     := 0;
             actConstCount    := 0;
 
-            if asmop = a_movups then
+            if asmop = a_vpmovzxbq then
             begin
               RegXMMSizeMask := RegXMMSizeMask;
             end;
@@ -3397,6 +3398,12 @@ implementation
              (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
           begin
             case RegXMMSizeMask of
+              OT_BITS16: case RegYMMSizeMask of
+                           OT_BITS32: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
+                        end;
+               OT_BITS32: case RegYMMSizeMask of
+                            OT_BITS64: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64;
+                         end;
                OT_BITS64: case RegYMMSizeMask of
                             OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
                             OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
