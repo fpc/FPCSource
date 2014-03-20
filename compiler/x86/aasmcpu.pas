@@ -432,6 +432,7 @@ implementation
        IF_BMI2   = $00200000;
        IF_16BITONLY = $00200000;
        IF_FMA    = $00200000;
+       IF_FMA4   = $00200000;
 
        IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
@@ -2122,6 +2123,7 @@ implementation
                 end;
               end;
             244: ; // VEX length bit
+            246, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
             247: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
             248: // VEX-Extention prefix $0F
                  // ignore for calculating length
@@ -2238,6 +2240,7 @@ implementation
        * \362          - VEX prefix for AVX instructions
        * \363          - VEX W1
        * \364          - VEX Vector length 256
+       * \366          - operand 2 (ymmreg) encoded in bit 4-7 of the immediate byte
        * \367          - operand 3 (ymmreg) encoded in bit 4-7 of the immediate byte
 
        * \370          - VEX 0F-FLAG
@@ -2792,27 +2795,48 @@ implementation
                   are not needed }
               end;
             242..244: ; // VEX flags =>> nothing todo
-                 247: begin
-                        if needed_VEX then
-                        begin
-                          if ops = 4 then
-                          begin
-                            if (oper[3]^.typ=top_reg) then
-                            begin
-                              if (oper[3]^.ot and otf_reg_xmm <> 0) or
-                                 (oper[3]^.ot and otf_reg_ymm <> 0) then
-                              begin
-                                bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
-                                objdata.writebytes(bytes,1);
-                              end
-                              else Internalerror(777102);
-                            end
-                            else Internalerror(777103);
-                          end
-                          else Internalerror(777104);
-                        end
-                        else Internalerror(777105);
-                      end;
+            246: begin
+                   if needed_VEX then
+                   begin
+                     if ops = 4 then
+                     begin
+                       if (oper[2]^.typ=top_reg) then
+                       begin
+                         if (oper[2]^.ot and otf_reg_xmm <> 0) or
+                            (oper[2]^.ot and otf_reg_ymm <> 0) then
+                         begin
+                           bytes[0] := ((getsupreg(oper[2]^.reg) and 15) shl 4);
+                           objdata.writebytes(bytes,1);
+                         end
+                         else Internalerror(2014032001);
+                       end
+                       else Internalerror(2014032002);
+                     end
+                     else Internalerror(2014032003);
+                   end
+                   else Internalerror(2014032004);
+                 end;
+            247: begin
+                   if needed_VEX then
+                   begin
+                     if ops = 4 then
+                     begin
+                       if (oper[3]^.typ=top_reg) then
+                       begin
+                         if (oper[3]^.ot and otf_reg_xmm <> 0) or
+                            (oper[3]^.ot and otf_reg_ymm <> 0) then
+                         begin
+                           bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
+                           objdata.writebytes(bytes,1);
+                         end
+                         else Internalerror(2014032005);
+                       end
+                       else Internalerror(2014032006);
+                     end
+                     else Internalerror(2014032007);
+                   end
+                   else Internalerror(2014032008);
+                 end;
             248..250: ; // VEX flags =>> nothing todo
             31,
             48,49,50 :

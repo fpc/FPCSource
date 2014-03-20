@@ -988,6 +988,7 @@
 'vfmadd132pd',
 'vfmadd213pd',
 'vfmadd231pd',
+'vfmaddpd',
 'vfmadd132ps',
 'vfmadd213ps',
 'vfmadd231ps',

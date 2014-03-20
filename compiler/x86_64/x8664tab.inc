@@ -12986,6 +12986,20 @@
     flags   : if_fma
   ),
   (
+    opcode  : A_VFMADDPD;
+    ops     : 4;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_xmmreg);
+    code    : #241#242#250#1#105#61#80#247;
+    flags   : if_fma4
+  ),
+  (
+    opcode  : A_VFMADDPD;
+    ops     : 4;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_xmmrm);
+    code    : #241#242#250#243#1#105#61#88#246;
+    flags   : if_fma4
+  ),
+  (
     opcode  : A_VFMADD132PS;
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);

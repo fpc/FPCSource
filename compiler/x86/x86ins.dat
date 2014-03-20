@@ -5050,6 +5050,11 @@ ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xA8\75\120    FMA
 xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xB8\75\120        FMA
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xB8\75\120    FMA
 
+[VFMADDPD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm,xmmreg           \361\362\372\1\x69\75\120\367        FMA4
+xmmreg,xmmreg,xmmreg,xmmrm           \361\362\372\363\1\x69\75\130\366    FMA4
+
 [VFMADD132PS]
 (Ch_Mop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x98\75\120            FMA
