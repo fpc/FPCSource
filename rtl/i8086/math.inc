@@ -275,3 +275,17 @@
         mov ax, [bp-2]
       end;
 
+    {$define FPC_SYSTEM_HAS_ROUND}
+    function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
+      var
+        tmp: int64;
+      asm
+        fld    tbyte [d]
+        fistp  qword [tmp]
+        fwait
+        mov  dx, [tmp]
+        mov  cx, [tmp+2]
+        mov  bx, [tmp+4]
+        mov  ax, [tmp+6]
+      end;
+

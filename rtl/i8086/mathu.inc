@@ -185,7 +185,6 @@ begin
   Set8087CW( (CtlWord and $FFC0) or Byte(Mask) );
 {  if has_sse_support then
     SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));}
-  softfloat_exception_mask:=byte(Mask);
   Result := TFPUExceptionMask(Byte(CtlWord and $3F));
 end;
 

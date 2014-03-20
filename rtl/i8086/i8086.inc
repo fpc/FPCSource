@@ -457,7 +457,6 @@ Procedure SysInitFPU;
       fldcw   localfpucw
       fwait
     end;
-    softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   end;
 
 
@@ -474,7 +473,6 @@ Procedure SysResetFPU;
       fwait
       fldcw   localfpucw
     end;
-    softfloat_exception_flags:=0;
   end;
 
 {$I int32p.inc}
