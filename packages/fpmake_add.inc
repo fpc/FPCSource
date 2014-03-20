@@ -99,6 +99,7 @@
   add_rtl_console(ADirectory+IncludeTrailingPathDelimiter('rtl-console'));
   add_rtl_extra(ADirectory+IncludeTrailingPathDelimiter('rtl-extra'));
   add_rtl_objpas(ADirectory+IncludeTrailingPathDelimiter('rtl-objpas'));
+  add_rtl_unicode(ADirectory+IncludeTrailingPathDelimiter('rtl-unicode'));
   add_sdl(ADirectory+IncludeTrailingPathDelimiter('sdl'));
   add_sqlite(ADirectory+IncludeTrailingPathDelimiter('sqlite'));
   add_svgalib(ADirectory+IncludeTrailingPathDelimiter('svgalib'));

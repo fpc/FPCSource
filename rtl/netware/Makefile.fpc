@@ -8,14 +8,14 @@ main=rtl
 [target]
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      lineinfo lnfodwrf winsock heaptrc matrix \
+      lineinfo lnfodwrf heaptrc matrix \
       dos sysconst \
       initc sysutils types typinfo fgl classes \
       cpu mmx getopts \
       strutils \
       charset cpall \
-      rtlconsts math freebidi utf8bidi \
-      cmem dynlibs sockets \
+      rtlconsts math \
+      cmem dynlibs  \
       aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 rsts=math typinfo classes sysconst rtlconsts
 implicitunits=exeinfo \
@@ -140,11 +140,6 @@ nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pp $(SYSTEMUNIT)$(PPUEXT)
-
-sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                   $(INC)/sockets.inc $(INC)/socketsh.inc
-
 #dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
 
 initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -155,10 +150,6 @@ initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT)
-
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Delphi Compatible Units
@@ -185,35 +176,14 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
-varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
-                    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp
-
-freebidi$(PPUEXT) : $(OBJPASDIR)/freebidi.pp
-
-utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
-        $(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
-
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
@@ -246,14 +216,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-mouse$(PPUEXT) : $(INC)/mouseh.inc $(SYSTEMUNIT)$(PPUEXT)
-
-video$(PPUEXT) : $(INC)/video.inc $(SYSTEMUNIT)$(PPUEXT)
-
-keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 

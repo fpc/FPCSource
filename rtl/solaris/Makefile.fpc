@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       termio unix initc cmem \
       printer \
       sysutils typinfo math fgl classes \
-      charset cpall buildcollations getopts \
+      charset cpall getopts \
       errors \
       # ipc serial
       terminfo dl dynlibs \
@@ -25,8 +25,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+      unicodedata unicodenumtable 
  
 rsts=math typinfo classes sysconst rtlconst
 
@@ -208,7 +207,7 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
         $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
 	$(COMPILER) $(OBJPASDIR)/character.pas
  
 #
@@ -243,10 +242,6 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
-
 
 #
 # Other system-dependent RTL Units

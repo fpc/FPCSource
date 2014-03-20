@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       unix rtlconsts initc cmem \
        dl termio  printer \
       sysutils math typinfo types classes fgl dynlibs \
-      $(CPU_UNITS) charset cpall buildcollations getopts heaptrc lnfodwrf lineinfo \
+      $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
       errors ipc terminfo bsd \
       serial \
       sysconst cthreads strutils dos cwstring \
@@ -23,8 +23,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+      unicodedata unicodenumtable 
 
 rsts=math typinfo classes sysconst
 
@@ -238,7 +237,7 @@ fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) varia
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 
@@ -274,9 +273,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
 fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

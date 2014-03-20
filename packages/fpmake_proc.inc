@@ -572,6 +572,8 @@ end;
 
 {$include rtl-objpas/fpmake.pp}
 
+{$include rtl-unicode/fpmake.pp}
+
 procedure add_sdl(const ADirectory: string);
 begin
   with Installer do

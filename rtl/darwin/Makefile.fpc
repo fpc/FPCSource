@@ -13,15 +13,14 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       unix initc cmem dynlibs $(CPU_UNITS) \
       dos dl printer \
       sysutils typinfo fgl classes math types \
-      charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb \
+      charset cpall character getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio \
       sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+      unicodedata unicodenumtable 
 
 rsts=math typinfo classes sysconst rtlconsts
 
@@ -30,7 +29,6 @@ nortl=y
 
 [install]
 fpcpackage=y
-buildunit=buildcollations
 
 [default]
 fpcdir=../..
@@ -200,7 +198,7 @@ typinfo$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlc
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -259,9 +257,6 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp

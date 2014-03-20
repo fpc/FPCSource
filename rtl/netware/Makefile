@@ -343,226 +343,226 @@ requestr.imp socklib.imp streams.imp threads.imp \
 tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp \
 nwpre.imp
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf winsock heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math freebidi utf8bidi cmem dynlibs sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings lineinfo lnfodwrf heaptrc matrix dos sysconst initc sysutils types typinfo fgl classes cpu mmx getopts strutils charset cpall rtlconsts math cmem dynlibs  aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -2876,13 +2876,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
-winsock$(PPUEXT) : winsock.pp $(SYSTEMUNIT)$(PPUEXT)
-sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-		   $(INC)/sockets.inc $(INC)/socketsh.inc
 initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT)
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) nwsys.inc sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
@@ -2898,26 +2893,12 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/gettext.pp
-varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
-		    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
-	$(COMPILER) -I$(OBJPASDIR) varutils.pp
-freebidi$(PPUEXT) : $(OBJPASDIR)/freebidi.pp
-utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
-	$(COMPILER) -Sc $(OBJPASDIR)/utf8bidi.pp
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
-	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
@@ -2932,10 +2913,6 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-mouse$(PPUEXT) : $(INC)/mouseh.inc $(SYSTEMUNIT)$(PPUEXT)
-video$(PPUEXT) : $(INC)/video.inc $(SYSTEMUNIT)$(PPUEXT)
-keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
