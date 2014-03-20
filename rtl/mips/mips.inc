@@ -53,26 +53,26 @@ const
   fpu_rounding_plus_inf = 2;
   fpu_rounding_minus_inf = 3;
 
+  fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU;
+  begin
+    set_fsr(get_fsr and (not fpu_all_bits) or (default_fpu_enable or fpu_rounding_nearest));
+  end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;
+  begin
+  end;
+
 
 procedure fpc_cpuinit;
-var
-  tmp32: longint;
   begin
-    { don't let libraries influence the FPU cw set by the host program }
-    if not IsLibrary then
-      begin
-        tmp32 := get_fsr();
-        { enable div by 0 and invalid operation fpu exceptions,
-          disable the other exceptions }
-        tmp32 := (tmp32 and not fpu_enable_mask) or default_fpu_enable;
-        { Reset flags and cause }
-        tmp32 := tmp32 and not (fpu_flags_mask or fpu_cause_mask);
-
-        { round towards nearest; ieee compliant arithmetics }
-        tmp32 := (tmp32 and not fpu_rounding_mask) or fpu_rounding_nearest;
-
-        set_fsr(tmp32);
-      end;
+    SysResetFPU;
+    if (not IsLibrary) then
+      SysInitFPU;
   end;
 
 
