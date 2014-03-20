@@ -28,18 +28,18 @@ var argc:longint;
     argv:PPchar;
     envp:PPchar;
 
-{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
+{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
+{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 implementation
 
 
-{$if defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
+{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
@@ -57,7 +57,7 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or defined(CPUSPARC)}
+{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 { OS independant parts}
 
