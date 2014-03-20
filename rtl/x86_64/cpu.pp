@@ -155,12 +155,12 @@ unit cpu;
         _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
 
         asm
-           pushl %rbx
+           pushq %rbx
            movl $7,%eax
            movl $0,%ecx
            cpuid
            movl %ebx,_ebx
-           popl %rbx
+           popq %rbx
         end;
         _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
       end;
