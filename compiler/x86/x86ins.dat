@@ -4956,8 +4956,6 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\x45\75\120            AVX2
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x45\75\120    AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x45\75\120        AVX2
 
-
-
 ;*******************************************************************************
 ;********** NEC V20/V30 ********************************************************
 ;*******************************************************************************
@@ -5033,3 +5031,283 @@ rm8,reg_cl                            \2\x0F\x10\200                      NEC,16
 rm16,reg_cl                           \2\x0F\x11\200                      NEC,16BITONLY
 rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,16BITONLY
 rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,16BITONLY
+
+;*******************************************************************************
+;********** FMA ****************************************************************
+;*******************************************************************************
+[VFMADD132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x98\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x98\75\120    FMA
+
+[VFMADD213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xA8\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xA8\75\120    FMA
+
+[VFMADD231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xB8\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xB8\75\120    FMA
+
+[VFMADD132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x98\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x98\75\120        FMA
+
+[VFMADD213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xA8\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xA8\75\120        FMA
+
+[VFMADD231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xB8\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xB8\75\120        FMA
+
+[VFMADD132SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x99\75\120        FMA
+
+[VFMADD213SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xa9\75\120        FMA
+
+[VFMADD231SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xb9\75\120        FMA
+
+[VFMADD132SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x99\75\120            FMA
+
+[VFMADD213SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xA9\75\120            FMA
+
+[VFMADD231SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xb9\75\120            FMA
+
+[VFMADDSUB132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x96\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x96\75\120    FMA
+
+[VFMADDSUB213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xA6\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xA6\75\120    FMA
+
+[VFMADDSUB231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xB6\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xB6\75\120    FMA
+
+[VFMADDSUB132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x96\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x96\75\120        FMA
+
+[VFMADDSUB213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xA6\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xA6\75\120        FMA
+
+[VFMADDSUB231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xB6\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xB6\75\120        FMA
+
+[VFMSUBADD132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x97\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x97\75\120    FMA
+
+[VFMSUBADD213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xA7\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xA7\75\120    FMA
+
+[VFMSUBADD231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xB7\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xB7\75\120    FMA
+
+[VFMSUBADD132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x97\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x97\75\120        FMA
+
+[VFMSUBADD213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xA7\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xA7\75\120        FMA
+
+[VFMSUBADD231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xB7\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xB7\75\120        FMA
+
+[VFMSUB132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9A\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x9A\75\120    FMA
+
+[VFMSUB213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAA\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xAA\75\120    FMA
+
+[VFMSUB231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBA\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xBA\75\120    FMA
+
+[VFMSUB132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9A\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x9A\75\120        FMA
+
+[VFMSUB213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAA\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xAA\75\120        FMA
+
+[VFMSUB231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBA\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xBA\75\120        FMA
+
+[VFMSUB132SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9B\75\120        FMA
+
+[VFMSUB213SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAB\75\120        FMA
+
+[VFMSUB231SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBB\75\120        FMA
+
+[VFMSUB132SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9B\75\120            FMA
+
+[VFMSUB213SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAB\75\120            FMA
+
+[VFMSUB231SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBB\75\120            FMA
+
+[VFNMADD132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9C\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x9C\75\120    FMA
+
+[VFNMADD213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAC\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xAC\75\120    FMA
+
+[VFNMADD231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBC\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xBC\75\120    FMA
+
+[VFNMADD132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9C\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x9C\75\120        FMA
+
+[VFNMADD213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAC\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xAC\75\120        FMA
+
+[VFNMADD231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBC\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xBC\75\120        FMA
+
+[VFNMADD132SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9D\75\120        FMA
+
+[VFNMADD213SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAD\75\120        FMA
+
+[VFNMADD231SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBD\75\120        FMA
+
+[VFNMADD132SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9D\75\120            FMA
+
+[VFNMADD213SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAD\75\120            FMA
+
+[VFNMADD231SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBD\75\120            FMA
+
+[VFNMSUB132PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9E\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\x9E\75\120    FMA
+
+[VFNMSUB213PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAE\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xAE\75\120    FMA
+
+[VFNMSUB231PD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBE\75\120        FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\363\1\xBE\75\120    FMA
+
+[VFNMSUB132PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9E\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x9E\75\120        FMA
+
+[VFNMSUB213PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAE\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xAE\75\120        FMA
+
+[VFNMSUB231PS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBE\75\120            FMA
+ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\xBE\75\120        FMA
+
+[VFNMSUB132SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\x9F\75\120        FMA
+
+[VFNMSUB213SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xAF\75\120        FMA
+
+[VFNMSUB231SD]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\363\1\xBF\75\120        FMA
+
+[VFNMSUB132SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\x9F\75\120            FMA
+
+[VFNMSUB213SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAF\75\120            FMA
+
+[VFNMSUB231SS]
+(Ch_Mop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBF\75\120            FMA
+
