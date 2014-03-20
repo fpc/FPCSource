@@ -30,8 +30,7 @@ begin
       writeln('yes');
       asm
         vpxor %ymm0,%ymm0,%ymm0
-// no compiler support yet for fma
-//        vfmadd132SS %ymm0,%ymm0,%ymm0
+        vfmadd132SS %xmm0,%xmm0,%xmm0
       end;
     end
   else
