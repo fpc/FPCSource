@@ -1281,53 +1281,50 @@ type
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;compilerproc;
      var
-      fr: ValReal;
-      tr: Int64;
+      tmp: double;
+      j0: longint;
+      hx: longword;
+      sx: longint;
+    const
+      H2_52: array[0..1] of double = (
+        4.50359962737049600000e+15,
+       -4.50359962737049600000e+15
+      );
     Begin
-      fr := abs(Frac(d));
-      tr := Trunc(d);
-      result:=0;
-      case softfloat_rounding_mode of
-        float_round_nearest_even:
-          begin
-            if fr > 0.5 then
-              if d >= 0 then
-                result:=tr+1
-              else
-                result:=tr-1
-            else
-            if fr < 0.5 then
-               result:=tr
-            else { fr = 0.5 }
-               { check sign to decide ... }
-               { as in Turbo Pascal...    }
-              begin
-                if d >= 0.0 then
-                  result:=tr+1
-                else
-                  result:=tr;
-                { round to even }
-                result:=result and not(1);
-              end;
-          end;
-        float_round_down:
-          if (d >= 0.0) or
-             (fr = 0.0) then
-            result:=tr
+      { This basically calculates trunc((d+2**52)-2**52) }
+      hx:=float64high(d);
+      j0:=((hx shr 20) and $7ff) - $3ff;
+      sx:=hx shr 31;
+      hx:=(hx and $fffff) or $100000;
+
+      if j0>=52 then         { No fraction bits, already integer }
+        begin
+          if j0>=63 then     { Overflow, let trunc() raise an exception }
+            exit(trunc(d))   { and/or return +/-MaxInt64 if it's masked }
           else
-            result:=tr-1;
-        float_round_up:
-          if (d >= 0.0) and
-             (fr <> 0.0) then
-            result:=tr+1
+            result:=((int64(hx) shl 32) or float64low(d)) shl (j0-52);
+        end
+      else
+        begin
+          { Rounding happens here. It is important that the expression is not
+            optimized by selecting a larger type to store 'tmp'. }
+          tmp:=H2_52[sx]+d;
+          d:=tmp-H2_52[sx];
+          hx:=float64high(d);
+          j0:=((hx shr 20) and $7ff)-$3ff;
+          hx:=(hx and $fffff) or $100000;
+          if j0<=20 then
+            begin
+              if j0<0 then
+                exit(0)
+              else           { more than 32 fraction bits, low dword discarded }
+                result:=hx shr (20-j0);
+            end
           else
-            result:=tr;
-        float_round_to_zero:
-          result:=tr;
-        else
-          { needed for jvm: result must be initialized on all paths }
-          result:=0;
-      end;
+            result:=(int64(hx) shl (j0-20)) or (float64low(d) shr (52-j0));
+        end;
+      if sx<>0 then
+        result:=-result;
     end;
 {$endif FPC_SYSTEM_HAS_ROUND}
 
