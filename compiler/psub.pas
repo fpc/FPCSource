@@ -2059,25 +2059,6 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
-                 { External declared in implementation, and there was already a
-                   forward (or interface) declaration then we need to generate
-                   a stub that calls the external routine }
-                 if (not pd.forwarddef) and
-                    (pd.hasforward)
-                    { it is unclear to me what's the use of the following condition,
-                      so commented out, see also issue #18371 (FK)
-                    and
-                    not(
-                        assigned(pd.import_dll) and
-                        (target_info.system in [system_i386_wdosx,
-                                                system_arm_wince,system_i386_wince])
-                       ) } then
-                   begin
-                     s:=proc_get_importname(pd);
-                     if s<>'' then
-                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
-                   end;
-
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
                    begin
@@ -2095,6 +2076,34 @@ implementation
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in target_info.flags then
                        current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+                   end;
+
+                 { External declared in implementation, and there was already a
+                   forward (or interface) declaration then we need to generate
+                   a stub that calls the external routine }
+                 if (not pd.forwarddef) and
+                    (pd.hasforward)
+                    { it is unclear to me what's the use of the following condition,
+                      so commented out, see also issue #18371 (FK)
+                    and
+                    not(
+                        assigned(pd.import_dll) and
+                        (target_info.system in [system_i386_wdosx,
+                                                system_arm_wince,system_i386_wince])
+                       ) } then
+                   begin
+                     s:=proc_get_importname(pd);
+                     if s<>'' then
+                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
+                     { remove the external stuff, so that the interface crc
+                       doesn't change. This makes the function calls less
+                       efficient, but it means that the interface doesn't
+                       change if the function is ever redirected to another
+                       function or implemented in the unit. }
+                     pd.procoptions:=pd.procoptions-[po_external,po_has_importname,po_has_importdll];
+                     stringdispose(pd.import_name);
+                     stringdispose(pd.import_dll);
+                     pd.import_nr:=0;
                    end;
                end;
            end;
