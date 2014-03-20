@@ -31,19 +31,15 @@ begin
           
           case  siginfo^.si_code of
             FPE_INTDIV:
-              res:=200;
+              res:=200;  // maps to EDivByZero
             FPE_INTOVF:
               res:=215;
             FPE_FLTDIV:
-              res:=200;
+              res:=208;  // maps to EZeroDivide
             FPE_FLTOVF:
               res:=205;
             FPE_FLTUND:
               res:=206;
-            FPE_FLTRES,
-            FPE_FLTINV,
-            FPE_FLTSUB:
-              res:=216;
             else
               res:=207;
           end;
