@@ -2760,7 +2760,7 @@ Procedure
               Begin
                 if ( zSign )<>0 then
                   Begin
-                    increment := flag(( roundingMode = float_round_down ) and (zSig2<>0);
+                    increment := flag(( roundingMode = float_round_down ) and (zSig2<>0));
                   End
                 else
                   Begin
