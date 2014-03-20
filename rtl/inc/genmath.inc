@@ -70,6 +70,7 @@ const
       DP1 =   7.85398125648498535156E-1;
       DP2 =   3.77489470793079817668E-8;
       DP3 =   2.69515142907905952645E-15;
+      zero: double = 0;
 
 {$if not defined(FPC_SYSTEM_HAS_SIN) or not defined(FPC_SYSTEM_HAS_COS)}
 const sincof : array[0..5] of Real = (
@@ -120,6 +121,16 @@ Begin
   if (unmasked_flags and float_flag_inexact) <> 0 then
      HandleError(207);
 end;
+
+
+{ This function does nothing, but its argument is expected to be an expression
+  which causes FPE when calculated. If exception is masked, it just returns true,
+  allowing to use it in expressions. }
+function fpe_helper(x: valreal): boolean;
+begin
+  result:=true;
+end;
+
 
 {$ifdef SUPPORT_DOUBLE}
 
@@ -181,9 +192,9 @@ type
          begin
            if aExp>=$43e then
              begin
-               if (a.high<>$C3E00000) or (a.low<>0) then
+               if (a.high<>longint($C3E00000)) or (a.low<>0) then
                  begin
-                   float_raise(float_flag_invalid);
+                   fpe_helper(zero/zero);
                    if (longint(a.high)>=0) or ((aExp=$7FF) and
                       (aSig<>$0010000000000000 )) then
                      begin
@@ -231,7 +242,7 @@ type
          Begin
            if ( a <> Float32($DF000000) ) then
              Begin
-               float_raise( float_flag_invalid );
+               fpe_helper( zero/zero );
                if ( (longint(a)>=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
                  Begin
                    result:=$7fffffffffffffff;
@@ -969,11 +980,10 @@ type
     begin
        if( d <= 0.0 ) then
        begin
-           if d < 0.0 then begin
-             float_raise(float_flag_invalid);
-             d := 0/0;
-           end;
-           result := 0.0;
+           if d < 0.0 then
+             result:=(d-d)/zero
+           else
+             result := 0.0;
        end
      else
        begin
