@@ -1428,6 +1428,10 @@ implementation
     var
       tmploc: tlocation;
     begin
+      { skip e.g. empty records }
+      if (cgpara.location^.loc = LOC_VOID) then
+        exit;
+
       { Handle Floating point types differently
 
         This doesn't depend on emulator settings, emulator settings should
