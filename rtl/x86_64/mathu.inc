@@ -113,11 +113,17 @@ end;
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   CtlWord: Word;
+  SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
+  SSECSR:=GetSSECSR;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
-  Result:=GetRoundMode;
+  SetSSECSR((SSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  Result:=TFPURoundingMode((CtlWord shr 10) and 3);
+{$else}
+  Result:=TFPURoundingMode((SSECSR shr 13) and 3);
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 function GetPrecisionMode: TFPUPrecisionMode;
@@ -146,11 +152,17 @@ end;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 var
   CtlWord: Word;
+  SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
+  SSECSR:=GetSSECSR;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
-  SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
-  Result:=GetExceptionMask;
+  SetSSECSR((SSECSR and $ffffe07f) or (dword(Mask) shl 7));
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  Result:=TFPUExceptionMask(dword(CtlWord and $3F));
+{$else}
+  Result:=TFPUExceptionMask((SSECSR shr 7) and $3F);
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 
