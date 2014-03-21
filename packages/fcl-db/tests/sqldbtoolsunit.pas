@@ -55,6 +55,7 @@ type
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
+    // Issue a commit(retaining) for databases that need it (e.g. in DDL)
     procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
@@ -260,6 +261,27 @@ begin
         // recommended by Microsoft:
         // http://msdn.microsoft.com/en-us/library/ms187403.aspx
         FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS OFF');
+      end;
+      if SQLServerType=ssSybase then
+      begin
+        // Evanlueate NULL expressions according to ANSI SQL:
+        // http://infocenter.sybase.com/archive/index.jsp?topic=/com.sybase.help.ase_15.0.commands/html/commands/commands85.htm
+        FConnection.ExecuteDirect('SET ANSINULL ON');
+
+        { Tests require these database options set
+        1) with ddl in tran; e.g.
+        use master
+        go
+        sp_dboption pubs3, "ddl in tran", true
+        go
+        Avoid errors like
+        The 'CREATE TABLE' command is not allowed within a multi-statement transaction in the 'test' database.
+        2) allow nulls by default, e.g.
+        use master
+        go
+        sp_dboption pubs3, "allow nulls by default", true
+        go
+        }
       end;
       FTransaction.Commit;
       end;
