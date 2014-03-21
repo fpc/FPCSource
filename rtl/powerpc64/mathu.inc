@@ -82,7 +82,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   mode : DWord;
 begin
-  software_rounding_mode:=RoundMode;
+  softfloat_rounding_mode:=RoundMode;
   case (RoundMode) of
     rmNearest :
       begin
