@@ -217,7 +217,7 @@ implementation
          exit;
         with tabstractnormalvarsym(p) do
          begin
-           if vo_is_default_var in varoptions then
+           if (vo_is_default_var in varoptions) and (vardef.size>0) then
              begin
                b:=tblocknode(arg);
                b.left:=cstatementnode.create(
