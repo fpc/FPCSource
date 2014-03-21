@@ -22,9 +22,12 @@ function GetRoundMode: TFPURoundingMode;
   end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  var
+    cw: dword;
   begin
-    set_fsr((get_fsr and $3fffffff) or (dword(RoundMode) shl 30));
-    result:=TFPURoundingMode(get_fsr shr 30);
+    cw:=get_fsr;
+    result:=TFPURoundingMode(cw shr 30);
+    set_fsr((cw and $3fffffff) or (dword(RoundMode) shl 30));
   end;
 
 
@@ -40,11 +43,8 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
   end;
 
 
-function GetExceptionMask: TFPUExceptionMask;
-  var
-    fsr : dword;
+function FSR2ExceptionMask(fsr: dword): TFPUExceptionMask;
   begin
-    fsr:=get_fsr;
     result:=[];
     { invalid operation: bit 27 }
     if (fsr and (1 shl 27))=0 then
@@ -68,12 +68,18 @@ function GetExceptionMask: TFPUExceptionMask;
   end;
 
 
+function GetExceptionMask: TFPUExceptionMask;
+  begin
+    result:=FSR2ExceptionMask(get_fsr);
+  end;
+
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     fsr : dword;
   begin
     fsr:=get_fsr;
+    result:=FSR2ExceptionMask(fsr);
 
     { invalid operation: bit 27 }
     if (exInvalidOp in mask) then
