@@ -33,13 +33,10 @@
 
     function Get8087CW:word;assembler;
       asm
-        push bp
-        mov bp, sp
-        push ax
-        fnstcw [bp - 2]
-        pop ax
-        mov sp, bp
-        pop bp
+	    push ax
+		mov bx, sp
+		fnstcw word ptr ss:[bx]
+		pop ax
       end;
 
 {****************************************************************************
