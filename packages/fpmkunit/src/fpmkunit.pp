@@ -66,7 +66,7 @@ uses
   cthreads,
 {$endif UNIX}
 {$endif NO_THREADING}
-  SysUtils, Classes, StrUtils
+  SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
   ,process
 {$endif HAS_UNIT_PROCESS}
@@ -1289,6 +1289,129 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 Implementation
 
 uses typinfo, rtlconsts;
+
+{----------------- from strutils ---------------------}
+
+function FindPart(const HelpWilds, inputStr: string): Integer;
+var
+  i, J: Integer;
+  Diff: Integer;
+begin
+  Result:=0;
+  i:=Pos('?',HelpWilds);
+  if (i=0) then
+    Result:=Pos(HelpWilds, inputStr)
+  else
+    begin
+    Diff:=Length(inputStr) - Length(HelpWilds);
+    for i:=0 to Diff do
+      begin
+      for J:=1 to Length(HelpWilds) do
+        if (inputStr[i + J] = HelpWilds[J]) or (HelpWilds[J] = '?') then
+          begin
+          if (J=Length(HelpWilds)) then
+            begin
+            Result:=i+1;
+            Exit;
+            end;
+          end
+        else
+          Break;
+      end;
+    end;
+end;
+
+function isWild(inputStr, Wilds: string; ignoreCase: Boolean): Boolean;
+
+ function SearchNext(var Wilds: string): Integer;
+
+ begin
+   Result:=Pos('*', Wilds);
+   if Result>0 then
+     Wilds:=Copy(Wilds,1,Result - 1);
+ end;
+
+var
+  CWild, CinputWord: Integer; { counter for positions }
+  i, LenHelpWilds: Integer;
+  MaxinputWord, MaxWilds: Integer; { Length of inputStr and Wilds }
+  HelpWilds: string;
+begin
+  if Wilds = inputStr then begin
+    Result:=True;
+    Exit;
+  end;
+  repeat { delete '**', because '**' = '*' }
+    i:=Pos('**', Wilds);
+    if i > 0 then
+      Wilds:=Copy(Wilds, 1, i - 1) + '*' + Copy(Wilds, i + 2, Maxint);
+  until i = 0;
+  if Wilds = '*' then begin { for fast end, if Wilds only '*' }
+    Result:=True;
+    Exit;
+  end;
+  MaxinputWord:=Length(inputStr);
+  MaxWilds:=Length(Wilds);
+  if ignoreCase then begin { upcase all letters }
+    inputStr:=AnsiUpperCase(inputStr);
+    Wilds:=AnsiUpperCase(Wilds);
+  end;
+  if (MaxWilds = 0) or (MaxinputWord = 0) then begin
+    Result:=False;
+    Exit;
+  end;
+  CinputWord:=1;
+  CWild:=1;
+  Result:=True;
+  repeat
+    if inputStr[CinputWord] = Wilds[CWild] then begin { equal letters }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '?' then begin { equal to '?' }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '*' then begin { handling of '*' }
+      HelpWilds:=Copy(Wilds, CWild + 1, MaxWilds);
+      i:=SearchNext(HelpWilds);
+      LenHelpWilds:=Length(HelpWilds);
+      if i = 0 then begin
+        { no '*' in the rest, compare the ends }
+        if HelpWilds = '' then Exit; { '*' is the last letter }
+        { check the rest for equal Length and no '?' }
+        for i:=0 to LenHelpWilds - 1 do begin
+          if (HelpWilds[LenHelpWilds - i] <> inputStr[MaxinputWord - i]) and
+            (HelpWilds[LenHelpWilds - i]<> '?') then
+          begin
+            Result:=False;
+            Exit;
+          end;
+        end;
+        Exit;
+      end;
+      { handle all to the next '*' }
+      inc(CWild, 1 + LenHelpWilds);
+      i:=FindPart(HelpWilds, Copy(inputStr, CinputWord, Maxint));
+      if i= 0 then begin
+        Result:=False;
+        Exit;
+      end;
+      CinputWord:=i + LenHelpWilds;
+      Continue;
+    end;
+    Result:=False;
+    Exit;
+  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
+  { no completed evaluation }
+  if CinputWord <= MaxinputWord then Result:=False;
+  if (CWild <= MaxWilds) and (Wilds[MaxWilds] <> '*') then Result:=False;
+end;
+
 
 type
   TUnsortedDuplicatesStringList = class(TStringList)
