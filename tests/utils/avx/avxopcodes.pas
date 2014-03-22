@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -52,7 +52,7 @@ end;
 procedure TAVXTestGenerator.Init;
 begin
   FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
-  FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
+{  FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDPS,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VADDPS,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDSD,1,1,XMMREG,XMMREG,MEM64,');
@@ -772,7 +772,7 @@ begin
   FOpCodeList.Add('VFNMSUB231SD,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VFNMSUB132SS,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VFNMSUB213SS,1,1,XMMREG,XMMREG,XMMRM,');
-  FOpCodeList.Add('VFNMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,'); }
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64: boolean; aDestPath, aFileExt: String;
@@ -899,13 +899,31 @@ begin
                   slFooter.Add('end.');
                 end;
         tfNasm: begin
-                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                  writeln(format('outputformat: Nasm  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
 
                   FileExt := '.asm';
 
                   if aX64 then slHeader.Add('[BITS 64]')
                    else slHeader.Add('[BITS 32]');
+
+                  for i := 1 to 10 do
+                   slHeader.Add('NOP');
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+                end;
+        tfFasm: begin
+                  writeln(format('outputformat: Fasm  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.asm';
+
+                  if aX64 then slHeader.Add('format MS64 COFF')
+                   else slHeader.Add('format MS COFF');
+
+                  slHeader.Add('section ''.text'' code readable executable');
+                  slHeader.Add('myproc:');
 
                   for i := 1 to 10 do
                    slHeader.Add('NOP');

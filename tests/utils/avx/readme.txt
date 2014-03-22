@@ -31,6 +31,12 @@ for %%a in (*.asm) do nasm -fwin64 %%a
 cd ..
 avxtestfilecmp -mtmp\*.obj -dtmp -eexe -s
 
+****************************************************************************************************
+Note:
+While avxtestgenerator supports FASM output, testing with FASM does not work because
+FASM assembles slightly different from FPC, e.g. it swaps base and index register
+in references if this is benefical (e.g. [rbp+rax] => [rax+rbp] saves one byte).
+****************************************************************************************************
 
 compare binary-files:
 
@@ -41,7 +47,7 @@ e.g.
 
      possible binary-codes:
      VMOVAPD xmm1, xmm2/m128     [VEX.128.66.0F.28 /r]
-     VMOVAPD xmm2/m128, xmm1     [VEX.128.66.0F.29 /r]	
+     VMOVAPD xmm2/m128, xmm1     [VEX.128.66.0F.29 /r]
 
 
      VMOVSD XMM1, XMM2, XMM3
@@ -49,7 +55,6 @@ e.g.
      possible binary-codes:
      VMOVSD xmm1, xmm2, xmm3     [VEX.NDS.LIG.F2.0F.WIG.10 /r] operand encoding: RVM
      VMOVSD xmm1, xmm2, xmm3     [VEX.NDS.LIG.F2.0F.WIG.11 /r] operand encoding: MVR
-
 
 currently (AVX I):
 
