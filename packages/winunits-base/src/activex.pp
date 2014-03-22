@@ -1077,6 +1077,17 @@ Const
     OLEMISC_WANTSTOMENUMERGE              = $100000;
     OLEMISC_SUPPORTSMULTILEVELUNDO        = $200000;
 
+    OLERENDER_NONE    = 0;
+    OLERENDER_DRAW    = 1;
+    OLERENDER_FORMAT  = 2;
+    OLERENDER_ASIS    = 3;
+
+    XFORMCOORDS_POSITION                  = $1;
+    XFORMCOORDS_SIZE                      = $2;
+    XFORMCOORDS_HIMETRICTOCONTAINER       = $4;
+    XFORMCOORDS_CONTAINERTOHIMETRIC       = $8;
+    XFORMCOORDS_EVENTCOMPAT               = $10;
+
 TYPE
     TVarType            = USHORT;
     VARTYPE             = TVarType deprecated;  // not in Delphi, and clashes with VarType function
@@ -1442,6 +1453,7 @@ TYPE
    wireHFONT                    = ^RemotableHandle;
    wireHDC                      = ^RemotableHandle;
    wireHICON                    = ^RemotableHandle;
+   wireHRGN                     = ^RemotableHandle;
    HCursor                      = HICON;
 
 
@@ -2300,6 +2312,26 @@ TYPE
                   end;
      PPOINTF = PtagPOINTF;
      TPOINTF = tagPOINTF;
+
+     PtagRECT = ^tagRECT;
+
+     tagRECT = packed record
+                left : Integer;
+                top : Integer;
+                right : Integer;
+                bottom : Integer;
+                end;
+
+     PtagOLEVERB = ^tagOLEVERB;
+
+     tagOLEVERB = packed record
+                lVerb : Integer;
+                lpszVerbName : PWideChar;
+                fuFlags : LongWord;
+                grfAttribs : LongWord;
+                end;
+     TOLEVERB = tagOLEVERB;
+     POLEVERB = PtagOLEVERB;
 
      tagPROPPAGEINFO = packed record
                  cb : LongWord;
@@ -4015,6 +4047,29 @@ type
       function OnPosRectChange(lprcPosRect:LPRect):hresult; stdcall;
       end;
 
+   IOleInPlaceSiteEx = interface(IOleInPlaceSite)
+      ['{9C2CAD80-3424-11CF-B670-00AA004CD6D8}']
+      function OnInPlaceActivateEx(out pfNoRedraw:Integer;dwFlags:LongWord):HResult;stdcall;
+      function OnInPlaceDeactivateEx(fNoRedraw:Integer):HResult;stdcall;
+      function RequestUIActivate:HResult;stdcall;
+      end;
+
+   IOleInPlaceSiteWindowless = interface(IOleInPlaceSiteEx)
+      ['{922EADA0-3424-11CF-B670-00AA004CD6D8}']
+      function CanWindowlessActivate:HResult;stdcall;
+      function GetCapture:HResult;stdcall;
+      function SetCapture(fCapture:Integer):HResult;stdcall;
+      function GetFocus:HResult;stdcall;
+      function SetFocus(fFocus:Integer):HResult;stdcall;
+      function GetDC(var pRect:tagRECT;grfFlags:LongWord;out phDC:wireHDC):HResult;stdcall;
+      function ReleaseDC(hDC:wireHDC):HResult;stdcall;
+      function InvalidateRect(var pRect:tagRECT;fErase:Integer):HResult;stdcall;
+      function InvalidateRgn(hRGN:wireHRGN;fErase:Integer):HResult;stdcall;
+      function ScrollRect(dx:SYSINT;dy:SYSINT;var pRectScroll:tagRECT;var pRectClip:tagRECT):HResult;stdcall;
+      function AdjustRect(var prc:tagRECT):HResult;stdcall;
+      function OnDefWindowMessage(msg:UInt;wParam:UINT_PTR;lParam:LONG_PTR;out plResult:LONG_PTR):HResult;stdcall;
+      end;
+
     IOleInPlaceObject = interface(IOleWindow)
       ['{00000113-0000-0000-C000-000000000046}']
       function InPlaceDeactivate : HResult;stdcall;
@@ -4219,6 +4274,7 @@ Type
      OLEIVERB_UIACTIVATE = -(4);
      OLEIVERB_INPLACEACTIVATE = -(5);
      OLEIVERB_DISCARDUNDOSTATE = -(6);
+     OLEIVERB_PROPERTIES = -(7);
   { for OleCreateEmbeddingHelper flags; roles low word; options high word }
      EMBDHLP_INPROC_HANDLER = $0000;
      EMBDHLP_INPROC_SERVER = $0001;
