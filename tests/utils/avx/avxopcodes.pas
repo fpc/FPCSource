@@ -52,7 +52,7 @@ end;
 procedure TAVXTestGenerator.Init;
 begin
   FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
-{  FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDPS,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VADDPS,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VADDSD,1,1,XMMREG,XMMREG,MEM64,');
@@ -772,7 +772,7 @@ begin
   FOpCodeList.Add('VFNMSUB231SD,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VFNMSUB132SS,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VFNMSUB213SS,1,1,XMMREG,XMMREG,XMMRM,');
-  FOpCodeList.Add('VFNMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,'); }
+  FOpCodeList.Add('VFNMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,');
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64: boolean; aDestPath, aFileExt: String;
