@@ -1446,8 +1446,6 @@ procedure fpc_cpucodeinit;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
-
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
         cmpl    $0,(%eax)
@@ -1480,7 +1478,7 @@ asm
         je      .Lj3596
 .Lj3620:
         movl    %esi,%eax
-        call    FPC_FREEMEM_X
+        call    FPC_FREEMEM
 .Lj3596:
         popl    %esi
 .Lquit:

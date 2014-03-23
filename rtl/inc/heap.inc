@@ -311,7 +311,7 @@ end;
 
 
 { Delphi style }
-function FreeMem(p:pointer):ptruint;[Public,Alias:'FPC_FREEMEM_X'];
+function FreeMem(p:pointer):ptruint;
 begin
   FreeMem := MemoryManager.FreeMem(p);
 end;
