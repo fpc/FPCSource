@@ -1356,7 +1356,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : nativeint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
@@ -1388,7 +1388,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
 {$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
 function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : nativeint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
