@@ -303,7 +303,7 @@ Type
    end;
 
    TResourceStringTableList = Packed Record
-     Count : nativeint;
+     Count : sizeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
        TableStart,
        TableEnd   : PResourceStringRecord;
@@ -319,7 +319,7 @@ Type
    end;
 
    TResStrInitTable = packed record
-     Count: {$ifdef VER2_6}longint{$else}nativeint{$endif};
+     Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
 

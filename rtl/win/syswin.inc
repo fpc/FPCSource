@@ -648,7 +648,7 @@ type
 
   PWStrInitTablesTable = ^TWStrInitTablesTable;
   TWStrInitTablesTable = packed record
-    count  : {$ifdef VER2_6}longint{$else}nativeint{$endif};
+    count  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 

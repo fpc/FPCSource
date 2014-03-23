@@ -849,7 +849,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : {$ifdef VER2_6}longint{$else}nativeint{$endif};
+    InitCount  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;
@@ -863,7 +863,7 @@ var
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
-  i : nativeint;
+  i : ObjpasInt;
 {$ifdef DEBUG}
   pt : PInitFinalTable;
 {$endif}
