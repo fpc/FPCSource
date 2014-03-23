@@ -3459,7 +3459,7 @@ implementation
       begin
         if ado_IsDynamicArray in arrayoptions then
           begin
-            size:=sizeof(pint);
+            size:=voidpointertype.size;
             exit;
           end;
 
@@ -3520,7 +3520,7 @@ implementation
       begin
          { alignment of dyn. arrays doesn't depend on the element size }
          if (ado_IsDynamicArray in arrayoptions) then
-           alignment:=size_2_align(sizeof(pint))
+           alignment:=size_2_align(voidpointertype.size)
          { alignment is the target alignment for the used load size }
          else if (ado_IsBitPacked in arrayoptions) and
             (elementdef.typ in [enumdef,orddef]) then
