@@ -412,6 +412,9 @@ implementation
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
         pd: tprocdef;
+{$ifdef i8086}
+        tmpreg: TRegister;
+{$endif i8086}
       begin
         pd:=search_system_proc('fpc_pushexceptaddr');
         paraloc1.init;
@@ -443,7 +446,17 @@ implementation
 
         pd:=search_system_proc('fpc_setjmp');
         paramanager.getintparaloc(pd,1,paraloc1);
-        cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            tmpreg:=cg.getintregister(list,OS_32);
+            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_LOW_REG,tmpreg);
+            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_HIGH_REG,GetNextReg(tmpreg));
+            cg.a_load_reg_cgpara(list,OS_32,tmpreg,paraloc1);
+          end
+        else
+{$endif i8086}
+          cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_SETJMP',false);
