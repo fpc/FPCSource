@@ -2237,7 +2237,7 @@ implementation
           st_ansistring,
           st_widestring,
           st_unicodestring:
-            Result:=sizeof(pint);
+            Result:=voidpointertype.size;
           else
             internalerror(2014032301);
         end;
