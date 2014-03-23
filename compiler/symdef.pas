@@ -194,6 +194,8 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
+          function size:asizeint;override;
+          function alignment:shortint;override;
        end;
 
 
@@ -2977,7 +2979,6 @@ implementation
       begin
         inherited create(dt);
         pointeddef:=def;
-        savesize:=sizeof(pint);
       end;
 
 
@@ -2985,7 +2986,6 @@ implementation
       begin
          inherited ppuload(dt,ppufile);
          ppufile.getderef(pointeddefderef);
-         savesize:=sizeof(pint);
       end;
 
 
@@ -3000,6 +3000,18 @@ implementation
       begin
         inherited deref;
         pointeddef:=tdef(pointeddefderef.resolve);
+      end;
+
+
+    function tabstractpointerdef.size: asizeint;
+      begin
+        Result:=voidpointertype.size;
+      end;
+
+
+    function tabstractpointerdef.alignment: shortint;
+      begin
+        alignment:=size_2_align(voidpointertype.size);
       end;
 
 
@@ -3154,7 +3166,6 @@ implementation
           result:=tclassrefdef.create(tforwarddef(pointeddef).getcopy)
         else
           result:=tclassrefdef.create(pointeddef);
-        tclassrefdef(result).savesize:=savesize;
       end;
 
 
