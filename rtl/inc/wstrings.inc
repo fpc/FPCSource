@@ -942,39 +942,24 @@ function UTF8Encode(const s : WideString) : RawByteString;
       end;
   end;
 
-
-const
-  SNoWidestrings = 'This binary has no widestrings support compiled in.';
-  SRecompileWithWidestrings = 'Recompile the application with a widestrings-manager in the program uses clause.';
-
-procedure unimplementedwidestring;
-  begin
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-    If IsConsole then
-      begin
-      Writeln(StdErr,SNoWidestrings);
-      Writeln(StdErr,SRecompileWithWidestrings);
-      end;
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
-    HandleErrorAddrFrameInd(233,get_pc_addr,get_frame);
-  end;
+procedure unimplementedunicodestring; forward;
 
 {$warnings off}
 function GenericWideCase(const s : WideString) : WideString;
   begin
-    unimplementedwidestring;
+    unimplementedunicodestring;
   end;
 
 
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    unimplementedwidestring;
+    unimplementedunicodestring;
   end;
 
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   begin
-    unimplementedwidestring;
+    unimplementedunicodestring;
   end;
 
 {$warnings on}
