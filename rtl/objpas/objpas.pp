@@ -48,7 +48,7 @@ unit objpas;
        TIntegerArray = IntegerArray;
        PIntegerArray = ^IntegerArray;
 {$ifdef CPU16}
-       PointerArray  = array [0..16*1024-2] of Pointer;
+       PointerArray  = array [0..(32768 div SizeOf(Pointer))-2] of Pointer;
 {$else CPU16}
        PointerArray  = array [0..512*1024*1024-2] of Pointer;
 {$endif CPU16}
