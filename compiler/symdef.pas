@@ -6473,7 +6473,7 @@ implementation
     function tobjectdef.size : asizeint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
-          result:=sizeof(pint)
+          result:=voidpointertype.size
         else
           result:=tObjectSymtable(symtable).datasize;
       end;
@@ -6482,7 +6482,7 @@ implementation
     function tobjectdef.alignment:shortint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
-          alignment:=sizeof(pint)
+          alignment:=voidpointertype.size
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
       end;
