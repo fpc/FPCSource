@@ -338,8 +338,6 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -352,8 +350,6 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -384,9 +380,17 @@ Type
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
-  NativeInt  = Integer;
-  NativeUint = Word;
 {$endif CPU16}
+
+  { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
+    has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
+    'The size of NativeInt is equivalent to the size of the pointer on the
+    current platform'. Because of the misleading names, these types shouldn't be
+    used in the FPC RTL. Note that on i8086 their size changes between 16-bit
+    and 32-bit according to the memory model, so they're not really a 'native
+    int' type there at all. }
+  NativeInt  = PtrInt;
+  NativeUInt = PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
