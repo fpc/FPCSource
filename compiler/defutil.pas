@@ -1201,8 +1201,7 @@ implementation
                 result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef,
-          formaldef:
+          pointerdef:
             begin
 {$ifdef x86}
               if (def.typ=pointerdef) and
@@ -1218,24 +1217,16 @@ implementation
                 end
               else
 {$endif x86}
-                result := OS_ADDR;
+                result := int_cgsize(def.size);
             end;
+          formaldef:
+            result := int_cgsize(voidpointertype.size);
           procvardef:
             result:=int_cgsize(def.size);
           stringdef :
-            begin
-              if is_ansistring(def) or is_wide_or_unicode_string(def) then
-                result := OS_ADDR
-              else
-                result:=int_cgsize(def.size);
-            end;
+            result:=int_cgsize(def.size);
           objectdef :
-            begin
-              if is_implicit_pointer_object_type(def) then
-                result := OS_ADDR
-              else
-                result:=int_cgsize(def.size);
-            end;
+            result:=int_cgsize(def.size);
           floatdef:
             if cs_fp_emulation in current_settings.moduleswitches then
               result:=int_cgsize(def.size)
@@ -1245,15 +1236,10 @@ implementation
             result:=int_cgsize(def.size);
           arraydef :
             begin
-              if not is_special_array(def) then
+              if is_dynamic_array(def) or not is_special_array(def) then
                 result := int_cgsize(def.size)
               else
-                begin
-                  if is_dynamic_array(def) then
-                    result := OS_ADDR
-                  else
-                    result := OS_NO;
-                end;
+                result := OS_NO;
             end;
           else
             begin
