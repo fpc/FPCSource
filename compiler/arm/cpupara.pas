@@ -44,8 +44,8 @@ unit cpupara;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
           procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg,
-           curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword;
- var sparesinglereg: tregister);
+            curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword;
+            var sparesinglereg: tregister);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
             var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister; isvariadic: boolean):longint;
        end;
@@ -54,7 +54,9 @@ unit cpupara;
 
     uses
        verbose,systems,cutils,
-       defutil,symsym,symtable;
+       defutil,symsym,symtable,
+       { PowerPC uses procinfo as well in cpupara, so this should not hurt }
+       procinfo;
 
 
     function tarmparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -298,7 +300,7 @@ unit cpupara;
         curfloatreg:=RS_F0;
         curmmreg:=RS_D0;
 
-        if GenerateThumbCode and (side=calleeside) then
+        if (side=calleeside) and (GenerateThumbCode or (pi_estimatestacksize in current_procinfo.flags)) then
           cur_stack_offset:=(p as tprocdef).total_stackframe_size
         else
           cur_stack_offset:=0;
@@ -581,13 +583,9 @@ unit cpupara;
                    begin
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
-                         if GenerateThumbCode then
+                         paraloc^.reference.index:=current_procinfo.framepointer;
+                         if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
                            begin
-                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                           end
-                         else
-                           begin
-                             paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                              { on non-Darwin, the framepointer contains the value
                                of the stack pointer on entry. On Darwin, the
                                framepointer points to the previously saved

@@ -277,7 +277,8 @@ interface
          { compiler checks for empty procedures/methods and removes calls to them if possible }
          cs_opt_remove_emtpy_proc,
          cs_opt_constant_propagate,
-         cs_opt_dead_store_eliminate
+         cs_opt_dead_store_eliminate,
+         cs_opt_forcenostackframe
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -305,14 +306,14 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[16] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
-         'DEADSTORE'
+         'DEADSTORE','FORCENOSTACKFRAME'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -606,7 +607,9 @@ interface
          { subroutine has nested exit }
          pi_has_nested_exit,
          { allocates memory on stack, so stack is unbalanced on exit }
-         pi_has_stack_allocs
+         pi_has_stack_allocs,
+         { set if the stack frame of the procedure is estimated }
+         pi_estimatestacksize
        );
        tprocinfoflags=set of tprocinfoflag;
 

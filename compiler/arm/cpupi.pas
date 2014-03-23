@@ -99,7 +99,7 @@ unit cpupi;
           tg.setfirsttemp(maxpushedparasize);
 
         { estimate stack frame size }
-        if GenerateThumbCode then
+        if GenerateThumbCode or (pi_estimatestacksize in flags) then
           begin
             stackframesize:=maxpushedparasize+32;
             localsize:=0;
@@ -145,7 +145,7 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        if GenerateThumbCode then
+        if GenerateThumbCode or (pi_estimatestacksize in flags) then
           result:=stackframesize
         else
           begin

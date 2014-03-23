@@ -999,7 +999,7 @@ implementation
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
                 not ((pi_has_stackparameter in flags)
-{$ifndef arm}  { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+{$ifndef arm}   { Outgoing parameter(s) on stack do not need stackframe on x86 targets
                  with fixed stack. On ARM it fails, see bug #25050 }
                   and (not paramanager.use_fixed_stack)
 {$endif arm}
@@ -1021,13 +1021,35 @@ implementation
                   (necessary to init para_stack_size)
                 }
                 generate_parameter_info;
+
                 if not(procdef.stack_tainting_parameter(calleeside)) and
                    not(has_assembler_child) and (para_stack_size=0) then
                   begin
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
                     tg.direction:=1;
+                  end
+{$if defined(arm)}
+                { On arm, the stack frame size can be estimated to avoid using an extra frame pointer,
+                  in case parameters are passed on the stack.
+
+                  However, the draw back is, if the estimation fails, compilation will break later on
+                  with an internal error, so this switch is not enabled by default yet. To overcome this,
+                  multipass compilation of subroutines must be supported
+                }
+                else if (cs_opt_forcenostackframe in current_settings.optimizerswitches) and
+                   not(has_assembler_child) then
+                  begin
+                    { Only need to set the framepointer }
+                    framepointer:=NR_STACK_POINTER_REG;
+                    tg.direction:=1;
+                    include(flags,pi_estimatestacksize);
+                    set_first_temp_offset;
+                    procdef.has_paraloc_info:=callnoside;
+                    generate_parameter_info;
+                    exit;
                   end;
+{$endif defined(arm)}
               end;
           end;
 {$endif defined(x86) or defined(arm)}

@@ -1762,14 +1762,18 @@ unit cgcpu;
          r : byte;
          mmregs,
          regs, saveregs : tcpuregisterset;
+         registerarea,
          r7offset,
          stackmisalignment : pint;
          postfix: toppostfix;
          imm1, imm2: DWord;
+         stack_parameters : Boolean;
       begin
         LocalSize:=align(LocalSize,4);
+        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+
         { call instruction does not put anything on the stack }
-        stackmisalignment:=0;
+        registerarea:=0;
         tarmprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
         lastfloatreg:=RS_NO;
         if not(nostackframe) then
@@ -1789,7 +1793,7 @@ unit cgcpu;
                         if firstfloatreg=RS_NO then
                           firstfloatreg:=r;
                         lastfloatreg:=r;
-                        inc(stackmisalignment,12);
+                        inc(registerarea,12);
                       end;
                 end;
               fpu_vfpv2,
@@ -1829,16 +1833,16 @@ unit cgcpu;
                    begin
                      for r:=RS_R0 to RS_R15 do
                        if r in regs then
-                         inc(stackmisalignment,4);
+                         inc(registerarea,4);
 
                      { if the stack is not 8 byte aligned, try to add an extra register,
                        so we can avoid the extra sub/add ...,#4 later (KB) }
-                     if ((stackmisalignment mod current_settings.alignment.localalignmax) <> 0) then
+                     if ((registerarea mod current_settings.alignment.localalignmax) <> 0) then
                        for r:=RS_R3 downto RS_R0 do
                          if not(r in regs) then
                            begin
                              regs:=regs+[r];
-                             inc(stackmisalignment,4);
+                             inc(registerarea,4);
                              tarmprocinfo(current_procinfo).stackpaddingreg:=r;
                              break;
                            end;
@@ -1876,7 +1880,7 @@ unit cgcpu;
                     for r:=RS_R0 to RS_R15 do
                       if r in saveregs then
                         begin
-                          inc(stackmisalignment,4);
+                          inc(registerarea,4);
                           if r<RS_FRAME_POINTER_REG then
                             inc(r7offset,4);
                         end;
@@ -1894,19 +1898,26 @@ unit cgcpu;
                       begin
                         for r:=RS_R8 to RS_R11 do
                           if r in saveregs then
-                            inc(stackmisalignment,4);
+                            inc(registerarea,4);
                         list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,saveregs),PF_FD));
                       end;
                   end;
               end;
 
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                  begin
+                    if localsize>tarmprocinfo(current_procinfo).stackframesize then
+                      internalerror(2014030901)
+                    else
+                      localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea;
+                  end;
                 if is_shifter_const(localsize,shift) then
                   begin
                     a_reg_dealloc(list,NR_R12);
@@ -1989,6 +2000,7 @@ unit cgcpu;
          mmregs,
          saveregs,
          regs : tcpuregisterset;
+         registerarea,
          stackmisalignment: pint;
          paddingreg: TSuperRegister;
          mmpostfix: toppostfix;
@@ -1996,7 +2008,7 @@ unit cgcpu;
       begin
         if not(nostackframe) then
           begin
-            stackmisalignment:=0;
+            registerarea:=0;
             firstfloatreg:=RS_NO;
             lastfloatreg:=RS_NO;
             mmregs:=[];
@@ -2016,7 +2028,7 @@ unit cgcpu;
                         lastfloatreg:=r;
                         { floating point register space is already included in
                           localsize below by calc_stackframe_size
-                         inc(stackmisalignment,12);
+                         inc(registerarea,12);
                         }
                       end;
                 end;
@@ -2108,13 +2120,13 @@ unit cgcpu;
                     ref.addressmode:=AM_PREINDEXED;
                     for r:=RS_R8 to RS_R11 do
                       if r in saveregs then
-                        inc(stackmisalignment,4);
+                        inc(registerarea,4);
                     regs:=regs-saveregs;
                   end;
               end;
             for r:=RS_R0 to RS_R15 do
               if r in regs then
-                inc(stackmisalignment,4);
+                inc(registerarea,4);
 
             { reapply the stack padding reg, in case there was one, see the complimentary
               comment in g_proc_entry() (KB) }
@@ -2125,9 +2137,9 @@ unit cgcpu;
               else
                 begin
                   regs:=regs+[paddingreg];
-                  inc(stackmisalignment,4);
+                  inc(registerarea,4);
                 end;
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (target_info.system in systems_darwin) then
               begin
@@ -2137,7 +2149,11 @@ unit cgcpu;
                     ((pi_do_call in current_procinfo.flags) or
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
-                    localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                    if pi_estimatestacksize in current_procinfo.flags then
+                      LocalSize:=tarmprocinfo(current_procinfo).stackframesize-registerarea
+                    else
+                      localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+
                     if is_shifter_const(LocalSize,shift) then
                       list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
                     else if split_into_shifter_const(localsize, imm1, imm2) then

@@ -1196,8 +1196,9 @@ const
          (mask:pi_has_nested_exit;
          str:' subroutine contains a nested subroutine which calls the exit of the current one '),
          (mask:pi_has_stack_allocs;
-         str:' allocates memory on stack, so stack may be unbalanced on exit ')
-
+         str:' allocates memory on stack, so stack may be unbalanced on exit '),
+         (mask:pi_estimatestacksize;
+         str:' stack size is estimated before subroutine is compiled ')
   );
 var
   procinfooptions : tprocinfoflags;
