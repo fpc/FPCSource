@@ -152,7 +152,7 @@ unit optcse;
           (
             { regable expressions }
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
-            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
             (not(n.resultdef.typ in [arraydef,recorddef]))) or is_dynamic_array(n.resultdef)) and
             { same for voiddef }
@@ -381,7 +381,7 @@ unit optcse;
                             true,caddrnode.create_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                            def.is_intregable or def.is_fpuregable or is_dynamic_array(def),tnode(lists.nodelist[i]));
+                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]));
 
                         { the value described by the temp. is immutable and the temp. can be always in register
 
