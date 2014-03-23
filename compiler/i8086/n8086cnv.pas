@@ -33,6 +33,7 @@ interface
        protected
          procedure second_proc_to_procvar;override;
          procedure second_nil_to_methodprocvar;override;
+         procedure second_ansistring_to_pchar;override;
        end;
 
 
@@ -158,6 +159,30 @@ implementation
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
             cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.register);
           end;
+      end;
+
+
+    procedure t8086typeconvnode.second_ansistring_to_pchar;
+      var
+        l1 : tasmlabel;
+        hr : treference;
+      begin
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            location_reset(location,LOC_REGISTER,OS_32);
+            current_asmdata.getjumplabel(l1);
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,
+              left.location,location.register);
+            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_32,OC_NE,0,location.register,l1);
+            { FPC_EMPTYCHAR is a widechar -> 2 bytes }
+            reference_reset(hr,2);
+            hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
+            cg.a_label(current_asmdata.CurrAsmList,l1);
+          end
+        else
+          inherited;
       end;
 
 
