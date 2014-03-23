@@ -805,6 +805,7 @@ interface
           function  GetTypeName:string;override;
           function  getmangledparaname:TSymStr;override;
           function  is_publishable : boolean;override;
+          function  size:asizeint;override;
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
           function  getvardef:longint;override;
@@ -2032,7 +2033,6 @@ implementation
          stringtype:=st_shortstring;
          encoding:=0;
          len:=l;
-         savesize:=len+1;
       end;
 
 
@@ -2042,7 +2042,6 @@ implementation
          stringtype:=st_shortstring;
          encoding:=0;
          len:=ppufile.getbyte;
-         savesize:=len+1;
       end;
 
 
@@ -2052,7 +2051,6 @@ implementation
          stringtype:=st_longstring;
          encoding:=0;
          len:=l;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2062,7 +2060,6 @@ implementation
          stringtype:=st_longstring;
          encoding:=0;
          len:=ppufile.getasizeint;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2072,7 +2069,6 @@ implementation
          stringtype:=st_ansistring;
          encoding:=aencoding;
          len:=-1;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2082,7 +2078,6 @@ implementation
          stringtype:=st_ansistring;
          len:=ppufile.getaint;
          encoding:=ppufile.getword;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2095,7 +2090,6 @@ implementation
          else
            encoding:=CP_UTF16BE;
          len:=-1;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2108,7 +2102,6 @@ implementation
          else
            encoding:=CP_UTF16BE;
          len:=ppufile.getaint;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2121,7 +2114,6 @@ implementation
          else
            encoding:=CP_UTF16BE;
          len:=-1;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2131,7 +2123,6 @@ implementation
          stringtype:=st_unicodestring;
          len:=ppufile.getaint;
          encoding:=ppufile.getword;
-         savesize:=sizeof(pint);
       end;
 
 
@@ -2142,7 +2133,6 @@ implementation
         tstringdef(result).stringtype:=stringtype;
         tstringdef(result).encoding:=encoding;
         tstringdef(result).len:=len;
-        tstringdef(result).savesize:=savesize;
       end;
 
 
@@ -2210,7 +2200,7 @@ implementation
           st_unicodestring,
           st_widestring,
           st_ansistring:
-            alignment:=size_2_align(savesize);
+            alignment:=size_2_align(size);
           st_longstring,
           st_shortstring:
               { char to string accesses byte 0 and 1 with one word access }
@@ -2235,6 +2225,22 @@ implementation
     function tstringdef.is_publishable : boolean;
       begin
          is_publishable:=true;
+      end;
+
+
+    function tstringdef.size: asizeint;
+      begin
+        case stringtype of
+          st_shortstring:
+            Result:=len+1;
+          st_longstring,
+          st_ansistring,
+          st_widestring,
+          st_unicodestring:
+            Result:=sizeof(pint);
+          else
+            internalerror(2014032301);
+        end;
       end;
 
 
