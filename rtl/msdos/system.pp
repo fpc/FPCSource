@@ -123,7 +123,12 @@ function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
 procedure DebugWrite(const S: string);
 begin
   asm
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    push ds
+	lds si, S
+{$else}
     mov si, S
+{$endif}
 {$ifdef FPC_ENABLED_CLD}
     cld
 {$endif FPC_ENABLED_CLD}
@@ -137,6 +142,9 @@ begin
     mov dl, al
     int 21h
     loop @@1
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    pop ds
+{$endif}
   end ['ax','bx','cx','dx','si','di'];
 end;
 
