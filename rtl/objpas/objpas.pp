@@ -41,7 +41,7 @@ unit objpas;
 
        { array types }
 {$ifdef CPU16}
-       IntegerArray  = array[0..$eff] of Integer;
+       IntegerArray  = array[0..(32768 div SizeOf(Integer))-2] of Integer;
 {$else CPU16}
        IntegerArray  = array[0..$effffff] of Integer;
 {$endif CPU16}
