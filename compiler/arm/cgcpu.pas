@@ -1203,7 +1203,7 @@ unit cgcpu;
              (ref.offset>255)
             )
            ) or
-           ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
+           (((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
              ((abs(ref.offset) mod 4)<>0)
@@ -1250,7 +1250,7 @@ unit cgcpu;
 
         { fold if there is base, index and offset, however, don't fold
           for vfp memory instructions because we later fold the index }
-        if not(op in [A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
+        if not((op in [A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and
            (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
           begin
             if tmpreg<>NR_NO then
@@ -1266,7 +1266,7 @@ unit cgcpu;
 
         { floating point operations have only limited references
           we expect here, that a base is already set }
-        if (op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and (ref.index<>NR_NO) then
+        if ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and (ref.index<>NR_NO) then
           begin
             if ref.shiftmode<>SM_none then
               internalerror(200309121);
@@ -4938,7 +4938,8 @@ unit cgcpu;
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
       end;
 
-   function tthumb2cgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
+
+    function tthumb2cgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
         tmpreg : tregister;
         tmpref : treference;
@@ -4981,9 +4982,10 @@ unit cgcpu;
              (ref.offset>255)
             )
            ) or
-           ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
+           (((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
+             ((abs(ref.offset) mod 4)<>0) or
              { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
              assigned(ref.symbol)
             )
@@ -5061,7 +5063,7 @@ unit cgcpu;
 
         { floating point operations have only limited references
           we expect here, that a base is already set }
-        if (op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and (ref.index<>NR_NO) then
+        if ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and (ref.index<>NR_NO) then
           begin
             if ref.shiftmode<>SM_none then
               internalerror(200309121);
@@ -5100,7 +5102,7 @@ unit cgcpu;
       end;
 
 
-     procedure tthumb2cgarm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
+    procedure tthumb2cgarm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
       var
         instr: taicpu;
       begin
@@ -5125,85 +5127,26 @@ unit cgcpu;
           end;
       end;
 
-     procedure tthumb2cgarm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister; shuffle: pmmshuffle);
-      var
-        href: treference;
-        tmpreg: TRegister;
-        so: tshifterop;
+
+    procedure tthumb2cgarm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister; shuffle: pmmshuffle);
       begin
-        href:=ref;
-
-        if (href.base<>NR_NO) and
-          (href.index<>NR_NO) then
-          begin
-            tmpreg:=getintregister(list,OS_INT);
-            if href.shiftmode<>SM_None then
-              begin
-                so.rs:=href.index;
-                so.shiftimm:=href.shiftimm;
-                so.shiftmode:=href.shiftmode;
-                list.concat(taicpu.op_reg_reg_shifterop(A_ADD,tmpreg,href.base,so));
-              end
-            else
-              a_op_reg_reg_reg(list,OP_ADD,OS_INT,href.index,href.base,tmpreg);
-
-            reference_reset_base(href,tmpreg,href.offset,0);
-          end;
-
-        if assigned(href.symbol) then
-          begin
-            tmpreg:=getintregister(list,OS_INT);
-            a_loadaddr_ref_reg(list,href,tmpreg);
-
-            reference_reset_base(href,tmpreg,0,0);
-          end;
-
         if fromsize=OS_F32 then
-          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VLDR,reg,href), PF_F32))
+          handle_load_store(list,A_VLDR,PF_F32,reg,ref)
         else
-          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VLDR,reg,href), PF_F64));
+          handle_load_store(list,A_VLDR,PF_F64,reg,ref);
       end;
 
-     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
-      var
-        href: treference;
-        so: tshifterop;
-        tmpreg: TRegister;
+
+    procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
-        href:=ref;
-
-        if (href.base<>NR_NO) and
-          (href.index<>NR_NO) then
-          begin
-            tmpreg:=getintregister(list,OS_INT);
-            if href.shiftmode<>SM_None then
-              begin
-                so.rs:=href.index;
-                so.shiftimm:=href.shiftimm;
-                so.shiftmode:=href.shiftmode;
-                list.concat(taicpu.op_reg_reg_shifterop(A_ADD,tmpreg,href.base,so));
-              end
-            else
-              a_op_reg_reg_reg(list,OP_ADD,OS_INT,href.index,href.base,tmpreg);
-
-            reference_reset_base(href,tmpreg,href.offset,0);
-          end;
-
-        if assigned(href.symbol) then
-          begin
-            tmpreg:=getintregister(list,OS_INT);
-            a_loadaddr_ref_reg(list,href,tmpreg);
-
-            reference_reset_base(href,tmpreg,0,0);
-          end;
-
         if fromsize=OS_F32 then
-          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VSTR,reg,href), PF_32))
+          handle_load_store(list,A_VSTR,PF_F32,reg,ref)
         else
-          list.Concat(setoppostfix(taicpu.op_reg_ref(A_VSTR,reg,href), PF_64));
+          handle_load_store(list,A_VSTR,PF_F64,reg,ref);
       end;
 
-     procedure tthumb2cgarm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+
+    procedure tthumb2cgarm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
       begin
         if //(shuffle=nil) and
           (tosize=OS_F32) then
@@ -5212,7 +5155,8 @@ unit cgcpu;
           internalerror(2012100813);
       end;
 
-     procedure tthumb2cgarm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
+
+    procedure tthumb2cgarm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
       begin
         if //(shuffle=nil) and
           (fromsize=OS_F32) then
