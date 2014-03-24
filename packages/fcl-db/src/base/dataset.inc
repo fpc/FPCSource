@@ -1211,12 +1211,12 @@ begin
 {$endif}
     Try
 {$ifdef dsdebug}
-      Writeln ('   Assigning buffers :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigning buffers : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
 {$ifdef dsdebug}
-      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigned buffers (FBufferCount:',FBufferCount,') : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
     except
       I:=FBufferCount;
