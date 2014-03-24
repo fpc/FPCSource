@@ -1,102 +1,47 @@
 ; This file contains several sections, one for each database type. 
 
-; Select here which section has to be used currently, 
+; Select here which section is to be used currently, 
 ; i.e. which database you want to use
 [Database]
 type=bufdataset
 
+; These sections are for the various types of databases:
 
-; These sections are for the several SQLDB-types of databases:
+[interbase]
+; Interbase or Firebird database:
 
-; PostgreSQL database:
-[postgresql]
-; The connector specifies the DB-component that has to be used. The 'sql'
+; The connector specifies the DB component that has to be used. The 'sql'
 ; connector tests the SQLDB components
 connector=sql
-
 ; Here you can give some parameters, which are specific for each connector. The
 ; SQL connector uses this parameter to specify the connection that should be
-; used;
-connectorparams=postgresql
+; used - i.e. the database server;
+connectorparams=interbase
 
 ; The name of the database. The database could be empty. You only need read and
 ; write rights.
-name=testdb
+name=/opt/firebird/data/testdb.fdb
 
 ; user to log in with
-user=
-
-; password to log in with
-password=
-
-; hostname of the database-server
-hostname=127.0.0.1
-
-; MySQL 4.0 database:
-[mysql40]
-connector=sql
-connectorparams=mysql40
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-; MySQL 4.1 database:
-[mysql41]
-connector=sql
-connectorparams=mysql41
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-; MySQL 5.0 database:
-[mysql50]
-connector=sql
-connectorparams=mysql50
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-; MySQL 5.1 database:
-[mysql51]
-connector=sql
-connectorparams=mysql51
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-; MySQL 5.5 database:
-[mysql55]
-connector=sql
-connectorparams=mysql55
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-; Oracle database:
-[oracle]
-connector=sql
-connectorparams=oracle
-name=xe
-user=system
-password=
-hostname=127.0.0.1
-
-; Interbase or Firebird database:
-[interbase]
-connector=sql
-connectorparams=interbase
-name=/opt/firebird/data/testdb.fdb
 ; Default username/password for Interbase/Firebird
 ; is sysdba/masterkey. Change to your situation.
 user=sysdba
+
+; password to log in with
+; masterke or masterkey is default for Interbase/Firebird
 password=masterkey
+
+; hostname or IP address 
+; of the database server
 hostname=localhost
 
+; SQL command log file (for sqldb databases)
+; will be overwritten each run
+; uncomment to use
+;logfile=sql.log
+
+
+[firebirdembedded]
 ; Firebird embedded
 ; Same as Firebird, except we leave the host name blank
 ; and specify a db without path.
@@ -106,7 +51,6 @@ hostname=localhost
 ; Test code will create db if it doesn't exist; you can
 ; delete an existing db file before the test to start
 ; fresh.
-[firebirdembedded]
 connector=sql
 connectorparams=interbase
 name=fbembedtest.fdb
@@ -114,23 +58,62 @@ user=sysdba
 password=masterkey
 hostname=
 
-; ODBC database:
-[odbc]
+[mysql40]
+; MySQL 4.0 database:
 connector=sql
-connectorparams=odbc
+connectorparams=mysql40
 name=testdb
 user=root
 password=
 hostname=127.0.0.1
 
-; SQLite database:
-[sqlite]
+[mysql41]
+; MySQL 4.1 database:
 connector=sql
-connectorparams=sqlite3
-name=test.db
+connectorparams=mysql41
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
 
-; MS SQL Server database:
+[mysql50]
+; MySQL 5.0 database:
+connector=sql
+connectorparams=mysql50
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+[mysql51]
+; MySQL 5.1 database:
+connector=sql
+connectorparams=mysql51
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+[mysql55]
+; MySQL 5.5 database:
+connector=sql
+connectorparams=mysql55
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+[mysql56]
+; MySQL 5.6 database:
+connector=sql
+connectorparams=mysql56
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
 [mssql]
+; MS SQL Server database:
 connector=sql
 connectorparams=mssql
 name=pubs
@@ -145,8 +128,42 @@ password=
 ; See mssqlconn documentation
 hostname=127.0.0.1
 
-; Sybase ASE database
+[odbc]
+; ODBC database:
+connector=sql
+connectorparams=odbc
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+
+[oracle]
+; Oracle database:
+connector=sql
+connectorparams=oracle
+; SID or instance name:
+name=xe
+user=system
+password=
+hostname=127.0.0.1
+
+[postgresql]
+; PostgreSQL database:
+connector=sql
+connectorparams=postgresql
+name=testdb
+user=
+password=
+hostname=127.0.0.1
+
+[sqlite]
+; SQLite database:
+connector=sql
+connectorparams=sqlite3
+name=test.db
+
 [sybase]
+; Sybase ASE database
 connector=sql
 connectorparams=sybase
 name=testdb
@@ -156,6 +173,9 @@ password=
 ; hostname=bigbadserver:5000
 ; See mssqlconn documentation
 hostname=127.0.0.1
+
+; end of sqldb relational databases
+; next are file/memory-based databases:
 
 [dbf]
 ; TDBf: DBase/FoxPro database:
@@ -167,7 +187,6 @@ connector=dbf
 ; 25=FoxPro
 ; 30=Visual FoxPro
 connectorparams=4
-
 
 [dbase3]
 ; TDBf: DBase/FoxPro database:
@@ -197,16 +216,16 @@ connector=dbf
 ; 30=Visual FoxPro
 connectorparams=25
 
-; MemDS in memory dataset:
 [memds]
+; MemDS simple in memory dataset:
 connector=memds
 
-; BufDataset in memory dataset:
 [bufdataset]
+; BufDataset in memory dataset:
 connector=bufdataset
 
-; sdfdataset file-based dataset:
 [sdfdataset]
+; sdfdataset file-based dataset:
 connector=sdfds
 ; subdirectory for the sdf files:
 name=sdftest
