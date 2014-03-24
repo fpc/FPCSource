@@ -264,7 +264,7 @@ begin
       end;
       if SQLServerType=ssSybase then
       begin
-        // Evanlueate NULL expressions according to ANSI SQL:
+        // Evaluate NULL expressions according to ANSI SQL:
         // http://infocenter.sybase.com/archive/index.jsp?topic=/com.sybase.help.ase_15.0.commands/html/commands/commands85.htm
         FConnection.ExecuteDirect('SET ANSINULL ON');
 
@@ -272,14 +272,14 @@ begin
         1) with ddl in tran; e.g.
         use master
         go
-        sp_dboption pubs3, "ddl in tran", true
+        sp_dboption pubs3, 'ddl in tran', true
         go
         Avoid errors like
         The 'CREATE TABLE' command is not allowed within a multi-statement transaction in the 'test' database.
         2) allow nulls by default, e.g.
         use master
         go
-        sp_dboption pubs3, "allow nulls by default", true
+        sp_dboption pubs3, 'allow nulls by default', true
         go
         }
       end;
