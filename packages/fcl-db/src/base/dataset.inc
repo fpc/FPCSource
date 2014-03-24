@@ -1207,7 +1207,7 @@ begin
     inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOf(TRecordBuffer),#0);
 {$ifdef dsdebug}
-    Writeln ('   Filled memory :');
+    Writeln ('   Filled memory');
 {$endif}
     Try
 {$ifdef dsdebug}

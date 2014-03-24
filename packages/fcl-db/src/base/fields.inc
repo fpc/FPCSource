@@ -100,10 +100,10 @@ begin
     Result.SetFieldType(DataType);
     Result.FReadOnly:= (faReadOnly in Attributes);
 {$ifdef dsdebug}
-    Writeln ('TFieldDef.CReateField : Trying to set dataset');
+    Writeln ('TFieldDef.CreateField : Trying to set dataset');
 {$endif dsdebug}
 {$ifdef dsdebug}
-    Writeln ('TFieldDef.CReateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
+    Writeln ('TFieldDef.CreateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
 {$endif dsdebug}
     Result.Dataset:=TFieldDefs(Collection).Dataset;
     If (Result is TFloatField) then

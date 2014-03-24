@@ -36,7 +36,7 @@ password=masterkey
 hostname=localhost
 
 ; SQL command log file (for sqldb databases)
-; will be overwritten each run
+; will be appended to each run
 ; uncomment to use
 ;logfile=sql.log
 
