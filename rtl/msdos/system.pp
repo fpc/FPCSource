@@ -124,6 +124,9 @@ procedure DebugWrite(const S: string);
 begin
   asm
     mov si, S
+{$ifdef FPC_ENABLED_CLD}
+    cld
+{$endif FPC_ENABLED_CLD}
     lodsb
     mov cl, al
     xor ch, ch
