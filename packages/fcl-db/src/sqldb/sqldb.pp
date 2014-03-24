@@ -52,7 +52,7 @@ type
   TSQLScript = class;
 
 
-  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit,detRollBack);
+  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack);
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
@@ -1136,7 +1136,11 @@ begin
 
     Cursor := AllocateCursorHandle;
     Cursor.FStatementType := stUnknown;
+    If LogEvent(detPrepare) then
+      Log(detPrepare,SQL);
     PrepareStatement(Cursor,ATransaction,SQL,Nil);
+    If LogEvent(detExecute) then
+      Log(detExecute,SQL);
     Execute(Cursor,ATransaction, Nil);
     UnPrepareStatement(Cursor);
   finally;
