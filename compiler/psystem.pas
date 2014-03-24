@@ -289,6 +289,8 @@ implementation
   {$ifdef i8086}
         voidfarpointertype:=tpointerdef.createx86(voidtype,x86pt_far);
         voidhugepointertype:=tpointerdef.createx86(voidtype,x86pt_huge);
+        charnearpointertype:=tpointerdef.createx86(cansichartype,x86pt_near);
+        charfarpointertype:=tpointerdef.createx86(cansichartype,x86pt_far);
         bytefarpointertype:=tpointerdef.createx86(u8inttype,x86pt_far);
         wordfarpointertype:=tpointerdef.createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tpointerdef.createx86(s32inttype,x86pt_far);
@@ -427,6 +429,8 @@ implementation
   {$ifdef i8086}
         addtype('$void_farpointer',voidfarpointertype);
         addtype('$void_hugepointer',voidhugepointertype);
+        addtype('$char_nearpointer',charnearpointertype);
+        addtype('$char_farpointer',charfarpointertype);
         addtype('$byte_farpointer',bytefarpointertype);
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
@@ -563,6 +567,8 @@ implementation
   {$ifdef i8086}
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('void_hugepointer',voidhugepointertype);
+        loadtype('char_nearpointer',charnearpointertype);
+        loadtype('char_farpointer',charfarpointertype);
         loadtype('byte_farpointer',bytefarpointertype);
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);

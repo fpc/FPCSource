@@ -1635,15 +1635,14 @@ implementation
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
 {$elseif defined(i8086)}
-                    { we don't have a charfarpointertype yet, so for far pointers we use bytefarpointertype }
                     if is_farpointer(left.resultdef) then
-                      inserttypeconv_internal(left,bytefarpointertype)
+                      inserttypeconv_internal(left,charfarpointertype)
                     else
-                      inserttypeconv_internal(left,charpointertype);
+                      inserttypeconv_internal(left,charnearpointertype);
                     if is_farpointer(right.resultdef) then
-                      inserttypeconv_internal(right,bytefarpointertype)
+                      inserttypeconv_internal(right,charfarpointertype)
                     else
-                      inserttypeconv_internal(right,charpointertype);
+                      inserttypeconv_internal(right,charnearpointertype);
 {$else}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);

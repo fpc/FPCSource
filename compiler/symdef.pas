@@ -907,6 +907,8 @@ interface
   {$ifdef i8086}
        voidfarpointertype,
        voidhugepointertype,
+       charnearpointertype,
+       charfarpointertype,
        bytefarpointertype,        { used for Mem[] }
        wordfarpointertype,        { used for MemW[] }
        longintfarpointertype,     { used for MemL[] }
