@@ -1,9 +1,25 @@
-; common startup code for the SMALL, TINY and MEDIUM memory models
+; common startup code for all the memory models
 
-%ifdef __MEDIUM__
-        %define __FAR_CODE__
-%else
+%ifdef __TINY__
         %define __NEAR_CODE__
+		%define __NEAR_DATA__
+%elifdef __SMALL__
+        %define __NEAR_CODE__
+		%define __NEAR_DATA__
+%elifdef __MEDIUM__
+        %define __FAR_CODE__
+		%define __NEAR_DATA__
+%elifdef __COMPACT__
+        %define __NEAR_CODE__
+		%define __FAR_DATA__
+%elifdef __LARGE__
+        %define __FAR_CODE__
+		%define __FAR_DATA__
+%elifdef __HUGE__
+        %define __FAR_CODE__
+		%define __FAR_DATA__
+%else
+        %fatal "Memory model not defined."
 %endif
 
 %ifdef __FAR_CODE__
