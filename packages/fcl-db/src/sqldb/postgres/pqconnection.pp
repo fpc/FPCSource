@@ -30,7 +30,6 @@ type
     Destructor Destroy; override;
   end;
 
-  { TPQCursor }
   // TField and TFieldDef only support a limited amount of fields.
   // TFieldBinding and TExtendedFieldType can be used to map PQ types
   // on standard fields and retain mapping info.
@@ -40,11 +39,13 @@ type
     FieldDef : TSQLDBFieldDef; // FieldDef this is associated with
     Index : Integer; // Tuple index
     TypeOID : oid; // Filled with type OID if it is not standard.
-    TypeName : String; // Filled with type name by getextendedfieldInfo
+    TypeName : String; // Filled with type name by GetExtendedFieldInfo
     ExtendedFieldType: TExtendedFieldType; //
   end;
   PFieldBinding = ^TFieldBinding;
   TFieldBindings = Array of TFieldBinding;
+
+  { TPQCursor }
 
   TPQCursor = Class(TSQLCursor)
   protected
@@ -328,10 +329,8 @@ Var
   I,J : Integer;
   Res : PPGResult;
   toid : oid;
-  O : Array of integer;
 
 begin
-  SetLength(O,Length(Bindings));
   For I:=0 to Length(Bindings)-1 do
     if (Bindings[i].TypeOID>0) then
       begin
@@ -453,7 +452,6 @@ function TPQConnection.Commit(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
-  i   : Integer;
 begin
   result := false;
   tr := trans as TPQTrans;
@@ -618,7 +616,6 @@ end;
 
 procedure TPQConnection.CheckConnectionStatus(var conn: PPGconn);
 var sErr: string;
-    i: integer;
 begin
   if (PQstatus(conn) = CONNECTION_BAD) then
     begin
@@ -651,7 +648,6 @@ var
   MESSAGE_DETAIL: string;
   MESSAGE_HINT: string;
   STATEMENT_POSITION: string;
-  i:Integer;
 begin
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
@@ -944,6 +940,13 @@ var ar  : array of pchar;
     ParamValues : array of string;
     cash: int64;
 
+    function FormatTimeInterval(Time: TDateTime): string; // supports Time >= '24:00:00'
+    var hour, minute, second, millisecond: word;
+    begin
+      DecodeTime(Time, hour, minute, second, millisecond);
+      Result := Format('%.2d:%.2d:%.2d.%.3d',[Trunc(Time)*24+hour,minute,second,millisecond]);
+    end;
+
 begin
   with cursor as TPQCursor do
     begin
@@ -964,7 +967,7 @@ begin
             ftDate:
               s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
             ftTime:
-              s := FormatDateTime('hh:nn:ss.zzz', AParams[i].AsDateTime);
+              s := FormatTimeInterval(AParams[i].AsDateTime);
             ftFloat, ftBCD:
               Str(AParams[i].AsFloat, s);
             ftCurrency:
@@ -979,7 +982,7 @@ begin
               s := AParams[i].AsString;
           end; {case}
           GetMem(ar[i],length(s)+1);
-          StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
+          StrMove(PChar(ar[i]),PChar(s),Length(S)+1);
           lengths[i]:=Length(s);
           if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency]) then
             Formats[i]:=1
@@ -1038,7 +1041,6 @@ procedure TPQConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs)
 var
   i         : integer;
   size      : integer;
-  eft       : TExtendedFieldType;
   aoid       : oid;
   fieldtype : tfieldtype;
   nFields   : integer;
@@ -1046,7 +1048,6 @@ var
   Q : TPQCursor;
   FD : TSQLDBFieldDef;
   FB : PFieldBinding;
-  C : TFieldDefClass;
 
 begin
   B:=False;
