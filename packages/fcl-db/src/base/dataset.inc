@@ -220,7 +220,7 @@ begin
       If DataType<>ftUnknown then
         begin
         {$ifdef DSDebug}
-        Writeln('About to create field',FieldDefs.Items[i].Name);
+        Writeln('About to create field ',FieldDefs.Items[i].Name);
         {$endif}
         CreateField(self);
         end;
@@ -1205,7 +1205,7 @@ begin
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(TRecordBuffer));
 {$endif}
     inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
-    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(TRecordBuffer),#0);
+    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOf(TRecordBuffer),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory :');
 {$endif}
@@ -1943,7 +1943,7 @@ Var
   begin
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling forward :',Distance);
+    Writeln('Scrolling forward : ',Distance);
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCount   : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
@@ -1979,7 +1979,7 @@ Var
     CheckBiDirectional;
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling backward:',Abs(Distance));
+    Writeln('Scrolling backward : ',Abs(Distance));
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCunt    : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
