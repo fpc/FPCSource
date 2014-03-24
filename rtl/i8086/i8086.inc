@@ -76,6 +76,9 @@ end;
 Function Sptr : Pointer;assembler;nostackframe;
 asm
   mov ax, sp
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov dx, ss
+{$endif}
 end;
 
 {$define FPC_SYSTEM_HAS_PTR}
@@ -109,6 +112,9 @@ end;
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   mov ax, bp
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov dx, ss
+{$endif}
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
