@@ -693,8 +693,8 @@ var
   hour       : word;
 begin
   DecodeTime(Time,hour,minute,second,millisecond);
-  hour := hour + (trunc(Time) * 24);
-  result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
+  hour := hour + trunc(Time)*24;
+  Result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
 { TSQLDBFieldDefs }
@@ -1033,10 +1033,24 @@ end;
 
 { TSQLConnection }
 
+constructor TSQLConnection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FSQLFormatSettings:=DefaultSQLFormatSettings;
+  FFieldNameQuoteChars:=DoubleQuotes;
+  FLogEvents:=LogAllEvents; //match Property LogEvents...Default LogAllEvents
+  FStatements:=TFPList.Create;
+end;
+
+destructor TSQLConnection.Destroy;
+begin
+  Connected:=False; // needed because we want to de-allocate statements
+  FreeAndNil(FStatements);
+  inherited Destroy;
+end;
+
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
-
 var T : TStatementType;
-
 begin
   S:=Lowercase(s);
   for T:=stSelect to stRollback do
@@ -1060,9 +1074,8 @@ begin
 end;
 
 procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string);
-
 begin
-// Empty abstract
+  // Empty abstract
 end;
 
 procedure TSQLConnection.DoInternalConnect;
@@ -1080,13 +1093,6 @@ begin
   For I:=0 to FStatements.Count-1 do
     TCustomSQLStatement(FStatements[i]).Unprepare;
   FStatements.Clear;
-end;
-
-destructor TSQLConnection.Destroy;
-begin
-  Connected:=False; // needed because we want to de-allocate statements
-  FreeAndNil(FStatements);
-  inherited Destroy;
 end;
 
 procedure TSQLConnection.StartTransaction;
@@ -1185,15 +1191,6 @@ begin
   Result := -1;
 end;
 
-
-constructor TSQLConnection.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FSQLFormatSettings:=DefaultSQLFormatSettings;
-  FFieldNameQuoteChars:=DoubleQuotes;
-  FLogEvents:=LogAllEvents; //match Property LogEvents...Default LogAllEvents
-  FStatements:=TFPList.Create;
-end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
@@ -1402,23 +1399,22 @@ begin
 end;
 
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
-
 begin
-  if (not assigned(field)) or field.IsNull then Result := 'Null'
+  if (not assigned(Field)) or Field.IsNull then Result := 'Null'
   else case field.DataType of
     ftString   : Result := QuotedStr(Field.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
-    Result := field.asstring;
+    Result := Field.AsString;
   end; {case}
 end;
 
 function TSQLConnection.GetAsSQLText(Param: TParam) : string;
 begin
-  if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else case param.DataType of
+  if (not assigned(Param)) or Param.IsNull then Result := 'Null'
+  else case Param.DataType of
     ftGuid,
     ftMemo,
     ftFixedChar,
@@ -1431,7 +1427,7 @@ begin
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
     ftFMTBcd   : Result := stringreplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
   else
-    Result := Param.asstring;
+    Result := Param.AsString;
   end; {case}
 end;
 
@@ -1510,7 +1506,7 @@ begin
      end;
 end;
 
-Function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery) : string;
+function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery): string;
 
 var x : integer;
     F : TField;
@@ -1811,7 +1807,7 @@ Var
   M : String;
 
 begin
-  If LogEVent(EventType) then
+  If LogEvent(EventType) then
     begin
     If (Name<>'') then
       M:=Name+' : '+Msg
