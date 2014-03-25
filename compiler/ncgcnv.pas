@@ -363,6 +363,10 @@ interface
               else
             {$endif}
                 location.reference.base := left.location.register;
+{$ifdef i8086}
+              if is_farpointer(left.resultdef) or is_hugepointer(left.resultdef) then
+                location.reference.segment := GetNextReg(left.location.register);
+{$endif i8086}
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE,
@@ -372,9 +376,13 @@ interface
           LOC_SUBSETREF,
           LOC_CSUBSETREF:
             begin
-              location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+              location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
+{$ifdef i8086}
+              if is_farpointer(left.resultdef) or is_hugepointer(left.resultdef) then
+                location.reference.segment := GetNextReg(location.reference.base);
+{$endif i8086}
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
             end;
