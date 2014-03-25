@@ -67,9 +67,6 @@ const
       MAXLOG =  8.8029691931113054295988E1;    { log(2**127)  }
       MINLOG = -8.872283911167299960540E1;     { log(2**-128) }
 
-      DP1 =   7.85398125648498535156E-1;
-      DP2 =   3.77489470793079817668E-8;
-      DP3 =   2.69515142907905952645E-15;
       zero: double = 0;
 
 {$if not defined(FPC_SYSTEM_HAS_SIN) or not defined(FPC_SYSTEM_HAS_COS)}
@@ -895,6 +892,9 @@ type
     function rem_pio2(x: double; out z: double): sizeint;
     const
       tol: double = 2.384185791015625E-7;  {lossth*eps_d}
+      DP1 = double(7.85398125648498535156E-1);
+      DP2 = double(3.77489470793079817668E-8);
+      DP3 = double(2.69515142907905952645E-15);
     var
       i,e0,nx: longint;
       y: double;
