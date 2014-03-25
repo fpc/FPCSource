@@ -1694,18 +1694,6 @@ End;
 
 {*
 -------------------------------------------------------------------------------
-Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is
-equal to the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
-returns 0.
--------------------------------------------------------------------------------
-*}
-Function eq64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
-Begin
-    eq64 :=  flag( a0 = b0 ) and flag( a1 = b1 );
-End;
-
-{*
--------------------------------------------------------------------------------
 Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is less
 than or equal to the 64-bit value formed by concatenating `b0' and `b1'.
 Otherwise, returns 0.
@@ -1728,18 +1716,6 @@ returns 0.
 Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
 Begin
     lt64 := flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 < b1 ) );
-End;
-
-{*
--------------------------------------------------------------------------------
-Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is not
-equal to the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
-returns 0.
--------------------------------------------------------------------------------
-*}
-Function ne64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
-Begin
-    ne64:= flag( a0 <> b0 ) or flag( a1 <> b1 );
 End;
 
 const
@@ -2724,8 +2700,8 @@ Procedure
       Begin
         if (( $7FD < zExp )
              or (( zExp = $7FD )
-                  and (eq64( $001FFFFF, $FFFFFFFF, zSig0, zSig1 )<>0)
-                  and (increment<>0)
+                   and (zSig0=$001FFFFF) and (zSig1=$FFFFFFFF)
+                   and (increment<>0)
                 )
            ) then
            Begin
