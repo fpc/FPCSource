@@ -454,7 +454,7 @@ implementation
                       begin
                         hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
                         { we need to load only an address }
-                        location.size:=OS_ADDR;
+                        location.size:=int_cgsize(voidpointertype.size);
                         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,location,hregister);
                       end;
                     { assume packed records may always be unaligned }
@@ -464,6 +464,10 @@ implementation
                     else
                       location_reset_ref(location,LOC_REFERENCE,newsize,1);
                     location.reference.base:=hregister;
+{$ifdef i8086}
+                    if current_settings.x86memorymodel in x86_far_data_models then
+                      location.reference.segment:=GetNextReg(hregister);
+{$endif i8086}
                   end;
 
                 { make const a LOC_CREFERENCE }
