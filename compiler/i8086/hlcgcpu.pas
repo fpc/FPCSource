@@ -41,6 +41,8 @@ interface
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
+      function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
+
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -172,6 +174,15 @@ implementation
         else
           internalerror(2002042430);
       end;
+    end;
+
+
+  function thlcgcpu.getaddressregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      if is_farpointer(size) or is_hugepointer(size) then
+        Result:=cg.getintregister(list,OS_32)
+      else
+        Result:=cg.getintregister(list,OS_16);
     end;
 
 
