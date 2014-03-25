@@ -1032,36 +1032,125 @@ unit cgcpu;
           begin
             if use_push(cgpara) then
               begin
-                cgpara.check_simple_location;
-                opsize:=tcgsize2opsize[OS_ADDR];
-                if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
+                if tcgsize2size[cgpara.Size] > 2 then
                   begin
-                    if assigned(symbol) then
+                    if tcgsize2size[cgpara.Size] <> 4 then
+                      internalerror(2014032401);
+                    if cgpara.location^.Next = nil then
                       begin
-                        if current_settings.cputype < cpu_186 then
-                          begin
-                            tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
-                            list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                          end
-                        else
-                          list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                        if tcgsize2size[cgpara.location^.size] <> 4 then
+                          internalerror(2014032401);
                       end
                     else
-                      push_const(list,OS_ADDR,offset);
+                      begin
+                        if tcgsize2size[cgpara.location^.size] <> 2 then
+                          internalerror(2014032401);
+                        if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                          internalerror(2014032401);
+                        if cgpara.location^.Next^.Next <> nil then
+                          internalerror(2014032401);
+                      end;
+                    if cgpara.alignment > 4 then
+                      internalerror(2014032401);
+
+                    if segment<>NR_NO then
+                      begin
+                        list.concat(Taicpu.op_reg(A_PUSH,S_W,segment));
+                        tmpref:=r;
+                        tmpref.segment:=NR_NO;
+                        tmpreg:=getaddressregister(list);
+                        a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                        list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                      end
+                    else
+                      begin
+                        if (base=NR_NO) and (index=NR_NO) then
+                          begin
+                            if assigned(symbol) then
+                              begin
+                                tmpref:=r;
+                                tmpref.refaddr:=addr_seg;
+                                tmpref.offset:=0;
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_ref(A_PUSH,S_W,tmpref));
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_loadaddr_ref_reg(list,r,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_W,symbol,offset));
+                              end
+                            else
+                              internalerror(2014032402);
+                          end
+                        else if assigned(symbol) then
+                          begin
+                            reference_reset_symbol(tmpref,r.symbol,0,0);
+                            tmpref.refaddr:=addr_seg;
+                            if current_settings.cputype < cpu_186 then
+                              begin
+                                tmpreg:=getaddressregister(list);
+                                a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
+                                list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                              end
+                            else
+                              list.concat(Taicpu.Op_ref(A_PUSH,S_W,tmpref));
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end
+                        else if base=NR_BP then
+                          begin
+                            list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_SS));
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end
+                        else
+                          internalerror(2014032403);
+                      end;
                   end
-                else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
-                        (offset=0) and (scalefactor=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
-                        (offset=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
                 else
                   begin
-                    tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
-                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                  end;
+                    cgpara.check_simple_location;
+                    opsize:=tcgsize2opsize[OS_ADDR];
+                    if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
+                      begin
+                        if assigned(symbol) then
+                          begin
+                            if current_settings.cputype < cpu_186 then
+                              begin
+                                tmpreg:=getaddressregister(list);
+                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                              end
+                            else
+                              list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                          end
+                        else
+                          push_const(list,OS_ADDR,offset);
+                      end
+                    else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
+                            (offset=0) and (scalefactor=0) and (symbol=nil) then
+                      list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+                    else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
+                            (offset=0) and (symbol=nil) then
+                      list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+                    else
+                      begin
+                        tmpreg:=getaddressregister(list);
+                        a_loadaddr_ref_reg(list,r,tmpreg);
+                        list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                      end;
+                end;
               end
             else
               inherited a_loadaddr_ref_cgpara(list,r,cgpara);
