@@ -658,17 +658,17 @@ interface
          l1 : tasmlabel;
          hr : treference;
       begin
-         location_reset(location,LOC_REGISTER,OS_ADDR);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          current_asmdata.getjumplabel(l1);
-         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,
+         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,
            left.location,location.register);
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
+         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
-         cg.a_label(current_asmdata.CurrAsmList,l1);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+         hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
 
 
