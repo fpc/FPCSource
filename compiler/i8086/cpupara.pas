@@ -446,8 +446,8 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
-                paralen:=sizeof(aint);
-                paracgsize:=OS_ADDR;
+                paralen:=voidpointertype.size;
+                paracgsize:=int_cgsize(voidpointertype.size);
                 paradef:=getpointerdef(paradef);
               end
             else
