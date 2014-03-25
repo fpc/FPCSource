@@ -738,11 +738,6 @@ implementation
 
       begin
          inherited create(pointerconstn);
-{$ifdef i8086}
-         { truncate near pointers }
-         if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
-           v := Word(v);
-{$endif i8086}
          value:=v;
          typedef:=def;
       end;
