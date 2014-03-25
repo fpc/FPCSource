@@ -1327,10 +1327,6 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
-  { use Default8087CW instead
-  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
-  }
-
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
@@ -1343,25 +1339,7 @@ const
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
-    localfpucw: word;
   begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fldcw   localfpucw
-      fwait
-    end;
-    if has_sse_support then
-      begin
-        localmxcsr:=mxcsr;
-        asm
-          { setup sse exceptions }
-          ldmxcsr localmxcsr
-        end;
-      end;
   end;
 
 
@@ -1432,8 +1410,6 @@ procedure fpc_cpucodeinit;
       end;
 
     SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
 {$ifdef USE_FASTMOVE}
     setup_fastmove;
 {$endif}

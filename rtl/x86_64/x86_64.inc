@@ -925,8 +925,6 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
-  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
-
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
@@ -945,25 +943,11 @@ procedure fpc_cpuinit;
         mxcsr:=GetSSECSR;
       end;
     SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
-    localfpucw: word;
-
 begin
-  localmxcsr:=mxcsr;
-  localfpucw:=fpucw;
-  asm
-    fldcw localfpucw
-    { set sse exceptions }
-    ldmxcsr localmxcsr
-  end ['RAX'];
 end;
 
 
