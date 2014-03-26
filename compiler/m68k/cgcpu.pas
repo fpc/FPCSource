@@ -91,17 +91,18 @@ unit cgcpu;
         procedure g_adjust_self_value(list:TAsmList;procdef:tprocdef;ioffset:tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
+        { # Sign or zero extend the register to a full 32-bit value.
+            The new value is left in the same register.
+        }
+        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
+        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
+
      protected
         function fixref(list: TAsmList; var ref: treference): boolean;
 
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
      private
-        { # Sign or zero extend the register to a full 32-bit value.
-            The new value is left in the same register.
-        }
-        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
-        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
@@ -837,7 +838,7 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
        href : treference;
-       size : tcgsize;
+        size : tcgsize;
       begin
         href := ref;
         fixref(list,href);
@@ -936,7 +937,7 @@ unit cgcpu;
          instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
          add_move_instruction(instr);
          list.concat(instr);
-         sign_extend(list, fromsize, tosize, reg2);
+         sign_extend(list, fromsize, reg2);
       end;
 
 
@@ -953,7 +954,7 @@ unit cgcpu;
            size:=tosize;
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
-         sign_extend(list, fromsize, tosize, register);
+         sign_extend(list, fromsize, register);
       end;
 
 
