@@ -89,7 +89,7 @@ Type
     FMySQL : PMySQL;
     function GetClientInfo: string;
     function GetServerStatus: String;
-    procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
+    procedure ConnectMySQL(var HMySQL: PMySQL);
     procedure ExecuteDirectMySQL(const query : string);
     function EscapeString(const Str : string) : string;
   protected
@@ -242,7 +242,8 @@ const
 
 Resourcestring
   SErrServerConnectFailed = 'Server connect failed.';
-  SErrDatabaseSelectFailed = 'failed to select database: %s';
+  SErrSetCharsetFailed = 'Failed to set connection character set: %s';
+  SErrDatabaseSelectFailed = 'Failed to select database: %s';
   SErrDatabaseCreate = 'Failed to create database: %s';
   SErrDatabaseDrop = 'Failed to drop database: %s';
   SErrNoData = 'No data for record';
@@ -328,7 +329,7 @@ begin
   Result:=mysql_insert_id(GetHandle);
 end;
 
-procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
+procedure TConnectionName.ConnectMySQL(var HMySQL: PMySQL);
 
 Var
   APort : Cardinal;
@@ -344,32 +345,34 @@ begin
 
   for i := 0 to Params.Count-1 do
     begin
-    if MysqlOption(params.Names[i],AMysql_Option) then
+    if MysqlOption(Params.Names[i],AMysql_Option) then
       begin
-      OptStr:=params.ValueFromIndex[i];
+      OptStr:=Params.ValueFromIndex[i];
       val(OptStr,OptInt,e);
       if e=0 then
         Opt := @OptInt
       else
         Opt := pchar(OptStr);
       if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
-          MySQLError(HMySQL,Format(SErrSettingParameter,[params.Names[i]]),Self);
+          MySQLError(HMySQL,Format(SErrSettingParameter,[Params.Names[i]]),Self);
       end;
     end;
 
-  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,CLIENT_MULTI_RESULTS); //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
+  HMySQL:=mysql_real_connect(HMySQL,PChar(HostName),PChar(UserName),PChar(Password),Nil,APort,Nil,CLIENT_MULTI_RESULTS); //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
   If (HMySQL=Nil) then
     MySQLError(Nil,SErrServerConnectFailed,Self);
 
-  // MySQL _Server_ version 4.1 and later
-  // major_version*10000 + minor_version *100 + sub_version
-  if (trim(CharSet) <> '')  and (4*10000 + 1*100 <= mysql_get_server_version(HMySQL)) then
-    begin
-    // Only available for mysql 5.0.7 and later...
-    // if (mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0) then
-    if mysql_query(FMySQL,PChar('SET CHARACTER SET ''' + EscapeString(CharSet) +''''))<>0 then
-      MySQLError(HMySQL,SErrExecuting,Self);
-    end;
+  if (trim(CharSet) <> '') then
+    // major_version*10000 + minor_version *100 + sub_version
+    if (50007 <= mysql_get_server_version(HMySQL)) then
+      begin
+      // Only available for MySQL 5.0.7 and later...
+      if mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0 then
+        MySQLError(HMySQL,SErrSetCharsetFailed,Self);
+      end
+    else
+      if mysql_query(HMySQL,PChar('SET NAMES ''' + EscapeString(CharSet) +'''')) <> 0 then
+        MySQLError(HMySQL,SErrExecuting,Self);
 end;
 
 function TConnectionName.GetAsSQLText(Field : TField) : string;
@@ -396,15 +399,8 @@ end;
 
 
 procedure TConnectionName.ConnectToServer;
-
-Var
-  H,U,P : String;
-
 begin
-  H:=HostName;
-  U:=UserName;
-  P:=Password;
-  ConnectMySQL(FMySQL,pchar(H),pchar(U),pchar(P));
+  ConnectMySQL(FMySQL);
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
 end;
@@ -430,8 +426,7 @@ end;
 
 procedure TConnectionName.ExecuteDirectMySQL(const query : string);
 
-var H,U,P       : String;
-    AMySQL      : PMySQL;
+var AMySQL      : PMySQL;
 
 begin
   CheckDisConnected;
@@ -439,11 +434,8 @@ begin
   InitialiseMysql;
 
   try
-    H:=HostName;
-    U:=UserName;
-    P:=Password;
     AMySQL := nil;
-    ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
+    ConnectMySQL(AMySQL);
     try
       if mysql_query(AMySQL,pchar(query))<>0 then
         MySQLError(AMySQL,SErrExecuting,Self);
@@ -597,6 +589,7 @@ begin
       // paramreplacestring kan een probleem geven bij postgres als hij niet meer gewoon $ is?
       C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
       end;
+    Log(detExecute, C.FStatement);
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
       begin
       if not ForcedClose then
