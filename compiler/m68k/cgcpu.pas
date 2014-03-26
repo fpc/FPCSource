@@ -1425,8 +1425,12 @@ unit cgcpu;
           list.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[size],reg))
         else 
           begin
-            { ColdFire also needs S_L for CMPI }
-            if current_settings.cputype in cpu_coldfire then
+            { ColdFire ISA A also needs S_L for CMPI }
+            { Note: older QEMU pukes from CMPI sizes <> .L even on ISA B/C, but
+              it's actually *LEGAL*, see CFPRM, page 4-30, the bug also seems
+              fixed in recent QEMU, but only when CPU cfv4e is forced, not by
+              default. (KB) }
+            if current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]} then
               begin
                 sign_extend(list, size, reg);
                 size:=OS_INT;
