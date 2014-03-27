@@ -108,7 +108,7 @@ interface
 implementation
 
 uses
-  SysUtils,strutils,
+  SysUtils,
   cfileutl,
   systems,version,
   symtable, symsym,
