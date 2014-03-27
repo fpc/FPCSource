@@ -149,6 +149,16 @@ implementation
 {$endif avr}
       end;
 
+
+    procedure set_default_ptr_types;
+      begin
+{$ifdef i8086}
+        voidstackpointertype:=voidnearsspointertype;
+{$else i8086}
+        voidstackpointertype:=voidpointertype;
+{$endif i8086}
+      end;
+
     procedure create_intern_types;
       {
         all the types inserted into the system unit
@@ -296,6 +306,7 @@ implementation
         longintfarpointertype:=tpointerdef.createx86(s32inttype,x86pt_far);
   {$endif i8086}
 {$endif x86}
+        set_default_ptr_types;
         cfiletype:=tfiledef.createuntyped;
         cvarianttype:=tvariantdef.create(vt_normalvariant);
         colevarianttype:=tvariantdef.create(vt_olevariant);
@@ -586,6 +597,7 @@ implementation
         loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
         set_default_int_types;
+        set_default_ptr_types;
         set_current_module(oldcurrentmodule);
       end;
 
