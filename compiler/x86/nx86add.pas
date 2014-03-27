@@ -36,7 +36,7 @@ unit nx86add;
       protected
         function  getresflags(unsigned : boolean) : tresflags;
         procedure left_must_be_reg(opdef: tdef; opsize:TCGSize;noswap:boolean);
-        procedure check_left_and_right_fpureg(force_fpureg: boolean);
+        procedure force_left_and_right_fpureg;
         procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
@@ -235,25 +235,21 @@ unit nx86add;
        end;
 
 
-    procedure tx86addnode.check_left_and_right_fpureg(force_fpureg: boolean);
+    procedure tx86addnode.force_left_and_right_fpureg;
       begin
         if (right.location.loc<>LOC_FPUREGISTER) then
-         begin
-           if (force_fpureg) then
-             begin
-               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
-                if (left.location.loc<>LOC_FPUREGISTER) then
-                  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
-                else
-                  { left was on the stack => swap }
-                  toggleflag(nf_swapped);
-             end
-         end
+          begin
+            hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
+            if (left.location.loc<>LOC_FPUREGISTER) then
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
+            else
+              { left was on the stack => swap }
+              toggleflag(nf_swapped);
+          end
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
           begin
-            if (force_fpureg) then
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
+            hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false)
           end
         else
           begin
@@ -720,7 +716,9 @@ unit nx86add;
           end;
 
         pass_left_right;
-        check_left_and_right_fpureg(false);
+        { fpu operands are always in reversed order on the stack }
+        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+          toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
@@ -859,7 +857,9 @@ unit nx86add;
 {$endif dummy}
 
         pass_left_right;
-        check_left_and_right_fpureg(false);
+        { fpu operands are always in reversed order on the stack }
+        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+          toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
@@ -1193,7 +1193,7 @@ unit nx86add;
             internalerror(2003042214);
         end;
 
-        check_left_and_right_fpureg(true);
+        force_left_and_right_fpureg;
 
         { if we swaped the tree nodes, then use the reverse operator }
         if nf_swapped in flags then
@@ -1228,7 +1228,7 @@ unit nx86add;
           end;
 
         pass_left_right;
-        check_left_and_right_fpureg(true);
+        force_left_and_right_fpureg;
 
 {$ifndef x86_64}
         if current_settings.cputype<cpu_Pentium2 then
