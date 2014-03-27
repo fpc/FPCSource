@@ -93,6 +93,8 @@ package=ufcl-jsdos.zip[ufcjsdos.zip],Free Component Library (FCL)-Javascript sup
 package=uhermesdos.zip[uhermdos.zip],Port of Hermes graphics library
 # Dos 33
 package=ufppkgdos.zip[ufppkdos.zip],Units for FPPkg packaging support
+# Dos 34
+package=ufcl-sounddos.zip[ufsnddos.zip],Free Component Library (FCL)-sound files
 
 #
 # Win32 packages
@@ -220,7 +222,8 @@ package=units-fcl-res.i386-win32.zip,Free Component Library (FCL)-resources
 package=units-bzip2.i386-win32.zip,Units for bzip2 decompression
 # Win32-2 30
 package=units-fcl-js.i386-win32.zip,Free Component Library (FCL)-Javascript support
-
+# Win32-2 31
+package=units-fcl-sound.i386-win32.zip,Free Component Library (FCL)-sound files
 
 #
 # OS/2 packages
@@ -334,6 +337,8 @@ package=ufcl-resos2.zip[ufcleos2.zip],Free Component Library (FCL)-resources
 package=ubzip2os2.zip[ubz2os2.zip],Units for bzip2 decompression
 # OS/2-2 25
 package=ufcl-jsos2.zip[ufcjsos2.zip],Free Component Library (FCL)-Javascript support
+# OS/2-2 26
+package=ufcl-soundos2.zip[ufsndos2.zip],Free Component Library (FCL)-sound files
 
 
 
@@ -450,6 +455,8 @@ package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
 package=ubzip2emx.zip[ubz2emx.zip],Units for bzip2 decompression
 # EMX-2 25
 package=ufcl-jsemx.zip[ufcjsemx.zip],Free Component Library (FCL)-Javascript support
+# EMX 26
+package=ufcl-soundemx.zip[ufsndemx.zip],Free Component Library (FCL)-sound files
 
 
 #
@@ -615,6 +622,8 @@ package=oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
 package=openal.source.zip[uoalsrc.zip],OpenAL interface units sources
 # Source-3 20
 package=openssl.source.zip[uosslsrc.zip],OpenSSL interface units sources
+# Source-3 21
+package=fcl-sound.source.zip[ufsndsrc.zip],Free Component Library (FCL)-sound files sources
 
 defaultcfg=
 #
