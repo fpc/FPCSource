@@ -2696,11 +2696,12 @@ begin
   inherited DoInternalConnect;
   CreateProxy;
   FProxy.CharSet:=Self.CharSet;
-  FProxy.Role:=Self.Role;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
-  FProxy.UserName:=Self.UserName;
+  FProxy.LogEvents:=Self.LogEvents;
   FProxy.Password:=Self.Password;
+  FProxy.Role:=Self.Role;
+  FProxy.UserName:=Self.UserName;
   FProxy.FTransaction:=Self.Transaction;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
@@ -2887,8 +2888,7 @@ function TSQLConnector.GetSchemaInfoSQL(SchemaType: TSchemaType;
   SchemaObjectName, SchemaPattern: string): string;
 begin
   CheckProxy;
-  Result:=FProxy.GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern
-    );
+  Result:=FProxy.GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern);
 end;
 
 
