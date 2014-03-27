@@ -200,7 +200,7 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+            if (cgpara.size=OS_NO) or (size=OS_NO) then
               begin
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
@@ -212,9 +212,19 @@ unit cgcpu;
               begin
                 if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
                   internalerror(200501161);
-                { We need to push the data in reverse order,
-                  therefor we use a recursive algorithm }
-                pushdata(cgpara.location,0);
+                if (cgpara.size=OS_F64) then
+                  begin
+                    href:=r;
+                    make_simple_ref(list,href);
+                    inc(href.offset,4);
+                    list.concat(taicpu.op_ref(A_PUSH,S_L,href));
+                    dec(href.offset,4);
+                    list.concat(taicpu.op_ref(A_PUSH,S_L,href));
+                  end
+                else
+                  { We need to push the data in reverse order,
+                    therefor we use a recursive algorithm }
+                  pushdata(cgpara.location,0);
               end
           end
         else
