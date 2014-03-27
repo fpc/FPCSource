@@ -2,7 +2,7 @@
 {
     This file is part of the Free Pascal's "Free Components Library".
     Copyright (c) 2014 by Mazen NEIFER of the Free Pascal development team
-	and was adapted from wavopenal.pas copyright (c) 2010 Dmitry Boyarintsev. 
+    and was adapted from wavopenal.pas copyright (c) 2010 Dmitry Boyarintsev.
 
     RIFF/WAVE sound file basic types and constants.
 
