@@ -2906,7 +2906,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
-	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
