@@ -13,7 +13,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit fpWavWriter;
+unit fpwavwriter;
 
 {$mode objfpc}{$H+}
 
@@ -142,7 +142,7 @@ begin
   with fStream do begin
     sz := Write(Buffer, BufferSize);
     if sz < 0 then Exit;
-    Result += sz;
+    Inc(Result, sz);
   end;
 end;
 

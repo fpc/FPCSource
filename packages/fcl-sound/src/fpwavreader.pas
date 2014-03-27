@@ -13,7 +13,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit fpWavReader;
+unit fpwavreader;
 
 {$mode objfpc}{$H+}
 
@@ -133,8 +133,8 @@ begin
       sz := Min(BufferSize, DataChunk.Size - ChunkPos);
       sz := fStream.Read(p[i], sz);
       EoF := sz <= 0;
-      ChunkPos += sz;
-      i += sz;
+      Inc(ChunkPos, sz);
+      Inc(i, sz);
     end;
   end;
   Result := i;
