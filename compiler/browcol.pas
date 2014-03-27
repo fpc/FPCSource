@@ -48,7 +48,7 @@ const
     sfObject        = $00000002;
     sfClass         = $00000004;
     sfPointer       = $00000008;
-    sfHasMemInfo    = $80000000;
+    sfHasMemInfo    = $40000000;
 
 type
     TStoreCollection = object(TStringCollection)
