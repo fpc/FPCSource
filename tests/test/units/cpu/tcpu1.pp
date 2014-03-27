@@ -29,7 +29,7 @@ begin
     begin
       writeln('yes');
       asm
-        vpxor %ymm0,%ymm0,%ymm0
+        pxor %xmm0,%xmm0
         vfmadd132SS %xmm0,%xmm0,%xmm0
       end;
     end
