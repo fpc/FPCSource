@@ -25,17 +25,17 @@ begin
     P.Email := '';
     P.Description := 'Sound loading, storing and conversion parts for the Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes:=AllOSes-[embedded,msdos];
 
     P.SourcePath.Add('src');
-    P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('fpwavformat');
-    T:=P.Targets.AddUnit('fpwavreader');
+    T:=P.Targets.AddUnit('fpwavformat.pas');
+    T:=P.Targets.AddUnit('fpwavreader.pas');
       with T.Dependencies do
         begin
           AddUnit('fpwavformat');
         end;
-    T:=P.Targets.AddUnit('fpwavwriter');
+    T:=P.Targets.AddUnit('fpwavwriter.pas');
       with T.Dependencies do
         begin
           AddUnit('fpwavformat');
