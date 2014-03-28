@@ -392,8 +392,8 @@ implementation
               not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
               ((def.typ=objectdef) and not is_object(def)) then
             internalerror(201202101);
-          defaultname:=make_mangledname('zero',def.owner,def.typesym.Name);
-          hashedid.id:=defaultname;
+          defaultname:=make_mangledname('$zero',def.owner,def.typesym.Name);
+          hashedid.id:=copy(defaultname,2,255);
           { the default sym is always part of the current procedure/function }
           srsymtable:=current_procinfo.procdef.localst;
           srsym:=tsym(srsymtable.findwithhash(hashedid));
