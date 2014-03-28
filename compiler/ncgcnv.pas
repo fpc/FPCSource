@@ -273,19 +273,21 @@ interface
       begin
          if left.nodetype<>stringconstn then
            internalerror(200601131);
-         location_reset(location,LOC_REGISTER,OS_ADDR);
+         if not is_pchar(resultdef) and not is_pwidechar(resultdef) then
+           internalerror(2014032802);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          case tstringconstnode(left).cst_type of
            cst_conststring :
              begin
-               location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-               cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+               location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+               hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
              end;
            cst_shortstring :
              begin
                inc(left.location.reference.offset);
                location.reference.alignment:=1;
-               location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-               cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+               location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+               hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
              end;
            cst_widestring,
            cst_unicodestring,
@@ -296,8 +298,8 @@ interface
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-                  location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
+                  location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
                 end
                else
                 begin
