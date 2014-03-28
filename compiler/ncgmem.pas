@@ -193,8 +193,8 @@ implementation
       begin
          secondpass(left);
 
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         location_reset(location,LOC_REGISTER,int_cgsize(resultdef.size));
+         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
          if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            { on x86_64-win64, array of chars can be returned in registers, however,
              when passing these arrays to other functions, the compiler wants to take
@@ -205,7 +205,7 @@ implementation
              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
            else
              internalerror(2006111510);
-         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
 

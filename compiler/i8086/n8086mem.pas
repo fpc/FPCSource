@@ -31,10 +31,6 @@ interface
       node,nmem,ncgmem,nx86mem;
 
     type
-       ti8086addrnode = class(tcgaddrnode)
-         procedure pass_generate_code;override;
-       end;
-
        ti8086derefnode = class(tx86derefnode)
          procedure pass_generate_code;override;
        end;
@@ -51,38 +47,6 @@ implementation
       cgutils,cgobj,
       defutil,hlcgobj,
       pass_2,ncgutil;
-
-{*****************************************************************************
-                             TI8086ADDRNODE
-*****************************************************************************}
-
-    procedure ti8086addrnode.pass_generate_code;
-      var
-        segref: treference;
-      begin
-        if (current_settings.x86memorymodel in x86_far_code_models) and
-           (left.nodetype=loadn) and
-           (tloadnode(left).symtableentry.typ=labelsym) then
-          begin
-            secondpass(left);
-
-            location_reset(location,LOC_REGISTER,OS_32);
-            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-              internalerror(2013091801);
-
-            { load offset }
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
-
-            { load segment }
-            segref:=left.location.reference;
-            segref.refaddr:=addr_seg;
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,GetNextReg(location.register));
-          end
-        else
-          inherited;
-      end;
-
 
 {*****************************************************************************
                              TI8086DEREFNODE
@@ -164,6 +128,5 @@ implementation
 
 
 begin
-  caddrnode:=ti8086addrnode;
   cderefnode:=ti8086derefnode;
 end.
