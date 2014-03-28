@@ -48,6 +48,8 @@ interface
 
       procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
 
+      procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
+
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -64,7 +66,8 @@ implementation
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
     defutil,
     symconst,
-    procinfo;
+    procinfo,
+    aasmcpu;
 
   { thlcgcpu }
 
@@ -198,6 +201,43 @@ implementation
       inherited reference_reset_base(ref, regsize, reg, offset, alignment);
       if is_farpointer(regsize) or is_hugepointer(regsize) then
         ref.segment:=GetNextReg(reg);
+    end;
+
+
+  procedure thlcgcpu.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+    var
+      tmpref,segref: treference;
+    begin
+      { step 1: call the x86 low level code generator to handle the offset;
+        we set the segment to NR_NO to disable the i8086 segment handling code
+        in the low level cg (which can be removed, once all calls to
+        a_loadaddr_ref_reg go through the high level code generator) }
+      tmpref:=ref;
+      tmpref.segment:=NR_NO;
+      cg.a_loadaddr_ref_reg(list, tmpref, r);
+
+      { step 2: if destination is a far pointer, we have to pass a segment as well }
+      if is_farpointer(tosize) or is_hugepointer(tosize) then
+        begin
+          { if a segment register is specified in ref, we use that }
+          if ref.segment<>NR_NO then
+            begin
+              if is_segment_reg(ref.segment) then
+                list.concat(Taicpu.op_reg_reg(A_MOV,S_W,ref.segment,GetNextReg(r)))
+              else
+                cg.a_load_reg_reg(list,OS_16,OS_16,ref.segment,GetNextReg(r));
+            end
+          { references relative to a symbol use the segment of the symbol,
+            which can be obtained by the SEG directive }
+          else if assigned(ref.symbol) then
+            begin
+              reference_reset_symbol(segref,ref.symbol,0,0);
+              segref.refaddr:=addr_seg;
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,GetNextReg(r));
+            end
+          else
+            internalerror(2014032801);
+        end;
     end;
 
 
