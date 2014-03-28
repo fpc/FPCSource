@@ -1900,8 +1900,8 @@ implementation
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
-                  cg.a_loadaddr_ref_reg(list,selfloc.reference,href.base);
+                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
+                  hlcg.a_loadaddr_ref_reg(list,voidpointertype,voidpointertype,selfloc.reference,href.base);
                   selfdef:=getpointerdef(objdef);
                 end;
               else
@@ -1925,7 +1925,7 @@ implementation
                     end
                   else
 {$endif cpu_uses_separate_address_registers}
-                    reference_reset_base(href,selfloc.register,objdef.vmt_offset,sizeof(pint));
+                    hlcg.reference_reset_base(href,voidpointertype,selfloc.register,objdef.vmt_offset,voidpointertype.size);
                 end;
               LOC_CONSTANT,
               LOC_CREGISTER,
@@ -1936,7 +1936,7 @@ implementation
               LOC_CSUBSETREF,
               LOC_SUBSETREF:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
+                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
                   { todo: pass actual vmt pointer type to hlcg }
                   hlcg.a_load_loc_reg(list,voidpointertype,voidpointertype,selfloc,href.base);
                 end;
@@ -1944,9 +1944,9 @@ implementation
                 internalerror(200305057);
             end;
           end;
-        vmtreg:=cg.getaddressregister(list);
+        vmtreg:=hlcg.getaddressregister(list,voidpointertype);
         hlcg.g_maybe_testself(list,selfdef,href.base);
-        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
+        hlcg.a_load_ref_reg(list,voidpointertype,voidpointertype,href,vmtreg);
 
         { test validity of VMT }
         if not(is_interface(objdef)) and

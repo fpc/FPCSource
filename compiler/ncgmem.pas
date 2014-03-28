@@ -102,16 +102,16 @@ implementation
         entry   : PHashSetItem;
 
       begin
-         location_reset(location,LOC_REGISTER,OS_ADDR);
+         location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
          if (left.nodetype=typen) then
            begin
-             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
                  reference_reset_symbol(href,
                    current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
-                   sizeof(pint));
-                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+                   voidpointertype.size);
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
                end
              else
                begin
@@ -127,8 +127,8 @@ implementation
                      { find/add necessary classref/classname pool entries }
                      objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
-                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,voidpointertype.size);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
                end;
            end
          else
