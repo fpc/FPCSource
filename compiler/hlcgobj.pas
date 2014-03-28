@@ -107,6 +107,21 @@ unit hlcgobj;
              result loading, this is the register type used }
           function def2regtyp(def: tdef): tregistertype; virtual;
 
+          {# Returns a reference with its base address set from a pointer that
+             has been loaded in a register.
+
+             A generic version is provided. This routine should be overridden
+             on platforms which support pointers with different sizes (for
+             example i8086 near and far pointers) or require some other sort of
+             special consideration when converting a pointer in a register to a
+             reference.
+
+             @param(ref where the result is returned)
+             @param(regsize the type of the pointer, contained in the reg parameter)
+             @param(reg register containing the value of a pointer)
+          }
+          procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); virtual;
+
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
 
@@ -727,6 +742,14 @@ implementation
         end;
     end;
 
+  procedure thlcgobj.reference_reset_base(var ref: treference; regsize: tdef;
+    reg: tregister; offset, alignment: longint);
+    begin
+      reference_reset(ref,alignment);
+      ref.base:=reg;
+      ref.offset:=offset;
+    end;
+
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
     begin
       cg.a_label(list,l);
@@ -765,7 +788,7 @@ implementation
            a_load_reg_reg(list,size,cgpara.location^.def,r,cgpara.location^.register);
          LOC_REFERENCE,LOC_CREFERENCE:
            begin
-              reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_load_reg_ref(list,size,cgpara.location^.def,r,ref);
            end;
          LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -795,7 +818,7 @@ implementation
             a_load_const_reg(list,cgpara.location^.def,a,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-               reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+               reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                a_load_const_ref(list,cgpara.location^.def,a,ref);
             end
           else
@@ -926,7 +949,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,voidstackpointertype,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -2365,7 +2388,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               cgpara.check_simple_location;
-              reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_loadfpu_reg_ref(list,fromsize,cgpara.def,r,ref);
             end;
           LOC_REGISTER,LOC_CREGISTER:
@@ -2396,7 +2419,7 @@ implementation
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
             cgpara.check_simple_location;
-            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
             { concatcopy should choose the best way to copy the data }
             g_concatcopy(list,fromsize,ref,href);
           end;
@@ -2476,7 +2499,7 @@ implementation
           a_loadmm_reg_reg(list,fromsize,cgpara.def,reg,cgpara.location^.register,shuffle);
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
-            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
             a_loadmm_reg_ref(list,fromsize,cgpara.def,reg,href,shuffle);
           end;
         LOC_REGISTER,LOC_CREGISTER:
@@ -3805,14 +3828,14 @@ implementation
             begin
               if not loadref then
                 internalerror(200410231);
-              reference_reset_base(ref,l.register,0,alignment);
+              reference_reset_base(ref,voidpointertype,l.register,0,alignment);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               if loadref then
                 begin
-                  reference_reset_base(ref,getaddressregister(list,voidpointertype),0,alignment);
+                  reference_reset_base(ref,voidpointertype,getaddressregister(list,voidpointertype),0,alignment);
                   { it's a pointer to def }
                   a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
                 end
@@ -4305,7 +4328,7 @@ implementation
          if assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
-            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
             g_initialize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4353,7 +4376,7 @@ implementation
             is_managed_type(hp^.def) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
             g_finalize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4853,7 +4876,7 @@ implementation
                 case para.location^.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      reference_reset_base(href,para.location^.reference.index,para.location^.reference.offset,para.alignment);
+                      reference_reset_base(href,voidstackpointertype,para.location^.reference.index,para.location^.reference.offset,para.alignment);
                       a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
                     end;
                   else

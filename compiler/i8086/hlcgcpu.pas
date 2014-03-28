@@ -37,11 +37,16 @@ interface
 
 
   type
+
+    { thlcgcpu }
+
     thlcgcpu = class(thlcgx86)
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
       function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
+
+      procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
 
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
@@ -58,7 +63,8 @@ implementation
     paramgr,
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
     defutil,
-    symconst;
+    symconst,
+    procinfo;
 
   { thlcgcpu }
 
@@ -85,10 +91,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
                     end
                   else
-                    reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                   cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                 end;
               LOC_FPUREGISTER:
@@ -130,10 +136,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
                     end
                   else
-                    reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                   cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                 end;
               LOC_FPUREGISTER:
@@ -159,7 +165,7 @@ implementation
                     cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                   else
                     begin
-                      reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                       cg.g_concatcopy(list,l.reference,href,stacksize);
                     end;
                 end;
@@ -183,6 +189,15 @@ implementation
         Result:=cg.getintregister(list,OS_32)
       else
         Result:=cg.getintregister(list,OS_16);
+    end;
+
+
+  procedure thlcgcpu.reference_reset_base(var ref: treference; regsize: tdef;
+    reg: tregister; offset, alignment: longint);
+    begin
+      inherited reference_reset_base(ref, regsize, reg, offset, alignment);
+      if is_farpointer(regsize) or is_hugepointer(regsize) then
+        ref.segment:=GetNextReg(reg);
     end;
 
 
