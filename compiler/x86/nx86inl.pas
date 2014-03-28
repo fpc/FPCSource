@@ -316,7 +316,7 @@ implementation
              case tfloatdef(resultdef).floattype of
                s32real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE'),0,4);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -326,7 +326,7 @@ implementation
                  end;
                s64real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE'),0,4);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
