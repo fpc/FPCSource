@@ -76,7 +76,7 @@ implementation
       symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil, cclasses,asmutils,tgobj
+      ncgutil,hlcgobj,symtype,cclasses,asmutils,tgobj
       ;
 
 
@@ -264,6 +264,8 @@ implementation
          pool: THashSet;
          entry: PHashSetItem;
          winlikewidestring: boolean;
+         elementdef: tdef;
+         strpointerdef: tdef;
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -275,10 +277,27 @@ implementation
           sp_unicodestr
         );
       begin
+         case cst_type of
+           cst_shortstring,
+           cst_conststring,
+           cst_ansistring:
+             begin
+               elementdef:=cansichartype;
+               strpointerdef:=charpointertype;
+             end;
+           cst_widestring,
+           cst_unicodestring:
+             begin
+               elementdef:=cwidechartype;
+               strpointerdef:=widecharpointertype;
+             end;
+           else
+             internalerror(2014032803);
+         end;
          { for empty ansistrings we could return a constant 0 }
          if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and (len=0) then
           begin
-            location_reset(location,LOC_CONSTANT,OS_ADDR);
+            location_reset(location,LOC_CONSTANT,def_cgsize(strpointerdef));
             location.value:=0;
             exit;
           end;
@@ -373,16 +392,16 @@ implementation
            end;
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
-             location_reset(location, LOC_REGISTER, OS_ADDR);
+             location_reset(location, LOC_REGISTER, def_cgsize(strpointerdef));
              reference_reset_symbol(href, lab_str,
                get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring),
-               const_align(sizeof(pint)));
-             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+               const_align(strpointerdef.size));
+             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
+             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,elementdef,strpointerdef,href,location.register)
            end
          else
            begin
-             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(sizeof(pint)));
+             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(strpointerdef.size));
              location.reference.symbol:=lab_str;
            end;
       end;
