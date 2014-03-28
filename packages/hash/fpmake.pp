@@ -17,11 +17,11 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Author := 'Free Pascal development team, Mark Adler, Jacques Nomssi Nzali';
+    P.Author := 'Free Pascal development team, Mark Adler, Jacques Nomssi Nzali, Silvio Clecio';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'Several hash algorithms (MD5,CRC,Linux crypt and NTLM1).';
+    P.Description := 'Several hash and cryptography algorithms (MD5,CRC,Linux crypt and NTLM1).';
     P.NeedLibC:= false;
     P.OSes:=P.OSes-[embedded];
     P.Dependencies.Add('rtl-objpas');
@@ -32,11 +32,14 @@ begin
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
+    T:=P.Targets.AddUnit('src/hmac.pas');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
     T:=P.Targets.AddExampleunit('examples/crctest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1test.pp');
+    T:=P.Targets.AddExampleunit('examples/hmd5.pas');
+    T:=P.Targets.AddExampleunit('examples/hsha1.pas');
     // md5.ref
 {$ifndef ALLPACKAGES}
     Run;
