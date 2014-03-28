@@ -40,8 +40,7 @@ unit nx86add;
         procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
-        procedure second_cmpfloatsse;
-        procedure second_cmpfloatavx;
+        procedure second_cmpfloatvector;
 
         procedure second_addfloatsse;
         procedure second_addfloatavx;
@@ -989,29 +988,33 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.second_cmpfloatsse;
+    procedure tx86addnode.second_cmpfloatvector;
       var
         op : tasmop;
+      const
+        ops_single: array[boolean] of tasmop = (A_COMISS,A_VCOMISS);
+        ops_double: array[boolean] of tasmop = (A_COMISD,A_VCOMISD);
       begin
         if is_single(left.resultdef) then
-          op:=A_COMISS
+          op:=ops_single[UseAVX]
         else if is_double(left.resultdef) then
-          op:=A_COMISD
+          op:=ops_double[UseAVX]
         else
           internalerror(200402222);
         pass_left_right;
 
-        location_reset(location,LOC_FLAGS,def_cgsize(resultdef));
-        { we can use only right as left operand if the operation is commutative }
-        if (right.location.loc=LOC_MMREGISTER) then
+        location_reset(location,LOC_FLAGS,OS_NO);
+
+        { Direct move fpu->mm register is not possible, so force any fpu operands to
+          memory (not to mm registers because one of the memory locations can be used
+          directly in compare instruction, yielding shorter code) }
+        if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+        if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
+
+        if (right.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
           begin
-            { force floating point reg. location to be written to memory,
-              we don't force it to mm register because writing to memory
-              allows probably shorter code because there is no direct fpu->mm register
-              copy instruction
-            }
-            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             case left.location.loc of
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
@@ -1023,86 +1026,11 @@ unit nx86add;
               else
                 internalerror(200402221);
             end;
-            if nf_swapped in flags then
-              exclude(flags,nf_swapped)
-            else
-              include(flags,nf_swapped)
-          end
-        else
-          begin
-            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-            { force floating point reg. location to be written to memory,
-              we don't force it to mm register because writing to memory
-              allows probably shorter code because there is no direct fpu->mm register
-              copy instruction
-            }
-            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
-            case right.location.loc of
-              LOC_REFERENCE,LOC_CREFERENCE:
-                begin
-                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,right.location.reference,left.location.register));
-                end;
-              LOC_MMREGISTER,LOC_CMMREGISTER:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,right.location.register,left.location.register));
-              else
-                internalerror(200402223);
-            end;
-          end;
-        location.resflags:=getresflags(true);
-      end;
-
-
-    procedure tx86addnode.second_cmpfloatavx;
-      var
-        op : tasmop;
-      begin
-        if is_single(left.resultdef) then
-          op:=A_VCOMISS
-        else if is_double(left.resultdef) then
-          op:=A_VCOMISD
-        else
-          internalerror(200402222);
-        pass_left_right;
-
-        location_reset(location,LOC_FLAGS,def_cgsize(resultdef));
-        { we can use only right as left operand if the operation is commutative }
-        if (right.location.loc=LOC_MMREGISTER) then
-          begin
-            { force floating point reg. location to be written to memory,
-              we don't force it to mm register because writing to memory
-              allows probably shorter code because there is no direct fpu->mm register
-              copy instruction
-            }
-            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-              hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-            case left.location.loc of
-              LOC_REFERENCE,LOC_CREFERENCE:
-                begin
-                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_NO,left.location.reference,right.location.register));
-                end;
-              LOC_MMREGISTER,LOC_CMMREGISTER:
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_NO,left.location.register,right.location.register));
-              else
-                internalerror(200402221);
-            end;
-            if nf_swapped in flags then
-              exclude(flags,nf_swapped)
-            else
-              include(flags,nf_swapped)
+            toggleflag(nf_swapped);
           end
         else
           begin
             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            { force floating point reg. location to be written to memory,
-              we don't force it to mm register because writing to memory
-              allows probably shorter code because there is no direct fpu->mm register
-              copy instruction
-            }
-            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
             case right.location.loc of
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
@@ -1116,6 +1044,8 @@ unit nx86add;
             end;
           end;
         location.resflags:=getresflags(true);
+        location_freetemp(current_asmdata.CurrAsmList,left.location);
+        location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 
@@ -1220,10 +1150,7 @@ unit nx86add;
       begin
         if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
-            if UseAVX then
-              second_cmpfloatavx
-            else
-              second_cmpfloatsse;
+            second_cmpfloatvector;
             exit;
           end;
 
