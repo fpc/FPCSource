@@ -463,11 +463,7 @@ implementation
                       location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment)
                     else
                       location_reset_ref(location,LOC_REFERENCE,newsize,1);
-                    location.reference.base:=hregister;
-{$ifdef i8086}
-                    if current_settings.x86memorymodel in x86_far_data_models then
-                      location.reference.segment:=GetNextReg(hregister);
-{$endif i8086}
+                    hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
                   end;
 
                 { make const a LOC_CREFERENCE }
