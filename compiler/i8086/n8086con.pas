@@ -30,7 +30,7 @@ interface
 
     type
 
-      { tcgpointerconstnode }
+      { ti8086pointerconstnode }
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
         constructor create(v : TConstPtrUInt;def:tdef);override;
