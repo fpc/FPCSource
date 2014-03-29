@@ -337,7 +337,7 @@ implementation
                 (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
-                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
+                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),voidpointertype.size);
                  case left.location.loc of
                     LOC_CREGISTER,
                     LOC_REGISTER:
@@ -351,7 +351,7 @@ implementation
                           end
                         else
                       {$endif}
-                          location.reference.base := left.location.register;
+                          hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
                       end;
                     LOC_CREFERENCE,
                     LOC_REFERENCE,
@@ -361,7 +361,8 @@ implementation
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
                       begin
-                         location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         hlcg.reference_reset_base(location.reference,left.resultdef,
+                           hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
