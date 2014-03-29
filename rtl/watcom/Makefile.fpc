@@ -137,10 +137,6 @@ ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                watcom$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc watcom$(PPUEXT) system$(PPUEXT)
-
-objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
-
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
 
 #
@@ -175,10 +171,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp
-
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -186,12 +178,6 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
-convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model
