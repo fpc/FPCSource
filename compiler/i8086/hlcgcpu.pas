@@ -235,6 +235,8 @@ implementation
               segref.refaddr:=addr_seg;
               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,GetNextReg(r));
             end
+          else if ref.base=NR_BP then
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(r)))
           else
             internalerror(2014032801);
         end;
