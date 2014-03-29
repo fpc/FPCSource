@@ -13,14 +13,14 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
 
   CollationOSes = [darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64];
-
+  CPUnits       = [aix,amiga,android,beos,darwin,iphonesim,emx,gba,freebsd,go32v2,haiku,linux,morphos,msdos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];  
 
 // Character not movable because fpwidestring depends on it.
 //  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64];
 
-  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes;
+  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits;
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
@@ -106,6 +106,21 @@ begin
 
     with T.Dependencies do
       AddUnit('freebidi');
+
+    T:=P.Targets.AddUnit('cpbuildu.pp',CPUnits);
+    T.Install:=False;
+    with T.Dependencies do
+      begin
+        AddUnit('cp932',CPUnits);
+        AddUnit('cp936',CPUnits);
+        AddUnit('cp949',CPUnits);
+        AddUnit('cp950',CPUnits);
+      end;
+    T:=P.Targets.AddImplicitUnit('cp932',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp936',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp949',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp950',CPUnits);
+
 //    T:=P.Targets.AddUnit('character.pp',characterOSes);
   end
 end;

@@ -24,7 +24,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
 # rsts=math varutils typinfo variants classes dateutils sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 
 # fake dll
 # programs=fpcmemdll
