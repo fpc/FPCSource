@@ -23,6 +23,7 @@ type
   TDBConnectorClass = class of TDBConnector;
   TDBConnector = class(TPersistent)
      private
+       FLogTimeFormat: TFormatSettings; //for error logging only
        FFormatSettings: TFormatSettings;
        FChangedFieldDataset : boolean;
      protected
@@ -53,6 +54,10 @@ type
        // They should clean up all mess, like tables on disk or on a DB server
        procedure DropNDatasets; virtual; abstract;
        procedure DropFieldDataset; virtual; abstract;
+
+       // If logging is enabled, writes Message to log file and flushes
+       // Logging uses tab-separated columns
+       procedure LogMessage(Category,Message: string);
      public
        constructor Create; virtual;
        destructor Destroy; override;
@@ -67,8 +72,10 @@ type
        // Gets a dataset that tracks calculation of calculated fields etc.
        Function GetTraceDataset(AChange : Boolean) : TDataset; virtual;
 
-       procedure StartTest;
-       procedure StopTest;
+       // Run before a test is started
+       procedure StartTest(TestName: string);
+       // Run after a test is stopped
+       procedure StopTest(TestName: string);
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
        property FormatSettings: TFormatSettings read FFormatSettings;
      end;
@@ -217,7 +224,9 @@ var dbtype,
     dbuser,
     dbhostname,
     dbpassword,
+    dblogfilename,
     dbQuoteChars   : string;
+    dblogfile      : TextFile;
     DataEvents     : string;
     DBConnector    : TDBConnector;
     testValues     : Array [TFieldType,0..testvaluescount -1] of string;
@@ -247,6 +256,17 @@ begin
   FFormatSettings.TimeSeparator:=':';
   FFormatSettings.ShortDateFormat:='yyyy/mm/dd';
   FFormatSettings.LongTimeFormat:='hh:nn:ss.zzz';
+
+  // Set up time format for logging output:
+  // ISO 8601 type date string so logging is uniform across machines
+  FLogTimeFormat.DecimalSeparator:='.';
+  FLogTimeFormat.ThousandSeparator:=#0;
+  FLogTimeFormat.DateSeparator:='-';
+  FLogTimeFormat.TimeSeparator:=':';
+  FLogTimeFormat.ShortDateFormat:='yyyy-mm-dd';
+  FLogTimeFormat.LongTimeFormat:='hh:nn:ss';
+
+
   FUsedDatasets := TFPList.Create;
   CreateFieldDataset;
   CreateNDatasets;
@@ -316,15 +336,17 @@ begin
   result := GetNDataset(AChange,NForTraceDataset);
 end;
 
-procedure TDBConnector.StartTest;
+procedure TDBConnector.StartTest(TestName: string);
 begin
-  // Do nothing?
+  // Log if necessary
+  LogMessage('Test','Starting test '+TestName);
 end;
 
-procedure TDBConnector.StopTest;
+procedure TDBConnector.StopTest(TestName: string);
 var i : integer;
     ds : TDataset;
 begin
+  LogMessage('Test','Stopping test '+TestName);
   for i := 0 to FUsedDatasets.Count -1 do
     begin
     ds := tdataset(FUsedDatasets[i]);
@@ -338,6 +360,23 @@ begin
     ResetNDatasets;
     fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
     break;
+    end;
+end;
+
+procedure TDBConnector.LogMessage(Category,Message: string);
+begin
+  if dblogfilename<>'' then //double check: only if logging enabled
+    begin
+    try
+      Message:=StringReplace(Message, #9, '\t', [rfReplaceAll, rfIgnoreCase]);
+      Message:=StringReplace(Message, LineEnding, '\n', [rfReplaceAll, rfIgnoreCase]);
+      writeln(dbLogFile, TimeToStr(Now(), FLogTimeFormat) + #9 +
+        Category + #9 +
+        Message);
+      Flush(dbLogFile); //in case tests crash
+    except
+      // ignore log file errors
+    end;
     end;
 end;
 
@@ -387,12 +426,12 @@ end;
 procedure TDBBasicsTestCase.SetUp;
 begin
   inherited SetUp;
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TDBBasicsTestCase.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
   inherited TearDown;
 end;
 
@@ -448,9 +487,40 @@ begin
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
+  dblogfilename := IniFile.ReadString(dbtype,'LogFile','');
   dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
 
   IniFile.Free;
+end;
+
+procedure SetupLog;
+begin
+  if dblogfilename<>'' then
+  begin
+    try
+      AssignFile(dblogfile,dblogfilename);
+      if not(FileExists(dblogfilename)) then
+      begin
+        ReWrite(dblogfile);
+        CloseFile(dblogfile);
+      end;
+      Append(dblogfile);
+    except
+      dblogfilename:=''; //rest of code relies on this as a log switch
+    end;
+  end;
+end;
+
+procedure CloseLog;
+begin
+  if dblogfilename<>'' then
+    begin
+    try
+      CloseFile(dbLogFile);
+    except
+      // Ignore log file errors
+    end;
+    end;
 end;
 
 procedure InitialiseDBConnector;
@@ -557,6 +627,10 @@ end;
 
 initialization
   ReadIniFile;
+  SetupLog;
   DBConnectorRefCount:=0;
+
+finalization
+  CloseLog;
 end.
 

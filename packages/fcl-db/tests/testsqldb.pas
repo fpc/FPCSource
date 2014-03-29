@@ -266,12 +266,12 @@ procedure TSQLDBTestCase.SetUp;
 begin
   inherited SetUp;
   InitialiseDBConnector;
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TSQLDBTestCase.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
     with TSQLDBConnector(DBConnector) do
       Transaction.Rollback;

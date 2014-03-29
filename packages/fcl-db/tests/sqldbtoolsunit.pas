@@ -48,6 +48,10 @@ type
     procedure CreateFieldDataset; override;
     procedure DropNDatasets; override;
     procedure DropFieldDataset; override;
+    // If logging is enabled, this procedure will receive the event
+    // from the SQLDB logging system
+    // For custom logging call with sender nil and eventtype detCustom
+    procedure GetLogEvent(Sender: TSQLConnection; EventType: TDBEventType; Const Msg : String);
     Function InternalGetNDataset(n : integer) : TDataset; override;
     Function InternalGetFieldDataset : TDataSet; override;
     procedure TryDropIfExist(ATableName : String);
@@ -189,6 +193,12 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    if dblogfilename<>'' then
+    begin
+      LogEvents:=[detCustom,detCommit,detExecute,detRollBack];
+      OnLog:=@GetLogEvent;
+    end;
+
     if (dbhostname='') and (SQLConnType=interbase) then
     begin
       // Firebird embedded: create database file if it doesn't yet exist
@@ -396,6 +406,8 @@ begin
     end;
 end;
 
+
+
 procedure TSQLDBConnector.SetTestUniDirectional(const AValue: boolean);
 begin
   FUniDirectional:=avalue;
@@ -427,7 +439,12 @@ begin
 
     Ftransaction.Commit;
   except
-    if Ftransaction.Active then Ftransaction.Rollback
+    on E: Exception do begin
+      if dblogfilename<>'' then
+        GetLogEvent(nil,detCustom,'Exception running CreateNDatasets: '+E.Message);
+      if Ftransaction.Active then
+        Ftransaction.Rollback
+    end;
   end;
 end;
 
@@ -524,7 +541,8 @@ begin
     Ftransaction.Commit;
   except
     on E: Exception do begin
-      //writeln(E.Message);
+      if dblogfilename<>'' then
+        GetLogEvent(nil,detCustom,'Exception running CreateFieldDataset: '+E.Message);
       if Ftransaction.Active then Ftransaction.Rollback;
     end;
   end;
@@ -540,7 +558,11 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      on E: Exception do begin
+        if dblogfilename<>'' then
+          GetLogEvent(nil,detCustom,'Exception running DropNDatasets: '+E.Message);
+        if Ftransaction.Active then Ftransaction.Rollback
+      end;
     end;
     end;
 end;
@@ -555,9 +577,30 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      on E: Exception do begin
+        if dblogfilename<>'' then
+          GetLogEvent(nil,detCustom,'Exception running DropFieldDataset: '+E.Message);
+        if Ftransaction.Active then Ftransaction.Rollback
+      end;
     end;
     end;
+end;
+
+procedure TSQLDBConnector.GetLogEvent(Sender: TSQLConnection;
+  EventType: TDBEventType; const Msg: String);
+var
+  Category: string;
+begin
+  case EventType of
+    detCustom:   Category:='Custom';
+    detPrepare:  Category:='Prepare';
+    detExecute:  Category:='Execute';
+    detFetch:    Category:='Fetch';
+    detCommit:   Category:='Commit';
+    detRollBack: Category:='Rollback';
+    else Category:='Unknown event. Please fix program code.';
+  end;
+  LogMessage(Category,Msg);
 end;
 
 function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;

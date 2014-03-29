@@ -1196,8 +1196,8 @@ begin
     with query do
       begin
       SQL.Text:='select NAME from FPDEV where ID<5';
-      sql.Add('union');
-      sql.Add('select NAME from FPDEV where ID>5');
+      SQL.Add('union');
+      SQL.Add('select NAME from FPDEV where ID>5');
       Open;
       close;
       end;
@@ -2345,12 +2345,12 @@ end;
 procedure TTestFieldTypes.SetUp;
 begin
   InitialiseDBConnector;
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestFieldTypes.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
     TSQLDBConnector(DBConnector).Transaction.Rollback;
   FreeDBConnector;

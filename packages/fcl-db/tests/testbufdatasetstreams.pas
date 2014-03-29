@@ -760,12 +760,12 @@ end;
 
 procedure TTestBufDatasetStreams.SetUp;
 begin
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestBufDatasetStreams.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
 end;
 
 
