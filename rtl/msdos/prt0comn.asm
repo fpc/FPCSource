@@ -28,6 +28,12 @@
         extra_param_offset equ 0
 %endif
 
+%ifdef __FAR_DATA__
+        extra_data_offset equ 2
+%else
+        extra_data_offset equ 0
+%endif
+
         cpu 8086
 
         segment text use16 class=code
@@ -314,7 +320,13 @@ FPC_MSDOS:
         pop bx
 %endif
         pop cx
+%ifdef __FAR_DATA__
+        pop si
+%endif
         push ax
+%ifdef __FAR_DATA__
+        push si
+%endif
         push cx
 %ifdef __FAR_CODE__
         push bx
@@ -324,10 +336,14 @@ FPC_MSDOS:
 FPC_INTR:
         push bp
         mov bp, sp
-        mov al, byte [bp + 6 + extra_param_offset]
+        mov al, byte [bp + 6 + extra_param_offset + extra_data_offset]
         mov byte [cs:int_number], al
         mov si, [bp + 4 + extra_param_offset]
         push ds
+%ifdef __FAR_DATA__
+        mov ax, [bp + 6 + extra_param_offset]
+        mov ds, ax
+%endif
         mov ax, word [si + 16]
         mov es, ax
         mov ax, word [si + 14]  ; ds
@@ -350,7 +366,11 @@ int_number:
         push si
         push bp
         mov bp, sp
+%ifdef __FAR_DATA__
+        mov si, [bp + 16 + extra_param_offset]
+%else
         mov si, word [bp + 8]
+%endif
         mov ds, si
         mov si, word [bp + 14 + extra_param_offset]
         mov word [si], ax
