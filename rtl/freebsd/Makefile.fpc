@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       dl termio \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
-      errors ipc terminfo bsd freebsd \
+      errors ipc bsd freebsd \
       console  \
       sysconst cthreads dos cwstring \
       fpintres clocale unixcp fpwidestring
@@ -253,8 +253,6 @@ errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
-
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -263,20 +261,9 @@ sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/convutils.pp
-
-stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
-
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 

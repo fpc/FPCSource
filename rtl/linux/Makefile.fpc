@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       linuxvcs \
       sysutils typinfo math   \
       charset cpall character unixcp getopts \
-      errors  ipc terminfo dl dynlibs \
+      errors  ipc dl dynlibs \
       types sysconst fpwidestring \
       cthreads classes fgl rtlconsts dos cwstring fpcylix clocale
 implicitunits=exeinfo \
@@ -359,9 +359,6 @@ errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/ipc.pp
-
-terminfo$(PPUEXT) : $(UNIXINC)/terminfo.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/terminfo.pp
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/callspec.pp

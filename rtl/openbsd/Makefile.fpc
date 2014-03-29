@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(CPU_UNITS) dos rtlconsts \
       sysutils fgl classes typinfo math \
       charset cpall character getopts heaptrc lineinfo lnfodwrf \
-      errors ipc terminfo \
+      errors ipc \
       types sysctl sysconst \
       fpintres dynlibs cwstring cmem dl termio \
       cthreads unixcp clocale
@@ -259,8 +259,6 @@ errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
-
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT) unixtype$(PPUEXT)
@@ -275,5 +273,3 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) $(OBJPASDIR)/rtlconst.pp
 
-mouse$(PPUEXT) : $(UNIXINC)/mouse.pp
-	$(COMPILER) -dNOMOUSE $(UNIXINC)/mouse.pp

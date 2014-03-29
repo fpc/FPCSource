@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
-      getopts errors terminfo dl dynlibs \
+      getopts errors dl dynlibs \
       types  sysconst cthreads classes fgl  \
       rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \
@@ -261,9 +261,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/errors.pp
-
-terminfo$(PPUEXT) : $(UNIXINC)/terminfo.pp unix$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/terminfo.pp
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/callspec.pp

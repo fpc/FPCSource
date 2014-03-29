@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       charset cpall getopts \
       errors \
       # ipc 
-      terminfo dl dynlibs \
+      dl dynlibs \
       types sysconst character \
       rtlconsts cthreads \
       dos \
@@ -245,8 +245,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTE
 ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 

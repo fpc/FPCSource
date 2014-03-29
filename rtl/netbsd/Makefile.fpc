@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       dl termio \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
-      errors ipc terminfo bsd \
+      errors ipc bsd \
       sysconst cthreads dos cwstring \
       fpintres clocale unixcp fpwidestring
 implicitunits=exeinfo \
@@ -254,8 +254,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
