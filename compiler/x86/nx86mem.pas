@@ -35,9 +35,7 @@ interface
       end;
 
       tx86vecnode = class(tcgvecnode)
-{$ifndef i8086}
         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
-{$endif not i8086}
       end;
 
 implementation
@@ -80,7 +78,6 @@ implementation
                              TX86VECNODE
 *****************************************************************************}
 
-{$ifndef i8086}
      { this routine must, like any other routine, not change the contents }
      { of base/index registers of references, as these may be regvars.    }
      { The register allocator can coalesce one LOC_REGISTER being moved   }
@@ -140,7 +137,6 @@ implementation
          end;
          location.reference.index:=hreg;
        end;
-{$endif not i8086}
 
 begin
    cderefnode:=tx86derefnode;

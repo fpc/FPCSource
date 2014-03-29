@@ -129,4 +129,6 @@ implementation
 
 begin
   cderefnode:=ti8086derefnode;
+  { override tx86vecnode, which doesn't work for i8086 }
+  cvecnode:=tcgvecnode;
 end.
