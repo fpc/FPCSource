@@ -24,7 +24,8 @@ Const
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
-  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+SerialOSes;
+  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+
+                      SerialOSes +PrinterOSes+SocketsOSes+gpmOSes;
 
 Var
   P : TPackage;
