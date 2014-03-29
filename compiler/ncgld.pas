@@ -241,7 +241,7 @@ implementation
           internalerror(200309286);
         if lvs.localloc.loc<>LOC_REFERENCE then
           internalerror(200409241);
-        reference_reset_base(location.reference,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment);
+        hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment);
       end;
 
 
