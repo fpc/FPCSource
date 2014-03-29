@@ -382,10 +382,10 @@ implementation
                           internalerror(2012120901);
                         paraloc1.init;
                         paramanager.getintparaloc(tprocvardef(pvd),1,paraloc1);
-                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,sizeof(pint));
-                        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
+                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
+                        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
                         { don't save the allocated register else the result will be destroyed later }
                         if not(vo_is_weak_external in gvs.varoptions) then
                           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
@@ -399,7 +399,7 @@ implementation
                         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                         cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
                         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
                         cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
                         cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
@@ -411,9 +411,9 @@ implementation
                           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
                         else
                           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
-                        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
                         cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-                        location.reference.base:=hregister;
+                        hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
                       end;
                   end
                 { Normal (or external) variable }
