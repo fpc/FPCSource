@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       dos \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
-      strutils math \
+      math \
       charset cpall getopts \
       cmem sharemem
 #    initc  signals \
@@ -148,11 +148,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT) rtlconsts$(PPUEXT) syscon
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT)
 
-#crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
-
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/objects.pp
-
 #
 # Graph
 #
@@ -190,16 +185,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) varutils.pp
-
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -208,15 +193,6 @@ rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model

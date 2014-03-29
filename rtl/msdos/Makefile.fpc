@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo types \
-      strutils getopts fgl classes \
+      getopts fgl classes \
       msmouse ports  \
       printer charset cpall ctypes
 #      cmem
@@ -116,12 +116,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc dos$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) crt.pp
-
-objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/objects.pp
-
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
 	$(COMPILER) printer.pp
 
@@ -145,16 +139,6 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp
-
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -164,18 +148,6 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
-
-convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
-
-stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) system$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 #
 # Mac Pascal Model
 #

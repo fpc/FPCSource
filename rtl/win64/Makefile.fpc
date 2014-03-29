@@ -13,7 +13,6 @@ implicitunits=ctypes strings \
       dos messages \
       windows cmem dynlibs \
       rtlconsts sysconst sysutils math types \
-      strutils \
       typinfo fgl classes getopts \
       printer charset character fpwidestring \
       sharemem exeinfo fpintres windirs \

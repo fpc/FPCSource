@@ -13,7 +13,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       sysconst sysutils \
       types charset cpall typinfo classes fgl math \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
-      rtlconsts syscall unix unixutil strutils termio initc \
+      rtlconsts syscall unix unixutil termio initc \
       cmem \
       dynlibs cwstring unixcp
 rsts=math typinfo sysconst rtlconsts 
@@ -202,10 +202,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
          $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model

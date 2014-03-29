@@ -12,7 +12,6 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       nwsnut libc dos sysconst \
       initc sysutils types typinfo fgl classes \
       cpu mmx getopts \
-      strutils \
       charset cpall \
       rtlconsts math \
       dynlibs cmem ctypes
@@ -177,9 +176,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/gettext.pp
-
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -188,9 +184,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model
