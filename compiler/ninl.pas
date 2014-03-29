@@ -392,7 +392,17 @@ implementation
               not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
               ((def.typ=objectdef) and not is_object(def)) then
             internalerror(201202101);
-          defaultname:=make_mangledname('$zero',def.owner,def.typesym.Name);
+          { extra '$' prefix because on darwin the result of makemangledname
+            is prefixed by '_' and hence adding a '$' at the start of the
+            prefix passed to makemangledname doesn't help (the whole point of
+            the copy() operation below is to ensure that the id does not start
+            with a '$', because that is interpreted specially by the symtable
+            routines -- that's also why we prefix with '$_', so it will still
+            work if make_mangledname() would somehow return a name that already
+            starts with '$' }
+          defaultname:='$_'+make_mangledname('zero',def.owner,def.typesym.Name);
+          { can't hardcode the position of the '$', e.g. on darwin an underscore
+            is added }
           hashedid.id:=copy(defaultname,2,255);
           { the default sym is always part of the current procedure/function }
           srsymtable:=current_procinfo.procdef.localst;
