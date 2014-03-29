@@ -884,14 +884,14 @@ implementation
                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,location.reference.base);
 {$else m68k}
-                    location.reference.base:=left.location.register;
+                    hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
 {$endif m68k}
                   end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
+                    hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
+                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.reference.base);
                   end;
                 else
                   internalerror(2002032218);
@@ -912,12 +912,12 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_CREGISTER :
-                  location.reference.base:=left.location.register;
+                  hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
+                     hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
+                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                       left.location.reference,location.reference.base);
                   end;
                 else
@@ -927,7 +927,7 @@ implementation
                 we assume to be always aligned to a multiple of the
                 pointer size
               }
-              location.reference.alignment:=sizeof(pint);
+              location.reference.alignment:=voidpointertype.size;
            end
          else
            begin
