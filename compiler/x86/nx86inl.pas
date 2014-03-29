@@ -234,19 +234,16 @@ implementation
      function tx86inlinenode.first_popcnt: tnode;
        begin
          Result:=nil;
-         if
-{$ifdef i8086}
-           true
-{$else i8086}
-           not(CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
-{$endif i8086}
-{$ifdef i386}
-           or is_64bit(left.resultdef)
-{$endif i386}
+{$ifndef i8086}
+         if (CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+  {$ifdef i386}
+            and not is_64bit(left.resultdef)
+  {$endif i386}
            then
-           Result:=inherited first_popcnt
+             expectloc:=LOC_REGISTER
          else
-           expectloc:=LOC_REGISTER;
+{$endif not i8086}
+           Result:=inherited first_popcnt
        end;
 
 
