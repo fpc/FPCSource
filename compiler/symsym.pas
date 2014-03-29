@@ -423,6 +423,7 @@ implementation
         result := tsym(vs.owner.Find('high'+vs.name));
       end;
 
+
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
         if not assigned(srsym) then
@@ -441,7 +442,6 @@ implementation
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
-
 
 
 {****************************************************************************
