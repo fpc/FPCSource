@@ -115,12 +115,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                $(SYSTEMUNIT)$(PPUEXT)
 
-#crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-
-#printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-
-#graph$(PPUEXT) : graph.pp
-
 #
 # Delphi Compatible Units
 #
@@ -217,17 +211,7 @@ get9$(PPUEXT): get9.pas exec$(PPUEXT)
 
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
 
-
 kvm$(PPUEXT) : kvm.pp
-
-#video$(PPUEXT) : video.pp 
-#windows$(PPUEXT) dos$(PPUEXT)
-
-mouse$(PPUEXT) : mouse.pp 
-#windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
-
-keyboard$(PPUEXT) : keyboard.pp 
-#windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 

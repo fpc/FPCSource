@@ -12,6 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
+  PrinterOSes   = [go32v2,msdos,os2,win32]+unixlikes-[beos,haiku,morphos,msdos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
@@ -67,6 +68,8 @@ begin
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
+
+    T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
 
     T:=P.Targets.AddUnit('matrix.pp',MatrixOSes);
     with T.Dependencies do

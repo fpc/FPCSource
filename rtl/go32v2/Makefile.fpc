@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system uuchar objpas macpas iso7185 strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos printer cmem \
+      dos cmem \
       sysutils classes math typinfo \
       cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl \
       msmouse charset cpall \
@@ -124,8 +124,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) dos.pp
 
-printer$(PPUEXT) : printer.pp system$(PPUEXT)
-	$(COMPILER) printer.pp
 #
 # Delphi Compatible Units
 #

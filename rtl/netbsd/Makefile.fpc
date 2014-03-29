@@ -13,7 +13,7 @@ loaders=prt0 cprt0 dllprt0
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings syscall sysctl  baseunix unixutil character \
       unix rtlconsts initc cmem \
-       dl termio  printer \
+      dl termio \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
       errors ipc terminfo bsd \
@@ -46,7 +46,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt objects printer \
+      dos \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
       errors  ipc
@@ -172,8 +172,6 @@ unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) ba
 
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph

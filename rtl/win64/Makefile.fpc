@@ -14,7 +14,7 @@ implicitunits=ctypes strings \
       windows cmem dynlibs \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes getopts \
-      printer charset character fpwidestring \
+      charset character fpwidestring \
       sharemem exeinfo fpintres windirs \
       cpu signals \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

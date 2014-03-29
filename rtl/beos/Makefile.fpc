@@ -42,7 +42,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt printer \
+      dos crt  \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
       errors  ipc dynlibs

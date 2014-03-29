@@ -9,7 +9,7 @@ units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 rtlconst typinfo types \
       getopts fgl classes \
       msmouse ports  \
-      printer charset cpall ctypes
+      charset cpall ctypes
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf \
@@ -115,9 +115,6 @@ ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
-
-printer$(PPUEXT) : printer.pp system$(PPUEXT)
-	$(COMPILER) printer.pp
 
 #
 # Delphi Compatible Units

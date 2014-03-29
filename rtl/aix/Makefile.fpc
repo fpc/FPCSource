@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       heaptrc \
       baseunix unixutil \
       termio unix initc cmem \
-      printer lnfogdb \
+      lnfogdb \
       sysutils typinfo math fgl classes \
       charset cpall unixcp getopts \
       errors \
@@ -46,7 +46,7 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt  printer \
+      dos crt   \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc
@@ -166,7 +166,6 @@ crt$(PPUEXT) : unix$(PPUEXT) termio$(PPUEXT) $(UNIXINC)/crt.pp $(INC)/textrec.in
 
 objects$(PPUEXT) : dos$(PPUEXT) $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
