@@ -111,6 +111,9 @@ type
     class function TypeName: string; override;
     class function ConnectionClass: TSQLConnectionClass; override;
     class function Description: string; override;
+    class Function DefaultLibraryName : String; override;
+    class Function LoadFunction : TLibraryLoadFunction; override;
+    class Function UnLoadFunction : TLibraryUnLoadFunction; override;
     class function LoadedLibraryName: string; override;
   end;
   
@@ -735,7 +738,8 @@ begin
   Inherited;
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  InitializeSqlite(SQLiteDefaultLibrary);
+  if (SQLiteLoadedLibrary='') then
+    InitializeSqlite(SQLiteDefaultLibrary);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
   if (Length(Password)>0) and assigned(sqlite3_key) then
@@ -1027,9 +1031,24 @@ begin
   Result := 'Connect to a SQLite3 database directly via the client library';
 end;
 
+class function TSQLite3ConnectionDef.DefaultLibraryName: string;
+begin
+  Result := SQLiteDefaultLibrary;
+end;
+
 class function TSQLite3ConnectionDef.LoadedLibraryName: string;
 begin
   Result := SQLiteLoadedLibrary;
+end;
+
+class function TSQLite3ConnectionDef.LoadFunction: TLibraryLoadFunction;
+begin
+  Result:=@InitializeSqliteANSI; //the function taking the filename argument
+end;
+
+class function TSQLite3ConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
+begin
+  Result:=@ReleaseSQLite;
 end;
 
 initialization
