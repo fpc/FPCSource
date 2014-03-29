@@ -188,6 +188,11 @@ implementation
 
   function thlcgcpu.getaddressregister(list: TAsmList; size: tdef): Tregister;
     begin
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+        size:=voidpointertype;
+
       if is_farpointer(size) or is_hugepointer(size) then
         Result:=cg.getintregister(list,OS_32)
       else
@@ -199,6 +204,12 @@ implementation
     reg: tregister; offset, alignment: longint);
     begin
       inherited reference_reset_base(ref, regsize, reg, offset, alignment);
+
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(regsize) or is_implicit_array_pointer(regsize) then
+        regsize:=voidpointertype;
+
       if is_farpointer(regsize) or is_hugepointer(regsize) then
         ref.segment:=GetNextReg(reg);
     end;
