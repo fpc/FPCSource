@@ -88,6 +88,11 @@ const
 {$else FPC_X86_CODE_FAR}
   extra_param_offset = 0;
 {$endif FPC_X86_CODE_FAR}
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  extra_data_offset = 2;
+{$else}
+  extra_data_offset = 0;
+{$endif}
 
 type
   PFarByte = ^Byte;far;
