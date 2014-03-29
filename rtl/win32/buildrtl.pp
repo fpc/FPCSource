@@ -11,9 +11,8 @@ unit buildrtl;
       rtlconsts, sysconst, sysutils, math, types,
       typinfo, fgl, classes,
       cpu, mmx, charset, character, getopts,
-      printer,
       fpwidestring,
-      winsysut, sharemem, fpintres, windirs, serial;
+      winsysut, sharemem, fpintres, windirs;
 
   implementation
 
