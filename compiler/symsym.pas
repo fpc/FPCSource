@@ -1848,22 +1848,14 @@ implementation
               usename:=name
             else
               usename:=_mangledbasename;
+            _mangledname:=make_mangledname(prefix,owner,usename);
   {$else symansistr}
             if not assigned(_mangledbasename) then
               usename:=name
             else
               usename:=_mangledbasename^;
+            _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
   {$endif symansistr}
-{$ifdef compress}
-            {$error add ansistring support for symansistr}
-            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,usename)));
-{$else compress}
-  {$ifdef symansistr}
-           _mangledname:=make_mangledname(prefix,owner,usename);
-  {$else symansistr}
-           _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
-  {$endif symansistr}
-{$endif compress}
 {$endif jvm}
           end;
 {$ifdef symansistr}
@@ -1909,8 +1901,6 @@ implementation
 {$if defined(jvm)}
         _mangledname:=jvmmangledbasename(self,s,false);
         jvmaddtypeownerprefix(owner,_mangledname);
-{$elseif defined(compress)}
-        _mangledname:=stringdup(minilzw_encode(s));
 {$else}
   {$ifdef symansistr}
         _mangledname:=s;

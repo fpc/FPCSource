@@ -5317,16 +5317,11 @@ implementation
         if assigned(_mangledname) then
 {$endif symansistr}
           begin
-{$ifdef compress}
-           {$error add support for ansistrings in case of symansistr}
-           mangledname:=minilzw_decode(_mangledname^);
-{$else}
-  {$ifdef symansistr}
+{$ifdef symansistr}
            mangledname:=_mangledname;
-  {$else symansistr}
+{$else symansistr}
            mangledname:=_mangledname^;
-  {$endif symansistr}
-{$endif}
+{$endif symansistr}
            exit;
          end;
 {$ifndef jvm}
@@ -5344,16 +5339,11 @@ implementation
         else
           jvmaddtypeownerprefix(owner,mangledname);
 {$endif not jvm}
-{$ifdef compress}
-       {$error add support for ansistrings in case of symansistr}
-        _mangledname:=stringdup(minilzw_encode(mangledname));
-{$else}
-  {$ifdef symansistr}
-        _mangledname:=mangledname;
-  {$else symansistr}
-        _mangledname:=stringdup(mangledname);
-  {$endif symansistr}
-{$endif}
+{$ifdef symansistr}
+      _mangledname:=mangledname;
+{$else symansistr}
+      _mangledname:=stringdup(mangledname);
+{$endif symansistr}
       end;
 
 
@@ -5703,16 +5693,11 @@ implementation
         include(procoptions,po_has_importname);
         include(procoptions,po_has_mangledname);
 {$else}
-  {$ifdef compress}
-        {$error add support for symansistr}
-        _mangledname:=stringdup(minilzw_encode(s));
-  {$else}
-    {$ifdef symansistr}
+  {$ifdef symansistr}
         _mangledname:=s;
-    {$else symansistr}
+  {$else symansistr}
         _mangledname:=stringdup(s);
-    {$endif symansistr}
-  {$endif}
+  {$endif symansistr}
 {$endif jvm}
         include(procoptions,po_has_mangledname);
       end;
