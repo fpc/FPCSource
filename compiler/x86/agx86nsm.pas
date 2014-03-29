@@ -1199,21 +1199,18 @@ interface
       end;
 
       AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
-      if current_settings.x86memorymodel in x86_near_data_models then
-        begin
-          { NASM complains if you put a missing section in the GROUP directive, so }
-          { we add empty declarations to make sure they exist, even if empty }
-          AsmWriteLn('SECTION .rodata');
-          AsmWriteLn('SECTION .data');
-          AsmWriteLn('SECTION .fpc');
-          { WLINK requires class=bss in order to leave the BSS section out of the executable }
-          AsmWriteLn('SECTION .bss class=bss');
-          { group these sections in the same segment }
-          if current_settings.x86memorymodel=mm_tiny then
-            AsmWriteLn('GROUP dgroup text rodata data fpc bss')
-          else
-            AsmWriteLn('GROUP dgroup rodata data fpc bss');
-        end;
+      { NASM complains if you put a missing section in the GROUP directive, so }
+      { we add empty declarations to make sure they exist, even if empty }
+      AsmWriteLn('SECTION .rodata');
+      AsmWriteLn('SECTION .data');
+      AsmWriteLn('SECTION .fpc');
+      { WLINK requires class=bss in order to leave the BSS section out of the executable }
+      AsmWriteLn('SECTION .bss class=bss');
+      { group these sections in the same segment }
+      if current_settings.x86memorymodel=mm_tiny then
+        AsmWriteLn('GROUP dgroup text rodata data fpc bss')
+      else
+        AsmWriteLn('GROUP dgroup rodata data fpc bss');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
         begin
           AsmWriteLn('SECTION .debug_frame  use32 class=DWARF');
