@@ -290,6 +290,26 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_exit(ThreadMain);
       end;
 
+  Procedure InitCThreading;
+  
+  begin
+    if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
+      begin
+        { We're still running in single thread mode, setup the TLS }
+        pthread_key_create(@TLSKey,nil);
+        InitThreadVars(@CRelocateThreadvar);
+        { used to clean up threads that we did not create ourselves:
+           a) the default value for a key (and hence also this one) in
+              new threads is NULL, and if it's still like that when the
+              thread terminates, nothing will happen
+           b) if it's non-NULL, the destructor routine will be called
+              when the thread terminates
+         -> we will set it to 1 if the threadvar relocation routine is
+            called from a thread we did not create, so that we can
+            clean up everything at the end }
+        pthread_key_create(@CleanupKey,@CthreadCleanup);
+      end
+  end;
 
   function CBeginThread(sa : Pointer;stacksize : PtrUInt;
                        ThreadFunction : tthreadfunc;p : pointer;
@@ -303,24 +323,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       { Initialize multithreading if not done }
       if not IsMultiThread then
-        begin
-          if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
-            begin
-              { We're still running in single thread mode, setup the TLS }
-              pthread_key_create(@TLSKey,nil);
-              InitThreadVars(@CRelocateThreadvar);
-              { used to clean up threads that we did not create ourselves:
-                 a) the default value for a key (and hence also this one) in
-                    new threads is NULL, and if it's still like that when the
-                    thread terminates, nothing will happen
-                 b) if it's non-NULL, the destructor routine will be called
-                    when the thread terminates
-               -> we will set it to 1 if the threadvar relocation routine is
-                  called from a thread we did not create, so that we can
-                  clean up everything at the end }
-              pthread_key_create(@CleanupKey,@CthreadCleanup);
-            end
-        end;
+        InitCThreading;
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
@@ -970,6 +973,8 @@ begin
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
+  // We assume that if you set the thread manager, the application is multithreading.
+  InitCThreading;
 end;
 
 Function CDoneThreads : Boolean;
