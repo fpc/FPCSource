@@ -1521,6 +1521,7 @@ implementation
 
       var
         i       : longint;
+        highsym,
         sym     : tsym;
         vs      : tabstractnormalvarsym;
         isaddr  : boolean;
@@ -1561,6 +1562,16 @@ implementation
                     end
                   else
                     begin
+                      { if an open array is used, also its high parameter is used,
+                        since the hidden high parameters are inserted after the corresponding symbols,
+                        we can increase the ref. count here }
+                      if is_open_array(vs.vardef) or is_array_of_const(vs.vardef) then
+                        begin
+                          highsym:=get_high_value_sym(tparavarsym(vs));
+                          if assigned(highsym) then
+                            inc(highsym.refs);
+                        end;
+
                       isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
                         vs.initialloc.size:=OS_ADDR
