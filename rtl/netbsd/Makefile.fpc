@@ -17,7 +17,6 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       sysutils math typinfo types classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
       errors ipc terminfo bsd \
-      serial \
       sysconst cthreads dos cwstring \
       fpintres clocale unixcp fpwidestring
 implicitunits=exeinfo \

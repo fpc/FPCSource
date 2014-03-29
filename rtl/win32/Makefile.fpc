@@ -16,7 +16,7 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes \
       cpu mmx charset character getopts \
-      printer serial \
+      printer \
       fpwidestring \
       winsysut sharemem exeinfo fpintres windirs \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

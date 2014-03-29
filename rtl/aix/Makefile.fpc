@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       sysutils typinfo math fgl classes \
       charset cpall unixcp getopts \
       errors \
-      # ipc serial
+      # ipc 
       terminfo dl dynlibs \
       types sysconst \
       rtlconsts cthreads \

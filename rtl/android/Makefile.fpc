@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem printer \
       linuxvcs sysutils typinfo math charset cpall character \
-      getopts errors  serial terminfo dl dynlibs \
+      getopts errors terminfo dl dynlibs \
       types  sysconst cthreads classes fgl  \
       rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
 implicitunits=exeinfo \
@@ -337,9 +337,6 @@ linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) u
 
 linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
         $(COMPILER) $(LINUXINC)/linuxvcs.pp
-
-serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/serial.pp
 
 video$(PPUEXT) : $(UNIXINC)/video.pp baseunix$(PPUEXT) termio$(PPUEXT) strings$(PPUEXT) linuxvcs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/video.pp

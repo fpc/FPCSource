@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       printer linuxvcs \
       sysutils typinfo math   \
       charset cpall character unixcp getopts \
-      errors  ipc serial terminfo dl dynlibs \
+      errors  ipc terminfo dl dynlibs \
       types sysconst fpwidestring \
       cthreads classes fgl rtlconsts dos cwstring fpcylix clocale
 implicitunits=exeinfo \
@@ -383,9 +383,6 @@ cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cthreads.pp
-
-serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/serial.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp

@@ -12,6 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
+  SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
   ObjectsOSes   = [amiga,emx,gba,go32v2,morphos,msdos,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
@@ -22,7 +23,7 @@ Const
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
-  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes;
+  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+SerialOSes;
 
 Var
   P : TPackage;
@@ -83,6 +84,8 @@ begin
     T:=P.Targets.AddUnit('gpm.pp',gpmOSes);
     with T.Dependencies do
       AddUnit('sockets');
+
+    T:=P.Targets.AddUnit('serial.pp',SerialOSes);
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
     with T.Dependencies do
      begin
