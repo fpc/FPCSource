@@ -184,7 +184,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=tunitsym.create(s,hp);
+        unitsym:=cunitsym.create(s,hp);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
@@ -457,7 +457,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               current_tokenpos:=filepos;
-              unitsym:=tunitsym.create(sorg,nil);
+              unitsym:=cunitsym.create(sorg,nil);
               tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
@@ -561,7 +561,7 @@ implementation
         if assigned(current_procinfo) then
          internalerror(200304275);
         {Generate a procsym for main}
-        ps:=tprocsym.create('$'+name);
+        ps:=cprocsym.create('$'+name);
         { main are allways used }
         inc(ps.refs);
         st.insert(ps);
@@ -604,7 +604,7 @@ implementation
             (tf_pic_uses_got in target_info.flags) then
            begin
              { insert symbol for got access in assembler code}
-             gotvarsym:=tstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
+             gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
                           vs_value,voidpointertype,[vo_is_external]);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
@@ -712,11 +712,11 @@ implementation
           { java_jlobject may not have been parsed yet (system unit); in any
             case, we only use this to refer to the class type, so inheritance
             does not matter }
-          def:=tobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
+          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ttypesym.create('__FPC_JVM_Module_Class_Alias$',def);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}
@@ -834,7 +834,7 @@ type
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
@@ -1708,7 +1708,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -2063,7 +2063,7 @@ type
                internalerror(2013011201);
              for i:=0 to high(sc) do
                begin
-                 ps:=tstaticvarsym.create(sc[i].name,vs_value,textsym.typedef,[]);
+                 ps:=cstaticvarsym.create(sc[i].name,vs_value,textsym.typedef,[]);
                  ps.isoindex:=sc[i].nr;
                  current_module.localsymtable.insert(ps,true);
                  cnodeutils.insertbssdata(tstaticvarsym(ps));
@@ -2089,7 +2089,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 

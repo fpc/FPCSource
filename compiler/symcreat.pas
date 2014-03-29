@@ -1053,7 +1053,7 @@ implementation
         end
       else
         begin
-          ps:=tprocsym.create(realname);
+          ps:=cprocsym.create(realname);
           newparentst.insert(ps);
         end;
       pd.procsym:=ps;
@@ -1071,7 +1071,7 @@ implementation
                   if vo_is_self in parasym.varoptions then
                     begin
                       if parasym.vardef.typ=classrefdef then
-                        parasym.vardef:=tclassrefdef.create(newstruct)
+                        parasym.vardef:=cclassrefdef.create(newstruct)
                       else
                         parasym.vardef:=newstruct;
                     end
@@ -1105,7 +1105,7 @@ implementation
         accessed from within nested routines (start with extra dollar to prevent
         the JVM from thinking this is a nested class in the unit) }
       nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
-      nestedvarsdef:=trecorddef.create(nestedvarsst.name^,nestedvarsst);
+      nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
       maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
       { don't add clone/FpcDeepCopy, because the field names are not all
@@ -1118,7 +1118,7 @@ implementation
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
       pnestedvarsdef:=getpointerdef(nestedvarsdef);
-      nestedvars:=tlocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
+      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
       pd.localst.insert(nestedvars);
       pd.parentfpstruct:=nestedvars;
       pd.parentfpstructptrtype:=pnestedvarsdef;
@@ -1151,7 +1151,7 @@ implementation
             fieldvardef:=getpointerdef(vardef)
           else
             fieldvardef:=vardef;
-          result:=tfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);
+          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1209,7 +1209,7 @@ implementation
           sl:=tpropaccesslist.create;
           sl.addsym(sl_load,pd.parentfpstruct);
           sl.addsym(sl_subscript,tfieldvarsym(fsym));
-          aliassym:=tabsolutevarsym.create_ref(lsym.name,tfieldvarsym(fsym).vardef,sl);
+          aliassym:=cabsolutevarsym.create_ref(lsym.name,tfieldvarsym(fsym).vardef,sl);
           { hide the original variable (can't delete, because there
             may be other loadnodes that reference it)
             -- only for locals; hiding parameters changes the
@@ -1250,7 +1250,7 @@ implementation
          (def.typ=recorddef) and
          not assigned(def.typesym) then
         begin
-          ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
+          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def);
           st.insert(ts);
           ts.visibility:=vis_strictprivate;
           { this typesym can't be used by any Pascal code, so make sure we don't
@@ -1270,7 +1270,7 @@ implementation
       include(fieldvs.symoptions,sp_static);
       { generate the symbol which reserves the space }
       static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
-      hstaticvs:=tstaticvarsym.create(internal_static_field_name(static_name),vs_value,fieldvs.vardef,[]);
+      hstaticvs:=cstaticvarsym.create(internal_static_field_name(static_name),vs_value,fieldvs.vardef,[]);
 {$ifdef jvm}
       { for the JVM, static field accesses are name-based and
         hence we have to keep the original name of the field.
@@ -1304,7 +1304,7 @@ implementation
         load node (handle_staticfield_access -> searchsym_in_class ->
         is_visible_for_object), which means that the load will fail if this
         symbol is e.g. "strict private" while the property is public }
-      tmp:=tabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
+      tmp:=cabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
       recst.insert(tmp);
       result:=hstaticvs;
     end;

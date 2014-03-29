@@ -27,12 +27,22 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="1">
+    <Units Count="3">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="x86\symold86.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="symold86"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="i8086\symcpu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="symcpu"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

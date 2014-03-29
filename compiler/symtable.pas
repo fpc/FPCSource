@@ -485,7 +485,7 @@ implementation
             iblocalvarsym : sym:=tlocalvarsym.ppuload(ppufile);
              ibparavarsym : sym:=tparavarsym.ppuload(ppufile);
             ibfieldvarsym : sym:=tfieldvarsym.ppuload(ppufile);
-         ibabsolutevarsym : sym:=tabsolutevarsym.ppuload(ppufile);
+         ibabsolutevarsym : sym:=cabsolutevarsym.ppuload(ppufile);
                 ibenumsym : sym:=tenumsym.ppuload(ppufile);
             ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
                 ibunitsym : sym:=tunitsym.ppuload(ppufile);
@@ -1738,7 +1738,7 @@ implementation
             system.delete(n,1,p);
             oldsym:=findnamespace(upper(ns));
             if not assigned(oldsym) then
-              insert(tnamespacesym.create(ns));
+              insert(cnamespacesym.create(ns));
             p:=pos('.',n);
           end;
       end;
@@ -3647,7 +3647,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
-       generrordef:=terrordef.create;
+       generrordef:=cerrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false);
        macrosymtablestack:=TSymtablestack.create;

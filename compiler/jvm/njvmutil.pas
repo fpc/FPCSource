@@ -197,7 +197,7 @@ implementation
         java.lang.ThreadLocal class which will wrap the actual variable value }
       if vo_is_thread_var in sym.varoptions then
         begin
-          vs:=tstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
+          vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
             sym.varoptions - [vo_is_thread_var]);
           sym.owner.insert(vs);
@@ -467,7 +467,7 @@ implementation
       if (tprocdef(pd).proctypeoption=potype_proginit) then
         begin
           { add the args parameter }
-          pvs:=tparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
+          pvs:=cparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
           tprocdef(pd).parast.insert(pvs);
           tprocdef(pd).calcparas;
         end;

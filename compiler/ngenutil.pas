@@ -582,7 +582,7 @@ implementation
     var
       pd: tprocdef;
     begin
-      pd:=tprocdef.create(main_program_level);
+      pd:=cprocdef.create(main_program_level);
       pd.procsym:=ps;
       ps.ProcdefList.Add(pd);
       include(pd.procoptions,po_global);

@@ -643,7 +643,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=tsetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }

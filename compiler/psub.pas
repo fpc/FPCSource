@@ -464,7 +464,7 @@ implementation
                                     load_self_pointer_node,
                                     voidpointertype),
                                 ccallnode.create(nil,tprocsym(srsym),srsym.owner,
-                                  ctypeconvnode.create_internal(load_self_pointer_node,tclassrefdef.create(current_structdef)),
+                                  ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef)),
                                   [])),
                             nil));
                       end

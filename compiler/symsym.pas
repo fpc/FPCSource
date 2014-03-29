@@ -64,29 +64,32 @@ interface
           { when the label is defined in an asm block, this points to the
             generated asmlabel }
           asmblocklabel : tasmlabel;
-          constructor create(const n : string);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:TSymStr;override;
        end;
+       tlabelsymclass = class of tlabelsym;
 
        tunitsym = class(Tstoredsym)
           module : tobject; { tmodule }
-          constructor create(const n : string;amodule : tobject);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;amodule : tobject);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
+       tunitsymclass = class of tunitsym;
 
        tnamespacesym = class(Tstoredsym)
           unitsym:tsym;
           unitsymderef:tderef;
-          constructor create(const n : string);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
        end;
+       tnamespacesymclass = class of tnamespacesym;
 
        terrorsym = class(Tsym)
           constructor create;
@@ -99,8 +102,8 @@ interface
           FProcdefList   : TFPObjectList;
           FProcdefDerefList : TFPList;
        public
-          constructor create(const n : string);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           { writes all declarations except the specified one }
           procedure write_parameter_lists(skipdef:tprocdef);
@@ -120,20 +123,22 @@ interface
           function find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
+       tprocsymclass = class of tprocsym;
 
        ttypesym = class(Tstoredsym)
        public
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
-          constructor create(const n : string;def:tdef);
+          constructor create(const n : string;def:tdef);virtual;
           destructor destroy;override;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
           function prettyname : string;override;
        end;
+       ttypesymclass = class of ttypesym;
 
        tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
@@ -178,13 +183,14 @@ interface
 {$else symansistr}
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
 {$endif symansistr}
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure set_externalname(const s:string);
           function mangledname:TSymStr;override;
           destructor destroy;override;
       end;
+      tfieldvarsymclass = class of tfieldvarsym;
 
       tabstractnormalvarsym = class(tabstractvarsym)
           defaultconstsym : tsym;
@@ -206,10 +212,11 @@ interface
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
+      tlocalvarsymclass = class of tlocalvarsym;
 
       tparavarsym = class(tabstractnormalvarsym)
           paraloc       : array[tcallercallee] of TCGPara;
@@ -221,12 +228,13 @@ interface
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
-          constructor create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function needs_finalization: boolean;
       end;
+      tparavarsymclass = class of tparavarsym;
 
       tstaticvarsym = class(tabstractnormalvarsym)
       private
@@ -243,10 +251,10 @@ interface
             parameters as it is done by iso pascal with the program symbols,
             isoindex contains the parameter number }
           isoindex : dword;
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
-          constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
-          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor create_dll(const n : string;vsp:tvarspez;def:tdef);virtual;
+          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:TSymStr;override;
@@ -255,6 +263,7 @@ interface
           procedure set_mangledname(const s:TSymStr);
           procedure set_raw_mangledname(const s:TSymStr);
       end;
+      tstaticvarsymclass = class of tstaticvarsym;
 
       tabsolutevarsym = class(tabstractvarsym)
       public
@@ -268,15 +277,16 @@ interface
          addrsegment : aword;
 {$endif defined(i8086)}
          ref     : tpropaccesslist;
-         constructor create(const n : string;def:tdef);
-         constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
+         constructor create(const n : string;def:tdef);virtual;
+         constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);virtual;
          destructor  destroy;override;
-         constructor ppuload(ppufile:tcompilerppufile);
+         constructor ppuload(ppufile:tcompilerppufile);virtual;
          procedure buildderef;override;
          procedure deref;override;
          function  mangledname : TSymStr;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
+      tabsolutevarsymclass = class of tabsolutevarsym;
 
        tpropaccesslisttypes=(palt_none,palt_read,palt_write,palt_stored);
 
@@ -293,9 +303,9 @@ interface
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
           parast : tsymtable;
-          constructor create(const n : string);
+          constructor create(const n : string);virtual;
           destructor  destroy;override;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           function  getsize : asizeint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -307,6 +317,7 @@ interface
           procedure add_accessor_parameters(readprocdef, writeprocdef: tprocdef);
           procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
        end;
+       tpropertysymclass = class of tpropertysym;
 
        tconstvalue = record
          case integer of
@@ -320,36 +331,39 @@ interface
           constdefderef : tderef;
           consttyp    : tconsttyp;
           value       : tconstvalue;
-          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
-          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
-          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
-          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);
-          constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);virtual;
+          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);virtual;
+          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);virtual;
+          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);virtual;
+          constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor  destroy;override;
           procedure buildderef;override;
           procedure deref;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
+       tconstsymclass = class of tconstsym;
 
        tenumsym = class(Tstoredsym)
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
-          constructor create(const n : string;def : tenumdef;v : longint);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;def : tenumdef;v : longint);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
        end;
+       tenumsymclass = class of tenumsym;
 
        tsyssym = class(Tstoredsym)
           number : longint;
-          constructor create(const n : string;l : longint);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(const n : string;l : longint);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);virtual;
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
+       tsyssymclass = class of tsyssym;
 
     const
        maxmacrolen=16*1024;
@@ -379,6 +393,21 @@ interface
 
     var
        generrorsym : tsym;
+
+       clabelsym: tlabelsymclass;
+       cunitsym: tunitsymclass;
+       cnamespacesym: tnamespacesymclass;
+       cprocsym: tprocsymclass;
+       ctypesym: ttypesymclass;
+       cfieldvarsym: tfieldvarsymclass;
+       clocalvarsym: tlocalvarsymclass;
+       cparavarsym: tparavarsymclass;
+       cstaticvarsym: tstaticvarsymclass;
+       cabsolutevarsym: tabsolutevarsymclass;
+       cpropertysym: tpropertysymclass;
+       cconstsym: tconstsymclass;
+       cenumsym: tenumsymclass;
+       csyssym: tsyssymclass;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -1262,12 +1291,12 @@ implementation
             orig:=tparavarsym(parast.SymList[i]);
             if assigned(readprocdef) then
               begin
-                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
                 readprocdef.parast.insert(hparavs);
               end;
             if assigned(writeprocdef) then
               begin
-                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
                 writeprocdef.parast.insert(hparavs);
               end;
           end;
@@ -1281,12 +1310,12 @@ implementation
         inc(paranr);
         if assigned(readprocdef) then
           begin
-            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
             readprocdef.parast.insert(hparavs);
           end;
         if assigned(writeprocdef) then
           begin
-            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
             writeprocdef.parast.insert(hparavs);
           end;
       end;

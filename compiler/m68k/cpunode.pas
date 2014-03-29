@@ -46,7 +46,9 @@ unit cpunode;
 //       nppcobj,
 //       nppcmat,
          n68kmat,
-         n68kcnv
-       ;
+         n68kcnv,
+         { symtable }
+         symcpu
+         ;
 
 end.

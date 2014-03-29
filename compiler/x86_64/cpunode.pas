@@ -56,7 +56,9 @@ unit cpunode;
        nx64flw,
 {$endif DISABLE_WIN64_SEH}
        nx64inl,
-       nx64set
+       nx64set,
+       { symtable }
+       symcpu
        ;
 
 end.

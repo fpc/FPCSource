@@ -93,9 +93,9 @@ implementation
            ordconstn:
              begin
                if p.resultdef.typ=pointerdef then
-                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
+                 hp:=cconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
                else
-                 hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
+                 hp:=cconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
              end;
            stringconstn:
              begin
@@ -103,7 +103,7 @@ implementation
                  begin
                    initwidestring(pw);
                    copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
-                   hp:=tconstsym.create_wstring(orgname,constwstring,pw);
+                   hp:=cconstsym.create_wstring(orgname,constwstring,pw);
                  end
                else
                  begin
@@ -113,30 +113,30 @@ implementation
                      keep it }
                    if is_ansistring(p.resultdef) and
                       (tstringdef(p.resultdef).encoding<>0) then
-                     hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef)
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef)
                    else
-                     hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil);
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil);
                  end;
              end;
            realconstn :
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create_ptr(orgname,constreal,pd,p.resultdef);
+                hp:=cconstsym.create_ptr(orgname,constreal,pd,p.resultdef);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_ptr(orgname,constset,ps,p.resultdef);
+               hp:=cconstsym.create_ptr(orgname,constset,ps,p.resultdef);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resultdef);
+               hp:=cconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resultdef);
              end;
            niln :
              begin
-               hp:=tconstsym.create_ord(orgname,constnil,0,p.resultdef);
+               hp:=cconstsym.create_ord(orgname,constnil,0,p.resultdef);
              end;
            typen :
              begin
@@ -146,7 +146,7 @@ implementation
                    begin
                      new(pg);
                      pg^:=tobjectdef(p.resultdef).iidguid^;
-                     hp:=tconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
+                     hp:=cconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
                    end
                   else
                    Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
@@ -166,7 +166,7 @@ implementation
                  in_sizeof_x,
                  in_bitsizeof_x:
                    begin
-                     hp:=tconstsym.create_ord(orgname,constord,0,p.resultdef);
+                     hp:=cconstsym.create_ord(orgname,constord,0,p.resultdef);
                    end;
                  { add other cases here if necessary }
                  else
@@ -266,13 +266,13 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       sym:=tfieldvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
-                       sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
@@ -339,20 +339,20 @@ implementation
            else
              begin
                 if token=_ID then
-                  labelsym:=tlabelsym.create(orgpattern)
+                  labelsym:=clabelsym.create(orgpattern)
                 else
-                  labelsym:=tlabelsym.create(pattern);
+                  labelsym:=clabelsym.create(pattern);
                 symtablestack.top.insert(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=tlocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=tstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -592,7 +592,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ttypesym.create(orgtypename,tundefineddef.create);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create);
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -628,7 +628,7 @@ implementation
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
-                  newtype:=ttypesym.create(genorgtypename,hdef);
+                  newtype:=ctypesym.create(genorgtypename,hdef);
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
@@ -952,7 +952,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value.svalue);
                                 sp[1]:=#0;
-                                sym:=tconstsym.create_string(orgname,constresourcestring,sp,1,nil);
+                                sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
                              end
                            else
                              Message(parser_e_illegal_expression);
@@ -965,7 +965,7 @@ implementation
                                changestringtype(getansistringdef);
                              getmem(sp,len+1);
                              move(value_str^,sp^,len+1);
-                             sym:=tconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                             sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
                           end;
                       else
                         Message(parser_e_illegal_expression);

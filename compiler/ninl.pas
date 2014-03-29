@@ -410,7 +410,7 @@ implementation
           if not assigned(srsym) then
             begin
               { no valid default variable found, so create it }
-              srsym:=tlocalvarsym.create(defaultname,vs_const,def,[]);
+              srsym:=clocalvarsym.create(defaultname,vs_const,def,[]);
               srsymtable.insert(srsym);
               { mark the staticvarsym as typedconst }
               include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
@@ -3353,7 +3353,7 @@ implementation
                     hp:=caddnode.create(subn,left,hp);
                   { assign result of addition }
                   if not(is_integer(resultdef)) then
-                    inserttypeconv(hp,torddef.create(
+                    inserttypeconv(hp,corddef.create(
 {$ifdef cpu64bitaddr}
                       s64bit,
 {$else cpu64bitaddr}
@@ -3462,7 +3462,7 @@ implementation
                      hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
                    if not(is_integer(resultnode.resultdef)) then
-                     inserttypeconv(hpp,torddef.create(
+                     inserttypeconv(hpp,corddef.create(
 {$ifdef cpu64bitaddr}
                        s64bit,
 {$else cpu64bitaddr}
@@ -4177,7 +4177,7 @@ implementation
          temprangedef:=nil;
          getrange(unpackednode.resultdef,ulorange,uhirange);
          getrange(packednode.resultdef,plorange,phirange);
-         temprangedef:=torddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
+         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
          sourcevecindex := ctemprefnode.create(loopvar);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));

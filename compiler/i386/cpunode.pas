@@ -57,7 +57,9 @@ unit cpunode;
 {$ifdef TEST_WIN32_SEH}
        n386flw,
 {$endif TEST_WIN32_SEH}
-       n386mat
+       n386mat,
+       { symtable }
+       symcpu
        ;
 
 end.

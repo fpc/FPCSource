@@ -54,7 +54,9 @@ unit cpunode;
        n386set},
        n8086inl,
        n8086mat,
-       n8086con
+       n8086con,
+       { symtable }
+       symcpu
        ;
 
 end.

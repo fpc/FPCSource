@@ -1327,7 +1327,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=tobjectdef.create(current_objectdef.objecttype,n,nil);
+                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
@@ -1340,7 +1340,7 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=tobjectdef.create(objecttype,n,nil);
+            current_structdef:=cobjectdef.create(objecttype,n,nil);
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }
@@ -1369,14 +1369,14 @@ implementation
                             psystem, but java_jlobject is not yet available
                             there... }
                           hrecst:=trecordsymtable.create('',1);
-                          fsym:=tfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
+                          fsym:=cfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
                           hrecst.insert(fsym);
                           hrecst.addfield(fsym,vis_hidden);
-                          fsym:=tfieldvarsym.create('$data',vs_value,java_jlobject,[]);
+                          fsym:=cfieldvarsym.create('$data',vs_value,java_jlobject,[]);
                           hrecst.insert(fsym);
                           hrecst.addfield(fsym,vis_hidden);
-                          methodpointertype:=trecorddef.create('',hrecst);
-                          systemunit.insert(ttypesym.create('$methodpointer',methodpointertype));
+                          methodpointertype:=crecorddef.create('',hrecst);
+                          systemunit.insert(ctypesym.create('$methodpointer',methodpointertype));
                         end
                       else if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef

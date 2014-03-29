@@ -849,6 +849,10 @@ type
 
   class constructor texprvalue.createdefs;
     begin
+      { do not use corddef etc here: this code is executed before those
+        variables are initialised. Since these types are only used for
+        compile-time evaluation of conditional expressions, it doesn't matter
+        that we use the base types instead of the cpu-specific ones. }
       sintdef:=torddef.create(s64bit,low(int64),high(int64));
       uintdef:=torddef.create(u64bit,low(qword),high(qword));
       booldef:=torddef.create(pasbool8,0,1);

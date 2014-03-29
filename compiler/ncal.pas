@@ -1344,7 +1344,7 @@ implementation
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
-               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
+               hpn:=cparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
                n.varargsparas.add(hpn);
                para:=tcallparanode(n.left);
                while assigned(para) do
@@ -1927,7 +1927,7 @@ implementation
                                   be marked as instantiatable (only the pointeddef will actually be
                                   recorded, so it's no problem that the clasrefdef is only temporary)
                                 }
-                                crefdef:=tclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
+                                crefdef:=cclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
                                 { and register it }
                                 crefdef.register_created_object_type;
                               end
@@ -2777,7 +2777,7 @@ implementation
               begin
                 if cpf_varargs_para in pt.callparaflags then
                   begin
-                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resultdef,[]);
+                    varargspara:=cparavarsym.create('va'+tostr(i),i,vs_value,pt.resultdef,[]);
                     dec(i);
                     { varargspara is left-right, use insert
                       instead of concat }

@@ -254,7 +254,7 @@ implementation
               sym: tprocsym;
             begin
               handle_calling_convention(pd);
-              sym:=tprocsym.create(prefix+lower(p.realname));
+              sym:=cprocsym.create(prefix+lower(p.realname));
               symtablestack.top.insert(sym);
               pd.procsym:=sym;
               include(pd.procoptions,po_dispid);
@@ -315,7 +315,7 @@ implementation
                 begin
                   { add an extra parameter, a placeholder of the value to set }
                   inc(paranr);
-                  hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                  hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                   writepd.parast.insert(hparavs);
 
                   writepd.proctypeoption:=potype_propsetter;
@@ -353,8 +353,8 @@ implementation
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=tprocdef.create(normal_function_level);
-         writeprocdef:=tprocdef.create(normal_function_level);
+         readprocdef:=cprocdef.create(normal_function_level);
+         writeprocdef:=cprocdef.create(normal_function_level);
 
          readprocdef.struct:=astruct;
          writeprocdef.struct:=astruct;
@@ -372,7 +372,7 @@ implementation
               exit;
            end;
          { Generate propertysym and insert in symtablestack }
-         p:=tpropertysym.create(orgpattern);
+         p:=cpropertysym.create(orgpattern);
          p.visibility:=symtablestack.top.currentvisibility;
          p.default:=longint($80000000);
          if is_classproperty then
@@ -403,7 +403,7 @@ implementation
                 sc.clear;
                 repeat
                   inc(paranr);
-                  hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
+                  hreadparavs:=cparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
                   p.parast.insert(hreadparavs);
                   sc.add(hreadparavs);
                   consume(_ID);
@@ -414,7 +414,7 @@ implementation
                       begin
                         consume(_OF);
                         { define range and type of range }
-                        hdef:=tarraydef.create(0,-1,s32inttype);
+                        hdef:=carraydef.create(0,-1,s32inttype);
                         { define field type }
                         single_type(arraytype,[]);
                         tarraydef(hdef).elementdef:=arraytype;
@@ -605,7 +605,7 @@ implementation
                             of the of the property }
                           writeprocdef.returndef:=voidtype;
                           inc(paranr);
-                          hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                          hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                           writeprocdef.parast.insert(hparavs);
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
@@ -735,14 +735,14 @@ implementation
                             procsym :
                               begin
                                  { Create a temporary procvardef to handle parameters }
-                                 storedprocdef:=tprocvardef.create(normal_function_level);
+                                 storedprocdef:=cprocvardef.create(normal_function_level);
                                  include(storedprocdef.procoptions,po_methodpointer);
                                  { Return type must be boolean }
                                  storedprocdef.returndef:=pasbool8type;
                                  { Add index parameter if needed }
                                  if ppo_indexed in p.propoptions then
                                    begin
-                                     hparavs:=tparavarsym.create('$index',10,vs_value,p.indexdef,[]);
+                                     hparavs:=cparavarsym.create('$index',10,vs_value,p.indexdef,[]);
                                      storedprocdef.parast.insert(hparavs);
                                    end;
 
@@ -956,7 +956,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ttypesym.create('unnamed',def);
+              newtype:=ctypesym.create('unnamed',def);
               parse_var_proc_directives(tsym(newtype));
               newtype.typedef:=nil;
               def.typesym:=nil;
@@ -1181,7 +1181,7 @@ implementation
           case vs.typ of
             localvarsym :
               begin
-                tcsym:=tstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
+                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
@@ -1241,7 +1241,7 @@ implementation
           if (pt.nodetype=stringconstn) or
             (is_constcharnode(pt)) then
             begin
-              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               if pt.nodetype=stringconstn then
                 abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
@@ -1253,7 +1253,7 @@ implementation
           { address }
           else if is_constintnode(pt) then
             begin
-              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               abssym.abstyp:=toaddr;
 {$ifndef cpu64bitaddr}
@@ -1345,7 +1345,7 @@ implementation
                   { we should check the result type of loadn }
                   if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) then
                     Message(parser_e_absolute_only_to_var_or_const);
-                  abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+                  abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
                   abssym.fileinfo:=vs.fileinfo;
                   abssym.abstyp:=tovar;
                   abssym.ref:=node_to_propaccesslist(pt);
@@ -1407,11 +1407,11 @@ implementation
                  begin
                    case symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=tlocalvarsym.create(orgpattern,vs_value,generrordef,[]);
+                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[]);
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=tstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
+                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;
@@ -1626,7 +1626,7 @@ implementation
                sorg:=orgpattern;
                if token=_ID then
                  begin
-                   vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
@@ -1849,7 +1849,7 @@ implementation
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  fieldvs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                   variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;
@@ -1869,7 +1869,7 @@ implementation
               consume(_OF);
 
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
-              UnionDef:=trecorddef.create('',unionsymtable);
+              UnionDef:=crecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
 
               startvarrecsize:=UnionSymtable.datasize;

@@ -35,6 +35,8 @@ implementation
     njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld,
     njvmset,njvmvmt
     { these are not really nodes }
-    ,rgcpu,tgcpu,njvmutil,njvmtcon;
+    ,rgcpu,tgcpu,njvmutil,njvmtcon,
+    { symtable }
+    symcpu;
 
 end.

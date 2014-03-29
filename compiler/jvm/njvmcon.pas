@@ -445,7 +445,7 @@ implementation
         { add a read-only typed constant }
         new(ps);
         ps^:=value_set^;
-        csym:=tconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
+        csym:=cconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
         csym.visibility:=vis_private;
         include(csym.symoptions,sp_internal);
         current_module.localsymtable.insert(csym);

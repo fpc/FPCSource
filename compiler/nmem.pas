@@ -187,7 +187,7 @@ implementation
                           if assigned(current_structdef.genericdef) then
                             if current_structdef.genericdef=left.resultdef then
                               begin
-                                resultdef:=tclassrefdef.create(current_structdef);
+                                resultdef:=cclassrefdef.create(current_structdef);
                                 defaultresultdef:=false;
                               end
                             else
@@ -196,10 +196,10 @@ implementation
                       else
                         message(parser_e_cant_create_generics_of_this_type);
                       if defaultresultdef then
-                        resultdef:=tclassrefdef.create(left.resultdef);
+                        resultdef:=cclassrefdef.create(left.resultdef);
                     end
                   else
-                    resultdef:=tclassrefdef.create(left.resultdef);
+                    resultdef:=cclassrefdef.create(left.resultdef);
                 end
               else
                 CGMessage(parser_e_pointer_to_class_expected);
@@ -586,12 +586,12 @@ implementation
                   if not(nf_typedaddr in flags) then
                     resultdef:=voidfarpointertype
                   else
-                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_far);
+                    resultdef:=cpointerdef.createx86(left.resultdef,x86pt_far);
                 {$elseif defined(i386)}
                   if not(nf_typedaddr in flags) then
                     resultdef:=voidnearfspointertype
                   else
-                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
+                    resultdef:=cpointerdef.createx86(left.resultdef,x86pt_near_fs);
                 {$endif}
               end
             else
@@ -914,7 +914,7 @@ implementation
                     ((tarraydef(left.resultdef).lowrange<>tenumdef(htype).min) or
                      (tarraydef(left.resultdef).highrange<>tenumdef(htype).max)) then
                    {Convert array indexes to low_bound..high_bound.}
-                   inserttypeconv(right,tenumdef.create_subrange(tenumdef(right.resultdef),
+                   inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
                                                       asizeint(Tarraydef(left.resultdef).highrange)
                                                      ))
@@ -944,7 +944,7 @@ implementation
                        newordtyp:=Torddef(right.resultdef).ordtype
                      else
                        newordtyp:=torddef(ptrsinttype).ordtype;
-                     inserttypeconv(right,Torddef.create(newordtyp,
+                     inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange)
                                                         ))
@@ -957,7 +957,7 @@ implementation
                  inserttypeconv(right,u8inttype)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,Torddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);
@@ -1024,7 +1024,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=tarraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1051,7 +1051,7 @@ implementation
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=Tarraydef.create_from_pointer(elementdef);
+                    htype:=carraydef.create_from_pointer(elementdef);
                     resultdef:=htype;
                   end
                 else

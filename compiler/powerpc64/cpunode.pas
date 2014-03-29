@@ -45,7 +45,9 @@ uses
   //       nppcopt,
   nppcmat,
   nppccnv,
-  nppcld
+  nppcld,
+  { symtable }
+  symcpu
   ;
 
 end.

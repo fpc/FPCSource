@@ -966,7 +966,7 @@ implementation
                 l:=len-1
               else
                 l:=0;
-              resultdef:=tarraydef.create(0,l,s32inttype);
+              resultdef:=carraydef.create(0,l,s32inttype);
               tarraydef(resultdef).elementdef:=cansichartype;
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;

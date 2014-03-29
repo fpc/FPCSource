@@ -339,7 +339,7 @@ implementation
          if isforwarddef and
             not(is_unit_specific) then
            begin
-             def:=tforwarddef.create(sorg,pos);
+             def:=cforwarddef.create(sorg,pos);
              exit;
            end;
          { unknown sym ? }
@@ -408,7 +408,7 @@ implementation
                          single_type(t2,[stoAllowTypeDef]);
                          if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
-                         def:=tfiledef.createtyped(t2);
+                         def:=cfiledef.createtyped(t2);
                       end
                     else
                       def:=cfiletype;
@@ -820,14 +820,14 @@ implementation
              recst:=trecordsymtable.create(n,current_settings.packrecords);
              { can't use recst.realname^ instead of n, because recst.realname is
                nil in case of an empty name }
-             current_structdef:=trecorddef.create(n,recst);
+             current_structdef:=crecorddef.create(n,recst);
            end
          else
            begin
              { for the JVM target records always need a name, because they are
                represented by a class }
              recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),current_settings.packrecords);
-             current_structdef:=trecorddef.create(recst.name^,recst);
+             current_structdef:=crecorddef.create(recst.name^,recst);
            end;
          result:=current_structdef;
          { insert in symtablestack }
@@ -956,18 +956,18 @@ implementation
                        { All checks passed, create the new def }
                        case pt1.resultdef.typ of
                          enumdef :
-                           def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
+                           def:=cenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
                          orddef :
                            begin
                              if is_char(pt1.resultdef) then
-                               def:=torddef.create(uchar,lv,hv)
+                               def:=corddef.create(uchar,lv,hv)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=torddef.create(pasbool8,lv,hv)
+                                 def:=corddef.create(pasbool8,lv,hv)
                                else if is_signed(pt1.resultdef) then
-                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
-                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv);
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv);
                            end;
                        end;
                      end;
@@ -1109,8 +1109,8 @@ implementation
                enumdef :
                  if (tenumdef(tt2).min>=0) and
                     (tenumdef(tt2).max<=255) then
-                  // !! def:=tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
-                  def:=tsetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max)
+                  // !! def:=csetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
+                  def:=csetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max)
                  else
                   Message(sym_e_ill_type_decl_set);
                orddef :
@@ -1118,11 +1118,11 @@ implementation
                    if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).ordtype<>uwidechar) and
                       (torddef(tt2).low>=0) then
-                     // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
+                     // !! def:=csetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
                      if Torddef(tt2).high>int64(high(byte)) then
                        message(sym_e_ill_type_decl_set)
                      else
-                       def:=tsetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue)
+                       def:=csetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
@@ -1195,7 +1195,7 @@ implementation
            current_genericdef:=nil;
            current_specializedef:=nil;
            first:=true;
-           arrdef:=tarraydef.create(0,0,s32inttype);
+           arrdef:=carraydef.create(0,0,s32inttype);
            consume(_ARRAY);
 
            { usage of specialized type inside its generic template }
@@ -1287,7 +1287,7 @@ implementation
                     as element of the existing array, otherwise modify the existing array }
                   if not(first) then
                     begin
-                      arrdef.elementdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
+                      arrdef.elementdef:=carraydef.create(lowval.svalue,highval.svalue,indexdef);
                       { push new symtable }
                       symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
@@ -1357,7 +1357,7 @@ implementation
 
             is_func:=(token=_FUNCTION);
             consume(token);
-            pd:=tprocvardef.create(normal_function_level);
+            pd:=cprocvardef.create(normal_function_level);
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then
@@ -1406,7 +1406,7 @@ implementation
               begin
                 if check_proc_directive(true) then
                   begin
-                    newtype:=ttypesym.create('unnamed',result);
+                    newtype:=ctypesym.create('unnamed',result);
                     parse_var_proc_directives(tsym(newtype));
                     newtype.typedef:=nil;
                     result.typesym:=nil;
@@ -1470,7 +1470,7 @@ implementation
                       break;
                   end;
                 if not is_specialize then
-                  aktenumdef:=tenumdef.create
+                  aktenumdef:=cenumdef.create
                 else
                   aktenumdef:=nil;
                 repeat
@@ -1532,9 +1532,9 @@ implementation
                     begin
                       storepos:=current_tokenpos;
                       current_tokenpos:=defpos;
-                      tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      tenumsymtable(aktenumdef.symtable).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       if not (cs_scopedenums in current_settings.localswitches) then
-                        tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                        tstoredsymtable(aktenumdef.owner).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       current_tokenpos:=storepos;
                     end;
                 until not try_to_consume(_COMMA);
@@ -1576,7 +1576,7 @@ implementation
                   end;
                 { don't use getpointerdef() here, since this is a type
                   declaration (-> must create new typedef) }
-                def:=tpointerdef.create(tt2);
+                def:=cpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
               end;
@@ -1655,11 +1655,11 @@ implementation
                     if is_class(hdef) or
                        is_objcclass(hdef) or
                        is_javaclass(hdef) then
-                      def:=tclassrefdef.create(hdef)
+                      def:=cclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
                         begin
-                          def:=tclassrefdef.create(hdef);
+                          def:=cclassrefdef.create(hdef);
                           current_module.checkforwarddefs.add(def);
                         end
                     else
@@ -1739,7 +1739,7 @@ implementation
                 begin
                   consume(_KLAMMERAFFE);
                   single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
-                  def:=tpointerdef.create(tt2);
+                  def:=cpointerdef.create(tt2);
                   if tt2.typ=forwarddef then
                     current_module.checkforwarddefs.add(def);
                 end

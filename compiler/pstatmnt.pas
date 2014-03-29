@@ -671,7 +671,7 @@ implementation
                 if hasimplicitderef then
                   hdef:=p.resultdef
                 else
-                  hdef:=tpointerdef.create(p.resultdef);
+                  hdef:=cpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
                 tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
                 typecheckpass(tnode(tempnode));
@@ -940,7 +940,7 @@ implementation
                             begin
                               single_type(ot,[]);
                               check_type_valid(ot);
-                              sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
+                              sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
                             begin
@@ -973,7 +973,7 @@ implementation
                                  { create dummy symbol so we don't need a special
                                  case in ncgflw, and so that we always know the
                                  type }
-                               sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
+                               sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create;
                           excepTSymtable.insert(sym);
