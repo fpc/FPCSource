@@ -213,10 +213,13 @@ function InterLockedDecrement (var Target: longint) : longint;nostackframe;assem
 asm
   mov si, sp
   mov bx, ss:[si + 2 + extra_param_offset]  // Target
+  pushf
+  cli
   sub word [bx], 1
   sbb word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
+  popf
 end;
 
 {TODO: fix, use smallint?}
@@ -224,10 +227,13 @@ function InterLockedIncrement (var Target: longint) : longint;nostackframe;assem
 asm
   mov si, sp
   mov bx, ss:[si + 2 + extra_param_offset]  // Target
+  pushf
+  cli
   add word [bx], 1
   adc word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
+  popf
 end;
 
 {TODO: fix, use smallint?}
