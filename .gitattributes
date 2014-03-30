@@ -798,6 +798,7 @@ compiler/x86/rax86att.pas svneol=native#text/plain
 compiler/x86/rax86int.pas svneol=native#text/plain
 compiler/x86/rgx86.pas svneol=native#text/plain
 compiler/x86/symi86.pas svneol=native#text/plain
+compiler/x86/symx86.pas svneol=native#text/plain
 compiler/x86/x86ins.dat svneol=native#text/plain
 compiler/x86/x86reg.dat svneol=native#text/plain
 compiler/x86_64/aoptcpu.pas svneol=native#text/plain
