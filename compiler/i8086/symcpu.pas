@@ -33,88 +33,116 @@ type
   { defs }
   tcpufiledef = class(tfiledef)
   end;
+  tcpufiledefclass = class of tcpufiledef;
 
   tcpuvariantdef = class(tvariantdef)
   end;
+  tcpuvariantdefclass = class of tcpuvariantdef;
 
   tcpuformaldef = class(tformaldef)
   end;
+  tcpuformaldefclass = class of tcpuformaldef;
 
   tcpuforwarddef = class(tforwarddef)
   end;
+  tcpuforwarddefclass = class of tcpuforwarddef;
 
   tcpuundefineddef = class(tundefineddef)
   end;
+  tcpuundefineddefclass = class of tcpuundefineddef;
 
   tcpuerrordef = class(terrordef)
   end;
+  tcpuerrordefclass = class of tcpuerrordef;
 
   tcpupointerdef = class(tpointerdef)
   end;
+  tcpupointerdefclass = class of tcpupointerdef;
 
   tcpurecorddef = class(trecorddef)
   end;
+  tcpurecorddefclass = class of tcpurecorddef;
 
   tcpuimplementedinterface = class(timplementedinterface)
   end;
+  tcpuimplementedinterfaceclass = class of tcpuimplementedinterface;
 
   tcpuobjectdef = class(tobjectdef)
   end;
+  tcpuobjectdefclass = class of tcpuobjectdef;
 
   tcpuclassrefdef = class(tclassrefdef)
   end;
+  tcpuclassrefdefclass = class of tcpuclassrefdef;
 
   tcpuarraydef = class(tarraydef)
   end;
+  tcpuarraydefclass = class of tcpuarraydef;
 
   tcpuorddef = class(torddef)
   end;
+  tcpuorddefclass = class of tcpuorddef;
 
   tcpufloatdef = class(tfloatdef)
   end;
+  tcpufloatdefclass = class of tcpufloatdef;
 
   tcpuprocvardef = class(tprocvardef)
   end;
+  tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
   end;
+  tcpuprocdefclass = class of tcpuprocdef;
 
   tcpustringdef = class(tstringdef)
   end;
+  tcpustringdefclass = class of tcpustringdef;
 
   tcpuenumdef = class(tenumdef)
   end;
+  tcpuenumdefclass = class of tcpuenumdef;
 
   tcpusetdef = class(tsetdef)
   end;
+  tcpusetdefclass = class of tcpusetdef;
 
   { syms }
   tcpulabelsym = class(tlabelsym)
   end;
+  tcpulabelsymclass = class of tcpulabelsym;
 
   tcpuunitsym = class(tunitsym)
   end;
+  tcpuunitsymclass = class of tcpuunitsym;
 
   tcpunamespacesym = class(tnamespacesym)
   end;
+  tcpunamespacesymclass = class of tcpunamespacesym;
 
   tcpuprocsym = class(tprocsym)
   end;
+  tcpuprocsymclass = class of tcpuprocsym;
 
   tcpuypesym = class(ttypesym)
   end;
+  tcpuypesymclass = class of tcpuypesym;
 
   tcpufieldvarsym = class(tfieldvarsym)
   end;
+  tcpufieldvarsymclass = class of tcpufieldvarsym;
 
   tcpulocalvarsym = class(tlocalvarsym)
   end;
+  tcpulocalvarsymclass = class of tcpulocalvarsym;
 
   tcpuparavarsym = class(tparavarsym)
   end;
+  tcpuparavarsymclass = class of tcpuparavarsym;
 
   tcpustaticvarsym = class(tstaticvarsym)
   end;
+  tcpustaticvarsymclass = class of tcpustaticvarsym;
 
   tcpuabsolutevarsym = class(ti86absolutevarsym)
    protected
@@ -123,18 +151,23 @@ type
    public
     addrsegment : aword;
   end;
+  tcpuabsolutevarsymclass = class of tcpuabsolutevarsym;
 
   tcpupropertysym = class(tpropertysym)
   end;
+  tcpupropertysymclass = class of tcpupropertysym;
 
   tcpuconstsym = class(tconstsym)
   end;
+  tcpuconstsymclass = class of tcpuconstsym;
 
   tcpuenumsym = class(tenumsym)
   end;
+  tcpuenumsymclass = class of tcpuenumsym;
 
   tcpusyssym = class(tsyssym)
   end;
+  tcpusyssymclass = class of tcpusyssym;
 
 
 implementation
