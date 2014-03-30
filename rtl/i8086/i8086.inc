@@ -522,7 +522,6 @@ procedure DetectFPU;
 Procedure SysInitFPU;
   var
     { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
@@ -538,7 +537,6 @@ Procedure SysInitFPU;
 Procedure SysResetFPU;
   var
     { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
