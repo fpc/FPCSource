@@ -119,25 +119,57 @@
 
   {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
-      var
-        cw1,cw2: word;
       asm
-        // comes from DJ GPP
         fldt        d
         fldl2e
-        fmulp       %st,%st(1)
-        fstcw       CW1
-        fstcw       CW2
-        fwait
-        andw        $0xf3ff,CW2
-        orw         $0x0400,CW2
-        fldcw       CW2
-        fld         %st(0)
+        fmul        %st(1),%st        { z = d * log2(e) }
         frndint
-        fldcw       CW1
-        fxch        %st(1)
-        fsub        %st(1),%st
+      { Calculate frac(z) using modular arithmetic to avoid precision loss.
+        Avoid PIC hacks by using immediate operands (it's not the fastest,
+        but likely the cleanest solution). }
+        pushl       $0x3fe62e42       { ln(2).hi=6.9314718036912382E-001 }
+        pushl       $0xfee00000
+        fldl        (%esp)
+        fmul        %st(1),%st
+        fsubrp      %st,%st(2)
+        pushl       $0x3dea39ef       { ln(2).lo=1.9082149292705877E-010 }
+        pushl       $0x35793c76
+        fldl        (%esp)
+        fmul        %st(1),%st
+        fsubrp      %st,%st(2)
+        fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
+        fldl2e
+        fmulp       %st,%st(1)        { frac(z) }
+
+        fld         %st
+        fabs
+        fld1
+        fcompp
+        fstsw       %ax
+        sahf
+        jae         .L1               { frac(z) <= 1 }
+        fld         %st(1)
+        fabs
+        pushl       $0x46c00000       { single(24576.0) }
+        fcomps      (%esp)
+        fstsw       %ax
+        sahf
+        jb          .L0               { int(z) < 24576 }
+        fsub        %st,%st
+        jmp         .L1
+.L0:
+        { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
+        pushl       $0x3f000000       { single(0.5) }
+        fmuls       (%esp)
         f2xm1
+        fld         %st
+        pushl       $0x40000000       { single(2.0) }
+        fadds       (%esp)
+        fmulp       %st,%st(1)
+        jmp         .L2
+.L1:
+        f2xm1
+.L2:
         fld1
         faddp       %st,%st(1)
         fscale
