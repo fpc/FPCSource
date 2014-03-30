@@ -77,6 +77,7 @@ interface
           function pass_typecheck:tnode;override;
          protected
           mark_read_written: boolean;
+          function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; virtual;
        end;
        taddrnodeclass = class of taddrnode;
 
@@ -477,10 +478,9 @@ implementation
 
     function taddrnode.pass_typecheck:tnode;
       var
-         hp  : tnode;
+         hp : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
-         offset: asizeint;
       begin
         result:=nil;
         typecheckpass(left);
@@ -571,78 +571,16 @@ implementation
           end
         else
           begin
-            { what are we getting the address from an absolute sym? }
             hp:=left;
             while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
-{$if defined(i386) or defined(i8086)}
-            if (hp.nodetype=loadn) and
-               ((tloadnode(hp).symtableentry.typ=absolutevarsym) and
-               tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
+            if typecheck_non_proc(hp,result) then
               begin
-                {$if defined(i8086)}
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidfarpointertype
-                  else
-                    resultdef:=cpointerdef.createx86(left.resultdef,x86pt_far);
-                {$elseif defined(i386)}
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidnearfspointertype
-                  else
-                    resultdef:=cpointerdef.createx86(left.resultdef,x86pt_near_fs);
-                {$endif}
+                if assigned(result) then
+                  exit;
               end
-            else
-{$endif i386 or i8086}
-            if (hp.nodetype=loadn) and
-               (tloadnode(hp).symtableentry.typ=absolutevarsym) and
-{$if defined(i386) or defined(i8086)}
-               not(tabsolutevarsym(tloadnode(hp).symtableentry).absseg) and
-{$endif i386 or i8086}
-               (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
-               begin
-                 offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
-                 hp:=left;
-                 while assigned(hp)and(hp.nodetype=subscriptn) do
-                   begin
-                     hsym:=tsubscriptnode(hp).vs;
-                     if tabstractrecordsymtable(hsym.owner).is_packed then
-                       begin
-                         { can't calculate the address of a non-byte aligned field }
-                         if (hsym.fieldoffset mod 8)<>0 then
-                           exit;
-                         inc(offset,hsym.fieldoffset div 8)
-                       end
-                     else
-                       inc(offset,hsym.fieldoffset);
-                     hp:=tunarynode(hp).left;
-                   end;
-                 if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
-                 else
-                   result:=cpointerconstnode.create(offset,voidpointertype);
-                 exit;
-               end
-{$ifdef i8086}
-              else if (hp.nodetype=loadn) and
-               (tloadnode(hp).symtableentry.typ=labelsym) then
-                begin
-                  if current_settings.x86memorymodel in x86_far_code_models then
-                    resultdef:=voidfarpointertype
-                  else
-                    resultdef:=voidnearpointertype;
-                end
-{$endif i8086}
-              else if (nf_internal in flags) or
-                 valid_for_addr(left,true) then
-                begin
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidpointertype
-                  else
-                    resultdef:=getpointerdef(left.resultdef);
-                end
             else
               CGMessage(type_e_variable_id_expected);
           end;
@@ -658,6 +596,55 @@ implementation
             { vsf_referred_not_inited                          }
             set_varstate(left,vs_read,[vsf_must_be_valid]);
           end;
+      end;
+
+
+    function taddrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+      var
+         hp  : tnode;
+         hsym : tfieldvarsym;
+         offset: asizeint;
+      begin
+        result:=false;
+        res:=nil;
+        if (realsource.nodetype=loadn) and
+           (tloadnode(realsource).symtableentry.typ=absolutevarsym) and
+           (tabsolutevarsym(tloadnode(realsource).symtableentry).abstyp=toaddr) then
+          begin
+            offset:=tabsolutevarsym(tloadnode(realsource).symtableentry).addroffset;
+            hp:=left;
+            while assigned(hp)and(hp.nodetype=subscriptn) do
+              begin
+                hsym:=tsubscriptnode(hp).vs;
+                if tabstractrecordsymtable(hsym.owner).is_packed then
+                  begin
+                    { can't calculate the address of a non-byte aligned field }
+                    if (hsym.fieldoffset mod 8)<>0 then
+                      begin
+                        CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                        exit
+                      end;
+                    inc(offset,hsym.fieldoffset div 8)
+                  end
+                else
+                  inc(offset,hsym.fieldoffset);
+                hp:=tunarynode(hp).left;
+              end;
+            if nf_typedaddr in flags then
+              res:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
+            else
+              res:=cpointerconstnode.create(offset,voidpointertype);
+            result:=true;
+          end
+        else if (nf_internal in flags) or
+           valid_for_addr(left,true) then
+          begin
+            if not(nf_typedaddr in flags) then
+              resultdef:=voidpointertype
+            else
+              resultdef:=getpointerdef(left.resultdef);
+            result:=true;
+          end
       end;
 
 

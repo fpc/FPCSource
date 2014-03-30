@@ -50,6 +50,7 @@ unit cpunode;
        n8086add,
        n8086cal,
        n8086cnv,
+       n8086ld,
        n8086mem{,
        n386set},
        n8086inl,

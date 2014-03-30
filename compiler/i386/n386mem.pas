@@ -28,10 +28,13 @@ interface
     uses
       globtype,
       cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem,nx86mem;
+      node,nmem,ncgmem,nx86mem,ni86mem;
 
     type
-       ti386addrnode = class(tcgaddrnode)
+       ti386addrnode = class(ti86addrnode)
+         protected
+          procedure set_absvarsym_resultdef; override;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -44,7 +47,7 @@ implementation
     uses
       systems,
       cutils,verbose,
-      symdef,paramgr,
+      symconst,symdef,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,
       cgutils,cgobj;
@@ -53,8 +56,16 @@ implementation
                              TI386ADDRNODE
 *****************************************************************************}
 
-    procedure ti386addrnode.pass_generate_code;
+    procedure ti386addrnode.set_absvarsym_resultdef;
+      begin
+        if not(nf_typedaddr in flags) then
+          resultdef:=voidnearfspointertype
+        else
+          resultdef:=cpointerdef.createx86(left.resultdef,x86pt_near_fs);
+      end;
 
+
+    procedure ti386addrnode.pass_generate_code;
       begin
         inherited pass_generate_code;
         { for use of other segments, not used }

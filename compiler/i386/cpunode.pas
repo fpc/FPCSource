@@ -51,6 +51,7 @@ unit cpunode;
 
        n386add,
        n386cal,
+       n386ld,
        n386mem,
        n386set,
        n386inl,

@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symdef,symsym;
+  symdef,symsym,symi86;
 
 type
   { defs }
@@ -115,7 +115,7 @@ type
   tcpustaticvarsym = class(tstaticvarsym)
   end;
 
-  tcpuabsolutevarsym = class(tabsolutevarsym)
+  tcpuabsolutevarsym = class(ti86absolutevarsym)
   end;
 
   tcpupropertysym = class(tpropertysym)

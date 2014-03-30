@@ -291,14 +291,8 @@ interface
       tabsolutevarsym = class(tabstractvarsym)
       public
          abstyp  : absolutetyp;
-{$if defined(i386) or defined(i8086)}
-         absseg  : boolean;
-{$endif defined(i386) or defined(i8086)}
          asmname : pshortstring;
          addroffset : aword;
-{$if defined(i8086)}
-         addrsegment : aword;
-{$endif defined(i8086)}
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);virtual;
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);virtual;
@@ -2168,25 +2162,13 @@ implementation
          ref:=nil;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
-{$if defined(i386) or defined(i8086)}
-         absseg:=false;
-{$endif i386 or i8086}
          case abstyp of
            tovar :
              ref:=ppufile.getpropaccesslist;
            toasm :
              asmname:=stringdup(ppufile.getstring);
            toaddr :
-             begin
-               addroffset:=ppufile.getaword;
-{$if defined(i386)}
-               absseg:=boolean(ppufile.getbyte);
-{$elseif defined(i8086)}
-               absseg:=boolean(ppufile.getbyte);
-               if absseg then
-                 addrsegment:=ppufile.getaword;
-{$endif}
-             end;
+             addroffset:=ppufile.getaword;
          end;
          ppuload_platform(ppufile);
       end;
@@ -2202,16 +2184,7 @@ implementation
            toasm :
              ppufile.putstring(asmname^);
            toaddr :
-             begin
-               ppufile.putaword(addroffset);
-{$if defined(i386)}
-               ppufile.putbyte(byte(absseg));
-{$elseif defined(i8086)}
-               ppufile.putbyte(byte(absseg));
-               if absseg then
-                 ppufile.putaword(addrsegment);
-{$endif}
-             end;
+             ppufile.putaword(addroffset);
          end;
          writeentry(ppufile,ibabsolutevarsym);
       end;

@@ -26,7 +26,8 @@ unit symcpu;
 interface
 
 uses
-  symdef,symsym;
+  globtype,
+  symtype,symdef,symsym,symi86;
 
 type
   { defs }
@@ -115,7 +116,12 @@ type
   tcpustaticvarsym = class(tstaticvarsym)
   end;
 
-  tcpuabsolutevarsym = class(tabsolutevarsym)
+  tcpuabsolutevarsym = class(ti86absolutevarsym)
+   protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    addrsegment : aword;
   end;
 
   tcpupropertysym = class(tpropertysym)
@@ -132,6 +138,21 @@ type
 
 
 implementation
+
+  procedure tcpuabsolutevarsym.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      if absseg then
+        addrsegment:=ppufile.getaword;
+    end;
+
+
+  procedure tcpuabsolutevarsym.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      if absseg then
+        ppufile.putaword(addrsegment);
+    end;
 
 begin
   { used tdef classes }

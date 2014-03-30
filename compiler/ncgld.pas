@@ -28,7 +28,7 @@ interface
 
     uses
       globtype,
-      symtype,
+      symtype,symsym,
       aasmdata,
       node,nld,cgutils;
 
@@ -36,6 +36,7 @@ interface
        tcgloadnode = class(tloadnode)
          protected
           procedure generate_nested_access(vs: tsym);virtual;
+          procedure generate_absaddr_access(vs: tabsolutevarsym); virtual;
          public
           procedure pass_generate_code;override;
           procedure changereflocation(const ref: treference);
@@ -68,7 +69,7 @@ implementation
       systems,
       verbose,globals,constexp,
       nutils,
-      symtable,symconst,symdef,symsym,defutil,paramgr,ncon,nbas,ncgrtti,
+      symtable,symconst,symdef,defutil,paramgr,ncon,nbas,ncgrtti,
       aasmbase,
       cgbase,pass_2,
       procinfo,
@@ -245,6 +246,12 @@ implementation
       end;
 
 
+    procedure tcgloadnode.generate_absaddr_access(vs: tabsolutevarsym);
+      begin
+        location.reference.offset:=aint(vs.addroffset);
+      end;
+
+
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
@@ -268,19 +275,7 @@ implementation
                  { this is only for toasm and toaddr }
                  case tabsolutevarsym(symtableentry).abstyp of
                    toaddr :
-                     begin
-{$if defined(i8086)}
-                       if tabsolutevarsym(symtableentry).absseg then
-                         begin
-                           location.reference.segment:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                           cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,aint(tabsolutevarsym(symtableentry).addrsegment),location.reference.segment);
-                         end;
-{$elseif defined(i386)}
-                       if tabsolutevarsym(symtableentry).absseg then
-                         location.reference.segment:=NR_FS;
-{$endif}
-                       location.reference.offset:=aint(tabsolutevarsym(symtableentry).addroffset);
-                     end;
+                     generate_absaddr_access(tabsolutevarsym(symtableentry));
                    toasm :
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname);
                    else

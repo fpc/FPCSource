@@ -28,9 +28,15 @@ interface
     uses
       globtype,
       cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem,nx86mem;
+      node,nmem,ncgmem,nx86mem,ni86mem;
 
     type
+       ti8086addrnode = class(ti86addrnode)
+        protected
+         procedure set_absvarsym_resultdef; override;
+         function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
+       end;
+
        ti8086derefnode = class(tx86derefnode)
          procedure pass_generate_code;override;
        end;
@@ -47,6 +53,35 @@ implementation
       cgutils,cgobj,
       defutil,hlcgobj,
       pass_2,ncgutil;
+
+{*****************************************************************************
+                             TI8086ADDRNODE
+*****************************************************************************}
+
+    procedure ti8086addrnode.set_absvarsym_resultdef;
+      begin
+        if not(nf_typedaddr in flags) then
+          resultdef:=voidfarpointertype
+        else
+          resultdef:=cpointerdef.createx86(left.resultdef,x86pt_far);
+      end;
+
+
+    function ti8086addrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+      begin
+        res:=nil;
+        if (realsource.nodetype=loadn) and
+           (tloadnode(realsource).symtableentry.typ=labelsym) then
+          begin
+            if current_settings.x86memorymodel in x86_far_code_models then
+              resultdef:=voidfarpointertype
+            else
+              resultdef:=voidnearpointertype;
+            result:=true
+          end
+        else
+          result:=inherited;
+      end;
 
 {*****************************************************************************
                              TI8086DEREFNODE
@@ -128,6 +163,7 @@ implementation
 
 
 begin
+  caddrnode:=ti8086addrnode;
   cderefnode:=ti8086derefnode;
   { override tx86vecnode, which doesn't work for i8086 }
   cvecnode:=tcgvecnode;

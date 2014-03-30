@@ -55,6 +55,9 @@ implementation
        systems,
        { symtable }
        symconst,symbase,symtype,defutil,defcmp,symcreat,
+{$if defined(i386) or defined(i8086)}
+       symcpu,
+{$endif}
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -1268,7 +1271,7 @@ implementation
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$if defined(i386) or defined(i8086)}
-              abssym.absseg:=false;
+              tcpuabsolutevarsym(abssym).absseg:=false;
               if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                   try_to_consume(_COLON) then
                 begin
@@ -1277,7 +1280,7 @@ implementation
                   if is_constintnode(pt) then
                     begin
                       {$if defined(i8086)}
-                        abssym.addrsegment:=abssym.addroffset;
+                        tcpuabsolutevarsym(abssym).addrsegment:=abssym.addroffset;
                         tmpaddr:=tordconstnode(pt).value.svalue;
                         if (tmpaddr<int64(low(abssym.addroffset))) or
                            (tmpaddr>int64(high(abssym.addroffset))) then
@@ -1292,7 +1295,7 @@ implementation
                         else
                           abssym.addroffset:=tmpaddr;
                       {$endif}
-                      abssym.absseg:=true;
+                      tcpuabsolutevarsym(abssym).absseg:=true;
                     end
                   else
                     Message(type_e_ordinal_expr_expected);
