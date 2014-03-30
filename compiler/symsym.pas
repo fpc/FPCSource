@@ -203,7 +203,7 @@ interface
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
-          procedure set_externalname(const s:string);
+          procedure set_externalname(const s:string);virtual;
           function mangledname:TSymStr;override;
           destructor destroy;override;
       end;
@@ -258,7 +258,7 @@ interface
       tparavarsymclass = class of tparavarsym;
 
       tstaticvarsym = class(tabstractnormalvarsym)
-      private
+      protected
 {$ifdef symansistr}
           _mangledbasename,
           _mangledname : TSymStr;
@@ -283,7 +283,7 @@ interface
           function mangledname:TSymStr;override;
           procedure set_mangledbasename(const s: TSymStr);
           function mangledbasename: TSymStr;
-          procedure set_mangledname(const s:TSymStr);
+          procedure set_mangledname(const s:TSymStr);virtual;
           procedure set_raw_mangledname(const s:TSymStr);
       end;
       tstaticvarsymclass = class of tstaticvarsym;
@@ -453,9 +453,6 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
-{$ifdef jvm}
-       jvmdef,
-{$endif}
        fmodule,
        { tree }
        node,
@@ -1671,21 +1668,7 @@ implementation
 
     procedure tfieldvarsym.set_externalname(const s: string);
       begin
-        { make sure it is recalculated }
-{$ifdef symansistr}
-        cachedmangledname:='';
-{$else symansistr}
-        stringdispose(cachedmangledname);
-{$endif symansistr}
-{$ifdef jvm}
-        if is_java_class_or_interface(tdef(owner.defowner)) then
-          begin
-            externalname:=stringdup(s);
-            include(varoptions,vo_has_mangledname);
-          end
-        else
-{$endif jvm}
-          internalerror(2011031201);
+        internalerror(2014033001);
       end;
 
 
@@ -1694,21 +1677,6 @@ implementation
         srsym : tsym;
         srsymtable : tsymtable;
       begin
-{$ifdef jvm}
-        if is_java_class_or_interface(tdef(owner.defowner)) or
-           (tdef(owner.defowner).typ=recorddef) then
-          begin
-            if cachedmangledname<>'' then
-              result:=cachedmangledname
-            else
-              begin
-                result:=jvmmangledbasename(self,false);
-                jvmaddtypeownerprefix(owner,result);
-                cachedmangledname:=result;
-              end;
-          end
-        else
-{$endif jvm}
         if sp_static in symoptions then
           begin
             if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
@@ -1903,11 +1871,9 @@ implementation
 
 
     function tstaticvarsym.mangledname:TSymStr;
-{$ifndef jvm}
       var
         usename,
         prefix : TSymStr;
-{$endif jvm}
       begin
 {$ifdef symansistr}
         if _mangledname='' then
@@ -1915,31 +1881,23 @@ implementation
         if not assigned(_mangledname) then
 {$endif symansistr}
           begin
-{$ifdef jvm}
-            if _mangledbasename='' then
-              _mangledname:=jvmmangledbasename(self,false)
-            else
-              _mangledname:=jvmmangledbasename(self,_mangledbasename,false);
-            jvmaddtypeownerprefix(owner,_mangledname);
-{$else jvm}
             if (vo_is_typed_const in varoptions) then
               prefix:='TC'
             else
               prefix:='U';
-  {$ifdef symansistr}
+{$ifdef symansistr}
             if _mangledbasename='' then
               usename:=name
             else
               usename:=_mangledbasename;
             _mangledname:=make_mangledname(prefix,owner,usename);
-  {$else symansistr}
+{$else symansistr}
             if not assigned(_mangledbasename) then
               usename:=name
             else
               usename:=_mangledbasename^;
             _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
-  {$endif symansistr}
-{$endif jvm}
+{$endif symansistr}
           end;
 {$ifdef symansistr}
         result:=_mangledname;
@@ -1978,19 +1936,12 @@ implementation
 
     procedure tstaticvarsym.set_mangledname(const s:TSymStr);
       begin
-{$ifndef symansistr}
-        stringdispose(_mangledname);
-{$endif}
-{$if defined(jvm)}
-        _mangledname:=jvmmangledbasename(self,s,false);
-        jvmaddtypeownerprefix(owner,_mangledname);
-{$else}
-  {$ifdef symansistr}
+{$ifdef symansistr}
         _mangledname:=s;
-  {$else symansistr}
+{$else symansistr}
+        stringdispose(_mangledname);
         _mangledname:=stringdup(s);
-  {$endif symansistr}
-{$endif}
+{$endif symansistr}
         include(varoptions,vo_has_mangledname);
       end;
 

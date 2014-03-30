@@ -26,6 +26,7 @@ unit symcpu;
 interface
 
 uses
+  globtype,
   symdef,symsym;
 
 type
@@ -104,6 +105,8 @@ type
   end;
 
   tcpufieldvarsym = class(tfieldvarsym)
+    procedure set_externalname(const s: string); override;
+    function mangledname: TSymStr; override;
   end;
 
   tcpulocalvarsym = class(tlocalvarsym)
@@ -113,6 +116,8 @@ type
   end;
 
   tcpustaticvarsym = class(tstaticvarsym)
+    procedure set_mangledname(const s: TSymStr); override;
+    function mangledname: TSymStr; override;
   end;
 
   tcpuabsolutevarsym = class(tabsolutevarsym)
@@ -132,6 +137,73 @@ type
 
 
 implementation
+
+  uses
+    verbose,cutils,
+    symtype,symconst,
+    jvmdef;
+
+{****************************************************************************
+                             tcpustaticvarsym
+****************************************************************************}
+
+  procedure tcpustaticvarsym.set_mangledname(const s: TSymStr);
+    begin
+      inherited;
+      _mangledname:=jvmmangledbasename(self,s,false);
+      jvmaddtypeownerprefix(owner,_mangledname);
+    end;
+
+
+  function tcpustaticvarsym.mangledname: TSymStr;
+    begin
+      if _mangledname='' then
+        begin
+          if _mangledbasename='' then
+            _mangledname:=jvmmangledbasename(self,false)
+          else
+            _mangledname:=jvmmangledbasename(self,_mangledbasename,false);
+          jvmaddtypeownerprefix(owner,_mangledname);
+        end;
+      result:=_mangledname;
+    end;
+
+
+{****************************************************************************
+                             tcpufieldvarsym
+****************************************************************************}
+
+  procedure tcpufieldvarsym.set_externalname(const s: string);
+    begin
+      { make sure it is recalculated }
+      cachedmangledname:='';
+      if is_java_class_or_interface(tdef(owner.defowner)) then
+        begin
+          externalname:=stringdup(s);
+          include(varoptions,vo_has_mangledname);
+        end
+      else
+        internalerror(2011031201);
+    end;
+
+
+  function tcpufieldvarsym.mangledname: TSymStr;
+    begin
+      if is_java_class_or_interface(tdef(owner.defowner)) or
+         (tdef(owner.defowner).typ=recorddef) then
+        begin
+          if cachedmangledname<>'' then
+            result:=cachedmangledname
+          else
+            begin
+              result:=jvmmangledbasename(self,false);
+              jvmaddtypeownerprefix(owner,result);
+              cachedmangledname:=result;
+            end;
+        end
+      else
+        result:=inherited;
+    end;
 
 begin
   { used tdef classes }
