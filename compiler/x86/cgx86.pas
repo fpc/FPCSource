@@ -2473,9 +2473,9 @@ unit cgx86;
                 srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
-                list.concat(taicpu.op_reg(A_PUSH,S_L,source.segment));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment));
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
               end;
 
             getcpuregister(list,REGCX);
