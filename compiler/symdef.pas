@@ -73,7 +73,7 @@ interface
           typesymderef  : tderef;
           procedure fillgenericparas(symtable:tsymtable);
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
-          procedure ppuload_platform(ppufile:tcompilerppufile);
+          procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
