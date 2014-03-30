@@ -248,7 +248,7 @@ implementation
     verbose,cutils,globals,fmodule,constexp,
     defutil,
     aasmtai,aasmcpu,
-    symtable,jvmdef,
+    symtable,symcpu,jvmdef,
     procinfo,cpuinfo,cgcpu,tgobj;
 
   const
@@ -1514,7 +1514,7 @@ implementation
           begin
             if not tprocvardef(size).is_addressonly then
               begin
-                concatcopy_record(list,tprocvardef(size).classdef,source,dest);
+                concatcopy_record(list,tcpuprocvardef(size).classdef,source,dest);
                 handled:=true;
               end;
           end;
@@ -2438,7 +2438,7 @@ implementation
             checkdef:=java_jubitset;
         end
       else if checkdef.typ=procvardef then
-        checkdef:=tprocvardef(checkdef).classdef
+        checkdef:=tcpuprocvardef(checkdef).classdef
       else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then

@@ -64,7 +64,7 @@ implementation
     fmodule,
     parabase,aasmdata,
     pdecsub,ngenutil,pparautl,
-    symtable,symcreat,defcmp,jvmdef,nobj,
+    symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
     defutil,paramgr;
 
 
@@ -490,7 +490,7 @@ implementation
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
         pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase);
-        tprocvardef(def).classdef:=pvclass;
+        tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
           include(pvclass.defoptions,df_generic);
@@ -583,7 +583,7 @@ implementation
     procedure jvm_wrap_virtual_class_method(pd: tprocdef);
       var
         wrapperpd: tprocdef;
-        wrapperpv: tprocvardef;
+        wrapperpv: tcpuprocvardef;
         typ: ttypesym;
         wrappername: shortstring;
       begin
@@ -641,7 +641,7 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tprocvardef(pd.getcopyas(procvardef,pc_normal));
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal));
         wrapperpv.calcparas;
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }

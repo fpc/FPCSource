@@ -27,6 +27,7 @@ interface
 
 uses
   globtype,
+  symtype,
   symdef,symsym;
 
 type
@@ -74,6 +75,16 @@ type
   end;
 
   tcpuprocvardef = class(tprocvardef)
+   protected
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+   public
+    { class representing this procvar on the Java side }
+    classdef  : tobjectdef;
+    classdefderef : tderef;
+    procedure buildderef;override;
+    procedure deref;override;
+    function getcopy: tstoreddef; override;
   end;
 
   tcpuprocdef = class(tprocdef)
@@ -140,8 +151,45 @@ implementation
 
   uses
     verbose,cutils,
-    symtype,symconst,
+    symconst,
     jvmdef;
+
+{****************************************************************************
+                             tcpuprocvardef
+****************************************************************************}
+
+  procedure tcpuprocvardef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putderef(classdefderef);
+    end;
+
+
+  procedure tcpuprocvardef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.getderef(classdefderef);
+    end;
+
+
+  procedure tcpuprocvardef.buildderef;
+    begin
+      inherited buildderef;
+      classdefderef.build(classdef);
+    end;
+
+
+  procedure tcpuprocvardef.deref;
+    begin
+      inherited deref;
+      classdef:=tobjectdef(classdefderef.resolve);
+    end;
+
+  function tcpuprocvardef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpuprocvardef(result).classdef:=classdef;
+    end;
 
 {****************************************************************************
                              tcpustaticvarsym

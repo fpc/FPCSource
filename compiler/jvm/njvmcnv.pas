@@ -96,7 +96,7 @@ implementation
 
    uses
       verbose,globals,globtype,constexp,cutils,
-      symbase,symconst,symdef,symsym,symtable,aasmbase,aasmdata,
+      symbase,symconst,symdef,symsym,symcpu,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
       nbas,ncon,ncal,ninl,nld,nmem,procinfo,
@@ -222,7 +222,7 @@ implementation
       if not assigned(totypedef) or
          (totypedef.typ<>procvardef) then
         begin
-          if assigned(tprocvardef(resultdef).classdef) then
+          if assigned(tcpuprocvardef(resultdef).classdef) then
             internalerror(2011072405);
           { associate generic classdef; this is the result of an @proc
             expression, and such expressions can never result in a direct call
@@ -232,7 +232,7 @@ implementation
             { todo }
             internalerror(2011072406)
           else
-            tprocvardef(resultdef).classdef:=java_procvarbase;
+            tcpuprocvardef(resultdef).classdef:=java_procvarbase;
         end;
     end;
 
@@ -376,10 +376,10 @@ implementation
         result:=inherited first_nil_to_methodprocvar;
         if assigned(result) then
           exit;
-        if not assigned(tprocvardef(resultdef).classdef) then
-          tprocvardef(resultdef).classdef:=java_procvarbase;
+        if not assigned(tcpuprocvardef(resultdef).classdef) then
+          tcpuprocvardef(resultdef).classdef:=java_procvarbase;
         result:=ccallnode.createinternmethod(
-          cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',nil);
+          cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
         result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
         result:=cderefnode.create(result);
@@ -482,7 +482,7 @@ implementation
         if not assigned(procdefparas) then
           procdefparas:=carrayconstructornode.create(nil,nil);
         constrparas:=ccallparanode.create(procdefparas,constrparas);
-        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',constrparas);
+        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
           result:=ctypeconvnode.create_explicit(result,resultdef)
@@ -985,21 +985,21 @@ implementation
           result:=nil;
           if fromdef=todef then
             exit;
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072414);
           { can either be a procvar or a procvarclass }
           if fromdef.typ=procvardef then
             begin
-              left:=ctypeconvnode.create_explicit(left,tprocvardef(fromdef).classdef);
+              left:=ctypeconvnode.create_explicit(left,tcpuprocvardef(fromdef).classdef);
               include(left.flags,nf_load_procvar);
               typecheckpass(left);
             end;
           result:=csubscriptnode.create(fsym,left);
           { create destination procvartype with info from source }
           result:=ccallnode.createinternmethod(
-            cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+            cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(result,nil));
           left:=nil;
         end;
@@ -1011,8 +1011,8 @@ implementation
           { must be procedure-of-object -> implicit pointer type -> get address
             before typecasting to corresponding classdef }
           left:=caddrnode.create_internal(left);
-          inserttypeconv_explicit(left,tprocvardef(fromdef).classdef);
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          inserttypeconv_explicit(left,tcpuprocvardef(fromdef).classdef);
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072414);
@@ -1024,11 +1024,11 @@ implementation
         var
           fsym: tsym;
         begin
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(todef).classdef,'METHOD'));
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(todef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072415);
-          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(left,nil));
           left:=nil;
         end;
@@ -1083,9 +1083,9 @@ implementation
           result:=true;
           { check procvar conversion compatibility via their classes }
           if fromdef.typ=procvardef then
-            fromdef:=tprocvardef(fromdef).classdef;
+            fromdef:=tcpuprocvardef(fromdef).classdef;
           if todef.typ=procvardef then
-            todef:=tprocvardef(todef).classdef;
+            todef:=tcpuprocvardef(todef).classdef;
           if (todef=java_jlobject) or
              (todef=voidpointertype) then
             exit;

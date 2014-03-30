@@ -61,7 +61,7 @@ implementation
       systems,globals,procinfo,
       cutils,verbose,constexp,
       aasmbase,
-      symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
+      symconst,symtype,symtable,symsym,symdef,symcpu,defutil,jvmdef,
       htypechk,paramgr,
       nadd,ncal,ncnv,ncon,nld,nutils,
       pass_1,njvmcon,
@@ -199,7 +199,7 @@ implementation
                     { an internal address node will observe "normal" address
                       operator semantics (= take the actual address!) }
                     result:=caddrnode.create_internal(taddrnode(left).left);
-                    result:=ctypeconvnode.create_explicit(result,tprocvardef(taddrnode(left).left.resultdef).classdef);
+                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(taddrnode(left).left.resultdef).classdef);
                     taddrnode(left).left:=nil;
                  end;
               end
@@ -209,9 +209,9 @@ implementation
                   begin
                     { the "code" field from the procvar }
                     result:=caddrnode.create_internal(left);
-                    result:=ctypeconvnode.create_explicit(result,tprocvardef(left.resultdef).classdef);
+                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(left.resultdef).classdef);
                     { procvarclass.method }
-                    fsym:=search_struct_member(tprocvardef(left.resultdef).classdef,'METHOD');
+                    fsym:=search_struct_member(tcpuprocvardef(left.resultdef).classdef,'METHOD');
                     if not assigned(fsym) or
                        (fsym.typ<>fieldvarsym) then
                       internalerror(2011072501);

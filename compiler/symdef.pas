@@ -589,21 +589,12 @@ interface
        end;
 
        tprocvardef = class(tabstractprocdef)
-{$ifdef jvm}
-          { class representing this procvar on the Java side }
-          classdef  : tobjectdef;
-          classdefderef : tderef;
-{$endif}
           constructor create(level:byte);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
-{$ifdef jvm}
-          procedure buildderef;override;
-          procedure deref;override;
-{$endif}
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function  size : asizeint;override;
           function  GetTypeName:string;override;
@@ -5837,9 +5828,6 @@ implementation
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
          parast:=tparasymtable.create(self,ppufile.getbyte);
-{$ifdef jvm}
-         ppufile.getderef(classdefderef);
-{$endif}
          ppuload_platform(ppufile);
          tparasymtable(parast).ppuload(ppufile);
       end;
@@ -5876,9 +5864,6 @@ implementation
 {$ifdef m68k}
         tprocvardef(result).exp_funcretloc:=exp_funcretloc;
 {$endif}
-{$ifdef jvm}
-        tprocvardef(result).classdef:=classdef;
-{$endif}
       end;
 
 
@@ -5890,29 +5875,12 @@ implementation
           procvars) }
         ppufile.putbyte(parast.symtablelevel);
 
-{$ifdef jvm}
-        ppufile.putderef(classdefderef);
-{$endif}
         { Write this entry }
         writeentry(ppufile,ibprocvardef);
 
         { Save the para symtable, this is taken from the interface }
         tparasymtable(parast).ppuwrite(ppufile);
       end;
-
-{$ifdef jvm}
-    procedure tprocvardef.buildderef;
-      begin
-        inherited buildderef;
-        classdefderef.build(classdef);
-      end;
-
-    procedure tprocvardef.deref;
-      begin
-        inherited deref;
-        classdef:=tobjectdef(classdefderef.resolve);
-      end;
-{$endif}
 
 
     function tprocvardef.GetSymtable(t:tGetSymtable):TSymtable;

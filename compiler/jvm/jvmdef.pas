@@ -97,7 +97,7 @@ implementation
     cutils,cclasses,constexp,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,symdef,symcreat,
+    symtable,symconst,symsym,symdef,symcpu,symcreat,
     defutil,paramgr;
 
 {******************************************************************
@@ -352,7 +352,7 @@ implementation
             end;
           procvardef :
             begin
-              result:=jvmaddencodedtype(tprocvardef(def).classdef,false,encodedstr,forcesignature,founderror);
+              result:=jvmaddencodedtype(tcpuprocvardef(def).classdef,false,encodedstr,forcesignature,founderror);
             end;
           objectdef :
             case tobjectdef(def).objecttype of
@@ -724,7 +724,7 @@ implementation
                 end;
               procvardef :
                 begin
-                  result:=tprocvardef(def).classdef;
+                  result:=tcpuprocvardef(def).classdef;
                 end;
               objectdef :
                 case tobjectdef(def).objecttype of

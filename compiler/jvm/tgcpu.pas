@@ -55,7 +55,7 @@ unit tgcpu;
     uses
        verbose,
        cgbase,
-       symconst,symdef,symsym,defutil,
+       symconst,symdef,symsym,symcpu,defutil,
        cpubase,aasmcpu,
        hlcgobj,hlcgcpu;
 
@@ -182,7 +182,7 @@ unit tgcpu;
             begin
               if not tprocvardef(def).is_addressonly then
                 begin
-                  getimplicitobjtemp(list,tprocvardef(def).classdef,temptype,ref);
+                  getimplicitobjtemp(list,tcpuprocvardef(def).classdef,temptype,ref);
                   result:=true;
                 end;
             end;
