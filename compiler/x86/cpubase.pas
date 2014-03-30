@@ -590,7 +590,9 @@ implementation
               { the remaining are distinct from each other }
               exit(false);
             end;
-          mm_compact,mm_large,mm_huge: internalerror(2013062303);
+          mm_compact,mm_large,mm_huge:
+            { all segment registers are different in these models }
+            exit(false);
           else
             internalerror(2013062302);
         end;
