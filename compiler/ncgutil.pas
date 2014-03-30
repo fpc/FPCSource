@@ -110,8 +110,6 @@ interface
       routine has been called, therefore on machines where the stack cannot
       be modified, all temps should be allocated on the heap instead of the
       stack. }
-    const
-      EXCEPT_BUF_SIZE = 3*sizeof(pint);
     type
       texceptiontemps=record
         jmpbuf,
@@ -384,6 +382,8 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
+     const
+       EXCEPT_BUF_SIZE = 3*sizeof(pint);
      begin
         get_jumpbuf_size;
         tg.GetTemp(list,EXCEPT_BUF_SIZE,sizeof(pint),tt_persistent,t.envbuf);
