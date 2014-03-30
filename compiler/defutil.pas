@@ -228,6 +228,9 @@ interface
     {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
     function is_real(def : tdef) : boolean;
 
+    {# Returns true for single,double,extended and cextended }
+    function is_real_or_cextended(def : tdef) : boolean;
+
     { true, if def is a 8 bit int type }
     function is_8bitint(def : tdef) : boolean;
 
@@ -392,6 +395,13 @@ implementation
       begin
         result:=(def.typ=floatdef) and
           (tfloatdef(def).floattype in [s32real,s64real,s80real]);
+      end;
+
+
+    function is_real_or_cextended(def: tdef): boolean;
+      begin
+        result:=(def.typ=floatdef) and
+          (tfloatdef(def).floattype in [s32real,s64real,s80real,sc80real]);
       end;
 
 

@@ -11867,6 +11867,7 @@ tests/test/toperatorerror.pp svneol=native#text/plain
 tests/test/tover1.pp svneol=native#text/plain
 tests/test/tover2.pp svneol=native#text/plain
 tests/test/tover3.pp svneol=native#text/plain
+tests/test/tover4.pas svneol=native#text/plain
 tests/test/tpackrec.pp svneol=native#text/plain
 tests/test/tparray1.pp svneol=native#text/plain
 tests/test/tparray10.pp svneol=native#text/plain
