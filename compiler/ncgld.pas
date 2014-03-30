@@ -286,7 +286,7 @@ implementation
              begin
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
-                     location_reset_ref(location,LOC_CREFERENCE,OS_ADDR,sizeof(pint));
+                     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
                      { Resourcestring layout:
                          TResourceStringRecord = Packed Record
@@ -296,7 +296,7 @@ implementation
                             HashValue    : LongWord;
                           end;
                      }
-                     location.reference.offset:=sizeof(pint);
+                     location.reference.offset:=cansistringtype.size;
                   end
                 else
                   internalerror(22798);
