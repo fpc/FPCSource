@@ -211,27 +211,23 @@ end;
 {TODO: fix, use smallint?}
 function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
-  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
+  mov si, sp
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
   sub word [bx], 1
   sbb word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bp
 end;
 
 {TODO: fix, use smallint?}
 function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
-  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
+  mov si, sp
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
   add word [bx], 1
   adc word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bp
 end;
 
 {TODO: fix, use smallint?}
