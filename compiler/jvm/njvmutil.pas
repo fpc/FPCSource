@@ -61,7 +61,7 @@ implementation
     uses
       verbose,cutils,globtype,globals,constexp,fmodule,
       aasmdata,aasmtai,cpubase,aasmcpu,
-      symbase,symtable,defutil,jvmdef,
+      symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
       pass_1;
@@ -413,7 +413,7 @@ implementation
       mainpd:=tprocsym(mainpsym).find_procdef_bytype(potype_proginit);
       if not assigned(mainpd) then
         internalerror(2011041902);
-      mainpd.exprasmlist.insertList(unitinits);
+      tcpuprocdef(mainpd).exprasmlist.insertList(unitinits);
       unitinits.free;
     end;
 

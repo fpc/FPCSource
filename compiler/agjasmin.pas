@@ -100,7 +100,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,script,
       fmodule,finput,verbose,
-      symtype,symtable,jvmdef,
+      symtype,symcpu,symtable,jvmdef,
       itcpujas,cpubase,cpuinfo,cgutils,
       widestr
       ;
@@ -913,7 +913,7 @@ implementation
 
     procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
       begin
-        if not assigned(pd.exprasmlist) and
+        if not assigned(tcpuprocdef(pd).exprasmlist) and
            not(po_abstractmethod in pd.procoptions) and
            (not is_javainterface(pd.struct) or
             (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
@@ -926,7 +926,7 @@ implementation
             AsmWrite(pd.jvmmangledbasename(true));
             AsmWriteln('"');
           end;
-        WriteTree(pd.exprasmlist);
+        WriteTree(tcpuprocdef(pd).exprasmlist);
         AsmWriteln('.end method');
         AsmLn;
       end;

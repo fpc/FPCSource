@@ -1627,8 +1627,8 @@ implementation
       if not code.empty and
          current_asmdata.asmlists[al_procedures].empty then
         current_asmdata.asmlists[al_procedures].concat(tai_align.Create(4));
-      pd.exprasmlist:=TAsmList.create;
-      pd.exprasmlist.concatlist(code);
+      tcpuprocdef(pd).exprasmlist:=TAsmList.create;
+      tcpuprocdef(pd).exprasmlist.concatlist(code);
       if assigned(data) and
          not data.empty then
         internalerror(2010122801);

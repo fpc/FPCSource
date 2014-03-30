@@ -27,6 +27,7 @@ interface
 
 uses
   globtype,
+  aasmdata,
   symtype,
   symdef,symsym;
 
@@ -88,6 +89,10 @@ type
   end;
 
   tcpuprocdef = class(tprocdef)
+    { generated assembler code; used by JVM backend so it can afterwards
+      easily write out all methods grouped per class }
+    exprasmlist      : TAsmList;
+    destructor destroy; override;
   end;
 
   tcpustringdef = class(tstringdef)
@@ -153,6 +158,16 @@ implementation
     verbose,cutils,
     symconst,
     jvmdef;
+
+{****************************************************************************
+                             tcpuprocdef
+****************************************************************************}
+
+  destructor tcpuprocdef.destroy;
+    begin
+      exprasmlist.free;
+      inherited destroy;
+    end;
 
 {****************************************************************************
                              tcpuprocvardef

@@ -58,7 +58,7 @@ implementation
       version,globals,verbose,systems,
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
-      defutil,symtable,jvmdef,ppu
+      defutil,symtable,symcpu,jvmdef,ppu
       ;
 
 {****************************************************************************
@@ -76,7 +76,7 @@ implementation
         exit;
       proc:=tprocdef(sym.owner.defowner);
       jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym,true),fcurrprocstart,fcurrprocend);
-      proc.exprasmlist.InsertAfter(jvar,proc.procstarttai);
+      tcpuprocdef(proc).exprasmlist.InsertAfter(jvar,proc.procstarttai);
     end;
 
 
@@ -109,8 +109,8 @@ implementation
 
       current_asmdata.getlabel(procstartlabel,alt_dbgtype);
       current_asmdata.getlabel(procendlabel,alt_dbgtype);
-      def.exprasmlist.insertafter(tai_label.create(procstartlabel),def.procstarttai);
-      def.exprasmlist.insertbefore(tai_label.create(procendlabel),def.procendtai);
+      tcpuprocdef(def).exprasmlist.insertafter(tai_label.create(procstartlabel),def.procstarttai);
+      tcpuprocdef(def).exprasmlist.insertbefore(tai_label.create(procendlabel),def.procendtai);
 
       fcurrprocstart:=procstartlabel;
       fcurrprocend:=procendlabel;
