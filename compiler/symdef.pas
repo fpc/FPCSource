@@ -646,7 +646,7 @@ interface
        { tprocdef }
 
        tprocdef = class(tabstractprocdef)
-       private
+       protected
 {$ifdef symansistr}
          _mangledname : ansistring;
 {$else symansistr}
@@ -758,16 +758,13 @@ interface
           function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; override;
           function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
-          function  mangledname : TSymStr;
+          function  mangledname : TSymStr; virtual;
           procedure setmangledname(const s : TSymStr);
           function  fullprocname(showhidden:boolean):string;
           function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: TSymStr;
           function  cplusplusmangledname : TSymStr;
           function  objcmangledname : TSymStr;
-{$ifdef jvm}
-          function  jvmmangledbasename(signature: boolean): TSymStr;
-{$endif}
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -5411,37 +5408,21 @@ implementation
     function tprocdef.mangledname : TSymStr;
       begin
 {$ifdef symansistr}
-        if _mangledname<>'' then
-{$else symansistr}
-        if assigned(_mangledname) then
-{$endif symansistr}
+        if _mangledname='' then
           begin
-{$ifdef symansistr}
-           mangledname:=_mangledname;
-{$else symansistr}
-           mangledname:=_mangledname^;
-{$endif symansistr}
-           exit;
-         end;
-{$ifndef jvm}
-        mangledname:=defaultmangledname;
-{$else not jvm}
-        mangledname:=jvmmangledbasename(false);
-        if (po_has_importdll in procoptions) then
-          begin
-            { import_dll comes from "external 'import_dll_name' name 'external_name'" }
-            if assigned(import_dll) then
-              mangledname:=import_dll^+'/'+mangledname
-            else
-              internalerror(2010122607);
+            result:=defaultmangledname;
+            _mangledname:=result;
           end
         else
-          jvmaddtypeownerprefix(owner,mangledname);
-{$endif not jvm}
-{$ifdef symansistr}
-      _mangledname:=mangledname;
+          result:=_mangledname;
 {$else symansistr}
-      _mangledname:=stringdup(mangledname);
+        if not assigned(_mangledname) then
+          begin
+            result:=defaultmangledname;
+            _mangledname:=stringdup(mangledname);
+          end
+        else
+          result:=_mangledname^;
 {$endif symansistr}
       end;
 
@@ -5668,99 +5649,6 @@ implementation
         result:=result+' '+messageinf.str^+']"';
       end;
 
-{$ifdef jvm}
-    function tprocdef.jvmmangledbasename(signature: boolean): TSymStr;
-      var
-        vs: tparavarsym;
-        i: longint;
-        founderror: tdef;
-        tmpresult: TSymStr;
-        container: tsymtable;
-      begin
-        { format:
-            * method definition (in Jasmin):
-                (private|protected|public) [static] method(parametertypes)returntype
-            * method invocation
-                package/class/method(parametertypes)returntype
-          -> store common part: method(parametertypes)returntype and
-             adorn as required when using it.
-        }
-        if not signature then
-          begin
-            { method name }
-            { special names for constructors and class constructors }
-            if proctypeoption=potype_constructor then
-              tmpresult:='<init>'
-            else if proctypeoption in [potype_class_constructor,potype_unitinit] then
-              tmpresult:='<clinit>'
-            else if po_has_importname in procoptions then
-              begin
-                if assigned(import_name) then
-                  tmpresult:=import_name^
-                else
-                  internalerror(2010122608);
-              end
-            else
-              begin
-                tmpresult:=procsym.realname;
-                if tmpresult[1]='$' then
-                  tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
-                { nested functions }
-                container:=owner;
-                while container.symtabletype=localsymtable do
-                  begin
-                    tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$'+tostr(tprocdef(owner.defowner).procsym.symid)+'$'+tmpresult;
-                    container:=container.defowner.owner;
-                  end;
-              end;
-          end
-        else
-          tmpresult:='';
-        { parameter types }
-        tmpresult:=tmpresult+'(';
-        { not the case for the main program (not required for defaultmangledname
-          because setmangledname() is called for the main program; in case of
-          the JVM, this only sets the importname, however) }
-        if assigned(paras) then
-          begin
-            init_paraloc_info(callerside);
-            for i:=0 to paras.count-1 do
-              begin
-                vs:=tparavarsym(paras[i]);
-                { function result is not part of the mangled name }
-                if vo_is_funcret in vs.varoptions then
-                  continue;
-                { self pointer neither, except for class methods (the JVM only
-                  supports static class methods natively, so the self pointer
-                  here is a regular parameter as far as the JVM is concerned }
-                if not(po_classmethod in procoptions) and
-                   (vo_is_self in vs.varoptions) then
-                  continue;
-                { passing by reference is emulated by passing an array of one
-                  element containing the value; for types that aren't pointers
-                  in regular Pascal, simply passing the underlying pointer type
-                  does achieve regular call-by-reference semantics though;
-                  formaldefs always have to be passed like that because their
-                  contents can be replaced }
-                if paramanager.push_copyout_param(vs.varspez,vs.vardef,proccalloption) then
-                  tmpresult:=tmpresult+'[';
-                { Add the parameter type.  }
-                if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
-                  { an internalerror here is also triggered in case of errors in the source code }
-                  tmpresult:='<error>';
-              end;
-          end;
-        tmpresult:=tmpresult+')';
-        { And the type of the function result (void in case of a procedure and
-          constructor). }
-        if (proctypeoption in [potype_constructor,potype_class_constructor]) then
-          jvmaddencodedtype(voidtype,false,tmpresult,signature,founderror)
-        else if not jvmaddencodedtype(returndef,false,tmpresult,signature,founderror) then
-          { an internalerror here is also triggered in case of errors in the source code }
-          tmpresult:='<error>';
-        result:=tmpresult;
-      end;
-{$endif jvm}
 
     procedure tprocdef.setmangledname(const s : TSymStr);
       begin

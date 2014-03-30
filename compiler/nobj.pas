@@ -60,6 +60,7 @@ implementation
        globals,verbose,systems,
        node,
        symbase,symtable,symconst,symtype,defcmp,
+       symcpu,
        dbgbase,
        wpobase
        ;
@@ -253,7 +254,7 @@ implementation
                     those are looked up dynamicall by name }
                   javanewtreeok:=
                     is_java_class_or_interface(_class) and
-                    (pd.jvmmangledbasename(false)<>vmtpd.jvmmangledbasename(false)) and
+                    (tcpuprocdef(pd).jvmmangledbasename(false)<>tcpuprocdef(vmtpd).jvmmangledbasename(false)) and
                     ((vmtpd.proctypeoption<>potype_constructor) and
                      not(po_staticmethod in vmtpd.procoptions));
 {$endif}

@@ -748,7 +748,7 @@ implementation
             not(po_classmethod in pd.procoptions) and
             not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
-        result:=result+pd.jvmmangledbasename(false);
+        result:=result+tcpuprocdef(pd).jvmmangledbasename(false);
       end;
 
 
@@ -923,7 +923,7 @@ implementation
         if jvmtypeneedssignature(pd) then
           begin
             AsmWrite('.signature "');
-            AsmWrite(pd.jvmmangledbasename(true));
+            AsmWrite(tcpuprocdef(pd).jvmmangledbasename(true));
             AsmWriteln('"');
           end;
         WriteTree(tcpuprocdef(pd).exprasmlist);
