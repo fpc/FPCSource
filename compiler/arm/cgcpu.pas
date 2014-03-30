@@ -1164,11 +1164,11 @@ unit cgcpu;
 
     function tbasecgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
-        tmpreg : tregister;
+        tmpreg1,tmpreg2 : tregister;
         tmpref : treference;
         l : tasmlabel;
       begin
-        tmpreg:=NR_NO;
+        tmpreg1:=NR_NO;
 
         { Be sure to have a base register }
         if (ref.base=NR_NO) then
@@ -1227,24 +1227,24 @@ unit cgcpu;
             if (oppostfix in [PF_SB,PF_SH]) and
               (ref.base<>NR_NO) and (ref.index=NR_NO) then
               begin
-                tmpreg:=getintregister(list,OS_ADDR);
-                a_load_const_reg(list,OS_ADDR,0,tmpreg);
-                ref.index:=tmpreg;
+                tmpreg1:=getintregister(list,OS_ADDR);
+                a_load_const_reg(list,OS_ADDR,0,tmpreg1);
+                ref.index:=tmpreg1;
               end;
 
             { "hi" registers cannot be used as base or index }
             if (getsupreg(ref.base) in [RS_R8..RS_R12,RS_R14]) or
               ((ref.base=NR_R13) and (ref.index<>NR_NO)) then
               begin
-                tmpreg:=getintregister(list,OS_ADDR);
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,tmpreg);
-                ref.base:=tmpreg;
+                tmpreg1:=getintregister(list,OS_ADDR);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,tmpreg1);
+                ref.base:=tmpreg1;
               end;
             if getsupreg(ref.index) in [RS_R8..RS_R14] then
               begin
-                tmpreg:=getintregister(list,OS_ADDR);
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.index,tmpreg);
-                ref.index:=tmpreg;
+                tmpreg1:=getintregister(list,OS_ADDR);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.index,tmpreg1);
+                ref.index:=tmpreg1;
               end;
           end;
 
@@ -1253,13 +1253,17 @@ unit cgcpu;
         if not((op in [A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and
            (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
           begin
-            if tmpreg<>NR_NO then
-              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg,tmpreg)
+            if tmpreg1<>NR_NO then
+              begin
+                tmpreg2:=getintregister(list,OS_ADDR);
+                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg1,tmpreg2);
+                tmpreg1:=tmpreg2;
+              end
             else
               begin
-                tmpreg:=getintregister(list,OS_ADDR);
-                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,ref.base,tmpreg);
-                ref.base:=tmpreg;
+                tmpreg1:=getintregister(list,OS_ADDR);
+                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,ref.base,tmpreg1);
+                ref.base:=tmpreg1;
               end;
             ref.offset:=0;
           end;
@@ -1270,33 +1274,33 @@ unit cgcpu;
           begin
             if ref.shiftmode<>SM_none then
               internalerror(200309121);
-            if tmpreg<>NR_NO then
+            if tmpreg1<>NR_NO then
               begin
-                if ref.base=tmpreg then
+                if ref.base=tmpreg1 then
                   begin
                     if ref.signindex<0 then
-                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.index))
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg1,tmpreg1,ref.index))
                     else
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.index));
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg1,tmpreg1,ref.index));
                     ref.index:=NR_NO;
                   end
                 else
                   begin
-                    if ref.index<>tmpreg then
+                    if ref.index<>tmpreg1 then
                       internalerror(200403161);
                     if ref.signindex<0 then
-                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,ref.base,tmpreg))
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg1,ref.base,tmpreg1))
                     else
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                    ref.base:=tmpreg;
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg1,ref.base,tmpreg1));
+                    ref.base:=tmpreg1;
                     ref.index:=NR_NO;
                   end;
               end
             else
               begin
-                tmpreg:=getintregister(list,OS_ADDR);
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,ref.index));
-                ref.base:=tmpreg;
+                tmpreg1:=getintregister(list,OS_ADDR);
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg1,ref.base,ref.index));
+                ref.base:=tmpreg1;
                 ref.index:=NR_NO;
               end;
           end;
