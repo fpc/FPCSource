@@ -804,7 +804,7 @@ begin
     end
     else if ( count < 64 ) then begin
         z1 := ( a0 shl negCount ) or ( a1 shr count ) or ord( ( a1 shl negCount ) <> 0 );
-        z0 := a0>>count;
+        z0 := a0 shr count;
     end
     else begin
         if ( count = 64 ) then begin
@@ -6692,7 +6692,7 @@ end;
 
 function floatx80_is_nan(a : floatx80 ): flag;
 begin
-    result := ord( ( ( a.high and $7FFF ) = $7FFF ) and ( bits64( a.low<<1 ) <> 0 ) );
+    result := ord( ( ( a.high and $7FFF ) = $7FFF ) and ( bits64( a.low shl 1 ) <> 0 ) );
 end;
 
 {*----------------------------------------------------------------------------
@@ -7443,8 +7443,8 @@ begin
         end;
         normalizeFloatx80Subnormal( aSig0, aExp, aSig0 );
     end;
-    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFF;
-    zSig0 := estimateSqrt32( aExp, aSig0>>32 );
+    zExp := ( ( aExp - $3FFF ) shr 1 ) + $3FFF;
+    zSig0 := estimateSqrt32( aExp, aSig0 shr 32 );
     shift128Right( aSig0, 0, 2 + ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;
@@ -7453,7 +7453,7 @@ begin
     while ( sbits64( rem0 ) < 0 ) do begin
         dec(zSig0);
         dec( doubleZSig0, 2 );
-        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, rem0, rem1 );
+        add128( rem0, rem1, zSig0 shr 63, doubleZSig0 or 1, rem0, rem1 );
     end;
     zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
     if ( ( zSig1 and $3FFFFFFFFFFFFFFF ) <= 5 ) then begin
@@ -8130,7 +8130,7 @@ begin
             result := int64( $8000000000000000 );
             exit;
         end;
-        z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
+        z := ( aSig0 shl shiftCount ) or ( aSig1 shr ( ( - shiftCount ) and 63 ) );
         if ( int64( aSig1 shl shiftCount )<>0 ) then
         begin
             set_inexact_flag;
@@ -9024,9 +9024,9 @@ begin
         end;
         normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
-    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFE;
+    zExp := ( ( aExp - $3FFF ) shr 1 ) + $3FFE;
     aSig0 := aSig0 or int64( $0001000000000000 );
-    zSig0 := estimateSqrt32( aExp, aSig0>>17 );
+    zSig0 := estimateSqrt32( aExp, aSig0 shr 17 );
     shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;
