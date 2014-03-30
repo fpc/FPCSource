@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="222">
+    <Units Count="226">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -614,6 +614,7 @@
       <Unit124>
         <Filename Value="cresstr.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="cresstr"/>
       </Unit124>
       <Unit125>
         <Filename Value="cstreams.pas"/>
@@ -714,6 +715,7 @@
       <Unit149>
         <Filename Value="ncgflw.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ncgflw"/>
       </Unit149>
       <Unit150>
         <Filename Value="ncgmat.pas"/>
@@ -758,6 +760,7 @@
       <Unit160>
         <Filename Value="node.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="node"/>
       </Unit160>
       <Unit161>
         <Filename Value="nopt.pas"/>
@@ -898,10 +901,12 @@
       <Unit195>
         <Filename Value="procinfo.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="procinfo"/>
       </Unit195>
       <Unit196>
         <Filename Value="pstatmnt.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="pstatmnt"/>
       </Unit196>
       <Unit197>
         <Filename Value="ptconst.pas"/>
@@ -1003,6 +1008,25 @@
         <Filename Value="wpoinfo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit221>
+      <Unit222>
+        <Filename Value="i8086\n8086ld.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="n8086ld"/>
+      </Unit222>
+      <Unit223>
+        <Filename Value="i8086\symcpu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="symcpu"/>
+      </Unit223>
+      <Unit224>
+        <Filename Value="x86\ni86mem.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit224>
+      <Unit225>
+        <Filename Value="x86\symi86.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="symi86"/>
+      </Unit225>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
