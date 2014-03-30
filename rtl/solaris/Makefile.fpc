@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       types sysconst character \
       rtlconsts cthreads \
       dos \
-      cwstring fpintres clocale $(CPU_UNITS)
+      cwstring fpintres $(CPU_UNITS)
 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

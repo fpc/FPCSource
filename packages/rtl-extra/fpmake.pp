@@ -11,6 +11,10 @@ Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
+ 
+  // Android has a dummy clocale unit, while it also includes unix dir.
+  ClocaleOSes   = UnixLikes -[beos];
+  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim];
 
   IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
   IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
@@ -112,6 +116,11 @@ begin
        addinclude('ipcsys.inc',[Linux]);
        addinclude('ipccall.inc',[Linux]);
 //       addinclude('ipccdecl.inc',IPCcdeclOSes); // not used?
+     end;
+    T:=P.Targets.AddUnit('unix/clocale.pp',CLocaleOSes);
+    with T.Dependencies do
+     begin
+       addinclude('clocale.inc',clocaleincOSes);
      end;
   end
 end;

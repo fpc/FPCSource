@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       errors \
       types sysctl sysconst \
       fpintres dynlibs cwstring cmem dl termio \
-      cthreads unixcp clocale
+      cthreads unixcp 
 
 rsts=math typinfo classes sysconst 
 implicitunits=exeinfo \

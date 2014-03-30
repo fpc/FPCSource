@@ -16,7 +16,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
       rtlconsts syscall unix unixutil termio initc \
       cmem \
       dynlibs cwstring cthreads \
-      fpintres clocale unixcp
+      fpintres unixcp
 rsts=math typinfo sysconst rtlconsts
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \

@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
       types  sysconst cthreads classes fgl  \
-      rtlconsts dos cwstring fpcylix clocale unixcp fpwidestring
+      rtlconsts dos cwstring fpcylix unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -277,9 +277,6 @@ cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp
 
-clocale$(PPUEXT) :  clocale.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) clocale.pp
-	
 fpcylix$(PPUEXT) : $(LINUXINC)/fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(LINUXINC)/fpcylix.pp
 
