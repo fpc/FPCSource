@@ -46,7 +46,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
-      errors  ipc dynlibs
+      errors dynlibs
 
 
 [prerules]

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       dos dl \
       sysutils typinfo fgl classes math types \
       charset cpall character getopts heaptrc lineinfo lnfodwrf lnfogdb \
-      errors ipc termio \
+      errors termio \
       sysconst cthreads rtlconsts cwstring bsd fpwidestring \
       fpintres fpextres clocale objc objcbase unixcp
 implicitunits=exeinfo \
@@ -47,7 +47,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos crt objects  \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors  ipc
+      errors  
 
 [prerules]
 ifeq ($(CPU_TARGET),i386)
@@ -264,8 +264,6 @@ termio$(PPUEXT) : baseunix$(PPUEXT)
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
-
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 

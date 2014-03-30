@@ -13,8 +13,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       termio unix initc cmem \
       sysutils typinfo math fgl classes \
       charset cpall getopts \
-      errors \
-      # ipc 
+      errors \ 
       dl dynlibs \
       types sysconst character \
       rtlconsts cthreads \
@@ -51,7 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts heaptrc \
-      errors  ipc
+      errors
 
 [prerules]
 RTL=..
@@ -241,8 +240,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

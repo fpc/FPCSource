@@ -12,6 +12,10 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
+  IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
+  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
+//  IPCcdeclOSes  = [Darwin,iphonesim];
+
   PrinterOSes   = [go32v2,msdos,os2,win32]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
@@ -100,6 +104,15 @@ begin
        addinclude('stdsock.inc',socklibc);
        addinclude('unixsock.inc',socksyscall);
      end; 
+
+    T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
+    with T.Dependencies do
+     begin
+       addinclude('ipcbsd.inc',IPCBSDs);
+       addinclude('ipcsys.inc',[Linux]);
+       addinclude('ipccall.inc',[Linux]);
+//       addinclude('ipccdecl.inc',IPCcdeclOSes); // not used?
+     end;
   end
 end;
  

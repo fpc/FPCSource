@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(CPU_UNITS) dos rtlconsts \
       sysutils fgl classes typinfo math \
       charset cpall character getopts heaptrc lineinfo lnfodwrf \
-      errors ipc \
+      errors \
       types sysctl sysconst \
       fpintres dynlibs cwstring cmem dl termio \
       cthreads unixcp clocale
@@ -49,7 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       dos  \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors ipc
+      errors
 
 [prerules]
 RTL=..
@@ -256,8 +256,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
