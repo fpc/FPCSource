@@ -121,7 +121,8 @@ unit cgcpu;
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,
        symtype,symsym,
-       tgobj;
+       tgobj,
+       hlcgobj;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -1819,6 +1820,7 @@ unit cgcpu;
       var
         power  : longint;
         opsize : topsize;
+        saved_ds: Boolean;
       begin
         { get stack space }
         getcpuregister(list,NR_DI);
@@ -1867,7 +1869,20 @@ unit cgcpu;
 
         { Allocate SI and load it with source }
         getcpuregister(list,NR_SI);
-        a_loadaddr_ref_reg(list,ref,NR_SI);
+        if (ref.segment=NR_NO) or
+           (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
+          begin
+            a_loadaddr_ref_reg(list,ref,NR_SI);
+            saved_ds:=false;
+          end
+        else
+          begin
+            hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
+            saved_ds:=true;
+            list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_DS));
+          end;
 
         { calculate size }
         opsize:=S_B;
@@ -1907,6 +1922,8 @@ unit cgcpu;
         ungetcpuregister(list,NR_DI);
         ungetcpuregister(list,NR_CX);
         ungetcpuregister(list,NR_SI);
+        if saved_ds then
+          list.concat(taicpu.op_reg(A_POP,S_W,NR_DS));
 
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
