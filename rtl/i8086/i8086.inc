@@ -208,11 +208,16 @@ asm
 @@Lgnf_null:
 end;
 
-{TODO: fix, use smallint?}
+{TODO: use smallint?}
 function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
   mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
   pushf
   cli
   sub word [bx], 1
@@ -220,13 +225,21 @@ asm
   mov ax, [bx]
   mov dx, [bx+2]
   popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
-{TODO: fix, use smallint?}
+{TODO: use smallint?}
 function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
   mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
   pushf
   cli
   add word [bx], 1
@@ -234,6 +247,9 @@ asm
   mov ax, [bx]
   mov dx, [bx+2]
   popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
 {TODO: fix, use smallint?}
