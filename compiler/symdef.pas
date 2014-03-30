@@ -68,9 +68,12 @@ interface
        tstoreddef = class(tdef)
        private
           _fullownerhierarchyname : pshortstring;
+          procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
           procedure fillgenericparas(symtable:tsymtable);
+          procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
+          procedure ppuload_platform(ppufile:tcompilerppufile);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -131,9 +134,11 @@ interface
           constructor createtext;virtual;
           constructor createuntyped;virtual;
           constructor createtyped(def : tdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
@@ -146,10 +151,12 @@ interface
        tvariantdef = class(tstoreddef)
           varianttype : tvarianttype;
           constructor create(v : tvarianttype);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           function GetTypeName:string;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  getvardef:longint;override;
           procedure setsize;
           function is_publishable : boolean;override;
@@ -160,8 +167,10 @@ interface
        tformaldef = class(tstoreddef)
           typed:boolean;
           constructor create(Atyped:boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
        end;
        tformaldefclass = class of tformaldef;
@@ -178,15 +187,19 @@ interface
 
        tundefineddef = class(tstoreddef)
           constructor create;virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
        end;
        tundefineddefclass = class of tundefineddef;
 
        terrordef = class(tstoreddef)
           constructor create;virtual;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
           function  getmangledparaname : TSymStr;override;
        end;
@@ -218,8 +231,10 @@ interface
 {$endif x86}
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
        end;
        tpointerdefclass = class of tpointerdef;
@@ -280,10 +295,12 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure buildderefimpl;override;
           procedure deref;override;
@@ -383,10 +400,12 @@ interface
           classref_created_in_current_module : boolean;
           objecttype     : tobjecttyp;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
@@ -432,8 +451,10 @@ interface
 
        tclassrefdef = class(tabstractpointerdef)
           constructor create(def:tdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
@@ -459,10 +480,12 @@ interface
           function elecount : asizeuint;
           constructor create_from_pointer(def:tdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
           function  getmangledparaname : TSymStr;override;
           procedure buildderef;override;
@@ -481,9 +504,11 @@ interface
           low,high : TConstExprInt;
           ordtype  : tordtype;
           constructor create(t : tordtype;v,b : TConstExprInt);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  is_publishable : boolean;override;
           function  GetTypeName:string;override;
           function alignment:shortint;override;
@@ -496,9 +521,11 @@ interface
        tfloatdef = class(tstoreddef)
           floattype : tfloattype;
           constructor create(t : tfloattype);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function alignment:shortint;override;
@@ -568,9 +595,11 @@ interface
           classdefderef : tderef;
 {$endif}
           constructor create(level:byte);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
 {$ifdef jvm}
           procedure buildderef;override;
           procedure deref;override;
@@ -726,9 +755,11 @@ interface
             a routine that has to be internally generated by the compiler }
           synthetickind : tsynthetickind;
           constructor create(level:byte);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure buildderefimpl;override;
           procedure deref;override;
@@ -808,18 +839,20 @@ interface
           stringtype : tstringtype;
           len        : asizeint;
           constructor createshort(l : byte);virtual;
-          constructor loadshort(ppufile:tcompilerppufile);virtual;
+          constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : asizeint);virtual;
-          constructor loadlong(ppufile:tcompilerppufile);virtual;
+          constructor loadlong(ppufile:tcompilerppufile);
           constructor createansi(aencoding:tstringencoding);virtual;
-          constructor loadansi(ppufile:tcompilerppufile);virtual;
+          constructor loadansi(ppufile:tcompilerppufile);
           constructor createwide;virtual;
-          constructor loadwide(ppufile:tcompilerppufile);virtual;
+          constructor loadwide(ppufile:tcompilerppufile);
           constructor createunicode;virtual;
           constructor loadunicode(ppufile:tcompilerppufile);virtual;
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
           function  getmangledparaname:TSymStr;override;
           function  is_publishable : boolean;override;
@@ -846,10 +879,12 @@ interface
           has_jumps : boolean;
           constructor create;virtual;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
@@ -873,9 +908,11 @@ interface
           setbase,
           setmax   : aword;
           constructor create(def:tdef;low, high : asizeint);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
@@ -1669,6 +1706,13 @@ implementation
       end;
 
 
+    procedure tstoreddef.writeentry(ppufile: tcompilerppufile; ibnr: byte);
+      begin
+        ppuwrite_platform(ppufile);
+        ppufile.writeentry(ibnr);
+      end;
+
+
     procedure tstoreddef.fillgenericparas(symtable: tsymtable);
       var
         sym : tsym;
@@ -1689,6 +1733,19 @@ implementation
               end;
           end;
       end;
+
+
+    procedure tstoreddef.ppuwrite_platform(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
+
+    procedure tstoreddef.ppuload_platform(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
 
     constructor tstoreddef.create(dt:tdeftyp);
       var
@@ -2087,6 +2144,7 @@ implementation
          stringtype:=st_shortstring;
          encoding:=0;
          len:=ppufile.getbyte;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2105,6 +2163,7 @@ implementation
          stringtype:=st_longstring;
          encoding:=0;
          len:=ppufile.getasizeint;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2123,6 +2182,7 @@ implementation
          stringtype:=st_ansistring;
          len:=ppufile.getaint;
          encoding:=ppufile.getword;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2147,6 +2207,7 @@ implementation
          else
            encoding:=CP_UTF16BE;
          len:=ppufile.getaint;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2168,6 +2229,7 @@ implementation
          stringtype:=st_unicodestring;
          len:=ppufile.getaint;
          encoding:=ppufile.getword;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2206,11 +2268,11 @@ implementation
          if stringtype in [st_ansistring,st_unicodestring] then
            ppufile.putword(encoding);
          case stringtype of
-            st_shortstring : ppufile.writeentry(ibshortstringdef);
-            st_longstring : ppufile.writeentry(iblongstringdef);
-            st_ansistring : ppufile.writeentry(ibansistringdef);
-            st_widestring : ppufile.writeentry(ibwidestringdef);
-            st_unicodestring : ppufile.writeentry(ibunicodestringdef);
+            st_shortstring : writeentry(ppufile,ibshortstringdef);
+            st_longstring : writeentry(ppufile,iblongstringdef);
+            st_ansistring : writeentry(ppufile,ibansistringdef);
+            st_widestring : writeentry(ppufile,ibwidestringdef);
+            st_unicodestring : writeentry(ppufile,ibunicodestringdef);
          end;
       end;
 
@@ -2332,9 +2394,11 @@ implementation
            begin
              symtable:=nil;
              ppufile.getderef(basedefderef);
+             ppuload_platform(ppufile);
            end
          else
            begin
+             ppuload_platform(ppufile);
              // create with nil defowner first to prevent values changes on insert
              symtable:=tenumsymtable.create(nil);
              tenumsymtable(symtable).ppuload(ppufile);
@@ -2524,7 +2588,7 @@ implementation
 {$endif}
          if df_copied_def in defoptions then
            ppufile.putderef(basedefderef);
-         ppufile.writeentry(ibenumdef);
+         writeentry(ppufile,ibenumdef);
          if not (df_copied_def in defoptions) then
            tenumsymtable(symtable).ppuwrite(ppufile);
       end;
@@ -2563,6 +2627,7 @@ implementation
          low:=ppufile.getexprint;
          high:=ppufile.getexprint;
          setsize;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2657,7 +2722,7 @@ implementation
          ppufile.putbyte(byte(ordtype));
          ppufile.putexprint(low);
          ppufile.putexprint(high);
-         ppufile.writeentry(iborddef);
+         writeentry(ppufile,iborddef);
       end;
 
 
@@ -2699,6 +2764,7 @@ implementation
          inherited ppuload(floatdef,ppufile);
          floattype:=tfloattype(ppufile.getbyte);
          setsize;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2782,7 +2848,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(floattype));
-         ppufile.writeentry(ibfloatdef);
+         writeentry(ppufile,ibfloatdef);
       end;
 
 
@@ -2837,6 +2903,7 @@ implementation
            ppufile.getderef(typedfiledefderef)
          else
            typedfiledef:=nil;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2905,7 +2972,7 @@ implementation
          ppufile.putbyte(byte(filetyp));
          if filetyp=ft_typed then
            ppufile.putderef(typedfiledefderef);
-         ppufile.writeentry(ibfiledef);
+         writeentry(ppufile,ibfiledef);
       end;
 
 
@@ -2956,6 +3023,7 @@ implementation
          inherited ppuload(variantdef,ppufile);
          varianttype:=tvarianttype(ppufile.getbyte);
          setsize;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2969,7 +3037,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(varianttype));
-         ppufile.writeentry(ibvariantdef);
+         writeentry(ppufile,ibvariantdef);
       end;
 
 
@@ -3107,6 +3175,7 @@ implementation
          x86pointertyp:=tx86pointertyp(ppufile.getbyte);
 {$endif x86}
          has_pointer_math:=(ppufile.getbyte<>0);
+         ppuload_platform(ppufile);
       end;
 
 
@@ -3134,7 +3203,7 @@ implementation
          ppufile.putbyte(byte(x86pointertyp));
 {$endif x86}
          ppufile.putbyte(byte(has_pointer_math));
-         ppufile.writeentry(ibpointerdef);
+         writeentry(ppufile,ibpointerdef);
       end;
 
 
@@ -3193,13 +3262,14 @@ implementation
     constructor tclassrefdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(classrefdef,ppufile);
+         ppuload_platform(ppufile);
       end;
 
 
     procedure tclassrefdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.writeentry(ibclassrefdef);
+         writeentry(ppufile,ibclassrefdef);
       end;
 
 
@@ -3287,6 +3357,7 @@ implementation
          savesize:=ppufile.getaint;
          setbase:=ppufile.getaint;
          setmax:=ppufile.getaint;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -3305,7 +3376,7 @@ implementation
          ppufile.putaint(savesize);
          ppufile.putaint(setbase);
          ppufile.putaint(setmax);
-         ppufile.writeentry(ibsetdef);
+         writeentry(ppufile,ibsetdef);
       end;
 
 
@@ -3355,6 +3426,7 @@ implementation
          inherited ppuload(formaldef,ppufile);
          typed:=boolean(ppufile.getbyte);
          savesize:=0;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -3362,7 +3434,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(typed));
-         ppufile.writeentry(ibformaldef);
+         writeentry(ppufile,ibformaldef);
       end;
 
 
@@ -3415,6 +3487,7 @@ implementation
          lowrange:=ppufile.getasizeint;
          highrange:=ppufile.getasizeint;
          ppufile.getsmallset(arrayoptions);
+         ppuload_platform(ppufile);
          symtable:=tarraysymtable.create(self);
          tarraysymtable(symtable).ppuload(ppufile)
       end;
@@ -3455,7 +3528,7 @@ implementation
          ppufile.putasizeint(lowrange);
          ppufile.putasizeint(highrange);
          ppufile.putsmallset(arrayoptions);
-         ppufile.writeentry(ibarraydef);
+         writeentry(ppufile,ibarraydef);
          tarraysymtable(symtable).ppuwrite(ppufile);
       end;
 
@@ -3934,9 +4007,13 @@ implementation
       begin
          inherited ppuload(recorddef,ppufile);
          if df_copied_def in defoptions then
-           ppufile.getderef(cloneddefderef)
+           begin
+             ppufile.getderef(cloneddefderef);
+             ppuload_platform(ppufile);
+           end
          else
            begin
+             ppuload_platform(ppufile);
              symtable:=trecordsymtable.create(objrealname^,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
@@ -4083,7 +4160,7 @@ implementation
              // writevariantrecdesc(variantrecdesc);
            end;
 
-         ppufile.writeentry(ibrecorddef);
+         writeentry(ppufile,ibrecorddef);
 
          if not(df_copied_def in defoptions) then
            trecordsymtable(symtable).ppuwrite(ppufile);
@@ -4886,6 +4963,8 @@ implementation
          for i:=1 to aliasnamescount do
            aliasnames.insert(ppufile.getstring);
 
+         ppuload_platform(ppufile);
+
          { load para symtable }
          parast:=tparasymtable.create(self,level);
          tparasymtable(parast).ppuload(ppufile);
@@ -5047,7 +5126,7 @@ implementation
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
-         ppufile.writeentry(ibprocdef);
+         writeentry(ppufile,ibprocdef);
 
          { Save the para symtable, this is taken from the interface }
          tparasymtable(parast).ppuwrite(ppufile);
@@ -5759,8 +5838,9 @@ implementation
          { load para symtable }
          parast:=tparasymtable.create(self,ppufile.getbyte);
 {$ifdef jvm}
-        ppufile.getderef(classdefderef);
+         ppufile.getderef(classdefderef);
 {$endif}
+         ppuload_platform(ppufile);
          tparasymtable(parast).ppuload(ppufile);
       end;
 
@@ -5814,7 +5894,7 @@ implementation
         ppufile.putderef(classdefderef);
 {$endif}
         { Write this entry }
-        ppufile.writeentry(ibprocvardef);
+        writeentry(ppufile,ibprocvardef);
 
         { Save the para symtable, this is taken from the interface }
         tparasymtable(parast).ppuwrite(ppufile);
@@ -6020,9 +6100,15 @@ implementation
            ImplementedInterfaces:=nil;
 
          if df_copied_def in defoptions then
-           ppufile.getderef(cloneddefderef)
+           begin
+             ppufile.getderef(cloneddefderef);
+             ppuload_platform(ppufile);
+           end
          else
-           tObjectSymtable(symtable).ppuload(ppufile);
+           begin
+             ppuload_platform(ppufile);
+             tObjectSymtable(symtable).ppuload(ppufile);
+           end;
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
@@ -6205,7 +6291,7 @@ implementation
          if df_copied_def in defoptions then
            ppufile.putderef(cloneddefderef);
 
-         ppufile.writeentry(ibobjectdef);
+         writeentry(ppufile,ibobjectdef);
 
          if not(df_copied_def in defoptions) then
            tObjectSymtable(symtable).ppuwrite(ppufile);
@@ -7140,6 +7226,7 @@ implementation
     constructor tundefineddef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(undefineddef,ppufile);
+         ppuload_platform(ppufile);
       end;
 
     function tundefineddef.GetTypeName:string;
@@ -7151,7 +7238,7 @@ implementation
     procedure tundefineddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.writeentry(ibundefineddef);
+         writeentry(ppufile,ibundefineddef);
       end;
 
 
