@@ -1779,7 +1779,7 @@ Function float32_is_signaling_nan( a : float32  ): flag;
 Begin
 
     float32_is_signaling_nan := flag
-      ( ( ( a shr 22 ) and $1FF ) = $1FE ) and( a and $003FFFFF );
+      (( ( ( a shr 22 ) and $1FF ) = $1FE ) and (( a and $003FFFFF )<>0));
 
 End;
 
@@ -1895,8 +1895,8 @@ Function float64_is_nan( a : float64 ) : flag;
 Begin
 
     float64_is_nan :=
-           flag( $FFE00000 <= bits32 ( a.high shl 1 ) )
-        and ( a.low or ( a.high and $000FFFFF ) );
+           flag(( $FFE00000 <= bits32 ( a.high shl 1 ) )
+        and (( a.low or ( a.high and $000FFFFF ) )<>0));
 
 End;
 
