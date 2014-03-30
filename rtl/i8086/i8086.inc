@@ -72,6 +72,56 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+
+  mov ax, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, ax
+  mov si, ss:[bx + 6 + extra_param_offset]  // @source
+  mov di, ss:[bx + 4 + extra_param_offset]  // @dest
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @source
+  les di, ss:[bx + 4 + extra_param_offset]  // @dest
+{$endif FPC_X86_DATA_NEAR}
+
+  cmp si, di
+  jb @@BackwardsMove
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  rep movsb
+  jmp @@AfterMove  // todo, add mov ds,ax & ret here for performance reasons
+
+@@BackwardsMove:
+  std
+  add si, cx
+  add di, cx
+  dec si
+  dec di
+  rep movsb  // todo: movsw
+  cld
+
+@@AfterMove:
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, ax
+{$endif}
+
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_MOVE}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
