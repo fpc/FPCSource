@@ -42,7 +42,7 @@ implementation
     uses
       globals,globtype,verbose,constexp,cpuinfo,
       systems,
-      symconst,symtype,symsym,symdef,symtable,
+      symconst,symtype,symsym,symdef,symcpu,symtable,
       aasmtai,aasmdata,aasmcpu,
       ncgutil,ncgrtti,fmodule,
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
@@ -284,26 +284,26 @@ implementation
         charpointertype:=cpointerdef.create(cansichartype);
         widecharpointertype:=cpointerdef.create(cwidechartype);
 {$ifdef i8086}
-        parentfpvoidpointertype:=cpointerdef.createx86(voidtype,x86pt_near);
+        parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near);
 {$else i8086}
         parentfpvoidpointertype:=cpointerdef.create(voidtype);
 {$endif i8086}
 {$ifdef x86}
-        voidnearpointertype:=cpointerdef.createx86(voidtype,x86pt_near);
-        voidnearcspointertype:=cpointerdef.createx86(voidtype,x86pt_near_cs);
-        voidneardspointertype:=cpointerdef.createx86(voidtype,x86pt_near_ds);
-        voidnearsspointertype:=cpointerdef.createx86(voidtype,x86pt_near_ss);
-        voidnearespointertype:=cpointerdef.createx86(voidtype,x86pt_near_es);
-        voidnearfspointertype:=cpointerdef.createx86(voidtype,x86pt_near_fs);
-        voidneargspointertype:=cpointerdef.createx86(voidtype,x86pt_near_gs);
+        voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near);
+        voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs);
+        voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds);
+        voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss);
+        voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es);
+        voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_fs);
+        voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs);
   {$ifdef i8086}
-        voidfarpointertype:=cpointerdef.createx86(voidtype,x86pt_far);
-        voidhugepointertype:=cpointerdef.createx86(voidtype,x86pt_huge);
-        charnearpointertype:=cpointerdef.createx86(cansichartype,x86pt_near);
-        charfarpointertype:=cpointerdef.createx86(cansichartype,x86pt_far);
-        bytefarpointertype:=cpointerdef.createx86(u8inttype,x86pt_far);
-        wordfarpointertype:=cpointerdef.createx86(u16inttype,x86pt_far);
-        longintfarpointertype:=cpointerdef.createx86(s32inttype,x86pt_far);
+        voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far);
+        voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge);
+        charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near);
+        charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far);
+        bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far);
+        wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
+        longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
   {$endif i8086}
 {$endif x86}
         set_default_ptr_types;

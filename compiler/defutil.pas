@@ -342,7 +342,7 @@ interface
 implementation
 
     uses
-       verbose,cutils;
+       verbose,cutils,symcpu;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -1215,7 +1215,7 @@ implementation
             begin
 {$ifdef x86}
               if (def.typ=pointerdef) and
-                 (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+                 (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
                 begin
                   {$if defined(i8086)}
                     result := OS_32;
@@ -1437,13 +1437,13 @@ implementation
     { true if p is a far pointer def }
     function is_farpointer(p : tdef) : boolean;
       begin
-        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_far);
+        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
       end;
 
     { true if p is a huge pointer def }
     function is_hugepointer(p : tdef) : boolean;
       begin
-        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_huge);
+        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
       end;
 {$endif i8086}
 

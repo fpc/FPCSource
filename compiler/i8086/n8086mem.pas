@@ -46,7 +46,7 @@ implementation
     uses
       systems,globals,
       cutils,verbose,
-      symbase,symconst,symdef,symtable,symtype,symsym,
+      symbase,symconst,symdef,symtable,symtype,symsym,symcpu,
       parabase,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,
@@ -63,7 +63,7 @@ implementation
         if not(nf_typedaddr in flags) then
           resultdef:=voidfarpointertype
         else
-          resultdef:=cpointerdef.createx86(left.resultdef,x86pt_far);
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
       end;
 
 
@@ -95,7 +95,7 @@ implementation
         st : tsymtable;
         tmpref: treference;
       begin
-        if tpointerdef(left.resultdef).x86pointertyp in [x86pt_far,x86pt_huge] then
+        if tcpupointerdef(left.resultdef).x86pointertyp in [x86pt_far,x86pt_huge] then
           begin
             secondpass(left);
             { assume natural alignment, except for packed records }
@@ -137,7 +137,7 @@ implementation
                (cs_checkpointer in current_settings.localswitches) and
                not(cs_compilesystem in current_settings.moduleswitches) and
    {$ifdef x86}
-               (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+               (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
    {$endif x86}
                not(nf_no_checkpointer in flags) and
                { can be NR_NO in case of LOC_CONSTANT }

@@ -47,7 +47,7 @@ implementation
     uses
       systems,
       cutils,verbose,
-      symconst,symdef,paramgr,
+      symconst,symdef,symcpu,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,
       cgutils,cgobj;
@@ -61,7 +61,7 @@ implementation
         if not(nf_typedaddr in flags) then
           resultdef:=voidnearfspointertype
         else
-          resultdef:=cpointerdef.createx86(left.resultdef,x86pt_near_fs);
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_near_fs);
       end;
 
 

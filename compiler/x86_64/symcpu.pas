@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symdef,symsym;
+  symdef,symsym,symx86;
 
 type
   { defs }
@@ -54,7 +54,7 @@ type
   end;
   tcpuerrordefclass = class of tcpuerrordef;
 
-  tcpupointerdef = class(tpointerdef)
+  tcpupointerdef = class(tx86pointerdef)
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 

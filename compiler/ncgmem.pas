@@ -81,7 +81,7 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symbase,symtype,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symtype,symdef,symsym,symcpu,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,ncnv,nutils,
@@ -288,7 +288,7 @@ implementation
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
 {$ifdef x86}
-            (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+            (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
 {$endif x86}
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }

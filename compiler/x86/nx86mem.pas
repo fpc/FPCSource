@@ -44,7 +44,7 @@ implementation
       cutils,verbose,
       aasmtai,aasmdata,
       cgutils,cgobj,
-      symconst,symdef;
+      symconst,symdef,symcpu;
 
 {*****************************************************************************
                            TX86DEREFNODE
@@ -53,7 +53,7 @@ implementation
      procedure tx86derefnode.pass_generate_code;
        begin
          inherited pass_generate_code;
-         case tpointerdef(left.resultdef).x86pointertyp of
+         case tcpupointerdef(left.resultdef).x86pointertyp of
            x86pt_near: ;
            x86pt_near_cs: location.reference.segment:=NR_CS;
            x86pt_near_ds: location.reference.segment:=NR_DS;

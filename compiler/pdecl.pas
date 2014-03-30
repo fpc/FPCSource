@@ -56,7 +56,7 @@ implementation
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,symcreat,defutil,
+       symconst,symbase,symtype,symcpu,symtable,symcreat,defutil,
        { pass 1 }
        htypechk,ninl,ncon,nobj,ngenutil,
        { parser }
@@ -722,9 +722,9 @@ implementation
                     if try_to_consume(_FAR) then
                      begin
   {$if defined(i8086)}
-                       tpointerdef(hdef).x86pointertyp:=x86pt_far;
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_far;
   {$elseif defined(i386)}
-                       tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_near_fs;
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
@@ -739,18 +739,18 @@ implementation
                            begin
                              segment_register:=get_stringconst;
                              case UpCase(segment_register) of
-                               'CS': tpointerdef(hdef).x86pointertyp:=x86pt_near_cs;
-                               'DS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ds;
-                               'SS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ss;
-                               'ES': tpointerdef(hdef).x86pointertyp:=x86pt_near_es;
-                               'FS': tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
-                               'GS': tpointerdef(hdef).x86pointertyp:=x86pt_near_gs;
+                               'CS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_cs;
+                               'DS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ds;
+                               'SS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ss;
+                               'ES': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_es;
+                               'FS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+                               'GS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_gs;
                                else
                                  Message(asmr_e_invalid_register);
                              end;
                            end
                          else
-                           tpointerdef(hdef).x86pointertyp:=x86pt_near;
+                           tcpupointerdef(hdef).x86pointertyp:=x86pt_near;
                          consume(_SEMICOLON);
                        end;
 {$else x86}

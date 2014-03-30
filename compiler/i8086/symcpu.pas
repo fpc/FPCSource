@@ -27,7 +27,7 @@ interface
 
 uses
   globtype,
-  symtype,symdef,symsym,symi86;
+  symconst,symtype,symdef,symsym,symx86,symi86;
 
 type
   { defs }
@@ -55,7 +55,8 @@ type
   end;
   tcpuerrordefclass = class of tcpuerrordef;
 
-  tcpupointerdef = class(tpointerdef)
+  tcpupointerdef = class(tx86pointerdef)
+    class function default_x86_data_pointer_type: tx86pointertyp; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -171,6 +172,26 @@ type
 
 
 implementation
+
+  uses
+    globals, cpuinfo;
+
+{****************************************************************************
+                             tcpupointerdef
+****************************************************************************}
+
+    class function tcpupointerdef.default_x86_data_pointer_type: tx86pointertyp;
+      begin
+        if current_settings.x86memorymodel in x86_far_data_models then
+          result:=x86pt_far
+        else
+          result:=inherited;
+      end;
+
+
+{****************************************************************************
+                             tcpuabsolutevarsym
+****************************************************************************}
 
   procedure tcpuabsolutevarsym.ppuload_platform(ppufile: tcompilerppufile);
     begin

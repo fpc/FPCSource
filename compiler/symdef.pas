@@ -218,14 +218,8 @@ interface
        { tpointerdef }
 
        tpointerdef = class(tabstractpointerdef)
-{$ifdef x86}
-          x86pointertyp : tx86pointertyp;
-{$endif x86}
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
-{$ifdef x86}
-          constructor createx86(def:tdef;x86typ:tx86pointertyp);virtual;
-{$endif x86}
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1178,10 +1172,6 @@ interface
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef;
     function getparaencoding(def:tdef):tstringencoding; inline;
-
-{$ifdef x86}
-    function default_x86_data_pointer_type: tx86pointertyp;
-{$endif x86}
 
 implementation
 
@@ -3120,40 +3110,19 @@ implementation
     constructor tpointerdef.create(def:tdef);
       begin
         inherited create(pointerdef,def);
-{$ifdef x86}
-        x86pointertyp := default_x86_data_pointer_type;
-{$endif x86}
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
-
-
-{$ifdef x86}
-    constructor tpointerdef.createx86(def: tdef; x86typ: tx86pointertyp);
-      begin
-        inherited create(pointerdef,def);
-        x86pointertyp := x86typ;
-        has_pointer_math:=cs_pointermath in current_settings.localswitches;
-      end;
-{$endif x86}
 
 
     function tpointerdef.size: asizeint;
       begin
-{$ifdef x86}
-        if x86pointertyp in [x86pt_far,x86pt_huge] then
-          result:=sizeof(pint)+2
-        else
-{$endif x86}
-          result:=sizeof(pint);
+        result:=sizeof(pint);
       end;
 
 
     constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(pointerdef,ppufile);
-{$ifdef x86}
-         x86pointertyp:=tx86pointertyp(ppufile.getbyte);
-{$endif x86}
          has_pointer_math:=(ppufile.getbyte<>0);
          ppuload_platform(ppufile);
       end;
@@ -3168,9 +3137,6 @@ implementation
           result:=cpointerdef.create(tforwarddef(pointeddef).getcopy)
         else
           result:=cpointerdef.create(pointeddef);
-{$ifdef x86}
-        tpointerdef(result).x86pointertyp:=x86pointertyp;
-{$endif x86}
         tpointerdef(result).has_pointer_math:=has_pointer_math;
         tpointerdef(result).savesize:=savesize;
       end;
@@ -3179,9 +3145,6 @@ implementation
     procedure tpointerdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-{$ifdef x86}
-         ppufile.putbyte(byte(x86pointertyp));
-{$endif x86}
          ppufile.putbyte(byte(has_pointer_math));
          writeentry(ppufile,ibpointerdef);
       end;
@@ -3199,33 +3162,6 @@ implementation
           GetTypeName:='^'+pointeddef.typename
         else
           GetTypeName:='^'+pointeddef.typesym.realname;
-{$ifdef x86}
-        if x86pointertyp<>default_x86_data_pointer_type then
-          begin
-            case x86pointertyp of
-              x86pt_near:
-                GetTypeName:=Result+';near';
-              x86pt_near_cs:
-                GetTypeName:=Result+';near ''CS''';
-              x86pt_near_ds:
-                GetTypeName:=Result+';near ''DS''';
-              x86pt_near_ss:
-                GetTypeName:=Result+';near ''SS''';
-              x86pt_near_es:
-                GetTypeName:=Result+';near ''ES''';
-              x86pt_near_fs:
-                GetTypeName:=Result+';near ''FS''';
-              x86pt_near_gs:
-                GetTypeName:=Result+';near ''GS''';
-              x86pt_far:
-                GetTypeName:=Result+';far';
-              x86pt_huge:
-                GetTypeName:=Result+';huge';
-              else
-                internalerror(2013050301);
-            end;
-          end;
-{$endif x86}
       end;
 
 
@@ -7505,17 +7441,5 @@ implementation
         result:=tarraydef(res^.Data);
       end;
 
-
-{$ifdef x86}
-    function default_x86_data_pointer_type: tx86pointertyp;
-      begin
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
-          result:=x86pt_far
-        else
-{$endif i8086}
-          result:=x86pt_near;
-      end;
-{$endif x86}
 
 end.

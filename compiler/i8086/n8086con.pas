@@ -41,7 +41,7 @@ implementation
 
     uses
       systems,globals,
-      symconst,symdef,
+      symconst,symdef,symcpu,
       defutil,
       cpubase,
       cga,cgx86,cgobj,cgbase,cgutils;
@@ -54,7 +54,7 @@ implementation
     constructor ti8086pointerconstnode.create(v: TConstPtrUInt; def: tdef);
       begin
         { truncate near pointers }
-        if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+        if (def.typ<>pointerdef) or not (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
           v := Word(v);
         inherited create(v, def);
       end;
@@ -63,7 +63,7 @@ implementation
     procedure ti8086pointerconstnode.pass_generate_code;
       begin
         { far pointer? }
-        if (typedef.typ=pointerdef) and (tpointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+        if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
           begin
             location_reset(location,LOC_CONSTANT,OS_32);
             location.value:=longint(value);
