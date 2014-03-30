@@ -183,6 +183,15 @@ skip_mem_realloc:
         dec bx
         mov word [__nearheap_end], bx
 
+%ifdef __FAR_DATA__
+        mov ax, ss
+        mov word [__stkbottom + 2], ax
+        mov word [__stktop    + 2], ax
+        mov ax, ds
+        mov word [__nearheap_start + 2], ax
+        mov word [__nearheap_end   + 2], ax
+%endif
+
 %ifdef __FAR_CODE__
         jmp far PASCALMAIN
 %else
