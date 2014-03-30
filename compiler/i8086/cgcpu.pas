@@ -1861,7 +1861,7 @@ unit cgcpu;
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
 
 {$ifdef volatile_es}
-        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
+        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SS));
         list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
 {$endif volatile_es}
 
