@@ -20,7 +20,7 @@ Const
   IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
 //  IPCcdeclOSes  = [Darwin,iphonesim];
 
-  PrinterOSes   = [go32v2,msdos,os2,win32]+unixlikes-[beos,haiku,morphos];
+  PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
