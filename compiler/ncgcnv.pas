@@ -750,16 +750,17 @@ interface
 
         { Floats should never be returned as LOC_CONSTANT, do the
           moving to memory before the new size is set.
+
           Also when converting from a float to a non-float
-          or the other way round, move to memory first to prevent
-          invalid LOC_FPUREGISTER locations }
+          move to memory first to prevent
+          invalid LOC_(C)MM/FPUREGISTER locations }
         if (
             (resultdef.typ=floatdef) and
             (location.loc=LOC_CONSTANT)
            ) or
            (
-            (left.resultdef.typ=floatdef) xor
-            (resultdef.typ=floatdef)
+            ((left.resultdef.typ=floatdef) and
+             (resultdef.typ<>floatdef) and (left.location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_MMREGISTER]))
            ) then
           hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
 
