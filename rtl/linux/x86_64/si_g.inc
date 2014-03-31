@@ -38,6 +38,7 @@ var
   libc_fpu_control: word; external name '__fpu_control';
   libc_init_proc: procedure; external name '_init';
   libc_fini_proc: procedure; external name '_fini';
+  _etext: pointer; external name '_etext';
 
   fpc_ret,fpc_ret_rbp : pointer;
 
@@ -47,30 +48,11 @@ procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
+procedure gmon_monstartup; external name 'monstartup';
+procedure gmon_mcleanup; external name '_mcleanup';
+
 procedure PASCALMAIN; external name 'PASCALMAIN';
-
-procedure main_stub; assembler; nostackframe;
-  asm
-    { save return address }
-    popq    %rax
-
-    // stack alignment
-    pushq	%rax
-
-    movq    %rax,fpc_ret(%rip)
-    movq    %rbp,fpc_ret_rbp(%rip)
-    pushq   %rax
-
-    { Save initial stackpointer }
-    movq    initialstkptr@GOTPCREL(%rip),%rax
-    movq    %rsp,(%rax)
-
-    { start the program }
-    xorq    %rbp,%rbp
-    call    PASCALMAIN
-    hlt
-  end;
-
+procedure main_stub; forward;
 
 procedure ini_dummy;
   begin
@@ -131,7 +113,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 
     { Call the user's main function, and exit with its value.
      But let the libc call main.    }
-    call libc_start_main
+    call libc_start_main@PLT
 
     hlt                     { Crash if somehow `exit' does return.  }
 
@@ -149,9 +131,37 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 2:  .long 0
     .long 2,4,0
 3:  .align 4
- *)
+*)
   end;
 
+procedure main_stub; assembler; nostackframe;
+  asm
+    { save return address }
+    popq    %rax
+
+    // stack alignment
+    pushq	%rax
+
+    movq    %rax,fpc_ret(%rip)
+    movq    %rbp,fpc_ret_rbp(%rip)
+    pushq   %rax
+
+    { Initialize gmon }
+    movq    _etext@GOTPCREL(%rip),%rsi
+    movq    _FPC_libc_start@GOTPCREL(%rip),%rdi
+    call    gmon_monstartup@PLT
+
+    movq    gmon_mcleanup@GOTPCREL(%rip),%rdi
+    call    libc_atexit@PLT
+    { Save initial stackpointer }
+    movq    initialstkptr(%rip),%rax
+    movq    %rsp,(%rax)
+
+    { start the program }
+    xorq    %rbp,%rbp
+    call    PASCALMAIN@PLT
+    hlt
+  end;
 
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
   asm
