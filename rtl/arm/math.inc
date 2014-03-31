@@ -15,6 +15,7 @@
  **********************************************************************}
 
 {$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
+    {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -22,6 +23,8 @@
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_ABS}
+    {$ifndef FPC_SYSTEM_HAS_SQR}
     {$define FPC_SYSTEM_HAS_SQR}
     function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -29,6 +32,7 @@
       runerror(207);
       result:=0;
     end;
+    {$endif FPC_SYSTEM_HAS_SQR}
     {$ifndef FPC_SYSTEM_HAS_SQRT}
     {$define FPC_SYSTEM_HAS_SQRT}
     function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
