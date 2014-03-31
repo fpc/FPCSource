@@ -64,10 +64,12 @@
 %ifdef __TINY__
         mov bx, cs
 %else
-        ; init the stack
         mov bx, dgroup
+    %ifdef __NEAR_DATA__
+        ; init the stack
         mov ss, bx
         mov sp, stacktop
+    %endif
 %endif
 
         ; zero fill the BSS section
@@ -126,6 +128,11 @@
 cpu_detect_done:
         mov [__Test8086], bl
 
+%ifdef __NEAR_DATA__
+; ****************************************************************************
+; **                      near data memory layout setup                     **
+; ****************************************************************************
+
         ; allocate max heap
         ; TODO: also support user specified heap size
         ; try to resize our main DOS memory block until the end of the data segment
@@ -183,11 +190,26 @@ skip_mem_realloc:
         dec bx
         mov word [__nearheap_end], bx
 
+; ****************************************************************************
+; **                      near data setup done                              **
+; ****************************************************************************
+%endif
+
+
 %ifdef __FAR_DATA__
+        mov word [__stktop], sp
+        mov word [__stkbottom], 0
         mov ax, ss
         mov word [__stkbottom + 2], ax
         mov word [__stktop    + 2], ax
-        mov ax, ds
+
+        mov dx, sp
+        add dx, 15
+        mov cl, 4
+        shr dx, cl
+        add ax, dx
+        mov word [__nearheap_start], 0
+        mov word [__nearheap_end], 0FFF0h
         mov word [__nearheap_start + 2], ax
         mov word [__nearheap_end   + 2], ax
 %endif
@@ -447,9 +469,15 @@ __nullarea:
         segment _AFTERNULL align=2 class=BEGDATA
         dw 0
 
+    %ifdef __NEAR_DATA__
         segment stack stack class=stack
         resb 256
         stacktop:
+    %else
+        ; todo: make FPC create the stack segment in far data models
+        segment stack stack class=stack align=16
+        resb 16384
+    %endif
 %endif
 
 %ifdef __TINY__
