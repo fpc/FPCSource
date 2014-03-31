@@ -348,7 +348,7 @@ SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
-SYSINIT_UNITS=   # si_prc si_c si_dll
+SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 ifeq ($(ARCH),mipsel)
 override FPCOPT+=-Ur
