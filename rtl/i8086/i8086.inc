@@ -298,10 +298,34 @@ asm
 {$endif}
 end;
 
-{TODO: implement}
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
-begin
-  runerror(304);
+{TODO: use smallint?}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;assembler;
+asm
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, [Target]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, [Target]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov di, [Comperand]
+  mov si, [Comperand+2]
+  pushf
+  cli
+  mov ax, [bx]
+  mov dx, [bx+2]
+  cmp ax, di
+  jne @@not_equal
+  cmp dx, si
+  jne @@not_equal
+  mov di, [NewValue]
+  mov si, [NewValue+2]
+  mov [bx], di
+  mov [bx+2], si
+@@not_equal:
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
 
