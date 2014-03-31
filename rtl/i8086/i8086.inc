@@ -252,11 +252,26 @@ asm
 {$endif}
 end;
 
-{TODO: fix, use smallint?}
-function InterLockedExchange (var Target: longint;Source : longint) : longint;
-begin
-  InterLockedExchange := Target;
-  Target := Source;
+{TODO: use smallint?}
+function InterLockedExchange (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 6 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 6 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[si + 2 + extra_param_offset]  // Lo(Source)
+  mov dx, ss:[si + 4 + extra_param_offset]  // Hi(Source)
+  pushf
+  cli
+  xchg word [bx], ax
+  xchg word [bx+2], dx
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
 {TODO: implement}
