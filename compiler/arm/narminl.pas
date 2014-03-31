@@ -60,7 +60,7 @@ implementation
     uses
       globtype,verbose,globals,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
-      cgbase,cgutils,pass_2,
+      cgbase,cgutils,pass_1,pass_2,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
 
 {*****************************************************************************
@@ -96,6 +96,11 @@ implementation
                  location.loc := LOC_MMREGISTER;
                end;
             end;
+          fpu_soft:
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              location_copy(location,left.location);
+            end
           else
             internalerror(2009111801);
         end;
@@ -106,7 +111,11 @@ implementation
     function tarminlinenode.first_abs_real : tnode;
       begin
         if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_abs_real
+          begin
+            firstpass(left);
+            expectloc:=LOC_REGISTER;
+            first_abs_real:=nil;
+          end
         else
           begin
             case current_settings.fputype of
@@ -245,6 +254,13 @@ implementation
             end;
           fpu_fpv4_s16:
             current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
+          fpu_soft:
+            begin
+              if singleprec then
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.register)
+              else
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.registerhi);
+            end
         else
           internalerror(2009111402);
         end;
