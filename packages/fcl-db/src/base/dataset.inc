@@ -1279,7 +1279,7 @@ begin
   If FCurrentRecord<>Index then
     begin
 {$ifdef DSdebug}
-    Writeln ('Setting current record to',index);
+    Writeln ('Setting current record to: ',index);
 {$endif}
     if not FIsUniDirectional then Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
@@ -1435,7 +1435,7 @@ function TDataSet.ActiveBuffer: TRecordBuffer;
 
 begin
 {$ifdef dsdebug}
-  Writeln ('Active buffer requested. Returning:',ActiveRecord);
+  Writeln ('Active buffer requested. Returning record number:',ActiveRecord);
 {$endif}
   Result:=FBuffers[FActiveRecord];
 end;

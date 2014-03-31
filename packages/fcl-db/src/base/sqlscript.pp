@@ -459,9 +459,15 @@ begin
     pnt:=FindNextSeparator([FTerminator, '/*', '"', '''']);
     if (pnt=FTerminator) then
       begin
-      FCol:=FCol + length(pnt);
-      terminator_found:=True;
-      break;
+      if pnt='' then begin
+        // Empty line, only e.g. a ; present:
+        FEmitLine:=False;
+        end
+        else begin
+        FCol:=FCol + length(pnt);
+        terminator_found:=True;
+        break;
+        end;
       end
     else if pnt = '/*' then
       begin

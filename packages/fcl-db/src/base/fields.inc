@@ -579,7 +579,7 @@ function TField.GetData(Buffer: Pointer; NativeFormat : Boolean): Boolean;
 begin
   IF FDataset=Nil then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
-  If FVAlidating then
+  If FValidating then
     begin
     result:=assigned(FValueBuffer);
     If Result and assigned(Buffer) then

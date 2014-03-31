@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2004-2013 by Joost van der Sluis, FPC contributors
+    Copyright (c) 2004-2014 by Joost van der Sluis, FPC contributors
 
     SQL database & dataset
 
