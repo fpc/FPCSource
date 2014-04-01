@@ -110,7 +110,7 @@ implementation
 {$ENDIF}
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,defutil,defcmp,
+      symconst,symdef,symsym,symcpu,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
       nld,nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,

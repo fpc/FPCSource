@@ -62,7 +62,7 @@ implementation
        verbose,
        systems,widestr,
        { symtable }
-       symconst,symtable,symsym,defutil,defcmp,
+       symconst,symtable,symsym,symcpu,defutil,defcmp,
        { module }
        fmodule,ppu,
        { pass 1 }

@@ -108,7 +108,7 @@ implementation
     uses
       verbose,globals,systems,constexp,
       globtype,cutils,fmodule,
-      symconst,symdef,symsym,symtable,paramgr,defutil,symbase,
+      symconst,symdef,symsym,symcpu,symtable,paramgr,defutil,symbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,

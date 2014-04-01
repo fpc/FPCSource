@@ -77,7 +77,7 @@ implementation
       symconst,
       defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symtype,symdef,
+      symtype,symdef,symcpu,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,ncgutil,

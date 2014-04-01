@@ -1047,52 +1047,6 @@ interface
        { FPC java procvar base class }
        java_procvarbase          : tobjectdef;
 
-    const
-{$ifdef i8086}
-       pbestrealtype : ^tdef = @s80floattype;
-{$endif}
-{$ifdef i386}
-       pbestrealtype : ^tdef = @s80floattype;
-{$endif}
-{$ifdef x86_64}
-       pbestrealtype : ^tdef = @s80floattype;
-{$endif}
-{$ifdef m68k}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif}
-{$ifdef alpha}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif}
-{$ifdef powerpc}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif}
-{$ifdef POWERPC64}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif}
-{$ifdef ia64}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif}
-{$ifdef SPARC}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif SPARC}
-{$ifdef vis}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif vis}
-{$ifdef ARM}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif ARM}
-{$ifdef MIPS}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif MIPS}
-{$ifdef AVR}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif AVR}
-{$ifdef JVM}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif JVM}
-{$ifdef AARCH64}
-       pbestrealtype : ^tdef = @s64floattype;
-{$endif AARCH64}
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
     function make_dllmangledname(const dllname,importname:TSymStr;

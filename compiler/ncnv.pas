@@ -293,7 +293,7 @@ implementation
    uses
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,
+      symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;

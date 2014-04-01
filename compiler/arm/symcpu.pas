@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symdef,symsym,globtype;
+  symtype,symdef,symsym,globtype;
 
 type
   { defs }
@@ -166,6 +166,10 @@ type
   tcpusyssym = class(tsyssym)
   end;
   tcpusyssymclass = class of tcpusyssym;
+
+
+const
+  pbestrealtype : ^tdef = @s64floattype;
 
 
 implementation
