@@ -230,7 +230,7 @@ implementation
             end;
           enumdef:
             begin
-              result:=jvmaddencodedtype(tenumdef(def).getbasedef.classdef,false,encodedstr,forcesignature,founderror);
+              result:=jvmaddencodedtype(tcpuenumdef(tenumdef(def).getbasedef).classdef,false,encodedstr,forcesignature,founderror);
             end;
           orddef :
             begin
@@ -683,7 +683,7 @@ implementation
                 end;
               enumdef:
                 begin
-                  result:=tenumdef(def).getbasedef.classdef;
+                  result:=tcpuenumdef(tenumdef(def).getbasedef).classdef;
                 end;
               pointerdef :
                 begin

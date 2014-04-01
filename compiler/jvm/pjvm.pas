@@ -305,7 +305,7 @@ implementation
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
         enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+tostr(def.defid),java_jlenum);
-        tenumdef(def).classdef:=enumclass;
+        tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
         { implement FpcEnumValueObtainable interface }

@@ -880,12 +880,12 @@ implementation
           left:=nil;
         end;
 
-      function ord_enum_explicit_typecast(fdef: torddef; todef: tenumdef): tnode;
+      function ord_enum_explicit_typecast(fdef: torddef; todef: tcpuenumdef): tnode;
         var
           psym: tsym;
         begin
           { we only create a class for the basedefs }
-          todef:=todef.getbasedef;
+          todef:=tcpuenumdef(todef.getbasedef);
           psym:=search_struct_member(todef.classdef,'FPCVALUEOF');
           if not assigned(psym) or
              (psym.typ<>procsym) then
@@ -899,12 +899,12 @@ implementation
           left:=nil;
         end;
 
-      function enum_ord_explicit_typecast(fdef: tenumdef; todef: torddef): tnode;
+      function enum_ord_explicit_typecast(fdef: tcpuenumdef; todef: torddef): tnode;
         var
           psym: tsym;
         begin
           { we only create a class for the basedef }
-          fdef:=fdef.getbasedef;
+          fdef:=tcpuenumdef(fdef.getbasedef);
           psym:=search_struct_member(fdef.classdef,'FPCORDINAL');
           if not assigned(psym) or
              (psym.typ<>procsym) then
@@ -950,7 +950,7 @@ implementation
           if tsetdef(resultdef).elementdef.typ=enumdef then
             begin
               inserttypeconv_explicit(left,s64inttype);
-              enumclassdef:=tenumdef(tsetdef(resultdef).elementdef).getbasedef.classdef;
+              enumclassdef:=tcpuenumdef(tenumdef(tsetdef(resultdef).elementdef).getbasedef).classdef;
               mp:=cloadvmtaddrnode.create(ctypenode.create(enumclassdef));
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
@@ -1343,14 +1343,14 @@ implementation
            if left.resultdef.typ=orddef then
              begin
                if not check_only then
-                 resnode:=ord_enum_explicit_typecast(torddef(left.resultdef),tenumdef(resultdef));
+                 resnode:=ord_enum_explicit_typecast(torddef(left.resultdef),tcpuenumdef(resultdef));
                result:=true;
                exit;
              end
            else if resultdef.typ=orddef then
              begin
                if not check_only then
-                 resnode:=enum_ord_explicit_typecast(tenumdef(left.resultdef),torddef(resultdef));
+                 resnode:=enum_ord_explicit_typecast(tcpuenumdef(left.resultdef),torddef(resultdef));
                result:=true;
                exit;
              end

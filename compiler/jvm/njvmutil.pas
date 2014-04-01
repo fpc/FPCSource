@@ -223,7 +223,7 @@ implementation
           { in case of enum type, initialize with enum(0) if it exists }
           if sym.vardef.typ=enumdef then
             begin
-              enuminitsym:=tstaticvarsym(tenumdef(sym.vardef).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+              enuminitsym:=tstaticvarsym(tcpuenumdef(tenumdef(sym.vardef).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
               if assigned(enuminitsym) then
                 initnode:=cloadnode.create(enuminitsym,enuminitsym.owner);
             end

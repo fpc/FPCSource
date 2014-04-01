@@ -135,7 +135,7 @@ unit tgcpu;
               if tsetdef(def).elementdef.typ=enumdef then
                 begin
                   { load enum class type }
-                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tenumdef(tsetdef(def).elementdef).getbasedef.classdef.jvm_full_typename(true))));
+                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true))));
                   thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                   { call tenumset.noneOf() class method }
                   sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));

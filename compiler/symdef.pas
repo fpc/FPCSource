@@ -827,11 +827,6 @@ interface
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
-{$ifdef jvm}
-          { class representing this enum on the Java side }
-          classdef  : tobjectdef;
-          classdefderef : tderef;
-{$endif}
           has_jumps : boolean;
           constructor create;virtual;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);virtual;
@@ -2339,9 +2334,6 @@ implementation
          maxval:=ppufile.getaint;
          savesize:=ppufile.getaint;
          has_jumps:=false;
-{$ifdef jvm}
-        ppufile.getderef(classdefderef);
-{$endif}
          if df_copied_def in defoptions then
            begin
              symtable:=nil;
@@ -2379,9 +2371,6 @@ implementation
             tenumdef(result).symtable:=symtable.getcopy;
             tenumdef(result).basedef:=self;
           end;
-{$ifdef jvm}
-        tenumdef(result).classdef:=classdef;
-{$endif}
         tenumdef(result).has_jumps:=has_jumps;
         tenumdef(result).basedefderef:=basedefderef;
         include(tenumdef(result).defoptions,df_copied_def);
@@ -2507,9 +2496,6 @@ implementation
           basedefderef.build(basedef)
         else
           tenumsymtable(symtable).buildderef;
-{$ifdef jvm}
-        classdefderef.build(classdef);
-{$endif}
       end;
 
 
@@ -2523,9 +2509,6 @@ implementation
           end
         else
           tenumsymtable(symtable).deref;
-{$ifdef jvm}
-        classdef:=tobjectdef(classdefderef.resolve);
-{$endif}
       end;
 
 
@@ -2535,9 +2518,6 @@ implementation
          ppufile.putaint(min);
          ppufile.putaint(max);
          ppufile.putaint(savesize);
-{$ifdef jvm}
-         ppufile.putderef(classdefderef);
-{$endif}
          if df_copied_def in defoptions then
            ppufile.putderef(basedefderef);
          writeentry(ppufile,ibenumdef);

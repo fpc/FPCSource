@@ -410,7 +410,7 @@ implementation
           begin
            if (right.location.loc<>LOC_CONSTANT) then
              begin
-               psym:=search_struct_member(tenumdef(right.resultdef).getbasedef.classdef,'FPCORDINAL');
+               psym:=search_struct_member(tcpuenumdef(tenumdef(right.resultdef).getbasedef).classdef,'FPCORDINAL');
                if not assigned(psym) or
                   (psym.typ<>procsym) or
                   (tprocsym(psym).ProcdefList.count<>1) then

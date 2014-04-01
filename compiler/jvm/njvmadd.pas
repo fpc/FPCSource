@@ -54,7 +54,7 @@ interface
     uses
       systems,
       cutils,verbose,constexp,globtype,
-      symconst,symtable,symdef,
+      symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
@@ -231,7 +231,7 @@ interface
                   procname:='OF';
                   if isenum then
                     begin
-                      inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                      inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
                       result:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
                     end
                   else
@@ -247,7 +247,7 @@ interface
                       procname:='RANGE';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
                         end
                       else
                         begin
@@ -268,7 +268,7 @@ interface
                       procname:='ADD';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
                         end
                       else
                         begin
@@ -284,7 +284,7 @@ interface
                             factory method, then add all of its elements }
                           if isenum then
                             begin
-                              inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                              inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
                               tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
                             end
                           else

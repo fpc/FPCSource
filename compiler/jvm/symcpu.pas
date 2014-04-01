@@ -118,6 +118,16 @@ type
   tcpustringdefclass = class of tcpustringdef;
 
   tcpuenumdef = class(tenumdef)
+   protected
+     procedure ppuload_platform(ppufile: tcompilerppufile); override;
+     procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    { class representing this enum on the Java side }
+    classdef  : tobjectdef;
+    classdefderef : tderef;
+    function getcopy: tstoreddef; override;
+    procedure buildderef; override;
+    procedure deref; override;
   end;
   tcpuenumdefclass = class of tcpuenumdef;
 
@@ -193,6 +203,41 @@ implementation
     verbose,cutils,
     symconst,symbase,jvmdef,
     paramgr;
+
+
+  procedure tcpuenumdef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.getderef(classdefderef);
+    end;
+
+
+  procedure tcpuenumdef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putderef(classdefderef);
+    end;
+
+
+  function tcpuenumdef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpuenumdef(result).classdef:=classdef;
+    end;
+
+
+  procedure tcpuenumdef.buildderef;
+    begin
+      inherited;
+      classdefderef.build(classdef);
+    end;
+
+
+  procedure tcpuenumdef.deref;
+    begin
+      inherited;
+      classdef:=tobjectdef(classdefderef.resolve);
+    end;
 
 {****************************************************************************
                              tcpuprocdef

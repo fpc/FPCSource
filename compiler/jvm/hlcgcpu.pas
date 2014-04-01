@@ -2315,7 +2315,7 @@ implementation
       sym: tstaticvarsym;
     begin
       result:=false;
-      sym:=tstaticvarsym(tenumdef(def).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+      sym:=tstaticvarsym(tcpuenumdef(tenumdef(def).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
@@ -2429,7 +2429,7 @@ implementation
          (checkdef.typ=formaldef) then
         checkdef:=java_jlobject
       else if checkdef.typ=enumdef then
-        checkdef:=tenumdef(checkdef).classdef
+        checkdef:=tcpuenumdef(checkdef).classdef
       else if checkdef.typ=setdef then
         begin
           if tsetdef(checkdef).elementdef.typ=enumdef then
