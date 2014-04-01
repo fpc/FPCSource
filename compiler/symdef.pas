@@ -714,9 +714,6 @@ interface
 {$endif oldregvars}
           import_nr    : word;
           extnumber    : word;
-{$if defined(i386) or defined(i8086)}
-          fpu_used     : byte;
-{$endif i386 or i8086}
 {$if defined(arm)}
           { the arm paramanager might need to know the total size of the stackframe
             to avoid cyclic unit dependencies or global variables, this infomatation is
@@ -4801,9 +4798,6 @@ implementation
          import_nr:=0;
          inlininginfo:=nil;
          deprecatedmsg:=nil;
-{$if defined(i386) or defined(i8086)}
-          fpu_used:=maxfpuregs;
-{$endif i386 or i8086}
       end;
 
 
@@ -4899,9 +4893,6 @@ implementation
            deffile.AddExport(mangledname);
          { Disable po_has_inlining until the derefimpl is done }
          has_inlininginfo:=false;
-{$ifdef i386}
-         fpu_used:=maxfpuregs;
-{$endif i386}
       end;
 
 
@@ -5231,9 +5222,6 @@ implementation
           tprocdef(result).import_name:=stringdup(import_name^);
         tprocdef(result).import_nr:=import_nr;
         tprocdef(result).extnumber:=$ffff;
-{$if defined(i386) or defined(i8086)}
-        tprocdef(result).fpu_used:=fpu_used;
-{$endif i386 or i8086}
         tprocdef(result).visibility:=visibility;
         tprocdef(result).synthetickind:=synthetickind;
         { we need a separate implementation for the copied def }

@@ -1286,8 +1286,7 @@ implementation
         do_firstpass(code);
 
 {$if defined(i386) or defined(i8086)}
-        procdef.fpu_used:=node_resources_fpu(code);
-        if procdef.fpu_used>0 then
+        if node_resources_fpu(code)>0 then
           include(flags,pi_uses_fpu);
 {$endif i386 or i8086}
 
