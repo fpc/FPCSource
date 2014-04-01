@@ -1056,6 +1056,7 @@ unit cpupara;
         i,
         varalign,
         paraalign  : longint;
+        sym: tfieldvarsym;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
@@ -1063,6 +1064,16 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             paradef:=hp.vardef;
+            { on win64, if a record has only one field and that field is a
+              single or double, it has to be handled like a single/double }
+            if (target_info.system=system_x86_64_win64) and
+               ((paradef.typ=recorddef) {or
+               is_object(paradef)}) and
+               tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(sym) and
+               (sym.vardef.typ=floatdef) and
+               (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
+              paradef:=sym.vardef;
+
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
