@@ -1161,9 +1161,6 @@ implementation
       systems,paramgr,
       { symtable }
       symsym,symtable,defutil,objcdef,
-{$ifdef jvm}
-      jvmdef,
-{$endif}
       { parser }
       pgenutil,
       { module }
