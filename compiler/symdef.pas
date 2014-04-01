@@ -4257,8 +4257,6 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          ppufile.getderef(returndefderef);
-{ TODO: remove fpu_used loading}
-         ppufile.getbyte;
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getnormalset(procoptions);
@@ -4284,7 +4282,6 @@ implementation
          ppufile.putderef(returndefderef);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
-         ppufile.putbyte(0);
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putnormalset(procoptions);
