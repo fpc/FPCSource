@@ -2266,7 +2266,6 @@ else
 EXECPPAS:=@$(PPAS)
 endif
 endif
-endif
 .PHONY: fpc_loaders
 ifneq ($(TARGET_LOADERS),)
 override ALLTARGET+=fpc_loaders
