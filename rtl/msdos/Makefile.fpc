@@ -13,8 +13,8 @@ units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx lnfodwrf \
-#      video mouse vesamode \
-# rsts=math varutils typinfo classes variants dateutil sysconst
+#      vesamode \
+# rsts=math typinfo classes dateutil sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -82,20 +82,25 @@ prt0h$(OEXT) : prt0h.asm prt0comn.asm
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+	$(EXECPPAS)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+	$(EXECPPAS)
 #
 # System Dependent Units
 #
@@ -109,12 +114,14 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) ports.pp
+	$(EXECPPAS)
 #
 # TP7 Compatible RTL Units
 #
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
+	$(EXECPPAS)
 
 #
 # Delphi Compatible Units
@@ -122,77 +129,99 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+	$(EXECPPAS)
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(EXECPPAS)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(EXECPPAS)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+	$(EXECPPAS)
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(EXECPPAS)
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
 
 #
 # Mac Pascal Model
 #
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(EXECPPAS)
 
 #
 # Other system-independent RTL Units
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
         $(COMPILER) (PROCINC)/cpu.pp $(REDIR)
+	$(EXECPPAS)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
         $(COMPILER) (PROCINC)/mmx.pp $(REDIR)
+	$(EXECPPAS)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
+	$(EXECPPAS)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
+	$(EXECPPAS)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
         $(COMPILER) $(INC)/lineinfo.pp
+	$(EXECPPAS)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
         $(COMPILER) $(INC)/lnfodwrf.pp
+	$(EXECPPAS)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
+	$(EXECPPAS)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+	$(EXECPPAS)
 
 matrix$(PPUEXT) : $(INC)/matrix.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
+	$(EXECPPAS)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/ucomplex.pp $(REDIR)
+	$(EXECPPAS)
 
 #
 # Other system-dependent RTL Units
 #
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
         $(COMPILER) msmouse.pp $(REDIR)
+	$(EXECPPAS)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
         $(COMPILER) $(INC)/callspec.pp $(REDIR)
+	$(EXECPPAS)
 
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp $(REDIR)
+	$(EXECPPAS)
 
