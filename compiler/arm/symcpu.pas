@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symdef,symsym;
+  symdef,symsym,globtype;
 
 type
   { defs }
@@ -91,6 +91,10 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
+    { the arm paramanager might need to know the total size of the stackframe
+      to avoid cyclic unit dependencies or global variables, this infomatation is
+      stored in total_stackframe_size }
+    total_stackframe_size : aint;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 

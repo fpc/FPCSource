@@ -57,7 +57,7 @@ unit cpupi;
        globals,systems,
        cpubase,
        tgobj,
-       symconst,symtype,symsym,paramgr,
+       symconst,symtype,symsym,symcpu,paramgr,
        cgutils,
        cgobj,
        defutil;
@@ -254,7 +254,7 @@ unit cpupi;
 
     procedure tarmprocinfo.generate_parameter_info;
       begin
-       procdef.total_stackframe_size:=stackframesize;
+       tcpuprocdef(procdef).total_stackframe_size:=stackframesize;
        inherited generate_parameter_info;
       end;
 

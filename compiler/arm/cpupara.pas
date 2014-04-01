@@ -54,7 +54,7 @@ unit cpupara;
 
     uses
        verbose,systems,cutils,
-       defutil,symsym,symtable,
+       defutil,symsym,symcpu,symtable,
        { PowerPC uses procinfo as well in cpupara, so this should not hurt }
        procinfo;
 
@@ -301,7 +301,7 @@ unit cpupara;
         curmmreg:=RS_D0;
 
         if (side=calleeside) and (GenerateThumbCode or (pi_estimatestacksize in current_procinfo.flags)) then
-          cur_stack_offset:=(p as tprocdef).total_stackframe_size
+          cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size
         else
           cur_stack_offset:=0;
         sparesinglereg := NR_NO;
