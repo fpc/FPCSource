@@ -2,22 +2,22 @@
 
 %ifdef __TINY__
         %define __NEAR_CODE__
-		%define __NEAR_DATA__
+        %define __NEAR_DATA__
 %elifdef __SMALL__
         %define __NEAR_CODE__
-		%define __NEAR_DATA__
+        %define __NEAR_DATA__
 %elifdef __MEDIUM__
         %define __FAR_CODE__
-		%define __NEAR_DATA__
+        %define __NEAR_DATA__
 %elifdef __COMPACT__
         %define __NEAR_CODE__
-		%define __FAR_DATA__
+        %define __FAR_DATA__
 %elifdef __LARGE__
         %define __FAR_CODE__
-		%define __FAR_DATA__
+        %define __FAR_DATA__
 %elifdef __HUGE__
         %define __FAR_CODE__
-		%define __FAR_DATA__
+        %define __FAR_DATA__
 %else
         %fatal "Memory model not defined."
 %endif
