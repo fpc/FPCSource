@@ -99,7 +99,7 @@ implementation
        systems,
        cpuinfo,
        { symtable }
-       symbase,symtable,defutil,defcmp,
+       symbase,symcpu,symtable,defutil,defcmp,
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
@@ -1787,7 +1787,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
                   vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
@@ -1821,7 +1821,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
             end
@@ -1888,7 +1888,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
                   vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);

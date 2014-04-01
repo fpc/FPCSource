@@ -81,6 +81,7 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
        protected
+          procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
 
        protected
@@ -1987,6 +1988,13 @@ implementation
       end;
 
 
+    procedure tcallnode.gen_syscall_para(para: tcallparanode);
+      begin
+        { unsupported }
+        internalerror(2014040101);
+      end;
+
+
     procedure tcallnode.objc_convert_to_message_send;
       var
         block,
@@ -2496,14 +2504,9 @@ implementation
                    begin
                      para.left:=gen_vmt_tree;
                    end
-{$if defined(powerpc) or defined(m68k)}
                 else
                  if vo_is_syscall_lib in para.parasym.varoptions then
-                   begin
-                     { lib parameter has no special type but proccalloptions must be a syscall }
-                     para.left:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
-                   end
-{$endif powerpc or m68k}
+                   gen_syscall_para(para)
                 else
                  if vo_is_parentfp in para.parasym.varoptions then
                    begin

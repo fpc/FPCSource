@@ -698,11 +698,6 @@ interface
           struct : tabstractrecorddef;
           structderef : tderef;
           implprocoptions: timplprocoptions;
-{$if defined(powerpc) or defined(m68k)}
-          { library symbol for AmigaOS/MorphOS }
-          libsym : tsym;
-          libsymderef : tderef;
-{$endif powerpc or m68k}
           { import info }
           import_dll,
           import_name : pshortstring;
@@ -4820,10 +4815,6 @@ implementation
          else
            deprecatedmsg:=nil;
          synthetickind:=tsynthetickind(ppufile.getbyte);
-{$if defined(powerpc) or defined(m68k)}
-         { library symbol for AmigaOS/MorphOS }
-         ppufile.getderef(libsymderef);
-{$endif powerpc or m68k}
          { import stuff }
          if po_has_importdll in procoptions then
            import_dll:=stringdup(ppufile.getstring)
@@ -4970,10 +4961,6 @@ implementation
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.putbyte(byte(synthetickind));
-{$if defined(powerpc) or defined(m68k)}
-         { library symbol for AmigaOS/MorphOS }
-         ppufile.putderef(libsymderef);
-{$endif powerpc or m68k}
          { import }
          if po_has_importdll in procoptions then
            ppufile.putstring(import_dll^);
@@ -5198,9 +5185,6 @@ implementation
           end;
         { will have to be associated with a new struct }
         tprocdef(result).struct:=nil;
-{$if defined(powerpc) or defined(m68k)}
-        tprocdef(result).libsym:=libsym;
-{$endif powerpc or m68k}
         if assigned(implprocdefinfo) then
           begin
             if assigned(resultname) then
@@ -5236,10 +5220,6 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
-{$if defined(powerpc) or defined(m68k)}
-         { library symbol for AmigaOS/MorphOS }
-         libsymderef.build(libsym);
-{$endif powerpc or m68k}
       end;
 
 
@@ -5270,10 +5250,6 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
-{$if defined(powerpc) or defined(m68k)}
-         { library symbol for AmigaOS/MorphOS }
-         libsym:=tsym(libsymderef.resolve);
-{$endif powerpc or m68k}
       end;
 
 

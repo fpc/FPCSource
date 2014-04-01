@@ -30,6 +30,9 @@ interface
 
     type
        tppccallnode = class(tcgcallnode)
+        protected
+         procedure gen_syscall_para(para: tcallparanode); override;
+        public
          procedure extra_call_code;override;
          procedure do_syscall;override;
        end;
@@ -40,12 +43,18 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,defutil,paramgr,parabase,
+      symconst,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
       cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,regvars,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
+
+    procedure tppccallnode.gen_syscall_para(para: tcallparanode);
+      begin
+        { lib parameter has no special type but proccalloptions must be a syscall }
+        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
+      end;
 
 
     procedure tppccallnode.extra_call_code;
@@ -88,7 +97,7 @@ implementation
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 
                   reference_reset(tmpref,sizeof(pint));
-                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tprocdef(procdefinition).libsym).mangledname);
+                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
                   tmpref.refaddr:=addr_higha;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
                   tmpref.base:=NR_R12;
