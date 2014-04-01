@@ -758,10 +758,7 @@ interface
             (resultdef.typ=floatdef) and
             (location.loc=LOC_CONSTANT)
            ) or
-           (
-            ((left.resultdef.typ=floatdef) and
-             (resultdef.typ<>floatdef) and (left.location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_MMREGISTER]))
-           ) then
+           ((resultdef.typ=floatdef) xor (location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_MMREGISTER])) then
           hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
 
         { but use the new size, but we don't know the size of all arrays }
