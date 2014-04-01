@@ -200,7 +200,7 @@ implementation
   function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
     begin
       result:=inherited;
-      if newtpy=procdef then
+      if newtyp=procdef then
         tcpuprocdef(result).libsym:=libsym;
     end;
 
