@@ -60,7 +60,7 @@ implementation
     uses
       systems,globals,verbose,
       cpubase,cgbase,cgobj,
-      tgobj,paramgr,symconst;
+      tgobj,paramgr,symconst,symcpu;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
       begin
@@ -143,7 +143,7 @@ implementation
         if computed_local_size=-1 then
           begin
             computed_local_size:=result;
-            procdef.total_local_size:=result;
+            tcpuprocdef(procdef).total_local_size:=result;
           end
         else if computed_local_size <> result then
           Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
@@ -154,7 +154,7 @@ implementation
         if procdef=nil then
           mips_extra_offset:=0
         else
-          mips_extra_offset:=procdef.total_local_size;
+          mips_extra_offset:=tcpuprocdef(procdef).total_local_size;
       end;
 
 begin

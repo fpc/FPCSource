@@ -91,6 +91,8 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
+    { needed for stabs debugging }
+    total_local_size : longint;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
