@@ -1602,17 +1602,8 @@ implementation
               end;
 {$endif NoOpt}
 
-
-{$ifdef ARM}
-            { because of the limited constant size of the arm, all data access is done pc relative }
-            finalizearmcode(aktproccode,aktlocaldata);
-{$endif ARM}
-
-{$ifdef AVR}
-            { because of the limited branch distance of cond. branches, they must be replaced
-              sometimes by normal jmps and an inverse branch }
-            finalizeavrcode(aktproccode);
-{$endif AVR}
+            { Perform target-specific processing if necessary }
+            postprocess_code;
 
             { Add end symbol and debug info }
             { this must be done after the pcrelativedata is appended else the distance calculation of

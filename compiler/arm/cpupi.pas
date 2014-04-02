@@ -48,6 +48,7 @@ unit cpupi;
           procedure init_framepointer; override;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
+          procedure postprocess_code;override;
        end;
 
 
@@ -60,7 +61,8 @@ unit cpupi;
        symconst,symtype,symsym,symcpu,paramgr,
        cgutils,
        cgobj,
-       defutil;
+       defutil,
+       aasmcpu;
 
     procedure tarmprocinfo.set_first_temp_offset;
       var
@@ -266,6 +268,12 @@ unit cpupi;
           got := cg.getaddressregister(list);
       end;
 
+
+    procedure tarmprocinfo.postprocess_code;
+      begin
+        { because of the limited constant size of the arm, all data access is done pc relative }
+        finalizearmcode(aktproccode,aktlocaldata);
+      end;
 
 begin
    cprocinfo:=tarmprocinfo;
