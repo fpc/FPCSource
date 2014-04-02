@@ -333,10 +333,18 @@ End;
 function GetTickCount64: QWord;
 var
   tp: TTimeVal;
+  {$IFDEF HAVECLOCKGETTIME}
+  ts: TTimeSpec;
+  {$ENDIF}
+  
 begin
-{$IFDEF HAVECLOCKGETTIME}
-  if clock_gettime(CLOCK_MONOTONIC, @tp)<0 then
-{$ENDIF}  
+ {$IFDEF HAVECLOCKGETTIME}
+   if clock_gettime(CLOCK_MONOTONIC, @ts)=0 then
+     begin
+     Result := (Int64(ts.tv_sec) * 1000) + (ts.tv_nsec div 1000000);
+     exit;
+     end;
+ {$ENDIF}
   fpgettimeofday(@tp, nil);
   Result := (Int64(tp.tv_sec) * 1000) + (tp.tv_usec div 1000);
 end;
