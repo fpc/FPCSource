@@ -126,7 +126,6 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -137,7 +136,6 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
   {$define cpuno32bitops}
 {$endif powerpc64}
 
@@ -222,7 +220,6 @@
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
 {$endif mips}

@@ -119,9 +119,6 @@ implementation
        optloop,
        optconstprop,
        optdeadstore
-{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
-       ,aasmcpu
-{$endif arm}
 {$if defined(arm)}
        ,cpuinfo
 {$endif arm}
@@ -1613,9 +1610,7 @@ implementation
             current_filepos:=exitpos;
             hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$ifdef fpc_compiler_has_fixup_jmps}
-            fixup_jmps(aktproccode);
-{$endif}
+
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then

@@ -49,6 +49,7 @@ interface
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
       procedure allocate_got_register(list:tasmlist);override;
+      procedure postprocess_code;override;
     end;
 
    { Used by Stabs debug info generator }
@@ -60,7 +61,7 @@ implementation
     uses
       systems,globals,verbose,
       cpubase,cgbase,cgobj,
-      tgobj,paramgr,symconst,symcpu;
+      tgobj,paramgr,symconst,symcpu,aasmcpu;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
       begin
@@ -148,6 +149,13 @@ implementation
         else if computed_local_size <> result then
           Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
       end;
+
+
+    procedure TMIPSProcInfo.postprocess_code;
+      begin
+        fixup_jmps(aktproccode);
+      end;
+
 
     function mips_extra_offset(procdef : tprocdef) : longint;
       begin
