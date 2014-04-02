@@ -42,7 +42,11 @@ interface
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
 uses
-  Unix,errors,sysconst,Unixtype;
+{$IFDEF LINUX}linux,{$ENDIF} Unix,errors,sysconst,Unixtype;
+
+{$IFDEF LINUX}
+{$DEFINE HAVECLOCKGETTIME}
+{$ENDIF}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -330,6 +334,9 @@ function GetTickCount64: QWord;
 var
   tp: TTimeVal;
 begin
+{$IFDEF HAVECLOCKGETTIME}
+  if clock_gettime(CLOCK_MONOTONIC, @tp)<0 then
+{$ENDIF}  
   fpgettimeofday(@tp, nil);
   Result := (Int64(tp.tv_sec) * 1000) + (tp.tv_usec div 1000);
 end;
