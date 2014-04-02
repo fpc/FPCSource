@@ -62,39 +62,39 @@ begin
         AddUnit('collation_zh');
       end;
 
-    T:=P.Targets.AddImplicitUnit('collation_ru.pas');
+    T:=P.Targets.AddImplicitUnit('collation_ru.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_ru_be.inc');
         AddInclude('collation_ru_le.inc');
       end;
-    T:=P.Targets.AddImplicitUnit('collation_de.pas');
-    T:=P.Targets.AddImplicitUnit('collation_ja.pas');
+    T:=P.Targets.AddImplicitUnit('collation_de.pas',CollationOSes);
+    T:=P.Targets.AddImplicitUnit('collation_ja.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_ja_le.inc');
         AddInclude('collation_ja_be.inc');
       end;
-    T:=P.Targets.AddImplicitUnit('collation_sv.pas');
+    T:=P.Targets.AddImplicitUnit('collation_sv.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_sv_be.inc');
         AddInclude('collation_sv_le.inc');
       end;
-    T:=P.Targets.AddImplicitUnit('collation_es.pas');
+    T:=P.Targets.AddImplicitUnit('collation_es.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_es_le.inc');
         AddInclude('collation_es_be.inc');
       end;
-    T:=P.Targets.AddImplicitUnit('collation_ko.pas');
+    T:=P.Targets.AddImplicitUnit('collation_ko.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_ko_be.inc');
         AddInclude('collation_ko_le.inc');
       end;
-    T:=P.Targets.AddImplicitUnit('collation_fr_ca.pas');
-    T:=P.Targets.AddImplicitUnit('collation_zh.pas');
+    T:=P.Targets.AddImplicitUnit('collation_fr_ca.pas',CollationOSes);
+    T:=P.Targets.AddImplicitUnit('collation_zh.pas',CollationOSes);
     with T.Dependencies do
       begin
         AddInclude('collation_zh_be.inc');
