@@ -41,7 +41,7 @@ Compiling FreeTDS with iconv support:
 
 Using in Lazarus:
 =================
-1. Put on the form TSQLConnector and set property ConnectorType=MSSQLServer
+1. Put on the form TMSSQLConnection or TSQLConnector and set property ConnectorType=MSSQLServer
 2. Put into uses clause mssqlconn unit
 
 
@@ -49,6 +49,7 @@ Known problems:
 ===============
 - CHAR/VARCHAR data truncated to column length when encoding to UTF-8 (use NCHAR/NVARCHAR instead or CAST char/varchar to nchar/nvarchar)
 - Multiple result sets (for example when SP returns more than 1 result set only 1st is processed)
+- Output parameters of stored procedure are not returned. See FreeTDS FAQ: "I'm not getting my output parameters returned, but I seem to be doing everything right!"
 - DB-Library error 10038 "Results Pending" - set TSQLQuery.PacketRecords=-1 to fetch all pendings rows
 - BLOB data (IMAGE/TEXT columns) larger than 16MB are truncated to 16MB - (set TMSSQLConnection.Params: 'TEXTSIZE=2147483647' or execute 'SET TEXTSIZE 2147483647')
   (create temporary stored procedures for prepared statements)
