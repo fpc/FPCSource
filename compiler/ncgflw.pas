@@ -1263,6 +1263,8 @@ implementation
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
          pd : tprocdef;
+         fpc_catches_res: TCGPara;
+         fpc_catches_resloc: tlocation;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
@@ -1281,11 +1283,13 @@ implementation
          paramanager.getintparaloc(pd,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-         cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
+         fpc_catches_res:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,nil);
+         location_reset(fpc_catches_resloc,LOC_REGISTER,def_cgsize(fpc_catches_res.def));
+         fpc_catches_resloc.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fpc_catches_res.def);
+         hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,fpc_catches_res.def,fpc_catches_res,fpc_catches_resloc,true);
 
-         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          { is it this catch? No. go to next onlabel }
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
+         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,fpc_catches_res.def,OC_EQ,0,fpc_catches_resloc.register,nextonlabel);
 
          { Retrieve exception variable }
          if assigned(excepTSymtable) then
@@ -1295,11 +1299,10 @@ implementation
 
          if assigned(exceptvarsym) then
            begin
-             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
-             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
+             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,def_cgsize(voidpointertype),voidpointertype.alignment);
+             tg.GetLocal(current_asmdata.CurrAsmList,voidpointertype.size,voidpointertype,exceptvarsym.localloc.reference);
+             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,fpc_catches_res.def,voidpointertype,fpc_catches_resloc.register,exceptvarsym.localloc.reference);
            end;
-         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
          { in the case that another exception is risen
            we've to destroy the old one                }
