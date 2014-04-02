@@ -69,26 +69,26 @@ const
   DBTDS_72     = 10; // Microsoft SQL Server 2005
   DBTDS_73     = 11; // Microsoft SQL Server 2008
 
-  //from sqlfront.h ,   sybdb.h for freetds
+  //from sqlfront.h , sybdb.h for FreeTDS
   DBSETHOST=1;
   DBSETUSER=2;
-  DBSETPWD=3;
-  DBSETAPP={$IFDEF freetds}5{$ELSE}4{$ENDIF};
+  DBSETPWD =3;
+  DBSETAPP ={$IFDEF freetds}5{$ELSE}4{$ENDIF};
   {$IFDEF freetds}
-  DBSETHID=     4;
-  DBSETBCP=	6;
-  DBSETNATLANG=	7;
-  DBSETNOSHORT=	8;
-  DBSETHIER=	9;
-  DBSETCHARSET=	10;
-  DBSETPACKET=	11;
-  DBSETENCRYPT=	12;
-  DBSETLABELED=	13;
-  DBSETDBNAME=	14;
-   {$ELSE}
-  DBSETID=5;
-  DBSETLANG=6;
-  DBSETSECURE=7;
+  DBSETHID    = 4;
+  DBSETBCP    = 6;
+  DBSETNATLANG= 7;
+  DBSETNOSHORT= 8;
+  DBSETHIER   = 9;
+  DBSETCHARSET= 10;
+  DBSETPACKET = 11;
+  DBSETENCRYPT= 12;
+  DBSETLABELED= 13;
+  DBSETDBNAME = 14;
+  {$ELSE}
+  DBSETID     = 5;
+  DBSETLANG   = 6;
+  DBSETSECURE = 7;
   DBSET_LOGINTIME=10;
   DBSETFALLBACK=12;
   {$ENDIF}
@@ -184,6 +184,7 @@ type
   ULONG=longword;
 
   // DB-Library datatypes
+  DBBOOL=byte;           // unsigned char
   DBCHAR=shortint;
   DBBIT=byte;
   DBTINYINT=byte;
@@ -313,6 +314,8 @@ var
   function dbiscount(dbproc:PDBPROCESS):BOOL; cdecl; external DBLIBDLL;
   function dbcancel(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbcanquery(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
+  function dbhasretstat(dbproc:PDBPROCESS):DBBOOL; cdecl; external DBLIBDLL;
+  function dbretstatus(dbproc:PDBPROCESS):DBINT; cdecl; external DBLIBDLL;
   procedure dbfreelogin(login:PLOGINREC); cdecl; external DBLIBDLL {$IFDEF freetds}name 'dbloginfree'{$ENDIF};
   procedure dbexit(); cdecl; external DBLIBDLL;
   {$IFDEF ntwdblib}
@@ -359,6 +362,8 @@ var
   dbiscount: function(dbproc:PDBPROCESS):BOOL; cdecl;
   dbcancel: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbcanquery: function(dbproc:PDBPROCESS):RETCODE; cdecl;
+  dbhasretstat: function(dbproc:PDBPROCESS):DBBOOL; cdecl;
+  dbretstatus: function(dbproc:PDBPROCESS):DBINT; cdecl;
   dbexit: procedure(); cdecl;
   dbfreelogin: procedure(login:PLOGINREC); cdecl;
   {$IFDEF ntwdblib}
@@ -453,6 +458,8 @@ begin
    pointer(dbiscount) := GetProcedureAddress(DBLibLibraryHandle,'dbiscount');
    pointer(dbcancel) := GetProcedureAddress(DBLibLibraryHandle,'dbcancel');
    pointer(dbcanquery) := GetProcedureAddress(DBLibLibraryHandle,'dbcanquery');
+   pointer(dbhasretstat) := GetProcedureAddress(DBLibLibraryHandle,'dbhasretstat');
+   pointer(dbretstatus) := GetProcedureAddress(DBLibLibraryHandle,'dbretstatus');
    pointer(dbexit) := GetProcedureAddress(DBLibLibraryHandle,'dbexit');
    pointer(dbfreelogin) := GetProcedureAddress(DBLibLibraryHandle,{$IFDEF freetds}'dbloginfree'{$ELSE}'dbfreelogin'{$ENDIF});
    pointer(dbclose) := GetProcedureAddress(DBLibLibraryHandle,'dbclose');
