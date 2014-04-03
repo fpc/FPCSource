@@ -1047,19 +1047,21 @@ Procedure TJSWriter.WriteSourceElements(El :TJSSourceElements);
 Var
   I : Integer;
   C : Boolean;
+  E : TJSElement;
 
 begin
   C:=(woCompact in Options);
   For I:=0 to EL.Statements.Count-1 do
     begin
-    WriteJS(EL.Statements[i].Node);
-    if C then
+    E:=EL.Statements.Nodes[i].Node;
+    WriteJS(E);
+    if Not C then
+      WriteLn(';')
+    else
       if I<EL.Statements.Count-1 then
         Write('; ')
       else
         Write(';')
-    else
-      WriteLn(';')
     end;
 end;
 
@@ -1133,6 +1135,7 @@ begin
     WriteSourceElements(TJSSourceElements(el))
   else
     Error(SErrUnknownJSClass,[El.ClassName]);
+//  Write('/* '+EL.ClassName+' */');
   FSkipBrackets:=False;
 end;
 
