@@ -1515,7 +1515,8 @@ implementation
                   begin
                     if not assigned(vs.initialloc.reference.symbol) then
                       list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
-                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
+                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
+                         ', size='+tcgsize2str(vs.initialloc.size))));
                   end;
               end;
             end;
