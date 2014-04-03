@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="227">
+    <Units Count="228">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -667,6 +667,7 @@
       <Unit137>
         <Filename Value="fppu.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="fppu"/>
       </Unit137>
       <Unit138>
         <Filename Value="gendef.pas"/>
@@ -679,6 +680,7 @@
       <Unit140>
         <Filename Value="htypechk.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="htypechk"/>
       </Unit140>
       <Unit141>
         <Filename Value="impdef.pas"/>
@@ -707,6 +709,7 @@
       <Unit147>
         <Filename Value="nbas.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="nbas"/>
       </Unit147>
       <Unit148>
         <Filename Value="ncgbas.pas"/>
@@ -748,6 +751,7 @@
       <Unit157>
         <Filename Value="ngtcon.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ngtcon"/>
       </Unit157>
       <Unit158>
         <Filename Value="nobj.pas"/>
@@ -897,6 +901,7 @@
       <Unit194>
         <Filename Value="ppu.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ppu"/>
       </Unit194>
       <Unit195>
         <Filename Value="procinfo.pas"/>
@@ -1021,6 +1026,7 @@
       <Unit224>
         <Filename Value="x86\ni86mem.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ni86mem"/>
       </Unit224>
       <Unit225>
         <Filename Value="x86\symi86.pas"/>
@@ -1030,7 +1036,13 @@
       <Unit226>
         <Filename Value="x86\symx86.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="symx86"/>
       </Unit226>
+      <Unit227>
+        <Filename Value="i8086\n8086tcon.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="n8086tcon"/>
+      </Unit227>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

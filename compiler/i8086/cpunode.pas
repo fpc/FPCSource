@@ -56,6 +56,8 @@ unit cpunode;
        n8086inl,
        n8086mat,
        n8086con,
+       { these are not really nodes }
+       n8086tcon,
        { symtable }
        symcpu
        ;

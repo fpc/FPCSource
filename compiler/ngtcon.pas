@@ -76,11 +76,11 @@ interface
 
       tasmlisttypedconstbuilder = class(ttypedconstbuilder)
        private
-        list: tasmlist;
         curoffset: asizeint;
 
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
        protected
+        list: tasmlist;
 
         procedure parse_packed_array_def(def: tarraydef);
         procedure parse_arraydef(def:tarraydef);override;
