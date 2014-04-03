@@ -1579,7 +1579,7 @@ implementation
 
                       isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
-                        vs.initialloc.size:=OS_ADDR
+                        vs.initialloc.size:=def_cgsize(voidpointertype)
                       else
                         vs.initialloc.size:=def_cgsize(vs.vardef);
 
@@ -1597,7 +1597,7 @@ implementation
                           else
                             begin
                               if isaddr then
-                                tg.GetLocal(list,sizeof(pint),voidpointertype,vs.initialloc.reference)
+                                tg.GetLocal(list,voidpointertype.size,voidpointertype,vs.initialloc.reference)
                               else
                                 tg.GetLocal(list,vs.getsize,tparavarsym(sym).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
