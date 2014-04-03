@@ -63,6 +63,7 @@ type
     Procedure TestArrayOneElementIndent;
     Procedure TestArrayTwoElements;
     Procedure TestArrayTwoElementsCompact;
+    Procedure TestArrayTwoElementsCompact2;
     Procedure TestArrayThreeElementsCompact;
     Procedure TestObjectEmpty;
     Procedure TestObjectEmptyCompact;
@@ -72,6 +73,7 @@ type
     Procedure TestObjectOneElementCompactQuoted;
     Procedure TestObjectTwoElements;
     Procedure TestObjectTwoElementCompact;
+    Procedure TestObjectTwoElementCompact2;
     Procedure TestObjectTwoElementCompactQuoted;
     Procedure TestObjectThreeElementsCompact;
   end;
@@ -246,6 +248,7 @@ type
     Procedure TestNewMemberNoArgs;
     Procedure TestCall;
     Procedure TestCallCompact;
+    Procedure TestCallCompact2;
     Procedure TestCallNoArgs;
     Procedure TestConditional;
     Procedure TestRegularExpressionLiteral;
@@ -678,6 +681,23 @@ begin
   U.Args.Elements.AddElement;
   U.Args.Elements[0].Expr:=CreateLiteral(123);
   AssertWrite('call a(123)','a(123)',U);
+end;
+
+Procedure TTestExpressionWriter.TestCallCompact2;
+Var
+  U : TJSCallExpression;
+
+begin
+  Writer.Options:=Writer.Options+[woCompactArguments];
+  U:=TJSCallExpression.Create(0,0);
+  U.Expr:=CreateIdent('a');
+  U.Args:=TJSArguments.Create(0,0);
+  U.Args.Elements.AddElement;
+  U.Args.Elements[0].Expr:=CreateLiteral(123);
+  U.Args.Elements.AddElement;
+  U.Args.Elements[1].Expr:=CreateLiteral(456);
+  AssertWrite('call a(123,456)','a(123, 456)',U);
+
 end;
 
 Procedure TTestExpressionWriter.TestCallNoArgs;
@@ -2081,6 +2101,23 @@ begin
   AssertWrite('Empty array ','[1, 2]',L);
 end;
 
+Procedure TTestLiteralWriter.TestArrayTwoElementsCompact2;
+Var
+  L : TJSArrayLiteral;
+  I : TJSLiteral;
+
+begin
+  Writer.Options:=[woCompactArrayLiterals,woUseUTF8];
+  L:=TJSArrayLiteral.Create(0,0);
+  I:=TJSLiteral.Create(0,0);
+  I.Value.AsNumber:=1;
+  L.Elements.AddElement.Expr:=I;
+  I:=TJSLiteral.Create(0,0);
+  I.Value.AsNumber:=2;
+  L.Elements.AddElement.Expr:=I;
+  AssertWrite('Empty array ','[1, 2]',L);
+end;
+
 Procedure TTestLiteralWriter.TestArrayThreeElementsCompact;
 Var
   L : TJSArrayLiteral;
@@ -2231,6 +2268,28 @@ begin
   E.Expr:=I;
   E.Name:='efg';
   Writer.Options:=[woCompact,woUseUTF8];
+  AssertWrite('Empty object ','{abc: 1, efg: 2}',L);
+end;
+
+Procedure TTestLiteralWriter.TestObjectTwoElementCompact2;
+Var
+  L : TJSObjectLiteral;
+  E : TJSObjectLiteralElement;
+  I : TJSLiteral;
+
+begin
+  L:=TJSObjectLiteral.Create(0,0);
+  E:=L.Elements.AddElement;
+  I:=TJSLiteral.Create(0,0);
+  I.Value.AsNumber:=1;
+  E.Expr:=I;
+  E.Name:='abc';
+  E:=L.Elements.AddElement;
+  I:=TJSLiteral.Create(0,0);
+  I.Value.AsNumber:=2;
+  E.Expr:=I;
+  E.Name:='efg';
+  Writer.Options:=[woCompactObjectLiterals,woUseUTF8];
   AssertWrite('Empty object ','{abc: 1, efg: 2}',L);
 end;
 

@@ -75,7 +75,10 @@ Type
                   woUseUTF8,
                   woTabIndent,
                   woEmptyStatementAsComment,
-                  woQuoteElementNames);
+                  woQuoteElementNames,
+                  woCompactArrayLiterals,
+                  woCompactObjectLiterals,
+                  woCompactArguments);
   TWriteOptions = Set of TWriteOption;
 
   TJSWriter = Class
@@ -532,20 +535,24 @@ Var
 
 Var
   i,C : Integer;
-  WC : Boolean;
+  isArgs,WC : Boolean;
   BC : String[2];
+
 begin
-  BC:=Chars[El is TJSArguments];
+  isArgs:=el is TJSArguments;
+  BC:=Chars[isArgs];
   C:=EL.Elements.Count-1;
   if C=-1 then
     begin
-    if el is TJSArguments then
+    if isArgs then
       Write(bc)
     else
       Write(bc);
     Exit;
     end;
-  WC:=(woCompact in Options);
+  WC:=(woCompact in Options) or
+      ((Not isArgs) and (woCompactArrayLiterals in Options)) or
+      (isArgs and (woCompactArguments in Options)) ;
   if WC then
     Write(Copy(BC,1,1))
   else
@@ -584,7 +591,7 @@ begin
     Write('{}');
     Exit;
     end;
-  WC:=(woCompact in Options);
+  WC:=(woCompact in Options) or (woCompactObjectLiterals in Options);
   if WC then
     Write('{')
   else
