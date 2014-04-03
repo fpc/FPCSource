@@ -140,6 +140,7 @@ begin
     lodsb
     mov cl, al
     xor ch, ch
+    jcxz @@zero_length
     mov ah, 2
 
 @@1:
@@ -147,6 +148,7 @@ begin
     mov dl, al
     int 21h
     loop @@1
+@@zero_length:
 {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
     pop ds
 {$endif}
