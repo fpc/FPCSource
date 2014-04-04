@@ -300,7 +300,7 @@ implementation
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
-        is_unit_specific : boolean;
+        is_unit_specific,not_a_type : boolean;
         pos : tfileposinfo;
         s,sorg : TIDString;
         t : ttoken;
@@ -316,10 +316,21 @@ implementation
             try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
          { Use the special searchsym_type that search only types }
-         searchsym_type(s,srsym,srsymtable);
+         if not searchsym_type(s,srsym,srsymtable) then
+           { for a good error message we need to know whether the symbol really did not exist or
+             whether we found a non-type one }
+           not_a_type:=searchsym(s,srsym,srsymtable)
+         else
+           not_a_type:=false;
          { handle unit specification like System.Writeln }
          is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true);
          consume(t);
+         if not_a_type then
+           begin
+             { reset the symbol and symtable to not leak any unexpected values }
+             srsym:=nil;
+             srsymtable:=nil;
+           end;
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error. Only check for typesyms in the current symbol
@@ -343,14 +354,14 @@ implementation
              exit;
            end;
          { unknown sym ? }
-         if not assigned(srsym) then
+         if not assigned(srsym) and not not_a_type then
           begin
             Message1(sym_e_id_not_found,sorg);
             def:=generrordef;
             exit;
           end;
          { type sym ? }
-         if (srsym.typ<>typesym) then
+         if not_a_type or (srsym.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
             def:=generrordef;

@@ -877,9 +877,8 @@ implementation
               def:=nil;
               single_type(def,[stoAllowSpecialization]);
               statement_syssym:=cerrornode.create;
-              if def=generrordef then
-                Message(type_e_type_id_expected)
-              else
+              if def<>generrordef then
+                { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
                   Message1(type_e_type_is_not_completly_defined,tforwarddef(def).tosymname^)
                 else
