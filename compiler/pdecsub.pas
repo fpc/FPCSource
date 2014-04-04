@@ -2503,7 +2503,13 @@ const
              _EXPERIMENTAL,
              _DEPRECATED :
                if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
-                 maybe_parse_hint_directives(tprocdef(pd))
+                 begin
+                   maybe_parse_hint_directives(tprocdef(pd));
+                   { could the new token still be a directive? }
+                   if token<>_ID then
+                     exit;
+                   name:=tokeninfo^[idtoken].str;
+                 end
                else
                  exit;
            end;
