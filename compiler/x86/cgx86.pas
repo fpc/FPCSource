@@ -2447,7 +2447,8 @@ unit cgx86;
         else {copy_string, should be a good fallback in case of unhandled}
           begin
             getcpuregister(list,REGDI);
-            if (dest.segment=NR_NO) then
+            if (dest.segment=NR_NO) and
+               (segment_regs_equal(NR_SS,NR_DS) or (dest.base<>NR_BP)) then
               begin
                 a_loadaddr_ref_reg(list,dest,REGDI);
                 saved_es:=false;
@@ -2467,11 +2468,17 @@ unit cgx86;
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_ES));
                 saved_es:=true;
 {$endif volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment));
+                if dest.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment))
+                else if dest.base=NR_BP then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
+                else
+                  internalerror(2014040401);
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
-            if (source.segment=NR_NO) then
+            if (source.segment=NR_NO) and
+               (segment_regs_equal(NR_SS,NR_DS) or (source.base<>NR_BP)) then
               begin
                 a_loadaddr_ref_reg(list,source,REGSI);
                 saved_ds:=false;
@@ -2483,7 +2490,12 @@ unit cgx86;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
                 saved_ds:=true;
-                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment));
+                if source.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment))
+                else if source.base=NR_BP then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
+                else
+                  internalerror(2014040402);
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
               end;
 
