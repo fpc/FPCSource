@@ -2882,15 +2882,15 @@ const CrtAddress: word = 0;
         { call the real mode interrupt ... }
         regs.ax := $1C01;      { save the state buffer                   }
         regs.cx := $07;        { Save DAC / Data areas / Hardware states }
-        regs.es := DSeg;
-        regs.bx := Word(SavePtr);
+        regs.es := Seg(SavePtr^);
+        regs.bx := Ofs(SavePtr^);
         Intr($10,regs);
         { restore state, according to Ralph Brown Interrupt list }
         { some BIOS corrupt the hardware after a save...         }
         regs.ax := $1C02;      { restore the state buffer                }
         regs.cx := $07;        { rest DAC / Data areas / Hardware states }
-        regs.es := DSeg;
-        regs.bx := Word(SavePtr);
+        regs.es := Seg(SavePtr^);
+        regs.bx := Ofs(SavePtr^);
         Intr($10,regs);
       end;
   end;
@@ -2908,8 +2908,8 @@ const CrtAddress: word = 0;
       begin
          regs.ax := $1C02;      { restore the state buffer                }
          regs.cx := $07;        { rest DAC / Data areas / Hardware states }
-         regs.es := DSeg;
-         regs.bx := Word(SavePtr);
+         regs.es := Seg(SavePtr^);
+         regs.bx := Ofs(SavePtr^);
          Intr($10,regs);
 
          SavePtrCopy := SavePtr;
