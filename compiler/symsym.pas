@@ -1840,9 +1840,9 @@ implementation
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
+{$endif symansistr}
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
-{$endif symansistr}
          ppufile.getderef(defaultconstsymderef);
          ppuload_platform(ppufile);
       end;
