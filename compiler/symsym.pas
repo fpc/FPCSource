@@ -272,14 +272,21 @@ interface
             parameters as it is done by iso pascal with the program symbols,
             isoindex contains the parameter number }
           isoindex : dword;
+          { if this static variable was created based on a class field variable then this is set
+            to the symbol of the corresponding class field }
+          fieldvarsym : tfieldvarsym;
+          fieldvarsymderef : tderef;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);virtual;
           constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);virtual;
+          constructor create_from_fieldvar(const n:string;fieldvar:tfieldvarsym);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+          procedure buildderef;override;
+          procedure deref;override;
           function mangledname:TSymStr;override;
           procedure set_mangledbasename(const s: TSymStr);
           function mangledbasename: TSymStr;
@@ -1813,6 +1820,13 @@ implementation
       end;
 
 
+    constructor tstaticvarsym.create_from_fieldvar(const n: string;fieldvar:tfieldvarsym);
+      begin
+        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[]);
+        fieldvarsym:=fieldvar;
+      end;
+
+
     constructor tstaticvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(staticvarsym,ppufile);
@@ -1829,6 +1843,7 @@ implementation
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
 {$endif symansistr}
+         ppufile.getderef(defaultconstsymderef);
          ppuload_platform(ppufile);
       end;
 
@@ -1866,9 +1881,23 @@ implementation
 {$endif symansistr}
          if vo_has_section in varoptions then
            ppufile.putansistring(section);
+         ppufile.putderef(fieldvarsymderef);
          writeentry(ppufile,ibstaticvarsym);
       end;
 
+
+    procedure tstaticvarsym.buildderef;
+      begin
+        inherited buildderef;
+        fieldvarsymderef.build(fieldvarsym);
+      end;
+
+
+    procedure tstaticvarsym.deref;
+      begin
+        inherited deref;
+        fieldvarsym:=tfieldvarsym(fieldvarsymderef.resolve);
+      end;
 
     function tstaticvarsym.mangledname:TSymStr;
       var

@@ -1270,7 +1270,7 @@ implementation
       include(fieldvs.symoptions,sp_static);
       { generate the symbol which reserves the space }
       static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
-      hstaticvs:=cstaticvarsym.create(internal_static_field_name(static_name),vs_value,fieldvs.vardef,[]);
+      hstaticvs:=cstaticvarsym.create_from_fieldvar(static_name,fieldvs);
 {$ifdef jvm}
       { for the JVM, static field accesses are name-based and
         hence we have to keep the original name of the field.

@@ -4480,7 +4480,13 @@ implementation
                 ) and
                not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                not(vo_is_external in tstaticvarsym(p).varoptions) and
-               is_managed_type(tstaticvarsym(p).vardef) then
+               is_managed_type(tstaticvarsym(p).vardef) and
+               not (
+                   assigned(tstaticvarsym(p).fieldvarsym) and
+                   assigned(tstaticvarsym(p).fieldvarsym.owner.defowner) and
+                   (df_generic in tdef(tstaticvarsym(p).fieldvarsym.owner.defowner).defoptions)
+                 )
+               then
               finalize_sym(TAsmList(arg),tsym(p));
           end;
         procsym :
