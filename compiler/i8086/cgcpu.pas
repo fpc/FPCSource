@@ -1869,7 +1869,7 @@ unit cgcpu;
 
         { Allocate SI and load it with source }
         getcpuregister(list,NR_SI);
-        if (ref.segment=NR_NO) or
+        if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or (ref.base<>NR_BP))) or
            (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
           begin
             a_loadaddr_ref_reg(list,ref,NR_SI);
@@ -1880,7 +1880,12 @@ unit cgcpu;
             hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
             saved_ds:=true;
-            list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment));
+            if ref.segment<>NR_NO then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment))
+            else if ref.base=NR_BP then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SS))
+            else
+              internalerror(2014040403);
             list.concat(taicpu.op_reg(A_POP,S_W,NR_DS));
           end;
 
@@ -1928,6 +1933,8 @@ unit cgcpu;
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,destreg));
+        if current_settings.x86memorymodel in x86_far_data_models then
+          list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(destreg)));
       end;
 
 

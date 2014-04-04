@@ -625,13 +625,13 @@ implementation
                     hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
                       internalerror(200306061);
-                    hreg:=cg.getaddressregister(list);
+                    sizedef:=getpointerdef(tparavarsym(p).vardef);
+                    hreg:=hlcg.getaddressregister(list,sizedef);
                     if not is_packed_array(tparavarsym(p).vardef) then
                       hlcg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef),hreg)
                     else
                       internalerror(2006080401);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                    sizedef:=getpointerdef(tparavarsym(p).vardef);
                     hlcg.a_load_reg_loc(list,sizedef,sizedef,hreg,tparavarsym(p).initialloc);
                   end;
               end
