@@ -152,6 +152,7 @@ begin
         push    bp
         int     $33
         pop     bp
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
         mov     di, x
         mov     [di], cx
         mov     word [di + 2], 0
@@ -161,6 +162,19 @@ begin
         mov     di, buttons
         mov     [di], bx
         mov     word [di + 2], 0
+{$else}
+        mov     ax, ds
+        lds     di, x
+        mov     [di], cx
+        mov     word [di + 2], 0
+        lds     di, y
+        mov     [di], dx
+        mov     word [di + 2], 0
+        lds     di, buttons
+        mov     [di], bx
+        mov     word [di + 2], 0
+        mov     ds, ax
+{$endif}
   end;
 end;
 
@@ -234,12 +248,23 @@ Begin
         int     $33
         pop     bp
         mov     @Result, bx
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
         mov     di, x
         mov     [di], cx
         mov     word [di + 2], 0
         mov     di, y
         mov     [di], dx
         mov     word [di + 2], 0
+{$else}
+        mov     si, ds
+        lds     di, x
+        mov     [di], cx
+        mov     word [di + 2], 0
+        lds     di, y
+        mov     [di], dx
+        mov     word [di + 2], 0
+        mov     ds, si
+{$endif}
   end;
 end;
 
@@ -255,12 +280,23 @@ begin
         int     $33
         pop     bp
         mov     @Result, bx
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
         mov     di, x
         mov     [di], cx
         mov     word [di + 2], 0
         mov     di, y
         mov     [di], dx
         mov     word [di + 2], 0
+{$else}
+        mov     si, ds
+        lds     di, x
+        mov     [di], cx
+        mov     word [di + 2], 0
+        lds     di, y
+        mov     [di], dx
+        mov     word [di + 2], 0
+        mov     ds, si
+{$endif}
   end;
 end;
 
