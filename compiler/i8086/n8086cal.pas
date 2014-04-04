@@ -96,7 +96,7 @@ implementation
 
     procedure ti8086callnode.extra_call_ref_code(var ref: treference);
       begin
-        if ref.base<>NR_NO then
+        if (ref.base<>NR_NO) and (ref.base<>NR_BP) then
           begin
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
