@@ -1028,10 +1028,22 @@ asm
   mov ah, 35h
   int 21h
   xchg ax, bx
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
   mov bx, vector
   mov [bx], ax
   mov ax, es
   mov [bx + 2], ax
+{$else}
+ {$ifdef FPC_ENABLED_CLD}
+  cld
+ {$endif FPC_ENABLED_CLD}
+  push es
+  pop bx
+  les di, vector
+  stosw
+  xchg ax, bx
+  stosw
+{$endif}
 end;
 
 procedure SetIntVec(intno: Byte; vector: farpointer); assembler;
