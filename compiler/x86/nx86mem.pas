@@ -90,6 +90,7 @@ implementation
        var
          l2 : integer;
          hreg : tregister;
+         saveseg: TRegister;
        begin
          { Optimized for x86 to use the index register and scalefactor }
          if location.reference.index=NR_NO then
@@ -116,7 +117,10 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+            { reference_reset_base kills the segment, so make sure we preserve it }
+            saveseg:=location.reference.segment;
             reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+            location.reference.segment:=saveseg;
           end;
          { insert the new index register and scalefactor or
            do the multiplication manual }
