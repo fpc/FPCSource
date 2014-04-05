@@ -41,6 +41,11 @@ interface
          procedure pass_generate_code;override;
        end;
 
+       { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
+       ti8086vecnode = class(tcgvecnode)
+         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
+       end;
+
 implementation
 
     uses
@@ -161,10 +166,21 @@ implementation
           inherited pass_generate_code;
       end;
 
+{*****************************************************************************
+                             TI8086VECNODE
+*****************************************************************************}
+
+    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+      var
+        saveseg: TRegister;
+      begin
+        saveseg:=location.reference.segment;
+        inherited update_reference_reg_mul(maybe_const_reg,l);
+        location.reference.segment:=saveseg;
+      end;
 
 begin
   caddrnode:=ti8086addrnode;
   cderefnode:=ti8086derefnode;
-  { override tx86vecnode, which doesn't work for i8086 }
-  cvecnode:=tcgvecnode;
+  cvecnode:=ti8086vecnode;
 end.
