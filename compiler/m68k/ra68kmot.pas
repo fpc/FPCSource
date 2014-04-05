@@ -1732,8 +1732,6 @@ const
             _asmsorted := TRUE;
           end;
         curlist:=TAsmList.Create;
-        { setup label linked list }
-        LocalLabelList:=TLocalLabelList.Create;
         c:=current_scanner.asmgetchar;
         gettoken;
         while actasmtoken<>AS_END do
@@ -1827,8 +1825,7 @@ const
           end; { end while }
 
         { Check LocalLabelList }
-        LocalLabelList.CheckEmitted;
-        LocalLabelList.Free;
+        checklocallabels;
 
         assemble:=curlist;
         //Message(asmr_d_finish_reading);

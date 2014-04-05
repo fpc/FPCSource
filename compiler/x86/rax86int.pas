@@ -2227,8 +2227,6 @@ Unit Rax86int;
        end;
       }
       curlist:=TAsmList.Create;
-      { setup label linked list }
-      LocalLabelList:=TLocalLabelList.Create;
       { we might need to know which parameters are passed in registers }
       if not parse_generic then
         current_procinfo.generate_parameter_info;
@@ -2329,9 +2327,8 @@ Unit Rax86int;
             end;
         end; { end case }
       until false;
-      { Check LocalLabelList }
-      LocalLabelList.CheckEmitted;
-      LocalLabelList.Free;
+      { check that all referenced local labels are defined }
+      checklocallabels;
       { Return the list in an asmnode }
       assemble:=curlist;
       Message1(asmr_d_finish_reading,'intel');
