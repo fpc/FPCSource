@@ -607,6 +607,9 @@ unit cgx86;
             href.base:=getaddressregister(list);
             { let the register allocator find a suitable register for the reference }
             list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
+            { if DS<>SS in the current memory model, we need to add an SS: segment override as well }
+            if (ref.segment=NR_NO) and not segment_regs_equal(NR_DS,NR_SS) then
+              href.segment:=NR_SS;
             ref:=href;
           end;
 
