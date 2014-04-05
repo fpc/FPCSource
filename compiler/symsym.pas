@@ -625,9 +625,8 @@ implementation
 
    function tlabelsym.mangledname:TSymStr;
      begin
-       if not(defined) then
+       if (asmblocklabel=nil) then
          begin
-           defined:=true;
            if nonlocal then
              current_asmdata.getglobaljumplabel(asmblocklabel)
            else

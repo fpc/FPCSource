@@ -1513,7 +1513,11 @@ Begin
             current_asmdata.getjumplabel(tlabelsym(sym).asmblocklabel);
         hl:=tlabelsym(sym).asmblocklabel;
         if emit then
-          tlabelsym(sym).defined:=true
+          begin
+            if tlabelsym(sym).defined then
+              Message(sym_e_label_already_defined);
+            tlabelsym(sym).defined:=true
+          end
         else
           tlabelsym(sym).used:=true;
         SearchLabel:=true;
