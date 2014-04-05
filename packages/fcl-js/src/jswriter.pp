@@ -154,6 +154,7 @@ implementation
 
 Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
+  SErrNilNode = 'Nil node in Javascript';
 
 { TBufferWriter }
 
@@ -1140,6 +1141,8 @@ begin
     WriteFunctionDeclarationStatement(TJSFunctionDeclarationStatement(el))
   else if (el is TJSSourceElements) then
     WriteSourceElements(TJSSourceElements(el))
+  else if EL=Nil then
+    Error(SErrNilNode)
   else
     Error(SErrUnknownJSClass,[El.ClassName]);
 //  Write('/* '+EL.ClassName+' */');
