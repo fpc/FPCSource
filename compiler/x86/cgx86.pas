@@ -2451,7 +2451,7 @@ unit cgx86;
           begin
             getcpuregister(list,REGDI);
             if (dest.segment=NR_NO) and
-               (segment_regs_equal(NR_SS,NR_DS) or (dest.base<>NR_BP)) then
+               (segment_regs_equal(NR_SS,NR_DS) or ((dest.base<>NR_BP) and (dest.base<>NR_SP))) then
               begin
                 a_loadaddr_ref_reg(list,dest,REGDI);
                 saved_es:=false;
@@ -2473,7 +2473,7 @@ unit cgx86;
 {$endif volatile_es}
                 if dest.segment<>NR_NO then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment))
-                else if dest.base=NR_BP then
+                else if (dest.base=NR_BP) or (dest.base=NR_SP) then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
                 else
                   internalerror(2014040401);
@@ -2481,7 +2481,7 @@ unit cgx86;
               end;
             getcpuregister(list,REGSI);
             if (source.segment=NR_NO) and
-               (segment_regs_equal(NR_SS,NR_DS) or (source.base<>NR_BP)) then
+               (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP))) then
               begin
                 a_loadaddr_ref_reg(list,source,REGSI);
                 saved_ds:=false;
@@ -2495,7 +2495,7 @@ unit cgx86;
                 saved_ds:=true;
                 if source.segment<>NR_NO then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment))
-                else if source.base=NR_BP then
+                else if (source.base=NR_BP) or (source.base=NR_SP) then
                   list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
                 else
                   internalerror(2014040402);
