@@ -352,7 +352,10 @@ begin
             Sleep(ContentReadRetryInterval);
           end
         else
+          begin
+          RetryCount:=0; // We got data, so let's reset this.
           AbortRead:=DoContentRead(PByte(@S[BytesRead+1]),A);
+          end;
         BytesRead:=BytesRead+a;
       until (BytesRead>=Cl) or (AbortRead);
       // In fact the request is incomplete, but this is not the place thrown an error for that
@@ -373,7 +376,7 @@ end;
 
 function TCGIRequest.DoContentRead(B: PByte; Len: Integer): Boolean;
 begin
-  Result:=True;
+  Result:=False;
   if Assigned(FOnContentRead) then
     FOnContentRead(Self,B,Len,Result);
 end;
