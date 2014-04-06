@@ -37,90 +37,90 @@ begin
   FarPtr2 := nil;
   FarPtr2 := int16 + FarPtr;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(2);
   Writeln('farptr + int32_var');
   FarPtr := Ptr($1234, $5678);
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPtr + int32;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(3);
   Writeln('int32_var + farptr');
   FarPtr := Ptr($1234, $5678);
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := int32 + FarPtr;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(4);
   Writeln('farptr + int16_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPtr + $F0AD;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(5);
   Writeln('int16_const + farptr');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := $F0AD + FarPtr;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(6);
   Writeln('farptr + int32_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPtr + $55AAF0AD;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(7);
   Writeln('int32_const + farptr');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := $55AAF0AD + FarPtr;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(8);
   { const }
   Writeln('farptr_const + int16_var');
   int16 := $F0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) + int16;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(9);
   Writeln('int16_var + farptr_const');
   int16 := $F0AD;
   FarPtr2 := nil;
   FarPtr2 := int16 + FarPointer($12345678);
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(10);
   Writeln('farptr_const + int32_var');
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) + int32;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(11);
   Writeln('int32_var + farptr_const');
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := int32 + FarPointer($12345678);
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(12);
   Writeln('farptr_const + int16_const');
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) + $F0AD;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(13);
   Writeln('int16_const + farptr_const');
   FarPtr2 := nil;
   FarPtr2 := $F0AD + FarPointer($12345678);
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(14);
   Writeln('farptr_const + int32_const');
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) + $55AAF0AD;
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(15);
   Writeln('int32_const + farptr_const');
   FarPtr2 := nil;
   FarPtr2 := $55AAF0AD + FarPointer($12345678);
   if FarPtr2 <> Ptr($1234, $4725) then
-    Error(1);
+    Error(16);
 
   Writeln('farptr - int16_var');
   FarPtr := Ptr($1234, $5678);
@@ -128,52 +128,52 @@ begin
   FarPtr2 := nil;
   FarPtr2 := FarPtr - int16;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(17);
   Writeln('farptr - int32_var');
   FarPtr := Ptr($1234, $5678);
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPtr - int32;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(18);
   Writeln('farptr - int16_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPtr - $F0AD;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(19);
   Writeln('farptr - int32_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPtr - $55AAF0AD;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(20);
   Writeln('farptr_const - int16_var');
   FarPtr := Ptr($1234, $5678);
   int16 := $F0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) - int16;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(21);
   Writeln('farptr_const - int32_var');
   FarPtr := Ptr($1234, $5678);
   int32 := $55AAF0AD;
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) - int32;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(22);
   Writeln('farptr_const - int16_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) - $F0AD;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(23);
   Writeln('farptr_const - int32_const');
   FarPtr := Ptr($1234, $5678);
   FarPtr2 := nil;
   FarPtr2 := FarPointer($12345678) - $55AAF0AD;
   if FarPtr2 <> Ptr($1234, $65CB) then
-    Error(1);
+    Error(24);
 
   if ErrorCode = 0 then
     Writeln('Success!')
