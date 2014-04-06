@@ -36,6 +36,7 @@ interface
          function use_generic_mul32to64: boolean; override;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
+         procedure second_addfarpointer;
          procedure second_cmp64bit;override;
          procedure second_cmp32bit;
          procedure second_cmpordinal;override;
@@ -72,6 +73,8 @@ interface
                 not(is_signed(right.resultdef));
       if nodetype=muln then
         second_mul(unsigned)
+      else if is_farpointer(left.resultdef) xor is_farpointer(right.resultdef) then
+        second_addfarpointer
       else
         inherited second_addordinal;
     end;
@@ -210,6 +213,97 @@ interface
          end;
 
         location_copy(location,left.location);
+      end;
+
+
+    procedure ti8086addnode.second_addfarpointer;
+      var
+        tmpreg : tregister;
+        pointernode: tnode;
+      begin
+        pass_left_right;
+        force_reg_left_right(false,true);
+        set_result_location_reg;
+
+        if (left.resultdef.typ=pointerdef) and (right.resultdef.typ<>pointerdef) then
+          pointernode:=left
+        else if (left.resultdef.typ<>pointerdef) and (right.resultdef.typ=pointerdef) then
+          pointernode:=right
+        else
+          internalerror(2014040601);
+
+        if not (nodetype in [addn,subn]) then
+          internalerror(2014040602);
+
+        if nodetype=addn then
+          begin
+            if (right.location.loc<>LOC_CONSTANT) then
+              begin
+                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                   left.location.register,right.location.register,location.register);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                   GetNextReg(pointernode.location.register),GetNextReg(location.register));
+              end
+            else
+              begin
+                if pointernode=left then
+                  begin
+                    { farptr_reg + int_const }
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                       right.location.value,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(left.location.register),GetNextReg(location.register));
+                  end
+                else
+                  begin
+                    { int_reg + farptr_const }
+                    tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                    hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                      right.location.value,tmpreg);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                      left.location.register,tmpreg,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(tmpreg),GetNextReg(location.register));
+                  end;
+              end;
+          end
+        else  { subtract is a special case since its not commutative }
+          begin
+            if (nf_swapped in flags) then
+              swapleftright;
+            { left can only be a pointer in this case, since (int-pointer) is not supported }
+            if pointernode<>left then
+              internalerror(2014040603);
+            if left.location.loc<>LOC_CONSTANT then
+              begin
+                if right.location.loc<>LOC_CONSTANT then
+                  begin
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                        right.location.register,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                  end
+                else
+                  begin
+                    { farptr_reg - int_const }
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                       right.location.value,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(left.location.register),GetNextReg(location.register));
+                  end;
+              end
+            else
+              begin
+                { farptr_const - int_reg }
+                tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                  left.location.value,tmpreg);
+                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                  right.location.register,tmpreg,location.register);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                   GetNextReg(tmpreg),GetNextReg(location.register));
+              end;
+          end;
       end;
 
 

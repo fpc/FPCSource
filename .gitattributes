@@ -10838,6 +10838,7 @@ tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
 tests/test/cpu16/i8086/tfarcal1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tfarptr1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tfarptr2.pp svneol=native#text/pascal
+tests/test/cpu16/i8086/tfarptr3.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal
 tests/test/dumpclass.pp svneol=native#text/plain
