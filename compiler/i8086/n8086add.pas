@@ -33,6 +33,7 @@ interface
        { ti8086addnode }
 
        ti8086addnode = class(tx86addnode)
+         function simplify(forinline: boolean) : tnode;override;
          function use_generic_mul32to64: boolean; override;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
@@ -47,13 +48,104 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
-      symconst,symdef,paramgr,defutil,
+      cutils,verbose,globals,constexp,
+      symconst,symdef,symtype,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
+
+{*****************************************************************************
+                                simplify
+*****************************************************************************}
+
+    function ti8086addnode.simplify(forinline: boolean): tnode;
+      var
+        t    : tnode;
+        lt,rt: tnodetype;
+        rd,ld: tdef;
+        rv,lv,v: tconstexprint;
+      begin
+        { load easier access variables }
+        rd:=right.resultdef;
+        ld:=left.resultdef;
+        rt:=right.nodetype;
+        lt:=left.nodetype;
+
+        if (
+            (lt = pointerconstn) and is_farpointer(ld) and
+            is_constintnode(right) and
+            (nodetype in [addn,subn])
+           ) or
+           (
+            (rt = pointerconstn) and is_farpointer(rd) and
+            is_constintnode(left) and
+            (nodetype=addn)
+           ) then
+          begin
+            t:=nil;
+
+            { load values }
+            case lt of
+              ordconstn:
+                lv:=tordconstnode(left).value;
+              pointerconstn:
+                lv:=tpointerconstnode(left).value;
+              niln:
+                lv:=0;
+              else
+                internalerror(2002080202);
+            end;
+            case rt of
+              ordconstn:
+                rv:=tordconstnode(right).value;
+              pointerconstn:
+                rv:=tpointerconstnode(right).value;
+              niln:
+                rv:=0;
+              else
+                internalerror(2002080203);
+            end;
+
+            case nodetype of
+              addn:
+                begin
+                  v:=lv+rv;
+                  if lt=pointerconstn then
+                    t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else if rt=pointerconstn then
+                    t := cpointerconstnode.create((qword(rv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else
+                    internalerror(2014040604);
+                end;
+              subn:
+                begin
+                  v:=lv-rv;
+                  if (lt=pointerconstn) then
+                    { pointer-pointer results in an integer }
+                    if (rt=pointerconstn) then
+                      begin
+                        if not(nf_has_pointerdiv in flags) then
+                          internalerror(2008030101);
+                        { todo: implement pointer-pointer as well }
+                        internalerror(2014040607);
+                        //t := cpointerconstnode.create(qword(v),resultdef);
+                      end
+                    else
+                      t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else
+                    internalerror(2014040606);
+                end;
+              else
+                internalerror(2014040605);
+            end;
+            result:=t;
+            exit;
+          end
+        else
+          Result:=inherited simplify(forinline);
+      end;
 
 {*****************************************************************************
                                 use_generic_mul32to64
