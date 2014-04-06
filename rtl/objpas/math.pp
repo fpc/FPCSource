@@ -244,6 +244,15 @@ function gradtodeg(grad : float) : float;inline;
 { one cycle are 2*Pi rad }
 function cycletorad(cycle : float) : float;inline;
 function radtocycle(rad : float) : float;inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+{$ENDIF}
 
 { trigoniometric functions }
 
@@ -669,6 +678,31 @@ function radtocycle(rad : float) : float;inline;
      { avoid division }
      radtocycle:=rad*(1/(2*pi));
   end;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; 
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If (Result<0) then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
 
 {$ifndef FPC_MATH_HAS_TAN}
 function tan(x : float) : float;
