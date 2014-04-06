@@ -420,6 +420,11 @@ implementation
              (nodetype in [addn,subn])
             ) or
             (
+             (rt = pointerconstn) and
+             is_constintnode(left) and
+             (nodetype=addn)
+            ) or
+            (
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
@@ -460,7 +465,7 @@ implementation
                        { Recover }
                        t:=genintconstnode(0)
                      end
-                   else if (lt=pointerconstn) then
+                   else if (lt=pointerconstn) or (rt=pointerconstn) then
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
