@@ -153,6 +153,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif AARCH64}
+{$ifdef JS}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif}
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}
 {$endif CPUDEFINED}

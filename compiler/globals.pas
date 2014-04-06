@@ -473,6 +473,11 @@ interface
         optimizecputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
+  {$ifdef js}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif js}
   {$ifdef aarch64}
         cputype : cpu_armv8;
         optimizecputype : cpu_armv8;

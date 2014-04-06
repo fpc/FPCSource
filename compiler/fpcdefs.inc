@@ -206,7 +206,6 @@
   {$endif mips}
 {$endif mipsel}
 
-
 {$ifdef mips}
   {$ifndef mips64}
     {$define cpu32bit}
@@ -231,6 +230,14 @@
   {$define cpuhighleveltarget}
   {$define symansistr}
   {$define SUPPORT_GET_FRAME}
+{$endif}
+
+{$ifdef js}
+  {$define cpu32bit}
+  {$define cpu32bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+  {$define symansistr}
 {$endif}
 
 {$ifdef aarch64}
