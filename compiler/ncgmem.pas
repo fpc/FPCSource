@@ -728,10 +728,10 @@ implementation
           begin
             { cdecl functions don't have high() so we can not check the range }
             { (can't use current_procdef, since it may be a nested procedure) }
-            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
              begin
                { Get high value }
-               hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
+               hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
                { it must be available }
                if not assigned(hightree) then
                  internalerror(200212201);

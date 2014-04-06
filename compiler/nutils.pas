@@ -135,6 +135,12 @@ interface
       node tree }
     procedure replacenode(var dest,src : tnode);
 
+    { strip off deref/addr combinations when looking for a the load node of an open array/array of const
+      since there is no possiblity to defined a pointer to an open array/array of const, we have not to
+      take care of type casts, further, it means also that deref/addr nodes must always appear coupled
+    }
+    function get_open_const_array(p : tnode) : tnode;
+
 implementation
 
     uses
@@ -1192,5 +1198,11 @@ implementation
       end;
 
 
+    function get_open_const_array(p : tnode) : tnode;
+      begin
+        result:=p;
+        if (p.nodetype=derefn) and (tderefnode(p).left.nodetype=addrn) then
+          result:=get_open_const_array(taddrnode(tderefnode(result).left).left);
+      end;
 
 end.

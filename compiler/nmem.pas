@@ -987,14 +987,19 @@ implementation
                { webtbs/tw8975                                                }
                if (cs_check_range in current_settings.localswitches) and
                   (is_open_array(left.resultdef) or
-                   is_array_of_const(left.resultdef)) and
-                  { cdecl functions don't have high() so we can not check the range }
-                  { (can't use current_procdef, since it may be a nested procedure) }
-                  not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+                   is_array_of_const(left.resultdef)) then
                    begin
-                     { load_high_value_node already typechecks }
-                     hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
-                     hightree.free;
+                     { expect to find the load node }
+                     if get_open_const_array(left).nodetype<>loadn then
+                       internalerror(2014040601);
+                     { cdecl functions don't have high() so we can not check the range }
+                     { (can't use current_procdef, since it may be a nested procedure) }
+                     if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+                       begin
+                         { load_high_value_node already typechecks }
+                         hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
+                         hightree.free;
+                       end;
                    end;
              end;
            pointerdef :
