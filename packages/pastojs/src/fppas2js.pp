@@ -19,7 +19,7 @@ unit fppas2js;
 interface
 
 uses
-httpdefs,  Classes, SysUtils, jsbase, jstree, pastree, pparser;
+  Classes, SysUtils, jsbase, jstree, pastree, pparser;
 
 Type
   EPas2JS = Class(Exception);
@@ -1072,6 +1072,7 @@ begin
   except
     FreeAndNil(B);
     FreeAndNil(C);
+    Raise;
   end;
   W:=TJSWhileStatement(CreateElement(TJSWhileStatement,El));
   W.Cond:=C;
@@ -1098,6 +1099,7 @@ begin
   except
     FreeAndNil(B);
     FreeAndNil(C);
+    Raise;
   end;
   W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement,El));
   W.Cond:=N;
