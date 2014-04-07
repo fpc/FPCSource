@@ -246,30 +246,4 @@
       end;
     
 
-    {$define FPC_SYSTEM_HAS_POWER}
-   function power(bas,expo : ValReal) : ValReal;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0.0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-        { bas < 0 is not allowed when doing roots }
-         if (bas<0) and (frac(expo) <> 0) then
-          handleerror(207)
-         else
-           begin
-             power:=exp(ln(abs(bas))*expo);
-             if (bas < 0) and
-                odd(trunc(expo)) then
-               begin
-                 power := -power;
-               end;
-           end;
-     end;
 

@@ -252,29 +252,6 @@ const
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
 
-
-    {$ifndef FPC_SYSTEM_HAS_POWER}
-    {$define FPC_SYSTEM_HAS_POWER}
-    function power(bas,expo : extended) : extended;
-      begin
-         if bas=0 then
-           begin
-             if expo<>0 then
-               power:=0.0
-             else
-               HandleError(207);
-           end
-         else if expo=0 then
-          power:=1
-         else
-         { bas < 0 is not allowed }
-          if bas<0 then
-           handleerror(207)
-          else
-           power:=exp(ln(bas)*expo);
-      end;
-    {$endif FPC_SYSTEM_HAS_POWER}
-
 {$else FPC_HAS_TYPE_EXTENDED}
 
     {$define FPC_SYSTEM_HAS_TRUNC}
