@@ -47,6 +47,9 @@ const
   segA000: Word = $A000;
   segB000: Word = $B000;
   segB800: Word = $B800;
+{ The value that needs to be added to the segment to move the pointer by
+  64K bytes (BP7 compatibility) }
+  SelectorInc: Word = $1000;
 
 var
 { Mem[] support }
