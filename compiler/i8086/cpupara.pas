@@ -418,13 +418,15 @@ unit cpupara;
         paracgsize : tcgsize;
         firstparaloc,
         pushaddr   : boolean;
+        pushleftright: boolean;
       begin
         paraalign:=get_para_align(p.proccalloption);
-        { we push Flags and CS as long
-          to cope with the IRETD
-          and we save 6 register + 4 selectors }
+        { interrupt routines need parameter fixup }
         if po_interrupt in p.procoptions then
-          inc(parasize,8+6*4+4*2);
+          if po_far in p.procoptions then
+            dec(parasize,6)
+          else
+            dec(parasize,4);
         { Offset is calculated like:
            sub esp,12
            mov [esp+8],para3
@@ -434,12 +436,13 @@ unit cpupara;
           That means for pushes the para with the
           highest offset (see para3) needs to be pushed first
         }
-        if p.proccalloption in pushleftright_pocalls then
+        pushleftright:=(p.proccalloption in pushleftright_pocalls) or (po_interrupt in p.procoptions);
+        if pushleftright then
           i:=paras.count-1
         else
           i:=0;
-        while ((p.proccalloption in pushleftright_pocalls) and (i>=0)) or
-              (not(p.proccalloption in pushleftright_pocalls) and (i<=paras.count-1)) do
+        while (pushleftright and (i>=0)) or
+              (not(pushleftright) and (i<=paras.count-1)) do
           begin
             hp:=tparavarsym(paras[i]);
             paradef:=hp.vardef;
@@ -554,7 +557,7 @@ unit cpupara;
                     firstparaloc:=false;
                   end;
               end;
-            if p.proccalloption in pushleftright_pocalls then
+            if pushleftright then
               dec(i)
             else
               inc(i);
