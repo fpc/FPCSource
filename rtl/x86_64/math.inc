@@ -66,15 +66,6 @@ const
                        EXTENDED data type routines
  ****************************************************************************}
 
-    {$ifndef FPC_SYSTEM_HAS_PI}
-    {$define FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
-    {$endif FPC_SYSTEM_HAS_PI}
     {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;

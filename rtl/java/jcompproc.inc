@@ -458,7 +458,6 @@ function fpc_exp_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inl
 function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
 function fpc_int_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_ln_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-function fpc_pi_real : ValReal;compilerproc;
 function fpc_sin_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;

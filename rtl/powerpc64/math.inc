@@ -18,14 +18,6 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_PI}
-function fpc_pi_real : valreal;compilerproc;
-begin
-  { Function is handled internal in the compiler }
-  runerror(207);
-  result:=0;
-end;
-
 {$define FPC_SYSTEM_HAS_ABS}
 function fpc_abs_real(d : valreal) : valreal;compilerproc;
 begin

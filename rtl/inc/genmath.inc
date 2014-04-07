@@ -951,12 +951,6 @@ type
     end;
 {$endif}
 
-{$ifndef FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-    begin
-      result := 3.1415926535897932385;
-    end;
-{$endif}
 
 
 {$ifndef FPC_SYSTEM_HAS_SQRT}
