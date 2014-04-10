@@ -368,6 +368,7 @@ type
 
 {$ifndef SYSTEM_HAS_LDEXP}
 {$ifdef SUPPORT_DOUBLE}
+{ ldexpd function adapted from DAMath library (C) Copyright 2013 Wolfgang Ehrhardt }
     function ldexp( x: Real; N: Integer):Real;
     {* ldexp() multiplies x by 2**n.                                    *}
     var

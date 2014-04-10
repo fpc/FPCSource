@@ -111,6 +111,7 @@
     end;
 
   {$define FPC_SYSTEM_HAS_EXP}
+    { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
         fldt        d

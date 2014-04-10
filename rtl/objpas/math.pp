@@ -783,7 +783,7 @@ begin
   csc := cosecant(x);
 end;
 
-
+{ arcsin and arccos functions from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function arcsin(x : float) : float;
 begin
   arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
@@ -881,6 +881,7 @@ function artanh(x : float) : float;
     artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
 
+{ hypot function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function hypot(x,y : float) : float;
   begin
     x:=abs(x);
@@ -910,6 +911,7 @@ function logn(n,x : float) : float;
      logn:=ln(x)/ln(n);
   end;
 
+{ lnxp1 function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function lnxp1(x : float) : float;
   var
     y: float;
