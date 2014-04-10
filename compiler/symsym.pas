@@ -795,7 +795,7 @@ implementation
           begin
             pd:=tprocdef(ProcdefList[i]);
             if pd<>skipdef then
-              MessagePos1(pd.fileinfo,sym_h_param_list,pd.fullprocname(false));
+              MessagePos1(pd.fileinfo,sym_e_param_list,pd.fullprocname(false));
            end;
       end;
 

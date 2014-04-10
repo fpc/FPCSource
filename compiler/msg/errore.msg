@@ -2208,6 +2208,8 @@ sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate de
 % In this case you must add a valid constructor yourself.
 sym_d_adding_helper_for=05087_D_Adding helper for $1
 % A helper for the mentioned type is added to the current scope
+sym_e_param_list=05088_E_Found declaration: $1
+% This message shows all overloaded declarations in case of an error.
 % \end{description}
 #
 # Codegenerator

@@ -620,6 +620,7 @@ const
   sym_e_duplicate_id_create_java_constructor=05085;
   sym_e_no_matching_inherited_parameterless_constructor=05086;
   sym_d_adding_helper_for=05087;
+  sym_e_param_list=05088;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -984,9 +985,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 71132;
+  MsgTxtSize = 71162;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,96,337,121,88,56,126,27,202,64,
+    26,96,337,121,89,56,126,27,202,64,
     57,20,1,1,1,1,1,1,1,1
   );
