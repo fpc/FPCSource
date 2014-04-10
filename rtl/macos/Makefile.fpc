@@ -8,9 +8,9 @@ main=rtl
 [target]
 loaders=
 units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macutils \
-      unixutil dos objects matrix cmem charset cpall ctypes
+      unixutil dos cmem charset cpall ctypes
 #      exec  \
-#      crt printer \
+#      printer \
 #      lineinfo lnfodwrf  graph \
 #      sysutils math typinfo
 # rsts=math
