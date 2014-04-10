@@ -608,7 +608,7 @@ interface
       i,j,l    : longint;
       InlineLevel : longint;
       consttype : taiconst_type;
-      do_line,
+      do_line, SkipNewLine,
       quoted   : boolean;
       co       : comp;
       sin      : single;
@@ -1000,6 +1000,13 @@ interface
                fixed_opcode:=taicpu(hp).FixNonCommutativeOpcodes;
                { We need intel order, no At&t }
                taicpu(hp).SetOperandOrder(op_intel);
+               { LOCK must be on same line as opcode }
+               if (taicpu(hp).ops = 0) and
+                   (fixed_opcode = A_LOCK) then
+                 SkipNewLine:=true
+               else
+                 SkipNewLine:=false;
+
                s:='';
                if ((fixed_opcode=A_FADDP) or
                    (fixed_opcode=A_FMULP))
@@ -1069,7 +1076,8 @@ interface
                          end;
                       end;
                    end;
-                  AsmLn;
+                  if not SkipNewLine then
+                    AsmLn;
                 end;
              end;
 
