@@ -256,6 +256,14 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
+        if ((ppufile.header.flags and uf_i8086_cs_equals_ds)<>0) xor
+            (current_settings.x86memorymodel=mm_tiny) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+           exit;
+         end;
 {$endif i8086}
 {$ifdef cpufpemu}
        { check if floating point emulation is on?
@@ -1095,6 +1103,8 @@ var
            flags:=flags or uf_i8086_far_data;
          if current_settings.x86memorymodel=mm_huge then
            flags:=flags or uf_i8086_huge_data;
+         if current_settings.x86memorymodel=mm_tiny then
+           flags:=flags or uf_i8086_cs_equals_ds;
 {$endif i8086}
 {$ifdef cpufpemu}
          if (cs_fp_emulation in current_settings.moduleswitches) then
