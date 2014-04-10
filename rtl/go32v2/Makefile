@@ -2945,29 +2945,43 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
+	$(EXECPPAS)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
+	$(EXECPPAS)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
+	$(EXECPPAS)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
+	$(EXECPPAS)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
+	$(EXECPPAS)
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
+	$(EXECPPAS)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
+	$(EXECPPAS)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+	$(EXECPPAS)
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
+	$(EXECPPAS)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
+	$(EXECPPAS)
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
+	$(EXECPPAS)
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/callspec.pp
+	$(EXECPPAS)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/cmem.pp
+	$(EXECPPAS)
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
+	$(EXECPPAS)
