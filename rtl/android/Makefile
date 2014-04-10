@@ -2148,7 +2148,7 @@ endif
 ifeq ($(FULL_TARGET),i8086-msdos)
 override COMPILER_TARGETDIR+=.
 endif
-override SHARED_LIBUNITS=$(SYSTEMUNIT) objpas strings dos unix baseunix unixtype unixutil sysutils typinfo math $(CPU_UNITS) getopts errors sockets varutils classes fgl variants sysconst rtlconsts 
+override SHARED_LIBUNITS=$(SYSTEMUNIT) objpas strings dos unix baseunix unixtype unixutil sysutils typinfo math $(CPU_UNITS) getopts errors sockets classes fgl sysconst rtlconsts 
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
