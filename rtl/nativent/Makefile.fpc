@@ -13,19 +13,19 @@ implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
 #      initc cmem dynlibs signals \
-#      dos crt objects \
+#      dos \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes \
       $(CPU_UNITS) charset getopts \
 #      sockets printer \
-#      video mouse keyboard
+#      keyboard
 #      sharemem exeinfo fpintres \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 
 # shared=$(DLLS)
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y
