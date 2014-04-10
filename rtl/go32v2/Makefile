@@ -2893,56 +2893,78 @@ prt0$(OEXT) : v2prt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) v2prt0.as
 system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp
+	$(EXECPPAS)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
 iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/iso7185.pp
+	$(EXECPPAS)
 go32$(PPUEXT) : go32.pp system$(PPUEXT)
 	$(COMPILER) go32.pp
+	$(EXECPPAS)
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
 	$(COMPILER) -Sg dpmiexcp.pp
+	$(EXECPPAS)
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 	$(COMPILER) initc.pp
+	$(EXECPPAS)
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 	$(COMPILER) profile.pp
+	$(EXECPPAS)
 dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
 	$(COMPILER) dxetype.pp
+	$(EXECPPAS)
 dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dxeload.pp
+	$(EXECPPAS)
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
 	$(COMPILER) emu387.pp
+	$(EXECPPAS)
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) ports.pp
+	$(EXECPPAS)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
+	$(EXECPPAS)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(EXECPPAS)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(EXECPPAS)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
+	$(EXECPPAS)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(EXECPPAS)
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(EXECPPAS)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)

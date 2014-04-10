@@ -69,153 +69,175 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 prt0$(OEXT) : v2prt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) v2prt0.as
+	$(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) v2prt0.as
 #
 # System Units (System, Objpas, Strings)
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp
+	$(COMPILER) -Us -Sg system.pp
+	$(EXECPPAS)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   system$(PPUEXT)
+		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+		   system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
+	$(COMPILER) $(INC)/iso7185.pp
+	$(EXECPPAS)
 #
 # System Dependent Units
 #
 go32$(PPUEXT) : go32.pp system$(PPUEXT)
 	$(COMPILER) go32.pp
+	$(EXECPPAS)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
-        $(COMPILER) -Sg dpmiexcp.pp
+	$(COMPILER) -Sg dpmiexcp.pp
+	$(EXECPPAS)
 
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 	$(COMPILER) initc.pp
+	$(EXECPPAS)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 	$(COMPILER) profile.pp
+	$(EXECPPAS)
 
 dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
 	$(COMPILER) dxetype.pp
+	$(EXECPPAS)
 
 dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dxeload.pp
+	$(EXECPPAS)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
-                  dpmiexcp$(PPUEXT)
-        $(COMPILER) emu387.pp
+		  dpmiexcp$(PPUEXT)
+	$(COMPILER) emu387.pp
+	$(EXECPPAS)
 
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) ports.pp
+	$(EXECPPAS)
 
 #
 # TP7 Compatible RTL Units
 #
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-               go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) dos.pp
+	       go32$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) dos.pp
+	$(EXECPPAS)
 
 #
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+		    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(EXECPPAS)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
+	$(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
-        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(EXECPPAS)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
+	$(COMPILER) $(OBJPASDIR)/types.pp
+	$(EXECPPAS)
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(EXECPPAS)
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
 
 #
 # Mac Pascal Model
 #
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(EXECPPAS)
 #
 # Other system-independent RTL Units
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
-        $(EXECPPAS)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp
+	$(EXECPPAS)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-        $(EXECPPAS)
+	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+	$(EXECPPAS)
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 #
 # Other system-dependent RTL Units
 #
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/callspec.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/cmem.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
 
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
-        $(EXECPPAS)
+	$(EXECPPAS)
