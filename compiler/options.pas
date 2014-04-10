@@ -2741,6 +2741,17 @@ begin
       Message(option_debug_external_unsupported);
       exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
     end;
+  { Also create a smartlinked version, on an assembler that
+    does not support smartlink sections like nasm?
+    This is not compatible with using internal linker. }
+  if ((cs_link_smart in init_settings.globalswitches) or
+      (cs_create_smart in init_settings.moduleswitches)) and
+     (af_needar in target_asm.flags) and
+     not (af_smartlink_sections in target_asm.flags) then
+    begin
+      Message(option_smart_link_requires_external_linker);
+      include(init_settings.globalswitches,cs_link_extern);
+    end;
 end;
 
 

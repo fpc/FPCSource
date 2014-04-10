@@ -958,6 +958,7 @@ const
   option_w_unsupported_debug_format=11053;
   option_missing_arg=11054;
   option_malformed_para=11055;
+  option_smart_link_requires_external_linker=11056;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -982,9 +983,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 71030;
+  MsgTxtSize = 71077;
 
   MsgIdxMax : array[1..20] of longint=(
     26,96,336,121,88,56,126,27,202,64,
-    56,20,1,1,1,1,1,1,1,1
+    57,20,1,1,1,1,1,1,1,1
   );

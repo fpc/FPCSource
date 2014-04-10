@@ -57,7 +57,7 @@ unit scandir;
       scanner,switches,
       fmodule,
       defutil,
-      dirparse,
+      dirparse,link,
       symconst,symtable,symbase,symtype,symsym,
       rabase;
 
@@ -1159,6 +1159,20 @@ unit scandir;
           Message(option_dwarf_smart_linking);
           Exclude(current_settings.moduleswitches,cs_create_smart);
         end;
+        { Also create a smartlinked version, on an assembler that
+          does not support smartlink sections like nasm?
+          This is not compatible with using internal linker. }
+       if ((cs_link_smart in current_settings.globalswitches) or
+           (cs_create_smart in current_settings.moduleswitches)) and
+          (af_needar in target_asm.flags) and
+          not (af_smartlink_sections in target_asm.flags) and
+          not (cs_link_extern in current_settings.globalswitches) then
+         begin
+           DoneLinker;
+           Message(option_smart_link_requires_external_linker);
+           include(current_settings.globalswitches,cs_link_extern);
+           InitLinker;
+         end
       end;
 
     procedure dir_stackframes;
