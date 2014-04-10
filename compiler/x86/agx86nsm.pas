@@ -592,7 +592,7 @@ interface
             AsmWrite(aname);
           end;
         AsmLn;
-        LasTSecType:=atype;
+        LastSecType:=atype;
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);
@@ -617,7 +617,7 @@ interface
       e        : extended;
 {$endif cpuextended}
       fixed_opcode: TAsmOp;
-      prefix   : string;
+      prefix, LastSecName  : string;
     begin
       if not assigned(p) then
        exit;
@@ -663,15 +663,15 @@ interface
              begin
                if tai_section(hp).sectype<>sec_none then
                  WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
-               LasTSecType:=tai_section(hp).sectype;
+               LastSecType:=tai_section(hp).sectype;
              end;
 
            ait_align :
              begin
                if (tai_align(hp).aligntype>1) then
                  begin
-                   if (lastsectype=sec_bss) or (
-                      (lastsectype=sec_threadvar) and
+                   if (LastSecType=sec_bss) or (
+                      (LastSecType=sec_threadvar) and
                       (target_info.system in (systems_windows+systems_wince))
                      ) then
                       AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
@@ -1097,14 +1097,18 @@ interface
                     WriteHeader;
                   end;
                { avoid empty files }
+                 LastSecType:=sec_none;
                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                   begin
                     if tai(hp.next).typ=ait_section then
-                      lasTSectype:=tai_section(hp.next).sectype;
+                      begin
+                        LastSecType:=tai_section(hp.next).sectype;
+                        LastSecName:=tai_section(hp.next).name^;
+                      end;
                     hp:=tai(hp.next);
                   end;
-                 if lasTSectype<>sec_none then
-                   WriteSection(lasTSectype,'');
+                 if LastSecType<>sec_none then
+                   WriteSection(LastSecType,LastSecName);
                  AsmStartSize:=AsmSize;
                end;
              end;
