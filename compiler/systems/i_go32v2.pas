@@ -65,7 +65,7 @@ unit i_go32v2;
             assemextern  : as_gas;
             link         : ld_int_go32v2;
             linkextern   : ld_go32v2;
-            ar           : ar_gnu_ar;
+            ar           : ar_gnu_ar_scripted;
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_dos;
