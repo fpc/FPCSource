@@ -149,6 +149,7 @@ type
   tcpunamespacesymclass = class of tcpunamespacesym;
 
   tcpuprocsym = class(tprocsym)
+    procedure check_forward; override;
   end;
   tcpuprocsymclass = class of tcpuprocsym;
 
@@ -204,10 +205,14 @@ const
 implementation
 
   uses
-    verbose,cutils,
+    verbose,cutils,cclasses,
     symconst,symbase,jvmdef,
     paramgr;
 
+
+{****************************************************************************
+                             tcpuenumdef
+****************************************************************************}
 
   procedure tcpuenumdef.ppuload_platform(ppufile: tcompilerppufile);
     begin
@@ -404,6 +409,42 @@ implementation
       result:=inherited;
       tcpuprocvardef(result).classdef:=classdef;
     end;
+
+
+{****************************************************************************
+                             tcpuprocsym
+****************************************************************************}
+
+  procedure tcpuprocsym.check_forward;
+    var
+      curri, checki: longint;
+      currpd, checkpd: tprocdef;
+    begin
+      inherited;
+      { check for conflicts based on mangled name, because several FPC
+        types/constructs map to the same JVM mangled name }
+      for curri:=0 to FProcdefList.Count-2 do
+        begin
+          currpd:=tprocdef(FProcdefList[curri]);
+          if (po_external in currpd.procoptions) or
+             (currpd.proccalloption=pocall_internproc) then
+            continue;
+          for checki:=curri+1 to FProcdefList.Count-1 do
+            begin
+              checkpd:=tprocdef(FProcdefList[checki]);
+              if po_external in checkpd.procoptions then
+                continue;
+              if currpd.mangledname=checkpd.mangledname then
+                begin
+                  MessagePos(checkpd.fileinfo,parser_e_overloaded_have_same_mangled_name);
+                  MessagePos1(currpd.fileinfo,sym_h_param_list,currpd.customprocname([pno_mangledname]));
+                  MessagePos1(checkpd.fileinfo,sym_h_param_list,checkpd.customprocname([pno_mangledname]));
+                end;
+            end;
+        end;
+      inherited;
+    end;
+
 
 {****************************************************************************
                              tcpustaticvarsym

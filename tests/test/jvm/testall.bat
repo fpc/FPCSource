@@ -284,3 +284,9 @@ ppcjvm -O2 -g -B  -CTinitlocals tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -vh toverload
+if %errorlevel% eq 0 exit /b 1
+echo " ** Compilation failed as expected"
+ppcjvm -O2 -g -B  toverload2
+if %errorlevel% eq 0 exit /b 1
+echo " ** Compilation failed as expected"

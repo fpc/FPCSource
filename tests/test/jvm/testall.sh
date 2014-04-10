@@ -158,3 +158,17 @@ $PPC -O2 -g -B -Sa -CTinitlocals tinitvar
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. org.freepascal.test.tinitvar.tinitvar
 $PPC -O2 -g -B -Sa tsmallintarr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tsmallintarr
+set +e
+$PPC -O2 -g -B -Sa toverload
+if [ $? -eq 0 ]; then
+  echo " ** Should have failed compilation"
+else
+  echo " ** Compilation failed as expected"
+fi
+$PPC -O2 -g -B -Sa toverload2
+if [ $? -eq 0 ]; then
+  echo " ** Should have failed compilation"
+else
+  echo " ** Compilation failed as expected"
+fi
+set -e

@@ -400,7 +400,7 @@ scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
 #
 # Parser
 #
-# 03335 is the last used one
+# 03336 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1503,6 +1503,11 @@ parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside gen
 parser_e_property_only_sgr=03335_E_Properties can be only static, global or inside structured types
 % Properties cannot be declared local, only global, using the static
 % directive or inside structured types.
+parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the same mangled name
+% Some platforms, such as the JVM platform, encode the parameters in the routine name in
+% a prescribed way, and this encoding may map different Pascal types to the same encoded
+% (a.k.a.\ ``mangled'') name. This error can only be solved by removing or changing the
+% conflicting definitions' parameter declarations or routine names.
 %
 %
 % \end{description}

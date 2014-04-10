@@ -120,7 +120,7 @@ interface
           procedure write_parameter_lists(skipdef:tprocdef);
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
-          procedure check_forward;
+          procedure check_forward; virtual;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
