@@ -2754,10 +2754,30 @@ unit cgx86;
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DS));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_ES));
-            reference_reset(dgroup,0);
-            dgroup.refaddr:=addr_dgroup;
-            list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
-            list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+            if current_settings.x86memorymodel=mm_tiny then
+              begin
+                { in the tiny memory model, we can't use dgroup, because that
+                  adds a relocation entry to the .exe and we can't produce a
+                  .com file (because they don't support relactions), so instead
+                  we initialize DS from CS. }
+                if cs_opt_size in current_settings.optimizerswitches then
+                  begin
+                    list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
+                    list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
+                  end
+                else
+                  begin
+                    list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_CS,NR_AX));
+                    list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                  end;
+              end
+            else
+              begin
+                reference_reset(dgroup,0);
+                dgroup.refaddr:=addr_dgroup;
+                list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
+                list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+              end;
           end;
 {$endif i8086}
 {$ifdef i386}
