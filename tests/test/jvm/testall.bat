@@ -282,5 +282,5 @@ javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.tes
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B  -CTinitlocals tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
-javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsmallintarr
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
