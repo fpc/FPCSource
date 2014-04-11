@@ -5913,6 +5913,7 @@ packages/openssl/examples/genkeypair.lpi svneol=native#text/plain
 packages/openssl/examples/genkeypair.lpr svneol=native#text/plain
 packages/openssl/examples/test1.pas svneol=native#text/plain
 packages/openssl/fpmake.pp svneol=native#text/plain
+packages/openssl/src/fpopenssl.pp svneol=native#text/plain
 packages/openssl/src/openssl.pas svneol=native#text/plain
 packages/oracle/Makefile svneol=native#text/plain
 packages/oracle/Makefile.fpc svneol=native#text/plain
