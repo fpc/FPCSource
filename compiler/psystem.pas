@@ -492,14 +492,7 @@ implementation
             addtype('$vtblarray',vmtarraytype);
             { Add a type for methodpointers }
             hrecst:=trecordsymtable.create('',1);
-{$ifdef i8086}
-            if current_settings.x86memorymodel in x86_far_code_models then
-              addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidfarpointertype,[]))
-            else
-              addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidnearpointertype,[]));
-{$else i8086}
-            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
-{$endif i8086}
+            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
             addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
             methodpointertype:=crecorddef.create('',hrecst);
             addtype('$methodpointer',methodpointertype);
