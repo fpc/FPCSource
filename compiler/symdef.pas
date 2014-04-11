@@ -6283,7 +6283,7 @@ implementation
         case objecttype of
         odt_class:
           { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=index*voidcodepointertype.size+10*sizeof(pint)+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+10*voidpointertype.size+2*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
@@ -6295,10 +6295,11 @@ implementation
           { invalid }
           vmtmethodoffset:=-1;
         else
+          { the +2*sizeof(pint) is size and -size }
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+4*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+2*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+3*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+2*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
