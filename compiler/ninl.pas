@@ -2772,7 +2772,13 @@ implementation
                           begin
                             { will be handled in simplify }
                           end;
-                      end
+                      end;
+                    undefineddef :
+                      begin
+                        if not (df_generic in current_procinfo.procdef.defoptions) then
+                          CGMessage(type_e_mismatch);
+                        { otherwise nothing }
+                      end;
                     else
                       CGMessage(type_e_mismatch);
                   end;
