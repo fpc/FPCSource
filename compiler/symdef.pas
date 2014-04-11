@@ -6278,37 +6278,27 @@ implementation
 
 
     function tobjectdef.vmtmethodoffset(index:longint):longint;
-      var
-        codeptrsize: Integer;
       begin
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
-          codeptrsize:=4
-        else
-          codeptrsize:=2;
-{$else i8086}
-        codeptrsize:=sizeof(pint);
-{$endif i8086}
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
           { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=index*codeptrsize+10*sizeof(pint)+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+10*sizeof(pint)+2*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba,odt_dispinterface:
-          vmtmethodoffset:=index*codeptrsize;
+          vmtmethodoffset:=index*voidcodepointertype.size;
         odt_javaclass,
         odt_interfacejava:
           { invalid }
           vmtmethodoffset:=-1;
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*codeptrsize+4*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+4*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*codeptrsize+3*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+3*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
