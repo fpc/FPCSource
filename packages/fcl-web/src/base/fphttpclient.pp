@@ -91,7 +91,7 @@ Type
     // Allow header in request ? (currently checks only if non-empty and contains : token)
     function AllowHeader(var AHeader: String): Boolean; virtual;
     // Connect to the server. Must initialize FSocket.
-    Procedure ConnectToServer(const AHost: String; APort: Integer); virtual;
+    Procedure ConnectToServer(const AHost: String; APort: Integer; UseSSL : Boolean=False); virtual;
     // Disconnect from server. Must free FSocket.
     Procedure DisconnectFromServer; virtual;
     // Run method AMethod, using request URL AURL. Write Response to Stream, and headers in ResponseHeaders.
@@ -268,6 +268,8 @@ Function DecodeURLElement(Const S : String) : String;
 
 implementation
 
+uses sslsockets;
+
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
   SErrReadingSocket = 'Error reading data from socket';
@@ -277,7 +279,7 @@ resourcestring
   SErrChunkTooBig = 'Chunk too big';
   SErrChunkLineEndMissing = 'Chunk line end missing';
   SErrMaxRedirectsReached = 'Maximum allowed redirects reached : %d';
-  SErrRedirectAborted = 'Redirect aborted.';
+  //SErrRedirectAborted = 'Redirect aborted.';
 
 Const
   CRLF = #13#10;
@@ -410,12 +412,24 @@ begin
 end;
 
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
-  APort: Integer);
+  APort: Integer; UseSSL : Boolean = False);
+
+Var
+  G : TSocketHandler;
+
 
 begin
-  if Aport=0 then
-    Aport:=80;
-  FSocket:=TInetSocket.Create(AHost,APort);
+  if (Aport=0) then
+    if UseSSL then
+      Aport:=443
+    else
+      Aport:=80;
+  If UseSSL then
+    G:=TSSLSocketHandler.Create
+  else
+    G:=TSocketHandler.Create;
+  FSocket:=TInetSocket.Create(AHost,APort,G);
+  FSocket.Connect;
 end;
 
 procedure TFPCustomHTTPClient.DisconnectFromServer;
@@ -890,13 +904,15 @@ procedure TFPCustomHTTPClient.DoMethod(const AMethod, AURL: String;
 
 Var
   URI : TURI;
+  P : String;
 
 begin
   ResetResponse;
   URI:=ParseURI(AURL,False);
-  If (Lowercase(URI.Protocol)<>'http') then
+  p:=LowerCase(URI.Protocol);
+  If Not ((P='http') or (P='https')) then
    Raise EHTTPClient.CreateFmt(SErrInvalidProtocol,[URI.Protocol]);
-  ConnectToServer(URI.Host,URI.Port);
+  ConnectToServer(URI.Host,URI.Port,P='https');
   try
     SendRequest(AMethod,URI);
     ReadResponse(Stream,AllowedResponseCodes,CompareText(AMethod,'HEAD')=0);
@@ -984,21 +1000,20 @@ procedure TFPCustomHTTPClient.HTTPMethod(const AMethod, AURL: String;
 
 Var
   M,L,NL : String;
-  C : Char;
   RC : Integer;
   RR : Boolean; // Repeat request ?
 
 begin
   L:=AURL;
-  M:=AMethod;
   RC:=0;
   RR:=False;
+  M:=AMethod;
   Repeat
     if Not AllowRedirect then
-      DoMethod(AMethod,L,Stream,AllowedResponseCodes)
+      DoMethod(M,L,Stream,AllowedResponseCodes)
     else
       begin
-      DoMethod(AMethod,L,Stream,AllowedResponseCodes);
+      DoMethod(M,L,Stream,AllowedResponseCodes);
       if IsRedirect(FResponseStatusCode) then
         begin
         Inc(RC);

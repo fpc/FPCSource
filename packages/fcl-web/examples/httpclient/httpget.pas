@@ -3,7 +3,7 @@ program httpget;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, fphttpclient;
+  SysUtils, Classes, fphttpclient, sslsockets, fpopenssl;
 
 Type
 
@@ -78,8 +78,6 @@ begin
 end;  
 
 procedure TTestApp.Run;
-var
-  i : Integer;
 
 begin
   if (ParamCount<>2) then
