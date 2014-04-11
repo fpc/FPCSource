@@ -1966,14 +1966,7 @@ implementation
                begin
                  { addr }
                  typecheckpass(right);
-{$ifdef i8086}
-                 if current_settings.x86memorymodel in x86_far_code_models then
-                   inserttypeconv(right,voidfarpointertype)
-                 else
-                   inserttypeconv(right,voidnearpointertype);
-{$else i8086}
-                 inserttypeconv(right,voidpointertype);
-{$endif i8086}
+                 inserttypeconv(right,voidcodepointertype);
                  { frame }
                  if assigned(third) then
                   begin
