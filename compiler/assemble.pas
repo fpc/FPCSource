@@ -376,7 +376,10 @@ Implementation
         result:=true;
         if (cs_asm_extern in current_settings.globalswitches) then
           begin
-            AsmRes.AddAsmCommand(command,para,name);
+            if SmartAsm then
+              AsmRes.AddAsmCommand(command,para,Name+'('+TosTr(SmartFilesCount)+')')
+            else
+              AsmRes.AddAsmCommand(command,para,name);
             exit;
           end;
         try
@@ -623,10 +626,10 @@ Implementation
          NextSmartName(Aplace);
 {$ifdef hasamiga}
         { on Amiga/MorphOS try to redirect .s files to the T: assign, which is
-          for temp files, and usually (default setting) located in the RAM: drive. 
-          This highly improves assembling speed for complex projects like the 
+          for temp files, and usually (default setting) located in the RAM: drive.
+          This highly improves assembling speed for complex projects like the
           compiler itself, especially on hardware with slow disk I/O.
-          Consider this as a poor man's pipe on Amiga, because real pipe handling 
+          Consider this as a poor man's pipe on Amiga, because real pipe handling
           would be much more complex and error prone to implement. (KB) }
         if (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) then
          begin
