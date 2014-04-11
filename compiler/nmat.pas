@@ -197,6 +197,14 @@ implementation
          result:=nil;
          typecheckpass(left);
          typecheckpass(right);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -644,6 +652,14 @@ implementation
          result:=nil;
          typecheckpass(left);
          typecheckpass(right);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -818,6 +834,14 @@ implementation
       begin
          result:=nil;
          typecheckpass(left);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
@@ -968,6 +992,14 @@ implementation
       begin
         result:=nil;
         typecheckpass(left);
+
+        { avoid any problems with type parameters later on }
+        if is_typeparam(left.resultdef) then
+          begin
+            resultdef:=cundefinedtype;
+            exit;
+          end;
+
         set_varstate(left,vs_read,[vsf_must_be_valid]);
         if codegenerror then
           exit;
@@ -1144,6 +1176,14 @@ implementation
       begin
          result:=nil;
          typecheckpass(left);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
