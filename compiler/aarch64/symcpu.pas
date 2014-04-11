@@ -100,7 +100,7 @@ type
   tcpuprocsym = class(tprocsym)
   end;
 
-  tcpuypesym = class(ttypesym)
+  tcputypesym = class(ttypesym)
   end;
 
   tcpufieldvarsym = class(tfieldvarsym)
@@ -164,7 +164,7 @@ begin
   cunitsym:=tcpuunitsym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
-  ctypesym:=tcpuypesym;
+  ctypesym:=tcputypesym;
   cfieldvarsym:=tcpufieldvarsym;
   clocalvarsym:=tcpulocalvarsym;
   cparavarsym:=tcpuparavarsym;
