@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('openssl');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
@@ -50,6 +51,12 @@ begin
       with T.Dependencies do
         begin
           AddUnit('resolve');
+        end;
+    T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('ssockets');
         end;
     T.ResourceStrings := True;
 

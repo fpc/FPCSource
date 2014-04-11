@@ -2448,6 +2448,7 @@ packages/fcl-net/src/netware/resolve.inc svneol=native#text/plain
 packages/fcl-net/src/netwlibc/resolve.inc svneol=native#text/plain
 packages/fcl-net/src/os2/resolve.inc svneol=native#text/plain
 packages/fcl-net/src/resolve.pp svneol=native#text/plain
+packages/fcl-net/src/sslsockets.pp svneol=native#text/plain
 packages/fcl-net/src/ssockets.pp svneol=native#text/plain
 packages/fcl-net/src/unix/resolve.inc svneol=native#text/plain
 packages/fcl-net/src/win/resolve.inc svneol=native#text/plain
