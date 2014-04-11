@@ -1286,7 +1286,10 @@ implementation
                                end
                              else
                                if not parse_generic then
-                                 Message(type_e_cant_eval_constant_expr);
+                                 Message(type_e_cant_eval_constant_expr)
+                               else
+                                 { we need a valid range for debug information }
+                                 range_to_type(lowval,highval,indexdef);
                            end
                          else
                            Message(sym_e_error_in_type_def)
