@@ -153,8 +153,13 @@ implementation
     procedure set_default_ptr_types;
       begin
 {$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          voidcodepointertype:=voidfarpointertype
+        else
+          voidcodepointertype:=voidnearpointertype;
         voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
+        voidcodepointertype:=voidpointertype;
         voidstackpointertype:=voidpointertype;
 {$endif i8086}
       end;

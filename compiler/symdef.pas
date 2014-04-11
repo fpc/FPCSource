@@ -924,6 +924,7 @@ interface
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
+       voidcodepointertype,       { pointer to code; corresponds to System.CodePointer }
        voidstackpointertype,      { the pointer type used for accessing parameters and local vars on the stack }
        parentfpvoidpointertype,   { void pointer with the size of the hidden parentfp parameter, passed to nested functions }
 {$ifdef x86}
