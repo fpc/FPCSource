@@ -3195,29 +3195,42 @@ implementation
 
           if srsym<>nil then
             begin
-              if srsym.typ=propertysym then
-                begin
-                  result:=true;
-                  exit;
-                end;
-              for i:=0 to tprocsym(srsym).procdeflist.count-1 do
-                begin
-                  pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
-                  if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
-                    continue;
-                  { we need to know if a procedure references symbols
-                    in the static symtable, because then it can't be
-                    inlined from outside this unit }
-                  if assigned(current_procinfo) and
-                     (srsym.owner.symtabletype=staticsymtable) then
-                    include(current_procinfo.flags,pi_uses_static_symtable);
-                  { the first found method wins }
-                  srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
-                  srsymtable:=srsym.owner;
-                  addsymref(srsym);
-                  result:=true;
-                  exit;
-                end;
+              case srsym.typ of
+                procsym:
+                  begin
+                    for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                      begin
+                        pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
+                        if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
+                          continue;
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        { the first found method wins }
+                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                        srsymtable:=srsym.owner;
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+                typesym,
+                fieldvarsym,
+                constsym,
+                enumsym,
+                undefinedsym,
+                propertysym:
+                  begin
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+                else
+                  internalerror(2014041101);
+              end;
             end;
 
           { try the helper parent if available }
