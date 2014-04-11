@@ -31,7 +31,7 @@
 
     const
        vmtInstanceSize         = 0;
-       vmtParent               = sizeof(ptruint)*2;
+       vmtParent               = sizeof(SizeInt)*2;
        { These were negative value's, but are now positive, else classes
          couldn't be used with shared linking which copies only all data from
          the .global directive and not the data before the directive (PFV) }
