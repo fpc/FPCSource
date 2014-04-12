@@ -491,11 +491,16 @@ implementation
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
                           begin
-                             location.registerhi:=cg.getaddressregister(current_asmdata.CurrAsmList);
                              if not is_object(left.resultdef) then
-                               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.registerhi)
+                               begin
+                                 location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
+                                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.registerhi)
+                               end
                              else
-                               cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.registerhi);
+                               begin
+                                 location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidpointertype,left.location.reference,location.registerhi);
+                               end;
                              location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
                         else
@@ -521,47 +526,23 @@ implementation
                          if (left.resultdef.typ<>classrefdef) then
                            begin
                              { load vmt pointer }
-                             reference_reset_base(href,location.registerhi,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
-                             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                             hlcg.reference_reset_base(href,voidpointertype,location.registerhi,tobjectdef(left.resultdef).vmt_offset,voidpointertype.alignment);
+                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister);
                            end
                          else
                            hregister:=location.registerhi;
                          { load method address }
-{$ifdef i8086}
-                         if po_far in procdef.procoptions then
-                           begin
-                             reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-                             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,href,location.register);
-                           end
-                         else
-{$endif i8086}
-                           begin
-                             reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-                             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
-                           end;
+                         hlcg.reference_reset_base(href,voidpointertype,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),voidpointertype.alignment);
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
+                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,procdef.address_type,procdef.address_type,href,location.register);
                        end
                      else
                        begin
                          { load address of the function }
-{$ifdef i8086}
-                         if po_far in procdef.procoptions then
-                           begin
-                             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-                             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
-                             href.refaddr:=addr_seg;
-                             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,href,GetNextReg(location.register));
-                           end
-                         else
-{$endif i8086}
-                           begin
-                             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-                             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
-                           end;
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,procdef.address_type.alignment);
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdef.address_type);
+                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,procdef.address_type,href,location.register);
                        end;
 
                      { to get methodpointers stored correctly, code and self register must be swapped on
