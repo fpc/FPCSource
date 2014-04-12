@@ -575,6 +575,8 @@ interface
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;
           function address_type:tdef;
+          procedure declared_far;virtual;
+          procedure declared_near;virtual;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -4492,6 +4494,18 @@ implementation
 {$else i8086}
           result:=voidpointertype;
 {$endif i8086}
+      end;
+
+
+    procedure tabstractprocdef.declared_far;
+      begin
+        Message1(parser_w_proc_directive_ignored,'FAR');
+      end;
+
+
+    procedure tabstractprocdef.declared_near;
+      begin
+        Message1(parser_w_proc_directive_ignored,'NEAR');
       end;
 
 

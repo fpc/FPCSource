@@ -1408,12 +1408,12 @@ implementation
 
 procedure pd_far(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'FAR');
+  pd.declared_far;
 end;
 
 procedure pd_near(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'NEAR');
+  pd.declared_near;
 end;
 
 procedure pd_export(pd:tabstractprocdef);
