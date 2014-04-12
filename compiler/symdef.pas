@@ -4036,10 +4036,6 @@ implementation
          proctypeoption:=potype_none;
          proccalloption:=pocall_none;
          procoptions:=[];
-{$ifdef i8086}
-         if current_settings.x86memorymodel in x86_far_code_models then
-           procoptions:=procoptions+[po_far];
-{$endif i8086}
          returndef:=voidtype;
          savesize:=sizeof(pint);
          callerargareasize:=0;

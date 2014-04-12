@@ -88,11 +88,17 @@ type
   end;
   tcpufloatdefclass = class of tcpufloatdef;
 
+  { tcpuprocvardef }
+
   tcpuprocvardef = class(tprocvardef)
+    constructor create(level:byte);override;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
+  { tcpuprocdef }
+
   tcpuprocdef = class(tprocdef)
+    constructor create(level:byte);override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -179,6 +185,30 @@ implementation
 
   uses
     globals, cpuinfo;
+
+{****************************************************************************
+                             tcpuprocdef
+****************************************************************************}
+
+  constructor tcpuprocdef.create(level: byte);
+    begin
+      inherited create(level);
+      { todo: allow using near procs in the far code memory models, like in TP7 }
+      if current_settings.x86memorymodel in x86_far_code_models then
+        procoptions:=procoptions+[po_far];
+    end;
+
+{****************************************************************************
+                             tcpuprocvardef
+****************************************************************************}
+
+  constructor tcpuprocvardef.create(level: byte);
+    begin
+      inherited create(level);
+      { procvars are always far in the far code memory models }
+      if current_settings.x86memorymodel in x86_far_code_models then
+        procoptions:=procoptions+[po_far];
+    end;
 
 {****************************************************************************
                              tcpupointerdef
