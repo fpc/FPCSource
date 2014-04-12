@@ -2747,7 +2747,10 @@ begin
   if ((cs_link_smart in init_settings.globalswitches) or
       (cs_create_smart in init_settings.moduleswitches)) and
      (af_needar in target_asm.flags) and
-     not (af_smartlink_sections in target_asm.flags) then
+     not (af_smartlink_sections in target_asm.flags) and
+     not (cs_link_extern in init_settings.globalswitches) and
+     (target_info.link<>ld_none) and
+      not (cs_link_nolink in init_settings.globalswitches) then
     begin
       Message(option_smart_link_requires_external_linker);
       include(init_settings.globalswitches,cs_link_extern);
