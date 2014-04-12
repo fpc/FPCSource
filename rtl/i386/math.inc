@@ -135,7 +135,10 @@
     end;
 
   {$define FPC_SYSTEM_HAS_EXP}
-    { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
+    { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt
+      * translated into AT&T syntax
+      + PIC support
+      * return +Inf/0 for +Inf/-Inf input, instead of NaN }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
         fldt        d
@@ -159,12 +162,16 @@
         fldl2e
         fmulp       %st,%st(1)        { frac(z) }
 
+      { The above code can result in |frac(z)|>1, particularly when rounding mode
+        is not "round to nearest". f2xm1 is undefined in this case, so a check
+        is necessary. Furthermore, frac(z) evaluates to NaN for d=+-Inf. }
         fld         %st
         fabs
         fld1
         fcompp
         fstsw       %ax
         sahf
+        jp          .L3               { NaN }
         jae         .L1               { frac(z) <= 1 }
         fld         %st(1)
         fabs
@@ -173,7 +180,9 @@
         fstsw       %ax
         sahf
         jb          .L0               { int(z) < 24576 }
-        fsub        %st,%st
+.L3:
+        fstp        %st               { zero out frac(z), hard way because }
+        fldz                          { "fsub %st,%st" does not work for NaN }
         jmp         .L1
 .L0:
         { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
