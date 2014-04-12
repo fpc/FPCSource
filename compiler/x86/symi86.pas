@@ -30,6 +30,18 @@ uses
 
 type
 
+  { ti86procvardef }
+
+  ti86procvardef = class(tprocvardef)
+    function is_pushleftright: boolean; override;
+  end;
+
+  { ti86procdef }
+
+  ti86procdef = class(tprocdef)
+    function is_pushleftright: boolean; override;
+  end;
+
   { ti86absolutevarsym }
 
   ti86absolutevarsym = class(tabsolutevarsym)
@@ -44,6 +56,20 @@ implementation
 
 uses
   symconst;
+
+{ ti86procvardef }
+
+function ti86procvardef.is_pushleftright: boolean;
+  begin
+    result:=proccalloption in pushleftright_pocalls;
+  end;
+
+{ ti86procdef }
+
+function ti86procdef.is_pushleftright: boolean;
+  begin
+    result:=proccalloption in pushleftright_pocalls;
+  end;
 
 { ti86absolutevarsym }
 

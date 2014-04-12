@@ -573,7 +573,7 @@ interface
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
-          function is_pushleftright: boolean;
+          function is_pushleftright: boolean;virtual;
           function address_type:tdef;virtual;
           procedure declared_far;virtual;
           procedure declared_near;virtual;
@@ -4477,11 +4477,7 @@ implementation
 
     function tabstractprocdef.is_pushleftright: boolean;
       begin
-{$if defined(i8086) or defined(i386)}
-        result:=proccalloption in pushleftright_pocalls;
-{$else}
         result:=false;
-{$endif}
       end;
 
     function tabstractprocdef.address_type: tdef;

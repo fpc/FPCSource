@@ -90,14 +90,14 @@ type
 
   { tcpuprocvardef }
 
-  tcpuprocvardef = class(tprocvardef)
+  tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   { tcpuprocdef }
 
-  tcpuprocdef = class(tprocdef)
+  tcpuprocdef = class(ti86procdef)
     constructor create(level:byte);override;
     function address_type:tdef;override;
   end;
