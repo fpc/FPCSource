@@ -414,7 +414,6 @@ begin
   FLastError := 0;
   FSSLLastErrorString:='';
   repeat
-    Writeln(pchar(@buffer));
     Result:=FSsl.Write(@Buffer,Count);
     e:=FSsl.GetError(Result);
   until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
