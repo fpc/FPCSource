@@ -575,13 +575,9 @@ implementation
                    end
                  else
                    begin
-                      { def_cgsize does not work for procdef }
-                      location.size:=OS_ADDR;
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
-{$ifdef i8086}
-                      if po_far in pd.procoptions then
-                        location.size:=OS_32;
-{$endif i8086}
+                      { def_cgsize does not work for tprocdef, so we use pd.address_type }
+                      location.size:=def_cgsize(pd.address_type);
                       if not(po_weakexternal in pd.procoptions) then
                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
                       else
