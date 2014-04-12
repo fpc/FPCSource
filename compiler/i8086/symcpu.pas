@@ -99,6 +99,7 @@ type
 
   tcpuprocdef = class(tprocdef)
     constructor create(level:byte);override;
+    function address_type:tdef;override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -196,6 +197,15 @@ implementation
       { todo: allow using near procs in the far code memory models, like in TP7 }
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
+    end;
+
+
+  function tcpuprocdef.address_type: tdef;
+    begin
+      if po_far in procoptions then
+        result:=voidfarpointertype
+      else
+        result:=voidnearpointertype;
     end;
 
 {****************************************************************************

@@ -574,7 +574,7 @@ interface
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;
-          function address_type:tdef;
+          function address_type:tdef;virtual;
           procedure declared_far;virtual;
           procedure declared_near;virtual;
        private
@@ -4486,14 +4486,7 @@ implementation
 
     function tabstractprocdef.address_type: tdef;
       begin
-{$ifdef i8086}
-        if po_far in procoptions then
-          result:=voidfarpointertype
-        else
-          result:=voidnearpointertype;
-{$else i8086}
-          result:=voidpointertype;
-{$endif i8086}
+        result:=voidcodepointertype;
       end;
 
 
