@@ -41,6 +41,25 @@ interface
     { thlcgcpu }
 
     thlcgcpu = class(thlcgx86)
+     private
+      { checks whether the type needs special methodptr-like handling, when stored
+        in a LOC_REGISTER location. This applies to the following types:
+          - i8086 method pointers (incl. 6-byte mixed near + far),
+          - 6-byte records (only in the medium and compact memory model are these
+              loaded in a register)
+          - nested proc ptrs
+        When stored in a LOC_REGISTER tlocation, these types use both register
+        and registerhi with the following sizes:
+
+        register   - cgsize = int_cgsize(voidcodepointertype.size)
+        registerhi - cgsize = int_cgsize(voidpointertype.size) }
+      function is_methodptr_like_type(d:tdef): boolean;
+
+      { 4-byte records in registers need special handling as well. A record may
+        be located in registerhi:register if it was converted from a procvar or
+        in GetNextReg(register):register if it was converted from a longint.
+        We can tell between the two by checking whether registerhi has been set. }
+      function is_fourbyterecord(d:tdef): boolean;
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
@@ -70,6 +89,27 @@ implementation
     aasmcpu;
 
   { thlcgcpu }
+
+  function thlcgcpu.is_methodptr_like_type(d: tdef): boolean;
+    var
+      is_sixbyterecord,is_methodptr,is_nestedprocptr: Boolean;
+    begin
+      is_sixbyterecord:=(d.typ=recorddef) and (d.size=6);
+      is_methodptr:=(d.typ=procvardef)
+        and (po_methodpointer in tprocvardef(d).procoptions)
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      is_nestedprocptr:=(d.typ=procvardef)
+        and is_nested_pd(tprocvardef(d))
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      result:=is_sixbyterecord or is_methodptr or is_nestedprocptr;
+    end;
+
+
+  function thlcgcpu.is_fourbyterecord(d: tdef): boolean;
+    begin
+      result:=(d.typ=recorddef) and (d.size=4);
+    end;
+
 
   procedure thlcgcpu.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
     var
@@ -279,50 +319,20 @@ implementation
   procedure thlcgcpu.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
     var
       r,tmpref: treference;
-      is_sixbyterecord: Boolean;
-      is_fourbyterecord: Boolean;
-      is_methodptr: Boolean;
-      is_nestedprocptr: Boolean;
     begin
-      is_sixbyterecord:=(size.typ=recorddef) and (size.size=6);
-      is_fourbyterecord:=(size.typ=recorddef) and (size.size=4);
-      is_methodptr:=(size.typ=procvardef)
-        and (po_methodpointer in tprocvardef(size).procoptions)
-        and not(po_addressonly in tprocvardef(size).procoptions);
-      is_nestedprocptr:=(size.typ=procvardef)
-        and is_nested_pd(tprocvardef(size))
-        and not(po_addressonly in tprocvardef(size).procoptions);
-
-      { handle i8086 method pointers (incl. 6-byte mixed near + far),
-        6-byte records and nested proc ptrs }
-      if (is_sixbyterecord or is_methodptr or is_nestedprocptr) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      if is_methodptr_like_type(size) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
 
-          if current_settings.x86memorymodel in x86_far_code_models then
-            begin
-              cg.a_load_reg_ref(list,OS_32,OS_32,l.register,tmpref);
-              inc(tmpref.offset,4);
-            end
-          else
-            begin
-              cg.a_load_reg_ref(list,OS_16,OS_16,l.register,tmpref);
-              inc(tmpref.offset,2);
-            end;
-          if current_settings.x86memorymodel in x86_far_data_models then
-            cg.a_load_reg_ref(list,OS_32,OS_32,l.registerhi,tmpref)
-          else
-            cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref);
+          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,l.register,tmpref);
+          inc(tmpref.offset,voidcodepointertype.size);
+          a_load_reg_ref(list,voidpointertype,voidpointertype,l.registerhi,tmpref);
 
           location_reset_ref(l,LOC_REFERENCE,l.size,0);
           l.reference:=r;
         end
-      { 4-byte records in registers need special handling as well. A record may
-        be located in registerhi:register if it was converted from a procvar or
-        in GetNextReg(register):register if it was converted from a longint.
-        We can tell between the two by checking whether registerhi has been set. }
-      else if is_fourbyterecord and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      else if is_fourbyterecord(size) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
