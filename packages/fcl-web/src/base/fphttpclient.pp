@@ -40,6 +40,8 @@ Type
   // During read of content, of Server did not specify contentlength, -1 is passed.
   // CurrentPos is reset to 0 when the actual content is read, i.e. it is the position in the data, discarding header size.
   TDataEvent   = Procedure (Sender : TObject; Const ContentLength, CurrentPos : Int64) of object;
+  // Use this to set up a socket handler. UseSSL is true if protocol was https
+  TGetSocketHandlerEvent = Procedure (Sender : TObject; Const UseSSL : Boolean; Out AHandler : TSocketHandler) of object;
 
   { TFPCustomHTTPClient }
   TFPCustomHTTPClient = Class(TComponent)
@@ -65,6 +67,7 @@ Type
     FSocket : TInetSocket;
     FBuffer : Ansistring;
     FUserName: String;
+    FOnGetSocketHandler : TGetSocketHandlerEvent;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
@@ -101,6 +104,8 @@ Type
     Procedure DoMethod(Const AMethod,AURL : String; Stream : TStream; Const AllowedResponseCodes : Array of Integer); virtual;
     // Send request to server: construct request line and send headers and request body.
     Procedure SendRequest(const AMethod: String; URI: TURI); virtual;
+    // Create socket handler for protocol AProtocol. Calls OnGetSocketHandler.
+    Function GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;  virtual;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
@@ -239,6 +244,8 @@ Type
     Property OnDataReceived : TDataEvent Read FOnDataReceived Write FOnDataReceived;
     // Called when headers have been processed.
     Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
+    // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
+    Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
   end;
 
 
@@ -411,6 +418,19 @@ begin
     Result:=Result+'?'+URI.Params;
 end;
 
+Function TFPCustomHTTPClient.GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;
+
+begin
+  Result:=Nil;
+  if Assigned(FonGetSocketHandler) then
+    FOnGetSocketHandler(Self,UseSSL,Result);
+  if (Result=Nil) then  
+    If UseSSL then
+      Result:=TSSLSocketHandler.Create
+    else
+      Result:=TSocketHandler.Create;
+end;
+
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
   APort: Integer; UseSSL : Boolean = False);
 
@@ -424,10 +444,7 @@ begin
       Aport:=443
     else
       Aport:=80;
-  If UseSSL then
-    G:=TSSLSocketHandler.Create
-  else
-    G:=TSocketHandler.Create;
+  G:=GetSocketHandler(UseSSL);    
   FSocket:=TInetSocket.Create(AHost,APort,G);
   FSocket.Connect;
 end;
