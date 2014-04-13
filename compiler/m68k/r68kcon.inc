@@ -32,4 +32,4 @@ NR_A3 = tregister($06000003);
 NR_A4 = tregister($06000004);
 NR_A5 = tregister($06000005);
 NR_A6 = tregister($06000006);
-NR_SP = tregister($06000007);
+NR_A7 = tregister($06000007);
