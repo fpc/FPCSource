@@ -251,6 +251,7 @@ implementation
 
      function tx86inlinenode.first_fma : tnode;
        begin
+{$ifndef i8086}
          if ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
@@ -258,6 +259,7 @@ implementation
              Result:=nil;
            end
          else
+{$endif i8086}
            Result:=inherited first_fma;
        end;
 
@@ -768,6 +770,7 @@ implementation
         i : integer;
         gotmem : boolean;
       begin
+{$ifndef i8086}
          if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
            begin
              paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
@@ -834,6 +837,7 @@ implementation
                end;
            end
          else
+{$endif i8086}
            internalerror(2014032301);
       end;
 

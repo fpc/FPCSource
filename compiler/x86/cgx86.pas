@@ -185,7 +185,7 @@ unit cgx86;
 
     function UseAVX: boolean;
       begin
-        Result:=(current_settings.fputype in fpu_avx_instructionsets) or (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]);
+        Result:=(current_settings.fputype in fpu_avx_instructionsets) {$ifndef i8086}or (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]){$endif i8086};
       end;
 
 
