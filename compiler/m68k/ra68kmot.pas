@@ -201,12 +201,26 @@ const
 
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
-        is_register:=false;
-        // FIX ME!!! Ugly, needs a proper fix (KB)
+        result:=false;
+        // FIX ME!!! '%'+ is ugly, needs a proper fix (KB)
         actasmregister:=gas_regnum_search('%'+lower(s));
         if actasmregister<>NR_NO then
           begin
-            is_register:=true;
+            result:=true;
+            actasmtoken:=AS_REGISTER;
+          end;
+        { reg found?
+          possible aliases are always 2 char
+        }
+        if result or (length(s)<>2) then
+          exit;
+        if lower(s)='sp' then
+          actasmregister:=NR_STACK_POINTER_REG;
+        if lower(s)='fp' then
+          actasmregister:=NR_STACK_POINTER_REG;
+        if actasmregister<>NR_NO then
+          begin
+            result:=true;
             actasmtoken:=AS_REGISTER;
           end;
       end;
@@ -1410,7 +1424,6 @@ const
                               if expr = 'SELF' then
                                 oper.SetupSelf
                               else begin
-                                writeln('unknown id: ',expr);
                                 Message1(sym_e_unknown_id,expr);
                               end;
                               expr:='';
@@ -1459,7 +1472,6 @@ const
                   end;
    { // Register, a variable reference or a constant reference // }
      AS_REGISTER: begin
-//                   writeln('register! ',actasmpattern);
                    { save the type of register used. }
                    tempstr := actasmpattern;
                    Consume(AS_REGISTER);
