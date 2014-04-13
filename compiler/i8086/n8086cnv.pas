@@ -29,8 +29,12 @@ interface
       node,ncgcnv,nx86cnv,defutil,defcmp;
 
     type
+
+       { t8086typeconvnode }
+
        t8086typeconvnode = class(tx86typeconvnode)
        protected
+         function typecheck_proc_to_procvar: tnode;override;
          procedure second_proc_to_procvar;override;
          procedure second_nil_to_methodprocvar;override;
        end;
@@ -48,6 +52,14 @@ implementation
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
 
+    function t8086typeconvnode.typecheck_proc_to_procvar: tnode;
+      begin
+        if (current_settings.x86memorymodel in x86_far_code_models) and
+          not is_proc_far(tabstractprocdef(left.resultdef)) then
+          CGMessage1(type_e_procedure_must_be_far,left.resultdef.GetTypeName);
+        Result:=inherited typecheck_proc_to_procvar;
+      end;
+
 
     procedure t8086typeconvnode.second_proc_to_procvar;
       var
@@ -56,9 +68,14 @@ implementation
       begin
         if not is_proc_far(tabstractprocdef(resultdef)) then
           begin
+            if current_settings.x86memorymodel in x86_far_code_models then
+              internalerror(2014041302);
             inherited;
             exit;
           end;
+
+        if not is_proc_far(tabstractprocdef(left.resultdef)) then
+          internalerror(2014041303);
 
         if tabstractprocdef(resultdef).is_addressonly then
           begin

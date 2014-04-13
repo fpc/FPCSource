@@ -1514,7 +1514,7 @@ parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the 
 %
 # Type Checking
 #
-# 04120 is the last used one
+# 04121 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1938,6 +1938,9 @@ type_e_invalid_default_value=04119_E_It is not possible to define a default valu
 % arrays and TP-style objects, cannot have a default value.
 type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by a type helper
 % Types like procedural variables cannot be extended by type helpers
+type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order to allow taking its address: "$1"
+% In certain i8086 memory models (medium, large and huge), procedures and functions
+% have to be declared 'far' in order to allow their address to be taken.
 % \end{description}
 #
 # Symtable

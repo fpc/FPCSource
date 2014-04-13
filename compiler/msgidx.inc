@@ -546,6 +546,7 @@ const
   type_e_typeof_requires_vmt=04118;
   type_e_invalid_default_value=04119;
   type_e_type_not_allowed_for_type_helper=04120;
+  type_e_procedure_must_be_far=04121;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -986,9 +987,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 71242;
+  MsgTxtSize = 71327;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,96,337,121,89,57,126,27,202,64,
+    26,96,337,122,89,57,126,27,202,64,
     57,20,1,1,1,1,1,1,1,1
   );
