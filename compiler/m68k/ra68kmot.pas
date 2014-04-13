@@ -331,8 +331,11 @@ const
 
                              { this isn't the first token, so it can't be an
                                opcode }
-                             {If is_asmopcode(actasmpattern) then
-                               exit;}
+                             { Actually, it's possible, since @label: OPCODE foo,bar
+                               is valid and was supported in 0.99/1.0 FPC for 68k,
+                               the amunits package is full of such code. (KB) }
+                             if is_asmopcode(actasmpattern) then
+                               exit;
                              if is_register(actasmpattern) then
                                exit;
                              if is_asmdirective(actasmpattern) then
