@@ -387,6 +387,20 @@ unit scandir;
         do_delphiswitch('X');
       end;
 
+    procedure dir_forcefarcalls;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_localswitch(cs_force_far_calls);
+      end;
+
     procedure dir_fatal;
       begin
         do_message(scan_f_user_defined);
@@ -1596,6 +1610,7 @@ unit scandir;
         AddDirective('ERRORC',directive_mac, @dir_error);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
+        AddDirective('F',directive_all, @dir_forcefarcalls);
         AddDirective('FATAL',directive_all, @dir_fatal);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
         AddDirective('FRAMEWORKPATH',directive_all, @dir_frameworkpath);

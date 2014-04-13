@@ -143,7 +143,9 @@ interface
          cs_external_var, cs_externally_visible,
          { jvm specific }
          cs_check_var_copyout,
-         cs_zerobasedstrings
+         cs_zerobasedstrings,
+         { i8086 specific }
+         cs_force_far_calls
        );
        tlocalswitches = set of tlocalswitch;
 
