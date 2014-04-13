@@ -86,11 +86,11 @@ type
   end;
   tcpufloatdefclass = class of tcpufloatdef;
 
-  tcpuprocvardef = class(tprocvardef)
+  tcpuprocvardef = class(ti86procvardef)
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
-  tcpuprocdef = class(tprocdef)
+  tcpuprocdef = class(ti86procdef)
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
