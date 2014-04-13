@@ -220,6 +220,7 @@ interface
           { a refcounted into a non-refcounted type                     }
           function can_be_inlined: boolean;
 
+          property paravalue : tnode read left write left;
           property nextpara : tnode read right write right;
           { third is reused to store the parameter name (only while parsing
             vardispatch calls, never in real node tree) and copy of 'high'

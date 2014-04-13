@@ -109,3 +109,15 @@ procedure float_raise(i: TFPUExceptionMask);
     operator := (b:real48) e:extended;
 {$endif SUPPORT_EXTENDED}
 
+
+    function fma(s1,s2,s3 : single) : single;[internproc:fpc_in_fma_single];
+{$ifdef SUPPORT_DOUBLE}
+    function fma(d1,d2,d3 : double) : double;[internproc:fpc_in_fma_double];
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
+    function fma(e1,e2,e3 : extended) : extended;[internproc:fpc_in_fma_extended];
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_FLOAT128}
+    function fma(f1,f2,f3 : float128) : float128;[internproc:fpc_in_fma_float128];
+{$endif SUPPORT_FLOAT128}
+

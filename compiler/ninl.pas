@@ -45,6 +45,7 @@ interface
           { pack and unpack are changed into for-loops by the compiler }
           function first_pack_unpack: tnode; virtual;
 
+          property parameters : tnode read left write left;
          protected
           { All the following routines currently
             call compilerprocs, unless they are
@@ -83,6 +84,7 @@ interface
           function typecheck_seg: tnode; virtual;
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
+          function first_fma : tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -3245,6 +3247,16 @@ implementation
                 begin
                   result:=handle_unbox;
                 end;
+              in_fma_single,
+              in_fma_double,
+              in_fma_extended,
+              in_fma_float128:
+                begin
+                  set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=tcallparanode(left).left.resultdef;
+                end;
               else
                 internalerror(8);
             end;
@@ -3659,6 +3671,11 @@ implementation
            result:=first_box;
          in_unbox_x_y:
            result:=first_unbox;
+         in_fma_single,
+         in_fma_double,
+         in_fma_extended,
+         in_fma_float128:
+           result:=first_fma;
          else
            internalerror(89);
           end;
@@ -4218,4 +4235,12 @@ implementation
          result := loop;
        end;
 
+
+     function tinlinenode.first_fma: tnode;
+       begin
+         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         result:=nil;
+       end;
+
 end.
+

@@ -2358,6 +2358,11 @@ cg_e_mod_only_defined_for_pos_quotient=06054_E_In ISO mode, the mod operator is 
 % In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 cg_d_autoinlining=06055_DL_Auto inlining: $1
 % Due to auto inlining turned on, the compiler auto inlines this subroutine.
+cg_e_function_not_support_by_selected_instruction_set=06056_E_The function used, is not supported by the selected instruction set: $1
+% Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
+% To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
+% or replace the function call by alternative code
+%
 % \end{description}
 # EndOfTeX
 #
@@ -2615,7 +2620,6 @@ asmr_e_mixing_regtypes=07108_E_All registers in a register set must be of the sa
 asmr_e_empty_regset=07109_E_A register set cannot be empty
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
-
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code

@@ -11382,6 +11382,7 @@ tests/test/textthr.pp svneol=native#text/plain
 tests/test/tfillchr.pp svneol=native#text/plain
 tests/test/tfinal1.pp svneol=native#text/pascal
 tests/test/tfinal2.pp svneol=native#text/pascal
+tests/test/tfma1.pp svneol=native#text/pascal
 tests/test/tforin1.pp svneol=native#text/pascal
 tests/test/tforin10.pp svneol=native#text/plain
 tests/test/tforin11.pp svneol=native#text/plain

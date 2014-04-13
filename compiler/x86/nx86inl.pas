@@ -45,6 +45,7 @@ interface
           function first_round_real: tnode; override;
           function first_trunc_real: tnode; override;
           function first_popcnt: tnode; override;
+          function first_fma: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -64,6 +65,7 @@ interface
           procedure second_abs_long;override;
 {$endif not i8086}
           procedure second_popcnt;override;
+          procedure second_fma;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -247,7 +249,20 @@ implementation
        end;
 
 
-     procedure tx86inlinenode.second_Pi;
+     function tx86inlinenode.first_fma : tnode;
+       begin
+         if ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]) and
+           ((is_double(resultdef)) or (is_single(resultdef))) then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             Result:=nil;
+           end
+         else
+           Result:=inherited first_fma;
+       end;
+
+
+     procedure tx86inlinenode.second_pi;
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          emit_none(A_FLDPI,S_NO);
@@ -741,4 +756,85 @@ implementation
         else
           emit_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register);
       end;
+
+
+    procedure tx86inlinenode.second_fma;
+      const
+        op : array[s32real..s64real,0..3] of TAsmOp = ((A_VFMADD231SS,A_VFMADD231SS,A_VFMADD231SS,A_VFMADD213SS),
+                                                       (A_VFMADD231SD,A_VFMADD231SD,A_VFMADD231SD,A_VFMADD213SD));
+      var
+        paraarray : array[1..3] of tnode;
+        memop,
+        i : integer;
+        gotmem : boolean;
+      begin
+         if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+           begin
+             paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
+             paraarray[2]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+             paraarray[3]:=tcallparanode(parameters).paravalue;
+
+             for i:=1 to 3 do
+               secondpass(paraarray[i]);
+
+             { only one memory operand is allowed }
+             gotmem:=false;
+             memop:=0;
+             for i:=1 to 3 do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                   begin
+                     if (paraarray[i].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not(gotmem) then
+                       begin
+                         memop:=i;
+                         gotmem:=true;
+                       end
+                     else
+                       hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   end;
+               end;
+
+             location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+
+             if gotmem then
+               begin
+                 case memop of
+                   1:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                         paraarray[3].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[1].location.reference,paraarray[2].location.register,location.register);
+                     end;
+                   2:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                         paraarray[3].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[2].location.reference,paraarray[1].location.register,location.register);
+                     end;
+                   3:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                         paraarray[1].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[3].location.reference,paraarray[2].location.register,location.register);
+                     end
+                   else
+                     internalerror(2014041301);
+                 end;
+               end
+             else
+               begin
+                 hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                   paraarray[3].location.register,location.register,mms_movescalar);
+                 emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,0],S_NO,
+                   paraarray[1].location.register,paraarray[2].location.register,location.register);
+               end;
+           end
+         else
+           internalerror(2014032301);
+      end;
+
 end.

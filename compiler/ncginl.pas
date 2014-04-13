@@ -60,6 +60,7 @@ interface
           procedure second_box; virtual; abstract;
           procedure second_popcnt; virtual;
           procedure second_seg; virtual; abstract;
+          procedure second_fma; virtual;
        end;
 
 implementation
@@ -190,6 +191,11 @@ implementation
                second_popcnt;
             in_seg_x:
                second_seg;
+            in_fma_single,
+            in_fma_double,
+            in_fma_extended,
+            in_fma_float128:
+               second_fma;
             else internalerror(9);
          end;
       end;
@@ -765,6 +771,12 @@ implementation
     procedure tcginlinenode.second_popcnt;
       begin
         internalerror(2012082601);
+      end;
+
+
+    procedure tcginlinenode.second_fma;
+      begin
+        internalerror(2014032701);
       end;
 
 
