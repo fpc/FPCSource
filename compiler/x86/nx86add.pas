@@ -37,6 +37,7 @@ unit nx86add;
         function  getresflags(unsigned : boolean) : tresflags;
         procedure left_must_be_reg(opdef: tdef; opsize:TCGSize;noswap:boolean);
         procedure force_left_and_right_fpureg;
+        procedure prepare_x87_locations(out refnode: tnode);
         procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
@@ -255,6 +256,55 @@ unit nx86add;
             { fpu operands are always in the wrong order on the stack }
             toggleflag(nf_swapped);
           end;
+      end;
+
+
+    { Makes sides suitable for executing an x87 instruction:
+      if either side is OS_F32/OS_F64-sized LOC_REFERENCE, it is returned in 'refnode'
+      everything else is loaded to FPU stack. }
+    procedure tx86addnode.prepare_x87_locations(out refnode: tnode);
+      begin
+        refnode:=nil;
+        case ord(left.location.loc=LOC_FPUREGISTER)+ord(right.location.loc=LOC_FPUREGISTER) of
+          0:
+            begin
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,false);
+              if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                InternalError(2013090803);
+              if (left.location.size in [OS_F32,OS_F64]) then
+                begin
+                  refnode:=left;
+                  toggleflag(nf_swapped);
+                end
+              else
+                hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+            end;
+          1:
+            begin   { if left is on the stack then swap. }
+              if (left.location.loc=LOC_FPUREGISTER) then
+                refnode:=right
+              else
+                refnode:=left;
+              if not(refnode.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                InternalError(2013090801);
+              if not (refnode.location.size in [OS_F32,OS_F64]) then
+                begin
+                  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,refnode.location,refnode.resultdef,false);
+                  if (refnode=right) then
+                    toggleflag(nf_swapped);
+                  refnode:=nil;
+                end
+              else
+                begin
+                  if (refnode=left) then
+                    toggleflag(nf_swapped);
+                end;
+            end;
+          2: { fpu operands are always in the wrong order on the stack }
+            toggleflag(nf_swapped);
+        else
+          InternalError(2013090802);
+        end;
       end;
 
 
@@ -1096,8 +1146,17 @@ unit nx86add;
 
 
     procedure tx86addnode.second_addfloat;
+      const
+        ops_add:  array[boolean] of TAsmOp = (A_FADDP,A_FADD);
+        ops_mul:  array[boolean] of TAsmOp = (A_FMULP,A_FMUL);
+        ops_sub:  array[boolean] of TAsmOp = (A_FSUBP,A_FSUB);
+        ops_rsub: array[boolean] of TAsmOp = (A_FSUBRP,A_FSUBR);
+        ops_div:  array[boolean] of TAsmOp = (A_FDIVP,A_FDIV);
+        ops_rdiv: array[boolean] of TAsmOp = (A_FDIVRP,A_FDIVR);
       var
         op : TAsmOp;
+        refnode : tnode;
+        hasref : boolean;
       begin
         if use_vectorfpu(resultdef) then
           begin
@@ -1109,33 +1168,35 @@ unit nx86add;
           end;
 
         pass_left_right;
+        prepare_x87_locations(refnode);
+        hasref:=assigned(refnode);
 
         case nodetype of
           addn :
-            op:=A_FADDP;
+            op:=ops_add[hasref];
           muln :
-            op:=A_FMULP;
+            op:=ops_mul[hasref];
           subn :
-            op:=A_FSUBP;
+            if (nf_swapped in flags) then
+              op:=ops_rsub[hasref]
+            else
+              op:=ops_sub[hasref];
           slashn :
-            op:=A_FDIVP;
+            if (nf_swapped in flags) then
+              op:=ops_rdiv[hasref]
+            else
+              op:=ops_div[hasref];
           else
             internalerror(2003042214);
         end;
 
-        force_left_and_right_fpureg;
-
-        { if we swaped the tree nodes, then use the reverse operator }
-        if nf_swapped in flags then
+        if hasref then
+          emit_ref(op,tcgsize2opsize[refnode.location.size],refnode.location.reference)
+        else
           begin
-             if (nodetype=slashn) then
-               op:=A_FDIVRP
-             else if (nodetype=subn) then
-               op:=A_FSUBRP;
+            emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
+            tcgx86(cg).dec_fpu_stack;
           end;
-
-        emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
-        tcgx86(cg).dec_fpu_stack;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=NR_ST;
