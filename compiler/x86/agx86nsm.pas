@@ -1106,6 +1106,7 @@ interface
                   end;
                { avoid empty files }
                  LastSecType:=sec_none;
+                 LastSecName:='';
                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                   begin
                     if tai(hp.next).typ=ait_section then
