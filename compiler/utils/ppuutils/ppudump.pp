@@ -1883,8 +1883,6 @@ begin
          else
            write(', ');
          write(varopt[i].str);
-         if varopt[i].mask = vo_has_section then
-           writeln(['Section name:',ppufile.getansistring]);
        end;
      writeln;
    end;
@@ -2479,6 +2477,10 @@ begin
 {$else symansistr}
                writeln([space,' Mangledname : ',getstring]);
 {$endif symansistr}
+             if vo_has_section in varoptions then
+               writeln(['Section name:',ppufile.getansistring]);
+             write  ([space,' FieldVarSymDeref: ']);
+             readderef('');
            end;
 
          iblocalvarsym :
@@ -2978,6 +2980,7 @@ begin
              readcommondef('UnicodeString definition',defoptions,strdef);
              strdef.Len:=getaint;
              writeln([space,'           Length : ',strdef.Len]);
+             writeln([space,'         Encoding : ',getword]);
            end;
 
          ibansistringdef :
@@ -2987,6 +2990,7 @@ begin
              readcommondef('AnsiString definition',defoptions,strdef);
              strdef.Len:=getaint;
              writeln([space,'           Length : ',strdef.Len]);
+             writeln([space,'         Encoding : ',getword]);
            end;
 
          iblongstringdef :
