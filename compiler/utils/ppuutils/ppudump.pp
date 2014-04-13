@@ -1750,7 +1750,6 @@ var
 begin
   write([space,'      Return type : ']);
   readderef('', ProcDef.ReturnType);
-  writeln([space,'         Fpu used : ',ppufile.getbyte]);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
   case proctypeoption of
     potype_function: Include(ProcDef.Options, poFunction);
