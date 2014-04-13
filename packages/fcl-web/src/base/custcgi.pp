@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2014 by the Free Pascal development team
 
     TCGIApplication class.
 
@@ -26,7 +26,8 @@ uses
 Type
   { TCGIRequest }
   TCGIHandler = Class;
-  // Content read handler. PByte points to rad content, len is length. Return False in ContinueReading to abort reading.
+  // Content read handler. PByte points to read content, len is length.
+  // Return False in ContinueReading to abort reading.
   TCGIContentReadEvent = Procedure (Sender : TRequest; Content : PByte; Len : Integer; Var ContinueReading : Boolean) of object;
 
   TCGIRequest = Class(TRequest)
@@ -37,10 +38,10 @@ Type
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromEnvironment; virtual;
-    // Read content from STDin. Calls DoContentRead to see if reading must be aborted.
+    // Read content from stdin. Calls DoContentRead to see if reading must be aborted.
     procedure ReadContent; override;
     // Called whenever input is read from stdin. Calls OnContentRead.
-    // If Return True to continue reading, false to abort reading.
+    // Returns True to continue reading, false to abort reading.
     Function DoContentRead(B : PByte; Len : Integer) : Boolean; virtual;
   Public
     Constructor CreateCGI(ACGI : TCGIHandler);
@@ -121,8 +122,8 @@ Var
   CGIRequestClass : TCGIRequestClass = TCGIRequest;
   CGIResponseClass : TCGIResponseClass = TCGIResponse;
   CGIWebHandlerClass : TCgiHandlerClass = TCgiHandler;
-  ContentReadRetryInterval : Word = 100;
-  ContentReadMaxRetryCount : Word = 150;
+  ContentReadRetryInterval : Word = 100; // wait x milliseconds before retrying read
+  ContentReadMaxRetryCount : Word = 150; // wait x times before aborting retry
 
 ResourceString
   SWebMaster = 'webmaster';
@@ -333,9 +334,9 @@ begin
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
-    if (CL<>0) then
+    if (Cl<>0) then
       begin
-      // It can be that the complete content is not yet send by the server so repeat the read
+      // It can be that the complete content is not yet sent by the server so repeat the read
       // until all data is really read
       SetLength(S,Cl);
       BytesRead:=0;
@@ -344,7 +345,7 @@ begin
       repeat
         a := I.Read(S[BytesRead+1],Cl-BytesRead);
         BytesRead:=BytesRead+a;
-        if (A=0) then // In fact this can not happen, but the content could be delayed...
+        if (A=0) then // In fact this should not happen, but the content could be delayed...
           begin
           Inc(RetryCount);
           AbortRead:=RetryCount>ContentReadMaxRetryCount;
@@ -356,9 +357,8 @@ begin
           RetryCount:=0; // We got data, so let's reset this.
           AbortRead:=Not DoContentRead(PByte(@S[BytesRead+1]),A);
           end;
-        BytesRead:=BytesRead+a;
       until (BytesRead>=Cl) or (AbortRead);
-      // In fact the request is incomplete, but this is not the place thrown an error for that
+      // In fact the request is incomplete, but this is not the place to throw an error for that
       if BytesRead<Cl then
         SetLength(S,BytesRead);
       end
