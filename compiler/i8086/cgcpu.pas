@@ -120,7 +120,7 @@ unit cgcpu;
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,
-       symtype,symsym,
+       symtype,symsym,symcpu,
        tgobj,
        hlcgobj;
 
@@ -1735,7 +1735,7 @@ unit cgcpu;
         stacksize : longint;
         ret_instr: TAsmOp;
       begin
-        if po_far in current_procinfo.procdef.procoptions then
+        if is_proc_far(current_procinfo.procdef) then
           ret_instr:=A_RETF
         else
           ret_instr:=A_RET;

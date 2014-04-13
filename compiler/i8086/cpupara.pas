@@ -67,7 +67,7 @@ unit cpupara;
     uses
        cutils,
        systems,verbose,
-       symtable,
+       symtable,symcpu,
        defutil;
 
       const
@@ -423,7 +423,7 @@ unit cpupara;
         paraalign:=get_para_align(p.proccalloption);
         { interrupt routines need parameter fixup }
         if po_interrupt in p.procoptions then
-          if po_far in p.procoptions then
+          if is_proc_far(p) then
             dec(parasize,6)
           else
             dec(parasize,4);
@@ -499,7 +499,7 @@ unit cpupara;
                 if side=calleeside then
                   begin
                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                    if po_far in p.procoptions then
+                    if is_proc_far(p) then
                       inc(paraloc^.reference.offset,2);
                   end;
                 parasize:=align(parasize+paralen,varalign);
@@ -549,7 +549,7 @@ unit cpupara;
                         else
                           { return addres }
                           inc(paraloc^.reference.offset,2);
-                        if po_far in p.procoptions then
+                        if is_proc_far(p) then
                           inc(paraloc^.reference.offset,2);
                       end;
                     parasize:=align(parasize+l,varalign);
@@ -672,7 +672,7 @@ unit cpupara;
                               if side=calleeside then
                                 begin
                                   inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                                  if po_far in p.procoptions then
+                                  if is_proc_far(p) then
                                     inc(paraloc^.reference.offset,2);
                                 end;
                               parasize:=align(parasize+paralen,varalign);
@@ -717,7 +717,7 @@ unit cpupara;
                                   if side=calleeside then
                                     begin
                                       inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                                      if po_far in p.procoptions then
+                                      if is_proc_far(p) then
                                         inc(paraloc^.reference.offset,2);
                                     end;
                                   parasize:=align(parasize+l,varalign);

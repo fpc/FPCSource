@@ -41,7 +41,7 @@ implementation
    uses
       verbose,systems,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symconst,symdef,
+      symconst,symdef,symcpu,
       cgbase,cga,procinfo,pass_1,pass_2,
       ncon,ncal,ncnv,
       cpubase,cpuinfo,
@@ -54,7 +54,7 @@ implementation
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if not (po_far in tabstractprocdef(resultdef).procoptions) then
+        if not is_proc_far(tabstractprocdef(resultdef)) then
           begin
             inherited;
             exit;
@@ -148,7 +148,7 @@ implementation
             location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
             cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
           end;
-        if (resultdef.typ=procvardef) and (po_far in tprocvardef(resultdef).procoptions) then
+        if (resultdef.typ=procvardef) and is_proc_far(tprocvardef(resultdef)) then
           begin
             location.register:=cg.getintregister(current_asmdata.currasmlist,OS_32);
             cg.a_load_const_reg(current_asmdata.currasmlist,OS_32,0,location.register);

@@ -92,6 +92,7 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
+    function is_far:boolean;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
@@ -100,6 +101,7 @@ type
   tcpuprocdef = class(ti86procdef)
     constructor create(level:byte);override;
     function address_type:tdef;override;
+    function is_far:boolean;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -182,10 +184,25 @@ const
    pbestrealtype : ^tdef = @s80floattype;
 
 
+  function is_proc_far(p: tabstractprocdef): boolean;
+
+
 implementation
 
   uses
-    globals, cpuinfo;
+    globals, cpuinfo, verbose;
+
+
+  function is_proc_far(p: tabstractprocdef): boolean;
+  begin
+    if p is tcpuprocdef then
+      result:=tcpuprocdef(p).is_far
+    else if p is tcpuprocvardef then
+      result:=tcpuprocvardef(p).is_far
+    else
+      internalerror(2014041301);
+  end;
+
 
 {****************************************************************************
                              tcpuprocdef
@@ -202,10 +219,16 @@ implementation
 
   function tcpuprocdef.address_type: tdef;
     begin
-      if po_far in procoptions then
+      if is_far then
         result:=voidfarpointertype
       else
         result:=voidnearpointertype;
+    end;
+
+
+  function tcpuprocdef.is_far: boolean;
+    begin
+      result:=po_far in procoptions;
     end;
 
 {****************************************************************************
@@ -218,6 +241,13 @@ implementation
       { procvars are always far in the far code memory models }
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
+    end;
+
+
+  function tcpuprocvardef.is_far: boolean;
+    begin
+      { procvars are always far in the far code memory models }
+      result:=current_settings.x86memorymodel in x86_far_code_models;
     end;
 
 {****************************************************************************
