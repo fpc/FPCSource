@@ -58,11 +58,16 @@ const
 
   BreakOn : Boolean = True;
 
-
+{ FIX ME: remove the kludge required by amunits package, which needs a huge rework }
 var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
-  AOS_DOSBase    : Pointer;
-  AOS_UtilityBase: Pointer;
+  _ExecBase: Pointer; external name '_ExecBase'; { amunits compatibility kludge }
+  AOS_DOSBase    : Pointer; external name '_DOSBase'; { the "external" part is amunits compatibility kludge }
+  _DOSBase: Pointer; external name '_DOSBase'; { amunits compatibility kludge }
+  AOS_UtilityBase: Pointer; external name '_UtilityBase'; { the "external" part is amunits compatibility kludge }
+  _UtilityBase: Pointer; external name '_UtilityBase'; { amunits compatibility kludge }
+  AOS_IntuitionBase: Pointer; external name '_IntuitionBase'; { amunits compatibility kludge }
+  _IntuitionBase: Pointer; external name '_IntuitionBase'; { amunits compatibility kludge }
 
 {$IFDEF AMIGAOS4}
 {$WARNING iExec, iDOS and iUtility should be typed pointer later}
@@ -74,7 +79,8 @@ var
 
   AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   AOS_origDir  : LongInt; { original directory on startup }
-  AOS_wbMsg    : Pointer;
+  AOS_wbMsg    : Pointer; external name '_WBenchMsg'; { the "external" part is amunits compatibility kludge }
+  _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: LongInt;
 
@@ -143,6 +149,7 @@ begin
   if iUtility<>nil then DropInterface(iUtility);
 {$ENDIF}
 
+  if AOS_IntuitionBase<>nil then CloseLibrary(AOS_IntuitionBase); { amunits kludge }
   if AOS_UtilityBase<>nil then CloseLibrary(AOS_UtilityBase);
   if AOS_DOSBase<>nil then CloseLibrary(AOS_DOSBase);
   if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
@@ -321,6 +328,8 @@ begin
   if AOS_DOSBase=nil then Halt(1);
   AOS_UtilityBase:=OpenLibrary('utility.library',37);
   if AOS_UtilityBase=nil then Halt(1);
+  AOS_IntuitionBase:=OpenLibrary('intuition.library',37); { amunits support kludge }
+  if AOS_IntuitionBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}
   { Open main interfaces on OS4 }
