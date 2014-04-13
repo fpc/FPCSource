@@ -885,36 +885,11 @@ implementation
                   else
 {$endif cpu64bitalu}
 {$ifdef i8086}
-                  { i8086 method pointer support (incl. 6-byte method pointers for the medium and compact memory models) }
-                  if (left.resultdef.typ = procvardef) and
-                     ((po_methodpointer in tprocvardef(left.resultdef).procoptions) or is_nested_pd(tprocvardef(left.resultdef))) and
-                     not(po_addressonly in tprocvardef(left.resultdef).procoptions) then
-                    begin
-                      case left.location.loc of
-                        LOC_REFERENCE,LOC_CREFERENCE:
-                          begin
-                            href:=left.location.reference;
-                            { proc address }
-                            if po_far in tprocdef(right.resultdef).procoptions then
-                              begin
-                                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,right.location.register,href);
-                                inc(href.offset, 4)
-                              end
-                            else
-                              begin
-                                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,right.location.register,href);
-                                inc(href.offset, 2);
-                              end;
-                            { object self }
-                            if current_settings.x86memorymodel in x86_far_data_models then
-                              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_32,OS_32,right.location.registerhi,href)
-                            else
-                              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,right.location.registerhi,href);
-                          end;
-                        else
-                          internalerror(2013072001);
-                      end;
-                    end
+                  { prefer a_load_loc_ref, because it supports i8086-specific types
+                    that use registerhi (like 6-byte method pointers)
+                    (todo: maybe we should add a_load_loc_loc?) }
+                  if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.reference)
                   else
 {$endif i8086}
                     hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location);

@@ -67,6 +67,7 @@ interface
 
       procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
 
+      procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
@@ -252,6 +253,32 @@ implementation
 
       if is_farpointer(regsize) or is_hugepointer(regsize) then
         ref.segment:=GetNextReg(reg);
+    end;
+
+
+  procedure thlcgcpu.a_load_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);
+    var
+      tmpref: treference;
+    begin
+      if is_methodptr_like_type(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tmpref:=ref;
+          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
+          inc(tmpref.offset,voidcodepointertype.size);
+          a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref);
+        end
+      else if is_fourbyterecord(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tmpref:=ref;
+          cg.a_load_reg_ref(list,OS_16,OS_16,loc.register,tmpref);
+          inc(tmpref.offset,2);
+          if loc.registerhi<>tregister(0) then
+            cg.a_load_reg_ref(list,OS_16,OS_16,loc.registerhi,tmpref)
+          else
+            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(loc.register),tmpref);
+        end
+      else
+        inherited a_load_loc_ref(list, fromsize, tosize, loc, ref);
     end;
 
 
