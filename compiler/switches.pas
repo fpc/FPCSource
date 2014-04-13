@@ -64,7 +64,11 @@ const
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
    {E} (typesw:modulesw; setsw:ord(cs_fp_emulation)),
+{$ifdef i8086}
+   {F} (typesw:localsw; setsw:ord(cs_force_far_calls)),
+{$else i8086}
    {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
@@ -94,7 +98,11 @@ const
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
    {E} (typesw:modulesw; setsw:ord(cs_fp_emulation)),
+{$ifdef i8086}
+   {F} (typesw:localsw; setsw:ord(cs_force_far_calls)),
+{$else i8086}
    {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
