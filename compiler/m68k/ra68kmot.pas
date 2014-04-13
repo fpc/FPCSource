@@ -172,7 +172,10 @@ const
 
         { Search opcodes }
         actopcode:=tasmop(PtrInt(iasmops.Find(hs)));
-        if actopcode<>A_NONE then
+        { Also filter the helper opcodes, they can't be valid
+          while reading an assembly source }
+        if not (actopcode in
+           [A_NONE, A_LABEL, A_DBXX, A_SXX, A_BXX, A_FBXX]) then
           begin
             actasmtoken:=AS_OPCODE;
             result:=TRUE;
