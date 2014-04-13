@@ -2650,6 +2650,7 @@ begin
              readcommondef('Pointer definition',defoptions,def);
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
+             writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
              if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
                begin
                  write([space,' X86 Pointer Type : ']);
@@ -2668,7 +2669,6 @@ begin
                      WriteWarning('Invalid x86 pointer type: ' + IntToStr(b));
                  end;
                end;
-             writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 
          iborddef :
