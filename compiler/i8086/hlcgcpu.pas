@@ -29,7 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
-    globals,
+    globals,globtype,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -67,6 +67,8 @@ interface
 
       procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
 
+      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
+
       procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
@@ -81,11 +83,11 @@ interface
 implementation
 
   uses
-    globtype,verbose,
+    verbose,
     paramgr,
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
     defutil,
-    symconst,
+    symconst,symcpu,
     procinfo,
     aasmcpu;
 
@@ -253,6 +255,16 @@ implementation
 
       if is_farpointer(regsize) or is_hugepointer(regsize) then
         ref.segment:=GetNextReg(reg);
+    end;
+
+
+  function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+    begin
+      if is_proc_far(pd) then
+        tcg8086(cg).a_call_name_far(list,s,weak)
+      else
+        tcg8086(cg).a_call_name_near(list,s,weak);
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
 
