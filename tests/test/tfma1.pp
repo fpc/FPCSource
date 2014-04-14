@@ -13,6 +13,7 @@ procedure testsingle;
     l1:=2;
     l2:=3;
     l3:=4;
+    s0:=0;
     l0:=fma(l1,l2,l3);
     writeln(l0);
     if l0<>10.0 then
@@ -56,6 +57,7 @@ procedure testdouble;
     l1:=2;
     l2:=3;
     l3:=4;
+    d0:=0;
     l0:=fma(l1,l2,l3);
     writeln(l0);
     if l0<>10.0 then
