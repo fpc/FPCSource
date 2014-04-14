@@ -1681,10 +1681,7 @@ unit cgcpu;
         end;
 
         current_asmdata.getjumplabel(hl_skip);
-        ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
-        ai.SetCondition(flags_to_cond(invf));
-        ai.is_jmp:=true;
-        list.concat(ai);
+        a_jmp_flags(list,invf,hl_skip);
 
         { 16-bit INC is shorter than 8-bit }
         hreg16:=makeregsize(list,reg,OS_16);
