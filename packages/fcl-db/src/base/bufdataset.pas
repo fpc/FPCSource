@@ -2148,7 +2148,7 @@ var CurrBuff : pointer;
 
 begin
   if not (State in dsWriteModes) then
-    DatabaseError(SNotEditing, Self);
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
   CurrBuff := GetCurrentBuffer;
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
@@ -2802,7 +2802,7 @@ begin
   else if Mode = bmWrite then
     begin
     if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-      DatabaseErrorFmt(SNotEditing,[Name],self);
+      DatabaseErrorFmt(SNotEditing, [Name], Self);
     if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
 
