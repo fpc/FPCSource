@@ -2116,23 +2116,75 @@ unit cgx86;
      procedure tcgx86.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
        var
          ai : taicpu;
+         hl : tasmlabel;
+         f2 : tresflags;
        begin
+         hl:=nil;
+         f2:=f;
+         case f of
+           F_FNE:
+             begin
+               ai:=Taicpu.op_sym(A_Jcc,S_NO,l);
+               ai.SetCondition(C_P);
+               ai.is_jmp:=true;
+               list.concat(ai);
+               f2:=F_NE;
+             end;
+           F_FE,F_FA,F_FAE,F_FB,F_FBE:
+             begin
+               { JP before JA/JAE is redundant, but it must be generated here
+                 and left for peephole optimizer to remove. }
+               current_asmdata.getjumplabel(hl);
+               ai:=Taicpu.op_sym(A_Jcc,S_NO,hl);
+               ai.SetCondition(C_P);
+               ai.is_jmp:=true;
+               list.concat(ai);
+               f2:=FPUFlags2Flags[f];
+             end;
+         end;
          ai := Taicpu.op_sym(A_Jcc,S_NO,l);
-         ai.SetCondition(flags_to_cond(f));
+         ai.SetCondition(flags_to_cond(f2));
          ai.is_jmp := true;
          list.concat(ai);
+         if assigned(hl) then
+           a_label(list,hl);
        end;
 
 
     procedure tcgx86.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
       var
         ai : taicpu;
-        hreg : tregister;
+        f2 : tresflags;
+        hreg,hreg2 : tregister;
+        op: tasmop;
       begin
+        hreg2:=NR_NO;
+        op:=A_AND;
+        f2:=f;
+        case f of
+          F_FE,F_FNE,F_FB,F_FBE:
+            begin
+              hreg2:=getintregister(list,OS_8);
+              ai:=Taicpu.op_reg(A_SETcc,S_B,hreg2);
+              if (f=F_FNE) then       { F_FNE means "PF or (not ZF)" }
+                begin
+                  ai.setcondition(C_P);
+                  op:=A_OR;
+                end
+              else
+                ai.setcondition(C_NP);
+              list.concat(ai);
+              f2:=FPUFlags2Flags[f];
+            end;
+          F_FA,F_FAE:                 { These do not need PF check }
+            f2:=FPUFlags2Flags[f];
+        end;
         hreg:=makeregsize(list,reg,OS_8);
         ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
-        ai.setcondition(flags_to_cond(f));
+        ai.setcondition(flags_to_cond(f2));
         list.concat(ai);
+        if (hreg2<>NR_NO) then
+          list.concat(taicpu.op_reg_reg(op,S_B,hreg2,hreg));
         if reg<>hreg then
           a_load_reg_reg(list,OS_8,size,hreg,reg);
       end;
@@ -2142,13 +2194,24 @@ unit cgx86;
       var
         ai : taicpu;
         tmpref  : treference;
+        f2 : tresflags;
       begin
+        f2:=f;
+        case f of
+          F_FE,F_FNE,F_FB,F_FBE:
+            begin
+              inherited g_flags2ref(list,size,f,ref);
+              exit;
+            end;
+          F_FA,F_FAE:
+            f2:=FPUFlags2Flags[f];
+        end;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if not(size in [OS_8,OS_S8]) then
            a_load_const_ref(list,size,0,tmpref);
          ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
-         ai.setcondition(flags_to_cond(f));
+         ai.setcondition(flags_to_cond(f2));
          list.concat(ai);
 {$ifndef cpu64bitalu}
          if size in [OS_S64,OS_64] then

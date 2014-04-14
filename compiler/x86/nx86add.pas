@@ -35,6 +35,7 @@ unit nx86add;
       tx86addnode = class(tcgaddnode)
       protected
         function  getresflags(unsigned : boolean) : tresflags;
+        function  getfpuresflags : tresflags;
         procedure left_must_be_reg(opdef: tdef; opsize:TCGSize;noswap:boolean);
         procedure force_left_and_right_fpureg;
         procedure prepare_x87_locations(out refnode: tnode);
@@ -399,6 +400,32 @@ unit nx86add;
          end;
       end;
 
+
+    function tx86addnode.getfpuresflags : tresflags;
+      begin
+        if (nodetype=equaln) then
+          result:=F_FE
+        else if (nodetype=unequaln) then
+          result:=F_FNE
+        else if (nf_swapped in flags) then
+          case nodetype of
+            ltn : result:=F_FA;
+            lten : result:=F_FAE;
+            gtn : result:=F_FB;
+            gten : result:=F_FBE;
+          else
+            internalerror(2014031402);
+          end
+        else
+          case nodetype of
+            ltn : result:=F_FB;
+            lten : result:=F_FBE;
+            gtn : result:=F_FA;
+            gten : result:=F_FAE;
+          else
+            internalerror(2014031403);
+          end;
+      end;
 
 {*****************************************************************************
                                 AddSmallSet
@@ -1093,7 +1120,7 @@ unit nx86add;
                 internalerror(200402223);
             end;
           end;
-        location.resflags:=getresflags(true);
+        location.resflags:=getfpuresflags;
         location_freetemp(current_asmdata.CurrAsmList,left.location);
         location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
@@ -1259,7 +1286,7 @@ unit nx86add;
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getfpuresflags;
       end;
 
 

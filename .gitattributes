@@ -12316,6 +12316,7 @@ tests/test/units/fpwidestring/twide2fpwidestring.pp svneol=native#text/pascal
 tests/test/units/fpwidestring/twide6fpwidestring.pp svneol=native#text/pascal
 tests/test/units/fpwidestring/twide7fpwidestring.pp svneol=native#text/pascal
 tests/test/units/lineinfo/tlininfo.pp svneol=native#text/plain
+tests/test/units/math/tcmpnan.pp svneol=native#text/plain
 tests/test/units/math/tdivmod.pp svneol=native#text/plain
 tests/test/units/math/tmask.inc svneol=native#text/plain
 tests/test/units/math/tmask.pp svneol=native#text/plain

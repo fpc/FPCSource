@@ -247,8 +247,16 @@ uses
     type
       TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,
                    F_A,F_AE,F_B,F_BE,
-                   F_S,F_NS,F_O,F_NO);
+                   F_S,F_NS,F_O,F_NO,
+                   { For IEEE-compliant floating-point compares,
+                     same as normal counterparts but additionally check PF }
+                   F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE);
 
+    const
+      FPUFlags = [F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE];
+      FPUFlags2Flags: array[F_FE..F_FBE] of TResFlags = (
+        F_E,F_NE,F_A,F_AE,F_B,F_BE
+      );
 
 {*****************************************************************************
                                  Constants
@@ -478,7 +486,8 @@ implementation
         inv_flags: array[TResFlags] of TResFlags =
           (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
            F_BE,F_B,F_AE,F_A,
-           F_NS,F_S,F_NO,F_O);
+           F_NS,F_S,F_NO,F_O,
+           F_FNE,F_FE,F_FBE,F_FB,F_FAE,F_FA);
       begin
         f:=inv_flags[f];
       end;
@@ -487,9 +496,12 @@ implementation
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO);
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO,
+           C_None,C_None,C_None,C_None,C_None,C_None);
       begin
         result := flags_2_cond[f];
+        if (result=C_None) then
+          InternalError(2014041301);
       end;
 
 
