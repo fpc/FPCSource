@@ -559,13 +559,13 @@ interface
                       procname:=procname+'_le';
                     gtn:
                       begin
-                        procname:=procname+'_le';
-                        notnode:=true;
+                        procname:=procname+'_lt';
+                        swapleftright;
                       end;
                     gten:
                       begin
-                        procname:=procname+'_lt';
-                        notnode:=true;
+                        procname:=procname+'_le';
+                        swapleftright;
                       end;
                     equaln:
                       procname:=procname+'_eq';
