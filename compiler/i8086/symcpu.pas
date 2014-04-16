@@ -263,7 +263,7 @@ implementation
         exit(true);
       if (procoptions*[po_classmethod,po_virtualmethod,po_abstractmethod,
                        po_finalmethod,po_staticmethod,po_overridingmethod,
-                       po_external,po_public])<>[] then
+                       po_external,po_public,po_interrupt])<>[] then
         exit(true);
       if is_methodpointer then
         exit(true);
