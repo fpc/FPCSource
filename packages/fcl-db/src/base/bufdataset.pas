@@ -100,15 +100,16 @@ type
   end;
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
-  TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
+  TCompareFunc = function(subValue, aValue: pointer; size: integer; options: TLocateOptions): int64;
 
   TDBCompareRec = record
-                   Comparefunc : TCompareFunc;
+                   CompareFunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
                    FieldInd1,
                    FieldInd2   : longint;
                    NullBOff1,
                    NullBOff2   : PtrInt;
+                   Size        : integer;
                    Options     : TLocateOptions;
                    Desc        : Boolean;
                   end;
@@ -682,7 +683,7 @@ begin
     end;
 end;
 
-function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareText(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   if [loCaseInsensitive,loPartialKey]=options then
     Result := AnsiStrLIComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
@@ -694,7 +695,7 @@ begin
     Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
-function DBCompareWideText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareWideText(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   if [loCaseInsensitive,loPartialKey]=options then
     Result := WideCompareText(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
@@ -706,25 +707,25 @@ begin
          Result := WideCompareStr(pwidechar(subValue),pwidechar(aValue));
 end;
 
-function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareByte(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PByte(subValue)^-PByte(aValue)^;
 end;
 
-function DBCompareSmallInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareSmallInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PSmallInt(subValue)^-PSmallInt(aValue)^;
 end;
 
-function DBCompareInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PInteger(subValue)^-PInteger(aValue)^;
 end;
 
-function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareLargeInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   // A simple subtraction doesn't work, since it could be that the result
@@ -737,13 +738,13 @@ begin
     result := 0;
 end;
 
-function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareWord(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PWord(subValue)^-PWord(aValue)^;
 end;
 
-function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareQWord(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   // A simple subtraction doesn't work, since it could be that the result
@@ -756,7 +757,7 @@ begin
     result := 0;
 end;
 
-function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareDouble(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   // A simple subtraction doesn't work, since it could be that the result
   // doesn't fit into a LargeInt
@@ -768,9 +769,29 @@ begin
     result := 0;
 end;
 
-function DBCompareBCD(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareBCD(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   result:=BCDCompare(PBCD(subValue)^, PBCD(aValue)^);
+end;
+
+function DBCompareBytes(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
+begin
+  Result := CompareByte(subValue^, aValue^, size);
+end;
+
+function DBCompareVarBytes(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
+var len1, len2: LongInt;
+begin
+  len1 := PWord(subValue)^;
+  len2 := PWord(aValue)^;
+  inc(subValue, sizeof(Word));
+  inc(aValue, sizeof(Word));
+  if len1 > len2 then
+    Result := CompareByte(subValue^, aValue^, len2)
+  else
+    Result := CompareByte(subValue^, aValue^, len1);
+  if Result = 0 then
+    Result := len1 - len2;
 end;
 
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
@@ -797,13 +818,13 @@ begin
     IsNull1:=GetFieldIsNull(rec1+NullBOff1,FieldInd1);
     IsNull2:=GetFieldIsNull(rec2+NullBOff2,FieldInd2);
     if IsNull1 and IsNull2 then
-      result := 0
+      Result := 0
     else if IsNull1 then
-      result := -1
+      Result := -1
     else if IsNull2 then
-      result := 1
+      Result := 1
     else
-      Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
+      Result := CompareFunc(Rec1+Off1, Rec2+Off2, Size, Options);
 
     if Result <> 0 then
       begin
@@ -1742,18 +1763,20 @@ begin
     AField := TField(AFields[i]);
 
     case AField.DataType of
-      ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
-      ftWideString, ftFixedWideChar: ACompareRec.Comparefunc := @DBCompareWideText;
-      ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-      ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
+      ftString, ftFixedChar : ACompareRec.CompareFunc := @DBCompareText;
+      ftWideString, ftFixedWideChar: ACompareRec.CompareFunc := @DBCompareWideText;
+      ftSmallint : ACompareRec.CompareFunc := @DBCompareSmallInt;
+      ftInteger, ftBCD, ftAutoInc : ACompareRec.CompareFunc :=
         @DBCompareInt;
-      ftWord : ACompareRec.Comparefunc := @DBCompareWord;
-      ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
-      ftFloat, ftCurrency : ACompareRec.Comparefunc := @DBCompareDouble;
-      ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
+      ftWord : ACompareRec.CompareFunc := @DBCompareWord;
+      ftBoolean : ACompareRec.CompareFunc := @DBCompareByte;
+      ftFloat, ftCurrency : ACompareRec.CompareFunc := @DBCompareDouble;
+      ftDateTime, ftDate, ftTime : ACompareRec.CompareFunc :=
         @DBCompareDouble;
-      ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
-      ftFmtBCD : ACompareRec.Comparefunc := @DBCompareBCD;
+      ftLargeint : ACompareRec.CompareFunc := @DBCompareLargeInt;
+      ftFmtBCD : ACompareRec.CompareFunc := @DBCompareBCD;
+      ftBytes : ACompareRec.CompareFunc := @DBCompareBytes;
+      ftVarBytes : ACompareRec.CompareFunc := @DBCompareVarBytes;
     else
       DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
     end;
@@ -1763,6 +1786,8 @@ begin
 
     ACompareRec.FieldInd1:=AField.FieldNo-1;
     ACompareRec.FieldInd2:=ACompareRec.FieldInd1;
+
+    ACompareRec.Size:=GetFieldSize(FieldDefs[ACompareRec.FieldInd1]);
 
     ACompareRec.NullBOff1:=BufferOffset;
     ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
