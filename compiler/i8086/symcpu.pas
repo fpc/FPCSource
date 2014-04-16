@@ -99,8 +99,18 @@ type
   { tcpuprocdef }
 
   tcpuprocdef = class(ti86procdef)
+   private
+    { returns whether the function is far by default, i.e. whether it would be
+      far if _all_ of the following conditions are true:
+      - we're in a far code memory model
+      - it has no 'near' or 'far' specifiers
+      - it is compiled in a $F- state }
+    function default_far:boolean;
+   public
     constructor create(level:byte);override;
     function address_type:tdef;override;
+    procedure declared_far;override;
+    procedure declared_near;override;
     function is_far:boolean;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -211,8 +221,8 @@ implementation
   constructor tcpuprocdef.create(level: byte);
     begin
       inherited create(level);
-      { todo: allow using near procs in the far code memory models, like in TP7 }
-      if current_settings.x86memorymodel in x86_far_code_models then
+      if (current_settings.x86memorymodel in x86_far_code_models) and
+         (cs_force_far_calls in current_settings.localswitches) then
         procoptions:=procoptions+[po_far];
     end;
 
@@ -226,9 +236,45 @@ implementation
     end;
 
 
+  procedure tcpuprocdef.declared_far;
+    begin
+      if current_settings.x86memorymodel in x86_far_code_models then
+        include(procoptions,po_far)
+      else
+        inherited declared_far;
+    end;
+
+
+  procedure tcpuprocdef.declared_near;
+    begin
+      if current_settings.x86memorymodel in x86_far_code_models then
+        exclude(procoptions,po_far)
+      else
+        inherited declared_near;
+    end;
+
+
+  function tcpuprocdef.default_far: boolean;
+    begin
+      if proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize,
+                            potype_constructor,potype_destructor,
+                            potype_class_constructor,potype_class_destructor,
+                            potype_propgetter,potype_propsetter] then
+        exit(true);
+      if (procoptions*[po_classmethod,po_virtualmethod,po_abstractmethod,
+                       po_finalmethod,po_staticmethod,po_overridingmethod,
+                       po_external,po_public])<>[] then
+        exit(true);
+      if is_methodpointer then
+        exit(true);
+      result:=not (visibility in [vis_private,vis_hidden]);
+    end;
+
+
   function tcpuprocdef.is_far: boolean;
     begin
-      result:=po_far in procoptions;
+      result:=(current_settings.x86memorymodel in x86_far_code_models) and
+        ((po_far in procoptions) or default_far);
     end;
 
 {****************************************************************************
