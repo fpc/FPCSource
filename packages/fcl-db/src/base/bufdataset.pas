@@ -104,11 +104,9 @@ type
 
   TDBCompareRec = record
                    CompareFunc : TCompareFunc;
-                   Off1,Off2   : PtrInt;
-                   FieldInd1,
-                   FieldInd2   : longint;
-                   NullBOff1,
-                   NullBOff2   : PtrInt;
+                   Off         : PtrInt;
+                   NullBOff    : PtrInt;
+                   FieldInd    : longint;
                    Size        : integer;
                    Options     : TLocateOptions;
                    Desc        : Boolean;
@@ -815,8 +813,8 @@ var IndexFieldNr : Integer;
 begin
   for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
     begin
-    IsNull1:=GetFieldIsNull(rec1+NullBOff1,FieldInd1);
-    IsNull2:=GetFieldIsNull(rec2+NullBOff2,FieldInd2);
+    IsNull1:=GetFieldIsNull(rec1+NullBOff,FieldInd);
+    IsNull2:=GetFieldIsNull(rec2+NullBOff,FieldInd);
     if IsNull1 and IsNull2 then
       Result := 0
     else if IsNull1 then
@@ -824,7 +822,7 @@ begin
     else if IsNull2 then
       Result := 1
     else
-      Result := CompareFunc(Rec1+Off1, Rec2+Off2, Size, Options);
+      Result := CompareFunc(Rec1+Off, Rec2+Off, Size, Options);
 
     if Result <> 0 then
       begin
@@ -1781,16 +1779,11 @@ begin
       DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
     end;
 
-    ACompareRec.Off1:=BufferOffset + FFieldBufPositions[AField.FieldNo-1];
-    ACompareRec.Off2:=ACompareRec.Off1;
+    ACompareRec.Off:=BufferOffset + FFieldBufPositions[AField.FieldNo-1];
+    ACompareRec.NullBOff:=BufferOffset;
 
-    ACompareRec.FieldInd1:=AField.FieldNo-1;
-    ACompareRec.FieldInd2:=ACompareRec.FieldInd1;
-
-    ACompareRec.Size:=GetFieldSize(FieldDefs[ACompareRec.FieldInd1]);
-
-    ACompareRec.NullBOff1:=BufferOffset;
-    ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
+    ACompareRec.FieldInd:=AField.FieldNo-1;
+    ACompareRec.Size:=GetFieldSize(FieldDefs[ACompareRec.FieldInd]);
 
     ACompareRec.Desc := ixDescending in AIndexOptions;
     if assigned(ADescFields) then
