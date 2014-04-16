@@ -69,6 +69,7 @@ unit cgppc;
         procedure get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
+        procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
        protected
         function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
@@ -999,6 +1000,45 @@ unit cgppc;
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
         list.concat(taicpu.op_reg(A_MTLR, NR_R0));
         list.concat(taicpu.op_none(A_BLR));
+      end;
+
+
+    procedure tcgppcgen.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
+      var
+        testbit: byte;
+        bitvalue: boolean;
+      begin
+        { get the bit to extract from the conditional register + its requested value (0 or 1) }
+        testbit := ((f.cr - RS_CR0) * 4);
+        case f.flag of
+          F_EQ, F_NE:
+            begin
+              inc(testbit, 2);
+              bitvalue := f.flag = F_EQ;
+            end;
+          F_LT, F_GE:
+            begin
+              bitvalue := f.flag = F_LT;
+            end;
+          F_GT, F_LE:
+            begin
+              inc(testbit);
+              bitvalue := f.flag = F_GT;
+            end;
+        else
+          internalerror(200112261);
+        end;
+        { load the conditional register in the destination reg }
+        list.concat(taicpu.op_reg(A_MFCR, reg));
+        { we will move the bit that has to be tested to bit 0 by rotating left }
+        testbit := (testbit + 1) and 31;
+        { extract bit }
+        list.concat(taicpu.op_reg_reg_const_const_const(
+          A_RLWINM,reg,reg,testbit,31,31));
+
+        { if we need the inverse, xor with 1 }
+        if not bitvalue then
+          list.concat(taicpu.op_reg_reg_const(A_XORI, reg, reg, 1));
       end;
 
 

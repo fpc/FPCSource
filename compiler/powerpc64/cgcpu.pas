@@ -71,9 +71,6 @@ type
     procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
       override;
 
-    procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
-      reg: TRegister); override;
-
     { need to override this for ppc64 to avoid calling CG methods which allocate
       registers during creation of the interface wrappers to subtract ioffset from
       the self pointer. But register allocation does not take place for them (which
@@ -1086,45 +1083,6 @@ var
 begin
   c := flags_to_cond(f);
   a_jmp(list, A_BC, c.cond, c.cr - RS_CR0, l);
-end;
-
-procedure tcgppc.g_flags2reg(list: TAsmList; size: TCgSize; const f:
-  TResFlags; reg: TRegister);
-var
-  testbit: byte;
-  bitvalue: boolean;
-begin
-  { get the bit to extract from the conditional register + its requested value (0 or 1) }
-  testbit := ((f.cr - RS_CR0) * 4);
-  case f.flag of
-    F_EQ, F_NE:
-      begin
-        inc(testbit, 2);
-        bitvalue := f.flag = F_EQ;
-      end;
-    F_LT, F_GE:
-      begin
-        bitvalue := f.flag = F_LT;
-      end;
-    F_GT, F_LE:
-      begin
-        inc(testbit);
-        bitvalue := f.flag = F_GT;
-      end;
-  else
-    internalerror(200112261);
-  end;
-  { load the conditional register in the destination reg }
-  list.concat(taicpu.op_reg(A_MFCR, reg));
-  { we will move the bit that has to be tested to bit 0 by rotating left }
-  testbit := (testbit + 1) and 31;
-  { extract bit }
-  list.concat(taicpu.op_reg_reg_const_const_const(
-    A_RLWINM,reg,reg,testbit,31,31));
-
-  { if we need the inverse, xor with 1 }
-  if not bitvalue then
-    list.concat(taicpu.op_reg_reg_const(A_XORI, reg, reg, 1));
 end;
 
 { *********** entry/exit code and address loading ************ }
