@@ -97,24 +97,28 @@ uses
 
     type
       TAsmCond=(C_None,
-        C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
-        C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
-        C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z,
-        C_FE,C_FG,C_FL,C_FGE,C_FLE,C_FNE
+        C_A,C_AE,C_B,C_BE,
+        C_G,C_GE,C_L,C_LE,
+        C_E,C_NE,
+        C_POS,C_NEG,C_VC,C_VS,
+        C_FE,C_FG,C_FL,C_FGE,C_FLE,C_FNE,
+        C_FU,C_FUG,C_FUL,C_FUGE,C_FULE,C_FO,C_FUE,C_FLG
       );
 
     const
       firstIntCond=C_A;
-      lastIntCond=C_Z;
+      lastIntCond=C_VS;
       firstFloatCond=C_FE;
       lastFloatCond=C_FNE;
-      floatAsmConds=[C_FE..C_FNE];
+      floatAsmConds=[C_FE..C_FLG];
 
       cond2str:array[TAsmCond] of string[3]=('',
-        'gu','cc','cs','leu','cs','e','g','ge','l','le','leu','cs',
-        'cc','gu','cc','ne','le','l','ge','g','vc','XX',
-        'pos','ne','vs','XX','XX','XX','vs','e',
-        'e','g','l','ge','le','ne'
+        'gu','cc','cs','leu',
+        'g','ge','l','le',
+        'e','ne',
+        'pos','neg','vc','vs',
+        'e','g','l','ge','le','ne',
+        'u','ug','ul','uge','ule','o','ue','lg'
       );
 
 
@@ -132,11 +136,9 @@ uses
         F_GE, {Greater or Equal}
         F_LE, {Less or Equal}
         F_A,  {Above}
-        F_AE, {Above or Equal}
-        F_B,  {Below}
+        F_AE, {Above or Equal, synonym: Carry Clear}
+        F_B,  {Below, synonym: Carry Set}
         F_BE, {Below or Equal}
-        F_C,  {Carry}
-        F_NC, {Not Carry}
         { Floating point results }
         F_FE,  {Equal}
         F_FNE, {Not Equal}
@@ -325,7 +327,7 @@ implementation
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,F_NC,F_C,
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,
            F_FNE,F_FE,F_FLE,F_FGE,F_FL,F_FG);
       begin
         f:=inv_flags[f];
@@ -335,7 +337,7 @@ implementation
    function flags_to_cond(const f:TResFlags):TAsmCond;
       const
         flags_2_cond:array[TResFlags] of TAsmCond=
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,C_C,C_NC,
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,
            C_FE,C_FNE,C_FG,C_FL,C_FGE,C_FLE);
       begin
         result:=flags_2_cond[f];
@@ -432,10 +434,12 @@ implementation
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
-          C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
-          C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ,
-          C_FNE,C_FLE,C_FGE,C_FL,C_FG,C_FE
+          C_BE,C_B,C_AE,C_A,
+          C_LE,C_L,C_GE,C_G,
+          C_NE,C_E,
+          C_NEG,C_POS,C_VS,C_VC,
+          C_FNE,C_FULE,C_FUGE,C_FUL,C_FUG,C_FE,
+          C_FO,C_FLE,C_FGE,C_FL,C_FG,C_FU,C_FLG,C_FUE
         );
       begin
         result := inverse[c];

@@ -148,7 +148,7 @@ implementation
              if (nodetype = modn) then
                begin
                  current_asmdata.getjumplabel(overflowlabel);
-                 ai:=taicpu.op_cond_sym(A_Bxx,C_O,overflowlabel);
+                 ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
                  ai.delayslot_annulled:=true;
                  current_asmdata.CurrAsmList.concat(ai);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));

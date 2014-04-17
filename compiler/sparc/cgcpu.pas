@@ -970,7 +970,7 @@ implementation
                                                pasbool8,pasbool16,pasbool32,pasbool64]))) then
                 begin
                   ai:=TAiCpu.Op_sym(A_Bxx,hl);
-                  ai.SetCondition(C_NO);
+                  ai.SetCondition(C_VC);
                   list.Concat(ai);
                   { Delay slot }
                   list.Concat(TAiCpu.Op_none(A_NOP));
