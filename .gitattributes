@@ -8760,7 +8760,6 @@ rtl/netwlibc/nwl_dlle.as svneol=native#text/plain
 rtl/netwlibc/nwl_main.as svneol=native#text/plain
 rtl/netwlibc/nwsnut.imp -text
 rtl/netwlibc/nwsnut.pp svneol=native#text/plain
-rtl/netwlibc/pre/libcpre.gcc.o -text
 rtl/netwlibc/rtldefs.inc svneol=native#text/plain
 rtl/netwlibc/sysdir.inc svneol=native#text/plain
 rtl/netwlibc/sysfile.inc svneol=native#text/plain
