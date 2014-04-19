@@ -354,454 +354,454 @@ ifndef USELIBGGI
 USELIBGGI=NO
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpintres $(CPU_UNITS)
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS)
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=math typinfo classes sysconst rtlconst
@@ -2676,6 +2676,8 @@ fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/character.pas
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -2699,6 +2701,8 @@ lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) 
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

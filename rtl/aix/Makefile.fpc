@@ -13,16 +13,17 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       termio unix initc cmem \
       lnfogdb \
       sysutils typinfo math fgl classes \
-      charset cpall unixcp getopts \
+      charset cpall character unixcp getopts \
       errors \
       # ipc 
       dl dynlibs \
       types sysconst \
       rtlconsts cthreads \
       dos \
-      cwstring fpintres $(CPU_UNITS)
+      cwstring fpwidestring fpintres $(CPU_UNITS)
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      unicodedata unicodenumtable
 
 rsts=math typinfo classes sysconst rtlconst 
 
@@ -179,6 +180,11 @@ fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
+# let it depend on buildcollations to prevent simultaneous building of unicodedata
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
@@ -222,6 +228,9 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
 #
 # Other system-dependent RTL Units
