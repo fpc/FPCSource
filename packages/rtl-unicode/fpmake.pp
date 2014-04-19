@@ -116,10 +116,10 @@ begin
         AddUnit('cp949',CPUnits);
         AddUnit('cp950',CPUnits);
       end;
-    T:=P.Targets.AddImplicitUnit('cp932',CPUnits);
-    T:=P.Targets.AddImplicitUnit('cp936',CPUnits);
-    T:=P.Targets.AddImplicitUnit('cp949',CPUnits);
-    T:=P.Targets.AddImplicitUnit('cp950',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp932.pas',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp936.pas',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp949.pas',CPUnits);
+    T:=P.Targets.AddImplicitUnit('cp950.pas',CPUnits);
 
 //    T:=P.Targets.AddUnit('character.pp',characterOSes);
   end
