@@ -211,7 +211,10 @@ uses
 *****************************************************************************}
 
     type
-      TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX);
+      TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX,
+                       { For IEEE-compliant floating-point compares, only <= and >=
+                         are actually needed but the other two are for inverse. }
+                       F_FA,F_FAE,F_FB,F_FBE);
       TResFlags = record
         cr: RS_CR0..RS_CR7;
         flag: TResFlagsEnum;
@@ -444,8 +447,15 @@ implementation
       const
         inv_flags: array[F_EQ..F_GE] of TResFlagsEnum =
           (F_NE,F_EQ,F_GE,F_GE,F_LE,F_LT);
+        inv_fpuflags: array[F_FA..F_FBE] of TResFlagsEnum =
+          (F_FBE,F_FB,F_FAE,F_FA);
       begin
-        r.flag := inv_flags[r.flag];
+        if r.flag in [F_EQ..F_GE] then
+          r.flag := inv_flags[r.flag]
+        else if r.flag in [F_FA..F_FBE] then
+          r.flag := inv_fpuflags[r.flag]
+        else
+          internalerror(2014041901);
       end;
 
 

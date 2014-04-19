@@ -134,28 +134,54 @@ implementation
     function tgenppcaddnode.getresflags : tresflags;
       begin
         if (left.resultdef.typ <> floatdef) then
-          result.cr := RS_CR0
-        else
-          result.cr := RS_CR1;
-        case nodetype of
-          equaln : result.flag:=F_EQ;
-          unequaln : result.flag:=F_NE;
-        else
-          if nf_swapped in flags then
+          begin
+            result.cr := RS_CR0;
             case nodetype of
-              ltn : result.flag:=F_GT;
-              lten : result.flag:=F_GE;
-              gtn : result.flag:=F_LT;
-              gten : result.flag:=F_LE;
+              equaln : result.flag:=F_EQ;
+              unequaln : result.flag:=F_NE;
+            else
+              if nf_swapped in flags then
+                case nodetype of
+                  ltn : result.flag:=F_GT;
+                  lten : result.flag:=F_GE;
+                  gtn : result.flag:=F_LT;
+                  gten : result.flag:=F_LE;
+                end
+              else
+                case nodetype of
+                  ltn : result.flag:=F_LT;
+                  lten : result.flag:=F_LE;
+                  gtn : result.flag:=F_GT;
+                  gten : result.flag:=F_GE;
+                end;
             end
-          else
-            case nodetype of
-              ltn : result.flag:=F_LT;
-              lten : result.flag:=F_LE;
-              gtn : result.flag:=F_GT;
-              gten : result.flag:=F_GE;
-            end;
-        end
+          end
+        else
+          begin
+            result.cr := RS_CR1;
+            if (nodetype=equaln) then
+              result.flag:=F_EQ
+            else if (nodetype=unequaln) then
+              result.flag:=F_NE
+            else if (nf_swapped in flags) then
+              case nodetype of
+                ltn : result.flag:=F_FA;
+                lten : result.flag:=F_FAE;
+                gtn : result.flag:=F_FB;
+                gten : result.flag:=F_FBE;
+              else
+                internalerror(2014031902);
+              end
+            else
+              case nodetype of
+                ltn : result.flag:=F_FB;
+                lten : result.flag:=F_FBE;
+                gtn : result.flag:=F_FA;
+                gten : result.flag:=F_FAE;
+              else
+                internalerror(2014031903);
+              end;
+          end;
       end;
 
 

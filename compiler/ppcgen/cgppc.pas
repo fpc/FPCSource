@@ -677,8 +677,28 @@ unit cgppc;
   procedure tcgppcgen.a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
     var
       c: tasmcond;
+      f2: TResFlags;
+      testbit: longint;
     begin
-      c := flags_to_cond(f);
+      f2:=f;
+      testbit:=(f.cr-RS_CR0)*4;
+      case f.flag of
+        F_FA:
+          f2.flag:=F_GT;
+        F_FAE:
+          begin
+            list.concat(taicpu.op_const_const_const(A_CROR,testbit+1,testbit+1,testbit+2));
+            f2.flag:=F_GT;
+          end;
+        F_FB:
+          f2.flag:=F_LT;
+        F_FBE:
+          begin
+            list.concat(taicpu.op_const_const_const(A_CROR,testbit,testbit,testbit+2));
+            f2.flag:=F_LT;
+          end;
+      end;
+      c := flags_to_cond(f2);
       a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);
     end;
 
@@ -1017,7 +1037,11 @@ unit cgppc;
       var
         testbit: byte;
         bitvalue: boolean;
+        hreg: tregister;
+        needsecondreg: boolean;
       begin
+        hreg:=NR_NO;
+        needsecondreg:=false;
         { get the bit to extract from the conditional register + its requested value (0 or 1) }
         testbit := ((f.cr - RS_CR0) * 4);
         case f.flag of
@@ -1026,14 +1050,25 @@ unit cgppc;
               inc(testbit, 2);
               bitvalue := f.flag = F_EQ;
             end;
-          F_LT, F_GE:
+          F_LT, F_GE, F_FB:
             begin
-              bitvalue := f.flag = F_LT;
+              bitvalue := f.flag in [F_LT,F_FB];
             end;
-          F_GT, F_LE:
+          F_GT, F_LE, F_FA:
             begin
               inc(testbit);
-              bitvalue := f.flag = F_GT;
+              bitvalue := f.flag in [F_GT,F_FA];
+            end;
+          F_FAE:
+            begin
+              inc(testbit);
+              bitvalue:=true;
+              needsecondreg:=true;
+            end;
+          F_FBE:
+            begin
+              bitvalue:=true;
+              needsecondreg:=true;
             end;
         else
           internalerror(200112261);
@@ -1042,12 +1077,23 @@ unit cgppc;
         list.concat(taicpu.op_reg(A_MFCR, reg));
         { we will move the bit that has to be tested to bit 0 by rotating left }
         testbit := (testbit + 1) and 31;
+
+        { for floating-point >= and <=, extract equality bit first }
+        if needsecondreg then
+          begin
+            hreg:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg_reg_const_const_const(
+              A_RLWINM,hreg,reg,(((f.cr-RS_CR0)*4)+3) and 31,31,31));
+          end;
+
         { extract bit }
         list.concat(taicpu.op_reg_reg_const_const_const(
           A_RLWINM,reg,reg,testbit,31,31));
 
+        if needsecondreg then
+          list.concat(taicpu.op_reg_reg_reg(A_OR,reg,hreg,reg))
         { if we need the inverse, xor with 1 }
-        if not bitvalue then
+        else if not bitvalue then
           list.concat(taicpu.op_reg_reg_const(A_XORI, reg, reg, 1));
       end;
 
