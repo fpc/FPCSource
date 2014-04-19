@@ -60,7 +60,6 @@ unit cgcpu;
 
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
-        procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
@@ -678,14 +677,6 @@ const
          a_jmp(list,A_B,C_None,0,l);
        end;
 
-     procedure tcgppc.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
-
-       var
-         c: tasmcond;
-       begin
-         c := flags_to_cond(f);
-         a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);
-       end;
 
 (*
      procedure tcgppc.g_cond2reg(list: TAsmList; const f: TAsmCond; reg: TRegister);

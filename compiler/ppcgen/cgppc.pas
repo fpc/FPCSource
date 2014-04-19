@@ -56,6 +56,7 @@ unit cgppc;
         { entry code }
         procedure g_profilecode(list: TAsmList); override;
 
+        procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel); override;
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
@@ -670,6 +671,15 @@ unit cgppc;
           deallocallcpuregisters(list);
           a_reg_dealloc(list,NR_R0);
         end;
+    end;
+
+
+  procedure tcgppcgen.a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
+    var
+      c: tasmcond;
+    begin
+      c := flags_to_cond(f);
+      a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);
     end;
 
 

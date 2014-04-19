@@ -68,8 +68,6 @@ type
 
     procedure a_jmp_name(list: TAsmList; const s: string); override;
     procedure a_jmp_always(list: TAsmList; l: tasmlabel); override;
-    procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
-      override;
 
     { need to override this for ppc64 to avoid calling CG methods which allocate
       registers during creation of the interface wrappers to subtract ioffset from
@@ -1073,16 +1071,6 @@ procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
 
 begin
   a_jmp(list, A_B, C_None, 0, l);
-end;
-
-procedure tcgppc.a_jmp_flags(list: TAsmList; const f: TResFlags; l:
-  tasmlabel);
-
-var
-  c: tasmcond;
-begin
-  c := flags_to_cond(f);
-  a_jmp(list, A_BC, c.cond, c.cr - RS_CR0, l);
 end;
 
 { *********** entry/exit code and address loading ************ }
