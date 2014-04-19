@@ -1681,6 +1681,25 @@ unit cgcpu;
         end;
 
         current_asmdata.getjumplabel(hl_skip);
+        { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
+          in the case of NaNs:
+           not(F_FA )<>F_FBE
+           not(F_FAE)<>F_FB
+           not(F_FB )<>F_FAE
+           not(F_FBE)<>F_FA
+        }
+        case f of
+          F_FA,F_FAE:
+            invf:=FPUFlags2Flags[invf];
+          F_FB,F_FBE:
+            begin
+              ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+              ai.SetCondition(C_P);
+              ai.is_jmp:=true;
+              list.concat(ai);
+              invf:=FPUFlags2Flags[invf];
+            end;
+        end;
         a_jmp_flags(list,invf,hl_skip);
 
         { 16-bit INC is shorter than 8-bit }
