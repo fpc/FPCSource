@@ -442,11 +442,18 @@ implementation
           setbase:=tsetdef(left.resultdef).setbase
         else
           setbase:=tsetdef(right.resultdef).setbase;
+        if (nf_swapped in flags) and
+           ((nodetype=subn) or
+            (left.nodetype=setelementn)) then
+          swapleftright;
+        { we don't support two constant locations (should ideally be handled
+          in simplify }
+        if (left.location.loc=LOC_CONSTANT) and
+           (right.location.loc=LOC_CONSTANT) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         case nodetype of
           addn :
             begin
-              if (nf_swapped in flags) and (left.nodetype=setelementn) then
-                swapleftright;
               { are we adding set elements ? }
               if right.nodetype=setelementn then
                 begin
@@ -483,18 +490,10 @@ implementation
           subn :
             begin
               cgop:=OP_AND;
-              if (not(nf_swapped in flags)) then
-                if (right.location.loc=LOC_CONSTANT) then
-                  right.location.value := not(right.location.value)
-                else
-                  opdone := true
-              else if (left.location.loc=LOC_CONSTANT) then
-                left.location.value := not(left.location.value)
+              if (right.location.loc=LOC_CONSTANT) then
+                right.location.value := not(right.location.value)
               else
-                 begin
-                   swapleftright;
-                   opdone := true;
-                 end;
+                opdone := true;
               if opdone then
                 begin
                   if left.location.loc = LOC_CONSTANT then
