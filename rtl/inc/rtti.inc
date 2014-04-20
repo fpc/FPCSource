@@ -16,12 +16,19 @@
 
 { the tk* constants are now declared in system.inc }
 
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define USE_PACKED}
+{$endif}
+{$ifdef VER2_6}
+  {$define USE_PACKED}
+{$endif}
+
 type
   PRecordElement=^TRecordElement;
   TRecordElement=
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef USE_PACKED}
   packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif USE_PACKED}
   record
     TypeInfo: Pointer;
     {$ifdef VER2_6}
@@ -33,9 +40,9 @@ type
 
   PRecordInfo=^TRecordInfo;
   TRecordInfo=
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef USE_PACKED}
   packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif USE_PACKED}
   record
     Size: Longint;
     Count: Longint;
@@ -44,9 +51,9 @@ type
 
   PArrayInfo=^TArrayInfo;
   TArrayInfo=
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef USE_PACKED}
   packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif USE_PACKED}
   record
     Size: SizeInt;
     ElCount: SizeInt;
