@@ -15,6 +15,12 @@
 unit Graph;
 interface
 
+{ the code of the unit fits in 64kb in the medium memory model, but exceeds 64kb
+  in the large and huge memory models, so enable huge code in these models. }
+{$if defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+  {$hugecode on}
+{$endif}
+
 {$i graphh.inc}
 {$i vesah.inc}
 
