@@ -459,7 +459,7 @@ implementation
                        {should be caught earlier }
                        internalerror(2007020402);
 
-                     hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.value-setbase,
+                     hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,left.location.value-setbase,
                        right.location,location.register);
                    end
                  else
