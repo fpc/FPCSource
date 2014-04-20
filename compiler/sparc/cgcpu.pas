@@ -935,11 +935,21 @@ implementation
       var
         hl : tasmlabel;
       begin
-        current_asmdata.getjumplabel(hl);
-        a_load_const_reg(list,size,1,reg);
-        a_jmp_flags(list,f,hl);
-        a_load_const_reg(list,size,0,reg);
-        a_label(list,hl);
+        if (f in [F_B]) then
+          list.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,reg))
+        else if (f in [F_AE]) then
+          begin
+            a_load_const_reg(list,size,1,reg);
+            list.concat(taicpu.op_reg_reg_reg(A_SUBX,reg,NR_G0,reg));
+          end
+        else
+          begin
+            current_asmdata.getjumplabel(hl);
+            a_load_const_reg(list,size,1,reg);
+            a_jmp_flags(list,f,hl);
+            a_load_const_reg(list,size,0,reg);
+            a_label(list,hl);
+          end;
       end;
 
 
