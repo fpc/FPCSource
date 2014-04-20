@@ -39,7 +39,7 @@ type
     procedure TestSupportTimeFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
-    procedure TestSupportfmtBCDFields;
+    procedure TestSupportFmtBCDFields;
     procedure TestSupportFixedStringFields;
     procedure TestSupportBlobFields;
     procedure TestSupportMemoFields;
@@ -93,6 +93,7 @@ type
     procedure TestAddIndexDateTime;
     procedure TestAddIndexCurrency;
     procedure TestAddIndexBCD;
+    procedure TestAddIndexFmtBCD;
 
     procedure TestAddIndex;
     procedure TestAddDescIndex;
@@ -1841,6 +1842,11 @@ end;
 procedure TTestBufDatasetDBBasics.TestAddIndexBCD;
 begin
   TestAddIndexFieldType(ftBCD,False);
+end;
+
+procedure TTestBufDatasetDBBasics.TestAddIndexFmtBCD;
+begin
+  TestAddIndexFieldType(ftFmtBCD,False);
 end;
 
 procedure TTestBufDatasetDBBasics.TestAddIndex;

@@ -1761,20 +1761,29 @@ begin
     AField := TField(AFields[i]);
 
     case AField.DataType of
-      ftString, ftFixedChar : ACompareRec.CompareFunc := @DBCompareText;
-      ftWideString, ftFixedWideChar: ACompareRec.CompareFunc := @DBCompareWideText;
-      ftSmallint : ACompareRec.CompareFunc := @DBCompareSmallInt;
-      ftInteger, ftBCD, ftAutoInc : ACompareRec.CompareFunc :=
-        @DBCompareInt;
-      ftWord : ACompareRec.CompareFunc := @DBCompareWord;
-      ftBoolean : ACompareRec.CompareFunc := @DBCompareByte;
-      ftFloat, ftCurrency : ACompareRec.CompareFunc := @DBCompareDouble;
-      ftDateTime, ftDate, ftTime : ACompareRec.CompareFunc :=
-        @DBCompareDouble;
-      ftLargeint : ACompareRec.CompareFunc := @DBCompareLargeInt;
-      ftFmtBCD : ACompareRec.CompareFunc := @DBCompareBCD;
-      ftBytes : ACompareRec.CompareFunc := @DBCompareBytes;
-      ftVarBytes : ACompareRec.CompareFunc := @DBCompareVarBytes;
+      ftString, ftFixedChar, ftGuid:
+        ACompareRec.CompareFunc := @DBCompareText;
+      ftWideString, ftFixedWideChar:
+        ACompareRec.CompareFunc := @DBCompareWideText;
+      ftSmallint:
+        ACompareRec.CompareFunc := @DBCompareSmallInt;
+      ftInteger, ftAutoInc, ftBCD:
+        ACompareRec.CompareFunc := @DBCompareInt;
+      ftLargeint:
+        ACompareRec.CompareFunc := @DBCompareLargeInt;
+      ftWord:
+        ACompareRec.CompareFunc := @DBCompareWord;
+      ftBoolean:
+        ACompareRec.CompareFunc := @DBCompareByte;
+      ftDate, ftTime, ftDateTime,
+      ftFloat, ftCurrency:
+        ACompareRec.CompareFunc := @DBCompareDouble;
+      ftFmtBCD:
+        ACompareRec.CompareFunc := @DBCompareBCD;
+      ftVarBytes:
+        ACompareRec.CompareFunc := @DBCompareVarBytes;
+      ftBytes:
+        ACompareRec.CompareFunc := @DBCompareBytes;
     else
       DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
     end;
