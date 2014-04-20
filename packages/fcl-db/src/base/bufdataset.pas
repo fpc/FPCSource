@@ -1767,9 +1767,9 @@ begin
         ACompareRec.CompareFunc := @DBCompareWideText;
       ftSmallint:
         ACompareRec.CompareFunc := @DBCompareSmallInt;
-      ftInteger, ftAutoInc, ftBCD:
+      ftInteger, ftAutoInc:
         ACompareRec.CompareFunc := @DBCompareInt;
-      ftLargeint:
+      ftLargeint, ftBCD:
         ACompareRec.CompareFunc := @DBCompareLargeInt;
       ftWord:
         ACompareRec.CompareFunc := @DBCompareWord;
