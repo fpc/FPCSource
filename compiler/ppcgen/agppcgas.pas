@@ -469,6 +469,8 @@ unit agppcgas;
         { make sure we always have a code and toc section, the linker expects
           that }
         AsmWriteln(#9'.csect .text[PR]');
+        { set _text_s, to be used by footer below } 
+        AsmWriteln(#9'_text_s:');
         AsmWriteln(#9'.toc');
       end;
 
@@ -477,12 +479,11 @@ unit agppcgas;
       begin
         inherited WriteExtraFooter;
         { link between data and text section }
-        AsmWriteln('_section_.text:');
         AsmWriteln(#9'.csect .data[RW],4');
 {$ifdef cpu64bitaddr}
-        AsmWrite(#9'.llong _section_.text')
+        AsmWriteln('text_pos:'#9'.llong _text_s')
 {$else cpu64bitaddr}
-        AsmWrite(#9'.long _section_.text')
+        AsmWriteln('text_pos:'#9'.long _text_s')
 {$endif cpu64bitaddr}
       end;
 

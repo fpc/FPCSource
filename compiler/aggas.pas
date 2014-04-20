@@ -1715,6 +1715,7 @@ implementation
         end;
 
       AsmLn;
+      WriteExtraFooter;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
