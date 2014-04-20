@@ -954,10 +954,18 @@ end;
 
 {$ifdef powerpc}
   {$define USE_TasmCondFlag}
+  { powerpc only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef powerpc64}
   {$define USE_TasmCondFlag}
+  { powerpc64 only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef i386}
