@@ -2993,7 +2993,7 @@ implementation
       cgpara1,cgpara2,cgpara3 : TCGPara;
       pd : tprocdef;
     begin
-      pd:=search_system_proc('fpc_shortstr_assign');
+      pd:=search_system_proc('fpc_shortstr_to_shortstr');
       cgpara1.init;
       cgpara2.init;
       cgpara3.init;
@@ -3002,15 +3002,15 @@ implementation
       paramanager.getintparaloc(pd,3,cgpara3);
       if pd.is_pushleftright then
         begin
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
-          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
-          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
         end
       else
         begin
-          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
-          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
         end;
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
