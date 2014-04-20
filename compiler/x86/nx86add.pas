@@ -66,7 +66,7 @@ unit nx86add;
   implementation
 
     uses
-      globtype,globals,
+      globtype,globals,systems,
       verbose,cutils,
       cpuinfo,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -131,7 +131,14 @@ unit nx86add;
                   (right.location.loc=LOC_CONSTANT) and
                   (right.location.value=0) then
                  begin
-                   emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
+                { 'test $-1,%reg' is transformable into 'test $-1,spilltemp' if %reg needs
+                   spilling, while 'test %reg,%reg' still requires loading into register.
+                   If spilling is not necessary, it is changed back into 'test %reg,%reg' by
+                   peephole optimizer (this optimization is currently available only for i386). }
+                   if (target_info.cpu=cpu_i386) then
+                     emit_const_reg(A_TEST,TCGSize2Opsize[opsize],aint(-1),left.location.register)
+                   else  
+                     emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                  end
                else
                  if (op=A_ADD) and
