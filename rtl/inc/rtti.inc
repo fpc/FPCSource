@@ -16,7 +16,7 @@
 
 { the tk* constants are now declared in system.inc }
 
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   {$define USE_PACKED}
 {$endif}
 {$ifdef VER2_6}
