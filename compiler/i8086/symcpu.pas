@@ -222,7 +222,8 @@ implementation
     begin
       inherited create(level);
       if (current_settings.x86memorymodel in x86_far_code_models) and
-         (cs_force_far_calls in current_settings.localswitches) then
+         ((cs_huge_code in current_settings.moduleswitches) or
+          (cs_force_far_calls in current_settings.localswitches)) then
         procoptions:=procoptions+[po_far];
     end;
 
@@ -247,7 +248,8 @@ implementation
 
   procedure tcpuprocdef.declared_near;
     begin
-      if current_settings.x86memorymodel in x86_far_code_models then
+      if (current_settings.x86memorymodel in x86_far_code_models) and
+         not (cs_huge_code in current_settings.moduleswitches) then
         exclude(procoptions,po_far)
       else
         inherited declared_near;

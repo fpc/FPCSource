@@ -1516,6 +1516,20 @@ unit scandir;
       begin
       end;
 
+    procedure dir_hugecode;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_moduleswitch(cs_huge_code);
+      end;
+
     procedure dir_weakpackageunit;
       begin
       end;
@@ -1618,6 +1632,7 @@ unit scandir;
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
+        AddDirective('HUGECODE',directive_all, @dir_hugecode);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);

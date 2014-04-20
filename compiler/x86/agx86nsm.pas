@@ -37,7 +37,7 @@ interface
       TX86NasmAssembler = class(texternalassembler)
       private
         using_relative : boolean;
-        function CodeSectionName: string;
+        function CodeSectionName(const aname:string): string;
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
@@ -312,11 +312,16 @@ interface
  ****************************************************************************}
 
 
-    function TX86NasmAssembler.CodeSectionName: string;
+    function TX86NasmAssembler.CodeSectionName(const aname:string): string;
       begin
 {$ifdef i8086}
         if current_settings.x86memorymodel in x86_far_code_models then
-          result:=current_module.modulename^ + '_TEXT'
+          begin
+            if cs_huge_code in current_settings.moduleswitches then
+              result:=aname + '_TEXT use16 class=code'
+            else
+              result:=current_module.modulename^ + '_TEXT';
+          end
         else
 {$endif}
           result:='.text';
@@ -581,7 +586,7 @@ interface
           (target_info.system in (systems_windows+systems_wince)) then
           AsmWrite('.tls'#9'bss')
         else if secnames[atype]='.text' then
-          AsmWrite(CodeSectionName)
+          AsmWrite(CodeSectionName(aname))
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -1211,7 +1216,7 @@ interface
           internalerror(2013050101);
       end;
 
-      AsmWriteLn('SECTION ' + CodeSectionName + ' use16 class=code');
+      AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
       AsmWriteLn('SECTION .rodata');
@@ -1231,7 +1236,7 @@ interface
           AsmWriteLn('SECTION .debug_line   use32 class=DWARF');
           AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF');
         end;
-      AsmWriteLn('SECTION ' + CodeSectionName);
+      AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
 {$else i8086}
 {$ifdef i386}
       AsmWriteLn('BITS 32');

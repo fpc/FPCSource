@@ -164,7 +164,9 @@ interface
          { browser switches are back }
          cs_browser,cs_local_browser,
          { target specific }
-         cs_executable_stack
+         cs_executable_stack,
+         { i8086 specific }
+         cs_huge_code
        );
        tmoduleswitches = set of tmoduleswitch;
 
