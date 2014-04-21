@@ -265,7 +265,7 @@ implementation
           { far calls to the same module (in $HUGECODE off mode) can be optimized
             to push cs + call near, because they are in the same segment }
           if not (cs_huge_code in current_settings.moduleswitches) and
-                 (pd.procsym.owner=current_module.localsymtable) then
+             pd.owner.iscurrentunit and not (po_external in pd.procoptions) then
             begin
               list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
               tcg8086(cg).a_call_name_near(list,s,weak);
