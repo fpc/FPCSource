@@ -88,7 +88,7 @@ implementation
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
     defutil,
     symconst,symcpu,
-    procinfo,
+    procinfo,fmodule,
     aasmcpu;
 
   { thlcgcpu }
@@ -261,7 +261,18 @@ implementation
   function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       if is_proc_far(pd) then
-        tcg8086(cg).a_call_name_far(list,s,weak)
+        begin
+          { far calls to the same module (in $HUGECODE off mode) can be optimized
+            to push cs + call near, because they are in the same segment }
+          if not (cs_huge_code in current_settings.moduleswitches) and
+                 (pd.procsym.owner=current_module.localsymtable) then
+            begin
+              list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
+              tcg8086(cg).a_call_name_near(list,s,weak);
+            end
+          else
+            tcg8086(cg).a_call_name_far(list,s,weak);
+        end
       else
         tcg8086(cg).a_call_name_near(list,s,weak);
       result:=get_call_result_cgpara(pd,forceresdef);
