@@ -55,17 +55,21 @@ begin
      try
        Inc(ThreadNumber);
        thr:=ThProva.Create(Threadnumber);
-       thr.resume;
+       thr.start;
      Except on e: Exception do
        begin
-         WriteLn(e.Message);
-         halt(1);
+         { maybe the previously started threads didn't finish yet -> give them some
+           more time to completely terminate }
+         sleep(1000);
+         try
+           thr:=ThProva.Create(Threadnumber);
+           thr.start;
+         except
+           WriteLn(e.Message);
+           halt(1);
+         end;
        end;
      end;
-     if (threadnumber mod 16) = 0 then
-       while (threadsfinished<>threadnumber) do
-         { let the started threads to finish }
-         sleep(70);
    end;
   while (threadsfinished<>threadnumber) do
     { give some time to the started threads to finish }
