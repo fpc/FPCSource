@@ -951,6 +951,12 @@ type
       end;
       z := abs(x);
       e0 := (float64high(z) shr 20)-1046;
+      if (e0 = ($7ff-1046)) then  { z is Inf or NaN }
+      begin
+        z := x - x;
+        result:=0;
+        exit;
+      end;
       float64sethigh(z,float64high(z) - (e0 shl 20));
       tx[0] := trunc(z);
       z := (z-tx[0])*two24;
