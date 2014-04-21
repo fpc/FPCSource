@@ -1583,7 +1583,7 @@ implementation
                 if target_dbg.id=dbg_stabs then
                   st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
                 else
-                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))
+                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))+''''
               else
                 st:='<constant string too long>';
             end;
