@@ -1216,7 +1216,8 @@ interface
           internalerror(2013050101);
       end;
 
-      AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
+      if not (cs_huge_code in current_settings.moduleswitches) then
+        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
       AsmWriteLn('SECTION .rodata');
@@ -1236,7 +1237,8 @@ interface
           AsmWriteLn('SECTION .debug_line   use32 class=DWARF');
           AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF');
         end;
-      AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
+      if not (cs_huge_code in current_settings.moduleswitches) then
+        AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
 {$else i8086}
 {$ifdef i386}
       AsmWriteLn('BITS 32');
