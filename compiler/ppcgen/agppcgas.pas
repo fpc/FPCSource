@@ -589,9 +589,31 @@ unit agppcgas;
          dollarsign : '.'
        );
 
+    as_ppc_gas_aix_powerpc_info : tasminfo =
+       (
+         id     : as_gas_powerpc_xcoff;
+
+         idtxt  : 'GAS';
+         asmbin : 'gas';
+         { -u: allow using symbols before they are defined (when using native
+               AIX assembler, ignore by GNU assembler)
+           -mpwr5: we actually support Power3 and higher, but the AIX assembler
+               has no parameter to select that one (only -mpwr3 and -mpwr5) }
+{$ifdef cpu64bitaddr}
+         asmcmd : '-a64 -u -o $OBJ $EXTRAOPT $ASM -mpwr5';
+{$else cpu64bitaddr}
+         asmcmd : '-a32 -u -o $OBJ $EXTRAOPT $ASM -mpwr5';
+{$endif cpu64bitaddr}
+         supported_targets : [system_powerpc_aix,system_powerpc64_aix];
+         flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
+         labelprefix : 'L';
+         comment : '# ';
+         dollarsign : '.'
+       );
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
   RegisterAssembler(as_ppc_aix_powerpc_info,TPPCAIXAssembler);
+  RegisterAssembler(as_ppc_gas_aix_powerpc_info,TPPCAIXAssembler);
 end.

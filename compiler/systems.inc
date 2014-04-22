@@ -207,6 +207,7 @@
              ,as_x86_64_nasmdarwin
              ,as_i8086_nasm
              ,as_i8086_nasmobj
+             ,as_gas_powerpc_xcoff
        );
 
        tlink = (ld_none,
