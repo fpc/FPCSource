@@ -76,6 +76,7 @@ interface
         global_stab_number : word;
         vardatadef: trecorddef;
         tagtypeprefix: ansistring;
+        function use_tag_prefix(def : tdef) : boolean;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):ansistring;
@@ -551,6 +552,16 @@ implementation
           appenddef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
+    function TDebugInfoStabs.use_tag_prefix(def : tdef) : boolean;
+      begin
+        { stringdefs are not all considered as 'taggable',
+          because ansi, unicode and wide strings are
+          just associated to pointer types }
+        use_tag_prefix:=(def.typ in tagtypes) and
+                      ((def.typ<>stringdef) or
+                       (tstringdef(tdef).stringtype in [st_shortstring,st_longstring]));
+      end;
+
 
     procedure TDebugInfoStabs.write_def_stabstr(list:TAsmList;def:tdef;const ss:ansistring);
       var
@@ -559,7 +570,7 @@ implementation
         st    : ansistring;
       begin
         { type prefix }
-        if def.typ in tagtypes then
+        if use_tag_prefix(def) then
           stabchar := tagtypeprefix
         else
           stabchar := 't';

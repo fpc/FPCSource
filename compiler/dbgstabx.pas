@@ -132,7 +132,7 @@ implementation
       st    : ansistring;
     begin
       { type prefix }
-      if def.typ in tagtypes then
+      if use_tag_prefix(def) then
         stabchar := tagtypeprefix
       else
         stabchar := 't';
