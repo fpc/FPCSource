@@ -187,6 +187,8 @@ implementation
         result := Sym.Name
       else
         result := Sym.RealName;
+      if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
+        result:=ttypesym(Sym).FPrettyName;
       if target_asm.dollarsign<>'$' then
         result:=ReplaceForbiddenAsmSymbolChars(result);
     end;
