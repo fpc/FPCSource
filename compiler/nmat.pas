@@ -1125,26 +1125,24 @@ implementation
                u16bit,
                s16bit,
                s32bit,
-{$ifdef cpu64bitaddr}
                u32bit,
-{$endif cpu64bitaddr}
-               s64bit:
+               s64bit,
+               u64bit:
                  begin
-                   v:=int64(not int64(v));
-                   if (torddef(left.resultdef).ordtype<>s64bit) then
-                     def:=sinttype
+                   { unsigned, equal or bigger than the native int size? }
+                   if (torddef(left.resultdef).ordtype in [u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
+                      (is_nativeord(left.resultdef) or is_oversizedord(left.resultdef)) then
+                     begin
+                       { Delphi-compatible: not dword = dword (not word = longint) }
+                       { Extension: not qword = qword                              }
+                       v:=qword(not qword(v));
+                       { will be truncated by the ordconstnode for u32bit }
+                     end
                    else
-                     def:=s64inttype;
-                 end;
-{$ifndef cpu64bitaddr}
-               u32bit,
-{$endif not cpu64bitaddr}
-               u64bit :
-                 begin
-                   { Delphi-compatible: not dword = dword (not word = longint) }
-                   { Extension: not qword = qword                              }
-                   v:=qword(not qword(v));
-                   { will be truncated by the ordconstnode for u32bit }
+                     begin
+                       v:=int64(not int64(v));
+                       def:=get_common_intdef(torddef(left.resultdef),torddef(sinttype),false);
+                     end;
                  end;
                else
                  CGMessage(type_e_mismatch);
