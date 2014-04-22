@@ -395,6 +395,13 @@ implementation
 
                 end;
 
+              { implicit functions have no file information }
+              if nextlineisfunstart then
+                begin
+                  list.insertbefore(Tai_stab.Create_str(stabx_bf,tostr(currfileinfo.line)),hp);
+                  inc(stabx_func_level);
+                  nextlineisfunstart:=false;
+                end;
               if nolineinfolevel=0 then
                 begin
                   { line changed ? }
