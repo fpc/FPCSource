@@ -266,6 +266,7 @@ Type
     Property OnPassword;
     Property OnDataReceived;
     Property OnHeaders;
+    Property OnGetSocketHandler;
   end;
   EHTTPClient = Class(Exception);
 
