@@ -948,7 +948,11 @@ function lnxp1(x : float) : float;
         if (y=1.0) then
           lnxp1:=x
         else
-          lnxp1:=ln(y)+(x-(y-1.0))/y;
+          begin
+            lnxp1:=ln(y);     { lnxp1(-1) = ln(0) = -Inf }
+            if y>0.0 then
+              lnxp1:=lnxp1+(x-(y-1.0))/y;
+          end;
       end;
   end;
 

@@ -1559,6 +1559,9 @@ type
          j : sizeint;
 
     begin
+      { This seemingly useless condition ensures that sin(-0.0)=-0.0 }
+      if (d=0.0) then
+        exit(d);
       j := rem_pio2(d,z) and 3;
 
       zz := z * z;
