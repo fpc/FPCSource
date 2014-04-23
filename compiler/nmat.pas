@@ -592,11 +592,7 @@ implementation
               begin
                 { shl/shr are unsigned operations, so cut off upper bits }
                 case resultdef.size of
-                  1:
-                    rvalue:=tordconstnode(right).value and byte($7);
-                  2:
-                    rvalue:=tordconstnode(right).value and byte($f);
-                  4:
+                  1,2,4:
                     rvalue:=tordconstnode(right).value and byte($1f);
                   8:
                     rvalue:=tordconstnode(right).value and byte($3f);
