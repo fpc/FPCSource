@@ -369,8 +369,9 @@ begin
     if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssOracle] then
       begin
       // Firebird, Oracle, MS SQL Server do not support time = 24:00:00
-      testTimeValues[2]:='23:59:59.999';
-      testValues[ftTime,2]:='23:59:59.999';
+      // MS SQL Server "datetime" supports only time up to 23:59:59.997
+      testTimeValues[2]:='23:59:59.997';
+      testValues[ftTime,2]:='23:59:59.997';
       end;
     end;
 
