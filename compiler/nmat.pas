@@ -695,10 +695,7 @@ implementation
 {$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,s32inttype)
 {$elseif defined(cpu16bitalu)}
-                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
-                   inserttypeconv(left,s32inttype)
-                 else
-                   inserttypeconv(left,sinttype);
+                 inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true));
 {$else}
                  internalerror(2013031301);
 {$endif}
@@ -710,10 +707,7 @@ implementation
 {$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
 {$elseif defined(cpu16bitalu)}
-                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
-                   inserttypeconv(left,u32inttype)
-                 else
-                   inserttypeconv(left,uinttype);
+                 inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
 {$else}
                  internalerror(2013031301);
 {$endif}
