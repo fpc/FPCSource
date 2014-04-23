@@ -641,9 +641,6 @@ implementation
     function tshlshrnode.pass_typecheck:tnode;
       var
          t : tnode;
-{$ifdef cpunodefaultint}
-         nd : tdef;
-{$endif cpunodefaultint}
       begin
          result:=nil;
          typecheckpass(left);
@@ -673,14 +670,6 @@ implementation
               exit;
            end;
 
-{$ifdef cpunodefaultint}
-         { for small cpus we use the smallest common type }
-         if (left.resultdef.typ=orddef) and (right.resultdef.typ=orddef) then
-           nd:=get_common_intdef(torddef(left.resultdef),torddef(right.resultdef),false)
-         else
-           nd:=s32inttype;
-{$endif cpunodefaultint}
-
          { calculations for ordinals < 32 bit have to be done in
            32 bit for backwards compatibility. That way 'shl 33' is
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
@@ -690,11 +679,9 @@ implementation
              { keep singness of orignal type }
              if is_signed(left.resultdef) then
                begin
-{$if defined(cpunodefaultint)}
-                 inserttypeconv(left,nd)
-{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,s32inttype)
-{$elseif defined(cpu16bitalu)}
+{$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                  inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true));
 {$else}
                  internalerror(2013031301);
@@ -702,11 +689,9 @@ implementation
                end
              else
                begin
-{$if defined(cpunodefaultint)}
-                 inserttypeconv(left,nd)
-{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
-{$elseif defined(cpu16bitalu)}
+{$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                  inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
 {$else}
                  internalerror(2013031301);
@@ -714,11 +699,7 @@ implementation
                end
            end;
 
-{$ifdef cpunodefaultint}
-         inserttypeconv(right,nd);
-{$else cpunodefaultint}
          inserttypeconv(right,sinttype);
-{$endif cpunodefaultint}
 
          resultdef:=left.resultdef;
 
