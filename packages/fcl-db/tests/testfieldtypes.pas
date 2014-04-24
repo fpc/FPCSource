@@ -597,12 +597,12 @@ begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test this blob'')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    AssertEquals('Test deze blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsString);
     close;
     end;
 end;
@@ -681,20 +681,21 @@ begin
 end;
 
 procedure TTestFieldTypes.TestBlobSize;
+const
+  TestValue: string = 'Test this blob';
 begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values ('''+TestValue+''')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.text := 'select * from FPDEV2';
     Open;
-    AssertEquals(14,TBlobField(fields[0]).BlobSize);
+    AssertEquals(length(TestValue),TBlobField(fields[0]).BlobSize);
     close;
     end;
 end;
-
 
 procedure TTestFieldTypes.TestSQLFieldType(ADatatype : TFieldType; ASQLTypeDecl : string; ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc; ACheckFieldValueProc: TCheckFieldValueProc);
 var
@@ -1658,7 +1659,7 @@ end;
 
 procedure TTestFieldTypes.TestSetBlobAsMemoParam;
 begin
-  // Firebird/Interbase ODBC driver : if parameter of ValueType=SQL_C_CHAR is bind to BLOB column
+  // Firebird/Interbase ODBC driver : if parameter of ValueType=SQL_C_CHAR is bound to BLOB column
   // driver interprets character data as hexadecimal string and performs conversion ('FF10'=#255#16)
   TestSetBlobAsParam(0);
 end;
