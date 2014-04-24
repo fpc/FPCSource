@@ -368,7 +368,7 @@ type
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsWideString(const AValue: WideString); virtual;
     procedure SetDataset(AValue : TDataset); virtual;
-    procedure SetDataType(AValue: TFieldType);
+    procedure SetDataType(AValue: TFieldType); virtual;
     procedure SetNewValue(const AValue: Variant);
     procedure SetSize(AValue: Integer); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
@@ -880,6 +880,7 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetDataType(AValue: TFieldType); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     procedure SetAsWideString(const AValue: WideString); override;

@@ -805,13 +805,11 @@ end;
 
 
 procedure TField.SetAsLongint(AValue: Longint);
-
 begin
   SetAsInteger(AValue);
 end;
 
 procedure TField.SetAsInteger(AValue: Longint);
-
 begin
   raise AccessError(SInteger);
 end;
@@ -822,7 +820,6 @@ begin
 end;
 
 procedure TField.SetAsString(const AValue: string);
-
 begin
   Raise AccessError(SString);
 end;
@@ -1915,7 +1912,7 @@ constructor TFloatField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  SetDatatype(ftfloat);
+  SetDatatype(ftFloat);
   FPrecision:=15;
   FValidChars := [DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
 end;
@@ -2386,7 +2383,7 @@ constructor TVarBytesField.Create(AOwner: TComponent);
 
 begin
   INherited Create(AOwner);
-  SetDataType(ftvarbytes);
+  SetDataType(ftVarBytes);
   Size:=16;
 end;
 
@@ -2895,6 +2892,13 @@ begin
     finally
       Free;
     end;
+end;
+
+procedure TBlobField.SetDataType(AValue: TFieldType);
+begin
+  inherited SetDataType(AValue);
+  If AValue in [Low(TBlobType)..High(TBlobType)] then
+    FBlobType := AValue;
 end;
 
 
