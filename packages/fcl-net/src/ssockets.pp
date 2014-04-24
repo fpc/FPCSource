@@ -137,7 +137,7 @@ type
     Procedure Abort;
     function GetConnection: TSocketStream; virtual; abstract;
     Function HandleAcceptError(E : ESocketError) : TAcceptErrorAction;
-    Property Handler : TSocketHandler;
+    Property Handler : TSocketHandler Read FHandler;
   Public
     Constructor Create(ASocket : Longint; AHandler : TSocketHandler);
     Destructor Destroy; Override;
@@ -381,6 +381,7 @@ destructor TSocketStream.Destroy;
 begin
   if FSocketInitialized then
     FHandler.Close; // Ignore the result
+  FreeAndNil(FHandler);  
   CloseSocket(Handle);
   inherited Destroy;
 end;
@@ -447,12 +448,16 @@ begin
   FSocket:=ASocket;
   FQueueSize :=5;
   FMaxConnections:=-1;
+  if (AHandler=Nil) then
+    AHandler:=TSocketHandler.Create;
+  FHandler:=AHandler;
 end;
 
 Destructor TSocketServer.Destroy;
 
 begin
   Close;
+  FreeAndNil(FHandler);
   Inherited;
 end;
 
