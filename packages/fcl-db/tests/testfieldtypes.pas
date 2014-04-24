@@ -2365,5 +2365,7 @@ end;
 
 
 initialization
-  if uppercase(dbconnectorname)='SQL' then RegisterTest(TTestFieldTypes);
+  // Only test if using sqldb
+  if uppercase(dbconnectorname)='SQL' then
+    RegisterTest(TTestFieldTypes);
 end.
