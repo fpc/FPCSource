@@ -44,6 +44,8 @@ type
     procedure TestSupportBlobFields;
     procedure TestSupportMemoFields;
 
+    procedure TestBlobBlobType; //bug 26064
+
     procedure TestCalculatedField;
     procedure TestCanModifySpecialFields;
 
@@ -2630,7 +2632,7 @@ begin
   ds.close;
 end;
 
-procedure TTestDBBasics.TestSupportfmtBCDFields;
+procedure TTestDBBasics.TestSupportFmtBCDFields;
 var i          : byte;
     ds         : TDataset;
     Fld        : TField;
@@ -2698,6 +2700,32 @@ begin
     ds.Next;
     end;
   ds.close;
+end;
+
+procedure TTestDBBasics.TestBlobBlobType;
+// Verifies whether all created blob types actually have blobtypes that fall
+// into the blobtype range (subset of datatype enumeration)
+var
+  ds: TDataSet;
+  i:integer;
+begin
+  ds := DBConnector.GetFieldDataset;
+  with ds do
+  begin;
+    Open;
+    for i:=0 to Fields.Count-1 do
+      begin
+      // This should only apply to blob types
+      if Fields[i].DataType in [Low(TBlobType)..High(TBlobType)] then
+        begin
+          if not(TBlobField(Fields[i]).BlobType in [Low(TBlobType)..High(TBlobType)]) then
+            fail('BlobType for field '+
+              Fields[i].FieldName+' is not in blob type range. Actual value: '+
+              inttostr(word(TBlobField(Fields[i]).BlobType)));
+        end;
+      end;
+    Close;
+  end;
 end;
 
 procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
