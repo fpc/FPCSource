@@ -189,7 +189,7 @@ implementation
           begin
             tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,
-              aint($80000000),location.register64.reghi,tr);
+              longint($80000000),location.register64.reghi,tr);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
