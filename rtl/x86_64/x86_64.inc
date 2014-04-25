@@ -932,7 +932,6 @@ const
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
 
-  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
 procedure fpc_cpuinit;
   begin
@@ -940,7 +939,7 @@ procedure fpc_cpuinit;
     if IsLibrary then
       begin
         Default8087CW:=Get8087CW;
-        mxcsr:=GetSSECSR;
+        DefaultMXCSR:=GetMXCSR;
       end;
     SysResetFPU;
   end;
@@ -959,7 +958,7 @@ Procedure SysResetFPU;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
-    localmxcsr:=mxcsr;
+    localmxcsr:=DefaultMXCSR;
     asm
       fninit
       fwait

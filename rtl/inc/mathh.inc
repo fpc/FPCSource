@@ -20,10 +20,16 @@
 
     procedure Set8087CW(cw:word);
     function Get8087CW:word;
-  {$ifndef cpui8086}
-    procedure SetSSECSR(w : dword);
-    function GetSSECSR : dword;
-  {$endif not cpui8086}
+{$endif}
+
+{$if defined (cpui386) or defined(cpux86_64)}
+    const
+      DefaultMXCSR: dword = $1900;
+
+    procedure SetMXCSR(w: dword);
+    function GetMXCSR: dword;
+    procedure SetSSECSR(w : dword); deprecated 'Renamed to SetMXCSR';
+    function GetSSECSR : dword; deprecated 'Renamed to GetMXCSR';
 {$endif}
 
   type

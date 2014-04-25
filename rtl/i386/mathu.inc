@@ -150,7 +150,7 @@ begin
   CtlWord := Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
   if has_sse_support then
-    SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
+    SetMXCSR((GetMXCSR and $ffff9fff) or (dword(RoundMode) shl 13));
   Result := TFPURoundingMode((CtlWord shr 10) and 3);
 end;
 
@@ -180,7 +180,7 @@ begin
   CtlWord := Get8087CW;
   Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
   if has_sse_support then
-    SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
+    SetMXCSR((GetMXCSR and $ffffe07f) or (dword(Mask) shl 7));
   Result := TFPUExceptionMask(Longint(CtlWord and $3F));
 end;
 

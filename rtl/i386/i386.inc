@@ -1334,8 +1334,6 @@ const
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
 
-  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
-
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
@@ -1358,7 +1356,7 @@ Procedure SysResetFPU;
     end;
     if has_sse_support then
       begin
-        localmxcsr:=mxcsr;
+        localmxcsr:=DefaultMXCSR;
         asm
           { setup sse exceptions }
           ldmxcsr localmxcsr
@@ -1406,7 +1404,7 @@ procedure fpc_cpucodeinit;
       begin
         Default8087CW:=Get8087CW;
         if has_sse_support then
-          mxcsr:=GetSSECSR;
+          DefaultMXCSR:=GetMXCSR;
       end;
 
     SysResetFPU;

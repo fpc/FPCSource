@@ -87,7 +87,7 @@ Function DoSafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        ssecw:=GetSSECSR;
+        ssecw:=GetMXCSR;
 {$endif}
       Result:=doloadlibrary(Name);
       finally
@@ -96,7 +96,7 @@ Function DoSafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        SetSSECSR(ssecw);
+        SetMXCSR(ssecw);
 {$endif}
     end;
   end;

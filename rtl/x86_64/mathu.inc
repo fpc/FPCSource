@@ -104,7 +104,7 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
 function GetRoundMode: TFPURoundingMode;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
-  Result:=TFPURoundingMode((GetSSECSR shr 13) and $3);
+  Result:=TFPURoundingMode((GetMXCSR shr 13) and $3);
 {$else win64}
   Result:=TFPURoundingMode((Get8087CW shr 10) and $3);
 {$endif win64}
@@ -116,9 +116,9 @@ var
   SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
-  SSECSR:=GetSSECSR;
+  SSECSR:=GetMXCSR;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  SetSSECSR((SSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
+  SetMXCSR((SSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPURoundingMode((CtlWord shr 10) and 3);
 {$else}
@@ -143,7 +143,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
-  Result:=TFPUExceptionMask(dword((GetSSECSR shr 7) and $3f));
+  Result:=TFPUExceptionMask(dword((GetMXCSR shr 7) and $3f));
 {$else win64}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
 {$endif win64}
@@ -155,9 +155,9 @@ var
   SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
-  SSECSR:=GetSSECSR;
+  SSECSR:=GetMXCSR;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
-  SetSSECSR((SSECSR and $ffffe07f) or (dword(Mask) shl 7));
+  SetMXCSR((SSECSR and $ffffe07f) or (dword(Mask) shl 7));
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPUExceptionMask(dword(CtlWord and $3F));
 {$else}

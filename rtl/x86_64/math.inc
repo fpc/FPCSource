@@ -45,21 +45,33 @@ const
       end;
 
 
-    procedure SetSSECSR(w : dword);
+    procedure SetMXCSR(w : dword);
       begin
-        mxcsr:=w;
+        defaultmxcsr:=w;
         asm
           ldmxcsr w
         end;
       end;
 
 
-    function GetSSECSR : dword;assembler;
+    function GetMXCSR : dword;assembler;
       var
         _w : dword;
       asm
         stmxcsr _w
         movl    _w,%eax
+      end;
+
+
+    procedure SetSSECSR(w : dword);
+      begin
+        SetMXCSR(w);
+      end;
+
+
+    function GetSSECSR: dword;
+      begin
+        result:=GetMXCSR;
       end;
 
 {****************************************************************************

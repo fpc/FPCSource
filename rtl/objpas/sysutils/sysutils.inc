@@ -695,7 +695,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        ssecw:=GetSSECSR;
+        ssecw:=GetMXCSR;
 {$endif}
 {$if defined(windows) or defined(win32)}
       Result:=LoadLibraryA(PChar(Filename));
@@ -708,7 +708,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        SetSSECSR(ssecw);
+        SetMXCSR(ssecw);
 {$endif}
 {$if defined(win64) or defined(win32)}
       SetErrorMode(mode);
