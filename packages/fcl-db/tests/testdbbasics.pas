@@ -2642,8 +2642,8 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(testFmtBCDValues[i], BCDToStr(Fld.AsBCD,DBConnector.FormatSettings));
-    CheckEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat);
+    CheckEquals(testFmtBCDValues[i], BCDToStr(Fld.AsBCD,DBConnector.FormatSettings), 'AsBCD');
+    CheckEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat, 1e-12, 'AsFloat');
     ds.Next;
     end;
   ds.close;
