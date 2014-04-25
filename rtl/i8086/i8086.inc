@@ -72,6 +72,44 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
+{$define FPC_SYSTEM_HAS_FILLDWORD}
+procedure FillDWord(var x;count : SizeInt;value : dword);assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 6 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 8 + extra_param_offset]  // @x
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 8 + extra_param_offset]  // @x
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // lo(value)
+  mov bx, ss:[bx + 4 + extra_param_offset]  // hi(value)
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  cmp ax, bx
+  jne @@lo_hi_different
+  shl cx, 1
+  rep stosw
+  jmp @@Done
+
+@@lo_hi_different:
+  stosw
+  xchg ax, bx
+  stosw
+  xchg ax, bx
+  loop @@lo_hi_different
+
+  @@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
+
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
