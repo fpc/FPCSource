@@ -1071,7 +1071,7 @@ implementation
                if l.loc=LOC_CONSTANT then
                 begin
                   if (longint(l.value)<0) then
-                   cg.a_load_const_reg(list,OS_32,aint($ffffffff),hregisterhi)
+                   cg.a_load_const_reg(list,OS_32,longint($ffffffff),hregisterhi)
                   else
                    cg.a_load_const_reg(list,OS_32,0,hregisterhi);
                 end
