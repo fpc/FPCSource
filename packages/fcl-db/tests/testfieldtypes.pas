@@ -299,7 +299,7 @@ const
   testValues4 : Array[0..testValuesCount-1] of currency = (-99.99,-12.34,-10.2,-10,-0.5,-0.01,0,0.01,0.5,10,10.2,12.34,99.99);
   testValues9 : Array[0..testValuesCount-1] of currency = (-123456.789,-10000,-1875.25,-10,-0.5,-0.001,0,0.001,0.5,10,1875.25,10000,123456.789);
   FieldTypes: array [0..7] of TFieldType = (ftBCD, ftBCD, ftBCD, ftFmtBCD, ftLargeInt, ftFmtBCD, ftFmtBCD, ftFmtBCD);
-  FieldSizes: array [0..7] of integer = (4,2,3,5,0,3,5,0); //scale
+  FieldSizes: array [0..7] of integer = (4,2,3,5,0,3,5,0); //scale for FieldTypes
 
 var
   i,d        : integer;
@@ -663,7 +663,7 @@ begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test this blob'')');
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (Null)');
 
   with TSQLDBConnector(DBConnector).Query do
@@ -671,7 +671,7 @@ begin
     Open;
     AssertFalse(fields[0].IsNull);
     AssertEquals('(BLOB)',fields[0].DisplayText);
-    AssertEquals('Test deze blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsString);
     Next;
     AssertTrue(fields[0].IsNull);
     AssertEquals('(blob)',fields[0].Text);
