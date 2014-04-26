@@ -19,6 +19,16 @@ procedure testsingle;
     if l0<>10.0 then
       halt(1);
 
+    l0:=fma(l1+1.0,l2,l3);
+    writeln(l0);
+    if l0<>13.0 then
+      halt(1);
+
+    l0:=fma(l1,l1+1.0,l3);
+    writeln(l0);
+    if l0<>10.0 then
+      halt(1);
+
     l0:=fma(s1,l2,l3);
     writeln(l0);
     if l0<>10.0 then
@@ -59,6 +69,17 @@ procedure testdouble;
     l3:=4;
     d0:=0;
     l0:=fma(l1,l2,l3);
+    writeln(l0);
+    if l0<>10.0 then
+      halt(1);
+
+    l0:=fma(l1+1.0,l2,l3);
+    writeln(l0);
+    if l0<>13.0 then
+      halt(1);
+
+
+    l0:=fma(l1,l1+1.0,l3);
     writeln(l0);
     if l0<>10.0 then
       halt(1);

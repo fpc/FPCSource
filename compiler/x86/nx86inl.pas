@@ -830,10 +830,29 @@ implementation
                end
              else
                begin
-                 hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
-                   paraarray[3].location.register,location.register,mms_movescalar);
-                 emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,0],S_NO,
-                   paraarray[1].location.register,paraarray[2].location.register,location.register);
+                 { try to use the location which is already in a temp. mm register as destination,
+                   so the compiler might be able to re-use the register }
+                 if paraarray[1].location.loc=LOC_MMREGISTER then
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                       paraarray[1].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,3],S_NO,
+                       paraarray[3].location.register,paraarray[2].location.register,location.register);
+                   end
+                 else if paraarray[2].location.loc=LOC_MMREGISTER then
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[2].resultdef,resultdef,
+                       paraarray[2].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,3],S_NO,
+                       paraarray[3].location.register,paraarray[1].location.register,location.register);
+                   end
+                 else
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                       paraarray[3].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,0],S_NO,
+                       paraarray[1].location.register,paraarray[2].location.register,location.register);
+                   end;
                end;
            end
          else
