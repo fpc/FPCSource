@@ -166,7 +166,13 @@ implementation
             internalerror(200406021);
         end;
         { flip sign-bit (bit 31/63) of single/double }
-        cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,aint($80000000),href2);
+        cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,
+{$ifdef cpu64bitalu}
+          aint($80000000),
+{$else cpu64bitalu}
+          longint($80000000),
+{$endif cpu64bitalu}
+          href2);
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
