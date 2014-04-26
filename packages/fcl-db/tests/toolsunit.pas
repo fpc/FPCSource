@@ -124,7 +124,7 @@ const
 const
   testValuesCount = 25;
   testFloatValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678,2.4,3.2,0.4,23);
-  testCurrencyValues : Array[0..testValuesCount-1] of currency = (-MaxLongInt-1,-MaxSmallint-1,-256,-255,-43.34,-2.5,-0.21,0,0.32,45.45,256,45,1234.56,12.34,0.12,MaxSmallInt+1,MaxLongInt+1,-6871947.67,68719476736,2748779069.44,-9223372036854.0625,922337203685.47,-92233720368547,99999999999999,-9223372036854.7);
+  testCurrencyValues : Array[0..testValuesCount-1] of currency = (-MaxLongInt-1,-MaxSmallint-1,-256,-255,-43.34,-2.5,-0.21,0,0.32,45.45,256,45,1234.56,12.34,0.12,MaxSmallInt+1,MaxLongInt+1,-6871947.67,68719476736,2748779069.44,-9223372036854.25,922337203685.47,-92233720368547,99999999999999,-9223372036854.7);
   testFmtBCDValues : Array[0..testValuesCount-1] of string = ('-100','-65.5','-54.3333','-43.3334','-2.5','-0.234567','45.4','0.3','45.414585','127','128','255','256','45','0.3','45.4','127','128','255','256','45','1234.56789','43.23','43.500001','99.88');
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testWordValues : Array[0..testValuesCount-1] of Word = (1,2,3,4,5,6,7,8,0,1,127,128,255,256,maxSmallint,maxSmallint+1,maxSmallInt-1,maxSmallInt,65535,100,130,150,151,132,234);
