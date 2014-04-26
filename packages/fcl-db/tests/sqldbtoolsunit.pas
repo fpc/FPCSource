@@ -330,6 +330,8 @@ begin
       end;
     ssSQLite:
       begin
+      // SQLite stores all values with decimal point as 8 byte (double) IEEE floating point numbers
+      // (it causes that some tests (for BCD, FmtBCD fields) fails for exact numeric values, which can't be lossless expressed as 8 byte floating point values)
       FieldtypeDefinitions[ftWord] := 'WORD';
       FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
       FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
