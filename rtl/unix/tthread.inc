@@ -163,10 +163,6 @@ begin
       // this function is the thread's main function (so it would have terminated
       // already in case it was joined)
       EndThread(Result);
-    end
-  else
-    begin
-      FlushThread;
     end;
 end;
 
