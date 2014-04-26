@@ -870,7 +870,7 @@ implementation
                  { we're at the end of the data, and it can be loaded into
                    the current location's register with a single regular
                    load }
-                 else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                 else if sizeleft in [1,2,4,8] then
                    begin
                      { don't use cgsize_orddef(int_cgsize(sizeleft)) as fromdef,
                        because that may be larger than location^.register in
