@@ -325,6 +325,26 @@ begin
   currenttm.rtleventWaitForTimeout(state,timeout);
 end;
 
+function SemaphoreInit: pointer;
+begin
+  result:=currenttm.SemaphoreInit();
+end;
+
+procedure SemaphoreDestroy(const sem: pointer);
+begin
+  currenttm.SemaphoreDestroy(sem);
+end;
+
+procedure SemaphoreWait(const sem: pointer);
+begin
+  currenttm.SemaphoreWait(sem);
+end;
+
+procedure SemaphorePost(const sem: pointer);
+begin
+  currenttm.SemaphorePost(sem);
+end;
+
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}

@@ -175,3 +175,8 @@ procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 
+function SemaphoreInit: Pointer;
+procedure SemaphoreDestroy(const sem: Pointer);
+procedure SemaphoreWait(const sem: Pointer);
+procedure SemaphorePost(const sem: Pointer);
+
