@@ -88,23 +88,51 @@ end;
 
 procedure TCustomFixedLengthExporter.BuildDefaultFieldMap(AMap: TExportFields);
 
-{  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
-    ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
-    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
-    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
-    ftWideString, ftLargeint, ftADT, ftArray, ftReference,
-    ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
-}
 Const
-  FieldWidths : Array[TFieldType] of integer
-              = (-1,0,3,10,5,
-                  1,20,20,20,10,8,20,
-                  0,0,10,0,0,0,0,
-                  0,0,0,0,0,
-                  0,0,0,0,0,
-                  0,0,0,0,0,
-                  0,0,0,0,0,0);
+  // Mapping to TFieldType
+  FieldWidths : Array[TFieldType] of integer =
+    (
+    {ftUnknown} -1,
+    {ftString} 0,
+    {ftSmallint} 3,
+    {ftInteger} 10,
+    {ftWord} 5,
+    {ftBoolean} 1,
+    {ftFloat} 20,
+    {ftCurrency} 20,
+    {ftBCD} 20,
+    {ftDate} 10,
+    {ftTime} 8,
+    {ftDateTime} 20,
+    {ftBytes} 0,
+    {ftVarBytes} 0,
+    {ftAutoInc} 10,
+    {ftBlob} 0,
+    {ftMemo} 0,
+    {ftGraphic} 0,
+    {ftFmtMemo} 0,
+    {ftParadoxOle} 0,
+    {ftDBaseOle} 0,
+    {ftTypedBinary} 0,
+    {ftCursor} 0,
+    {ftFixedChar} 0,
+    {ftWideString} 0,
+    {ftLargeint} 0,
+    {ftADT} 0,
+    {ftArray} 0,
+    {ftReference} 0,
+    {ftDataSet} 0,
+    {ftOraBlob} 0,
+    {ftOraClob} 0,
+    {ftVariant} 0,
+    {ftInterface} 0,
+    {ftIDispatch} 0,
+    {ftGuid} 0,
+    {ftTimeStamp} 0,
+    {ftFMTBcd} 0,
+    {ftFixedWideChar} 0,
+    {ftWideMemo} 0
+    );
 
 Var
   I,W : Integer;

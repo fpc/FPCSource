@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2014 by Michael Van Canneyt, member of the
     Free Pascal development team
 
 
@@ -100,13 +100,8 @@ type
 
   TFieldClass = class of TField;
 
-{
-  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
-    ftBoolean, ftFloat, ftDate, ftTime, ftDateTime,
-    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic,
-    ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor);
-}
-
+  // Data type for field.
+  // The order is determined by Delphi compatibility
   TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
     ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
@@ -115,7 +110,7 @@ type
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
 
-{ Part of DBCommon, but temporary defined here (bug 8206) }
+{ Part of DBCommon, but temporarily defined here (bug 8206) }
 
  TFieldMap = array[TFieldType] of Byte;
 
@@ -1997,85 +1992,101 @@ type
 
 
 const
-  FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,
-    varInteger, varSmallint, varBoolean, varDouble, varCurrency, varCurrency,
-    varDate, varDate, varDate, varOleStr, varOleStr, varInteger, varOleStr,
-    varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varError,
-    varOleStr, varOleStr, varError, varError, varError, varError, varError,
-    varOleStr, varOleStr, varVariant, varUnknown, varDispatch, varOleStr,
-    varOleStr, varDouble, varOleStr,varOleStr);
+  FieldTypetoVariantMap : array[TFieldType] of Integer =
+    (
+      {ftUnknown} varError,
+      {ftString} varOleStr,
+      {ftSmallint} varSmallint,
+      {ftInteger} varInteger,
+      {ftWord} varSmallint,
+      {ftBoolean} varBoolean,
+      {ftFloat} varDouble,
+      {ftCurrency} varCurrency,
+      {ftBCD} varCurrency,
+      {ftDate} varDate,
+      {ftTime} varDate,
+      {ftDateTime} varDate,
+      {ftBytes} varOleStr,
+      {ftVarBytes} varOleStr,
+      {ftAutoInc} varInteger,
+      {ftBlob} varOleStr,
+      {ftMemo} varOleStr,
+      {ftGraphic} varOleStr,
+      {ftFmtMemo} varOleStr,
+      {ftParadoxOle} varOleStr,
+      {ftDBaseOle} varOleStr,
+      {ftTypedBinary} varOleStr,
+      {ftCursor} varError,
+      {ftFixedChar} varOleStr,
+      {ftWideString} varOleStr,
+      {ftLargeint} varError,
+      {ftADT} varError,
+      {ftArray} varError,
+      {ftReference} varError,
+      {ftDataSet} varError,
+      {ftOraBlob} varOleStr,
+      {ftOraClob} varOleStr,
+      {ftVariant} varVariant,
+      {ftInterface} varUnknown,
+      {ftIDispatch} varDispatch,
+      {ftGuid} varOleStr,
+      {ftTimeStamp} varOleStr,
+      {ftFMTBcd} varDouble,
+      {ftFixedWideChar} varOleStr,
+      {ftWideMemo} varOleStr
+    );
 
 
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
     (
-      'Unknown',
-      'String',
-      'Smallint',
-      'Integer',
-      'Word',
-      'Boolean',
-      'Float',
-      'Currency',
-      'BCD',
-      'Date',
-      'Time',
-      'DateTime',
-      'Bytes',
-      'VarBytes',
-      'AutoInc',
-      'Blob',
-      'Memo',
-      'Graphic',
-      'FmtMemo',
-      'ParadoxOle',
-      'DBaseOle',
-      'TypedBinary',
-      'Cursor',
-      'FixedChar',
-      'WideString',
-      'Largeint',
-      'ADT',
-      'Array',
-      'Reference',
-      'DataSet',
-      'OraBlob',
-      'OraClob',
-      'Variant',
-      'Interface',
-      'IDispatch',
-      'Guid',
-      'TimeStamp',
-      'FMTBcd',
-      'FixedWideChar',
-      'WideMemo'
+      {ftUnknown} 'Unknown',
+      {ftString} 'String',
+      {ftSmallint} 'Smallint',
+      {ftInteger} 'Integer',
+      {ftWord} 'Word',
+      {ftBoolean} 'Boolean',
+      {ftFloat} 'Float',
+      {ftCurrency} 'Currency',
+      {ftBCD} 'BCD',
+      {ftDate} 'Date',
+      {ftTime} 'Time',
+      {ftDateTime} 'DateTime',
+      {ftBytes} 'Bytes',
+      {ftVarBytes} 'VarBytes',
+      {ftAutoInc} 'AutoInc',
+      {ftBlob} 'Blob',
+      {ftMemo} 'Memo',
+      {ftGraphic} 'Graphic',
+      {ftFmtMemo} 'FmtMemo',
+      {ftParadoxOle} 'ParadoxOle',
+      {ftDBaseOle} 'DBaseOle',
+      {ftTypedBinary} 'TypedBinary',
+      {ftCursor} 'Cursor',
+      {ftFixedChar} 'FixedChar',
+      {ftWideString} 'WideString',
+      {ftLargeint} 'Largeint',
+      {ftADT} 'ADT',
+      {ftArray} 'Array',
+      {ftReference} 'Reference',
+      {ftDataSet} 'DataSet',
+      {ftOraBlob} 'OraBlob',
+      {ftOraClob} 'OraClob',
+      {ftVariant} 'Variant',
+      {ftInterface} 'Interface',
+      {ftIDispatch} 'IDispatch',
+      {ftGuid} 'Guid',
+      {ftTimeStamp} 'TimeStamp',
+      {ftFMTBcd} 'FMTBcd',
+      {ftFixedWideChar} 'FixedWideChar',
+      {ftWideMemo} 'WideMemo'
     );
-    { 'Unknown',
-      'String',
-      'Smallint',
-      'Integer',
-      'Word',
-      'Boolean',
-      'Float',
-      'Date',
-      'Time',
-      'DateTime',
-      'Bytes',
-      'VarBytes',
-      'AutoInc',
-      'Blob',
-      'Memo',
-      'Graphic',
-      'FmtMemo',
-      'ParadoxOle',
-      'DBaseOle',
-      'TypedBinary',
-      'Cursor'
-    );}
+
 
 const
   DefaultFieldClasses : Array [TFieldType] of TFieldClass =
-    ( { ftUnknown} Tfield,
+    (
+      { ftUnknown} Tfield,
       { ftString} TStringField,
       { ftSmallint} TSmallIntField,
       { ftInteger} TLongintField,

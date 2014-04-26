@@ -85,46 +85,46 @@ type
 const
   FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
     (
-      '',
-      'VARCHAR(10)',
-      'SMALLINT',
-      'INTEGER',
-      '',             // ftWord
-      'BOOLEAN',
-      'DOUBLE PRECISION', // ftFloat
-      '',             // ftCurrency
-      'DECIMAL(18,4)',// ftBCD
-      'DATE',
-      'TIME',
-      'TIMESTAMP',    // ftDateTime
-      '',             // ftBytes
-      '',             // ftVarBytes
-      '',             // ftAutoInc
-      'BLOB',         // ftBlob
-      'BLOB',         // ftMemo
-      'BLOB',         // ftGraphic
-      '',
-      '',
-      '',
-      '',
-      '',
-      'CHAR(10)',     // ftFixedChar
-      '',             // ftWideString
-      'BIGINT',       // ftLargeInt
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',             // ftGuid
-      'TIMESTAMP',    // ftTimestamp
-      'NUMERIC(18,6)',// ftFmtBCD
-      '',             // ftFixedWideChar
-      ''              // ftWideMemo
+      {ftUnknown} '',
+      {ftString} 'VARCHAR(10)',
+      {ftSmallint} 'SMALLINT',
+      {ftInteger} 'INTEGER',
+      {ftWord} '',
+      {ftBoolean} 'BOOLEAN',
+      {ftFloat} 'DOUBLE PRECISION',
+      {ftCurrency} '',
+      {ftBCD} 'DECIMAL(18,4)',
+      {ftDate} 'DATE',
+      {ftTime} 'TIME',
+      {ftDateTime} 'TIMESTAMP',
+      {ftBytes} '',
+      {ftVarBytes} '',
+      {ftAutoInc} '',
+      {ftBlob} 'BLOB',
+      {ftMemo} 'BLOB',
+      {ftGraphic} 'BLOB',
+      {ftFmtMemo} '',
+      {ftParadoxOle} '',
+      {ftDBaseOle} '',
+      {ftTypedBinary} '',
+      {ftCursor} '',
+      {ftFixedChar} 'CHAR(10)',
+      {ftWideString} '',
+      {ftLargeint} 'BIGINT',
+      {ftADT} '',
+      {ftArray} '',
+      {ftReference} '',
+      {ftDataSet} '',
+      {ftOraBlob} '',
+      {ftOraClob} '',
+      {ftVariant} '',
+      {ftInterface} '',
+      {ftIDispatch} '',
+      {ftGuid} '',
+      {ftTimeStamp} 'TIMESTAMP',
+      {ftFMTBcd} 'NUMERIC(18,6)',
+      {ftFixedWideChar} '',
+      {ftWideMemo} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
