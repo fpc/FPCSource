@@ -290,13 +290,7 @@ implementation
           LOC_CREGISTER:
             begin
               if getsupreg(paraloc^.register)<first_int_imreg then
-                begin
-                  cg.getcpuregister(list,paraloc^.register);
-{$ifdef cpu16bitalu}
-                  if paraloc^.Size in [OS_32, OS_S32] then
-                    cg.getcpuregister(list,GetNextReg(paraloc^.register));
-{$endif cpu16bitalu}
-                end;
+                cg.getcpuregister(list,paraloc^.register);
             end;
 {$ifndef x86}
 { don't allocate ST(x), they're not handled by the register allocator }
@@ -345,13 +339,7 @@ implementation
               LOC_CREGISTER:
                 begin
                   if getsupreg(paraloc^.register)<first_int_imreg then
-                    begin
-                      cg.ungetcpuregister(list,paraloc^.register);
-{$ifdef cpu16bitalu}
-                      if paraloc^.Size in [OS_32, OS_S32] then
-                        cg.ungetcpuregister(list,GetNextReg(paraloc^.register));
-{$endif cpu16bitalu}
-                    end;
+                    cg.ungetcpuregister(list,paraloc^.register);
                 end;
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER:
