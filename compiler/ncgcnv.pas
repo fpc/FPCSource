@@ -515,19 +515,19 @@ interface
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
-            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location_reset(location,LOC_REGISTER,def_cgsize(voidcodepointertype));
             { only a code pointer? (when taking the address of classtype.method
               we also only get a code pointer even though the resultdef is a
               procedure of object, and hence is_addressonly would return false)
              }
-	    if left.location.size = OS_ADDR then
+	    if left.location.size = def_cgsize(voidcodepointertype) then
               begin
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       { the procedure symbol is encoded in reference.symbol -> take address }
-                      location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+                      hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidcodepointertype,left.location.reference,location.register);
                     end;
                   else
                     internalerror(2013031501)
@@ -539,9 +539,9 @@ interface
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
                       { code field is the first one }
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidcodepointertype,voidcodepointertype,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
@@ -565,17 +565,17 @@ interface
                   tmethodpointer record and set the "frame pointer" to nil }
                 if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(2013031503);
-                location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
+                location_reset_ref(location,LOC_REFERENCE,int_cgsize(resultdef.size),sizeof(pint));
                 tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
-                tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
-                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
+                tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidcodepointertype,left.location.reference,tmpreg);
+                hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,voidcodepointertype,voidcodepointertype,tmpreg,location.reference);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
-                inc(location.reference.offset,sizeof(pint));
-                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_ADDR,0,location.reference);
-                dec(location.reference.offset,sizeof(pint));
+                inc(location.reference.offset,voidcodepointertype.size);
+                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference);
+                dec(location.reference.offset,voidcodepointertype.size);
               end;
           end;
       end;
