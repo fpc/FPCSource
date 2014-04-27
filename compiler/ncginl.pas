@@ -300,16 +300,16 @@ implementation
            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(lengthlab);
-           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
+           hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,lengthlab);
            if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
              begin
-               reference_reset_base(href,left.location.register,-sizeof(dword),sizeof(dword));
+               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(dword),sizeof(dword));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
              end
            else
              begin
-               reference_reset_base(href,left.location.register,-sizeof(pint),sizeof(pint));
+               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(pint),sizeof(pint));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
