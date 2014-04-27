@@ -1279,6 +1279,9 @@ type
               if b in pconstset(value.valueptr)^ then
                 result:=result+tostr(b)+',';
           end;
+        { error values }
+        constnone:
+          result:='';
         else
           internalerror(2013112801);
       end;
