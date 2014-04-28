@@ -858,9 +858,9 @@ type
   TBlobStreamMode = (bmRead, bmWrite, bmReadWrite);
   // This type is needed for compatibility. While it should contain only blob
   // types, it actually does not.
-  // Instead of this, please use function IsBlobType
+  // Instead of this, please use ftBlobTypes
   TBlobType = ftBlob..ftWideMemo deprecated
-    'Warning: Does not contain BLOB types. Please use BlobTypes.';
+    'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
 
   TBlobField = class(TField)
   private
