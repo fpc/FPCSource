@@ -583,10 +583,10 @@ interface
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
     begin
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
-      cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
-      location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-      cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.register);
+      location.registerhi:=hlcg.getaddressregister(current_asmdata.currasmlist,voidpointertype);
+      hlcg.a_load_const_reg(current_asmdata.currasmlist,voidpointertype,0,location.registerhi);
+      location.register:=hlcg.getaddressregister(current_asmdata.currasmlist,voidcodepointertype);
+      hlcg.a_load_const_reg(current_asmdata.currasmlist,voidcodepointertype,0,location.register);
     end;
 
     procedure tcgtypeconvnode.second_bool_to_int;

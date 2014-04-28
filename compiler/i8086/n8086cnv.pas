@@ -36,7 +36,6 @@ interface
        protected
          function typecheck_proc_to_procvar: tnode;override;
          procedure second_proc_to_procvar;override;
-         procedure second_nil_to_methodprocvar;override;
        end;
 
 
@@ -70,32 +69,6 @@ implementation
            (current_settings.x86memorymodel in x86_far_code_models) then
           internalerror(2014041303);
         inherited;
-      end;
-
-
-    procedure t8086typeconvnode.second_nil_to_methodprocvar;
-      begin
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        if current_settings.x86memorymodel in x86_far_data_models then
-          begin
-            location.registerhi:=cg.getintregister(current_asmdata.currasmlist,OS_32);
-            cg.a_load_const_reg(current_asmdata.currasmlist,OS_32,0,location.registerhi);
-          end
-        else
-          begin
-            location.registerhi:=cg.getaddressregister(current_asmdata.currasmlist);
-            cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.registerhi);
-          end;
-        if (resultdef.typ=procvardef) and is_proc_far(tprocvardef(resultdef)) then
-          begin
-            location.register:=cg.getintregister(current_asmdata.currasmlist,OS_32);
-            cg.a_load_const_reg(current_asmdata.currasmlist,OS_32,0,location.register);
-          end
-        else
-          begin
-            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            cg.a_load_const_reg(current_asmdata.currasmlist,OS_ADDR,0,location.register);
-          end;
       end;
 
 
