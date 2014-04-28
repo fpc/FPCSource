@@ -485,8 +485,28 @@ var
     end;
   end;
 
+  procedure WriteTypeCast(const AName: string; SecondPass: boolean);
+  var
+    s, ss: string;
+  begin
+    if d.DefType <> dtClass then
+      exit;
+    with TClassDef(d) do begin
+      if (AncestorClass = nil) and not (SecondPass and HasReplacedItems) then
+        // TObject
+        s:='_pasobj=obj._pasobj'
+      else
+        s:='super(obj)';
+      if HasReplacedItems and not SecondPass then
+        ss:='protected'
+      else
+        ss:='public';
+      Fjs.WriteLn(Format('%s %s(PascalObject obj) { %s; }', [ss, AName, s]))
+    end;
+  end;
+
 var
-  s, ss: string;
+  s, ss, n: string;
   RegularClass: boolean;
 begin
   if PreInfo then begin
@@ -528,7 +548,8 @@ begin
       s:='';
   end;
   WriteComment(d, s);
-  s:='public static class ' + GetJavaClassName(d, nil) + ' extends ';
+  n:=GetJavaClassName(d, nil);
+  s:='public static class ' + n + ' extends ';
   if d.DefType = dtClass then
     with TClassDef(d) do begin
       if AncestorClass <> nil then begin
@@ -551,6 +572,8 @@ begin
     Fjs.WriteLn(Format('public int Size() { return %d; }', [TRecordDef(d).Size]));
   end;
 
+  WriteTypeCast(n, False);
+
   WrittenItems:=TList.Create;
   try
     RegularClass:=(d.DefType = dtClass) and not TClassDef(d).HasReplacedItems;
@@ -571,6 +594,7 @@ begin
       Fjs.WriteLn(Format('public static class %s extends __%0:s {', [d.AliasName]));
       Fjs.IncI;
 
+      WriteTypeCast(d.AliasName, True);
       WriteConstructors;
       WriteItems(False, True, True);
 
@@ -1196,6 +1220,7 @@ procedure TWriter.WriteUnit(u: TUnitDef);
 var
   d: TDef;
   i: integer;
+  HasSystem: boolean;
 begin
   if u.Processed then
     exit;
@@ -1214,11 +1239,17 @@ begin
   Fjs:=TTextOutStream.Create(IncludeTrailingPathDelimiter(FPkgDir) + u.Name + '.java', fmCreate);
   try
     Fjs.WriteLn(Format('package %s;', [JavaPackage]));
+    HasSystem:=False;
     if Length(u.UsedUnits) > 0 then begin
       Fjs.WriteLn;
       for i:=0 to High(u.UsedUnits) do
-        if u.UsedUnits[i].IsUsed then
+        if u.UsedUnits[i].IsUsed then begin
           Fjs.WriteLn(Format('import %s.%s.*;', [JavaPackage, LowerCase(u.UsedUnits[i].Name)]));
+          if AnsiCompareText(u.UsedUnits[i].Name, 'system') = 0 then
+            HasSystem:=True;
+        end;
+      if not HasSystem then
+        Fjs.WriteLn(Format('import %s.system.*;', [JavaPackage]));
     end;
     Fjs.WriteLn;
     Fjs.WriteLn('public class ' + u.Name + ' {');
@@ -1971,6 +2002,7 @@ begin
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('Result:=nil;');
+    Fps.WriteLn('if PasObj = nil then exit;');
     Fps.WriteLn('Result:=env^^.AllocObject(env, ci.ClassRef);');
     Fps.WriteLn('if Result = nil then exit;');
     Fps.WriteLn('env^^.SetLongField(env, Result, ci.ObjFieldId, Int64(ptruint(PasObj)));');
