@@ -1196,7 +1196,6 @@ procedure TWriter.WriteUnit(u: TUnitDef);
 var
   d: TDef;
   i: integer;
-  f: boolean;
 begin
   if u.Processed then
     exit;
@@ -1217,14 +1216,9 @@ begin
     Fjs.WriteLn(Format('package %s;', [JavaPackage]));
     if Length(u.UsedUnits) > 0 then begin
       Fjs.WriteLn;
-      f:=False;
       for i:=0 to High(u.UsedUnits) do
-        if u.UsedUnits[i].IsUsed then begin
+        if u.UsedUnits[i].IsUsed then
           Fjs.WriteLn(Format('import %s.%s.*;', [JavaPackage, LowerCase(u.UsedUnits[i].Name)]));
-          f:=True;
-        end;
-      if f then
-        Fjs.WriteLn('@SuppressWarnings("unused")');
     end;
     Fjs.WriteLn;
     Fjs.WriteLn('public class ' + u.Name + ' {');
