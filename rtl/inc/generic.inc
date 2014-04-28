@@ -740,7 +740,7 @@ end;
 type
   pobjectvmt=^tobjectvmt;
   tobjectvmt=record
-    size,msize:ptruint;
+    size,msize:sizeuint;
     parent:pointer;
   end;
 
