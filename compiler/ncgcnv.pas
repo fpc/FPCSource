@@ -340,8 +340,8 @@ interface
     procedure tcgtypeconvnode.second_array_to_pointer;
 
       begin
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
