@@ -2750,6 +2750,16 @@ begin
   Result:=FDataset.CreateBlobStream(Self,Mode);
 end;
 
+function TBlobField.GetBlobType: TBlobType;
+begin
+  result:= TBlobType(DataType);
+end;
+
+procedure TBlobField.SetBlobType(AValue: TBlobType);
+begin
+  SetFieldType(TFieldType(BlobType));
+end;
+
 procedure TBlobField.FreeBuffers;
 
 begin
@@ -2894,14 +2904,6 @@ begin
     end;
 end;
 
-procedure TBlobField.SetDataType(AValue: TFieldType);
-begin
-  inherited SetDataType(AValue);
-  If AValue in [Low(TBlobType)..High(TBlobType)] then
-    FBlobType := AValue;
-end;
-
-
 procedure TBlobField.SetAsWideString(const AValue: WideString);
 var
   Len : Integer;
@@ -3000,9 +3002,8 @@ begin
 end;
 
 procedure TBlobField.SetFieldType(AValue: TFieldType);
-
 begin
-  If AValue in [Low(TBlobType)..High(TBlobType)] then
+  if AValue in ftBlobTypes then
     SetDatatype(AValue);
 end;
 

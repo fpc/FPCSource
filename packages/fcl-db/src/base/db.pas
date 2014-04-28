@@ -363,7 +363,7 @@ type
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsWideString(const AValue: WideString); virtual;
     procedure SetDataset(AValue : TDataset); virtual;
-    procedure SetDataType(AValue: TFieldType); virtual;
+    procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
     procedure SetSize(AValue: Integer); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
@@ -856,14 +856,21 @@ type
 
 { TBlobField }
   TBlobStreamMode = (bmRead, bmWrite, bmReadWrite);
-  TBlobType = ftBlob..ftWideMemo;
+  // This type is needed for compatibility. While it should contain only blob
+  // types, it actually does not.
+  // Instead of this, please use function IsBlobType
+  TBlobType = ftBlob..ftWideMemo deprecated
+    'Warning: Does not contain BLOB types. Please use BlobTypes.';
 
   TBlobField = class(TField)
   private
-    FBlobType : TBlobType;
     FModified : Boolean;
     FTransliterate : Boolean;
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
+    // Wrapper that retrieves FDataType as a TBlobType
+    function GetBlobType: TBlobType;
+    // Wrapper that calls SetFieldtype
+    procedure SetBlobType(AValue: TBlobType);
   protected
     procedure FreeBuffers; override;
     function GetAsBytes: TBytes; override;
@@ -875,7 +882,6 @@ type
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
-    procedure SetDataType(AValue: TFieldType); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     procedure SetAsWideString(const AValue: WideString); override;
@@ -893,7 +899,7 @@ type
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
-    property BlobType: TBlobType read FBlobType write FBlobType;
+    property BlobType: TBlobType read GetBlobType write SetBlobType;
     property Size default 0;
   end;
 
@@ -2131,6 +2137,11 @@ const
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
     dsNewValue, dsInternalCalc];
+  // Correct list of all field types that are BLOB types.
+  // Please use this instead of checking TBlobType which will give
+  // incorrect results
+  ftBlobTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle,
+    ftDBaseOle, ftTypedBinary, ftOraBlob, ftOraClob, ftWideMemo];
 
 { Auxiliary functions }
 
