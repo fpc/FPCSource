@@ -131,7 +131,7 @@ const
 
   TextIndent = 2;
 
-  ExcludeStd: array[1..43] of string = (
+  ExcludeStd: array[1..44] of string = (
     'classes.TStream.ReadComponent', 'classes.TStream.ReadComponentRes', 'classes.TStream.WriteComponent', 'classes.TStream.WriteComponentRes',
     'classes.TStream.WriteDescendent', 'classes.TStream.WriteDescendentRes', 'classes.TStream.WriteResourceHeader', 'classes.TStream.FixupResourceHeader',
     'classes.TStream.ReadResHeader', 'classes.TComponent.WriteState', 'classes.TComponent.ExecuteAction', 'classes.TComponent.UpdateAction',
@@ -142,7 +142,8 @@ const
     'system.TObject.GetInterfaceEntry', 'system.TObject.GetInterfaceTable', 'system.TObject.MethodAddress', 'system.TObject.MethodName',
     'system.TObject.FieldAddress', 'classes.TComponent.ComponentState', 'classes.TComponent.ComponentStyle', 'classes.TList.GetEnumerator',
     'classes.TList.List', 'classes.TList.FPOAttachObserver', 'classes.TList.FPODetachObserver', 'classes.TList.FPONotifyObservers',
-    'classes.TPersistent.FPOAttachObserver', 'classes.TPersistent.FPODetachObserver', 'classes.TPersistent.FPONotifyObservers'
+    'classes.TPersistent.FPOAttachObserver', 'classes.TPersistent.FPODetachObserver', 'classes.TPersistent.FPONotifyObservers',
+    'system.fma'
   );
 
   ExcludeDelphi7: array[1..25] of string = (
@@ -1195,6 +1196,7 @@ procedure TWriter.WriteUnit(u: TUnitDef);
 var
   d: TDef;
   i: integer;
+  f: boolean;
 begin
   if u.Processed then
     exit;
@@ -1215,9 +1217,14 @@ begin
     Fjs.WriteLn(Format('package %s;', [JavaPackage]));
     if Length(u.UsedUnits) > 0 then begin
       Fjs.WriteLn;
+      f:=False;
       for i:=0 to High(u.UsedUnits) do
-        if u.UsedUnits[i].IsUsed then
+        if u.UsedUnits[i].IsUsed then begin
           Fjs.WriteLn(Format('import %s.%s.*;', [JavaPackage, LowerCase(u.UsedUnits[i].Name)]));
+          f:=True;
+        end;
+      if f then
+        Fjs.WriteLn('@SuppressWarnings("unused")');
     end;
     Fjs.WriteLn;
     Fjs.WriteLn('public class ' + u.Name + ' {');
