@@ -289,7 +289,7 @@ implementation
         charpointertype:=cpointerdef.create(cansichartype);
         widecharpointertype:=cpointerdef.create(cwidechartype);
 {$ifdef i8086}
-        parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near);
+        parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss);
 {$else i8086}
         parentfpvoidpointertype:=cpointerdef.create(voidtype);
 {$endif i8086}
