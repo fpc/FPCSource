@@ -253,8 +253,26 @@ implementation
       if is_implicit_pointer_object_type(regsize) or is_implicit_array_pointer(regsize) then
         regsize:=voidpointertype;
 
-      if is_farpointer(regsize) or is_hugepointer(regsize) then
-        ref.segment:=GetNextReg(reg);
+      if regsize.typ=pointerdef then
+        case tcpupointerdef(regsize).x86pointertyp of
+          x86pt_near:
+            ;
+          x86pt_near_cs:
+            ref.segment:=NR_CS;
+          x86pt_near_ds:
+            ref.segment:=NR_DS;
+          x86pt_near_ss:
+            ref.segment:=NR_SS;
+          x86pt_near_es:
+            ref.segment:=NR_ES;
+          x86pt_near_fs:
+            ref.segment:=NR_FS;
+          x86pt_near_gs:
+            ref.segment:=NR_GS;
+          x86pt_far,
+          x86pt_huge:
+            ref.segment:=GetNextReg(reg);
+        end;
     end;
 
 
