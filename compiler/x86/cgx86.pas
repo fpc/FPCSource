@@ -619,6 +619,15 @@ unit cgx86;
             list.concat(taicpu.op_reg_reg(A_MOV,S_W,ref.segment,NR_ES));
             ref.segment:=NR_ES;
           end;
+
+        { can the segment override be dropped? }
+        if ref.segment<>NR_NO then
+          begin
+            if (ref.base=NR_BP) and segment_regs_equal(ref.segment,NR_SS) then
+              ref.segment:=NR_NO;
+            if (ref.base<>NR_BP) and segment_regs_equal(ref.segment,NR_DS) then
+              ref.segment:=NR_NO;
+          end;
 {$endif}
       end;
 
