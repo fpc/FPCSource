@@ -158,8 +158,8 @@ implementation
         else
           begin
             currpi:=current_procinfo;
-            location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
@@ -178,8 +178,8 @@ implementation
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
-                reference_reset_base(href,location.register,hsym.localloc.reference.offset,sizeof(pint));
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,sizeof(pint));
+                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
               end;
           end;
       end;
