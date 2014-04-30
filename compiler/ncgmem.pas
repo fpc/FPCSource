@@ -152,7 +152,7 @@ implementation
       begin
         if (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
-            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
             location.register:=current_procinfo.framepointer;
           end
         else
