@@ -1675,9 +1675,9 @@ begin
                            include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
                          If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_support_exceptions)
+                           SetCompileModeSwitch('EXCEPTIONS-',true)
                          else
-                           include(init_settings.globalswitches,cs_support_exceptions);
+                           SetCompileModeSwitch('EXCEPTIONS',true);
                        'y' :
                          If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_typed_addresses)
