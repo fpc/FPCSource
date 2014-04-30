@@ -682,19 +682,19 @@ interface
          ImplIntf : TImplementedInterface;
       begin
          l1:=nil;
-         location_reset(location,LOC_REGISTER,OS_ADDR);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          case left.location.loc of
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
             LOC_CREGISTER:
               begin
-                 location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,location.register);
+                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
               end;
             LOC_REGISTER:
               location.register:=left.location.register;
@@ -711,7 +711,10 @@ interface
                    etStandard:
                      begin
                        current_asmdata.getjumplabel(l1);
-                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,location.register,l1);
+                       hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_EQ,0,location.register,l1);
+                       { todo: consider adding far pointer support to hlcg.a_op_const_reg for i8086 (i.e. perform the
+                               arithmetic operation only on the offset), then the next line can be converted to the
+                               high level code generator as well }
                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,ImplIntf.ioffset,location.register);
                        break;
                      end;
