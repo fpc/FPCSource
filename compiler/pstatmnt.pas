@@ -73,7 +73,7 @@ implementation
          consume(_IF);
          ex:=comp_expr(true,false);
          consume(_THEN);
-         if token<>_ELSE then
+         if not(token in endtokens) then
            if_a:=statement
          else
            if_a:=nil;
