@@ -1201,7 +1201,7 @@ begin
     if FTransliterate then
       DataSet.Translate(@AValue[1],@DynBuf[0],True)
     else
-      StrPLCopy(@DynBuf[0], AValue, DataSize);
+      StrPLCopy(PChar(DynBuf), AValue, DataSize);
     SetData(@DynBuf[0]);
     end
 end;
