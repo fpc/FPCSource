@@ -175,6 +175,7 @@ implementation
         saveseg: TRegister;
       begin
         saveseg:=location.reference.segment;
+        location.reference.segment:=NR_NO;
         inherited update_reference_reg_mul(maybe_const_reg,l);
         location.reference.segment:=saveseg;
       end;
