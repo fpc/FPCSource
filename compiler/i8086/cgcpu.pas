@@ -246,6 +246,7 @@ unit cgcpu;
         a_load_reg_ref(list,OS_32,OS_32,reg,href);
         cg.getcpuregister(list,NR_BX);
         cg.getcpuregister(list,NR_SI);
+        href.segment:=NR_NO;
         list.concat(taicpu.op_ref(A_CALL,S_FAR,href));
         tg.ungettemp(list,href);
       end;

@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
-    Includes the i8086 code generator
+    This unit handles the temporary variables stuff for i8086
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,47 +19,40 @@
 
  ****************************************************************************
 }
-unit cpunode;
+{
+  This unit handles the temporary variables stuff for i8086.
+}
+unit tgcpu;
 
 {$i fpcdefs.inc}
 
   interface
 
-  implementation
-
     uses
-       { generic nodes }
-       ncgbas,
-       ncgld,
-       ncgflw,
-       ncgcnv,
-       ncgmem,
-       ncgmat,
-       ncgcon,
-       ncgcal,
-       ncgset,
-       ncginl,
-       ncgopt,
-       ncgobjc,
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       nx86set,
+      tgobj,globtype,aasmdata,cgutils,symtype;
 
-       n8086add,
-       n8086cal,
-       n8086cnv,
-       n8086ld,
-       n8086mem{,
-       n386set},
-       n8086inl,
-       n8086mat,
-       n8086con,
-       { these are not really nodes }
-       n8086tcon,tgcpu,
-       { symtable }
-       symcpu
-       ;
+    type
 
+      { ttgi8086 }
+
+      ttgi8086 = class(ttgobj)
+      protected
+        procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; out ref: treference);override;
+      end;
+
+implementation
+
+uses
+  cpubase;
+
+{ ttgi8086 }
+
+procedure ttgi8086.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference);
+  begin
+    inherited;
+    ref.segment:=NR_SS;
+  end;
+
+begin
+  tgobjclass:=ttgi8086;
 end.

@@ -3084,10 +3084,14 @@ implementation
       var
         tmpref: treference;
       begin
+        tmpref:=ref;
+{$ifdef i8086}
+        if tmpref.segment=NR_SS then
+          tmpref.segment:=NR_NO;
+{$endif i8086}
         case getregtype(r) of
           R_INTREGISTER :
             begin
-              tmpref:=ref;
               if getsubreg(r)=R_SUBH then
                 inc(tmpref.offset);
               { we don't need special code here for 32 bit loads on x86_64, since
@@ -3098,24 +3102,24 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,tmpref,r);
                 else
                   internalerror(200506043);
               end
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,r);
                 else
                   internalerror(200506043);
               end;
@@ -3130,10 +3134,14 @@ implementation
         size: topsize;
         tmpref: treference;
       begin
+        tmpref:=ref;
+{$ifdef i8086}
+        if tmpref.segment=NR_SS then
+          tmpref.segment:=NR_NO;
+{$endif i8086}
         case getregtype(r) of
           R_INTREGISTER :
             begin
-              tmpref:=ref;
               if getsubreg(r)=R_SUBH then
                 inc(tmpref.offset);
               size:=reg2opsize(r);
@@ -3152,24 +3160,24 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,tmpref);
                 else
                   internalerror(200506042);
               end
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,tmpref);
                 else
                   internalerror(200506042);
               end;

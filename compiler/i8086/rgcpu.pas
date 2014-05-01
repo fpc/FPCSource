@@ -30,11 +30,15 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,
-      cclasses,globtype,cgbase,rgobj,rgx86;
+      aasmbase,aasmtai,aasmdata,aasmcpu,
+      cclasses,globtype,cgbase,cgutils,rgobj,rgx86;
 
     type
+
+       { trgcpu }
+
        trgcpu = class(trgx86)
+          function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
           procedure add_constraints(reg:Tregister);override;
        end;
 
@@ -47,9 +51,7 @@ implementation
 
     uses
       systems,
-      verbose,
-      aasmcpu,
-      cgutils;
+      verbose;
 
     const
        { This value is used in tsaved. If the array value is equal
@@ -59,6 +61,17 @@ implementation
 {************************************************************************
                                  trgcpu
 *************************************************************************}
+
+    function trgcpu.do_spill_replace(list: TAsmList; instr: taicpu; orgreg: tsuperregister; const spilltemp: treference): boolean;
+      var
+        spilltemp2: treference;
+      begin
+        spilltemp2:=spilltemp;
+        if spilltemp2.segment=NR_SS then
+          spilltemp2.segment:=NR_NO;
+        Result:=inherited do_spill_replace(list, instr, orgreg, spilltemp2);
+      end;
+
 
     procedure trgcpu.add_constraints(reg:Tregister);
       var
