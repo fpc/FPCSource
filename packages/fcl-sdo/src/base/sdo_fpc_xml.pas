@@ -105,9 +105,6 @@ end;
 function CreateDoc() : TXMLDocument ;
 begin
   Result := TXMLDocument.Create();
-{$IF ((FPC_VERSION = 2) and (FPC_RELEASE = 6)) }  
-  Result.Encoding := 'UTF-8';
-{$IFEND}  
 end;
 
 function FindNode(ANode : TDOMNode;const ANodeName : string) : TDOMNode;{$IFDEF USE_INLINE}inline;{$ENDIF}
