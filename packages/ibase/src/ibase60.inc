@@ -25,15 +25,18 @@ uses Dynlibs,ctypes;
     v2  = {$ifndef darwin}'.2'{$else}''{$endif};
     v21 = {$ifndef darwin}'.2.1'{$else}''{$endif};
     v25 = {$ifndef darwin}'.2.5'{$else}''{$endif};
+    v251 = {$ifndef darwin}'.2.5.1'{$else}''{$endif};
     fbclib2      = libfc+v2;
     fbembedlib2  = libem+v2;
     fbclib21     = libfc+v21;
     fbembedlib21 = libem+v21;
     fbclib25     = libfc+v25;
     fbembedlib25 = libem+v25;
+    fbclib251    = libfc+v251;
+    fbembedlib251 = libem+v25;
     // Set default here
-    fbclib       = fbclib25;
-    fbembedlib   = fbembedlib25;
+    fbclib       = fbclib251;
+    fbembedlib   = fbembedlib251;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
