@@ -43,6 +43,7 @@ Type
     FSSL: TSSL;
     FCTX : TSSLContext;
     FSSLActive : Boolean;
+    FSendHostAsSNI : Boolean;
     function CheckSSL(SSLResult: Integer): Boolean;
     function CheckSSL(SSLResult: Pointer): Boolean;
     function DoneContext: Boolean;
@@ -84,6 +85,7 @@ Type
     property PFX: TSSLData Index 3 Read GetSSLData Write SetSSLData;
     property CertCA: TSSLData Index 4 Read GetSSLData Write SetSSLData;
     property VerifyPeerCert: Boolean read FVerifyPeerCert Write FVerifyPeerCert;
+    Property SendHostAsSNI : Boolean Read FSendHostAsSNI Write FSendHostAsSNI;
     // In case a certificate must be generated as server, this is the hostname that will be used.
     property RemoteHostName : String Read FRemoteHostName Write FRemoteHostName;
     property OnVerifyCertificate: TVerifyCertificateEvent read FOnVerifyCertificate write FOnVerifyCertificate;
@@ -141,6 +143,7 @@ Var
   I : Integer;
 begin
   inherited Create;
+  FSendHostAsSNI:=True;
   MaybeInitSSLInterface;
   FCipherList:='DEFAULT';
   For I:=0 to SSLDataCount do
@@ -226,6 +229,8 @@ begin
     Result:=CheckSSL(FSSL.SetFD(FSocket.Handle));
     if Result then
      begin
+     if FSendHostAsSNI  and (FSocket is TInetSocket) then
+       FSSL.Ctrl(SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,PAnsiChar(AnsiString((FSocket as TInetSocket).Host)));
      Result:=CheckSSL(FSSL.Connect);
      if Result and VerifyPeerCert then
        Result:=(FSSL.VerifyResult<>0) or (not DoVerifyCert);
