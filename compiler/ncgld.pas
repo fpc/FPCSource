@@ -1285,9 +1285,9 @@ implementation
                  if vaddr then
                   begin
                     hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef);
-                    tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.location.reference,tmpreg);
-                    cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,href);
+                    tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,voidpointertype,hp.left.location.reference,tmpreg);
+                    hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,tmpreg,href);
                   end
                  else
                   { todo: proper type information for hlcg }
