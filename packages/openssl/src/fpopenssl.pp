@@ -84,6 +84,7 @@ Type
     function Peek(buf: SslPtr; num: cInt):cInt;
     function Write(buf: SslPtr; num: cInt):cInt;
     Function PeerCertificate : PX509;
+    function Ctrl(cmd: cInt; larg: clong; parg: Pointer): cInt;
     function Pending:cInt;
     Function GetError(AResult :cint) : cint;
     function GetCurrentCipher :SslPtr;
@@ -368,6 +369,12 @@ destructor TSSL.Destroy;
 begin
   sslfree(FSSL);
   inherited Destroy;
+end;
+
+function TSSL.Ctrl(cmd: cInt; larg: clong; parg: Pointer): cInt;
+
+begin
+  Result:=sslCtrl(fSSL,cmd,larg,parg);
 end;
 
 function TSSL.SetFd(fd: cInt): cInt;
