@@ -1027,7 +1027,6 @@ unit cgcpu;
     procedure tcg8086.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
-        opsize : topsize;
         tmpref : treference;
       begin
         with r do
@@ -1123,34 +1122,38 @@ unit cgcpu;
                 else
                   begin
                     cgpara.check_simple_location;
-                    opsize:=tcgsize2opsize[OS_ADDR];
-                    if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
+                    tmpref:=r;
+                    tmpref.segment:=NR_NO;
+                    with tmpref do
                       begin
-                        if assigned(symbol) then
+                        if (base=NR_NO) and (index=NR_NO) then
                           begin
-                            if current_settings.cputype < cpu_186 then
+                            if assigned(symbol) then
                               begin
-                                tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
-                                list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_W,symbol,offset));
                               end
                             else
-                              list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                              push_const(list,OS_16,offset);
                           end
+                        else if (base=NR_NO) and (index<>NR_NO) and
+                                (offset=0) and (scalefactor=0) and (symbol=nil) then
+                          list.concat(Taicpu.Op_reg(A_PUSH,S_W,index))
+                        else if (base<>NR_NO) and (index=NR_NO) and
+                                (offset=0) and (symbol=nil) then
+                          list.concat(Taicpu.Op_reg(A_PUSH,S_W,base))
                         else
-                          push_const(list,OS_ADDR,offset);
-                      end
-                    else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
-                            (offset=0) and (scalefactor=0) and (symbol=nil) then
-                      list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                    else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
-                            (offset=0) and (symbol=nil) then
-                      list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
-                    else
-                      begin
-                        tmpreg:=getaddressregister(list);
-                        a_loadaddr_ref_reg(list,r,tmpreg);
-                        list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                          begin
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end;
                       end;
                 end;
               end
