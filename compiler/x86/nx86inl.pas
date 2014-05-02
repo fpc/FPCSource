@@ -762,22 +762,80 @@ implementation
 
     procedure tx86inlinenode.second_fma;
       const
-        op : array[s32real..s64real,0..3] of TAsmOp = ((A_VFMADD231SS,A_VFMADD231SS,A_VFMADD231SS,A_VFMADD213SS),
-                                                       (A_VFMADD231SD,A_VFMADD231SD,A_VFMADD231SD,A_VFMADD213SD));
+        op : array[false..true,false..true,s32real..s64real,0..3] of TAsmOp =
+          (
+           { positive product }
+           (
+            { positive third operand }
+            ((A_VFMADD231SS,A_VFMADD231SS,A_VFMADD231SS,A_VFMADD213SS),
+             (A_VFMADD231SD,A_VFMADD231SD,A_VFMADD231SD,A_VFMADD213SD)
+            ),
+            { negative third operand }
+            ((A_VFMSUB231SS,A_VFMSUB231SS,A_VFMSUB231SS,A_VFMSUB213SS),
+             (A_VFMSUB231SD,A_VFMSUB231SD,A_VFMSUB231SD,A_VFMSUB213SD)
+            )
+           ),
+           { negative product }
+           (
+            { positive third operand }
+            ((A_VFNMADD231SS,A_VFNMADD231SS,A_VFNMADD231SS,A_VFNMADD213SS),
+             (A_VFNMADD231SD,A_VFNMADD231SD,A_VFNMADD231SD,A_VFNMADD213SD)
+            ),
+            { negative third operand }
+            ((A_VFNMSUB231SS,A_VFNMSUB231SS,A_VFNMSUB231SS,A_VFNMSUB213SS),
+             (A_VFNMSUB231SD,A_VFNMSUB231SD,A_VFNMSUB231SD,A_VFNMSUB213SD)
+            )
+           )
+          );
+
       var
         paraarray : array[1..3] of tnode;
         memop,
         i : integer;
+        negop3,
+        negproduct,
         gotmem : boolean;
+        hp : tnode;
       begin
 {$ifndef i8086}
          if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
            begin
+             negop3:=false;
+             negproduct:=false;
              paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
              paraarray[2]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
              paraarray[3]:=tcallparanode(parameters).paravalue;
 
-             for i:=1 to 3 do
+             { check if a neg. node can be removed
+               this is possible because changing the sign of
+               a floating point number does not affect its absolute
+               value in any way
+             }
+             if paraarray[1].nodetype=unaryminusn then
+               begin
+                 paraarray[1]:=tunarynode(paraarray[1]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negproduct:=not(negproduct);
+               end;
+
+             if paraarray[2].nodetype=unaryminusn then
+               begin
+                 paraarray[2]:=tunarynode(paraarray[2]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negproduct:=not(negproduct);
+               end;
+
+             if paraarray[3].nodetype=unaryminusn then
+               begin
+                 paraarray[3]:=tunarynode(paraarray[3]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negop3:=true;
+               end;
+
+              for i:=1 to 3 do
                secondpass(paraarray[i]);
 
              { only one memory operand is allowed }
@@ -807,21 +865,21 @@ implementation
                      begin
                        hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                          paraarray[3].location.register,location.register,mms_movescalar);
-                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
                          paraarray[1].location.reference,paraarray[2].location.register,location.register);
                      end;
                    2:
                      begin
                        hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                          paraarray[3].location.register,location.register,mms_movescalar);
-                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
                          paraarray[2].location.reference,paraarray[1].location.register,location.register);
                      end;
                    3:
                      begin
                        hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
                          paraarray[1].location.register,location.register,mms_movescalar);
-                       emit_ref_reg_reg(op[tfloatdef(resultdef).floattype,memop],S_NO,
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
                          paraarray[3].location.reference,paraarray[2].location.register,location.register);
                      end
                    else
@@ -836,21 +894,21 @@ implementation
                    begin
                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
                        paraarray[1].location.register,location.register,mms_movescalar);
-                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,3],S_NO,
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,3],S_NO,
                        paraarray[3].location.register,paraarray[2].location.register,location.register);
                    end
                  else if paraarray[2].location.loc=LOC_MMREGISTER then
                    begin
                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[2].resultdef,resultdef,
                        paraarray[2].location.register,location.register,mms_movescalar);
-                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,3],S_NO,
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,3],S_NO,
                        paraarray[3].location.register,paraarray[1].location.register,location.register);
                    end
                  else
                    begin
                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
                        paraarray[3].location.register,location.register,mms_movescalar);
-                     emit_reg_reg_reg(op[tfloatdef(resultdef).floattype,0],S_NO,
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,0],S_NO,
                        paraarray[1].location.register,paraarray[2].location.register,location.register);
                    end;
                end;

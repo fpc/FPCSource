@@ -14,6 +14,7 @@ procedure testsingle;
     l2:=3;
     l3:=4;
     s0:=0;
+
     l0:=fma(l1,l2,l3);
     writeln(l0);
     if l0<>10.0 then
@@ -58,7 +59,192 @@ procedure testsingle;
     writeln(l0);
     if l0<>10.0 then
       halt(1);
+
+    { first operand negative }
+    l0:=fma(-l1,l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-(l1+1.0),l2,l3);
+    writeln(l0);
+    if l0<>-5.0 then
+      halt(1);
+
+    l0:=fma(-l1,l1+1.0,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-s1,l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,s2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,l2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-s1,s2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-s1,l2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,s2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    { second operand negative }
+    l0:=fma(l1,-l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1+1.0,-l2,l3);
+    writeln(l0);
+    if l0<>-5.0 then
+      halt(1);
+
+    l0:=fma(l1,-(l1+1.0),l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(s1,-l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-s2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-l2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(s1,-s2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(s1,-l2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-s2,s3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    { third operand negative }
+    l0:=fma(l1,l2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1+1.0,l2,-l3);
+    writeln(l0);
+    if l0<>5.0 then
+      halt(1);
+
+    l0:=fma(l1,l1+1.0,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(s1,l2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,s2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,l2,-s3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(s1,s2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(s1,l2,-s3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,s2,-s3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    { first and third operand negative }
+    l0:=fma(-l1,l2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-(l1+1.0),l2,-l3);
+    writeln(l0);
+    if l0<>-13.0 then
+      halt(1);
+
+    l0:=fma(-l1,l1+1.0,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-s1,l2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,s2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,l2,-s3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-s1,s2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-s1,l2,-s3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,s2,-s3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
   end;
+
 
 procedure testdouble;
   var
@@ -68,6 +254,7 @@ procedure testdouble;
     l2:=3;
     l3:=4;
     d0:=0;
+
     l0:=fma(l1,l2,l3);
     writeln(l0);
     if l0<>10.0 then
@@ -77,7 +264,6 @@ procedure testdouble;
     writeln(l0);
     if l0<>13.0 then
       halt(1);
-
 
     l0:=fma(l1,l1+1.0,l3);
     writeln(l0);
@@ -112,6 +298,190 @@ procedure testdouble;
     l0:=fma(l1,d2,d3);
     writeln(l0);
     if l0<>10.0 then
+      halt(1);
+
+    { first operand negative }
+    l0:=fma(-l1,l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-(l1+1.0),l2,l3);
+    writeln(l0);
+    if l0<>-5.0 then
+      halt(1);
+
+    l0:=fma(-l1,l1+1.0,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-d1,l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,d2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,l2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-d1,d2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-d1,l2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(-l1,d2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    { second operand negative }
+    l0:=fma(l1,-l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1+1.0,-l2,l3);
+    writeln(l0);
+    if l0<>-5.0 then
+      halt(1);
+
+    l0:=fma(l1,-(l1+1.0),l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(d1,-l2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-d2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-l2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(d1,-d2,l3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(d1,-l2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    l0:=fma(l1,-d2,d3);
+    writeln(l0);
+    if l0<>-2.0 then
+      halt(1);
+
+    { third operand negative }
+    l0:=fma(l1,l2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1+1.0,l2,-l3);
+    writeln(l0);
+    if l0<>5.0 then
+      halt(1);
+
+    l0:=fma(l1,l1+1.0,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(d1,l2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,d2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,l2,-d3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(d1,d2,-l3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(d1,l2,-d3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    l0:=fma(l1,d2,-d3);
+    writeln(l0);
+    if l0<>2.0 then
+      halt(1);
+
+    { first and third operand negative }
+    l0:=fma(-l1,l2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-(l1+1.0),l2,-l3);
+    writeln(l0);
+    if l0<>-13.0 then
+      halt(1);
+
+    l0:=fma(-l1,l1+1.0,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-d1,l2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,d2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,l2,-d3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-d1,d2,-l3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-d1,l2,-d3);
+    writeln(l0);
+    if l0<>-10.0 then
+      halt(1);
+
+    l0:=fma(-l1,d2,-d3);
+    writeln(l0);
+    if l0<>-10.0 then
       halt(1);
   end;
 
