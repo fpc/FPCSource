@@ -690,23 +690,18 @@ begin
       begin
       // Since mysql server version 5.0.3 string-fields with a length of more
       // then 256 characters are suported
-      if ASize>dsMaxStringSize then
-        NewType := ftMemo
+      if AField^.ftype = FIELD_TYPE_STRING then
+        NewType := ftFixedChar
       else
-        begin
-        if AField^.ftype = FIELD_TYPE_STRING then
-          NewType := ftFixedChar
-        else
-          NewType := ftString;
+        NewType := ftString;
 {$IFDEF MYSQL50_UP}
-        if AField^.charsetnr = 63 then //BINARY vs. CHAR, VARBINARY vs. VARCHAR
-          if NewType = ftFixedChar then
-            NewType := ftBytes
-          else
-            NewType := ftVarBytes;
+      if AField^.charsetnr = 63 then //BINARY vs. CHAR, VARBINARY vs. VARCHAR
+        if NewType = ftFixedChar then
+          NewType := ftBytes
+        else
+          NewType := ftVarBytes;
 {$ENDIF}
-        NewSize := ASize;
-        end;
+      NewSize := ASize;
       end;
     FIELD_TYPE_TINY_BLOB..FIELD_TYPE_BLOB:
       begin
