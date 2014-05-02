@@ -617,6 +617,12 @@ begin
           and (FValue=AValue.FValue);
 end;
 
+procedure TParam.SetAsBCD(const AValue: Currency);
+begin
+  FDataType:=ftBCD;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsBlob(const AValue: TBlobData);
 begin
   FDataType:=ftBlob;

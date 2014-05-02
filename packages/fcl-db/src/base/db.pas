@@ -1161,6 +1161,7 @@ type
     Function GetDisplayName: string; override;
     Function GetIsNull: Boolean;
     Function IsEqual(AValue: TParam): Boolean;
+    Procedure SetAsBCD(const AValue: Currency);
     Procedure SetAsBlob(const AValue: TBlobData);
     Procedure SetAsBoolean(AValue: Boolean);
     Procedure SetAsCurrency(const AValue: Currency);
@@ -1197,6 +1198,7 @@ type
     Procedure SetData(Buffer: Pointer);
     Property AsBlob : TBlobData read GetAsString write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
+    Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
     Property AsDate : TDateTime read GetAsDateTime write SetAsDate;
     Property AsDateTime : TDateTime read GetAsDateTime write SetAsDateTime;

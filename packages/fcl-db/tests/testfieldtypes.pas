@@ -84,6 +84,7 @@ type
     procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
+    procedure TestCurrencyParamQuery;
     procedure TestBCDParamQuery;
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
@@ -1508,6 +1509,11 @@ begin
   TestXXParamQuery(ftFloat,FieldtypeDefinitions[ftFloat],testFloatValuesCount);
 end;
 
+procedure TTestFieldTypes.TestCurrencyParamQuery;
+begin
+  TestXXParamQuery(ftCurrency,FieldtypeDefinitions[ftCurrency],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestBCDParamQuery;
 begin
   TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
@@ -1559,7 +1565,7 @@ begin
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
 
     // There is no Param.AsFixedChar, so the datatype has to be set manually
-    if ADatatype=ftFixedChar then
+    if ADataType=ftFixedChar then
       Params.ParamByName('field1').DataType := ftFixedChar;
 
     for i := 0 to testValuesCount -1 do
@@ -1567,28 +1573,29 @@ begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
         ftSmallInt: Params.ParamByName('field1').AsSmallInt := testSmallIntValues[i];
-        ftInteger: Params.ParamByName('field1').AsInteger := testIntValues[i];
+        ftInteger : Params.ParamByName('field1').AsInteger := testIntValues[i];
         ftLargeInt: Params.ParamByName('field1').AsLargeInt := testLargeIntValues[i];
-        ftBoolean: Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
-        ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
-        ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
+        ftBoolean : Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
+        ftFloat   : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftCurrency: Params.ParamByName('field1').AsCurrency:= testCurrencyValues[i];
+        ftBCD     : Params.ParamByName('field1').AsBCD     := testBCDValues[i];
         ftFixedChar,
-        ftString : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
-        ftTime   : Params.ParamByName('field1').AsTime    := TimeStringToDateTime(testTimeValues[i]);
-        ftDate   : if cross then
-                     Params.ParamByName('field1').AsString:= testDateValues[i]
+        ftString  : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
+        ftTime    : Params.ParamByName('field1').AsTime    := TimeStringToDateTime(testTimeValues[i]);
+        ftDate    : if cross then
+                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
-                     Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
-        ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings);
-        ftBytes  : if cross then
-                     Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
-                   else
-                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
-        ftVarBytes:if cross then
-                     Params.ParamByName('field1').AsString := testBytesValues[i]
-                   else
-                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
+        ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
+        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftBytes   : if cross then
+                      Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
+                    else
+                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+        ftVarBytes: if cross then
+                      Params.ParamByName('field1').AsString := testBytesValues[i]
+                    else
+                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1614,6 +1621,7 @@ begin
         ftLargeInt : AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
         ftBoolean  : AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
         ftFloat    : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
+        ftCurrency : AssertEquals(testCurrencyValues[i],FieldByName('FIELD1').AsFloat,0); // TCurrencyField uses double data type (not currency) to store values!
         ftBCD      : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString   : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
