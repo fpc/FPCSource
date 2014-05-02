@@ -1190,9 +1190,9 @@ begin
     else
       // The data is copied into the buffer, since some TDataset descendents copy
       // the whole buffer-length in SetData. (See bug 8477)
-      Buf := AValue;
-    // If length(AValue) > DataSize the buffer isn't terminated properly
-    Buf[DataSize-1] := #0;
+      StrPLCopy(PChar(Buf), AValue, Size);
+    // If length(AValue) > Size the buffer isn't terminated properly ?
+    Buf[Size] := #0;
     SetData(@Buf);
     end
   else
@@ -1201,7 +1201,7 @@ begin
     if FTransliterate then
       DataSet.Translate(@AValue[1],@DynBuf[0],True)
     else
-      StrPLCopy(PChar(DynBuf), AValue, DataSize);
+      StrPLCopy(PChar(DynBuf), AValue, Size);
     SetData(@DynBuf[0]);
     end
 end;

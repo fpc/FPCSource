@@ -931,40 +931,52 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    AssertEquals(s,fields[0].AsString);
-    close;
+    AssertEquals(s,Fields[0].AsString);
+    Close;
     end;
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;
 // See also: TestStringLargerThen8192
-const
-  FieldValue1='test1';
 var
-  FieldValue2: string;
+  FieldValues: array [1..4] of string;
+  i,l1,l2: integer;
 begin
-  FieldValue2:=StringOfChar('t', 16000);
+  FieldValues[1] := 'test1';                  // string length < 8192 (dsMaxStringSize)
+  FieldValues[2] := StringOfChar('a', 8192);  // string length = 8192 (dsMaxStringSize)
+  FieldValues[3] := StringOfChar('b', 16000); // string length > 8192 (dsMaxStringSize)
+  FieldValues[4] := StringOfChar('c', 17000); // string length > Field.Size
+
   with TSQLDBConnector(DBConnector) do
     begin
-    Connection.ExecuteDirect('create table FPDEV2 (  ' +
-                              '  ID INT NOT NULL ,   ' +
-                              '  NAME VARCHAR(16000),' +
-                              '  PRIMARY KEY (ID)    ' +
-                              ')                     ');
+    Connection.ExecuteDirect( 'create table FPDEV2 (' +
+                              '  ID INT NOT NULL , ' +
+                              '  F1 VARCHAR(8192), ' +
+                              '  F2 VARCHAR(16000),' +
+                              'primary key (ID) )');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
 
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
-    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
-    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
+    for i:=1 to high(FieldValues) do
+      Query.InsertRecord([i, FieldValues[i], FieldValues[i]]);
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
-    Query.Next;
-    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
-    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
+    for i:=1 to high(FieldValues) do
+      begin
+      l1:=length(FieldValues[i]);
+      if l1 > 8192  then l1 := 8192;
+      l2:=length(FieldValues[i]);
+      if l2 > 16000 then l2 := 16000;
+
+      AssertEquals(l1, length(Query.FieldByName('F1').AsString));
+      AssertEquals(l2, length(Query.FieldByName('F2').AsString));
+      AssertEquals(copy(FieldValues[i],1,l1), Query.FieldByName('F1').AsString);
+      AssertEquals(copy(FieldValues[i],1,l2), Query.FieldByName('F2').AsString);
+      Query.Next;
+      end;
     Query.Close;
     end;
 end;
