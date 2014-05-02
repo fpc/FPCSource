@@ -2552,10 +2552,12 @@ unit cgx86;
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
-            if (source.segment=NR_NO) and
-               (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP))) then
+            if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
+               (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
               begin
-                a_loadaddr_ref_reg(list,source,REGSI);
+                srcref:=source;
+                srcref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,srcref,REGSI);
                 saved_ds:=false;
               end
             else
