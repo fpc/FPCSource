@@ -769,9 +769,9 @@ implementation
                 { allocate a pointer in the object memory }
                 with tObjectSymtable(_class.symtable) do
                   begin
-                    datasize:=align(datasize,sizeof(pint));
+                    datasize:=align(datasize,voidpointertype.alignment);
                     ImplIntf.Ioffset:=datasize;
-                    datasize:=datasize+sizeof(pint);
+                    datasize:=datasize+voidpointertype.size;
                   end;
               end;
           end;
