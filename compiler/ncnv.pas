@@ -2500,7 +2500,11 @@ implementation
                 {  also done otherwise so there is no difference   }
                 {  in overload choosing etc between $r+ and $r-)   }
                 if (nf_internal in n.flags) then
-                  result:=true
+                  begin
+                    result:=true;
+                    { the result could be negative in this case }
+                    gotsint:=true
+                  end
                 else
                   result:=
                     docheckremove64bittypeconvs(tbinarynode(n).left) and
