@@ -2716,11 +2716,17 @@ begin
     for i:=0 to Fields.Count-1 do
       begin
       // This should only apply to blob types
-      if Fields[i].DataType in [Low(TBlobType)..High(TBlobType)] then
+      if Fields[i].DataType in ftBlobTypes then
         begin
+          // Type should certainly fall into wider old style, imprecise TBlobType
           if not(TBlobField(Fields[i]).BlobType in [Low(TBlobType)..High(TBlobType)]) then
             fail('BlobType for field '+
-              Fields[i].FieldName+' is not in blob type range. Actual value: '+
+              Fields[i].FieldName+' is not in old wide incorrect TBlobType range. Actual value: '+
+              inttostr(word(TBlobField(Fields[i]).BlobType)));
+          //.. it should also fall into the narrow ftBlobTypes
+          if not(TBlobField(Fields[i]).BlobType in ftBlobTypes) then
+            fail('BlobType for field '+
+              Fields[i].FieldName+' is not in ftBlobType range. Actual value: '+
               inttostr(word(TBlobField(Fields[i]).BlobType)));
         end;
       end;
