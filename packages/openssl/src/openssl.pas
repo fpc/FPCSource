@@ -79,6 +79,9 @@ requested OpenSSL function just return errorcode.
 interface
 
 uses
+{$IFDEF OS2}
+  Sockets,
+{$ENDIF OS2}
   DynLibs, cTypes, SysUtils;
 
 var
@@ -87,6 +90,15 @@ var
   DLLSSLName2: string = 'libssl32.dll';
   DLLUtilName: string = 'libeay32.dll';
   {$ELSE}
+   {$IFDEF OS2}
+    {$IFDEF OS2GCC}
+  DLLSSLName: string = 'kssl.dll';
+  DLLUtilName: string = 'kcrypto.dll';
+    {$ELSE OS2GCC}
+  DLLSSLName: string = 'ssl.dll';
+  DLLUtilName: string = 'crypto.dll';
+    {$ENDIF OS2GCC}
+   {$ELSE OS2}
   DLLSSLName: string = 'libssl';
   DLLUtilName: string = 'libcrypto';
   
@@ -97,7 +109,8 @@ var
                                         '.1.0.2', '.1.0.1','.1.0.0','.0.9.8',
                                         '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
                                         '.0.9.3', '.0.9.2', '.0.9.1');
-  {$ENDIF}
+   {$ENDIF OS2}
+  {$ENDIF WINDOWS}
 
 const
   // EVP.h Constants
@@ -115,12 +128,16 @@ type
   PSSL_CTX = SslPtr;
   PSSL = SslPtr;
   PSSL_METHOD = SslPtr;
+{  PX509 = SslPtr;}
+{  PX509_NAME = SslPtr;}
   PEVP_MD	= SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
+{  EVP_PKEY = SslPtr;}
+  PRSA = SslPtr;
+  PASN1_UTCTIME = SslPtr;
   PASN1_INTEGER = SSlPtr;
 
-  PRSA = pointer;
   PDH = pointer;
   PSTACK_OFX509 = pointer;
 
@@ -229,7 +246,6 @@ type
   PPEVP_PKEY = ^PEVP_PKEY;
   
   PPRSA = ^PRSA;
-  PASN1_UTCTIME = SslPtr;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
   PFunction = procedure;
@@ -2875,6 +2891,7 @@ begin
 end;
 
 {$IFNDEF WINDOWS}
+ {$IFNDEF OS2}
 { Try to load all library versions until you find or run out }
 function LoadLibHack(const Value: String): HModule;
 var
@@ -2893,15 +2910,20 @@ begin
       Break;
   end;
 end;
-{$ENDIF}
+ {$ENDIF OS2}
+{$ENDIF WINDOWS}
 
 function LoadLib(const Value: String): HModule;
 begin
   {$IFDEF WINDOWS}
   Result := LoadLibrary(Value);
-  {$ELSE}
+  {$ELSE WINDOWS}
+   {$IFDEF OS2}
+  Result := LoadLibrary(Value);
+   {$ELSE OS2}
   Result := LoadLibHack(Value);
-  {$ENDIF}
+   {$ENDIF OS2}
+  {$ENDIF WINDOWS}
 end;
 
 function GetProcAddr(module: HModule; const ProcName: string): SslPtr;
@@ -3440,8 +3462,12 @@ begin
       _RandScreen;
     if assigned(_CRYPTOnumlocks) and assigned(_CRYPTOsetlockingcallback) then
       InitLocks;
-     Result := True;
-     SSLloaded := True;
+    SSLloaded := True;
+{$IFDEF OS2}
+    Result := InitEMXHandles;
+{$ELSE OS2}
+    Result := True;
+{$ENDIF OS2}
   finally
     LeaveCriticalSection(SSLCS);
   end;
