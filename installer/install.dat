@@ -281,6 +281,8 @@ package=ufcl-xmlos2.zip[ufclxos2.zip],Free Component Library (FCL)-XML
 package=uhermesos2.zip[uhermos2.zip],Port of Hermes graphics library
 # OS/2 22
 package=ufppkgos2.zip[ufppkos2.zip],Units for FPPkg packaging support
+# OS/2 23
+package=uopensslos2.zip[uosslos2.zip],OpenSSL interface units
 
 #
 # OS/2 packages 2nd part
@@ -399,6 +401,8 @@ package=ufcl-xmlemx.zip[ufclxemx.zip],Free Component Library (FCL)-XML
 package=uhermesemx.zip[uhermemx.zip],Port of Hermes graphics library
 # EMX 22
 package=ufppkgemx.zip[ufppkemx.zip],Units for FPPkg packaging support
+# EMX 23
+package=uopensslemx.zip[uosslemx.zip],OpenSSL interface units
 
 #
 # EMX packages 2nd part
@@ -455,7 +459,7 @@ package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
 package=ubzip2emx.zip[ubz2emx.zip],Units for bzip2 decompression
 # EMX-2 25
 package=ufcl-jsemx.zip[ufcjsemx.zip],Free Component Library (FCL)-Javascript support
-# EMX 26
+# EMX-2 26
 package=ufcl-soundemx.zip[ufsndemx.zip],Free Component Library (FCL)-sound files
 
 
