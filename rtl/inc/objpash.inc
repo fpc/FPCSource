@@ -164,7 +164,7 @@
        tinterfaceentry = record
          IID         : pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
-         IOffset     : ptruint;
+         IOffset     : sizeuint;
          IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
          case boolean of
 {$ifdef ENDIAN_BIG}
@@ -172,11 +172,11 @@
 {$else ENDIAN_BIG}
            true      : (IType       : tinterfaceentrytype);
 {$endif ENDIAN_BIG}
-           false     : (__pad_dummy : pointer);
+           false     : (__pad_dummy : sizeint);
        end;
 
        tinterfacetable = record
-         EntryCount : ptruint;
+         EntryCount : sizeuint;
          Entries    : array[0..0] of tinterfaceentry;
        end;
 
