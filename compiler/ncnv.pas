@@ -2502,8 +2502,9 @@ implementation
                 if (nf_internal in n.flags) then
                   begin
                     result:=true;
-                    { the result could be negative in this case }
-                    gotsint:=true
+                    { the result could become negative in this case }
+                    if n.nodetype=subn then
+                      gotsint:=true
                   end
                 else
                   result:=
