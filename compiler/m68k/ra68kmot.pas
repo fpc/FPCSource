@@ -171,7 +171,7 @@ const
           hs:=s;
 
         { Search opcodes }
-        actopcode:=tasmop(PtrInt(iasmops.Find(hs)));
+        actopcode:=tasmop(PtrUInt(iasmops.Find(hs)));
         { Also filter the helper opcodes, they can't be valid
           while reading an assembly source }
         if not (actopcode in
