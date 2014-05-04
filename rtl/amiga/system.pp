@@ -62,11 +62,11 @@ const
 var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
   _ExecBase: Pointer; external name '_ExecBase'; { amunits compatibility kludge }
-  AOS_DOSBase    : Pointer; external name '_DOSBase'; { the "external" part is amunits compatibility kludge }
+  AOS_DOSBase    : Pointer; public name '_DOSBase'; { the "public" part is amunits compatibility kludge }
   _DOSBase: Pointer; external name '_DOSBase'; { amunits compatibility kludge }
-  AOS_UtilityBase: Pointer; external name '_UtilityBase'; { the "external" part is amunits compatibility kludge }
+  AOS_UtilityBase: Pointer; public name '_UtilityBase'; { the "public" part is amunits compatibility kludge }
   _UtilityBase: Pointer; external name '_UtilityBase'; { amunits compatibility kludge }
-  AOS_IntuitionBase: Pointer; external name '_IntuitionBase'; { amunits compatibility kludge }
+  AOS_IntuitionBase: Pointer; public name '_IntuitionBase'; { amunits compatibility kludge }
   _IntuitionBase: Pointer; external name '_IntuitionBase'; { amunits compatibility kludge }
 
 {$IFDEF AMIGAOS4}
@@ -79,7 +79,7 @@ var
 
   AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   AOS_origDir  : LongInt; { original directory on startup }
-  AOS_wbMsg    : Pointer; external name '_WBenchMsg'; { the "external" part is amunits compatibility kludge }
+  AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: LongInt;
