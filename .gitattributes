@@ -335,7 +335,6 @@ compiler/m68k/aoptcpu.pas svneol=native#text/plain
 compiler/m68k/aoptcpub.pas svneol=native#text/plain
 compiler/m68k/aoptcpud.pas svneol=native#text/plain
 compiler/m68k/cgcpu.pas svneol=native#text/plain
-compiler/m68k/cpuasm.pas svneol=native#text/plain
 compiler/m68k/cpubase.pas svneol=native#text/plain
 compiler/m68k/cpuinfo.pas svneol=native#text/plain
 compiler/m68k/cpunode.pas svneol=native#text/plain
