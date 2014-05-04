@@ -177,9 +177,6 @@ interface
 Implementation
 
     uses
-{$ifdef hasamiga}
-      exec,
-{$endif}
 {$ifdef hasunix}
       unix,
 {$endif}
@@ -634,7 +631,7 @@ Implementation
         if (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) then
          begin
           { try to have an unique name for the .s file }
-          tempFileName:=HexStr(FindTask(nil))+ExtractFileName(AsmFileName);
+          tempFileName:=HexStr(GetProcessID shr 4,7)+ExtractFileName(AsmFileName);
 {$ifndef morphos}
           { old Amiga RAM: handler only allows filenames up to 30 char }
           if Length(tempFileName) < 30 then
