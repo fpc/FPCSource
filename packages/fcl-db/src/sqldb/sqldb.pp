@@ -1665,15 +1665,11 @@ procedure TSQLTransaction.EndTransaction;
 
 begin
   Case Action of
-    caCommit :
+    caCommit, caCommitRetaining :
       Commit;
-    caCommitRetaining :
-      CommitRetaining;
     caNone,
-    caRollback :
+    caRollback, caRollbackRetaining :
       RollBack;
-    caRollbackRetaining :
-      RollbackRetaining;
   end;
 end;
 
@@ -1699,14 +1695,14 @@ end;
 
 procedure TSQLTransaction.Commit;
 begin
-  if active then
+  if Active then
     begin
-    closedatasets;
+    CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if SQLConnection.commit(FTrans) then
+    if SQLConnection.Commit(FTrans) then
       begin
-      closeTrans;
+      CloseTrans;
       FreeAndNil(FTrans);
       end;
     end;
@@ -1714,19 +1710,19 @@ end;
 
 procedure TSQLTransaction.CommitRetaining;
 begin
-  if active then
+  if Active then
     begin
     If LogEvent(detCommit) then
       Log(detCommit,SCommitRetaining);
-    SQLConnection.commitRetaining(FTrans);
+    SQLConnection.CommitRetaining(FTrans);
     end;
 end;
 
 procedure TSQLTransaction.Rollback;
 begin
-  if active then
+  if Active then
     begin
-    closedatasets;
+    CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
     if SQLConnection.RollBack(FTrans) then
@@ -1739,7 +1735,7 @@ end;
 
 procedure TSQLTransaction.RollbackRetaining;
 begin
-  if active then
+  if Active then
     begin
     If LogEvent(detRollback) then
       Log(detRollback,SRollBackRetaining);
@@ -1771,7 +1767,7 @@ constructor TSQLTransaction.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FParams := TStringList.Create;
-  Action:=caRollBack;
+  Action := caRollBack;
 end;
 
 destructor TSQLTransaction.Destroy;
