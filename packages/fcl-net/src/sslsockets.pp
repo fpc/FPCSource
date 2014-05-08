@@ -44,17 +44,16 @@ Type
     FCTX : TSSLContext;
     FSSLActive : Boolean;
     FSendHostAsSNI : Boolean;
-    function CheckSSL(SSLResult: Integer): Boolean;
-    function CheckSSL(SSLResult: Pointer): Boolean;
-    function DoneContext: Boolean;
-    Function FetchErrorInfo: Boolean;
     function GetSSLData(AIndex: Integer): TSSLData;
-    function InitContext(NeedCertificate: Boolean): Boolean;
-    function InitSslKeys: boolean;
     procedure SetSSLData(AIndex: Integer; AValue: TSSLData);
     procedure SetSSLLastErrorString(AValue: string);
   protected
-    procedure ReturnError;
+    Function FetchErrorInfo: Boolean;
+    function CheckSSL(SSLResult: Integer): Boolean;
+    function CheckSSL(SSLResult: Pointer): Boolean;
+    function InitContext(NeedCertificate: Boolean): Boolean; virtual;
+    function DoneContext: Boolean; virtual;
+    function InitSslKeys: boolean;virtual;
     function DoVerifyCert:boolean;
   public
     constructor Create; override;
@@ -125,10 +124,6 @@ begin
   FSSLLastErrorString:=AValue;
 end;
 
-procedure TSSLSocketHandler.ReturnError;
-begin
-
-end;
 
 function TSSLSocketHandler.DoVerifyCert: boolean;
 begin
@@ -156,6 +151,8 @@ Var
   I : Integer;
 
 begin
+  FreeAndNil(FSSL);
+  FreeAndNil(FCTX);
   inherited Destroy;
   For I:=0 to SSLDataCount do
     FreeAndNil(FCertData[i]);
