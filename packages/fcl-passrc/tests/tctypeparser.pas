@@ -131,6 +131,7 @@ type
     Procedure TestComplexSetDeprecated;
     Procedure TestComplexSetPlatform;
     Procedure TestRangeSet;
+    Procedure TestSubRangeSet;
     Procedure TestRangeSetDeprecated;
     Procedure TestRangeSetPlatform;
     Procedure TestClassOf;
@@ -2155,8 +2156,8 @@ end;
 
 { TTestTypeParser }
 
-procedure TTestTypeParser.DoTestAliasType(const AnAliasType: String;
-  const AHint: String);
+Procedure TTestTypeParser.DoTestAliasType(Const AnAliasType: String;
+  Const AHint: String);
 begin
   ParseType(AnAliasType,TPasAliasType,AHint);
   AssertEquals('Unresolved type',TPasUnresolvedTypeRef,TPasAliasType(TheType).DestType.ClassType);
@@ -2176,13 +2177,13 @@ begin
   AssertException(AMsg,EParserError,@DoParseError);
 end;
 
-procedure TTestTypeParser.DoParseError;
+Procedure TTestTypeParser.DoParseError;
 begin
   ParseType(FErrorSource,Nil);
 end;
 
-procedure TTestTypeParser.DoParsePointer(const ASource: String;
-  const AHint: String; ADestType: TClass);
+Procedure TTestTypeParser.DoParsePointer(Const ASource: String;
+  Const AHint: String; ADestType: TClass);
 
 begin
   ParseType('^'+ASource,TPasPointerType,AHint);
@@ -2191,8 +2192,8 @@ begin
   AssertEquals('Destination type '+ADestType.ClassName,ADestType,TPasPointerType(TheType).DestType.ClassType);
 end;
 
-procedure TTestTypeParser.DoParseArray(const ASource: String;
-  const AHint: String; ADestType: TClass);
+Procedure TTestTypeParser.DoParseArray(Const ASource: String;
+  Const AHint: String; ADestType: TClass);
 begin
   ParseType(ASource,TPasArrayType,AHint);
   if ADestType = Nil then
@@ -2200,8 +2201,8 @@ begin
   AssertEquals('Destination type '+ADestType.ClassName,ADestType,TPasArrayType(TheType).ElType.ClassType);
 end;
 
-procedure TTestTypeParser.DoParseEnumerated(const ASource: String;
-  const AHint: String; ACount: integer);
+Procedure TTestTypeParser.DoParseEnumerated(Const ASource: String;
+  Const AHint: String; ACount: integer);
 
 Var
   I : Integer;
@@ -2214,8 +2215,8 @@ begin
     AssertEquals('Enum value typed element '+IntToStr(I),TPasEnumValue,TObject(TPasEnumType(TheType).Values[i]).ClassType);
 end;
 
-procedure TTestTypeParser.DoTestFileType(const AType: String;
-  const AHint: String; ADestType: TClass);
+Procedure TTestTypeParser.DoTestFileType(Const AType: String;
+  Const AHint: String; ADestType: TClass);
 begin
   ParseType('File of '+AType,TPasFileType,AHint);
   AssertNotNull('Have element type',TPasFileType(TheType).ElType);
@@ -2224,23 +2225,23 @@ begin
   AssertEquals('Element type '+ADestType.ClassName,ADestType,TPasFileType(TheType).ElType.ClassType);
 end;
 
-procedure TTestTypeParser.DoTestRangeType(const AStart, AStop, AHint: String);
+Procedure TTestTypeParser.DoTestRangeType(Const AStart, AStop, AHint: String);
 begin
   ParseType(AStart+'..'+AStop,TPasRangeType,AHint);
   AssertEquals('Range start',AStart,TPasRangeType(TheType).RangeStart);
   AssertEquals('Range start',AStop,TPasRangeType(TheType).RangeEnd);
 end;
 
-procedure TTestTypeParser.DoParseSimpleSet(const ASource: String;
-  const AHint: String);
+Procedure TTestTypeParser.DoParseSimpleSet(Const ASource: String;
+  Const AHint: String);
 begin
   ParseType('Set of '+ASource,TPasSetType,AHint);
   AssertNotNull('Have enumtype',TPasSetType(TheType).EnumType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasSetType(TheType).EnumType.ClassType);
 end;
 
-procedure TTestTypeParser.DoParseComplexSet(const ASource: String;
-  const AHint: String);
+Procedure TTestTypeParser.DoParseComplexSet(Const ASource: String;
+  Const AHint: String);
 
 begin
   ParseType('Set of '+ASource,TPasSetType,AHint);
@@ -2257,7 +2258,7 @@ begin
   AssertEquals('Element type ',TPasRangeType,TPasSetType(TheType).EnumType.ClassType);
 end;
 
-procedure TTestTypeParser.DoTestComplexSet;
+Procedure TTestTypeParser.DoTestComplexSet;
 
 Var
   I : integer;
@@ -2275,7 +2276,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TPasSetType(TheType).EnumType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.DoTestClassOf(const AHint: string);
+Procedure TTestTypeParser.DoTestClassOf(Const AHint: string);
 
 begin
   ParseType('Class of TSomeClass',TPasClassOfType,AHint);
@@ -2283,278 +2284,278 @@ begin
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasClassOfType(TheType).DestType.ClassType);
 end;
 
-procedure TTestTypeParser.TestAliasType;
+Procedure TTestTypeParser.TestAliasType;
 begin
   DoTestAliasType('othertype','');
   AssertEquals('Unresolved type name ','othertype',TPasUnresolvedTypeRef(TPasAliasType(TheType).DestType).name);
 end;
 
-procedure TTestTypeParser.TestCrossUnitAliasType;
+Procedure TTestTypeParser.TestCrossUnitAliasType;
 begin
   DoTestAliasType('otherunit.othertype','');
 end;
 
-procedure TTestTypeParser.TestAliasTypeDeprecated;
+Procedure TTestTypeParser.TestAliasTypeDeprecated;
 begin
   DoTestALiasType('othertype','deprecated');
 end;
 
-procedure TTestTypeParser.TestAliasTypePlatform;
+Procedure TTestTypeParser.TestAliasTypePlatform;
 begin
   DoTestALiasType('othertype','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeByte;
+Procedure TTestTypeParser.TestSimpleTypeByte;
 begin
   DoTestAliasType('BYTE','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeByteDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeByteDeprecated;
 begin
   DoTestAliasType('BYTE','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeBytePlatform;
+Procedure TTestTypeParser.TestSimpleTypeBytePlatform;
 begin
   DoTestAliasType('BYTE','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeBoolean;
+Procedure TTestTypeParser.TestSimpleTypeBoolean;
 begin
   DoTestAliasType('BOOLEAN','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeBooleanDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeBooleanDeprecated;
 begin
   DoTestAliasType('BOOLEAN','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeBooleanPlatform;
+Procedure TTestTypeParser.TestSimpleTypeBooleanPlatform;
 begin
   DoTestAliasType('BOOLEAN','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeChar;
+Procedure TTestTypeParser.TestSimpleTypeChar;
 begin
   DoTestAliasType('CHAR','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeCharDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeCharDeprecated;
 begin
   DoTestAliasType('CHAR','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeCharPlatform;
+Procedure TTestTypeParser.TestSimpleTypeCharPlatform;
 begin
   DoTestAliasType('CHAR','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeInteger;
+Procedure TTestTypeParser.TestSimpleTypeInteger;
 begin
   DoTestAliasType('INTEGER','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeIntegerDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeIntegerDeprecated;
 begin
   DoTestAliasType('INTEGER','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeIntegerPlatform;
+Procedure TTestTypeParser.TestSimpleTypeIntegerPlatform;
 begin
   DoTestAliasType('INTEGER','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeInt64;
+Procedure TTestTypeParser.TestSimpleTypeInt64;
 begin
   DoTestAliasType('INT64','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeInt64Deprecated;
+Procedure TTestTypeParser.TestSimpleTypeInt64Deprecated;
 begin
   DoTestAliasType('INT64','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeInt64Platform;
+Procedure TTestTypeParser.TestSimpleTypeInt64Platform;
 begin
   DoTestAliasType('INT64','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongInt;
+Procedure TTestTypeParser.TestSimpleTypeLongInt;
 begin
   DoTestAliasType('LONGINT','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongIntDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeLongIntDeprecated;
 begin
   DoTestAliasType('LONGINT','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongIntPlatform;
+Procedure TTestTypeParser.TestSimpleTypeLongIntPlatform;
 begin
   DoTestAliasType('LONGINT','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongWord;
+Procedure TTestTypeParser.TestSimpleTypeLongWord;
 begin
   DoTestAliasType('LONGWORD','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongWordDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeLongWordDeprecated;
 begin
   DoTestAliasType('LONGWORD','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeLongWordPlatform;
+Procedure TTestTypeParser.TestSimpleTypeLongWordPlatform;
 begin
   DoTestAliasType('LONGWORD','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeDouble;
+Procedure TTestTypeParser.TestSimpleTypeDouble;
 begin
   DoTestAliasType('Double','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeDoubleDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeDoubleDeprecated;
 begin
   DoTestAliasType('Double','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeDoublePlatform;
+Procedure TTestTypeParser.TestSimpleTypeDoublePlatform;
 begin
   DoTestAliasType('Double','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeShortInt;
+Procedure TTestTypeParser.TestSimpleTypeShortInt;
 begin
   DoTestAliasType('SHORTINT','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeShortIntDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeShortIntDeprecated;
 begin
   DoTestAliasType('SHORTINT','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeShortIntPlatform;
+Procedure TTestTypeParser.TestSimpleTypeShortIntPlatform;
 begin
   DoTestAliasType('SHORTINT','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeSmallInt;
+Procedure TTestTypeParser.TestSimpleTypeSmallInt;
 begin
   DoTestAliasType('SMALLINT','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeSmallIntDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeSmallIntDeprecated;
 begin
   DoTestAliasType('SMALLINT','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeSmallIntPlatform;
+Procedure TTestTypeParser.TestSimpleTypeSmallIntPlatform;
 begin
   DoTestAliasType('SMALLINT','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeString;
+Procedure TTestTypeParser.TestSimpleTypeString;
 begin
   DoTestAliasType('STRING','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeStringDeprecated;
 begin
   DoTestAliasType('STRING','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringPlatform;
+Procedure TTestTypeParser.TestSimpleTypeStringPlatform;
 begin
   DoTestAliasType('STRING','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringSize;
+Procedure TTestTypeParser.TestSimpleTypeStringSize;
 begin
   DoTestStringType('String[10]','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
+Procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
 begin
   DoTypeError('Incomplete string: missing ]','string[10');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringSizeWrong;
+Procedure TTestTypeParser.TestSimpleTypeStringSizeWrong;
 begin
   DoTypeError('Incomplete string, ) instead of ]','string[10)');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringSizeDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeStringSizeDeprecated;
 begin
   DoTestStringType('String[10]','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeStringSizePlatform;
+Procedure TTestTypeParser.TestSimpleTypeStringSizePlatform;
 begin
   DoTestStringType('String[10]','Platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWord;
+Procedure TTestTypeParser.TestSimpleTypeWord;
 BEGIN
   DoTestAliasType('WORD','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWordDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeWordDeprecated;
 begin
   DoTestAliasType('WORD','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWordPlatform;
+Procedure TTestTypeParser.TestSimpleTypeWordPlatform;
 begin
   DoTestAliasType('WORD','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeQWord;
+Procedure TTestTypeParser.TestSimpleTypeQWord;
 BEGIN
   DoTestAliasType('QWORD','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeQWordDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeQWordDeprecated;
 begin
   DoTestAliasType('QWORD','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeQWordPlatform;
+Procedure TTestTypeParser.TestSimpleTypeQWordPlatform;
 begin
   DoTestAliasType('QWORD','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeCardinal;
+Procedure TTestTypeParser.TestSimpleTypeCardinal;
 begin
   DoTestAliasType('CARDINAL','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeCardinalDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeCardinalDeprecated;
 begin
   DoTestAliasType('CARDINAL','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeCardinalPlatform;
+Procedure TTestTypeParser.TestSimpleTypeCardinalPlatform;
 begin
   DoTestAliasType('CARDINAL','platform');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWideChar;
+Procedure TTestTypeParser.TestSimpleTypeWideChar;
 begin
   DoTestAliasType('WIDECHAR','');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWideCharDeprecated;
+Procedure TTestTypeParser.TestSimpleTypeWideCharDeprecated;
 begin
   DoTestAliasType('WIDECHAR','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleTypeWideCharPlatform;
+Procedure TTestTypeParser.TestSimpleTypeWideCharPlatform;
 begin
   DoTestAliasType('WIDECHAR','platform');
 end;
 
-procedure TTestTypeParser.TestPointerSimple;
+Procedure TTestTypeParser.TestPointerSimple;
 begin
   DoParsePointer('integer','');
 end;
@@ -2569,7 +2570,7 @@ begin
   DoParsePointer('integer','platform');
 end;
 
-procedure TTestTypeParser.TestStaticArray;
+Procedure TTestTypeParser.TestStaticArray;
 begin
   DoParseArray('array [0..2] of integer','',Nil);
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
@@ -2587,26 +2588,26 @@ begin
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
 end;
 
-procedure TTestTypeParser.TestStaticArrayPacked;
+Procedure TTestTypeParser.TestStaticArrayPacked;
 begin
   DoParseArray('packed array [0..2] of integer','',Nil);
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
   AssertEquals('Packed',True,TPasArrayType(TheType).IsPacked);
 end;
 
-procedure TTestTypeParser.TestStaticArrayTypedIndex;
+Procedure TTestTypeParser.TestStaticArrayTypedIndex;
 begin
   DoParseArray('array [Boolean] of integer','',Nil);
   AssertEquals('Array type','Boolean',TPasArrayType(TheType).IndexRange);
 end;
 
-procedure TTestTypeParser.TestDynamicArray;
+Procedure TTestTypeParser.TestDynamicArray;
 begin
   DoParseArray('array of integer','',Nil);
   AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
 end;
 
-procedure TTestTypeParser.TestSimpleEnumerated;
+Procedure TTestTypeParser.TestSimpleEnumerated;
 
 begin
   DoParseEnumerated('(one,two,three)','',3);
@@ -2618,7 +2619,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestSimpleEnumeratedDeprecated;
+Procedure TTestTypeParser.TestSimpleEnumeratedDeprecated;
 begin
   DoParseEnumerated('(one,two,three)','deprecated',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2629,7 +2630,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestSimpleEnumeratedPlatform;
+Procedure TTestTypeParser.TestSimpleEnumeratedPlatform;
 begin
   DoParseEnumerated('(one,two,three)','platform',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2640,7 +2641,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestAssignedEnumerated;
+Procedure TTestTypeParser.TestAssignedEnumerated;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2651,7 +2652,7 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestAssignedEnumeratedDeprecated;
+Procedure TTestTypeParser.TestAssignedEnumeratedDeprecated;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2662,7 +2663,7 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestAssignedEnumeratedPlatform;
+Procedure TTestTypeParser.TestAssignedEnumeratedPlatform;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2673,73 +2674,73 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-procedure TTestTypeParser.TestFileType;
+Procedure TTestTypeParser.TestFileType;
 begin
   DoTestFileType('integer','');
 end;
 
-procedure TTestTypeParser.TestFileTypeDeprecated;
+Procedure TTestTypeParser.TestFileTypeDeprecated;
 begin
   DoTestFileType('integer','deprecated');
 end;
 
-procedure TTestTypeParser.TestFileTypePlatform;
+Procedure TTestTypeParser.TestFileTypePlatform;
 begin
   DoTestFileType('integer','platform');
 end;
 
-procedure TTestTypeParser.TestRangeType;
+Procedure TTestTypeParser.TestRangeType;
 begin
   DoTestRangeType('1','4','');
 end;
 
-procedure TTestTypeParser.TestRangeTypeDeprecated;
+Procedure TTestTypeParser.TestRangeTypeDeprecated;
 begin
   DoTestRangeType('1','4','deprecated');
 end;
 
-procedure TTestTypeParser.TestRangeTypePlatform;
+Procedure TTestTypeParser.TestRangeTypePlatform;
 begin
   DoTestRangeType('1','4','platform');
 end;
 
-procedure TTestTypeParser.TestIdentifierRangeType;
+Procedure TTestTypeParser.TestIdentifierRangeType;
 begin
   DoTestRangeType('tkFirst','tkLast','');
 end;
 
-procedure TTestTypeParser.TestIdentifierRangeTypeDeprecated;
+Procedure TTestTypeParser.TestIdentifierRangeTypeDeprecated;
 begin
   DoTestRangeType('tkFirst','tkLast','deprecated');
 end;
 
-procedure TTestTypeParser.TestIdentifierRangeTypePlatform;
+Procedure TTestTypeParser.TestIdentifierRangeTypePlatform;
 begin
   DoTestRangeType('tkFirst','tkLast','platform');
 end;
 
-procedure TTestTypeParser.TestNegativeIdentifierRangeType;
+Procedure TTestTypeParser.TestNegativeIdentifierRangeType;
 begin
   DoTestRangeType('-tkLast','tkLast','');
 end;
 
-procedure TTestTypeParser.TestSimpleSet;
+Procedure TTestTypeParser.TestSimpleSet;
 begin
   DoParseSimpleSet('Byte','');
 end;
 
-procedure TTestTypeParser.TestSimpleSetDeprecated;
+Procedure TTestTypeParser.TestSimpleSetDeprecated;
 begin
   DoParseSimpleSet('Byte','deprecated');
 end;
 
-procedure TTestTypeParser.TestSimpleSetPlatform;
+Procedure TTestTypeParser.TestSimpleSetPlatform;
 begin
   DoParseSimpleSet('Byte','platform');
 end;
 
 
-procedure TTestTypeParser.TestComplexSet;
+Procedure TTestTypeParser.TestComplexSet;
 
 
 begin
@@ -2747,51 +2748,57 @@ begin
   DoTestComplexSet;
 end;
 
-procedure TTestTypeParser.TestComplexSetDeprecated;
+Procedure TTestTypeParser.TestComplexSetDeprecated;
 
 begin
   DoParseComplexSet('(one, two, three)','deprecated');
   DoTestComplexSet;
 end;
 
-procedure TTestTypeParser.TestComplexSetPlatform;
+Procedure TTestTypeParser.TestComplexSetPlatform;
 
 begin
   DoParseComplexSet('(one, two, three)','platform');
   DoTestComplexSet;
 end;
 
-procedure TTestTypeParser.TestRangeSet;
+Procedure TTestTypeParser.TestRangeSet;
+begin
+  // TRange = (rLow, rMiddle, rHigh);
+  DoParseRangeSet('rMiddle..high(TRange)','');
+end;
+
+Procedure TTestTypeParser.TestSubRangeSet;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','');
 end;
 
-procedure TTestTypeParser.TestRangeSetDeprecated;
+Procedure TTestTypeParser.TestRangeSetDeprecated;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','deprecated');
 end;
 
-procedure TTestTypeParser.TestRangeSetPlatform;
+Procedure TTestTypeParser.TestRangeSetPlatform;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','platform');
 end;
 
-procedure TTestTypeParser.TestClassOf;
+Procedure TTestTypeParser.TestClassOf;
 begin
   DoTestClassOf('');
 end;
 
-procedure TTestTypeParser.TestClassOfDeprecated;
+Procedure TTestTypeParser.TestClassOfDeprecated;
 begin
   DoTestClassOf('deprecated');
 end;
 
-procedure TTestTypeParser.TestClassOfPlatform;
+Procedure TTestTypeParser.TestClassOfPlatform;
 begin
   DoTestClassOf('Platform');
 end;
 
-procedure TTestTypeParser.TestReferenceAlias;
+Procedure TTestTypeParser.TestReferenceAlias;
 begin
   Add('Type');
   Add(' Type1 = Integer;');
@@ -2806,7 +2813,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasAliasType(Declarations.Types[1]).DestType);
 end;
 
-procedure TTestTypeParser.TestReferenceSet;
+Procedure TTestTypeParser.TestReferenceSet;
 
 begin
   Add('Type');
@@ -2822,7 +2829,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasSetType(Declarations.Types[1]).EnumType);
 end;
 
-procedure TTestTypeParser.TestReferenceClassOf;
+Procedure TTestTypeParser.TestReferenceClassOf;
 begin
   Add('Type');
   Add(' Type1 = Class(TObject);');
@@ -2838,7 +2845,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Classes[0],TPasClassOfType(Declarations.Types[0]).DestType);
 end;
 
-procedure TTestTypeParser.TestReferenceFile;
+Procedure TTestTypeParser.TestReferenceFile;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
@@ -2853,7 +2860,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasFileType(Declarations.Types[1]).elType);
 end;
 
-procedure TTestTypeParser.TestReferenceArray;
+Procedure TTestTypeParser.TestReferenceArray;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
@@ -2868,7 +2875,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasArrayType(Declarations.Types[1]).elType);
 end;
 
-procedure TTestTypeParser.TestReferencePointer;
+Procedure TTestTypeParser.TestReferencePointer;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
