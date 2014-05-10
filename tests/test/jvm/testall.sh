@@ -172,3 +172,5 @@ else
   echo " ** Compilation failed as expected"
 fi
 set -e
+$PPC -O2 -g -B -Sa tptrdynarr
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tptrdynarr

@@ -258,7 +258,13 @@ implementation
 
     function tjvmtypeconvnode.pass_1: tnode;
       begin
-        if (nf_explicit in flags) then
+        if (nf_explicit in flags) or
+           { some implicit type conversions from voidpointer to other types
+             (such as dynamic array) are allowed too, even though the types are
+             incompatible -> make sure we check those too and insert checkcast
+             instructions as necessary }
+           (is_voidpointer(left.resultdef) and
+            not is_voidpointer(resultdef)) then
           begin
             do_target_specific_explicit_typeconv(false,result);
             if assigned(result) then
