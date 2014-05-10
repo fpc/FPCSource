@@ -371,6 +371,8 @@ var
    YearMoreThenTwoDigits : boolean;
 begin
   ErrorMsg:='';   Result:=0;
+  While (Len>0) and (S[Len-1] in [' ',#8,#9,#10,#12,#13]) do
+    Dec(len);
   if (Len=0) then
     begin
       FixErrorMsg(SInvalidDateFormat,'');
