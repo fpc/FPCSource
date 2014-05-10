@@ -2210,7 +2210,14 @@ implementation
                         Message(parser_w_unsupported_feature);
                         consume(_BEGIN);
                      end;
-                end
+                end;
+              _PROPERTY:
+                begin
+                  if (m_fpc in current_settings.modeswitches) then
+                    property_dec
+                  else
+                    break;
+                end;
               else
                 begin
                   case idtoken of
@@ -2230,13 +2237,6 @@ implementation
                             read_proc(is_classdef,nil);
                             is_classdef:=false;
                           end
-                        else
-                          break;
-                      end;
-                    _PROPERTY:
-                      begin
-                        if (m_fpc in current_settings.modeswitches) then
-                          property_dec
                         else
                           break;
                       end;
