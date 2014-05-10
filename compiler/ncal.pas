@@ -1359,6 +1359,10 @@ implementation
          end
         else
          n.varargsparas:=nil;
+        if assigned(fforcedprocname) then
+          n.fforcedprocname:=stringdup(fforcedprocname^)
+        else
+          n.fforcedprocname:=nil;
         result:=n;
       end;
 
