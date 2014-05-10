@@ -1949,7 +1949,7 @@ implementation
         len     : shortint;
         ea_data : ea;
         exists_vex: boolean;
-        exists_vex_extention: boolean;
+        exists_vex_extension: boolean;
         exists_prefix_66: boolean;
         exists_prefix_F2: boolean;
         exists_prefix_F3: boolean;
@@ -1960,7 +1960,7 @@ implementation
         len:=0;
         codes:=@p^.code[0];
         exists_vex := false;
-        exists_vex_extention := false;
+        exists_vex_extension := false;
         exists_prefix_66 := false;
         exists_prefix_F2 := false;
         exists_prefix_F3 := false;
@@ -2116,25 +2116,25 @@ implementation
             243: // REX.W = 1
                  // =>> VEX prefix length = 3
               begin
-                if not(exists_vex_extention) then
+                if not(exists_vex_extension) then
                 begin
                   inc(len);
-                  exists_vex_extention := true;
+                  exists_vex_extension := true;
                 end;
               end;
             244: ; // VEX length bit
             246, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
             247: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
-            248: // VEX-Extention prefix $0F
+            248: // VEX-Extension prefix $0F
                  // ignore for calculating length
                  ;
-            249, // VEX-Extention prefix $0F38
-            250: // VEX-Extention prefix $0F3A
+            249, // VEX-Extension prefix $0F38
+            250: // VEX-Extension prefix $0F3A
               begin
-                if not(exists_vex_extention) then
+                if not(exists_vex_extension) then
                 begin
                   inc(len);
-                  exists_vex_extention := true;
+                  exists_vex_extension := true;
                 end;
               end;
             192,193,194:
@@ -2172,8 +2172,8 @@ implementation
           if exists_prefix_F3 then dec(len);
 
   {$ifdef x86_64}
-          if not(exists_vex_extention) then
-            if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extention
+          if not(exists_vex_extension) then
+            if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extension
   {$endif x86_64}
 
         end;
@@ -2357,7 +2357,7 @@ implementation
         data,s,opidx : longint;
         ea_data : ea;
         relsym : TObjSymbol;
-        needed_VEX_Extention: boolean;
+        needed_VEX_Extension: boolean;
         needed_VEX: boolean;
         opmode: integer;
         VEXvvvv: byte;
@@ -2390,7 +2390,7 @@ implementation
         // needed VEX Prefix (for AVX etc.)
 
         needed_VEX := false;
-        needed_VEX_Extention := false;
+        needed_VEX_Extension := false;
         opmode   := -1;
         VEXvvvv  := 0;
         VEXmmmmm := 0;
@@ -2411,17 +2411,17 @@ implementation
             241: VEXvvvv                := VEXvvvv  OR $01; // set SIMD-prefix $66
             242: needed_VEX             := true;
             243: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXvvvv              := VEXvvvv  OR (1 shl 7); // set REX.W
                  end;
             244: VEXvvvv                := VEXvvvv  OR $04; // vectorlength = 256 bits AND no scalar
             248: VEXmmmmm               := VEXmmmmm OR $01; // set leading opcode byte $0F
             249: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $02; // set leading opcode byte $0F38
                  end;
             250: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $03; // set leading opcode byte $0F3A
                  end;
 
@@ -2451,14 +2451,14 @@ implementation
           end
           else Internalerror(777101);
 
-          if not(needed_VEX_Extention) then
+          if not(needed_VEX_Extension) then
           begin
             {$ifdef x86_64}
-              if rex and $0B <> 0 then needed_VEX_Extention := true;
+              if rex and $0B <> 0 then needed_VEX_Extension := true;
             {$endif x86_64}
           end;
 
-          if needed_VEX_Extention then
+          if needed_VEX_Extension then
           begin
             // VEX-Prefix-Length = 3 Bytes
             bytes[0]:=$C4;
@@ -2498,7 +2498,7 @@ implementation
         end
         else
         begin
-          needed_VEX_Extention := false;
+          needed_VEX_Extension := false;
           opmode := -1;
         end;
 
