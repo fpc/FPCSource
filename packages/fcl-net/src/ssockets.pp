@@ -374,7 +374,6 @@ begin
   If (FHandler=Nil) then
     FHandler:=TSocketHandler.Create;
   FHandler.SetSocket(Self);
-  FHandler:=AHandler;
 end;
 
 destructor TSocketStream.Destroy;
