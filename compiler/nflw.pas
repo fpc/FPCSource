@@ -182,6 +182,7 @@ interface
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify(forinline: boolean): tnode; override;
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
@@ -2068,6 +2069,15 @@ implementation
         include(current_procinfo.flags,pi_do_call);
         include(current_procinfo.flags,pi_uses_exceptions);
         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+      end;
+
+
+    function ttryexceptnode.simplify(forinline: boolean): tnode;
+      begin
+        result:=nil;
+        { empty try -> can never raise exception -> do nothing }
+        if has_no_code(left) then
+          result:=cnothingnode.create;
       end;
 
 
