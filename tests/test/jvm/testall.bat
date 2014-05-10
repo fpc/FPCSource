@@ -278,7 +278,7 @@ java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tjavalowercaseproc
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B  -CTinitlocals tinitvar
 if %errorlevel% neq 0 exit /b %errorlevel%
-javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.test.tinitvar.tinitvar
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.test.tinitvar.tinitvar
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B  -CTinitlocals tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
