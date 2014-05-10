@@ -514,7 +514,7 @@ const
 	CSSM_DL_DB_RECORD_EXTENDED_ATTRIBUTE = CSSM_DB_RECORDTYPE_APP_DEFINED_START + $1000 + 4;
 	CSSM_DL_DB_RECORD_METADATA = CSSM_DB_RECORDTYPE_APP_DEFINED_START + $8000;
 
-{ AppleFileDL extentions: passthrough ids }
+{ AppleFileDL extensions: passthrough ids }
 const
 // Toggle whether or not to autocommit after modifying the database.
 	// The input parameter is a CSSM_BOOL, where TRUE turns autocommit on
