@@ -156,28 +156,49 @@ Function TJSONParser.ParseNumber : TJSONNumber;
 Var
   I : Integer;
   I64 : Int64;
+  QW  : QWord;
   F : TJSONFloat;
   S : String;
 
 begin
   S:=CurrentTokenString;
   I:=0;
-  If TryStrToInt64(S,I64) then
-    if (I64>Maxint) or (I64<-MaxInt) then
-      Result:=CreateJSON(I64)
-    Else
+  if TryStrToQWord(S,QW) then
+    begin
+    if QW>qword(high(Int64)) then
+      Result:=CreateJSON(QW)
+    else
+      if QW>MaxInt then
       begin
-      I:=I64;
-      Result:=CreateJSON(I);
+        I64 := QW;
+        Result:=CreateJSON(I64);
       end
+      else
+      begin
+        I := QW;
+        Result:=CreateJSON(I);
+      end
+    end
   else
     begin
-    I:=0;
-    Val(S,F,I);
-    If (I<>0) then
-      DoError(SErrInvalidNumber);
-    Result:=CreateJSON(F);
+    If TryStrToInt64(S,I64) then
+      if (I64>Maxint) or (I64<-MaxInt) then
+        Result:=CreateJSON(I64)
+      Else
+        begin
+        I:=I64;
+        Result:=CreateJSON(I);
+        end
+    else
+      begin
+      I:=0;
+      Val(S,F,I);
+      If (I<>0) then
+        DoError(SErrInvalidNumber);
+      Result:=CreateJSON(F);
+      end;
     end;
+
 end;
 
 function TJSONParser.GetUTF8 : Boolean;
