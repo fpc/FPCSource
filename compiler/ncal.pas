@@ -102,7 +102,11 @@ interface
             to ppu, is set while processing the node). Also used on the JVM
             target for calling virtual methods, as this is name-based and not
             based on VMT entry locations }
+{$ifdef symansistr}
+          fforcedprocname: TSymStr;
+{$else symansistr}
           fforcedprocname: pshortstring;
+{$endif symansistr}
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -1206,7 +1210,9 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
+{$ifndef symansistr}
          stringdispose(fforcedprocname);
+{$endif symansistr}
          inherited destroy;
       end;
 
@@ -1359,10 +1365,14 @@ implementation
          end
         else
          n.varargsparas:=nil;
+{$ifdef symansistr}
+        n.fforcedprocname:=fforcedprocname;
+{$else symansistr}
         if assigned(fforcedprocname) then
           n.fforcedprocname:=stringdup(fforcedprocname^)
         else
           n.fforcedprocname:=nil;
+{$endif symansistr}
         result:=n;
       end;
 
@@ -2074,7 +2084,11 @@ implementation
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
           Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
+{$ifdef symansistr}
+        fforcedprocname:=tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname;
+{$else symansistr}
         fforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+{$endif symansistr}
 
         { B) Handle self }
         { 1) in case of sending a message to a superclass, self is a pointer to

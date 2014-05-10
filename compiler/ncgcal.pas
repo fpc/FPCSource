@@ -768,7 +768,7 @@ implementation
 
     procedure tcgcallnode.pass_generate_code;
       var
-        name_to_call: shortstring;
+        name_to_call: TSymStr;
         regs_to_save_int,
         regs_to_save_address,
         regs_to_save_fpu,
@@ -868,9 +868,13 @@ implementation
                end;
 {$endif vtentry}
 
-             name_to_call:='';
-             if assigned(fforcedprocname) then
-               name_to_call:=fforcedprocname^;
+{$ifdef symansistr}
+              name_to_call:=fforcedprocname;
+{$else symansistr}
+              name_to_call:='';
+              if assigned(fforcedprocname) then
+                name_to_call:=fforcedprocname^;
+{$endif symansistr}
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (name_to_call='') and

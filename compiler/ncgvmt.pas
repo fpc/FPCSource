@@ -763,7 +763,7 @@ implementation
          vmtpd : tprocdef;
          vmtentry : pvmtentry;
          i  : longint;
-         procname : string;
+         procname : TSymStr;
 {$ifdef vtentry}
          hs : string;
 {$endif vtentry}

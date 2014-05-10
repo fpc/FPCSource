@@ -140,7 +140,7 @@ unit optvirt;
         procedure converttreenode(node: tinheritancetreenode; arg: pointer);
         function addunitifnew(const n: shortstring): tunitdevirtinfo;
         function findunit(const n: shortstring): tunitdevirtinfo;
-        function getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: string): boolean;
+        function getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: TSymStr): boolean;
         procedure documentformat(writer: twposectionwriterintf);
        public
         constructor create; override;
@@ -157,8 +157,8 @@ unit optvirt;
 
         { information providing }
         procedure loadfromwpofilesection(reader: twposectionreaderintf); override;
-        function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; override;
-        function staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean; override;
+        function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: TSymStr): boolean; override;
+        function staticnameforvmtentry(objdef, procdef: tdef; out staticname: TSymStr): boolean; override;
 
       end;
 
@@ -1086,7 +1086,7 @@ unit optvirt;
       end;
 
 
-    function tprogdevirtinfo.getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: string): boolean;
+    function tprogdevirtinfo.getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: TSymStr): boolean;
       var
         unitid,
         classid,
@@ -1176,13 +1176,13 @@ unit optvirt;
 
 
 
-    function tprogdevirtinfo.staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean;
+    function tprogdevirtinfo.staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: TSymStr): boolean;
       begin
         result:=getstaticname(false,objdef,procdef,staticname);
       end;
 
 
-    function tprogdevirtinfo.staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean;
+    function tprogdevirtinfo.staticnameforvmtentry(objdef, procdef: tdef; out staticname: TSymStr): boolean;
       begin
         result:=getstaticname(true,objdef,procdef,staticname);
       end;

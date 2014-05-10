@@ -26,7 +26,7 @@ unit wpoinfo;
 interface
 
 uses
-  cclasses,
+  globtype,cclasses,
   symtype,
   wpobase,
   ppu;
@@ -62,8 +62,8 @@ type
   { twpoinfomanager }
 
   twpoinfomanager = class(twpoinfomanagerbase)
-    function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; override;
-    function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; override;
+    function can_be_devirtualized(objdef, procdef: tdef; out name: TSymStr): boolean; override;
+    function optimized_name_for_vmt(objdef, procdef: tdef; out name: TSymStr): boolean; override;
     function symbol_live(const name: shortstring): boolean; override;
   end;
 
@@ -71,7 +71,6 @@ type
 implementation
 
   uses
-    globtype,
     globals,
     symdef,
     verbose;
@@ -287,7 +286,7 @@ implementation
 
   { devirtualisation }
 
-  function twpoinfomanager.can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean;
+  function twpoinfomanager.can_be_devirtualized(objdef, procdef: tdef; out name: TSymStr): boolean;
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
          not(cs_wpo_devirtualize_calls in current_settings.dowpoptimizerswitches) then
@@ -299,7 +298,7 @@ implementation
     end;
 
 
-  function twpoinfomanager.optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean;
+  function twpoinfomanager.optimized_name_for_vmt(objdef, procdef: tdef; out name: TSymStr): boolean;
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
          not(cs_wpo_optimize_vmts in current_settings.dowpoptimizerswitches) then

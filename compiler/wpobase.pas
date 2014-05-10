@@ -254,12 +254,12 @@ type
       a static call when it's called as objdef.procdef, and if so returns the
       mangled name in staticname.
     }
-    function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
+    function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: TSymStr): boolean; virtual; abstract;
     { checks whether procdef (a procdef for a virtual method) can be replaced with
       a different procname in the vmt of objdef, and if so returns the new
       mangledname in staticname
     }
-    function staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
+    function staticnameforvmtentry(objdef, procdef: tdef; out staticname: TSymStr): boolean; virtual; abstract;
   end;
 
   twpodeadcodehandler = class(twpocomponentbase)
@@ -325,9 +325,9 @@ type
 
     { routines accessing the optimizer information }
     { 1) devirtualization at the symbol name level }
-    function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
+    function can_be_devirtualized(objdef, procdef: tdef; out name: TSymStr): boolean; virtual; abstract;
     { 2) optimal replacement method name in vmt }
-    function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
+    function optimized_name_for_vmt(objdef, procdef: tdef; out name: TSymStr): boolean; virtual; abstract;
     { 3) does a symbol appear in the final binary (i.e., not removed by dead code stripping/smart linking).
         WARNING: do *not* call for inline functions/procedures/methods/...
     }
