@@ -2008,6 +2008,7 @@ packages/fcl-db/examples/loadlibdemo.lpi svneol=native#text/plain
 packages/fcl-db/examples/loadlibdemo.pp svneol=native#text/plain
 packages/fcl-db/examples/pqeventstest.pp svneol=native#text/plain
 packages/fcl-db/examples/sqlite3loadlib.lpr svneol=native#text/plain
+packages/fcl-db/examples/sqlparser.pp svneol=native#text/plain
 packages/fcl-db/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/Dataset.txt svneol=native#text/plain
 packages/fcl-db/src/README.txt svneol=native#text/plain
