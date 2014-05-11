@@ -457,7 +457,8 @@ Begin
       end;
       if ErrorLen=ErrorBufferLength then
         begin
-          MessageBox(0,@ErrorBuf,pchar('Error'),0);
+          if not NoErrMsg then
+            MessageBox(0,@ErrorBuf,pchar('Error'),0);
           ErrorLen:=0;
         end;
       Dec(F.BufPos,i);
