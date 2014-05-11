@@ -1035,24 +1035,37 @@ end;
 function InitComponentRes(const ResName: String; Instance: TComponent): Boolean;
 
 begin
-  { !!!: Too Win32-specific }
-  InitComponentRes := False;
+  Result:=ReadComponentRes(ResName,Instance)=Instance;
 end;
 
+function SysReadComponentRes(HInstance : THandle; const ResName: String; Instance: TComponent): TComponent;
+
+Var
+  H : TFPResourceHandle;
+
+begin
+  H:=FindResource(HInstance,ResName,RT_RCDATA);
+  if (PtrInt(H)=0) then
+    Result:=Nil
+  else
+    With TResourceStream.Create(HInstance,ResName,RT_RCDATA) do
+      try
+        Result:=ReadComponent(Instance);
+      Finally
+        Free;
+      end;  
+end;
 
 function ReadComponentRes(const ResName: String; Instance: TComponent): TComponent;
 
 begin
-  { !!!: Too Win32-specific }
-  ReadComponentRes := nil;
+  Result:=SysReadComponentRes(Hinstance,Resname,Instance);
 end;
-
 
 function ReadComponentResEx(HInstance: THandle; const ResName: String): TComponent;
 
 begin
-  { !!!: Too Win32-specific in VCL }
-  ReadComponentResEx := nil;
+  Result:=SysReadComponentRes(Hinstance,ResName,Nil);
 end;
 
 
