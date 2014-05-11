@@ -1149,6 +1149,7 @@ begin
     vaFalse,vaTrue:
       begin
         Result:=(nv<>vaFalse);
+        readValue;
       end;
     vaCurrency:
       begin
