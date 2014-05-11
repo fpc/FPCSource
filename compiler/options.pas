@@ -3545,7 +3545,7 @@ if (target_info.abi = abi_eabihf) then
 
 { hardware FMA support }
 {$if defined(i386) or defined(x86_64)}
-  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]
+  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
     begin
       def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
       def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');
