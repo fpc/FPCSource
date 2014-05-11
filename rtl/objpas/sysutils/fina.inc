@@ -18,13 +18,21 @@ function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
 var
   i : longint;
   EndSep : Set of Char;
+  SOF : Boolean;
+  
 begin
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not(FileName[I] in EndSep) do
     Dec(I);
   if (I = 0) or (FileName[I] <> ExtensionSeparator) then
-    I := Length(FileName)+1;
+    I := Length(FileName)+1
+  else
+    begin
+	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+  	if (SOF) and not FirstDotAtFileNameStartIsExtension then
+	  I:=Length(FileName)+1;
+	end;  
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
