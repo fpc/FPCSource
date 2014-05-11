@@ -975,20 +975,23 @@ Var
   I: Integer;
 
 begin
-  if FOwnsObjects then
+  if FromIndex < FCount then
     begin
-      For I:=FromIndex to FCount-1 do
+      if FOwnsObjects then
         begin
-          Flist^[I].FString:='';
-          freeandnil(Flist^[i].FObject);
+          For I:=FromIndex to FCount-1 do
+            begin
+              Flist^[I].FString:='';
+              freeandnil(Flist^[i].FObject);
+            end;
+        end
+      else
+        begin
+          For I:=FromIndex to FCount-1 do
+            Flist^[I].FString:='';
         end;
-    end
-  else
-    begin
-      For I:=FromIndex to FCount-1 do
-        Flist^[I].FString:='';
+      FCount:=FromIndex;
     end;
-  FCount:=FromIndex;
   if Not ClearOnly then
     SetCapacity(0);
 end;
@@ -1184,6 +1187,8 @@ begin
     begin
     if NewCapacity = 0 then
     begin
+      if FCount > 0 then
+        InternalClear(0,True);
       FreeMem(FList);
       FList := nil;
     end else
