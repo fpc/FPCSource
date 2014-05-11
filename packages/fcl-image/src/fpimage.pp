@@ -221,7 +221,7 @@ type
 
   TIHData = class
     private
-      FExtention, FTypeName, FDefaultExt : string;
+      FExtension, FTypeName, FDefaultExt : string;
       FReader : TFPCustomImageReaderClass;
       FWriter : TFPCustomImageWriterClass;
   end;
@@ -240,17 +240,17 @@ type
     public
       constructor Create;
       destructor Destroy; override;
-      procedure RegisterImageHandlers (const ATypeName,TheExtentions:string;
+      procedure RegisterImageHandlers (const ATypeName,TheExtensions:string;
                    AReader:TFPCustomImageReaderClass; AWriter:TFPCustomImageWriterClass);
-      procedure RegisterImageReader (const ATypeName,TheExtentions:string;
+      procedure RegisterImageReader (const ATypeName,TheExtensions:string;
                    AReader:TFPCustomImageReaderClass);
-      procedure RegisterImageWriter (const ATypeName,TheExtentions:string;
+      procedure RegisterImageWriter (const ATypeName,TheExtensions:string;
                    AWriter:TFPCustomImageWriterClass);
       property Count : integer read GetCount;
       property ImageReader [const TypeName:string] : TFPCustomImageReaderClass read GetReader;
       property ImageWriter [const TypeName:string] : TFPCustomImageWriterClass read GetWriter;
-      property Extentions [const TypeName:string] : string read GetExt;
-      property DefaultExtention [const TypeName:string] : string read GetDefExt;
+      property Extensions [const TypeName:string] : string read GetExt;
+      property DefaultExtension [const TypeName:string] : string read GetDefExt;
       property TypeNames [index:integer] : string read GetTypeName;
     end;
 
