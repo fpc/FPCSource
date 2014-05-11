@@ -27,7 +27,7 @@ interface
 
 uses
   cfileutl,
-  globtype,globals,verbose,systems,cpuinfo, comprsrc;
+  globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
   TOption=class
@@ -3542,6 +3542,16 @@ if (target_info.abi = abi_eabihf) then
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
+
+{ hardware FMA support }
+{$if defined(i386) or defined(x86_64)}
+  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]
+    begin
+      def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
+      def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');
+    end;
+{$endif defined(i386) or defined(x86_64)}
+
 {$if defined(arm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
