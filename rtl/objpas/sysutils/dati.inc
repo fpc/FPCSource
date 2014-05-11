@@ -1006,7 +1006,7 @@ var
         end ;
         '/': StoreStr(@FormatSettings.DateSeparator, 1);
         ':': StoreStr(@FormatSettings.TimeSeparator, 1);
-        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' :
+        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' :
         begin
           while (P < FormatEnd) and (UpCase(P^) = Token) do
             Inc(P);
@@ -1087,6 +1087,11 @@ var
                       StoreString(' ');
                       StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
                      end;
+                 end;
+            'F': begin
+                   StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
+                   StoreString(' ');
+                   StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
                  end;
 {$IFDEF MSWindows}
             'E':
