@@ -760,60 +760,109 @@ end;
     if S does not represent a valid date and/or time value
     an EConvertError will be raised   }
 
-function StrToDateTime(const s: string): TDateTime;
+function SplitDateTimeStr(DateTimeStr: AnsiString; const FS: TFormatSettings; out DateStr, TimeStr: AnsiString): Integer;
+
+{ Helper function for StrToDateTime
+  Pre-condition
+    Date is before Time
+    If either Date or Time is omitted then see what fits best, a time or a date (issue #0020522)
+    Date and Time are separated by whitespace (space Tab, Linefeed or carriage return)
+    FS.DateSeparator can be the same as FS.TimeSeparator (issue #0020522)
+    If they are both #32 and TrimWhite(DateTimeStr) contains a #32 a date is assumed.
+  Post-condition
+    DateStr holds date as string or is empty
+    TimeStr holds time as string or is empty
+    Result = number of strings returned, 0 = error
+}
+const
+  WhiteSpace = [#9,#10,#13,#32];
+
 var
-  I: integer;
+  p: Integer;
+  DummyDT: TDateTime;
 begin
-  I:=Pos(DefaultFormatSettings.TimeSeparator,S);
-  If (I>0) then
+  Result := 0;
+  DateStr := '';
+  TimeStr := '';
+  DateTimeStr := Trim(DateTimeStr);
+  if Length(DateTimeStr) = 0 then exit;
+  if (FS.DateSeparator = #32) and (FS.TimeSeparator = #32) and (Pos(#32, DateTimeStr) > 0) then 
     begin
-    While (I>0) and (S[I]<>' ') do
-      Dec(I);
-    If I>0 then
-      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1)),StrToTime(Copy(S,i+1, Length(S)-i)))
-    else
-      result:=StrToTime(S)
+    DateStr:=DateTimeStr;
+    {
+      Assume a date: dd [mm [yy]]. 
+      Really fancy would be counting the number of whitespace occurrences and decide 
+      and split accordingly
+    }
+    Exit(1); 
+    end;
+  p:=1;
+  //find separator
+  if (FS.DateSeparator<>#32) then
+    begin  
+    while (p<Length(DateTimeStr)) and (not (DateTimeStr[p+1] in WhiteSpace)) do 
+      Inc(p);
     end
   else
-    Result:=StrToDate(S);
-end;
+    begin
+    p:=Pos(FS.TimeSeparator, DateTimeStr);
+    if (p<>0) then 
+      repeat
+        Dec(p);
+      until (p=0) or (DateTimeStr[p] in WhiteSpace);
+    end;
+  //Always fill DateStr, it eases the algorithm later
+  if (p=0) then 
+    p:=Length(DateTimeStr);
+  DateStr:=Copy(DateTimeStr,1,p);
+  TimeStr:=Trim(Copy(DateTimeStr,p+1,MaxInt));
+  if (Length(TimeStr)<>0) then
+    Result:=2
+  else
+    begin
+    Result:=1; //found 1 string
+    // 2 cases when DateTimeStr only contains a time:
+    // Date/time separator differ, and string contains a timeseparator
+    // Date/time separators are equal, but transformation to date fails.
+    if ((FS.DateSeparator<>FS.TimeSeparator) and (Pos(FS.TimeSeparator,DateStr) > 0))
+       or ((FS.DateSeparator=FS.TimeSeparator) and (not TryStrToDate(DateStr, DummyDT, FS)))  then
+      begin
+      TimeStr := DateStr;
+      DateStr := '';
+      end;
+    end;
+end; 
+
 
 function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
 var
-  I: integer;
+  TimeStr, DateStr: AnsiString;
+  PartsFound: Integer;
 begin
-  I:=Pos(FormatSettings.TimeSeparator,S);
-  If (I>0) then
-    begin
-    While (I>0) and (S[I]<>' ') do
-      Dec(I);
-    If I>0 then
-      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),FormatSettings.ShortDateFormat,FormatSettings.DateSeparator),
-                              StrToTime(Copy(S,i+1, Length(S)-i),FormatSettings))
-    else
-      result:=StrToTime(S,FormatSettings)
-    end
-  else
-    Result:=StrToDate(S,FormatSettings.ShortDateFormat,FormatSettings.DateSeparator);
+  PartsFound := SplitDateTimeStr(S, FormatSettings, DateStr, TimeStr);
+  case PartsFound of  
+    0: Result:=StrToDate('');
+    1: if (Length(DateStr) > 0) then
+         Result := StrToDate(DateStr, FormatSettings.ShortDateFormat,FormatSettings.DateSeparator)
+       else
+         Result := StrToTime(TimeStr, FormatSettings);
+    2: Result := ComposeDateTime(StrTodate(DateStr,FormatSettings.ShortDateFormat,FormatSettings.DateSeparator),
+                                  StrToTime(TimeStr,FormatSettings));
+  end;
+end;
+
+function StrToDateTime(const s: AnsiString): TDateTime;
+begin
+  Result:=StrToDateTime(S,DefaultFormatSettings);
 end;
 
 function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
+
 var
-  I: integer;
+  A : AnsiString;
 begin
-  I:=Pos(FormatSettings.TimeSeparator,S);
-  If (I>0) then
-    begin
-    While (I>0) and (S[I]<>' ') do
-      Dec(I);
-    If I>0 then
-      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),FormatSettings.ShortDateFormat,FormatSettings.DateSeparator),
-                              StrToTime(Copy(S,i+1, Length(S)-i),FormatSettings.TimeSeparator))
-    else
-      result:=StrToTime(S,FormatSettings.TimeSeparator)
-    end
-  else
-    Result:=StrToDate(S,FormatSettings.ShortDateFormat,FormatSettings.DateSeparator);
+  A:=S;
+  Result:=StrToDateTime(A,FormatSettings);
 end;
 
 {   FormatDateTime formats DateTime to the given format string FormatStr   }

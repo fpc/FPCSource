@@ -135,7 +135,7 @@ function StrToDate(const S: ShortString; const useformat : string; separator : c
 function StrToDate(const S: AnsiString; const useformat : string; separator : char = #0): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
 function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
-function StrToDateTime(const S: string): TDateTime;
+function StrToDateTime(const S: AnsiString): TDateTime;
 function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
 function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime):string;
