@@ -67,7 +67,7 @@ end;
 
 {  StrPCopy copies the pascal string Source to Dest and returns Dest  }
 
-function StrPCopy(Dest: PChar; Source: string): PChar;overload;
+function StrPCopy(Dest: PChar; Const Source: string): PChar;overload;
 begin
   result := StrMove(Dest, PChar(Source), length(Source)+1);
 end ;
@@ -75,7 +75,7 @@ end ;
 {  StrPLCopy copies MaxLen or less characters from the pascal string
    Source to Dest and returns Dest  }
 
-function StrPLCopy(Dest: PChar; Source: string; MaxLen: SizeUInt): PChar;overload;
+function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
 var Count: SizeUInt;
 begin
 result := Dest;
