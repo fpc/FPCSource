@@ -674,6 +674,7 @@ var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   NoErrMsg: Boolean platform = False; // For Delphi compatibility, not used in FPC.
+  FirstDotAtFileNameStartIsExtension : Boolean = False;
   
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,

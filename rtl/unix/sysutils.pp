@@ -357,27 +357,6 @@ end;
 
 
 
-Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
-Var
-  DotPos,SlashPos,i : longint;
-Begin
-  SlashPos:=0;
-  DotPos:=256;
-  i:=Length(Path);
-  While (i>0) and (SlashPos=0) Do
-   Begin
-     If (DotPos=256) and (Path[i]='.') Then
-      begin
-        DotPos:=i;
-      end;
-     If (Path[i]='/') Then
-      SlashPos:=i;
-     Dec(i);
-   End;
-  Ext:=Copy(Path,DotPos,255);
-  Dir:=Copy(Path,1,SlashPos);
-  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
-End;
 
 
 Function DoFileLocking(Handle: Longint; Mode: Integer) : Longint;
