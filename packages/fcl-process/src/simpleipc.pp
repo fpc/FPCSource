@@ -351,6 +351,7 @@ begin
   CheckActive;
   FBusy:=True;
   Try
+    FMsgData.Size:=0;
     FIPCComm.ReadMessage;
     If Assigned(FOnMessage) then
       FOnMessage(Self);
