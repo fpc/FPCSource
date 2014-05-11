@@ -198,7 +198,7 @@ end;
 Type
   TWinMsgClientComm = Class(TIPCClientComm)
   Private
-    FWindowName: String;
+    FWindowName: WideString;
     FHWND : HWnd;
   Public
     Constructor Create(AOWner : TSimpleIPCClient); override;
@@ -206,7 +206,7 @@ Type
     Procedure Disconnect; override;
     Procedure SendMessage(MsgType : TMessageType; Stream : TStream); override;
     Function  ServerRunning : Boolean; override;
-    Property WindowName : String Read FWindowName;
+    Property WindowName : WideString Read FWindowName;
   end;
 
 
