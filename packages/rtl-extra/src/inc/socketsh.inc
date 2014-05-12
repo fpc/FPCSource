@@ -224,12 +224,12 @@ function StrToHostAddr(IP : AnsiString) : in_addr ;
 function StrToNetAddr (IP : AnsiString) : in_addr;
 
 { these for are for netdb legacy compat}
-Function HostToNet     (Host : in_addr) : in_addr;
-Function NetToHost     (Net  : in_addr) : in_addr;
-Function HostToNet     (Host : Longint) : Longint;
-Function NetToHost     (Net  : Longint) : Longint;
-Function ShortHostToNet(Host : Word) : Word;
-Function ShortNetToHost(Net  : Word) : Word;
+Function HostToNet     (Host : in_addr) : in_addr; deprecated;
+Function NetToHost     (Net  : in_addr) : in_addr; deprecated;
+Function HostToNet     (Host : Longint) : Longint; deprecated;
+Function NetToHost     (Net  : Longint) : Longint; deprecated;
+Function ShortHostToNet(Host : Word) : Word; deprecated;
+Function ShortNetToHost(Net  : Word) : Word; deprecated;
 
 // ipv6
 function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;
