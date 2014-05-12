@@ -182,6 +182,7 @@ interface
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify(forinline: boolean): tnode; override;
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
@@ -351,7 +352,7 @@ implementation
          typecheckpass(tnode(state));
          addstatement(mainstatement,state);
          { the temporary items array }
-         itemsarraydef:=tarraydef.create(1,16,u32inttype);
+         itemsarraydef:=carraydef.create(1,16,u32inttype);
          itemsarraydef.elementdef:=objc_idtype;
          items:=ctempcreatenode.create(itemsarraydef,itemsarraydef.size,tt_persistent,false);
          addstatement(mainstatement,items);
@@ -456,7 +457,7 @@ implementation
         if hp.resultdef.typ<>pointerdef then
           internalerror(2010061904);
         inserttypeconv(hp,
-          tarraydef.create_from_pointer(tpointerdef(hp.resultdef).pointeddef));
+          carraydef.create_from_pointer(tpointerdef(hp.resultdef).pointeddef));
         hp:=cvecnode.create(hp,ctemprefnode.create(innerloopcounter));
         addstatement(innerloopbodystatement,
           cassignmentnode.create(hloopvar,hp));
@@ -570,7 +571,7 @@ implementation
             if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
               begin
                 elementcount:=elementcount*tarraydef(tmpdef).elecount;
-                convertdef:=tarraydef.create(0,elementcount-1,s32inttype);
+                convertdef:=carraydef.create(0,elementcount-1,s32inttype);
                 tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
                 expression:=expr.getcopy;
                 expression:=ctypeconvnode.create_internal(expression,convertdef);
@@ -579,7 +580,8 @@ implementation
               end;
           end;
 
-        if (node_complexity(expression) > 1) and not is_open_array(expression.resultdef) then
+        if (node_complexity(expression) > 1) and
+          not(is_open_array(expression.resultdef)) and not(is_array_of_const(expression.resultdef)) then
           begin
             { create a temp variable for expression }
             arrayvar := ctempcreatenode.create(
@@ -1965,14 +1967,7 @@ implementation
                begin
                  { addr }
                  typecheckpass(right);
-{$ifdef i8086}
-                 if current_settings.x86memorymodel in x86_far_code_models then
-                   inserttypeconv(right,voidfarpointertype)
-                 else
-                   inserttypeconv(right,voidnearpointertype);
-{$else i8086}
-                 inserttypeconv(right,voidpointertype);
-{$endif i8086}
+                 inserttypeconv(right,voidcodepointertype);
                  { frame }
                  if assigned(third) then
                   begin
@@ -2010,7 +2005,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
-                current_addr:=clabelnode.create(cnothingnode.create,tlabelsym.create('$raiseaddr'));
+                current_addr:=clabelnode.create(cnothingnode.create,clabelsym.create('$raiseaddr'));
                 addstatement(statements,current_addr);
                 right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
               end;
@@ -2074,6 +2069,15 @@ implementation
         include(current_procinfo.flags,pi_do_call);
         include(current_procinfo.flags,pi_uses_exceptions);
         inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+      end;
+
+
+    function ttryexceptnode.simplify(forinline: boolean): tnode;
+      begin
+        result:=nil;
+        { empty try -> can never raise exception -> do nothing }
+        if has_no_code(left) then
+          result:=cnothingnode.create;
       end;
 
 
@@ -2182,7 +2186,7 @@ implementation
           destroyed before procsym, leaving invalid pointers). }
         oldsymtablestack:=symtablestack;
         symtablestack:=nil;
-        result:=tprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1);
         symtablestack:=oldsymtablestack;
         st.insertdef(result);
         result.struct:=current_procinfo.procdef.struct;
@@ -2191,7 +2195,7 @@ implementation
         exclude(result.procoptions,po_delphi_nested_cc);
         result.proctypeoption:=potype_exceptfilter;
         handle_calling_convention(result);
-        sym:=tprocsym.create('$fin$'+tostr(seq));
+        sym:=cprocsym.create('$fin$'+tostr(seq));
         st.insert(sym);
         inc(seq);
 

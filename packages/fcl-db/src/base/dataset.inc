@@ -220,7 +220,7 @@ begin
       If DataType<>ftUnknown then
         begin
         {$ifdef DSDebug}
-        Writeln('About to create field',FieldDefs.Items[i].Name);
+        Writeln('About to create field ',FieldDefs.Items[i].Name);
         {$endif}
         CreateField(self);
         end;
@@ -955,8 +955,8 @@ procedure TDataSet.OpenCursor(InfoQuery: Boolean);
 
 begin
   if InfoQuery then
-    InternalInitfieldDefs
-  else if state <> dsOpening then
+    InternalInitFieldDefs
+  else if State <> dsOpening then
     DoInternalOpen;
 end;
 
@@ -1063,6 +1063,16 @@ end;
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
 begin
   FIsUniDirectional := Value;
+end;
+
+class function TDataSet.FieldDefsClass: TFieldDefsClass;
+begin
+  Result:=TFieldDefs;
+end;
+
+class function TDataSet.FieldsClass: TFieldsClass;
+begin
+  Result:=TFields;
 end;
 
 procedure TDataSet.SetActive(Value: Boolean);
@@ -1195,18 +1205,18 @@ begin
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(TRecordBuffer));
 {$endif}
     inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
-    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(TRecordBuffer),#0);
+    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOf(TRecordBuffer),#0);
 {$ifdef dsdebug}
-    Writeln ('   Filled memory :');
+    Writeln ('   Filled memory');
 {$endif}
     Try
 {$ifdef dsdebug}
-      Writeln ('   Assigning buffers :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigning buffers : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
 {$ifdef dsdebug}
-      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigned buffers (FBufferCount:',FBufferCount,') : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
     except
       I:=FBufferCount;
@@ -1269,7 +1279,7 @@ begin
   If FCurrentRecord<>Index then
     begin
 {$ifdef DSdebug}
-    Writeln ('Setting current record to',index);
+    Writeln ('Setting current record to: ',index);
 {$endif}
     if not FIsUniDirectional then Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
@@ -1383,7 +1393,7 @@ begin
     end;
 end;
 
-function TDataSet.Tempbuffer: TRecordBuffer;
+function TDataSet.TempBuffer: TRecordBuffer;
 
 begin
   Result := FBuffers[FRecordCount];
@@ -1425,7 +1435,7 @@ function TDataSet.ActiveBuffer: TRecordBuffer;
 
 begin
 {$ifdef dsdebug}
-  Writeln ('Active buffer requested. Returning:',ActiveRecord);
+  Writeln ('Active buffer requested. Returning record number:',ActiveRecord);
 {$endif}
   Result:=FBuffers[FActiveRecord];
 end;
@@ -1933,7 +1943,7 @@ Var
   begin
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling forward :',Distance);
+    Writeln('Scrolling forward : ',Distance);
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCount   : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
@@ -1969,7 +1979,7 @@ Var
     CheckBiDirectional;
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling backward:',Abs(Distance));
+    Writeln('Scrolling backward : ',Abs(Distance));
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCunt    : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
@@ -2276,7 +2286,7 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataSet.GetFieldValues(const fieldname: string): Variant;
+function TDataSet.GetFieldValues(const FieldName: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2295,7 +2305,7 @@ begin
   end;
 end;
 
-procedure TDataSet.SetFieldValues(const fieldname: string; Value: Variant);
+procedure TDataSet.SetFieldValues(const FieldName: string; Value: Variant);
 
 var
   i, l, h : Integer;
@@ -2461,16 +2471,6 @@ end;
 procedure TDataSet.PSStartTransaction;
 begin
   DatabaseError('Provider support not available', Self);
-end;
-
-class function TDataSet.FieldDefsClass: TFieldDefsClass;
-begin
-  Result:=TFieldDefs;
-end;
-
-class function TDataSet.FieldsClass: TFieldsClass;
-begin
-  Result:=TFields;
 end;
 
 function TDataSet.PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet

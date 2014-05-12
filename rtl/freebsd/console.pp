@@ -1453,11 +1453,11 @@ const
 { Logitech MouseMan data packet (M+ protocol) }
        MOUSE_LMAN_BUTTON2DOWN   = $20;  { middle button, the 4th byte }
 
-{ ALPS GlidePoint extention (variant of M+ protocol) }
+{ ALPS GlidePoint extension (variant of M+ protocol) }
        MOUSE_ALPS_BUTTON2DOWN   = $20;  { middle button, the 4th byte }
        MOUSE_ALPS_TAP           = $10;  { `tapping' action, the 4th byte }
 
-{ Kinsington Thinking Mouse extention (variant of M+ protocol) }
+{ Kinsington Thinking Mouse extension (variant of M+ protocol) }
        MOUSE_THINK_BUTTON2DOWN = $20;   { lower-left button, the 4th byte }
        MOUSE_THINK_BUTTON4DOWN = $10;   { lower-right button, the 4th byte }
 

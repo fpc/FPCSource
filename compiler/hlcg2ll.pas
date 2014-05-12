@@ -310,7 +310,6 @@ unit hlcg2ll;
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);override;
-          procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);override;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
           procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
@@ -1073,7 +1072,7 @@ implementation
                if l.loc=LOC_CONSTANT then
                 begin
                   if (longint(l.value)<0) then
-                   cg.a_load_const_reg(list,OS_32,aint($ffffffff),hregisterhi)
+                   cg.a_load_const_reg(list,OS_32,longint($ffffffff),hregisterhi)
                   else
                    cg.a_load_const_reg(list,OS_32,0,hregisterhi);
                 end
@@ -1213,11 +1212,6 @@ implementation
       { Release temp when it was a reference }
       if oldloc.loc=LOC_REFERENCE then
           location_freetemp(list,oldloc);
-    end;
-
-  procedure thlcg2ll.location_force_fpureg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
-    begin
-      ncgutil.location_force_fpureg(list,l,maybeconst);
     end;
 
   procedure thlcg2ll.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
@@ -1435,6 +1429,10 @@ implementation
     var
       tmploc: tlocation;
     begin
+      { skip e.g. empty records }
+      if (cgpara.location^.loc = LOC_VOID) then
+        exit;
+
       { Handle Floating point types differently
 
         This doesn't depend on emulator settings, emulator settings should

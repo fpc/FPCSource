@@ -177,7 +177,7 @@ end;
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := StackTop - StackLength;
+  StackBottom := Sptr - StackLength;
 { OS specific startup }
 
 { Setup heap }

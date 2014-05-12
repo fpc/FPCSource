@@ -54,12 +54,11 @@ unit ra68k;
      if assigned(result) then
        taicpu(result).opsize:=opsize;
    end;
-{
+(*
  function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;
   var
     fits : boolean;
   begin
-     writeln('jaj mami');
      result:=nil;
      fits := FALSE;
     { setup specific opcodetions for first pass }
@@ -88,7 +87,7 @@ unit ra68k;
 
     { Setup operand types }
 
-(*
+{*
     in opcode <> A_MOVEM then
     begin
 
@@ -138,7 +137,7 @@ unit ra68k;
         end;
         inc(i);
        end; { end while }
-             *)
+             *}
   fits:=TRUE;
 
   { We add the opcode to the opcode linked list }
@@ -325,7 +324,7 @@ unit ra68k;
    if assigned(result) then
      p.concat(result);
  end;
-}
+*)
 
     function TM68kInstruction.ConcatLabeledInstr(p : TAsmList):tai;
       begin

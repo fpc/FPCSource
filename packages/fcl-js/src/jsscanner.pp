@@ -19,7 +19,7 @@ unit JSScanner;
 
 interface
 
-uses SysUtils, Classes;
+uses SysUtils, Classes, jstoken;
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
@@ -29,75 +29,8 @@ resourcestring
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
   SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
   SInvalidHexadecimalNumber = 'Invalid decimal number';
-  SErrInvalidNonEqual = 'SyntaxError: != or !== expected';
-
-type
-
-   TJSToken = (tjsUnknown,
-   // Specials
-   tjsEOF,tjsWhiteSpace,tjsChar,tjsString, tjsIdentifier,tjsNumber, tjsComment,tjsREGEX, tjsRESERVED,
-   tjsANDAND, tjsANDEQ,
-   tjsBraceOpen,tjsBraceClose,tjsSQuaredBraceOpen,tjsSQuaredBraceClose,tjsCurlyBraceOpen,tjsCurlyBraceClose,
-   tjsCOMMA,tjsCOLON,  tjsDOT,tjsSEMICOLON, tjsASSIGN,tjsGT,tjsLT, tjsConditional,
-   tjsPLUS,tjsMINUS,tjsMUL,tjsDIV,tjsAnd,tjsOR, tjsInv, tjsMod, tjsXOR, tjsNot,
-   tjsEQ,
-   tjsGE,
-   tjsLE, tjsLSHIFT, tjsLSHIFTEQ,
-   tjsMINUSEQ, tjsMINUSMINUS, tjsMODEQ,tjsDIVEQ,tjsXOREq,
-   tjsNE,
-   tjsOREQ, tjsOROR,
-   tjsPLUSEQ, tjsPLUSPLUS,
-   tjsURSHIFT, tjsURSHIFTEQ,
-   tjsRSHIFT, tjsRSHIFTEQ,
-   tjsSEQ, tjsSNE, tjsMULEQ,
-   { Reserved words start here. They must be last }
-   tjsBREAK,tjsCASE, tjsCATCH, tjsCONTINUE,
-   tjsDEFAULT, tjsDELETE, tjsDO,
-   tjsELSE,
-   tjsFalse, tjsFINALLY, tjsFOR, tjsFUNCTION,
-   tjsIF, tjsIN, tjsINSTANCEOF,
-   tjsNEW,tjsNULL,
-   tjsRETURN,
-   tjsSWITCH,
-   tjsTHIS, tjsTHROW, tjsTrue, tjsTRY, tjsTYPEOF,
-   tjsVAR, tjsVOID,
-   tjsWHILE, tjsWITH
- );
-
-const
-  FirstKeyword = tjsBreak;
-  LastKeyWord = tJSWith;
-
-  TokenInfos: array[TJSToken] of string = ('unknown',
-     // Specials
-      'EOF','whitespace','Char','String', 'identifier','number','comment','regular expression', 'reserved word',
-      '&&','&=',
-      '(',')','[',']','{','}',
-      ',',':','.',';','=','>','<','?',
-      '+','-','*','/','&','|','~','%','^','!',
-      '==',
-      '>=',
-      '<=', '<<', '<<=',
-      '-=', '--', '%=', '/=','^=',
-      '!=',
-      '|=', '||',
-      '+=', '++',
-      '>>>', '>>>=',
-      '>>', '>>=',
-      '===', '!==', '*=',
-      // Identifiers last
-      'break','case','catch', 'continue',
-   'default','delete', 'do',
-   'else',
-   'false','finally', 'for', 'function',
-   'if', 'in', 'instanceof',
-   'new','null',
-   'return',
-   'switch',
-   'this', 'throw', 'true', 'try', 'typeof',
-   'var', 'void',
-   'while', 'with'
-  );
+  SErrInvalidNonEqual = 'Syntax Error: != or !== expected';
+  SErrInvalidRegularExpression = 'Syntax error in regular expression: / expected, got: %s';
 
 Type
   TLineReader = class
@@ -161,6 +94,7 @@ Type
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
     function ReadUnicodeEscape: WideChar;
+    Function ReadRegex : TJSToken;
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
@@ -169,6 +103,7 @@ Type
     constructor Create(AStream : TStream);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
+    Function FetchRegexprToken: TJSToken;
     Function FetchToken: TJSToken;
     Function IsEndOfLine : Boolean;
     Property WasEndOfLine : Boolean Read FWasEndOfLine;
@@ -236,6 +171,14 @@ procedure TJSScanner.OpenFile(const AFilename: string);
 begin
   FSourceFile := TFileLineReader.Create(AFilename);
   FSourceFilename := AFilename;
+end;
+
+Function TJSScanner.FetchRegexprToken: TJSToken;
+begin
+  if (CurToken in [tjsDiv,tjsDivEq]) then
+    Result:=ReadRegEx
+  else
+    Result:=CurToken
 end;
 
 
@@ -363,7 +306,7 @@ begin
     Result:=tjsDiv;
 end;
 
-Function TJSScanner.ReadUnicodeEscape : WideChar;
+function TJSScanner.ReadUnicodeEscape: WideChar;
 
 Var
   S : String;
@@ -385,7 +328,51 @@ begin
   Result:=WideChar(StrToInt('$'+S));
 end;
 
-Function TJSScanner.DoStringLiteral : TJSToken;
+Function TJSScanner.ReadRegex: TJSToken;
+
+Var
+  CC : Boolean; // Character class
+  Done : Boolean;
+  CL,L : Integer;
+  TokenStart : PChar;
+
+begin
+  if (CurToken<>tjsDivEq) then
+    FCurTokenString := '/'
+  else
+    FCurTokenString := '/=';
+  CL:=Length(FCurTokenString);
+  Inc(TokenStr);
+  TokenStart:=TokenStr;
+  Done:=False;
+  CC:=False;
+  While Not Done do
+    begin
+    Case TokenStr[0] of
+      #0 : Done:=True;
+      '/' : Done:=Not CC;
+      '\' : begin
+            Inc(TokenStr);
+            Done:=TokenStr=#0;
+            end;
+      '[' : CC:=True;
+      ']' : CC:=False;
+    end;
+    if not Done then
+      Inc(TokenStr);
+    end;
+  If (TokenStr[0]<>'/') then
+    Error(SErrInvalidRegularExpression, [TokenStr[0]]);
+  repeat
+    Inc(TokenStr);
+  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','$']);
+  L:=(TokenStr-TokenStart);
+  SetLength(FCurTokenString,CL+L);
+  Move(TokenStart^,FCurTokenString[CL+1],L);
+  Result:=tjsRegEx;
+end;
+
+function TJSScanner.DoStringLiteral: TJSToken;
 
 Var
   Delim : Char;
@@ -533,7 +520,7 @@ begin
     end
 end;
 
-function TJSScanner.FetchToken: TJSToken;
+Function TJSScanner.FetchToken: TJSToken;
 
 
 var
@@ -837,7 +824,7 @@ begin
         ((Result=tjsWhiteSpace) and ReturnWhiteSpace);
 end;
 
-function TJSScanner.IsEndOfLine: Boolean;
+Function TJSScanner.IsEndOfLine: Boolean;
 begin
   Result:=(TokenStr=Nil) or (TokenStr[0] in [#0,#10,#13]);
 end;

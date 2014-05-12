@@ -128,6 +128,12 @@ function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
 procedure OutermostHandler; external name '__FPC_DEFAULT_HANDLER';
 {$endif FPC_USE_WIN32_SEH}
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer; assembler;nostackframe;
+asm
+   movl  %fs:(4),%eax
+end;
+
 { include system independent routines }
 {$I system.inc}
 
@@ -642,9 +648,6 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-var
-  st : Pointer;
-
 begin
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
@@ -653,12 +656,6 @@ begin
     SysInstance:=getmodulehandle(nil);
 
   MainInstance:=SysInstance;
-
-  asm
-    movl %fs:(4),%eax
-    movl %eax,st
-  end;
-  StackTop:=st;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);

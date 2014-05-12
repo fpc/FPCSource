@@ -2521,7 +2521,7 @@ implementation
               continue;
 
             if ((exesym.ObjSymbol.refs and symref_plt)<>0) or
-              ((exesym.ObjSymbol.typ=AT_FUNCTION) and (not IsSharedLibrary)) then
+              ((exesym.ObjSymbol.typ in [AT_FUNCTION,AT_GNU_IFUNC]) and (not IsSharedLibrary)) then
               begin
                 make_dynamic_if_undefweak(exesym);
 

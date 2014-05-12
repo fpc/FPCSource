@@ -626,7 +626,7 @@ end;
 
 function TFixedFormatDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
-  TempPos, recbuf : PChar;
+  TempPos, RecBuf : PChar;
 begin
   Result := GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Result then
@@ -668,7 +668,7 @@ var
   p : Integer;
 begin
   if not (State in dsWriteModes) then
-    DatabaseError(SNotEditing, Self);
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
   GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Field.FieldNo > 0 then
   begin

@@ -278,9 +278,19 @@ java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tjavalowercaseproc
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B  -CTinitlocals tinitvar
 if %errorlevel% neq 0 exit /b %errorlevel%
-javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.test.tinitvar.tinitvar
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. org.freepascal.test.tinitvar.tinitvar
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g -B  -CTinitlocals tsmallintarr
 if %errorlevel% neq 0 exit /b %errorlevel%
-javaa -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsmallintarr
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsmallintarr
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -vh toverload
+if %errorlevel% eq 0 exit /b 1
+echo " ** Compilation failed as expected"
+ppcjvm -O2 -g -B  toverload2
+if %errorlevel% eq 0 exit /b 1
+echo " ** Compilation failed as expected"
+ppcjvm -O2 -g -B  -CTinitlocals tptrdynarr
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tptrdynarr
 if %errorlevel% neq 0 exit /b %errorlevel%

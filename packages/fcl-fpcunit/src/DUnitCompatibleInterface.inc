@@ -5,11 +5,13 @@
     class procedure Check(pValue: boolean; pMessage: string = '');
     class procedure CheckEquals(expected, actual: extended; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: string; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: unicodestring; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: extended; delta: extended; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: integer; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: boolean; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: TClass; msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: string; msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: unicodestring; msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: integer; msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected, actual: boolean; msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; msg: string = ''); overload; virtual;
@@ -60,6 +62,10 @@ class procedure TAssert.CheckEquals(expected, actual: string; msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
+class procedure TAssert.CheckEquals(expected, actual: unicodestring; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
 
 class procedure TAssert.CheckEquals(expected, actual: extended;
   delta: extended; msg: string);
@@ -85,6 +91,12 @@ end;
 class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
+    Fail(msg + ComparisonMsg(Expected, Actual, false));
+end;
+
+class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; msg: string);
+begin
+  if (Expected=Actual) then
     Fail(msg + ComparisonMsg(Expected, Actual, false));
 end;
 

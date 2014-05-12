@@ -6,7 +6,9 @@
 main=rtl
 
 [target]
-loaders=
+loaders=$(LOADERS)
+
+
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
@@ -44,6 +46,12 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 override FPCOPT+=@rtl.cfg
+LOADERS=
+ifeq ($(ARCH),mipsel)
+ifeq ($(SUBARCH),pic32mx)
+override LOADERS=startup
+endif
+endif
 
 ifdef RELEASE
 override FPCOPT+=-Ur
@@ -80,6 +88,12 @@ ifeq ($(ARCH),i386)
 CPU_UNITS=multiboot
 endif
 
+ifeq ($(ARCH),mipsel)
+ifeq ($(SUBARCH),pic32mx)
+  CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
+endif
+endif
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
@@ -101,6 +115,12 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
+#
+# Loaders
+#
+
+startup$(OEXT) : $(CPU_TARGET)/startup.s
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
 
 #
 # Base Units (System, strings, os-dependent-base-unit)

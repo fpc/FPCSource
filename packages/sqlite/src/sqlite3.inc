@@ -987,9 +987,11 @@ Type
 
 {$IFDEF LOAD_DYNAMICALLY}
 
+function InitializeSqliteANSI(const LibraryName: AnsiString = ''): Integer; //needed as TLibraryLoadFunction
 function InitializeSqlite(const LibraryName: UnicodeString = ''): Integer;
 function TryInitializeSqlite(const LibraryName: Unicodestring = ''): Integer;
 function ReleaseSqlite: Integer;
+procedure ReleaseSqlite; //needed as TLibraryUnLoadFunction
 
 function InitialiseSQLite: Integer; deprecated;
 function InitialiseSQLite(const LibraryName: UnicodeString): Integer; deprecated;
@@ -1011,7 +1013,7 @@ end;
 
 resourcestring
   SErrLoadFailed     = 'Can not load SQLite client library "%s". Check your installation.';
-  SErrAlreadyLoaded  = 'SQLIte interface already initialized from library %s.';
+  SErrAlreadyLoaded  = 'SQLite interface already initialized from library %s.';
 
 procedure LoadAddresses(LibHandle: TLibHandle);
 begin
@@ -1238,12 +1240,17 @@ begin
   result:=InitializeSqlite(SQLiteDefaultLibrary);
 end;
 
+function  InitializeSQLiteANSI(const LibraryName: AnsiString):integer;
+begin
+  result:=InitializeSQLite(LibraryName);
+end;
+
 function  InitializeSQLite(const LibraryName: UnicodeString) :integer;
 begin
   if (LibraryName<>'') and (SQLiteLoadedLibrary <> '') and (SQLiteLoadedLibrary <> LibraryName) then
     raise EInoutError.CreateFmt(SErrAlreadyLoaded,[SQLiteLoadedLibrary]);
 
-  result:= TryInitializeSQLIte(LibraryName);
+  result:= TryInitializeSQLite(LibraryName);
   if result=-1 then
     if LibraryName='' then
       raise EInOutError.CreateFmt(SErrLoadFailed,[SQLiteDefaultLibrary])
@@ -1266,6 +1273,11 @@ begin
     SQLiteLoadedLibrary := '';
     RefCount := 0;
   end;
+end;
+
+procedure ReleaseSQLite;
+begin
+  ReleaseSQLite;
 end;
 
 {$ENDIF}

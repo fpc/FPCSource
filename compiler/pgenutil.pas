@@ -631,7 +631,7 @@ uses
             srsym:=tsym(genericdef.genericparas[i]);
             if not (sp_generic_para in srsym.symoptions) then
               internalerror(2013092602);
-            generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[i]));
+            generictype:=ctypesym.create(srsym.realname,tdef(genericdeflist[i]));
             generictypelist.add(generictype);
           end;
 
@@ -728,7 +728,7 @@ uses
 
                 { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
-                srsym:=ttypesym.create(finalspecializename,generrordef);
+                srsym:=ctypesym.create(finalspecializename,generrordef);
                 specializest.insert(srsym);
 
                 { specializations are declarations as such it is the wisest to
@@ -877,7 +877,7 @@ uses
         repeat
           if token=_ID then
             begin
-              generictype:=ttypesym.create(orgpattern,cundefinedtype);
+              generictype:=ctypesym.create(orgpattern,cundefinedtype);
               include(generictype.symoptions,sp_generic_para);
               result.add(generictype);
             end;
@@ -924,7 +924,7 @@ uses
                       else
                         begin
                           srsymtable:=trecordsymtable.create(defname,0);
-                          basedef:=trecorddef.create(defname,srsymtable);
+                          basedef:=crecorddef.create(defname,srsymtable);
                           include(constraintdata.flags,gcf_record);
                           allowconstructor:=false;
                         end;
@@ -983,7 +983,7 @@ uses
                     if (basedef.typ<>objectdef) or
                         not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
                       internalerror(2012101101);
-                  basedef:=tobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef));
+                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef));
                   for i:=0 to constraintdata.interfaces.count-1 do
                     tobjectdef(basedef).implementedinterfaces.add(
                       timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
@@ -994,7 +994,7 @@ uses
                     if basedef.typ<>errordef then
                       internalerror(2013021601);
                     def:=tdef(constraintdata.interfaces[0]);
-                    basedef:=tobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def));
+                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def));
                     constraintdata.interfaces.delete(0);
                   end;
               if basedef.typ<>errordef then
@@ -1080,7 +1080,7 @@ uses
           begin
             { we need to pass nil as def here, because the constructor wants
               to set the typesym of the def which is not what we want }
-            gensym:=ttypesym.create(copy(name,1,pos('$',name)-1),nil);
+            gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil);
             gensym.typedef:=current_structdef;
             include(gensym.symoptions,sp_internal);
             { the symbol should be only visible to the generic class

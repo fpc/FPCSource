@@ -1610,9 +1610,8 @@ begin
         begin
         Inc(YEDOW);
         if (YEDOW>7) then
-          YEDOW:=1
-        else
-      end;
+          YEDOW:=1;
+        end;
       if (YEDOW<4) then // Really next year.
         begin
         Inc(AYear);
@@ -2045,7 +2044,7 @@ end;
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 var
   day,month,year: word;
-  a,y,m: integer;
+  a,y,m: longint;
 begin
   DecodeDate ( AValue, year, month, day );
   a := (14-month) div 12;
@@ -2065,7 +2064,7 @@ end;
 
 Function TryJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;
 var
-  a,b,c,d,e,m:integer;
+  a,b,c,d,e,m:longint;
   day,month,year: word;
 begin
   a := trunc(AValue + 32044.5);

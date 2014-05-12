@@ -647,7 +647,6 @@ Begin
   and to ensure that StackLength = StackTop - StackBottom }
   StackLength := CheckInitialStkLen(InitialStkLen)-256;
   StackBottom := __stkbottom;
-  StackTop := StackBottom + StackLength;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }

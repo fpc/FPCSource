@@ -143,7 +143,9 @@ interface
          cs_external_var, cs_externally_visible,
          { jvm specific }
          cs_check_var_copyout,
-         cs_zerobasedstrings
+         cs_zerobasedstrings,
+         { i8086 specific }
+         cs_force_far_calls
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -162,7 +164,9 @@ interface
          { browser switches are back }
          cs_browser,cs_local_browser,
          { target specific }
-         cs_executable_stack
+         cs_executable_stack,
+         { i8086 specific }
+         cs_huge_code
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -253,7 +257,8 @@ interface
          f_heap,f_init_final,f_rtti,f_classes,f_exceptions,f_exitcode,
          f_ansistrings,f_widestrings,f_textio,f_consoleio,f_fileio,
          f_random,f_variants,f_objects,f_dynarrays,f_threading,f_commandargs,
-         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources,
+         f_unicodestring
        );
        tfeatures = set of tfeature;
 
@@ -276,7 +281,8 @@ interface
          { compiler checks for empty procedures/methods and removes calls to them if possible }
          cs_opt_remove_emtpy_proc,
          cs_opt_constant_propagate,
-         cs_opt_dead_store_eliminate
+         cs_opt_dead_store_eliminate,
+         cs_opt_forcenostackframe
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -288,10 +294,10 @@ interface
        twpoptimizerswitches = set of twpoptimizerswitch;
 
     type
-       { Used by ARM / AVR to differentiate between specific microcontrollers }
+       { Used by ARM / AVR / MIPSEL to differentiate between specific microcontrollers }
        tcontrollerdatatype = record
           controllertypestr, controllerunitstr: string[20];
-          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
+          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
        end;
 
        ttargetswitchinfo = record
@@ -304,14 +310,14 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[16] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
-         'DEADSTORE'
+         'DEADSTORE','FORCENOSTACKFRAME'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -334,7 +340,7 @@ interface
        );
 
        { switches being applied to all CPUs at the given level }
-       genericlevel1optimizerswitches = [cs_opt_level1];
+       genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
        genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
@@ -344,11 +350,12 @@ interface
        }
        WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
 
-       featurestr : array[tfeature] of string[12] = (
+       featurestr : array[tfeature] of string[14] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
          'ANSISTRINGS','WIDESTRINGS','TEXTIO','CONSOLEIO','FILEIO',
          'RANDOM','VARIANTS','OBJECTS','DYNARRAYS','THREADING','COMMANDARGS',
-         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES'
+         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES',
+         'UNICODESTRINGS'
        );
 
     type
@@ -604,7 +611,9 @@ interface
          { subroutine has nested exit }
          pi_has_nested_exit,
          { allocates memory on stack, so stack is unbalanced on exit }
-         pi_has_stack_allocs
+         pi_has_stack_allocs,
+         { set if the stack frame of the procedure is estimated }
+         pi_estimatestacksize
        );
        tprocinfoflags=set of tprocinfoflag;
 

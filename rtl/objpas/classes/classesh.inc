@@ -854,8 +854,8 @@ type
     procedure WriteComponentRes(const ResName: string; Instance: TComponent);
     procedure WriteDescendent(Instance, Ancestor: TComponent);
     procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
-    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer);
-    procedure FixupResourceHeader(FixupInfo: Integer);
+    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Longint);
+    procedure FixupResourceHeader(FixupInfo: Longint);
     procedure ReadResHeader;
     function ReadByte : Byte;
     function ReadWord : Word;
@@ -881,7 +881,7 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
-    procedure Check(err:longint); virtual;
+    procedure Check(err:integer); virtual;
   end;
 
   { TOwnerStream }

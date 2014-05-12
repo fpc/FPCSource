@@ -11,7 +11,17 @@ Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
+ 
+  // Android has a dummy clocale unit, while it also includes unix dir.
+  ClocaleOSes   = UnixLikes -[beos];
+  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim];
 
+  IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
+  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
+//  IPCcdeclOSes  = [Darwin,iphonesim];
+
+  PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
+  SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
   ObjectsOSes   = [amiga,emx,gba,go32v2,morphos,msdos,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
@@ -22,7 +32,8 @@ Const
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
-  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes;
+  AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+
+                      SerialOSes +PrinterOSes+SocketsOSes+gpmOSes;
 
 Var
   P : TPackage;
@@ -67,6 +78,8 @@ begin
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
 
+    T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
+
     T:=P.Targets.AddUnit('matrix.pp',MatrixOSes);
     with T.Dependencies do
      begin
@@ -83,6 +96,8 @@ begin
     T:=P.Targets.AddUnit('gpm.pp',gpmOSes);
     with T.Dependencies do
       AddUnit('sockets');
+
+    T:=P.Targets.AddUnit('serial.pp',SerialOSes);
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
     with T.Dependencies do
      begin
@@ -93,6 +108,20 @@ begin
        addinclude('stdsock.inc',socklibc);
        addinclude('unixsock.inc',socksyscall);
      end; 
+
+    T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
+    with T.Dependencies do
+     begin
+       addinclude('ipcbsd.inc',IPCBSDs);
+       addinclude('ipcsys.inc',[Linux]);
+       addinclude('ipccall.inc',[Linux]);
+//       addinclude('ipccdecl.inc',IPCcdeclOSes); // not used?
+     end;
+    T:=P.Targets.AddUnit('unix/clocale.pp',CLocaleOSes);
+    with T.Dependencies do
+     begin
+       addinclude('clocale.inc',clocaleincOSes);
+     end;
   end
 end;
  

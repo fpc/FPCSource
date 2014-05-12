@@ -15,7 +15,7 @@ type
   TSettingsRec = record
     SaveOnClose : boolean;
     FileFormat : TFileFormat;
-    Extention : string;
+    Extension : string;
     MRUCount : integer;
     ShowProgress : boolean;
   end;
@@ -25,7 +25,7 @@ type
     FCBSaveOnClose : TFPgtkToggleButton;
     FEFileFormat : TFPgtkOptionMenu;
     FMenuFileFormat : TFPgtkMenu;
-    FEExtention : TFPgtkCombo;
+    FEExtension : TFPgtkCombo;
     FEMRUCount : TFPgtkSpinButton;
     FCBProgressWindow : TFPgtkToggleButton;
     procedure BuildDialog;
@@ -108,16 +108,16 @@ begin
   FCBProgressWindow := TFPgtkCheckedButton.CreateWithLabel(sProgressWindow, AGroup);
   b.PackStart (FCBProgressWindow, False, False, 10);
 
-  FEExtention := TFPgtkCombo.Create;
-  with FEExtention do
+  FEExtension := TFPgtkCombo.Create;
+  with FEExtension do
     begin
     SetValueInList (false, false);
     List.Add (TFPgtkListItem.CreateWithLabel('pp'));
     List.Add (TFPgtkListItem.CreateWithLabel('pas'));
     end;
   b := TFPgtkHBox.Create;
-  b.PackStart (TFPgtkLabel.Create (sExtention), false, false, 0);
-  b.PackStart (FEExtention, false, false, 5);
+  b.PackStart (TFPgtkLabel.Create (sExtension), false, false, 0);
+  b.PackStart (FEExtension, false, false, 5);
   box.PackStart (b, false, false, 10);
 
   FEMRUCount := TFPgtkSpinButton.Create;
@@ -143,7 +143,7 @@ begin
       begin
       SaveOnClose := FCBSaveOnClose.Active;
       FileFormat := TFileFormat(FMenuFileFormat.ActiveIndex);
-      Extention := FEExtention.Entry.Text;
+      Extension := FEExtension.Entry.Text;
       MRUCount := FEMRUCount.AsInteger;
       ShowProgress := FCBProgressWindow.Active;
       end;
@@ -156,7 +156,7 @@ begin
     begin
     FCBSaveOnClose.Active := SaveOnClose;
     FEFileFormat.SetHistory (ord(FileFormat));
-    FEExtention.Entry.Text := Extention;
+    FEExtension.Entry.Text := Extension;
     FEMRUCount.AsInteger := MRUCount;
     FCBProgressWindow.Active := ShowProgress;
     end;

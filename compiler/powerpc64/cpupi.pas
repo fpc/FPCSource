@@ -46,6 +46,7 @@ type
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
 
     procedure allocate_got_register(list: TAsmList); override;
+    procedure postprocess_code;override;
   end;
 
 implementation
@@ -56,7 +57,8 @@ uses
   aasmtai,
   tgobj,cgobj,
   symconst, symsym, paramgr, symutil, symtable,
-  verbose;
+  verbose,
+  aasmcpu;
 
 constructor tppcprocinfo.create(aparent: tprocinfo);
 
@@ -123,6 +125,13 @@ procedure tppcprocinfo.allocate_got_register(list: TAsmList);
         got := cg.getaddressregister(list);
       end;
   end;
+
+
+procedure tppcprocinfo.postprocess_code;
+  begin
+    fixup_jmps(aktproccode);
+  end;
+
 
 begin
   cprocinfo := tppcprocinfo;

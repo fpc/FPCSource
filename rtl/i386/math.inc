@@ -12,6 +12,30 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{-------------------------------------------------------------------------
+ Using functions from AMath/DAMath libraries, which are covered by the
+ following license:
+
+ (C) Copyright 2009-2013 Wolfgang Ehrhardt
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from
+ the use of this software.
+
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software in
+    a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+ 3. This notice may not be removed or altered from any source distribution.
+----------------------------------------------------------------------------}
 
 {****************************************************************************
                             FPU Control word
@@ -37,16 +61,16 @@
       end;
 
 
-    procedure SetSSECSR(w : dword);
+    procedure SetMXCSR(w : dword);
       begin
-        mxcsr:=w;
+        defaultmxcsr:=w;
         asm
           ldmxcsr w
         end;
       end;
 
 
-    function GetSSECSR : dword;
+    function GetMXCSR : dword;
       var
         _w : dword;
       begin
@@ -56,17 +80,21 @@
         result:=_w;
       end;
 
+
+    procedure SetSSECSR(w : dword);
+      begin
+        SetMXCSR(w);
+      end;
+
+    function GetSSECSR: dword;
+      begin
+        result:=GetMXCSR;
+      end;
+
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
 
-    {$define FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -118,26 +146,68 @@
     end;
 
   {$define FPC_SYSTEM_HAS_EXP}
+    { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt
+      * translated into AT&T syntax
+      + PIC support
+      * return +Inf/0 for +Inf/-Inf input, instead of NaN }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
-      var
-        cw1,cw2: word;
       asm
-        // comes from DJ GPP
         fldt        d
         fldl2e
-        fmulp       %st,%st(1)
-        fstcw       CW1
-        fstcw       CW2
-        fwait
-        andw        $0xf3ff,CW2
-        orw         $0x0400,CW2
-        fldcw       CW2
-        fld         %st(0)
+        fmul        %st(1),%st        { z = d * log2(e) }
         frndint
-        fldcw       CW1
-        fxch        %st(1)
-        fsub        %st(1),%st
+      { Calculate frac(z) using modular arithmetic to avoid precision loss.
+        Avoid PIC hacks by using immediate operands (it's not the fastest,
+        but likely the cleanest solution). }
+        pushl       $0x3fe62e42       { ln(2).hi=6.9314718036912382E-001 }
+        pushl       $0xfee00000
+        fldl        (%esp)
+        fmul        %st(1),%st
+        fsubrp      %st,%st(2)
+        pushl       $0x3dea39ef       { ln(2).lo=1.9082149292705877E-010 }
+        pushl       $0x35793c76
+        fldl        (%esp)
+        fmul        %st(1),%st
+        fsubrp      %st,%st(2)
+        fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
+        fldl2e
+        fmulp       %st,%st(1)        { frac(z) }
+
+      { The above code can result in |frac(z)|>1, particularly when rounding mode
+        is not "round to nearest". f2xm1 is undefined in this case, so a check
+        is necessary. Furthermore, frac(z) evaluates to NaN for d=+-Inf. }
+        fld         %st
+        fabs
+        fld1
+        fcompp
+        fstsw       %ax
+        sahf
+        jp          .L3               { NaN }
+        jae         .L1               { frac(z) <= 1 }
+        fld         %st(1)
+        fabs
+        pushl       $0x46c00000       { single(24576.0) }
+        fcomps      (%esp)
+        fstsw       %ax
+        sahf
+        jb          .L0               { int(z) < 24576 }
+.L3:
+        fstp        %st               { zero out frac(z), hard way because }
+        fldz                          { "fsub %st,%st" does not work for NaN }
+        jmp         .L1
+.L0:
+        { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
+        pushl       $0x3f000000       { single(0.5) }
+        fmuls       (%esp)
         f2xm1
+        fld         %st
+        pushl       $0x40000000       { single(2.0) }
+        fadds       (%esp)
+        fmulp       %st,%st(1)
+        jmp         .L2
+.L1:
+        f2xm1
+.L2:
         fld1
         faddp       %st,%st(1)
         fscale
@@ -214,30 +284,4 @@
       end;
     
 
-    {$define FPC_SYSTEM_HAS_POWER}
-   function power(bas,expo : ValReal) : ValReal;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0.0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-        { bas < 0 is not allowed when doing roots }
-         if (bas<0) and (frac(expo) <> 0) then
-          handleerror(207)
-         else
-           begin
-             power:=exp(ln(abs(bas))*expo);
-             if (bas < 0) and
-                odd(trunc(expo)) then
-               begin
-                 power := -power;
-               end;
-           end;
-     end;
 

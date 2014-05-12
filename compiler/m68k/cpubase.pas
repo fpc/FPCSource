@@ -111,12 +111,14 @@ unit cpubase;
     const
       { Available Superregisters }
       {$i r68ksup.inc}
+      RS_SP = RS_A7;
 
       { ? whatever... }
       R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
       {$i r68kcon.inc}
+      NR_SP = NR_A7;
 
       { Integer Super registers first and last }
       first_int_imreg = RS_D7+1;

@@ -22,25 +22,33 @@ unit objpas;
   interface
 
     { first, in object pascal, the integer type must be redefined }
+{$ifdef CPU16}
+    const
+       MaxInt  = MaxSmallint;
+    type
+       Integer  = smallint;
+       PInteger = ^Integer;
+{$else CPU16}
     const
        MaxInt  = MaxLongint;
     type
        Integer  = longint;
        PInteger = ^Integer;
+{$endif CPU16}
 
        { Ansistring are the default }
        PString = PAnsiString;
 
        { array types }
 {$ifdef CPU16}
-       IntegerArray  = array[0..$eff] of Integer;
+       IntegerArray  = array[0..(32768 div SizeOf(Integer))-2] of Integer;
 {$else CPU16}
        IntegerArray  = array[0..$effffff] of Integer;
 {$endif CPU16}
        TIntegerArray = IntegerArray;
        PIntegerArray = ^IntegerArray;
 {$ifdef CPU16}
-       PointerArray  = array [0..16*1024-2] of Pointer;
+       PointerArray  = array [0..(32768 div SizeOf(Pointer))-2] of Pointer;
 {$else CPU16}
        PointerArray  = array [0..512*1024*1024-2] of Pointer;
 {$endif CPU16}
@@ -295,7 +303,7 @@ Type
    end;
 
    TResourceStringTableList = Packed Record
-     Count : nativeint;
+     Count : sizeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
        TableStart,
        TableEnd   : PResourceStringRecord;
@@ -311,7 +319,7 @@ Type
    end;
 
    TResStrInitTable = packed record
-     Count: {$ifdef VER2_6}longint{$else}nativeint{$endif};
+     Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
 
@@ -320,7 +328,7 @@ var
 
 procedure UpdateResourceStringRefs;
 var
-  i: nativeint;
+  i: integer;
   ptable: PResStrInitEntry;
 begin
   for i:=1 to ResStrInitTable.Count do
@@ -341,7 +349,7 @@ Var
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
   s      : AnsiString;
 begin
   With ResourceStringTable do
@@ -369,7 +377,7 @@ end;
 Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
   s,
   UpUnitName : AnsiString;
 begin
@@ -403,7 +411,7 @@ end;
 Procedure ResetResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
 begin
   With ResourceStringTable do
     begin
@@ -425,7 +433,7 @@ end;
 Procedure FinalizeResourceTables;
 Var
   ResStr : PResourceStringRecord;
-  i      : nativeint;
+  i      : integer;
 begin
   With ResourceStringTable do
     begin

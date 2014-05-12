@@ -21,7 +21,7 @@
 procedure DosDir(func:byte;s: rawbytestring);
 var
   regs   : Registers;
-  len    : Longint;
+  len    : Integer;
 begin
   DoDirSeparators(s);
   { True DOS does not like backslashes at end
@@ -60,7 +60,7 @@ end;
 Procedure do_ChDir(const s: rawbytestring);
 var
   regs : Registers;
-  len  : Longint;
+  len  : Integer;
 begin
   len:=Length(s);
 { First handle Drive changes }
@@ -88,7 +88,7 @@ end;
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var
   temp : array[0..260] of char;
-  i    : longint;
+  i    : integer;
   regs : Registers;
 begin
   regs.DX:=drivenr;

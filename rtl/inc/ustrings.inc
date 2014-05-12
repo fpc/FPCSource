@@ -2324,9 +2324,9 @@ procedure initunicodestringmanager;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextUnicodeString;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}

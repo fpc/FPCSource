@@ -1835,16 +1835,16 @@ end;
         regs.ax := $4F04;      { save the state buffer                   }
         regs.cx := $0F;        { Save DAC / Data areas / Hardware states }
         regs.dx := $01;        { save state                              }
-        regs.es := DSeg;
-        regs.bx := Word(SavePtr);
+        regs.es := Seg(SavePtr^);
+        regs.bx := Ofs(SavePtr^);
         Intr($10,regs);
         { restore state, according to Ralph Brown Interrupt list }
         { some BIOS corrupt the hardware after a save...         }
         regs.ax := $4F04;      { restore the state buffer                }
         regs.cx := $0F;        { rest DAC / Data areas / Hardware states }
         regs.dx := $02;
-        regs.es := DSeg;
-        regs.bx := Word(SavePtr);
+        regs.es := Seg(SavePtr^);
+        regs.bx := Ofs(SavePtr^);
         Intr($10,regs);
       end;
   end;
@@ -1863,8 +1863,8 @@ end;
          regs.ax := $4F04;      { restore the state buffer                }
          regs.cx := $0F;        { rest DAC / Data areas / Hardware states }
          regs.dx := $02;        { restore state                           }
-         regs.es := DSeg;
-         regs.bx := Word(SavePtr);
+         regs.es := Seg(SavePtr^);
+         regs.bx := Ofs(SavePtr^);
          Intr($10,regs);
 
          SavePtrCopy := SavePtr;

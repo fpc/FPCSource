@@ -51,6 +51,9 @@ implementation
         ,t_android
       {$endif MIPSEL}
     {$endif}
+    {$ifndef NOTARGETEMBEDDED}
+      ,t_embed
+    {$endif}
 
 {**************************************
              Assemblers

@@ -22,83 +22,25 @@ var
   { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
   sse_check : boolean;
 
-{$asmmode intel}
+{$asmmode ATT}
 
-function cpuid_support : boolean;assembler;
+function cpuid_support : boolean;assembler;nostackframe;
   {
     Check if the ID-flag can be changed, if changed then CpuID is supported.
     Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
   }
   asm
-    push   ebx
-    pushfd
-    pushfd
-    pop     eax
-    mov     ebx,eax
-    xor     eax,200000h
-    push    eax
-    popfd
-    pushfd
-    pop     eax
-    popfd
-    and     eax,200000h
-    and     ebx,200000h
-    cmp     eax,ebx
-    setnz   al
-    pop     ebx
-  end;
-
-{$asmmode ATT}
-
-procedure check_sse_support;
-  var
-    _ecx,_edx : longint;
-  begin
-    if cpuid_support then
-     begin
-        asm
-          pushl %ebx
-          movl $1,%eax
-          cpuid
-          movl %edx,_edx
-          movl %ecx,_ecx
-          popl %ebx
-        end;
-        has_sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
-        has_sse2_support:=((_edx and $4000000)<>0) and os_supports_sse;
-        has_sse3_support:=((_ecx and $200)<>0) and os_supports_sse;
-     end
-    else
-      begin
-        { a cpu with without cpuid instruction supports never sse }
-        has_sse_support:=false;
-        has_sse2_support:=false;
-        has_sse3_support:=false;
-      end;
-  end;
-
-
-{ returns true, if the processor supports the mmx instructions }
-function mmx_support : boolean;
-
-  var
-     _edx : longint;
-
-  begin
-     if cpuid_support then
-       begin
-          asm
-             pushl %ebx
-             movl $1,%eax
-             cpuid
-             movl %edx,_edx
-             popl %ebx
-          end;
-          mmx_support:=(_edx and $800000)<>0;
-       end
-     else
-       { a cpu with without cpuid instruction supports never mmx }
-       mmx_support:=false;
+    pushfl
+    movl    (%esp),%eax
+    xorl    $0x200000,%eax
+    pushl   %eax
+    popfl
+    pushfl
+    popl    %eax
+    xorl    (%esp),%eax
+    popfl
+    testl   $0x200000,%eax
+    setnz   %al
   end;
 
 {$ifndef FPC_PIC}
@@ -116,10 +58,6 @@ procedure fpc_cpuinit;
     has_mmx_support:=mmx_support;
     setup_fastmove;
     }
-    os_supports_sse:=false;
-    { don't let libraries influence the FPU cw set by the host program }
-    if IsLibrary then
-      Default8087CW:=Get8087CW;
   end;
 
 {$ifndef darwin}
@@ -1389,10 +1327,6 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
-  { use Default8087CW instead
-  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
-  }
-
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
@@ -1400,31 +1334,10 @@ const
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
 
-  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
-
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
-    localfpucw: word;
   begin
-    localfpucw:=Default8087CW;
-    asm
-      fninit
-      fldcw   localfpucw
-      fwait
-    end;
-    if has_sse_support then
-      begin
-        localmxcsr:=mxcsr;
-        asm
-          { setup sse exceptions }
-          ldmxcsr localmxcsr
-        end;
-      end;
-    softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   end;
 
 
@@ -1443,48 +1356,58 @@ Procedure SysResetFPU;
     end;
     if has_sse_support then
       begin
-        localmxcsr:=mxcsr;
+        localmxcsr:=DefaultMXCSR;
         asm
           { setup sse exceptions }
           ldmxcsr localmxcsr
         end;
       end;
-    softfloat_exception_flags:=0;
   end;
 
 
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
+  var
+    _ecx,_edx : longint;
   begin
-    os_supports_sse:=true;
-    check_sse_support;
-    os_supports_sse:=has_sse_support;
-    if os_supports_sse then
+    if cpuid_support then
       begin
-        sse_check:=true;
         asm
-          { force an sse exception if no sse is supported, the exception handler sets
-            os_supports_sse to false then }
-          { don't change this instruction, the code above depends on its size }
-          movaps %xmm7, %xmm6
-        end;
-        sse_check:=false;
+            movl $1,%eax
+            cpuid
+            movl %edx,_edx
+            movl %ecx,_ecx
+        end ['ebx'];
+        has_mmx_support:=(_edx and $800000)<>0;
+        if ((_edx and $2000000)<>0) then
+          begin
+            os_supports_sse:=true;
+            sse_check:=true;
+            asm
+              { force an sse exception if no sse is supported, the exception handler sets
+                os_supports_sse to false then }
+              { don't change this instruction, the code above depends on its size }
+              movaps %xmm7, %xmm6
+            end;
+            sse_check:=false;
+            has_sse_support:=os_supports_sse;
+          end;
+        if has_sse_support then
+          begin
+            has_sse2_support:=((_edx and $4000000)<>0);
+            has_sse3_support:=((_ecx and $200)<>0);
+          end;
       end;
-    has_sse_support:=os_supports_sse;
-    if not(has_sse_support) then
-      begin
-        has_sse2_support:=false;
-        has_sse3_support:=false;
-      end;
-    { don't let libraries influence the FPU cw set by the host program }
-    if has_sse_support and
-       IsLibrary then
-      mxcsr:=GetSSECSR;
 
-    has_mmx_support:=mmx_support;
+    { don't let libraries influence the FPU cw set by the host program }
+    if IsLibrary then
+      begin
+        Default8087CW:=Get8087CW;
+        if has_sse_support then
+          DefaultMXCSR:=GetMXCSR;
+      end;
+
     SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
 {$ifdef USE_FASTMOVE}
     setup_fastmove;
 {$endif}
@@ -1497,8 +1420,6 @@ procedure fpc_cpucodeinit;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
-
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
         cmpl    $0,(%eax)
@@ -1531,7 +1452,7 @@ asm
         je      .Lj3596
 .Lj3620:
         movl    %esi,%eax
-        call    FPC_FREEMEM_X
+        call    FPC_FREEMEM
 .Lj3596:
         popl    %esi
 .Lquit:

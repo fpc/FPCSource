@@ -37,6 +37,9 @@ implementation
       after the generic one (FK)
     }
     ncpuadd,ncpucall,ncpumat,ncpuinln,
-    ncpuld,ncpucnv,ncpuset;
+    ncpuld,ncpucnv,ncpuset,
+    { symtable }
+    symcpu
+    ;
 
 end.

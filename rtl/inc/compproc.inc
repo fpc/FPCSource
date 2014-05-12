@@ -602,7 +602,6 @@ function fpc_exp_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inl
 function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
 function fpc_int_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_ln_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-function fpc_pi_real : ValReal;compilerproc;
 function fpc_sin_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
@@ -643,8 +642,10 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+{$ifdef VER2_6}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 function fpc_GetExceptionAddr : CodePointer; compilerproc;
+{$endif VER2_6}
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
 function fpc_safecallcheck(res : hresult) : hresult; compilerproc; {$ifdef CPU86} register; {$endif}
 procedure fpc_doneexception; compilerproc;

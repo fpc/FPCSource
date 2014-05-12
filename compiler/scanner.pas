@@ -849,6 +849,10 @@ type
 
   class constructor texprvalue.createdefs;
     begin
+      { do not use corddef etc here: this code is executed before those
+        variables are initialised. Since these types are only used for
+        compile-time evaluation of conditional expressions, it doesn't matter
+        that we use the base types instead of the cpu-specific ones. }
       sintdef:=torddef.create(s64bit,low(int64),high(int64));
       uintdef:=torddef.create(u64bit,low(qword),high(qword));
       booldef:=torddef.create(pasbool8,0,1);
@@ -1275,6 +1279,9 @@ type
               if b in pconstset(value.valueptr)^ then
                 result:=result+tostr(b)+',';
           end;
+        { error values }
+        constnone:
+          result:='';
         else
           internalerror(2013112801);
       end;
@@ -2932,9 +2939,9 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or DEFINED(MIPSEL)}
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
              Comment(V_Error,'Wrong size of Settings read-in');
@@ -3001,9 +3008,9 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
             tokenwriteenum(controllertype,sizeof(tcontrollertype));
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
            endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
            recordtokenbuf.seek(sizepos);

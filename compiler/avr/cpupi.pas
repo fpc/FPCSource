@@ -37,6 +37,7 @@ unit cpupi;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
+          procedure postprocess_code;override;
        end;
 
 
@@ -49,7 +50,8 @@ unit cpupi;
        tgobj,
        symconst,symsym,paramgr,
        cgbase,
-       cgobj;
+       cgobj,
+       aasmcpu;
 
     procedure tavrprocinfo.set_first_temp_offset;
       begin
@@ -66,6 +68,13 @@ unit cpupi;
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
       end;
 
+
+    procedure tavrprocinfo.postprocess_code;
+      begin
+        { because of the limited branch distance of cond. branches, they must be replaced
+          sometimes by normal jmps and an inverse branch }
+        finalizeavrcode(aktproccode);
+      end;
 
 begin
    cprocinfo:=tavrprocinfo;

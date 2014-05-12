@@ -178,6 +178,8 @@ unit procinfo;
           { Update the resuired alignment for the current stack frame based
             on the current value and the new required alignment }
           procedure updatestackalignment(alignment: longint);
+          { Specific actions after the code has been generated }
+          procedure postprocess_code; virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -332,5 +334,10 @@ implementation
           be initialized }
       end;
 
+
+    procedure tprocinfo.postprocess_code;
+      begin
+        { no action by default }
+      end;
 
 end.

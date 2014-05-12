@@ -193,6 +193,7 @@ procedure add_fpcm(const ADirectory: string);
 Var
   P : TPackage;
   T : TTarget;
+  Data2IncBin : String;
 
 begin
   With Installer do
@@ -221,6 +222,8 @@ begin
     writeln('Process-unit not available. Svn-revision in fpmake executable might be out-of-date.');
 {$endif HAS_UNIT_PROCESS}
 
+    Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpcmake.ini fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
     T:=P.Targets.AddUnit('fpcmmain.pp');
     T.install:=false;
     T.ResourceStrings:=true;
@@ -228,7 +231,7 @@ begin
     P.Targets.AddUnit('fpcmwr.pp').install:=false;
     P.Targets.AddUnit('fpcmpkg.pp').install:=false;
 
-    P.Sources.AddSrc('fpcmake.ini');
+    // P.Sources.AddSrc('fpcmake.ini');
     P.Sources.AddSrc('fpcmake.inc');
     end;
 end;

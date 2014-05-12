@@ -97,7 +97,7 @@ implementation
     cutils,cclasses,constexp,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,symdef,symcreat,
+    symtable,symconst,symsym,symdef,symcpu,symcreat,
     defutil,paramgr;
 
 {******************************************************************
@@ -230,7 +230,7 @@ implementation
             end;
           enumdef:
             begin
-              result:=jvmaddencodedtype(tenumdef(def).getbasedef.classdef,false,encodedstr,forcesignature,founderror);
+              result:=jvmaddencodedtype(tcpuenumdef(tenumdef(def).getbasedef).classdef,false,encodedstr,forcesignature,founderror);
             end;
           orddef :
             begin
@@ -352,7 +352,7 @@ implementation
             end;
           procvardef :
             begin
-              result:=jvmaddencodedtype(tprocvardef(def).classdef,false,encodedstr,forcesignature,founderror);
+              result:=jvmaddencodedtype(tcpuprocvardef(def).classdef,false,encodedstr,forcesignature,founderror);
             end;
           objectdef :
             case tobjectdef(def).objecttype of
@@ -683,7 +683,7 @@ implementation
                 end;
               enumdef:
                 begin
-                  result:=tenumdef(def).getbasedef.classdef;
+                  result:=tcpuenumdef(tenumdef(def).getbasedef).classdef;
                 end;
               pointerdef :
                 begin
@@ -724,7 +724,7 @@ implementation
                 end;
               procvardef :
                 begin
-                  result:=tprocvardef(def).classdef;
+                  result:=tcpuprocvardef(def).classdef;
                 end;
               objectdef :
                 case tobjectdef(def).objecttype of

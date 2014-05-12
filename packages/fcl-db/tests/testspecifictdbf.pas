@@ -108,12 +108,12 @@ end;
 
 procedure TTestSpecificTDBF.SetUp;
 begin
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestSpecificTDBF.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
 end;
 
 procedure TTestSpecificTDBF.TestTableLevel;

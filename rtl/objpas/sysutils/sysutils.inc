@@ -194,7 +194,7 @@ end;
       end;
 
 
-    constructor Exception.CreateHelp(const Msg: string; AHelpContext: Integer);
+    constructor Exception.CreateHelp(const Msg: string; AHelpContext: Longint);
 
       begin
          inherited create;
@@ -204,7 +204,7 @@ end;
 
 
     constructor Exception.CreateFmtHelp(const Msg: string; const Args: array of const;
-      AHelpContext: Integer);
+      AHelpContext: Longint);
 
     begin
        inherited create;
@@ -213,7 +213,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Integer);
+    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Longint);
 
     begin
        inherited create;
@@ -223,7 +223,7 @@ end;
 
 
     constructor Exception.CreateResFmtHelp(ResString: PString; const Args: array of const;
-      AHelpContext: Integer);
+      AHelpContext: Longint);
 
     begin
        inherited create;
@@ -291,10 +291,7 @@ Var
   hstdout : ^text;
 begin
   hstdout:=@stdout;
-{$if defined(CPUI8086) and (defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE))}
-{$else}
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
-{$endif}
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
   else
@@ -698,7 +695,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        ssecw:=GetSSECSR;
+        ssecw:=GetMXCSR;
 {$endif}
 {$if defined(windows) or defined(win32)}
       Result:=LoadLibraryA(PChar(Filename));
@@ -711,7 +708,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        SetSSECSR(ssecw);
+        SetMXCSR(ssecw);
 {$endif}
 {$if defined(win64) or defined(win32)}
       SetErrorMode(mode);

@@ -57,7 +57,7 @@ unit scandir;
       scanner,switches,
       fmodule,
       defutil,
-      dirparse,
+      dirparse,link,
       symconst,symtable,symbase,symtype,symsym,
       rabase;
 
@@ -110,13 +110,11 @@ unit scandir;
           recordpendinglocalswitch(sw,state);
       end;
 
-    procedure do_localswitchdefault(sw:tlocalswitch);
-      var
-        state : char;
+    function do_localswitchdefault(sw:tlocalswitch): char;
       begin
-        state:=current_scanner.readstatedefault;
-        if (sw<>cs_localnone) and (state in ['-','+','*']) then
-          recordpendinglocalswitch(sw,state);
+        result:=current_scanner.readstatedefault;
+        if (sw<>cs_localnone) and (result in ['-','+','*']) then
+          recordpendinglocalswitch(sw,result);
       end;
 
 
@@ -302,8 +300,13 @@ unit scandir;
 
 
     procedure dir_checkpointer;
+      var
+        switch: char;
       begin
-        do_localswitchdefault(cs_checkpointer);
+        switch:=do_localswitchdefault(cs_checkpointer);
+        if (switch='+') and
+           not(target_info.system in systems_support_checkpointer) then
+          Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
       end;
 
 
@@ -382,6 +385,20 @@ unit scandir;
     procedure dir_extendedsyntax;
       begin
         do_delphiswitch('X');
+      end;
+
+    procedure dir_forcefarcalls;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_localswitch(cs_force_far_calls);
       end;
 
     procedure dir_fatal;
@@ -1156,6 +1173,20 @@ unit scandir;
           Message(option_dwarf_smart_linking);
           Exclude(current_settings.moduleswitches,cs_create_smart);
         end;
+        { Also create a smartlinked version, on an assembler that
+          does not support smartlink sections like nasm?
+          This is not compatible with using internal linker. }
+       if ((cs_link_smart in current_settings.globalswitches) or
+           (cs_create_smart in current_settings.moduleswitches)) and
+          (af_needar in target_asm.flags) and
+          not (af_smartlink_sections in target_asm.flags) and
+          not (cs_link_extern in current_settings.globalswitches) then
+         begin
+           DoneLinker;
+           Message(option_smart_link_requires_external_linker);
+           include(current_settings.globalswitches,cs_link_extern);
+           InitLinker;
+         end
       end;
 
     procedure dir_stackframes;
@@ -1485,6 +1516,20 @@ unit scandir;
       begin
       end;
 
+    procedure dir_hugecode;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_moduleswitch(cs_huge_code);
+      end;
+
     procedure dir_weakpackageunit;
       begin
       end;
@@ -1579,6 +1624,7 @@ unit scandir;
         AddDirective('ERRORC',directive_mac, @dir_error);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
+        AddDirective('F',directive_all, @dir_forcefarcalls);
         AddDirective('FATAL',directive_all, @dir_fatal);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
         AddDirective('FRAMEWORKPATH',directive_all, @dir_frameworkpath);
@@ -1586,6 +1632,7 @@ unit scandir;
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
+        AddDirective('HUGECODE',directive_all, @dir_hugecode);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);

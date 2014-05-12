@@ -152,6 +152,12 @@ begin
 {$include fcl-sdo/fpmake.pp}
 end;
 
+procedure add_fcl_sound(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-sound/fpmake.pp}
+end;
+
 procedure add_fcl_stl(const ADirectory: string);
 begin
   with Installer do
@@ -571,6 +577,8 @@ end;
 {$include rtl-extra/fpmake.pp}
 
 {$include rtl-objpas/fpmake.pp}
+
+{$include rtl-unicode/fpmake.pp}
 
 procedure add_sdl(const ADirectory: string);
 begin

@@ -38,11 +38,21 @@ unit hlcgobj;
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symsym,symdef,
-       node
+       node,nutils
        ;
 
     type
        tsubsetloadopt = (SL_REG,SL_REGNOSRCMASK,SL_SETZERO,SL_SETMAX);
+
+       preplaceregrec = ^treplaceregrec;
+       treplaceregrec = record
+         old, new: tregister;
+         oldhi, newhi: tregister;
+         ressym: tsym;
+         { moved sym }
+         sym : tabstractnormalvarsym;
+       end;
+
        {# @abstract(Abstract high level code generator)
           This class implements an abstract instruction generator. All
           methods of this class are generic and are mapped to low level code
@@ -97,6 +107,21 @@ unit hlcgobj;
              by the compiler for any purpose other than parameter passing/function
              result loading, this is the register type used }
           function def2regtyp(def: tdef): tregistertype; virtual;
+
+          {# Returns a reference with its base address set from a pointer that
+             has been loaded in a register.
+
+             A generic version is provided. This routine should be overridden
+             on platforms which support pointers with different sizes (for
+             example i8086 near and far pointers) or require some other sort of
+             special consideration when converting a pointer in a register to a
+             reference.
+
+             @param(ref where the result is returned)
+             @param(regsize the type of the pointer, contained in the reg parameter)
+             @param(reg register containing the value of a pointer)
+          }
+          procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
@@ -478,6 +503,13 @@ unit hlcgobj;
           procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);virtual;
 
           procedure maketojumpbool(list:TAsmList; p : tnode);virtual;
+          { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding
+            loadn and change its location to a new register (= SSA). In case reload
+            is true, transfer the old to the new register                            }
+          procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); virtual;
+         private
+          function do_replace_node_regs(var n: tnode; para: pointer): foreachnoderesult; virtual;
+         public
 
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
@@ -562,8 +594,11 @@ implementation
        fmodule,export,
        verbose,defutil,paramgr,
        symtable,
-       ncon,nld,ncgrtti,pass_1,pass_2,
+       nbas,ncon,nld,ncgrtti,pass_1,pass_2,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
+{$ifdef x86}
+       cgx86,
+{$endif x86}
        ncgutil,ngenutil;
 
 
@@ -720,6 +755,14 @@ implementation
         end;
     end;
 
+  procedure thlcgobj.reference_reset_base(var ref: treference; regsize: tdef;
+    reg: tregister; offset, alignment: longint);
+    begin
+      reference_reset(ref,alignment);
+      ref.base:=reg;
+      ref.offset:=offset;
+    end;
+
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
     begin
       cg.a_label(list,l);
@@ -758,7 +801,7 @@ implementation
            a_load_reg_reg(list,size,cgpara.location^.def,r,cgpara.location^.register);
          LOC_REFERENCE,LOC_CREFERENCE:
            begin
-              reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_load_reg_ref(list,size,cgpara.location^.def,r,ref);
            end;
          LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -788,7 +831,7 @@ implementation
             a_load_const_reg(list,cgpara.location^.def,a,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-               reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+               reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                a_load_const_ref(list,cgpara.location^.def,a,ref);
             end
           else
@@ -840,7 +883,7 @@ implementation
                  { we're at the end of the data, and it can be loaded into
                    the current location's register with a single regular
                    load }
-                 else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                 else if sizeleft in [1,2,4,8] then
                    begin
                      { don't use cgsize_orddef(int_cgsize(sizeleft)) as fromdef,
                        because that may be larger than location^.register in
@@ -919,7 +962,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,voidstackpointertype,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -944,7 +987,7 @@ implementation
                  end;
               end
             else
-              internalerror(2010053111);
+              internalerror(2014032101);
           end;
           inc(tmpref.offset,tcgsize2size[location^.size]);
           dec(sizeleft,tcgsize2size[location^.size]);
@@ -2358,7 +2401,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               cgpara.check_simple_location;
-              reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(ref,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_loadfpu_reg_ref(list,fromsize,cgpara.def,r,ref);
             end;
           LOC_REGISTER,LOC_CREGISTER:
@@ -2389,7 +2432,7 @@ implementation
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
             cgpara.check_simple_location;
-            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
             { concatcopy should choose the best way to copy the data }
             g_concatcopy(list,fromsize,ref,href);
           end;
@@ -2469,7 +2512,7 @@ implementation
           a_loadmm_reg_reg(list,fromsize,cgpara.def,reg,cgpara.location^.register,shuffle);
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
-            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+            reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
             a_loadmm_reg_ref(list,fromsize,cgpara.def,reg,href,shuffle);
           end;
         LOC_REGISTER,LOC_CREGISTER:
@@ -2963,7 +3006,7 @@ implementation
       cgpara1,cgpara2,cgpara3 : TCGPara;
       pd : tprocdef;
     begin
-      pd:=search_system_proc('fpc_shortstr_assign');
+      pd:=search_system_proc('fpc_shortstr_to_shortstr');
       cgpara1.init;
       cgpara2.init;
       cgpara3.init;
@@ -2972,15 +3015,15 @@ implementation
       paramanager.getintparaloc(pd,3,cgpara3);
       if pd.is_pushleftright then
         begin
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
-          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
-          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
         end
       else
         begin
-          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara3);
-          a_loadaddr_ref_cgpara(list,strdef,source,cgpara2);
-          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara1);
+          a_loadaddr_ref_cgpara(list,strdef,source,cgpara3);
+          a_load_const_cgpara(list,s32inttype,strdef.len,cgpara2);
+          a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
         end;
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
@@ -3798,14 +3841,14 @@ implementation
             begin
               if not loadref then
                 internalerror(200410231);
-              reference_reset_base(ref,l.register,0,alignment);
+              reference_reset_base(ref,voidpointertype,l.register,0,alignment);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               if loadref then
                 begin
-                  reference_reset_base(ref,getaddressregister(list,voidpointertype),0,alignment);
+                  reference_reset_base(ref,voidpointertype,getaddressregister(list,voidpointertype),0,alignment);
                   { it's a pointer to def }
                   a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
                 end
@@ -3873,6 +3916,225 @@ implementation
        else
          internalerror(2011010419);
        current_filepos:=storepos;
+    end;
+
+
+  procedure thlcgobj.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
+    var
+      rr: treplaceregrec;
+      varloc : tai_varloc;
+    begin
+      if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
+        ([fc_inflowcontrol,fc_gotolabel,fc_lefthandled] * flowcontrol <> []) then
+        exit;
+      rr.old := n.location.register;
+      rr.ressym := nil;
+      rr.sym := nil;
+      rr.oldhi := NR_NO;
+      case n.location.loc of
+        LOC_CREGISTER:
+          begin
+{$ifdef cpu64bitalu}
+            if (n.location.size in [OS_128,OS_S128]) then
+              begin
+                rr.oldhi := n.location.register128.reghi;
+                rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              end
+            else
+{$else cpu64bitalu}
+            if (n.location.size in [OS_64,OS_S64]) then
+              begin
+                rr.oldhi := n.location.register64.reghi;
+                rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+              end
+            else
+{$endif cpu64bitalu}
+              rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
+          end;
+        LOC_CFPUREGISTER:
+          rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);
+{$ifdef SUPPORT_MMX}
+        LOC_CMMXREGISTER:
+          rr.new := tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+{$endif SUPPORT_MMX}
+        LOC_CMMREGISTER:
+          rr.new := cg.getmmregister(current_asmdata.CurrAsmList,n.location.size);
+        else
+          exit;
+      end;
+
+      { self is implicitly returned from constructors, even if there are no
+        references to it; additionally, funcretsym is not set for constructor
+        procdefs }
+      if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+        rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
+      else if not is_void(current_procinfo.procdef.returndef) and
+         assigned(current_procinfo.procdef.funcretsym) and
+         (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
+        rr.ressym:=current_procinfo.procdef.funcretsym;
+
+      if not foreachnode(n,@do_replace_node_regs,@rr) then
+        exit;
+
+      if reload then
+        case n.location.loc of
+          LOC_CREGISTER:
+            begin
+{$ifdef cpu64bitalu}
+              if (n.location.size in [OS_128,OS_S128]) then
+                cg128.a_load128_reg_reg(list,n.location.register128,joinreg128(rr.new,rr.newhi))
+              else
+{$else cpu64bitalu}
+              if (n.location.size in [OS_64,OS_S64]) then
+                cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
+              else
+{$endif cpu64bitalu}
+                cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
+            end;
+          LOC_CFPUREGISTER:
+            cg.a_loadfpu_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
+{$ifdef SUPPORT_MMX}
+          LOC_CMMXREGISTER:
+            cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);
+{$endif SUPPORT_MMX}
+          LOC_CMMREGISTER:
+            cg.a_loadmm_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new,nil);
+          else
+            internalerror(2006090920);
+        end;
+
+      { now that we've change the loadn/temp, also change the node result location }
+{$ifdef cpu64bitalu}
+      if (n.location.size in [OS_128,OS_S128]) then
+        begin
+          n.location.register128.reglo := rr.new;
+          n.location.register128.reghi := rr.newhi;
+          if assigned(rr.sym) and
+             ((rr.sym.currentregloc.register<>rr.new) or
+              (rr.sym.currentregloc.registerhi<>rr.newhi)) then
+            begin
+              varloc:=tai_varloc.create128(rr.sym,rr.new,rr.newhi);
+              varloc.oldlocation:=rr.sym.currentregloc.register;
+              varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
+              rr.sym.currentregloc.register:=rr.new;
+              rr.sym.currentregloc.registerHI:=rr.newhi;
+              list.concat(varloc);
+            end;
+        end
+      else
+{$else cpu64bitalu}
+      if (n.location.size in [OS_64,OS_S64]) then
+        begin
+          n.location.register64.reglo := rr.new;
+          n.location.register64.reghi := rr.newhi;
+          if assigned(rr.sym) and
+             ((rr.sym.currentregloc.register<>rr.new) or
+              (rr.sym.currentregloc.registerhi<>rr.newhi)) then
+            begin
+              varloc:=tai_varloc.create64(rr.sym,rr.new,rr.newhi);
+              varloc.oldlocation:=rr.sym.currentregloc.register;
+              varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
+              rr.sym.currentregloc.register:=rr.new;
+              rr.sym.currentregloc.registerHI:=rr.newhi;
+              list.concat(varloc);
+            end;
+        end
+      else
+{$endif cpu64bitalu}
+        begin
+          n.location.register := rr.new;
+          if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
+            begin
+              varloc:=tai_varloc.create(rr.sym,rr.new);
+              varloc.oldlocation:=rr.sym.currentregloc.register;
+              rr.sym.currentregloc.register:=rr.new;
+              list.concat(varloc);
+            end;
+        end;
+    end;
+
+
+  function thlcgobj.do_replace_node_regs(var n: tnode; para: pointer): foreachnoderesult;
+    var
+      rr: preplaceregrec absolute para;
+    begin
+      result := fen_false;
+      if (nf_is_funcret in n.flags) and (fc_exit in flowcontrol) then
+        exit;
+      case n.nodetype of
+        loadn:
+          begin
+            if (tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
+               (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
+               not assigned(tloadnode(n).left) and
+               ((tloadnode(n).symtableentry <> rr^.ressym) or
+                not(fc_exit in flowcontrol)
+               ) and
+               (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+               (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
+              begin
+{$ifdef cpu64bitalu}
+                { it's possible a 128 bit location was shifted and/xor typecasted }
+                { in a 64 bit value, so only 1 register was left in the location }
+                if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_128,OS_S128]) then
+                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi = rr^.oldhi) then
+                    tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi := rr^.newhi
+                  else
+                    exit;
+{$else cpu64bitalu}
+                { it's possible a 64 bit location was shifted and/xor typecasted }
+                { in a 32 bit value, so only 1 register was left in the location }
+                if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_64,OS_S64]) then
+                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi = rr^.oldhi) then
+                    tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi := rr^.newhi
+                  else
+                    exit;
+{$endif cpu64bitalu}
+                tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register := rr^.new;
+                rr^.sym := tabstractnormalvarsym(tloadnode(n).symtableentry);
+                result := fen_norecurse_true;
+              end;
+          end;
+        temprefn:
+          begin
+            if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
+               (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+               (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
+              begin
+{$ifdef cpu64bitalu}
+                { it's possible a 128 bit location was shifted and/xor typecasted }
+                { in a 64 bit value, so only 1 register was left in the location }
+                if (ttemprefnode(n).tempinfo^.location.size in [OS_128,OS_S128]) then
+                  if (ttemprefnode(n).tempinfo^.location.register128.reghi = rr^.oldhi) then
+                    ttemprefnode(n).tempinfo^.location.register128.reghi := rr^.newhi
+                  else
+                    exit;
+{$else cpu64bitalu}
+                { it's possible a 64 bit location was shifted and/xor typecasted }
+                { in a 32 bit value, so only 1 register was left in the location }
+                if (ttemprefnode(n).tempinfo^.location.size in [OS_64,OS_S64]) then
+                  if (ttemprefnode(n).tempinfo^.location.register64.reghi = rr^.oldhi) then
+                    ttemprefnode(n).tempinfo^.location.register64.reghi := rr^.newhi
+                  else
+                    exit;
+{$endif cpu64bitalu}
+                ttemprefnode(n).tempinfo^.location.register := rr^.new;
+                result := fen_norecurse_true;
+              end;
+          end;
+        { optimize the searching a bit }
+        derefn,addrn,
+        calln,inlinen,casen,
+        addn,subn,muln,
+        andn,orn,xorn,
+        ltn,lten,gtn,gten,equaln,unequaln,
+        slashn,divn,shrn,shln,notn,
+        inn,
+        asn,isn:
+          result := fen_norecurse_false;
+      end;
     end;
 
 
@@ -4027,7 +4289,8 @@ implementation
               begin
                 if not assigned(vs.initialloc.reference.symbol) then
                   list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
-                     std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
+                     std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
+                     ', size='+tcgsize2str(vs.initialloc.size))));
               end;
           end;
         end;
@@ -4037,7 +4300,7 @@ implementation
 
   procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
     begin
-      reference_reset_base(vs.initialloc.reference,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
+      reference_reset_base(vs.initialloc.reference,vs.vardef,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
           tparavarsym(vs).paraloc[calleeside].location^.reference.offset,tparavarsym(vs).paraloc[calleeside].alignment);
     end;
 
@@ -4097,7 +4360,7 @@ implementation
          if assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
-            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
             g_initialize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4145,7 +4408,7 @@ implementation
             is_managed_type(hp^.def) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
             g_finalize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4249,7 +4512,13 @@ implementation
                 ) and
                not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                not(vo_is_external in tstaticvarsym(p).varoptions) and
-               is_managed_type(tstaticvarsym(p).vardef) then
+               is_managed_type(tstaticvarsym(p).vardef) and
+               not (
+                   assigned(tstaticvarsym(p).fieldvarsym) and
+                   assigned(tstaticvarsym(p).fieldvarsym.owner.defowner) and
+                   (df_generic in tdef(tstaticvarsym(p).fieldvarsym.owner.defowner).defoptions)
+                 )
+               then
               finalize_sym(TAsmList(arg),tsym(p));
           end;
         procsym :
@@ -4650,7 +4919,7 @@ implementation
                 case para.location^.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      reference_reset_base(href,para.location^.reference.index,para.location^.reference.offset,para.alignment);
+                      reference_reset_base(href,voidstackpointertype,para.location^.reference.index,para.location^.reference.offset,para.alignment);
                       a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
                     end;
                   else

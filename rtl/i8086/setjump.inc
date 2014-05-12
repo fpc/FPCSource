@@ -17,16 +17,22 @@ Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public,
 asm
   mov si, sp
 
-  mov bx, ss:[si + 2 + extra_param_offset]  // S
-  mov word [bx + Jmp_buf.bp], bp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[si + 2 + extra_param_offset]  // S
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[si + 2 + extra_param_offset]  // S
+{$endif FPC_X86_DATA_NEAR}
+  mov word es:[di + Jmp_buf.bp], bp
   mov ax, word ss:[si]
-  mov word [bx + Jmp_buf.ip], ax
+  mov word es:[di + Jmp_buf.ip], ax
 {$ifdef FPC_X86_CODE_FAR}
   mov ax, word ss:[si + 2]
-  mov word [bx + Jmp_buf.cs], ax
+  mov word es:[di + Jmp_buf.cs], ax
 {$endif FPC_X86_CODE_FAR}
-  lea ax, [si + 4 + extra_param_offset]
-  mov word [bx + Jmp_buf.sp], ax
+  lea ax, [si + 4 + extra_param_offset + extra_data_offset]
+  mov word es:[di + Jmp_buf.sp], ax
 
   xor ax, ax
 end;
@@ -36,22 +42,41 @@ Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint); assembler;nostackfram
 asm
   mov si, sp
 
+{$ifdef FPC_X86_DATA_NEAR}
   mov bx, ss:[si + 4 + extra_param_offset]  // S
+{$else FPC_X86_DATA_NEAR}
+  les bx, ss:[si + 4 + extra_param_offset]  // S
+{$endif FPC_X86_DATA_NEAR}
   mov ax, ss:[si + 2 + extra_param_offset]  // value
   test ax, ax
   jnz @@L1
   inc ax
 @@L1:
+{$ifdef FPC_X86_DATA_NEAR}
   mov bp, word [bx + Jmp_buf.bp]
   mov sp, word [bx + Jmp_buf.sp]
+{$else FPC_X86_DATA_NEAR}
+  mov bp, word es:[bx + Jmp_buf.bp]
+  mov sp, word es:[bx + Jmp_buf.sp]
+{$endif FPC_X86_DATA_NEAR}
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also
-{$ifdef FPC_X86_CODE_NEAR}
-  jmp word [bx + Jmp_buf.ip]
-{$else FPC_X86_CODE_NEAR}
-  // the inline asm doesn't support jmp far yet, so we use db for now
-  // jmp far [bx + Jmp_buf.ip]
-  db 0FFh, 06Fh, Jmp_buf.ip
-{$endif FPC_X86_CODE_NEAR}
+{$ifdef FPC_X86_DATA_NEAR}
+  {$ifdef FPC_X86_CODE_NEAR}
+    jmp word [bx + Jmp_buf.ip]
+  {$else FPC_X86_CODE_NEAR}
+    // the inline asm doesn't support jmp far yet, so we use db for now
+    // jmp far [bx + Jmp_buf.ip]
+    db 0FFh, 06Fh, Jmp_buf.ip
+  {$endif FPC_X86_CODE_NEAR}
+{$else FPC_X86_DATA_NEAR}
+  {$ifdef FPC_X86_CODE_NEAR}
+    jmp word es:[bx + Jmp_buf.ip]
+  {$else FPC_X86_CODE_NEAR}
+    // the inline asm doesn't support jmp far yet, so we use db for now
+    // jmp far es:[bx + Jmp_buf.ip]
+    db 026h, 0FFh, 06Fh, Jmp_buf.ip
+  {$endif FPC_X86_CODE_NEAR}
+{$endif FPC_X86_DATA_NEAR}
 end;

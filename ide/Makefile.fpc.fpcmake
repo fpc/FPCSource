@@ -66,6 +66,9 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 neednostdlib=1
 endif
+ifeq ($(OS_TARGET),aix)
+neednostdlib=1
+endif
 
 ifdef needlinkparam
 override SPECIALLINK=-Xe -k--allow-multiple-definition
@@ -80,6 +83,11 @@ endif
 ifdef neednostdlib
 override SPECIALLINK+=-Xd
 endif
+
+ifeq ($(OS_TARGET),aix)
+override SPECIALLINK+=6fl/opt/freeware/lib -k-bbigtoc
+endif
+
 # Try to find GDB library
 # Look for a valid GDBLIBDIR environment variable
 ifdef GDBLIBDIR

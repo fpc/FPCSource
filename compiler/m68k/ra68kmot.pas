@@ -171,8 +171,11 @@ const
           hs:=s;
 
         { Search opcodes }
-        actopcode:=tasmop(PtrInt(iasmops.Find(hs)));
-        if actopcode<>A_NONE then
+        actopcode:=tasmop(PtrUInt(iasmops.Find(hs)));
+        { Also filter the helper opcodes, they can't be valid
+          while reading an assembly source }
+        if not (actopcode in
+           [A_NONE, A_LABEL, A_DBXX, A_SXX, A_BXX, A_FBXX]) then
           begin
             actasmtoken:=AS_OPCODE;
             result:=TRUE;
@@ -201,12 +204,26 @@ const
 
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
-        is_register:=false;
-        // FIX ME!!! Ugly, needs a proper fix (KB)
+        result:=false;
+        // FIX ME!!! '%'+ is ugly, needs a proper fix (KB)
         actasmregister:=gas_regnum_search('%'+lower(s));
         if actasmregister<>NR_NO then
           begin
-            is_register:=true;
+            result:=true;
+            actasmtoken:=AS_REGISTER;
+          end;
+        { reg found?
+          possible aliases are always 2 char
+        }
+        if result or (length(s)<>2) then
+          exit;
+        if lower(s)='sp' then
+          actasmregister:=NR_STACK_POINTER_REG;
+        if lower(s)='fp' then
+          actasmregister:=NR_STACK_POINTER_REG;
+        if actasmregister<>NR_NO then
+          begin
+            result:=true;
             actasmtoken:=AS_REGISTER;
           end;
       end;
@@ -317,8 +334,11 @@ const
 
                              { this isn't the first token, so it can't be an
                                opcode }
-                             {If is_asmopcode(actasmpattern) then
-                               exit;}
+                             { Actually, it's possible, since @label: OPCODE foo,bar
+                               is valid and was supported in 0.99/1.0 FPC for 68k,
+                               the amunits package is full of such code. (KB) }
+                             if is_asmopcode(actasmpattern) then
+                               exit;
                              if is_register(actasmpattern) then
                                exit;
                              if is_asmdirective(actasmpattern) then
@@ -1410,7 +1430,6 @@ const
                               if expr = 'SELF' then
                                 oper.SetupSelf
                               else begin
-                                writeln('unknown id: ',expr);
                                 Message1(sym_e_unknown_id,expr);
                               end;
                               expr:='';
@@ -1459,7 +1478,6 @@ const
                   end;
    { // Register, a variable reference or a constant reference // }
      AS_REGISTER: begin
-//                   writeln('register! ',actasmpattern);
                    { save the type of register used. }
                    tempstr := actasmpattern;
                    Consume(AS_REGISTER);
@@ -1732,8 +1750,6 @@ const
             _asmsorted := TRUE;
           end;
         curlist:=TAsmList.Create;
-        { setup label linked list }
-        LocalLabelList:=TLocalLabelList.Create;
         c:=current_scanner.asmgetchar;
         gettoken;
         while actasmtoken<>AS_END do
@@ -1827,8 +1843,7 @@ const
           end; { end while }
 
         { Check LocalLabelList }
-        LocalLabelList.CheckEmitted;
-        LocalLabelList.Free;
+        checklocallabels;
 
         assemble:=curlist;
         //Message(asmr_d_finish_reading);

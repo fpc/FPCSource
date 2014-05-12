@@ -740,7 +740,7 @@ end;
 type
   pobjectvmt=^tobjectvmt;
   tobjectvmt=record
-    size,msize:ptruint;
+    size,msize:sizeuint;
     parent:pointer;
   end;
 
@@ -1356,7 +1356,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : nativeint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
@@ -1388,7 +1388,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
 {$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
 function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : nativeint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
@@ -1818,7 +1818,7 @@ end;
 
 procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
+  softfloat_exception_flags:=[];
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSRESETFPU}
@@ -1827,7 +1827,7 @@ end;
 
 procedure SysInitFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSINITFPU}

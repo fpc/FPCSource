@@ -198,7 +198,7 @@ unit opttail;
                is_managed_type(vardef)) then
                exit;
 
-        labelsym:=tlabelsym.create('$opttail');
+        labelsym:=clabelsym.create('$opttail');
         labelnode:=clabelnode.create(cnothingnode.create,labelsym);
         if find_and_replace_tailcalls(n) then
           begin

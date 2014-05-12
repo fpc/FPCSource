@@ -182,7 +182,7 @@ implementation
               paraloctoloc(location,hloc);
               tmpreg:=getaddressregister(list,getpointerdef(location^.def));
               list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,getpointerdef(size),initialref,s32inttype,paralocidx,true));
-              reference_reset_base(tmpref,tmpreg,0,newalignment(initialref.alignment,totaloffset));
+              reference_reset_base(tmpref,getpointerdef(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
             end
           else
             tmpref:=initialref;
@@ -211,7 +211,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,getpointerdef(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -256,7 +256,7 @@ implementation
         begin
           reg:=getaddressregister(list,getpointerdef(newrefsize));
           a_loadaddr_ref_reg(list,refsize,getpointerdef(newrefsize),initialref,reg);
-          reference_reset_base(newref,reg,0,initialref.alignment);
+          reference_reset_base(newref,getpointerdef(newrefsize),reg,0,initialref.alignment);
           refsize:=newrefsize;
         end
       else
@@ -327,7 +327,7 @@ implementation
                       internalerror(2014012307)
                     else
                       begin
-                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,paraloc^.def.alignment);
+                        reference_reset_base(href,getpointerdef(callpara^.def),paraloc^.reference.index,paraloc^.reference.offset,paraloc^.def.alignment);
                         res:=getregisterfordef(list,paraloc^.def);
                         load_ref_anyreg(callpara^.def,href,res,callpara);
                       end;
@@ -443,7 +443,7 @@ implementation
                   { typecast pointer to memory into pointer to integer type }
                   hreg:=getaddressregister(list,getpointerdef(tmpsize));
                   a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),tmpref,hreg);
-                  reference_reset_base(sref,hreg,0,tmpref.alignment);
+                  reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,tmpref.alignment);
                   { load the integer from the temp into the destination }
                   a_load_ref_ref(list,tmpsize,tosize,tmpref,sref);
                   tg.ungettemp(list,tmpref);
@@ -465,7 +465,7 @@ implementation
             begin
               hreg2:=getaddressregister(list,getpointerdef(fromsize));
               a_loadaddr_ref_reg(list,tosize,getpointerdef(fromsize),sref,hreg2);
-              reference_reset_base(sref,hreg2,0,sref.alignment);
+              reference_reset_base(sref,getpointerdef(fromsize),hreg2,0,sref.alignment);
               tosize:=fromsize;
             end;
         end
@@ -553,7 +553,7 @@ implementation
                       tmpsize:=def2intdef(fromsize,tosize);
                       hreg:=getaddressregister(list,getpointerdef(tmpsize));
                       a_loadaddr_ref_reg(list,fromsize,getpointerdef(tmpsize),sref,hreg);
-                      reference_reset_base(sref,hreg,0,sref.alignment);
+                      reference_reset_base(sref,getpointerdef(tmpsize),hreg,0,sref.alignment);
                       { load that integer }
                       a_load_ref_reg(list,tmpsize,tosize,sref,register);
                     end
@@ -583,7 +583,7 @@ implementation
                      to an i64 *)
                   hreg:=getaddressregister(list,getpointerdef(tosize));
                   a_loadaddr_ref_reg(list,fromsize,getpointerdef(tosize),sref,hreg);
-                  reference_reset_base(sref,hreg,0,sref.alignment);
+                  reference_reset_base(sref,getpointerdef(tosize),hreg,0,sref.alignment);
                   fromsize:=tosize;
                 end;
             end;
@@ -1196,7 +1196,7 @@ implementation
             begin
               hreg:=getaddressregister(list,getpointerdef(llvmparadef));
               a_loadaddr_ref_reg(list,vardef,getpointerdef(llvmparadef),destloc.reference,hreg);
-              reference_reset_base(href,hreg,0,destloc.reference.alignment);
+              reference_reset_base(href,getpointerdef(llvmparadef),hreg,0,destloc.reference.alignment);
             end;
           index:=0;
           offset:=0;
@@ -1205,7 +1205,7 @@ implementation
             paraloctoloc(ploc,hloc);
             hreg:=getaddressregister(list,getpointerdef(ploc^.def));
             list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(llvmparadef),href,s32inttype,index,true));
-            reference_reset_base(href2,hreg,0,newalignment(href.alignment,offset));
+            reference_reset_base(href2,getpointerdef(ploc^.def),hreg,0,newalignment(href.alignment,offset));
             a_load_loc_ref(list,ploc^.def,ploc^.def,hloc,href2);
             inc(offset,ploc^.def.size);
             inc(index);
@@ -1318,9 +1318,9 @@ implementation
           if assigned(ref.symbol) then
             reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
           else
-            reference_reset_base(tmpref,ref.base,0,ref.alignment);
+            reference_reset_base(tmpref,getpointerdef(def),ref.base,0,ref.alignment);
           list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,getpointerdef(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
-          reference_reset_base(result,hreg2,0,ref.alignment);
+          reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -1359,7 +1359,7 @@ implementation
           hreg1:=hreg2;
         end;
       a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
-      reference_reset_base(result,hreg2,0,ref.alignment);
+      reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
     end;
 
 

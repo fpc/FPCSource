@@ -247,6 +247,8 @@ begin
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
 
+  LinkRes.Add('option quiet');
+
   if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf');
 

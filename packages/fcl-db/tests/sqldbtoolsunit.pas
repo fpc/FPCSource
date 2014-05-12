@@ -40,13 +40,16 @@ type
     FQuery         : TSQLQuery;
     FUniDirectional: boolean;
     procedure CreateFConnection;
-    procedure CreateFTransaction;
     Function CreateQuery : TSQLQuery;
   protected
     procedure SetTestUniDirectional(const AValue: boolean); override;
     function GetTestUniDirectional: boolean; override;
     procedure CreateNDatasets; override;
     procedure CreateFieldDataset; override;
+    // If logging is enabled, this procedure will receive the event
+    // from the SQLDB logging system
+    // For custom logging call with sender nil and eventtype detCustom
+    procedure DoLogEvent(Sender: TSQLConnection; EventType: TDBEventType; Const Msg : String);
     procedure DropNDatasets; override;
     procedure DropFieldDataset; override;
     Function InternalGetNDataset(n : integer) : TDataset; override;
@@ -56,6 +59,7 @@ type
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
+    // Issue a commit(retaining) for databases that need it (e.g. in DDL)
     procedure CommitDDL;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
@@ -65,7 +69,9 @@ type
 var SQLConnType : TSQLConnType;
     SQLServerType : TSQLServerType;
     FieldtypeDefinitions : Array [TFieldType] of String[20];
-    
+
+function IdentifierCase(const s: string): string;
+
 implementation
 
 uses StrUtils;
@@ -79,46 +85,46 @@ type
 const
   FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
     (
-      '',
-      'VARCHAR(10)',
-      'SMALLINT',
-      'INTEGER',
-      '',             // ftWord
-      'BOOLEAN',
-      'DOUBLE PRECISION', // ftFloat
-      '',             // ftCurrency
-      'DECIMAL(18,4)',// ftBCD
-      'DATE',
-      'TIME',
-      'TIMESTAMP',    // ftDateTime
-      '',             // ftBytes
-      '',             // ftVarBytes
-      '',             // ftAutoInc
-      'BLOB',         // ftBlob
-      'BLOB',         // ftMemo
-      'BLOB',         // ftGraphic
-      '',
-      '',
-      '',
-      '',
-      '',
-      'CHAR(10)',     // ftFixedChar
-      '',             // ftWideString
-      'BIGINT',       // ftLargeInt
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',             // ftGuid
-      'TIMESTAMP',    // ftTimestamp
-      'NUMERIC(18,6)',// ftFmtBCD
-      '',             // ftFixedWideChar
-      ''              // ftWideMemo
+      {ftUnknown} '',
+      {ftString} 'VARCHAR(10)',
+      {ftSmallint} 'SMALLINT',
+      {ftInteger} 'INTEGER',
+      {ftWord} '',
+      {ftBoolean} 'BOOLEAN',
+      {ftFloat} 'DOUBLE PRECISION',
+      {ftCurrency} '',
+      {ftBCD} 'DECIMAL(18,4)',
+      {ftDate} 'DATE',
+      {ftTime} 'TIME',
+      {ftDateTime} 'TIMESTAMP',
+      {ftBytes} '',
+      {ftVarBytes} '',
+      {ftAutoInc} '',
+      {ftBlob} 'BLOB',
+      {ftMemo} 'BLOB',
+      {ftGraphic} 'BLOB',
+      {ftFmtMemo} '',
+      {ftParadoxOle} '',
+      {ftDBaseOle} '',
+      {ftTypedBinary} '',
+      {ftCursor} '',
+      {ftFixedChar} 'CHAR(10)',
+      {ftWideString} '',
+      {ftLargeint} 'BIGINT',
+      {ftADT} '',
+      {ftArray} '',
+      {ftReference} '',
+      {ftDataSet} '',
+      {ftOraBlob} '',
+      {ftOraClob} '',
+      {ftVariant} '',
+      {ftInterface} '',
+      {ftIDispatch} '',
+      {ftGuid} '',
+      {ftTimeStamp} 'TIMESTAMP',
+      {ftFMTBcd} 'NUMERIC(18,6)',
+      {ftFixedWideChar} '',
+      {ftWideMemo} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
@@ -138,13 +144,24 @@ const
     (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
+function IdentifierCase(const s: string): string;
+begin
+  // format unquoted identifier name as required by SQL servers
+  case SQLServerType of
+    ssPostgreSQL: Result := LowerCase(s); // PostgreSQL stores unquoted identifiers in lowercase (incompatible with the SQL standard)
+    ssInterbase,
+    ssFirebird  : Result := UpperCase(s); // Dialect 1 requires uppercase; dialect 3 is case agnostic
+    else
+                  Result := s; // mixed case
+  end;
+end;
+
 { TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFConnection;
 var t : TSQLConnType;
     i : integer;
     s : string;
-    TempTrans: TSQLTransaction;
 begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
@@ -167,12 +184,21 @@ begin
 
   if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
+  FTransaction := TSQLTransaction.Create(nil);
+
   with Fconnection do
   begin
+    Transaction := FTransaction;
     DatabaseName := dbname;
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    if dblogfilename<>'' then
+    begin
+      LogEvents:=[detCustom,detCommit,detExecute,detRollBack];
+      OnLog:=@DoLogEvent;
+    end;
+
     if (dbhostname='') and (SQLConnType=interbase) then
     begin
       // Firebird embedded: create database file if it doesn't yet exist
@@ -214,6 +240,9 @@ begin
       end;
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
+      // note: test database should have case-insensitive collation
+      // todo: SQL Server 2008 and later supports DATE, TIME and DATETIME2 data types,
+      //       but these are not supported by FreeTDS yet
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
@@ -230,33 +259,58 @@ begin
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
 
-      TempTrans:=TSQLTransaction.Create(nil);
-      FConnection.Transaction:=TempTrans;
-      TempTrans.StartTransaction;
       // Proper blob support:
       FConnection.ExecuteDirect('SET TEXTSIZE 2147483647');
-      // When running CREATE TABLE statements, allow NULLs by default - without
-      // having to specify NULL all the time:
-      // http://msdn.microsoft.com/en-us/library/ms174979.aspx
-      FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON');
-      TempTrans.Commit;
-      TempTrans.Free;
-      FConnection.Transaction:=nil;
-
-      end;
-    ssMySQL:
+      if SQLServerType=ssMSSQL then
       begin
-      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES"
+        // When running CREATE TABLE statements, allow NULLs by default - without
+        // having to specify NULL all the time:
+        // http://msdn.microsoft.com/en-us/library/ms174979.aspx
+        //
+        // Padding character fields is expected by ANSI and sqldb, as well as
+        // recommended by Microsoft:
+        // http://msdn.microsoft.com/en-us/library/ms187403.aspx
+        FConnection.ExecuteDirect('SET ANSI_NULL_DFLT_ON ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS OFF');
+      end;
+      if SQLServerType=ssSybase then
+      begin
+        // Evaluate NULL expressions according to ANSI SQL:
+        // http://infocenter.sybase.com/archive/index.jsp?topic=/com.sybase.help.ase_15.0.commands/html/commands/commands85.htm
+        FConnection.ExecuteDirect('SET ANSINULL ON');
+
+        { Tests require these database options set
+        1) with ddl in tran; e.g.
+        use master
+        go
+        sp_dboption pubs3, 'ddl in tran', true
+        go
+        Avoid errors like
+        The 'CREATE TABLE' command is not allowed within a multi-statement transaction in the 'test' database.
+        2) allow nulls by default, e.g.
+        use master
+        go
+        sp_dboption pubs3, 'allow nulls by default', true
+        go
+        }
+      end;
+      FTransaction.Commit;
+      end;
+    ssMySQL:   
+      begin
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
       FieldtypeDefinitions[ftBoolean]  := '';
-      // Use 'DATETIME' for datetime-fields instead of timestamp, because
+      // Use 'DATETIME' for datetime fields instead of timestamp, because
       // mysql's timestamps are only valid in the range 1970-2038.
       // Downside is that fields defined as 'TIMESTAMP' aren't tested
       FieldtypeDefinitions[ftDateTime] := 'DATETIME';
       FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
+      // PAD_CHAR_TO_FULL_LENGTH to avoid trimming trailing spaces contrary to SQL standard (MySQL 5.1.20+)
+      FConnection.ExecuteDirect('SET SESSION sql_mode=''STRICT_ALL_TABLES,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
+      FTransaction.Commit;
       end;
     ssOracle:
       begin
@@ -276,6 +330,8 @@ begin
       end;
     ssSQLite:
       begin
+      // SQLite stores all values with decimal point as 8 byte (double) IEEE floating point numbers
+      // (it causes that some tests (for BCD, FmtBCD fields) fails for exact numeric values, which can't be lossless expressed as 8 byte floating point values)
       FieldtypeDefinitions[ftWord] := 'WORD';
       FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
       FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
@@ -312,11 +368,12 @@ begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
     testValues[ftTime,3]:='13:25:15.000';
-    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssMSSQL, ssOracle] then
       begin
-      // Firebird, Oracle do not support time = 24:00:00
-      testTimeValues[2]:='23:00:00.000';
-      testValues[ftTime,2]:='23:00:00.000';
+      // Firebird, Oracle, MS SQL Server do not support time = 24:00:00
+      // MS SQL Server "datetime" supports only time up to 23:59:59.997
+      testTimeValues[2]:='23:59:59.997';
+      testValues[ftTime,2]:='23:59:59.997';
       end;
     end;
 
@@ -335,20 +392,9 @@ begin
       testValues[ftCurrency,i] := QuotedStr(CurrToStr(testCurrencyValues[i]));
 
   // SQLite does not support fixed length CHAR datatype
-  // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
-  // MSSQL set SET ANSI_PADDING ON
-  // todo: verify Sybase behaviour
   if SQLServerType in [ssSQLite] then
     for i := 0 to testValuesCount-1 do
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
-end;
-
-procedure TSQLDBConnector.CreateFTransaction;
-
-begin
-  Ftransaction := tsqltransaction.create(nil);
-  with Ftransaction do
-    database := Fconnection;
 end;
 
 function TSQLDBConnector.CreateQuery: TSQLQuery;
@@ -362,6 +408,8 @@ begin
     PacketRecords := -1;  // To avoid: "Connection is busy with results for another hstmt" (ODBC,MSSQL)
     end;
 end;
+
+
 
 procedure TSQLDBConnector.SetTestUniDirectional(const AValue: boolean);
 begin
@@ -389,12 +437,17 @@ begin
     FTransaction.CommitRetaining;
 
     for countID := 1 to MaxDataSet do
-      Fconnection.ExecuteDirect('insert into FPDEV (ID,NAME)' +
+      Fconnection.ExecuteDirect('insert into FPDEV (ID,NAME) ' +
                                 'values ('+inttostr(countID)+',''TestName'+inttostr(countID)+''')');
 
     Ftransaction.Commit;
   except
-    if Ftransaction.Active then Ftransaction.Rollback
+    on E: Exception do begin
+      if dblogfilename<>'' then
+        DoLogEvent(nil,detCustom,'Exception running CreateNDatasets: '+E.Message);
+      if Ftransaction.Active then
+        Ftransaction.Rollback
+    end;
   end;
 end;
 
@@ -491,10 +544,28 @@ begin
     Ftransaction.Commit;
   except
     on E: Exception do begin
-      //writeln(E.Message);
+      if dblogfilename<>'' then
+        DoLogEvent(nil,detCustom,'Exception running CreateFieldDataset: '+E.Message);
       if Ftransaction.Active then Ftransaction.Rollback;
     end;
   end;
+end;
+
+procedure TSQLDBConnector.DoLogEvent(Sender: TSQLConnection;
+  EventType: TDBEventType; const Msg: String);
+var
+  Category: string;
+begin
+  case EventType of
+    detCustom:   Category:='Custom';
+    detPrepare:  Category:='Prepare';
+    detExecute:  Category:='Execute';
+    detFetch:    Category:='Fetch';
+    detCommit:   Category:='Commit';
+    detRollBack: Category:='Rollback';
+    else Category:='Unknown event. Please fix program code.';
+  end;
+  LogMessage(Category,Msg);
 end;
 
 procedure TSQLDBConnector.DropNDatasets;
@@ -507,7 +578,11 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      on E: Exception do begin
+        if dblogfilename<>'' then
+          DoLogEvent(nil,detCustom,'Exception running DropNDatasets: '+E.Message);
+        if Ftransaction.Active then Ftransaction.Rollback
+      end;
     end;
     end;
 end;
@@ -522,7 +597,11 @@ begin
       Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
       Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback
+      on E: Exception do begin
+        if dblogfilename<>'' then
+          DoLogEvent(nil,detCustom,'Exception running DropFieldDataset: '+E.Message);
+        if Ftransaction.Active then Ftransaction.Rollback
+      end;
     end;
     end;
 end;
@@ -643,9 +722,7 @@ constructor TSQLDBConnector.Create;
 begin
   FConnection := nil;
   CreateFConnection;
-  CreateFTransaction;
   FQuery := CreateQuery;
-  FConnection.Transaction := FTransaction;
   Inherited;
 end;
 

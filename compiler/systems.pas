@@ -260,7 +260,7 @@ interface
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded,system_avr_embedded,
-                           system_jvm_java32];
+                           system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
@@ -344,6 +344,17 @@ interface
 {$endif not llvm}
        ];
 
+       { pointer checking (requires special code in FPC_CHECKPOINTER,
+         and can never work for libc-based targets or any other program
+         linking to an external library)
+       }
+       systems_support_checkpointer = [system_i386_linux,system_powerpc_linux]
+                             + [system_i386_win32]
+                             + [system_i386_GO32V2]
+                             + [system_i386_os2]
+                             + [system_i386_beos,system_i386_haiku]
+                             + [system_powerpc_morphos];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
@@ -355,7 +366,7 @@ interface
          (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),
-         (name: 'OLDWIN32GNU'; supported:{$ifdef CPUI386}true{$else}false{$endif})
+         (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif})
        );
 
     var

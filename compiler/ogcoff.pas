@@ -917,27 +917,27 @@ const pemagic : array[0..3] of byte = (
                 RELOC_RELATIVE_1:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+1);
+                    dec(address,objreloc.dataoffset+5);
                   end;
                 RELOC_RELATIVE_2:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+2);
+                    dec(address,objreloc.dataoffset+6);
                   end;
                 RELOC_RELATIVE_3:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+3);
+                    dec(address,objreloc.dataoffset+7);
                   end;
                 RELOC_RELATIVE_4:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+4);
+                    dec(address,objreloc.dataoffset+8);
                   end;
                 RELOC_RELATIVE_5:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+5);
+                    dec(address,objreloc.dataoffset+9);
                   end;
                 RELOC_ABSOLUTE32,
 {$endif x86_64}

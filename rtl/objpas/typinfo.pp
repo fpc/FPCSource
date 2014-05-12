@@ -299,7 +299,7 @@ unit typinfo;
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
       PPropList = ^TPropList;
-      TPropList = array[0..{$ifdef cpu16}32765 div sizeof(PPropInfo){$else}65535{$endif}] of PPropInfo;
+      TPropList = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfo))-2{$else}65535{$endif}] of PPropInfo;
 
    const
       tkString = tkSString;

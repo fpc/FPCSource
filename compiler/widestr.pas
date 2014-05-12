@@ -77,7 +77,7 @@ unit widestr;
       cp1253,
       { other code pages }
       cp8859_1,cp850,cp437,cp1252,cp646,
-      cp874, cp856,
+      cp874, cp856,cp852,cp8859_2,
       cp1250,cp1254,cp1255,cp1256,cp1257,cp1258,
       {$endif}
       globals,cutils;

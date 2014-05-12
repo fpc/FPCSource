@@ -47,7 +47,7 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
-  ExceptTryLevel    : nativeint;
+  ExceptTryLevel    : ObjpasInt;
 
 Function RaiseList : PExceptObject;
 begin
@@ -113,10 +113,8 @@ var
   framecount  : longint;
   frames      : PCodePointer;
   prev_frame,
-  curr_frame,
-  caller_frame : Pointer;
-  curr_addr,
-  caller_addr : CodePointer;
+  curr_frame  : Pointer;
+  curr_addr   : CodePointer;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
@@ -139,23 +137,20 @@ begin
   { The frame pointer of this procedure is used as initial stack bottom value. }
   prev_frame:=get_frame;
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-        (curr_frame<(StackBottom + StackLength)) do
+        (curr_frame<StackTop) do
     Begin
-      caller_addr := get_caller_addr(curr_frame, curr_addr);
-      caller_frame := get_caller_frame(curr_frame, curr_addr);
-      if (caller_addr=nil) or
-         (caller_frame=nil) then
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
+      if (curr_addr=nil) or
+         (curr_frame=nil) then
         break;
       if (framecount>=framebufsize) then
         begin
           inc(framebufsize,16);
           reallocmem(frames,framebufsize*sizeof(codepointer));
         end;
-      frames[framecount]:=caller_addr;
+      frames[framecount]:=curr_addr;
       inc(framecount);
-      prev_frame:=curr_frame;
-      curr_addr:=caller_addr;
-      curr_frame:=caller_frame;
     End;
   NewObj^.framecount:=framecount;
   NewObj^.frames:=frames;
@@ -340,6 +335,7 @@ begin
     end;
 end;
 
+{$ifdef VER2_6}
 Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
 begin
   { with free we're on the really safe side }
@@ -357,6 +353,7 @@ begin
   else
     fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
 end;
+{$endif VER2_6}
 
 Procedure SysInitExceptions;
 {

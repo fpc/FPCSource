@@ -292,7 +292,7 @@ procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of 
 Var
   lowstart,
   nonemptystart,
-  i           : NativeInt;
+  i           : ObjpasInt;
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;

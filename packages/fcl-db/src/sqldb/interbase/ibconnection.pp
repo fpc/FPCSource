@@ -719,7 +719,7 @@ begin
     IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
     assert(resbuf[3+blockSize]=isc_info_end);
     // If the statementtype is isc_info_sql_stmt_exec_procedure then
-    // override the statement type derrived by parsing the query.
+    // override the statement type derived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
     case IBStatementType of
       isc_info_sql_stmt_select: FStatementType := stSelect;

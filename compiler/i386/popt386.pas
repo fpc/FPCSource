@@ -2292,6 +2292,7 @@ end;
 procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 var
   p,hp1,hp2: tai;
+  IsTestConstX: boolean;
 begin
   p := BlockStart;
   while (p <> BlockEnd) Do
@@ -2397,22 +2398,22 @@ See test/tgadint64 in the test suite.
               A_TEST, A_OR:
                 {removes the line marked with (x) from the sequence
                  and/or/xor/add/sub/... $x, %y
-                 test/or %y, %y   (x)
+                 test/or %y, %y  | test $-1, %y    (x)
                  j(n)z _Label
-                    as the first instruction already adjusts the ZF}
+                    as the first instruction already adjusts the ZF
+                    %y operand may also be a reference }
                  begin
-                   if OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
-                    if GetLastInstruction(p, hp1) and
+                   IsTestConstX:=(taicpu(p).opcode=A_TEST) and
+                     MatchOperand(taicpu(p).oper[0]^,-1);
+                   if (OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) or IsTestConstX) and
+                      GetLastInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
                       GetNextInstruction(p,hp2) and
-                      (hp2.typ = ait_instruction) and
-                      ((taicpu(hp2).opcode = A_SETcc) or
-                       (taicpu(hp2).opcode = A_Jcc) or
-                       (taicpu(hp2).opcode = A_CMOVcc)) then
+                      MatchInstruction(hp2,A_SETcc,A_Jcc,A_CMOVcc,[]) then
                      case taicpu(hp1).opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) and
                              { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
                              { and in case of carry for A(E)/B(E)/C/NC                  }
                               ((taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
@@ -2428,7 +2429,7 @@ See test/tgadint64 in the test suite.
                          end;
                        A_SHL, A_SAL, A_SHR, A_SAR:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) and
                              { SHL/SAL/SHR/SAR with a value of 0 do not change the flags }
                              { therefore, it's only safe to do this optimization for     }
                              { shifts by a (nonzero) constant                            }
@@ -2447,7 +2448,7 @@ See test/tgadint64 in the test suite.
                          end;
                        A_DEC, A_INC, A_NEG:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) and
                              { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
                              { and in case of carry for A(E)/B(E)/C/NC                  }
                              (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
@@ -2472,7 +2473,15 @@ See test/tgadint64 in the test suite.
                                continue
                              end;
                          end
-                     end
+                     else
+                       { change "test  $-1,%reg" into "test %reg,%reg" }
+                       if IsTestConstX and (taicpu(p).oper[1]^.typ=top_reg) then
+                         taicpu(p).loadoper(0,taicpu(p).oper[1]^);
+                     end { case }
+                   else
+                     { change "test  $-1,%reg" into "test %reg,%reg" }
+                     if IsTestConstX and (taicpu(p).oper[1]^.typ=top_reg) then
+                       taicpu(p).loadoper(0,taicpu(p).oper[1]^);
                  end;
             end;
           end;

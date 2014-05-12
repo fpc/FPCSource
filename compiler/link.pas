@@ -800,7 +800,7 @@ Implementation
               if (target_ar.id=ar_gnu_ar_scripted) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
-                writeln(script,'-q -fo -c '+
+                writeln(script,'-q -fo -c -b '+
                   maybequoted(current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
@@ -1592,7 +1592,7 @@ Implementation
 
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
-            arcmd       : 'wlib -q -fo -c $LIB $FILES';
+            arcmd       : 'wlib -q -fo -c -b $LIB $FILES';
             arfinishcmd : ''
           );
 

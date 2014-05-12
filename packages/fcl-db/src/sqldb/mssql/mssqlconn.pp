@@ -66,6 +66,7 @@ type
     function CheckError(const Ret: RETCODE): RETCODE;
     procedure Execute(const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
+    procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function ClientCharset: TClientCharset;
     function AutoCommit: boolean;
@@ -467,7 +468,7 @@ begin
     try
       Prepare(format('SELECT cast(%s as varchar), @@version, user_name()', [VERSION_NUMBER[IsSybase]]), nil);
       Execute(nil);
-      if Fetch then
+      while Fetch do
       begin
         Put(1, FServerInfo.ServerVersion);
         Put(2, FServerInfo.ServerVersionString);
@@ -620,6 +621,9 @@ begin
     begin
       repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
       res := CheckError( dbresults(FDBProc) );
+      // stored procedure information (return status and output parameters)
+      // are available only after normal results are processed
+      //if res = NO_MORE_RESULTS then GetParameters(cursor, AParams);
     end;
   until c.FSelectable or (res = NO_MORE_RESULTS) or (res = FAIL);
 
@@ -627,6 +631,21 @@ begin
     Fstatus := NO_MORE_ROWS
   else
     Fstatus := MORE_ROWS;
+end;
+
+procedure TMSSQLConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
+var Param: TParam;
+begin
+  // Microsoft SQL Server no more returns OUTPUT parameters as a special result row
+  // so we can not use dbret*() functions, but instead we must use dbrpc*() functions
+  // only procedure return status number is returned
+  if dbhasretstat(FDBProc) = 1 then
+    begin
+    Param := AParams.FindParam('RETURN_STATUS');
+    if not assigned(Param) then
+      Param := AParams.CreateParam(ftInteger, 'RETURN_STATUS', ptOutput);
+    Param.AsInteger := dbretstatus(FDBProc);
+    end;
 end;
 
 function TMSSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;

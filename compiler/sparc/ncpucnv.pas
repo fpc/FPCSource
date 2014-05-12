@@ -217,7 +217,7 @@ implementation
         op : tasmop;
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
         { Convert value in fpu register from integer to float }
         op:=conv_op[tfloatdef(resultdef).floattype,tfloatdef(left.resultdef).floattype];
         if op=A_NONE then

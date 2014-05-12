@@ -91,16 +91,19 @@ unit cgcpu;
         procedure g_adjust_self_value(list:TAsmList;procdef:tprocdef;ioffset:tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
+        { # Sign or zero extend the register to a full 32-bit value.
+            The new value is left in the same register.
+        }
+        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
+        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
+
      protected
         function fixref(list: TAsmList; var ref: treference): boolean;
 
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
      private
-        { # Sign or zero extend the register to a full 32-bit value.
-            The new value is left in the same register.
-        }
-        procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
+
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
         procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
@@ -452,6 +455,19 @@ unit cgcpu;
            displacement.
          }
          { first ensure that base is an address register }
+         if ((ref.base<>NR_NO) and (ref.index<>NR_NO)) and
+            (not isaddressregister(ref.base) and isaddressregister(ref.index)) and
+            (ref.scalefactor < 2) then
+           begin
+             { if we have both base and index registers, but base is data and index
+               is address, we can just swap them, as FPC always uses long index.
+               but we can only do this, if the index has no scalefactor }
+             hreg:=ref.base;
+             ref.base:=ref.index;
+             ref.index:=hreg;
+             //list.concat(tai_comment.create(strpnew('fixref: base and index swapped')));
+           end;
+
          if (not assigned (ref.symbol) and (current_settings.cputype<>cpu_MC68000)) and
             (ref.base<>NR_NO) and not isaddressregister(ref.base) then
            begin
@@ -853,7 +869,7 @@ unit cgcpu;
               register }
             hreg:=getintregister(list,fromsize);
             list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
-            sign_extend(list,fromsize,hreg);
+            sign_extend(list,fromsize,tosize,hreg);
             list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
             exit;
           end;
@@ -918,11 +934,9 @@ unit cgcpu;
         instr : taicpu;
       begin
          { move to destination register }
-         instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2);
+         instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
          add_move_instruction(instr);
          list.concat(instr);
-
-         { zero/sign extend register to 32-bit }
          sign_extend(list, fromsize, reg2);
       end;
 
@@ -1176,7 +1190,8 @@ unit cgcpu;
     procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         opcode: tasmop;
-        opsize : topsize;
+        opsize: topsize;
+        href  : treference;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
@@ -1191,6 +1206,8 @@ unit cgcpu;
             exit;
           end;
 
+        href:=ref;
+        fixref(list,href);
         case op of
           OP_NONE :
             begin
@@ -1211,11 +1228,11 @@ unit cgcpu;
                     opcode:=A_ADDQ
                   else
                     opcode:=A_SUBQ;
-                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref));
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, href));
                 end
               else
-                if current_settings.cputype = cpu_mc68000 then
-                  list.concat(taicpu.op_const_ref(opcode, opsize, a, ref))
+                if not(current_settings.cputype in cpu_coldfire) then
+                  list.concat(taicpu.op_const_ref(opcode, opsize, a, href))
                 else
                   { on ColdFire, ADDI/SUBI cannot act on memory
                     so we can only go through a register }
@@ -1408,8 +1425,12 @@ unit cgcpu;
           list.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[size],reg))
         else 
           begin
-            { ColdFire also needs S_L for CMPI }
-            if current_settings.cputype in cpu_coldfire then
+            { ColdFire ISA A also needs S_L for CMPI }
+            { Note: older QEMU pukes from CMPI sizes <> .L even on ISA B/C, but
+              it's actually *LEGAL*, see CFPRM, page 4-30, the bug also seems
+              fixed in recent QEMU, but only when CPU cfv4e is forced, not by
+              default. (KB) }
+            if current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]} then
               begin
                 sign_extend(list, size, reg);
                 size:=OS_INT;
@@ -1622,8 +1643,8 @@ unit cgcpu;
                    if current_settings.cputype in cpu_coldfire then
                      begin
                        { Coldfire does not support DBRA }
-                       list.concat(taicpu.op_const_reg(A_SUB,S_L,1,hregister));
-                       list.concat(taicpu.op_sym(A_BPL,S_L,hl));
+                       list.concat(taicpu.op_const_reg(A_SUBQ,S_L,1,hregister));
+                       list.concat(taicpu.op_sym(A_BPL,S_NO,hl));
                      end
                    else
                      list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
@@ -1881,45 +1902,67 @@ unit cgcpu;
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;
 
+    procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
+      begin
+        case _newsize of
+          OS_S16, OS_16:
+            case _oldsize of
+              OS_S8:
+                begin { 8 -> 16 bit sign extend }
+                  if (isaddressregister(reg)) then
+                     internalerror(2014031201);
+                  list.concat(taicpu.op_reg(A_EXT,S_W,reg));
+                end;
+              OS_8: { 8 -> 16 bit zero extend }
+                begin
+                  if (current_settings.cputype in cpu_coldfire) then
+                    { ColdFire has no ANDI.W }
+                    list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg))
+                  else
+                    list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
+                end;
+            end;
+          OS_S32, OS_32:
+            case _oldsize of
+              OS_S8:
+                begin { 8 -> 32 bit sign extend }
+                  if (isaddressregister(reg)) then
+                    internalerror(2014031202);
+                  if (current_settings.cputype = cpu_MC68000) then
+                    begin
+                      list.concat(taicpu.op_reg(A_EXT,S_W,reg));
+                      list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                    end
+                  else
+                    begin
+                      //list.concat(tai_comment.create(strpnew('sign extend byte')));
+                      list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
+                    end;
+                end;
+              OS_8: { 8 -> 32 bit zero extend }
+                begin
+                  //list.concat(tai_comment.create(strpnew('zero extend byte')));
+                  list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
+                end;
+              OS_S16: { 16 -> 32 bit sign extend }
+                begin
+                  if (isaddressregister(reg)) then
+                    internalerror(2014031203);
+                  //list.concat(tai_comment.create(strpnew('sign extend word')));
+                  list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                end;
+              OS_16:
+                begin
+                  //list.concat(tai_comment.create(strpnew('zero extend byte')));
+                  list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
+                end;
+            end;
+        end; { otherwise the size is already correct }
+      end; 
 
     procedure tcg68k.sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
       begin
-        case _oldsize of
-         { sign extend }
-         OS_S8:
-              begin
-                if (isaddressregister(reg)) then
-                   internalerror(20020729);
-                if (current_settings.cputype = cpu_MC68000) then
-                  begin
-                    list.concat(taicpu.op_reg(A_EXT,S_W,reg));
-                    list.concat(taicpu.op_reg(A_EXT,S_L,reg));
-                  end
-                else
-                  begin
-//    		    list.concat(tai_comment.create(strpnew('sign extend byte')));
-                    list.concat(taicpu.op_reg(A_EXTB,S_L,reg));
-                  end;
-              end;
-         OS_S16:
-              begin
-                if (isaddressregister(reg)) then
-                   internalerror(20020729);
-//    		list.concat(tai_comment.create(strpnew('sign extend word')));
-                list.concat(taicpu.op_reg(A_EXT,S_L,reg));
-              end;
-         { zero extend }
-         OS_8:
-              begin
-//    		list.concat(tai_comment.create(strpnew('zero extend byte')));
-                list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
-              end;
-         OS_16:
-              begin
-//    		list.concat(tai_comment.create(strpnew('zero extend word')));
-                list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
-              end;
-        end; { otherwise the size is already correct }
+        sign_extend(list, _oldsize, OS_INT, reg);
       end;
 
      procedure tcg68k.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);

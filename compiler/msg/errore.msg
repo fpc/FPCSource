@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02094 is the last used one
+# 02095 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -394,11 +394,13 @@ scan_e_illegal_peflag=02093_E_Illegal argument for SETPEFLAGS
 scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 % The given argument for SETPEOPTFLAGS is neither a correct named value nor an
 % ordinal value
+scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
+% Not all compiler directives are supported on all targets.
 % \end{description}
 #
 # Parser
 #
-# 03335 is the last used one
+# 03336 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1501,13 +1503,18 @@ parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside gen
 parser_e_property_only_sgr=03335_E_Properties can be only static, global or inside structured types
 % Properties cannot be declared local, only global, using the static
 % directive or inside structured types.
+parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the same mangled name
+% Some platforms, such as the JVM platform, encode the parameters in the routine name in
+% a prescribed way, and this encoding may map different Pascal types to the same encoded
+% (a.k.a.\ ``mangled'') name. This error can only be solved by removing or changing the
+% conflicting definitions' parameter declarations or routine names.
 %
 %
 % \end{description}
 %
 # Type Checking
 #
-# 04120 is the last used one
+# 04121 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1931,6 +1938,9 @@ type_e_invalid_default_value=04119_E_It is not possible to define a default valu
 % arrays and TP-style objects, cannot have a default value.
 type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by a type helper
 % Types like procedural variables cannot be extended by type helpers
+type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order to allow taking its address: "$1"
+% In certain i8086 memory models (medium, large and huge), procedures and functions
+% have to be declared 'far' in order to allow their address to be taken.
 % \end{description}
 #
 # Symtable
@@ -2201,6 +2211,8 @@ sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate de
 % In this case you must add a valid constructor yourself.
 sym_d_adding_helper_for=05087_D_Adding helper for $1
 % A helper for the mentioned type is added to the current scope
+sym_e_param_list=05088_E_Found declaration: $1
+% This message shows all overloaded declarations in case of an error.
 % \end{description}
 #
 # Codegenerator
@@ -2349,6 +2361,11 @@ cg_e_mod_only_defined_for_pos_quotient=06054_E_In ISO mode, the mod operator is 
 % In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 cg_d_autoinlining=06055_DL_Auto inlining: $1
 % Due to auto inlining turned on, the compiler auto inlines this subroutine.
+cg_e_function_not_support_by_selected_instruction_set=06056_E_The function used, is not supported by the selected instruction set: $1
+% Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
+% To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
+% or replace the function call by alternative code
+%
 % \end{description}
 # EndOfTeX
 #
@@ -2606,7 +2623,6 @@ asmr_e_mixing_regtypes=07108_E_All registers in a register set must be of the sa
 asmr_e_empty_regset=07109_E_A register set cannot be empty
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
-
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code
@@ -3069,7 +3085,7 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 #
 #  Options
 #
-# 11055 is the last used one
+# 11056 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3213,6 +3229,7 @@ option_missing_arg=11054_E_argument to "$1" is missing
 % Displayed when parameter must be followed by an argument.
 option_malformed_para=11055_E_malformed parameter: $1
 % Given argument is not valid for parameter.
+option_smart_link_requires_external_linker=11056_W_Smart linking requires external linker
 
 
 %\end{description}

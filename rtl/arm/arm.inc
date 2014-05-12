@@ -80,13 +80,11 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
@@ -507,8 +505,6 @@ end;
 
 {$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
-
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];assembler;nostackframe; compilerproc;
 asm
   ldr     r1, [r0]
@@ -547,7 +543,7 @@ asm
   // but we need to stay backward compatible with 2.6
   sub     r0, r0, #12
   // Jump without a link, so freemem directly returns to our caller
-  b       FPC_FREEMEM_X
+  b       FPC_FREEMEM
 end;
 {$endif not darwin}
 

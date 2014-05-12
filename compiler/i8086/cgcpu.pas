@@ -120,8 +120,9 @@ unit cgcpu;
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,
-       symtype,symsym,
-       tgobj;
+       symtype,symsym,symcpu,
+       tgobj,
+       hlcgobj;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -192,15 +193,12 @@ unit cgcpu;
       weak: boolean);
       var
         sym : tasmsymbol;
-        r : treference;
       begin
         if not(weak) then
           sym:=current_asmdata.RefAsmSymbol(s)
         else
           sym:=current_asmdata.WeakRefAsmSymbol(s);
-        reference_reset_symbol(r,sym,0,sizeof(pint));
-        r.refaddr:=addr_far;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+        list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
 
@@ -216,12 +214,9 @@ unit cgcpu;
     procedure tcg8086.a_call_name_static_far(list: TAsmList; const s: string);
       var
         sym : tasmsymbol;
-        r : treference;
       begin
         sym:=current_asmdata.RefAsmSymbol(s);
-        reference_reset_symbol(r,sym,0,sizeof(pint));
-        r.refaddr:=addr_far;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+        list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
 
@@ -251,8 +246,8 @@ unit cgcpu;
         a_load_reg_ref(list,OS_32,OS_32,reg,href);
         cg.getcpuregister(list,NR_BX);
         cg.getcpuregister(list,NR_SI);
-        href.refaddr:=addr_far_ref;
-        list.concat(taicpu.op_ref(A_CALL,S_NO,href));
+        href.segment:=NR_NO;
+        list.concat(taicpu.op_ref(A_CALL,S_FAR,href));
         tg.ungettemp(list,href);
       end;
 
@@ -1032,43 +1027,135 @@ unit cgcpu;
     procedure tcg8086.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
-        opsize : topsize;
         tmpref : treference;
       begin
         with r do
           begin
             if use_push(cgpara) then
               begin
-                cgpara.check_simple_location;
-                opsize:=tcgsize2opsize[OS_ADDR];
-                if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
+                if tcgsize2size[cgpara.Size] > 2 then
                   begin
-                    if assigned(symbol) then
+                    if tcgsize2size[cgpara.Size] <> 4 then
+                      internalerror(2014032401);
+                    if cgpara.location^.Next = nil then
                       begin
-                        if current_settings.cputype < cpu_186 then
-                          begin
-                            tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
-                            list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                          end
-                        else
-                          list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                        if tcgsize2size[cgpara.location^.size] <> 4 then
+                          internalerror(2014032401);
                       end
                     else
-                      push_const(list,OS_ADDR,offset);
+                      begin
+                        if tcgsize2size[cgpara.location^.size] <> 2 then
+                          internalerror(2014032401);
+                        if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
+                          internalerror(2014032401);
+                        if cgpara.location^.Next^.Next <> nil then
+                          internalerror(2014032401);
+                      end;
+                    if cgpara.alignment > 4 then
+                      internalerror(2014032401);
+
+                    if segment<>NR_NO then
+                      begin
+                        list.concat(Taicpu.op_reg(A_PUSH,S_W,segment));
+                        tmpref:=r;
+                        tmpref.segment:=NR_NO;
+                        tmpreg:=getaddressregister(list);
+                        a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                        list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                      end
+                    else
+                      begin
+                        if (base=NR_NO) and (index=NR_NO) then
+                          begin
+                            if assigned(symbol) then
+                              begin
+                                tmpref:=r;
+                                tmpref.refaddr:=addr_seg;
+                                tmpref.offset:=0;
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_ref(A_PUSH,S_W,tmpref));
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_loadaddr_ref_reg(list,r,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_W,symbol,offset));
+                              end
+                            else
+                              internalerror(2014032402);
+                          end
+                        else if assigned(symbol) then
+                          begin
+                            reference_reset_symbol(tmpref,r.symbol,0,0);
+                            tmpref.refaddr:=addr_seg;
+                            if current_settings.cputype < cpu_186 then
+                              begin
+                                tmpreg:=getaddressregister(list);
+                                a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
+                                list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                              end
+                            else
+                              list.concat(Taicpu.Op_ref(A_PUSH,S_W,tmpref));
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end
+                        else if base=NR_BP then
+                          begin
+                            list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_SS));
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end
+                        else
+                          internalerror(2014032403);
+                      end;
                   end
-                else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
-                        (offset=0) and (scalefactor=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
-                        (offset=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
                 else
                   begin
-                    tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
-                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                  end;
+                    cgpara.check_simple_location;
+                    tmpref:=r;
+                    tmpref.segment:=NR_NO;
+                    with tmpref do
+                      begin
+                        if (base=NR_NO) and (index=NR_NO) then
+                          begin
+                            if assigned(symbol) then
+                              begin
+                                if current_settings.cputype < cpu_186 then
+                                  begin
+                                    tmpreg:=getaddressregister(list);
+                                    a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                                    list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                                  end
+                                else
+                                  list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_W,symbol,offset));
+                              end
+                            else
+                              push_const(list,OS_16,offset);
+                          end
+                        else if (base=NR_NO) and (index<>NR_NO) and
+                                (offset=0) and (scalefactor=0) and (symbol=nil) then
+                          list.concat(Taicpu.Op_reg(A_PUSH,S_W,index))
+                        else if (base<>NR_NO) and (index=NR_NO) and
+                                (offset=0) and (symbol=nil) then
+                          list.concat(Taicpu.Op_reg(A_PUSH,S_W,base))
+                        else
+                          begin
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,S_W,tmpreg));
+                          end;
+                      end;
+                end;
               end
             else
               inherited a_loadaddr_ref_cgpara(list,r,cgpara);
@@ -1598,10 +1685,26 @@ unit cgcpu;
         end;
 
         current_asmdata.getjumplabel(hl_skip);
-        ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
-        ai.SetCondition(flags_to_cond(invf));
-        ai.is_jmp:=true;
-        list.concat(ai);
+        { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
+          in the case of NaNs:
+           not(F_FA )<>F_FBE
+           not(F_FAE)<>F_FB
+           not(F_FB )<>F_FAE
+           not(F_FBE)<>F_FA
+        }
+        case f of
+          F_FA,F_FAE:
+            invf:=FPUFlags2Flags[invf];
+          F_FB,F_FBE:
+            begin
+              ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+              ai.SetCondition(C_P);
+              ai.is_jmp:=true;
+              list.concat(ai);
+              invf:=FPUFlags2Flags[invf];
+            end;
+        end;
+        a_jmp_flags(list,invf,hl_skip);
 
         { 16-bit INC is shorter than 8-bit }
         hreg16:=makeregsize(list,reg,OS_16);
@@ -1652,7 +1755,7 @@ unit cgcpu;
         stacksize : longint;
         ret_instr: TAsmOp;
       begin
-        if po_far in current_procinfo.procdef.procoptions then
+        if is_proc_far(current_procinfo.procdef) then
           ret_instr:=A_RETF
         else
           ret_instr:=A_RET;
@@ -1737,6 +1840,7 @@ unit cgcpu;
       var
         power  : longint;
         opsize : topsize;
+        saved_ds: Boolean;
       begin
         { get stack space }
         getcpuregister(list,NR_DI);
@@ -1779,13 +1883,31 @@ unit cgcpu;
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
 
 {$ifdef volatile_es}
-        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
+        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SS));
         list.concat(taicpu.op_reg(A_POP,S_W,NR_ES));
 {$endif volatile_es}
 
         { Allocate SI and load it with source }
         getcpuregister(list,NR_SI);
-        a_loadaddr_ref_reg(list,ref,NR_SI);
+        if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or (ref.base<>NR_BP))) or
+           (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
+          begin
+            hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            saved_ds:=false;
+          end
+        else
+          begin
+            hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
+            saved_ds:=true;
+            if ref.segment<>NR_NO then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,ref.segment))
+            else if ref.base=NR_BP then
+              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SS))
+            else
+              internalerror(2014040403);
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_DS));
+          end;
 
         { calculate size }
         opsize:=S_B;
@@ -1825,10 +1947,14 @@ unit cgcpu;
         ungetcpuregister(list,NR_DI);
         ungetcpuregister(list,NR_CX);
         ungetcpuregister(list,NR_SI);
+        if saved_ds then
+          list.concat(taicpu.op_reg(A_POP,S_W,NR_DS));
 
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,destreg));
+        if current_settings.x86memorymodel in x86_far_data_models then
+          list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(destreg)));
       end;
 
 
@@ -1986,40 +2112,41 @@ unit cgcpu;
                (hsym.typ=paravarsym)) then
           internalerror(200305251);
         paraloc:=tparavarsym(hsym).paraloc[callerside].location;
-        while paraloc<>nil do
-          with paraloc^ do
-            begin
-              case loc of
-                LOC_REGISTER:
-                  a_op_const_reg(list,OP_SUB,size,ioffset,register);
-                LOC_REFERENCE:
-                  begin
-                    { offset in the wrapper needs to be adjusted for the stored
-                      return address }
-                    if (reference.index<>NR_BP) and (reference.index<>NR_BX) and (reference.index<>NR_DI)
-                      and (reference.index<>NR_SI) then
-                      begin
-                        list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-                        list.concat(taicpu.op_reg_reg(A_MOV,S_W,reference.index,NR_DI));
+        with paraloc^ do
+          begin
+            case loc of
+              LOC_REGISTER:
+                a_op_const_reg(list,OP_SUB,size,ioffset,register);
+              LOC_REFERENCE:
+                begin
+                  { offset in the wrapper needs to be adjusted for the stored
+                    return address }
+                  if (reference.index<>NR_BP) and (reference.index<>NR_BX) and (reference.index<>NR_DI)
+                    and (reference.index<>NR_SI) then
+                    begin
+                      list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
+                      list.concat(taicpu.op_reg_reg(A_MOV,S_W,reference.index,NR_DI));
 
-                        if reference.index=NR_SP then
-                          reference_reset_base(href,NR_DI,reference.offset+return_address_size+2,sizeof(pint))
-                        else
-                          reference_reset_base(href,NR_DI,reference.offset+return_address_size,sizeof(pint));
-                        a_op_const_ref(list,OP_SUB,size,ioffset,href);
-                        list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
-                      end
-                    else
-                      begin
-                        reference_reset_base(href,reference.index,reference.offset+return_address_size,sizeof(pint));
-                        a_op_const_ref(list,OP_SUB,size,ioffset,href);
-                      end;
-                  end
-                else
-                  internalerror(200309189);
-              end;
-              paraloc:=next;
+                      if reference.index=NR_SP then
+                        reference_reset_base(href,NR_DI,reference.offset+return_address_size+2,sizeof(pint))
+                      else
+                        reference_reset_base(href,NR_DI,reference.offset+return_address_size,sizeof(pint));
+                      href.segment:=NR_SS;
+                      a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                      list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+                    end
+                  else
+                    begin
+                      reference_reset_base(href,reference.index,reference.offset+return_address_size,sizeof(pint));
+                      href.segment:=NR_SS;
+                      a_op_const_ref(list,OP_SUB,size,ioffset,href);
+                    end;
+                end
+              else
+                internalerror(200309189);
             end;
+            paraloc:=next;
+          end;
       end;
 
 
@@ -2075,7 +2202,12 @@ unit cgcpu;
                 inc(selfoffsetfromsp,2);
               list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
               reference_reset_base(href,NR_DI,selfoffsetfromsp+offs+2,2);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
+              if not segment_regs_equal(NR_SS,NR_DS) then
+                href.segment:=NR_SS;
+              if current_settings.x86memorymodel in x86_near_data_models then
+                cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX)
+              else
+                list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
               list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
             end
           else
@@ -2088,26 +2220,42 @@ unit cgcpu;
           href : treference;
         begin
           { mov  0(%bx),%bx ; load vmt}
-          reference_reset_base(href,NR_BX,0,2);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
+          if current_settings.x86memorymodel in x86_near_data_models then
+            begin
+              reference_reset_base(href,NR_BX,0,2);
+              cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
+            end
+          else
+            begin
+              reference_reset_base(href,NR_BX,0,2);
+              href.segment:=NR_ES;
+              list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
+            end;
         end;
 
 
       procedure loadmethodoffstobx;
         var
           href : treference;
+          srcseg: TRegister;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
+          if current_settings.x86memorymodel in x86_far_data_models then
+            srcseg:=NR_ES
+          else
+            srcseg:=NR_NO;
           if current_settings.x86memorymodel in x86_far_code_models then
             begin
               { mov vmtseg(%bx),%si ; method seg }
               reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,2);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_SI);
+              href.segment:=srcseg;
+              cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_SI);
             end;
           { mov vmtoffs(%bx),%bx ; method offs }
           reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),2);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_BX);
+          href.segment:=srcseg;
+          cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
         end;
 
 
@@ -2162,11 +2310,13 @@ unit cgcpu;
               reference_reset_base(href,NR_DI,6,2)
             else
               reference_reset_base(href,NR_DI,4,2);
+            if not segment_regs_equal(NR_DS,NR_SS) then
+              href.segment:=NR_SS;
             list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
             list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
             if current_settings.x86memorymodel in x86_far_code_models then
               begin
-                reference_reset_base(href,NR_DI,8,2);
+                inc(href.offset,2);
                 list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_SI,href));
               end;
 
@@ -2193,11 +2343,7 @@ unit cgcpu;
             lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
 
             if current_settings.x86memorymodel in x86_far_code_models then
-              begin
-                reference_reset_symbol(href,lab,0,sizeof(pint));
-                href.refaddr:=addr_far;
-                list.concat(taicpu.op_ref(A_JMP,S_NO,href));
-              end
+              list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))
             else
               list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
           end;

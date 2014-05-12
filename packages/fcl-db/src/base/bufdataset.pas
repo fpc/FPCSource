@@ -100,15 +100,14 @@ type
   end;
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
-  TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
+  TCompareFunc = function(subValue, aValue: pointer; size: integer; options: TLocateOptions): int64;
 
   TDBCompareRec = record
-                   Comparefunc : TCompareFunc;
-                   Off1,Off2   : PtrInt;
-                   FieldInd1,
-                   FieldInd2   : longint;
-                   NullBOff1,
-                   NullBOff2   : PtrInt;
+                   CompareFunc : TCompareFunc;
+                   Off         : PtrInt;
+                   NullBOff    : PtrInt;
+                   FieldInd    : longint;
+                   Size        : integer;
                    Options     : TLocateOptions;
                    Desc        : Boolean;
                   end;
@@ -525,6 +524,7 @@ type
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure DoBeforeClose; override;
+    procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
     function GetRecordSize: Word; override;
@@ -681,7 +681,7 @@ begin
     end;
 end;
 
-function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareText(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   if [loCaseInsensitive,loPartialKey]=options then
     Result := AnsiStrLIComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
@@ -693,7 +693,7 @@ begin
     Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
-function DBCompareWideText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareWideText(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   if [loCaseInsensitive,loPartialKey]=options then
     Result := WideCompareText(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
@@ -705,25 +705,25 @@ begin
          Result := WideCompareStr(pwidechar(subValue),pwidechar(aValue));
 end;
 
-function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareByte(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PByte(subValue)^-PByte(aValue)^;
 end;
 
-function DBCompareSmallInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareSmallInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PSmallInt(subValue)^-PSmallInt(aValue)^;
 end;
 
-function DBCompareInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PInteger(subValue)^-PInteger(aValue)^;
 end;
 
-function DBCompareLargeInt(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareLargeInt(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   // A simple subtraction doesn't work, since it could be that the result
@@ -736,13 +736,13 @@ begin
     result := 0;
 end;
 
-function DBCompareWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareWord(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   Result := PWord(subValue)^-PWord(aValue)^;
 end;
 
-function DBCompareQWord(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareQWord(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 
 begin
   // A simple subtraction doesn't work, since it could be that the result
@@ -755,7 +755,7 @@ begin
     result := 0;
 end;
 
-function DBCompareDouble(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareDouble(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   // A simple subtraction doesn't work, since it could be that the result
   // doesn't fit into a LargeInt
@@ -767,9 +767,29 @@ begin
     result := 0;
 end;
 
-function DBCompareBCD(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+function DBCompareBCD(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
 begin
   result:=BCDCompare(PBCD(subValue)^, PBCD(aValue)^);
+end;
+
+function DBCompareBytes(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
+begin
+  Result := CompareByte(subValue^, aValue^, size);
+end;
+
+function DBCompareVarBytes(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
+var len1, len2: LongInt;
+begin
+  len1 := PWord(subValue)^;
+  len2 := PWord(aValue)^;
+  inc(subValue, sizeof(Word));
+  inc(aValue, sizeof(Word));
+  if len1 > len2 then
+    Result := CompareByte(subValue^, aValue^, len2)
+  else
+    Result := CompareByte(subValue^, aValue^, len1);
+  if Result = 0 then
+    Result := len1 - len2;
 end;
 
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
@@ -793,16 +813,16 @@ var IndexFieldNr : Integer;
 begin
   for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
     begin
-    IsNull1:=GetFieldIsNull(rec1+NullBOff1,FieldInd1);
-    IsNull2:=GetFieldIsNull(rec2+NullBOff2,FieldInd2);
+    IsNull1:=GetFieldIsNull(rec1+NullBOff,FieldInd);
+    IsNull2:=GetFieldIsNull(rec2+NullBOff,FieldInd);
     if IsNull1 and IsNull2 then
-      result := 0
+      Result := 0
     else if IsNull1 then
-      result := -1
+      Result := -1
     else if IsNull2 then
-      result := 1
+      Result := 1
     else
-      Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
+      Result := CompareFunc(Rec1+Off, Rec2+Off, Size, Options);
 
     if Result <> 0 then
       begin
@@ -1116,7 +1136,7 @@ var
 begin
   CheckInactive;
   For I:=0 to Length(FIndexes)-1 do
-    FreeAndNil(Findexes[I]);
+    FreeAndNil(FIndexes[I]);
   SetLength(FIndexes,0);
   FIndexesCount:=0;
 end;
@@ -1185,22 +1205,24 @@ begin
     FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
 end;
 
+procedure TCustomBufDataset.InternalInitFieldDefs;
+begin
+  if FileName<>'' then
+    begin
+    IntLoadFieldDefsFromFile;
+    FreeAndNil(FDatasetReader);
+    FreeAndNil(FFileStream);
+    end;
+end;
+
 procedure TCustomBufDataset.InternalOpen;
 
 var IndexNr : integer;
     i : integer;
 
 begin
-  if not Assigned(FDatasetReader) and (FileName<>'') then
-    begin
-    FFileStream := TFileStream.Create(FileName,fmOpenRead);
-    FDatasetReader := GetPacketReader(dfAny, FFileStream);
-    end;
-  if assigned(FDatasetReader) then
-    begin
-    FReadFromFile := True;
-    IntLoadFielddefsFromFile;
-    end;
+  if assigned(FDatasetReader) or (FileName<>'') then
+    IntLoadFieldDefsFromFile;
 
   // This checks if the dataset is actually created (by calling CreateDataset,
   // or reading from a stream in some other way implemented by a descendent)
@@ -1244,6 +1266,13 @@ begin
   if assigned(FDatasetReader) then IntLoadRecordsFromFile;
 end;
 
+procedure TCustomBufDataset.DoBeforeClose;
+begin
+  inherited DoBeforeClose;
+  if FFileName<>'' then
+    SaveToFile(FFileName);
+end;
+
 procedure TCustomBufDataset.InternalClose;
 
 var r  : integer;
@@ -1252,6 +1281,8 @@ var r  : integer;
 
 begin
   FOpen:=False;
+  FReadFromFile:=False;
+
   if FIndexesCount>0 then with FIndexes[0] do if IsInitialized then
     begin
     iGetResult:=ScrollFirst;
@@ -1295,7 +1326,6 @@ begin
   if FAutoIncValue>-1 then FAutoIncValue:=1;
 
   if assigned(FParser) then FreeAndNil(FParser);
-  FReadFromFile:=false;
 end;
 
 procedure TCustomBufDataset.InternalFirst;
@@ -1328,7 +1358,10 @@ end;
 
 function TBufIndex.CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
 begin
-  Result := (ABookmark1^.BookmarkData=ABookmark2^.BookmarkData);
+  if assigned(ABookmark1) and assigned(ABookmark2) then
+    Result := (ABookmark1^.BookmarkData=ABookmark2^.BookmarkData)
+  else
+    Result := False;
 end;
 
 function TBufIndex.GetRecord(ABookmark: PBufBookmark; GetMode: TGetMode): TGetResult;
@@ -1707,13 +1740,6 @@ begin
     until Acceptable;
 end;
 
-procedure TCustomBufDataset.DoBeforeClose;
-begin
-  inherited DoBeforeClose;
-  if FFileName<>'' then
-    SaveToFile(FFileName);
-end;
-
 function TCustomBufDataset.GetActiveRecordUpdateBuffer : boolean;
 
 var ABookmark : TBufBookmark;
@@ -1735,30 +1761,38 @@ begin
     AField := TField(AFields[i]);
 
     case AField.DataType of
-      ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
-      ftWideString, ftFixedWideChar: ACompareRec.Comparefunc := @DBCompareWideText;
-      ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-      ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
-        @DBCompareInt;
-      ftWord : ACompareRec.Comparefunc := @DBCompareWord;
-      ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
-      ftFloat, ftCurrency : ACompareRec.Comparefunc := @DBCompareDouble;
-      ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
-        @DBCompareDouble;
-      ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
-      ftFmtBCD : ACompareRec.Comparefunc := @DBCompareBCD;
+      ftString, ftFixedChar, ftGuid:
+        ACompareRec.CompareFunc := @DBCompareText;
+      ftWideString, ftFixedWideChar:
+        ACompareRec.CompareFunc := @DBCompareWideText;
+      ftSmallint:
+        ACompareRec.CompareFunc := @DBCompareSmallInt;
+      ftInteger, ftAutoInc:
+        ACompareRec.CompareFunc := @DBCompareInt;
+      ftLargeint, ftBCD:
+        ACompareRec.CompareFunc := @DBCompareLargeInt;
+      ftWord:
+        ACompareRec.CompareFunc := @DBCompareWord;
+      ftBoolean:
+        ACompareRec.CompareFunc := @DBCompareByte;
+      ftDate, ftTime, ftDateTime,
+      ftFloat, ftCurrency:
+        ACompareRec.CompareFunc := @DBCompareDouble;
+      ftFmtBCD:
+        ACompareRec.CompareFunc := @DBCompareBCD;
+      ftVarBytes:
+        ACompareRec.CompareFunc := @DBCompareVarBytes;
+      ftBytes:
+        ACompareRec.CompareFunc := @DBCompareBytes;
     else
       DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
     end;
 
-    ACompareRec.Off1:=BufferOffset + FFieldBufPositions[AField.FieldNo-1];
-    ACompareRec.Off2:=ACompareRec.Off1;
+    ACompareRec.Off:=BufferOffset + FFieldBufPositions[AField.FieldNo-1];
+    ACompareRec.NullBOff:=BufferOffset;
 
-    ACompareRec.FieldInd1:=AField.FieldNo-1;
-    ACompareRec.FieldInd2:=ACompareRec.FieldInd1;
-
-    ACompareRec.NullBOff1:=BufferOffset;
-    ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
+    ACompareRec.FieldInd:=AField.FieldNo-1;
+    ACompareRec.Size:=GetFieldSize(FieldDefs[ACompareRec.FieldInd]);
 
     ACompareRec.Desc := ixDescending in AIndexOptions;
     if assigned(ADescFields) then
@@ -2084,7 +2118,8 @@ end;
 
 function TCustomBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-var CurrBuff : TRecordBuffer;
+var
+  CurrBuff : TRecordBuffer;
 
 begin
   Result := False;
@@ -2102,7 +2137,7 @@ begin
   else
     CurrBuff := GetCurrentBuffer;
 
-  if not assigned(CurrBuff) then Exit;
+  if not assigned(CurrBuff) then Exit; //Null value
 
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
@@ -2140,7 +2175,7 @@ var CurrBuff : pointer;
 
 begin
   if not (State in dsWriteModes) then
-    DatabaseError(SNotEditing, Self);
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
   CurrBuff := GetCurrentBuffer;
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
@@ -2418,7 +2453,7 @@ procedure TCustomBufDataset.InternalCancel;
 Var i            : integer;
 
 begin
-  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+  if assigned(FUpdateBlobBuffers) then for i:=0 to high(FUpdateBlobBuffers) do
     if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
       FreeBlobBuffer(FUpdateBlobBuffers[i]);
 end;
@@ -2427,26 +2462,14 @@ procedure TCustomBufDataset.InternalPost;
 
 Var ABuff        : TRecordBuffer;
     i            : integer;
-    bufblob      : TBufBlobField;
-    NullMask     : pbyte;
     ABookmark    : PBufBookmark;
 
 begin
   inherited InternalPost;
 
-  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+  if assigned(FUpdateBlobBuffers) then for i:=0 to high(FUpdateBlobBuffers) do
    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
-    begin
-    bufblob.BlobBuffer := FUpdateBlobBuffers[i];
-    NullMask := PByte(ActiveBuffer);
-
-    if bufblob.BlobBuffer^.Size = 0 then
-      SetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1)
-    else
-      unSetFieldIsNull(NullMask, bufblob.BlobBuffer^.FieldNo-1);
-
-    bufblob.BlobBuffer^.FieldNo := -1;
-    end;
+    FUpdateBlobBuffers[i]^.FieldNo := -1;
 
   if State = dsInsert then
     begin
@@ -2760,8 +2783,11 @@ begin
       else
         FBlobBuffer^.OrgBufID := -1;
       bufblob.BlobBuffer := FBlobBuffer;
-      // redirect pointer in current record buffer to new write blob buffer
+
       CurrBuff := GetCurrentBuffer;
+      // unset null flag for blob field
+      unSetFieldIsNull(PByte(CurrBuff), Field.FieldNo-1);
+      // redirect pointer in current record buffer to new write blob buffer
       inc(CurrBuff, FDataSet.FFieldBufPositions[Field.FieldNo-1]);
       Move(bufblob, CurrBuff^, FDataSet.GetFieldSize(FDataSet.FieldDefs[Field.FieldNo-1]));
       FModified := True;
@@ -2773,11 +2799,16 @@ begin
   if FModified then
     begin
     // if TBufBlobStream was requested, but no data was written, then Size = 0;
-    //  used by TBlobField.Clear, so in this case set Field to null in InternalPost
+    //  used by TBlobField.Clear, so in this case set Field to null
     //FField.Modified := True; // should be set to True, but TBlobField.Modified is never reset
 
     if not (FDataSet.State in [dsFilter, dsCalcFields, dsNewValue]) then
+      begin
+      if FBlobBuffer^.Size = 0 then // empty blob = IsNull
+        // blob stream should be destroyed while DataSet is in write state
+        SetFieldIsNull(PByte(FDataSet.GetCurrentBuffer), FField.FieldNo-1);
       FDataSet.DataEvent(deFieldChange, PtrInt(FField));
+      end;
     end;
   inherited Destroy;
 end;
@@ -2798,7 +2829,7 @@ begin
   else if Mode = bmWrite then
     begin
     if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-      DatabaseErrorFmt(SNotEditing,[Name],self);
+      DatabaseErrorFmt(SNotEditing, [Name], Self);
     if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
 
@@ -2976,7 +3007,7 @@ procedure TCustomBufDataset.CreateDataset;
 var AStoreFileName: string;
 begin
   CheckInactive;
-  if ((FieldCount=0) or (FieldDefs.Count=0)) then
+  if ((Fields.Count=0) or (FieldDefs.Count=0)) then
     begin
     if (FieldDefs.Count>0) then
       CreateFields
@@ -2989,7 +3020,7 @@ begin
       raise Exception.Create(SErrNoFieldsDefined);
     FAutoIncValue:=1;
     end;
-  // When a FileName is set, do not read from this file
+  // When a FileName is set, do not read from this file; we want empty dataset
   AStoreFileName:=FFileName;
   FFileName := '';
   try
@@ -3007,7 +3038,9 @@ end;
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
   ): Longint;
 begin
-  if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2)) then
+  if not assigned(Bookmark1) or not assigned(Bookmark2) then
+    Result := 0
+  else if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2)) then
     Result := 0
   else
     Result := -1;
@@ -3016,6 +3049,13 @@ end;
 procedure TCustomBufDataset.IntLoadFieldDefsFromFile;
 
 begin
+  FReadFromFile := True;
+  if not assigned(FDatasetReader) then
+    begin
+    FFileStream := TFileStream.Create(FileName, fmOpenRead);
+    FDatasetReader := GetPacketReader(dfAny, FFileStream);
+    end;
+
   FieldDefs.Clear;
   FDatasetReader.LoadFieldDefs(FAutoIncValue);
   if DefaultFields then

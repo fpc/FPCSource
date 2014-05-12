@@ -72,10 +72,101 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
+{$define FPC_SYSTEM_HAS_FILLDWORD}
+procedure FillDWord(var x;count : SizeInt;value : dword);assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 6 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+{$ifdef FPC_X86_DATA_NEAR}
+  mov di, ss:[bx + 8 + extra_param_offset]  // @x
+  mov ax, ds
+  mov es, ax
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 8 + extra_param_offset]  // @x
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[bx + 2 + extra_param_offset]  // lo(value)
+  mov bx, ss:[bx + 4 + extra_param_offset]  // hi(value)
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  cmp ax, bx
+  jne @@lo_hi_different
+  shl cx, 1
+  rep stosw
+  jmp @@Done
+
+@@lo_hi_different:
+  stosw
+  xchg ax, bx
+  stosw
+  xchg ax, bx
+  loop @@lo_hi_different
+
+  @@Done:
+end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOVE}
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // count
+  or cx, cx
+  jle @@Done
+
+  mov ax, ds  // for far data models, backup ds; for near data models, use to initialize es
+{$ifdef FPC_X86_DATA_NEAR}
+  mov es, ax
+  mov si, ss:[bx + 6 + extra_param_offset]  // @source
+  mov di, ss:[bx + 4 + extra_param_offset]  // @dest
+{$else FPC_X86_DATA_NEAR}
+  lds si, ss:[bx + 8 + extra_param_offset]  // @source
+  les di, ss:[bx + 4 + extra_param_offset]  // @dest
+{$endif FPC_X86_DATA_NEAR}
+
+  cmp si, di
+  jb @@BackwardsMove
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  rep movsb
+  jmp @@AfterMove  // todo, add mov ds,ax & ret here for performance reasons
+
+@@BackwardsMove:
+  std
+  add si, cx
+  add di, cx
+  dec si
+  dec di
+  rep movsb  // todo: movsw
+  cld
+
+@@AfterMove:
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, ax
+{$endif}
+
+@@Done:
+end;
+{$endif FPC_SYSTEM_HAS_MOVE}
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;nostackframe;
 asm
   mov ax, sp
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov dx, ss
+{$endif}
 end;
 
 {$define FPC_SYSTEM_HAS_PTR}
@@ -109,6 +200,9 @@ end;
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   mov ax, bp
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov dx, ss
+{$endif}
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
@@ -152,49 +246,124 @@ asm
 @@Lgnf_null:
 end;
 
-{TODO: fix, use smallint?}
+{TODO: use smallint?}
 function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
-  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  pushf
+  cli
   sub word [bx], 1
   sbb word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bp
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
-{TODO: fix, use smallint?}
+{TODO: use smallint?}
 function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
 asm
-  push bp
-  mov bp, sp
-  mov bx, ss:[bp + 4 + extra_param_offset]  // Target
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  pushf
+  cli
   add word [bx], 1
   adc word [bx+2], 0
   mov ax, [bx]
   mov dx, [bx+2]
-  pop bp
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
-{TODO: fix, use smallint?}
-function InterLockedExchange (var Target: longint;Source : longint) : longint;
-begin
-  InterLockedExchange := Target;
-  Target := Source;
+{TODO: use smallint?}
+function InterLockedExchange (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 6 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 6 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[si + 2 + extra_param_offset]  // Lo(Source)
+  mov dx, ss:[si + 4 + extra_param_offset]  // Hi(Source)
+  pushf
+  cli
+  xchg word [bx], ax
+  xchg word [bx+2], dx
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
-{TODO: implement}
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
-begin
-  runerror(304);
+{TODO: use smallint?}
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 6 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 6 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov di, ss:[si + 2 + extra_param_offset]  // Lo(Source)
+  mov si, ss:[si + 4 + extra_param_offset]  // Hi(Source)
+  pushf
+  cli
+  mov ax, [bx]
+  mov dx, [bx+2]
+  add word [bx], di
+  adc word [bx+2], si
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
-{TODO: implement}
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
-begin
-  runerror(304);
+{TODO: use smallint?}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;assembler;
+asm
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, [Target]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, [Target]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov di, [Comperand]
+  mov si, [Comperand+2]
+  pushf
+  cli
+  mov ax, [bx]
+  mov dx, [bx+2]
+  cmp ax, di
+  jne @@not_equal
+  cmp dx, si
+  jne @@not_equal
+  mov di, [NewValue]
+  mov si, [NewValue+2]
+  mov [bx], di
+  mov [bx+2], si
+@@not_equal:
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
 end;
 
 
@@ -354,6 +523,26 @@ end;
 
 
 {****************************************************************************
+                                  HexStr
+****************************************************************************}
+
+{$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
+function HexStr(Val: NearPointer): ShortString;
+begin
+  HexStr:=HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: FarPointer): ShortString;
+type
+  TFarPointerRec = record
+    Offset, Segment: Word;
+  end;
+begin
+  HexStr:=HexStr(TFarPointerRec(Val).Segment,4)+':'+HexStr(TFarPointerRec(Val).Offset,4);
+end;
+
+
+{****************************************************************************
                                   FPU
 ****************************************************************************}
 
@@ -428,7 +617,6 @@ procedure DetectFPU;
 Procedure SysInitFPU;
   var
     { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
@@ -437,7 +625,6 @@ Procedure SysInitFPU;
       fldcw   localfpucw
       fwait
     end;
-    softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   end;
 
 
@@ -445,7 +632,6 @@ Procedure SysInitFPU;
 Procedure SysResetFPU;
   var
     { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
@@ -454,7 +640,6 @@ Procedure SysResetFPU;
       fwait
       fldcw   localfpucw
     end;
-    softfloat_exception_flags:=0;
   end;
 
 {$I int32p.inc}

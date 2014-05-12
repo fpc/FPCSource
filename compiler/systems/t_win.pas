@@ -101,7 +101,6 @@ implementation
 
 
   const
-{$ifndef x86_64}
     res_gnu_windres_info : tresinfo =
         (
           id     : res_gnu_windres;
@@ -112,7 +111,6 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
-{$else x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
@@ -123,7 +121,6 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
-{$endif x86_64}
 
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
@@ -1837,6 +1834,7 @@ initialization
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
+  RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterRes(res_win64_gorc_info,TWinLikeResourceFile);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}

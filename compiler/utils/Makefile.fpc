@@ -3,11 +3,11 @@
 #
 
 [target]
-programs=fpc ppufiles ppudump ppumove fpcsubst mkarmins mkx86ins
+programs=fpc ppufiles ppudump ppumove mkarmins mkx86ins
 rst=fpcsubst
 
 [clean]
-units=ppu crc usubst
+units=ppu crc
 
 [compiler]
 unitdir=..

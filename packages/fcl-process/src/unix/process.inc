@@ -125,8 +125,8 @@ Function DetectXterm : String;
 Const
   Konsole   = 'konsole';
   GNomeTerm = 'gnome-terminal';
-  DefaultTerminals : Array [1..5] of string
-                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt');
+  DefaultTerminals : Array [1..6] of string
+                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt','xfce4-terminal');
 
 Var
   D :String;
@@ -153,7 +153,9 @@ begin
         begin
         If not TestTerminal('aterm') then
           TestTerminal('wterm');
-        end;
+        end
+      else if (D='xfce') then
+        TestTerminal('xfce4-terminal');
       end;
     if (XTermProgram='') then
       TestTerminals(DefaultTerminals)

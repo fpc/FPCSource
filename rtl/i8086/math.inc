@@ -14,7 +14,6 @@
 
  **********************************************************************}
 
-{$asmmode intel}
 
 {****************************************************************************
                             FPU Control word
@@ -34,26 +33,16 @@
 
     function Get8087CW:word;assembler;
       asm
-        push bp
-        mov bp, sp
-        push ax
-        fnstcw [bp - 2]
-        pop ax
-        mov sp, bp
-        pop bp
+	    push ax
+		mov bx, sp
+		fnstcw word ptr ss:[bx]
+		pop ax
       end;
 
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
 
-    {$define FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -274,5 +263,19 @@
         mov cx, [bp-6]
         mov bx, [bp-4]
         mov ax, [bp-2]
+      end;
+
+    {$define FPC_SYSTEM_HAS_ROUND}
+    function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
+      var
+        tmp: int64;
+      asm
+        fld    tbyte [d]
+        fistp  qword [tmp]
+        fwait
+        mov  dx, [tmp]
+        mov  cx, [tmp+2]
+        mov  bx, [tmp+4]
+        mov  ax, [tmp+6]
       end;
 

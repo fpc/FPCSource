@@ -409,12 +409,12 @@ begin
   StackBottom := Sptr - StackLength;
   ReturnNilIfGrowHeapFails := False;
   
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
   { Set up signals handlers }
   InstallSignals;
+
+{$ifdef cpui386}
+  fpc_cpucodeinit;
+{$endif}
 
   { Setup heap }
   myheapsize:=4096*100;// $ 20000;

@@ -486,26 +486,26 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-             ibpointerdef : def:=tpointerdef.ppuload(ppufile);
-             ibarraydef : def:=tarraydef.ppuload(ppufile);
-             iborddef : def:=torddef.ppuload(ppufile);
-             ibfloatdef : def:=tfloatdef.ppuload(ppufile);
-             ibprocdef : def:=tprocdef.ppuload(ppufile);
-             ibshortstringdef : def:=tstringdef.loadshort(ppufile);
-             iblongstringdef : def:=tstringdef.loadlong(ppufile);
-             ibansistringdef : def:=tstringdef.loadansi(ppufile);
-             ibwidestringdef : def:=tstringdef.loadwide(ppufile);
-             ibunicodestringdef : def:=tstringdef.loadunicode(ppufile);
-             ibrecorddef : def:=trecorddef.ppuload(ppufile);
-             ibobjectdef : def:=tobjectdef.ppuload(ppufile);
-             ibenumdef : def:=tenumdef.ppuload(ppufile);
-             ibsetdef : def:=tsetdef.ppuload(ppufile);
-             ibprocvardef : def:=tprocvardef.ppuload(ppufile);
-             ibfiledef : def:=tfiledef.ppuload(ppufile);
-             ibclassrefdef : def:=tclassrefdef.ppuload(ppufile);
-             ibformaldef : def:=tformaldef.ppuload(ppufile);
-             ibvariantdef : def:=tvariantdef.ppuload(ppufile);
-             ibundefineddef : def:=tundefineddef.ppuload(ppufile);
+             ibpointerdef : def:=cpointerdef.ppuload(ppufile);
+             ibarraydef : def:=carraydef.ppuload(ppufile);
+             iborddef : def:=corddef.ppuload(ppufile);
+             ibfloatdef : def:=cfloatdef.ppuload(ppufile);
+             ibprocdef : def:=cprocdef.ppuload(ppufile);
+             ibshortstringdef : def:=cstringdef.loadshort(ppufile);
+             iblongstringdef : def:=cstringdef.loadlong(ppufile);
+             ibansistringdef : def:=cstringdef.loadansi(ppufile);
+             ibwidestringdef : def:=cstringdef.loadwide(ppufile);
+             ibunicodestringdef : def:=cstringdef.loadunicode(ppufile);
+             ibrecorddef : def:=crecorddef.ppuload(ppufile);
+             ibobjectdef : def:=cobjectdef.ppuload(ppufile);
+             ibenumdef : def:=cenumdef.ppuload(ppufile);
+             ibsetdef : def:=csetdef.ppuload(ppufile);
+             ibprocvardef : def:=cprocvardef.ppuload(ppufile);
+             ibfiledef : def:=cfiledef.ppuload(ppufile);
+             ibclassrefdef : def:=cclassrefdef.ppuload(ppufile);
+             ibformaldef : def:=cformaldef.ppuload(ppufile);
+             ibvariantdef : def:=cvariantdef.ppuload(ppufile);
+             ibundefineddef : def:=cundefineddef.ppuload(ppufile);
              ibenddefs : break;
              ibend : Message(unit_f_ppu_read_error);
            else
@@ -529,21 +529,21 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-                ibtypesym : sym:=ttypesym.ppuload(ppufile);
-                ibprocsym : sym:=tprocsym.ppuload(ppufile);
-               ibconstsym : sym:=tconstsym.ppuload(ppufile);
-           ibstaticvarsym : sym:=tstaticvarsym.ppuload(ppufile);
-            iblocalvarsym : sym:=tlocalvarsym.ppuload(ppufile);
-             ibparavarsym : sym:=tparavarsym.ppuload(ppufile);
-            ibfieldvarsym : sym:=tfieldvarsym.ppuload(ppufile);
-         ibabsolutevarsym : sym:=tabsolutevarsym.ppuload(ppufile);
-                ibenumsym : sym:=tenumsym.ppuload(ppufile);
-            ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
-                ibunitsym : sym:=tunitsym.ppuload(ppufile);
-               iblabelsym : sym:=tlabelsym.ppuload(ppufile);
-                 ibsyssym : sym:=tsyssym.ppuload(ppufile);
+                ibtypesym : sym:=ctypesym.ppuload(ppufile);
+                ibprocsym : sym:=cprocsym.ppuload(ppufile);
+               ibconstsym : sym:=cconstsym.ppuload(ppufile);
+           ibstaticvarsym : sym:=cstaticvarsym.ppuload(ppufile);
+            iblocalvarsym : sym:=clocalvarsym.ppuload(ppufile);
+             ibparavarsym : sym:=cparavarsym.ppuload(ppufile);
+            ibfieldvarsym : sym:=cfieldvarsym.ppuload(ppufile);
+         ibabsolutevarsym : sym:=cabsolutevarsym.ppuload(ppufile);
+                ibenumsym : sym:=cenumsym.ppuload(ppufile);
+            ibpropertysym : sym:=cpropertysym.ppuload(ppufile);
+                ibunitsym : sym:=cunitsym.ppuload(ppufile);
+               iblabelsym : sym:=clabelsym.ppuload(ppufile);
+                 ibsyssym : sym:=csyssym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
-           ibnamespacesym : sym:=tnamespacesym.ppuload(ppufile);
+           ibnamespacesym : sym:=cnamespacesym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -2135,7 +2135,7 @@ implementation
             system.delete(n,1,p);
             oldsym:=findnamespace(upper(ns));
             if not assigned(oldsym) then
-              insert(tnamespacesym.create(ns));
+              insert(cnamespacesym.create(ns));
             p:=pos('.',n);
           end;
       end;
@@ -3592,29 +3592,42 @@ implementation
 
           if srsym<>nil then
             begin
-              if srsym.typ=propertysym then
-                begin
-                  result:=true;
-                  exit;
-                end;
-              for i:=0 to tprocsym(srsym).procdeflist.count-1 do
-                begin
-                  pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
-                  if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
-                    continue;
-                  { we need to know if a procedure references symbols
-                    in the static symtable, because then it can't be
-                    inlined from outside this unit }
-                  if assigned(current_procinfo) and
-                     (srsym.owner.symtabletype=staticsymtable) then
-                    include(current_procinfo.flags,pi_uses_static_symtable);
-                  { the first found method wins }
-                  srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
-                  srsymtable:=srsym.owner;
-                  addsymref(srsym);
-                  result:=true;
-                  exit;
-                end;
+              case srsym.typ of
+                procsym:
+                  begin
+                    for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                      begin
+                        pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
+                        if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
+                          continue;
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        { the first found method wins }
+                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                        srsymtable:=srsym.owner;
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+                typesym,
+                fieldvarsym,
+                constsym,
+                enumsym,
+                undefinedsym,
+                propertysym:
+                  begin
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+                else
+                  internalerror(2014041101);
+              end;
             end;
 
           { try the helper parent if available }
@@ -4044,7 +4057,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
-       generrordef:=terrordef.create;
+       generrordef:=cerrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false);
        macrosymtablestack:=TSymtablestack.create;

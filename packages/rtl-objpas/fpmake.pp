@@ -14,6 +14,8 @@ Const
 
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
 //    unixlikes-[beos];
+// 
+  StrUtilsOSes  = [amiga,emx,gba,go32v2,msdos,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
   VarUtilsOSes  = [amiga,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes;
   ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+UnixLikes-[BeOS];
   ConvUtilOSes  = [Go32v2,msdos,os2,emx];
@@ -24,7 +26,7 @@ Const
   VariantsOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
-		  FmtBCDOSes;
+		  FmtBCDOSes + StrUtilsOSes;
 
 Var
   P : TPackage;
@@ -56,6 +58,8 @@ begin
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
 
+
+    T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
     T:=P.Targets.AddUnit('varutils.pp',VarUtilsOses);
     with T.Dependencies do
       begin

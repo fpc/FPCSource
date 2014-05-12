@@ -1002,8 +1002,6 @@ unit raatt;
         end;
        curlist:=TAsmList.Create;
        lasTSec:=sec_code;
-       { setup label linked list }
-       LocalLabelList:=TLocalLabelList.Create;
        { start tokenizer }
        c:=current_scanner.asmgetcharstart;
        gettoken;
@@ -1256,9 +1254,8 @@ unit raatt;
              end;
          end;
        until false;
-       { Check LocalLabelList }
-       LocalLabelList.CheckEmitted;
-       LocalLabelList.Free;
+       { check that all referenced local labels are defined }
+       checklocallabels;
        { are we back in the code section? }
        if lasTSec<>sec_code then
         begin

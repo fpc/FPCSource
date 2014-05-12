@@ -11,6 +11,30 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{-------------------------------------------------------------------------
+ Using functions from AMath/DAMath libraries, which are covered by the
+ following license:
+
+ (C) Copyright 2009-2013 Wolfgang Ehrhardt
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from
+ the use of this software.
+
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software in
+    a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+ 3. This notice may not be removed or altered from any source distribution.
+----------------------------------------------------------------------------}
 {
   This unit is an equivalent to the Delphi math unit
   (with some improvements)
@@ -151,10 +175,10 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 
 // Sign functions
 Type
@@ -244,6 +268,15 @@ function gradtodeg(grad : float) : float;inline;
 { one cycle are 2*Pi rad }
 function cycletorad(cycle : float) : float;inline;
 function radtocycle(rad : float) : float;inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+{$ENDIF}
 
 { trigoniometric functions }
 
@@ -532,8 +565,21 @@ function RandomFrom(const AValues: array of Double): Double; overload;
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 function RandomFrom(const AValues: array of Int64): Int64; overload;
 
-{ include cpu specific stuff }
-{$i mathuh.inc}
+{ cpu specific stuff }
+type
+  TFPURoundingMode = system.TFPURoundingMode;
+  TFPUPrecisionMode = system.TFPUPrecisionMode;
+  TFPUException = system.TFPUException;
+  TFPUExceptionMask = system.TFPUExceptionMask;
+
+function GetRoundMode: TFPURoundingMode;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+function GetPrecisionMode: TFPUPrecisionMode;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+function GetExceptionMask: TFPUExceptionMask;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+procedure ClearExceptions(RaisePending: Boolean =true);
+
 
 implementation
 
@@ -657,6 +703,31 @@ function radtocycle(rad : float) : float;inline;
      radtocycle:=rad*(1/(2*pi));
   end;
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; 
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If (Result<0) then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
+
 {$ifndef FPC_MATH_HAS_TAN}
 function tan(x : float) : float;
   var
@@ -736,7 +807,7 @@ begin
   csc := cosecant(x);
 end;
 
-
+{ arcsin and arccos functions from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function arcsin(x : float) : float;
 begin
   arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
@@ -834,6 +905,7 @@ function artanh(x : float) : float;
     artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
 
+{ hypot function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function hypot(x,y : float) : float;
   begin
     x:=abs(x);
@@ -863,6 +935,7 @@ function logn(n,x : float) : float;
      logn:=ln(x)/ln(n);
   end;
 
+{ lnxp1 function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function lnxp1(x : float) : float;
   var
     y: float;
@@ -875,7 +948,11 @@ function lnxp1(x : float) : float;
         if (y=1.0) then
           lnxp1:=x
         else
-          lnxp1:=ln(y)+(x-(y-1.0))/y;
+          begin
+            lnxp1:=ln(y);     { lnxp1(-1) = ln(0) = -Inf }
+            if y>0.0 then
+              lnxp1:=lnxp1+(x-(y-1.0))/y;
+          end;
       end;
   end;
 
@@ -2174,7 +2251,7 @@ end;
 // Some CPUs probably allow a faster way of doing this in a single operation...
 // There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef FPC_MATH_HAS_DIVMOD}
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: Word);
 begin
   if Dividend < 0 then
     begin
@@ -2195,7 +2272,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 begin
   if Dividend < 0 then
     begin
@@ -2223,7 +2300,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 begin
   if Dividend < 0 then
     begin

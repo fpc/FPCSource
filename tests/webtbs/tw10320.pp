@@ -14,7 +14,7 @@ type
     function GetP(Index : integer) : Pointer;
     constructor create;
   public
-    property P[Index: LongInt]: Pointer read GetP;
+    property P[Index: Integer]: Pointer read GetP;
   end;
   
 var a : TRgbArray;

@@ -261,21 +261,30 @@ type
     end;
   end;
 
-  procedure PrintRecord(DBf: TDBf; RecordNumber: integer);
-  // Prints contents of a record to screen
+  procedure PrintRecords(DBf: TDBf);
+  // Prints contents of available records to screen
   var
     i: integer;
+    RecordCount: integer;
   begin
-    writeln('Record ' + IntToStr(RecordNumber));
-    for i := 0 to DBf.Fields.Count - 1 do
+    Dbf.First;
+    RecordCount:=0;
+    while not (Dbf.EOF) do
     begin
-      if DBF.fields[i].IsNull then
-        writeln('Field ', DBf.Fields[i].FieldName, ' is          ***NULL***')
-      else
-      if DBF.Fields[i].DataType in [ftVarBytes, ftBytes] then
-        writeln('Field ', DBF.Fields[i].FieldName, ' has value: binary ' + BinFieldToHex(DBF.Fields[i]))
-      else
-        writeln('Field ', DBf.Fields[i].FieldName, ' has value: ' + DBf.fields[i].AsString);
+      RecordCount := RecordCount + 1;
+      writeln('Record ' + IntToStr(RecordCount));
+      for i := 0 to DBf.Fields.Count - 1 do
+      begin
+        if DBF.fields[i].IsNull then
+          writeln('Field ', DBf.Fields[i].FieldName, ' is          ***NULL***')
+        else
+        if DBF.Fields[i].DataType in [ftVarBytes, ftBytes] then
+          writeln('Field ', DBF.Fields[i].FieldName, ' has value: binary ' + BinFieldToHex(DBF.Fields[i]))
+        else
+          writeln('Field ', DBf.Fields[i].FieldName, ' has value: ' + DBf.fields[i].AsString);
+      end;
+      DBF.Next;
+      writeln('');
     end;
   end;
 
@@ -415,8 +424,7 @@ type
     ErrorMsg: string;
     FileNo: integer;
     MyDbf: TDbf;
-    RecCount: integer;
-    TableLevel: integer; //todo: use it
+    TableLevel: integer;
   begin
     // quick check parameters
     ErrorMsg := CheckOptions('h', 'createdemo exportformat: help tablelevel:');
@@ -485,14 +493,7 @@ type
             writeln('Database tablelevel: ' + IntToStr(MyDbf.TableLevel));
             writeln('Database codepage:   ' + IntToStr(MyDBF.CodePage));
 
-            RecCount := 1;
-            while not (MyDbf.EOF) do
-            begin
-              PrintRecord(MyDBF, RecCount);
-              MyDBF.Next;
-              RecCount := RecCount + 1;
-              writeln('');
-            end;
+            PrintRecords(MyDBF);
 
             if HasOption('exportformat') then
             begin

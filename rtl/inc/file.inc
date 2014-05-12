@@ -430,10 +430,14 @@ End;
 
 Procedure Erase(var f : File);[IOCheck];
 Begin
-  If InOutRes <> 0 then
-   exit;
-  If FileRec(f).mode=fmClosed Then
-   Do_Erase(PFileTextRecChar(@FileRec(f).Name),false);
+  if InOutRes<>0 then
+    exit;
+  if FileRec(f).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+  Do_Erase(PFileTextRecChar(@FileRec(f).Name),false);
 End;
 
 
@@ -443,9 +447,13 @@ var
   fs: RawByteString;
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 Begin
-  If (InOutRes<>0) or
-     (FileRec(f).mode<>fmClosed) then
+  if InOutRes<>0 then
     exit;
+  if FileRec(f).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   { it's slightly faster to convert the unicodestring here to rawbytestring
     than doing it in do_rename(), because here we still know the length }
@@ -476,9 +484,13 @@ var
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   dstchangeable: boolean;
 Begin
-  If (InOutRes<>0) or
-     (FileRec(f).mode<>fmClosed) then
+  if InOutRes<>0 then
     exit;
+  if FileRec(f).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   dstchangeable:=false;
   pdst:=PAnsiChar(s);
@@ -532,19 +544,21 @@ End;
 var
   len: SizeInt
 Begin
-  If InOutRes<>0 then
+  if InOutRes<>0 then
     exit;
-  If FileRec(f).mode=fmClosed Then
-    Begin
-      Do_Rename(PFileTextRecChar(@FileRec(f).Name),p,false);
-      { check error code of do_rename }
-      If InOutRes=0 then
-        begin
-          len:=min(StrLen(p),high(FileRec(f).Name));
-          Move(p^,FileRec(f).Name,len);
-          FileRec(f).Name[len]:=#0;
-        end;
-    End;
+  if FileRec(f).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+  Do_Rename(PFileTextRecChar(@FileRec(f).Name),p,false);
+  { check error code of do_rename }
+  if InOutRes=0 then
+    begin
+      len:=min(StrLen(p),high(FileRec(f).Name));
+      Move(p^,FileRec(f).Name,len);
+      FileRec(f).Name[len]:=#0;
+    end;
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 

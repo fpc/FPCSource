@@ -559,6 +559,9 @@ unit cgobj;
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: TAsmList; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
+
+    { Creates a tregister64 record from 2 32 Bit registers. }
+    function joinreg64(reglo,reghi : tregister) : tregister64;
 {$endif cpu64bitalu}
 
     var
@@ -951,7 +954,7 @@ implementation
                    { we're at the end of the data, and it can be loaded into
                      the current location's register with a single regular
                      load }
-                   else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                   else if sizeleft in [1,2,4,8] then
                      begin
                        a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
                        if location^.shiftval<0 then
@@ -2510,6 +2513,13 @@ implementation
 *****************************************************************************}
 
 {$ifndef cpu64bitalu}
+    function joinreg64(reglo,reghi : tregister) : tregister64;
+      begin
+         result.reglo:=reglo;
+         result.reghi:=reghi;
+      end;
+
+
     procedure tcg64.a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);

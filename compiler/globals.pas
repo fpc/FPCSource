@@ -163,9 +163,9 @@ interface
 {$endif defined(ARM)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
          controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -402,7 +402,7 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];
@@ -510,9 +510,9 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -544,9 +544,9 @@ interface
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -1185,7 +1185,7 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
@@ -1201,7 +1201,7 @@ implementation
               break;
             end;
       end;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function IncludeFeature(const s : string) : boolean;

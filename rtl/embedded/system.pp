@@ -27,6 +27,8 @@ Unit System;
 { Do not use standard memory manager }
 {$define HAS_MEMORYMANAGER}
 
+{$define FPC_ANSI_TEXTFILEREC}
+
 {$I check.inc}
 
 {$I systemh.inc}
@@ -210,6 +212,8 @@ var
 
 begin
 {$ifdef FPC_HAS_FEATURE_FPU}
+  { Beware: The same code is executed from fpc_cpuinit, which is included
+    per-cpu unconditionally }
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;

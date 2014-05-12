@@ -62,7 +62,8 @@ implementation
     procedure ti8086callnode.extra_interrupt_code;
       begin
         emit_none(A_PUSHF,S_W);
-        emit_reg(A_PUSH,S_W,NR_CS);
+        if current_settings.x86memorymodel in x86_near_code_models then
+          emit_reg(A_PUSH,S_W,NR_CS);
       end;
 
 
@@ -98,7 +99,7 @@ implementation
 
     procedure ti8086callnode.extra_call_ref_code(var ref: treference);
       begin
-        if ref.base<>NR_NO then
+        if (ref.base<>NR_NO) and (ref.base<>NR_BP) then
           begin
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
@@ -118,8 +119,9 @@ implementation
     function ti8086callnode.do_call_ref(ref: treference): tcgpara;
       begin
         if current_settings.x86memorymodel in x86_far_code_models then
-          ref.refaddr:=addr_far_ref;
-        current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
+        else
+          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
         result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
       end;
 

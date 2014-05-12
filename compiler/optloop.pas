@@ -155,7 +155,7 @@ unit optloop;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$optunrol'));
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$optunrol'));
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 

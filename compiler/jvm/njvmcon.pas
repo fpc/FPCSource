@@ -85,7 +85,7 @@ implementation
 
     uses
       globals,cutils,widestr,verbose,constexp,fmodule,
-      symdef,symsym,symtable,symconst,
+      symdef,symsym,symcpu,symtable,symconst,
       aasmdata,aasmcpu,defutil,
       nutils,ncnv,nld,nmem,pjvm,pass_1,
       cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
@@ -98,7 +98,7 @@ implementation
 
     function tjvmordconstnode.pass_1: tnode;
       var
-        basedef: tenumdef;
+        basedef: tcpuenumdef;
         sym: tenumsym;
         classfield: tsym;
       begin
@@ -120,7 +120,7 @@ implementation
             exit;
           end;
         { b) find the corresponding class field }
-        basedef:=tenumdef(resultdef).getbasedef;
+        basedef:=tcpuenumdef(tenumdef(resultdef).getbasedef);
         classfield:=search_struct_member(basedef.classdef,sym.name);
 
         { c) create loadnode of the field }
@@ -313,7 +313,7 @@ implementation
             mp:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
             if len=0 then
               begin
-                enumele:=cloadvmtaddrnode.create(ctypenode.create(tenumdef(eledef).getbasedef.classdef));
+                enumele:=cloadvmtaddrnode.create(ctypenode.create(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
                 inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
                 paras:=ccallparanode.create(enumele,nil);
                 result:=ccallnode.createinternmethod(mp,'NONEOF',paras)
@@ -445,7 +445,7 @@ implementation
         { add a read-only typed constant }
         new(ps);
         ps^:=value_set^;
-        csym:=tconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
+        csym:=cconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
         csym.visibility:=vis_private;
         include(csym.symoptions,sp_internal);
         current_module.localsymtable.insert(csym);

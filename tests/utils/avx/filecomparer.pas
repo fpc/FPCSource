@@ -16,7 +16,7 @@ type
 
     function Compare(const aFileName1, aFilename2: String; var aMsg: String): boolean;
   public
-    procedure CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtention: String);
+    procedure CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtension: String);
   end;
 
 
@@ -40,7 +40,7 @@ begin
   begin
     aMsg := format('file "%s" not found', [aFileName1]);
   end
-  else if not(FileExists(aFileName1)) then
+  else if not(FileExists(aFileName2)) then
   begin
     aMsg := format('file "%s" not found', [aFileName2]);
   end
@@ -55,7 +55,11 @@ begin
         MStream2.Position := 0;
 
         if MStream1.Size < 1 then aMsg := format('file "%s": start or endmarker not found', [aFilename1])
-        else if MStream2.Size < 1 then aMsg := format('file "%s": start or endmarker not found', [aFilename2])
+        else if MStream2.Size < 1 then
+        begin
+          aMsg := format('file "%s": start or endmarker not found', [aFilename2]);
+          aMsg := aMsg + #13#10 + format('Size: %d', [MStream2.Size]);
+        end
         else
         begin
           if MStream1.Size <> MStream2.Size then aMsg := format('diff: file: "%s"  size: %d - file: "%s"  size: %d',
@@ -76,7 +80,7 @@ begin
   end;
 end;
 
-procedure TFileComparer.CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtention: String);
+procedure TFileComparer.CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtension: String);
 var
   i: integer;
   sl: TStringList;
@@ -85,16 +89,16 @@ var
   FileName: String;
   SourceFileName: String;
   DestFileName: String;
-  DestFileExtention: String;
+  DestFileExtension: String;
   Msg: String;
 begin
   Path := IncludeTrailingBackslash(ExtractFilePath(aSourceMask));
-  DestFileExtention := aDestFileExtention;
+  DestFileExtension := aDestFileExtension;
 
-  if (DestFileExtention <> '') and
-     (copy(DestFileExtention, 1, 1) <> '.') then
+  if (DestFileExtension <> '') and
+     (copy(DestFileExtension, 1, 1) <> '.') then
   begin
-    DestFileExtention := '.' + DestFileExtention;
+    DestFileExtension := '.' + DestFileExtension;
   end;
 
   sl := TStringList.Create;
@@ -109,7 +113,7 @@ begin
     begin
       sl.Sort;
 
-      if aDestFileExtention <> '' then
+      if aDestFileExtension <> '' then
       begin
         FileName := copy(sl[i], 1, length(sl[i]) - length(ExtractFileExt(sl[i])));
 
@@ -129,7 +133,7 @@ begin
       end;
 
       SourceFileName := Path + sl[i];
-      DestFileName := IncludeTrailingBackslash(aDestpath) + FileName + DestFileExtention;
+      DestFileName := IncludeTrailingBackslash(aDestpath) + FileName + DestFileExtension;
 
       if FileExists(SourceFileName) then
       begin
@@ -173,9 +177,9 @@ var
 
       NopCount := 0;
 
-      while MStream.Position < MStream.Size do
+      while aStream.Position < aStream.Size do
       begin
-        MStream.Read(ch, 1);
+        aStream.Read(ch, 1);
         if ch = 144 then
         begin
           inc(NopCount);
@@ -184,13 +188,25 @@ var
         begin
           if NopCount >= 10 then
           begin
-            if not(aEndPos) then result := MStream.Position
-             else result := MStream.Position - NopCount - 1;
+            if not(aEndPos) then result := aStream.Position
+             else result := aStream.Position - NopCount - 1;
+
             break;
           end
           else NopCount := 0;
         end;
       end;
+
+      if NopCount >= 10 then
+      begin
+        if (result < 0) and
+           (aStream.Position = aStream.Size) then
+        begin
+          if not(aEndPos) then result := aStream.Position
+           else result := aStream.Position - NopCount;
+        end;
+      end
+
     end;
   end;
 
@@ -209,7 +225,10 @@ begin
         if MStream.Size > StartPos + 16384 then
         begin
           EndPos := FindPos(MStream, MStream.Size - 16384, true);
-          if EndPos < 0 then EndPos := FindPos(MStream, StartPos, true);
+          if EndPos < 0 then
+          begin
+            EndPos := FindPos(MStream, StartPos, true);
+          end;
         end
         else EndPos := FindPos(MStream, StartPos, true);
       end;

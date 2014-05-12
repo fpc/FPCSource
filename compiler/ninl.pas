@@ -45,6 +45,7 @@ interface
           { pack and unpack are changed into for-loops by the compiler }
           function first_pack_unpack: tnode; virtual;
 
+          property parameters : tnode read left write left;
          protected
           { All the following routines currently
             call compilerprocs, unless they are
@@ -83,6 +84,7 @@ interface
           function typecheck_seg: tnode; virtual;
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
+          function first_fma : tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -108,7 +110,7 @@ implementation
     uses
       verbose,globals,systems,constexp,
       globtype,cutils,fmodule,
-      symconst,symdef,symsym,symtable,paramgr,defutil,symbase,
+      symconst,symdef,symsym,symcpu,symtable,paramgr,defutil,symbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
@@ -392,15 +394,25 @@ implementation
               not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
               ((def.typ=objectdef) and not is_object(def)) then
             internalerror(201202101);
-          defaultname:=make_mangledname('zero',def.owner,def.typesym.Name);
-          hashedid.id:=defaultname;
+          { extra '$' prefix because on darwin the result of makemangledname
+            is prefixed by '_' and hence adding a '$' at the start of the
+            prefix passed to makemangledname doesn't help (the whole point of
+            the copy() operation below is to ensure that the id does not start
+            with a '$', because that is interpreted specially by the symtable
+            routines -- that's also why we prefix with '$_', so it will still
+            work if make_mangledname() would somehow return a name that already
+            starts with '$' }
+          defaultname:='$_'+make_mangledname('zero',def.owner,def.typesym.Name);
+          { can't hardcode the position of the '$', e.g. on darwin an underscore
+            is added }
+          hashedid.id:=copy(defaultname,2,255);
           { the default sym is always part of the current procedure/function }
           srsymtable:=current_procinfo.procdef.localst;
           srsym:=tsym(srsymtable.findwithhash(hashedid));
           if not assigned(srsym) then
             begin
               { no valid default variable found, so create it }
-              srsym:=tlocalvarsym.create(defaultname,vs_const,def,[]);
+              srsym:=clocalvarsym.create(defaultname,vs_const,def,[]);
               srsymtable.insert(srsym);
               { mark the staticvarsym as typedconst }
               include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
@@ -2762,7 +2774,13 @@ implementation
                           begin
                             { will be handled in simplify }
                           end;
-                      end
+                      end;
+                    undefineddef :
+                      begin
+                        if not (df_generic in current_procinfo.procdef.defoptions) then
+                          CGMessage(type_e_mismatch);
+                        { otherwise nothing }
+                      end;
                     else
                       CGMessage(type_e_mismatch);
                   end;
@@ -3229,6 +3247,16 @@ implementation
                 begin
                   result:=handle_unbox;
                 end;
+              in_fma_single,
+              in_fma_double,
+              in_fma_extended,
+              in_fma_float128:
+                begin
+                  set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=tcallparanode(left).left.resultdef;
+                end;
               else
                 internalerror(8);
             end;
@@ -3343,7 +3371,7 @@ implementation
                     hp:=caddnode.create(subn,left,hp);
                   { assign result of addition }
                   if not(is_integer(resultdef)) then
-                    inserttypeconv(hp,torddef.create(
+                    inserttypeconv(hp,corddef.create(
 {$ifdef cpu64bitaddr}
                       s64bit,
 {$else cpu64bitaddr}
@@ -3452,7 +3480,7 @@ implementation
                      hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
                    if not(is_integer(resultnode.resultdef)) then
-                     inserttypeconv(hpp,torddef.create(
+                     inserttypeconv(hpp,corddef.create(
 {$ifdef cpu64bitaddr}
                        s64bit,
 {$else cpu64bitaddr}
@@ -3643,6 +3671,11 @@ implementation
            result:=first_box;
          in_unbox_x_y:
            result:=first_unbox;
+         in_fma_single,
+         in_fma_double,
+         in_fma_extended,
+         in_fma_float128:
+           result:=first_fma;
          else
            internalerror(89);
           end;
@@ -4167,7 +4200,7 @@ implementation
          temprangedef:=nil;
          getrange(unpackednode.resultdef,ulorange,uhirange);
          getrange(packednode.resultdef,plorange,phirange);
-         temprangedef:=torddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
+         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
          sourcevecindex := ctemprefnode.create(loopvar);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));
@@ -4202,4 +4235,12 @@ implementation
          result := loop;
        end;
 
+
+     function tinlinenode.first_fma: tnode;
+       begin
+         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         result:=nil;
+       end;
+
 end.
+

@@ -78,7 +78,13 @@
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
 {$define FPC_HAS_FEATURE_OBJECTIVEC1}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
+
+{ bootstrapping, the starting compiler cannot be a downstripped compiler without unicodestring support }
+{$ifdef VER2_6}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
+{$endif VER2_6}
 
 {****************************************************************************
                          Global Types and Constants
@@ -332,8 +338,6 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -346,8 +350,6 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -378,9 +380,17 @@ Type
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
-  NativeInt  = Integer;
-  NativeUint = Word;
 {$endif CPU16}
+
+  { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
+    has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
+    'The size of NativeInt is equivalent to the size of the pointer on the
+    current platform'. Because of the misleading names, these types shouldn't be
+    used in the FPC RTL. Note that on i8086 their size changes between 16-bit
+    and 32-bit according to the memory model, so they're not really a 'native
+    int' type there at all. }
+  NativeInt  = PtrInt;
+  NativeUInt = PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -695,10 +705,10 @@ Var
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
-  StackTop,
   StackBottom : Pointer;
   StackLength : SizeUInt;
 
+function StackTop: Pointer;
 
 { Numbers for routines that have compiler magic }
 {$I innr.inc}
@@ -1070,7 +1080,12 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 Function  hexStr(Val:qword;cnt:byte):shortstring;
 Function  OctStr(Val:qword;cnt:byte):shortstring;
 Function  binStr(Val:qword;cnt:byte):shortstring;
+{$ifdef CPUI8086}
+Function  hexStr(Val:NearPointer):shortstring;
+Function  hexStr(Val:FarPointer):shortstring;
+{$else CPUI8086}
 Function  hexStr(Val:Pointer):shortstring;
+{$endif CPUI8086}
 
 { Char functions }
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
@@ -1263,6 +1278,10 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
 Function Get_pc_addr : CodePointer;
+
+{ Writes at most 'count' caller stack frames to pre-allocated buffer pointed to
+  by 'frames', skipping 'skipframes' initial frames. Returns number of frames written. }
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;

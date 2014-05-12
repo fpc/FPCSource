@@ -99,7 +99,7 @@ implementation
        systems,
        cpuinfo,
        { symtable }
-       symbase,symtable,defutil,defcmp,
+       symbase,symcpu,symtable,defutil,defcmp,
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
@@ -339,7 +339,7 @@ implementation
           sc.clear;
           repeat
             inc(paranr);
-            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
+            vs:=cparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.add(vs)
@@ -352,7 +352,7 @@ implementation
           if parseprocvar<>pv_none then
            begin
              { inline procvar definitions are always nested procvars }
-             pv:=tprocvardef.create(normal_function_level+1);
+             pv:=cprocvardef.create(normal_function_level+1);
              if token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
@@ -366,7 +366,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ttypesym.create('unnamed',hdef);
+                  dummytype:=ctypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;
@@ -399,7 +399,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                hdef:=tarraydef.create(0,-1,s32inttype);
+                hdef:=carraydef.create(0,-1,s32inttype);
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
@@ -946,13 +946,13 @@ implementation
               begin
                 aprocsym:=Tprocsym(symtablestack.top.Find(sp));
                 if aprocsym=nil then
-                  aprocsym:=tprocsym.create('$'+sp);
+                  aprocsym:=cprocsym.create('$'+sp);
               end
             else
             if (potype in [potype_class_constructor,potype_class_destructor]) then
-              aprocsym:=tprocsym.create('$'+lower(sp))
+              aprocsym:=cprocsym.create('$'+lower(sp))
             else
-              aprocsym:=tprocsym.create(orgsp);
+              aprocsym:=cprocsym.create(orgsp);
             symtablestack.top.insert(aprocsym);
           end;
 
@@ -966,7 +966,7 @@ implementation
               break;
             checkstack:=checkstack^.next;
           end;
-        pd:=tprocdef.create(st.symtablelevel+1);
+        pd:=cprocdef.create(st.symtablelevel+1);
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
@@ -1408,12 +1408,12 @@ implementation
 
 procedure pd_far(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'FAR');
+  pd.declared_far;
 end;
 
 procedure pd_near(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'NEAR');
+  pd.declared_near;
 end;
 
 procedure pd_export(pd:tabstractprocdef);
@@ -1787,10 +1787,10 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1821,8 +1821,8 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
-              vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+              tcpuprocdef(pd).libsym:=sym;
+              vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
             end
           else
@@ -1888,10 +1888,10 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1901,17 +1901,17 @@ begin
                 end
               else if po_syscall_basesysv in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_sysvbase in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_r12base in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'R12');
                   pd.parast.insert(vs);
                 end
@@ -2503,7 +2503,13 @@ const
              _EXPERIMENTAL,
              _DEPRECATED :
                if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
-                 maybe_parse_hint_directives(tprocdef(pd))
+                 begin
+                   maybe_parse_hint_directives(tprocdef(pd));
+                   { could the new token still be a directive? }
+                   if token<>_ID then
+                     exit;
+                   name:=tokeninfo^[idtoken].str;
+                 end
                else
                  exit;
            end;

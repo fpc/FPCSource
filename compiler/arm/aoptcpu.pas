@@ -2897,7 +2897,7 @@ Implementation
                 taicpu(p).loadconst(1,taicpu(p).oper[2]^.val);
               result:=true;
             end
-          else if MatchInstruction(p, [A_ADD,A_AND,A_ORR,A_EOR], [C_None], [PF_None,PF_S]) and
+          else if MatchInstruction(p, [A_AND,A_ORR,A_EOR], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops = 3) and
             MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[2]^) and
             (not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then

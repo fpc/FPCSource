@@ -110,7 +110,7 @@ implementation
 {$ENDIF}
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,defutil,defcmp,
+      symconst,symdef,symsym,symcpu,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
       nld,nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,
@@ -420,6 +420,11 @@ implementation
              (nodetype in [addn,subn])
             ) or
             (
+             (rt = pointerconstn) and
+             is_constintnode(left) and
+             (nodetype=addn)
+            ) or
+            (
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
@@ -460,7 +465,7 @@ implementation
                        { Recover }
                        t:=genintconstnode(0)
                      end
-                   else if (lt=pointerconstn) then
+                   else if (lt=pointerconstn) or (rt=pointerconstn) then
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
@@ -1580,7 +1585,7 @@ implementation
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
+                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
                     inserttypeconv(left,nd);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd)
@@ -1635,15 +1640,14 @@ implementation
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
 {$elseif defined(i8086)}
-                    { we don't have a charfarpointertype yet, so for far pointers we use bytefarpointertype }
                     if is_farpointer(left.resultdef) then
-                      inserttypeconv_internal(left,bytefarpointertype)
+                      inserttypeconv_internal(left,charfarpointertype)
                     else
-                      inserttypeconv_internal(left,charpointertype);
+                      inserttypeconv_internal(left,charnearpointertype);
                     if is_farpointer(right.resultdef) then
-                      inserttypeconv_internal(right,bytefarpointertype)
+                      inserttypeconv_internal(right,charfarpointertype)
                     else
-                      inserttypeconv_internal(right,charpointertype);
+                      inserttypeconv_internal(right,charnearpointertype);
 {$else}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);
@@ -2722,13 +2726,13 @@ implementation
                 procname:=procname+'_le';
               gtn:
                 begin
-                  procname:=procname+'_le';
-                  notnode:=true;
+                  procname:=procname+'_lt';
+                  swapleftright;
                 end;
               gten:
                 begin
-                  procname:=procname+'_lt';
-                  notnode:=true;
+                  procname:=procname+'_le';
+                  swapleftright;
                 end;
               equaln:
                 procname:=procname+'_eq';

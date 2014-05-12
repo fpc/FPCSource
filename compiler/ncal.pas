@@ -81,6 +81,7 @@ interface
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
        protected
+          procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
 
        protected
@@ -98,8 +99,14 @@ interface
           pushedparasize : longint;
           { Objective-C support: force the call node to call the routine with
             this name rather than the name of symtableprocentry (don't store
-            to ppu, is set while processing the node) }
-          fobjcforcedprocname: pshortstring;
+            to ppu, is set while processing the node). Also used on the JVM
+            target for calling virtual methods, as this is name-based and not
+            based on VMT entry locations }
+{$ifdef symansistr}
+          fforcedprocname: TSymStr;
+{$else symansistr}
+          fforcedprocname: pshortstring;
+{$endif symansistr}
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -217,6 +224,7 @@ interface
           { a refcounted into a non-refcounted type                     }
           function can_be_inlined: boolean;
 
+          property paravalue : tnode read left write left;
           property nextpara : tnode read right write right;
           { third is reused to store the parameter name (only while parsing
             vardispatch calls, never in real node tree) and copy of 'high'
@@ -1202,7 +1210,9 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
-         stringdispose(fobjcforcedprocname);
+{$ifndef symansistr}
+         stringdispose(fforcedprocname);
+{$endif symansistr}
          inherited destroy;
       end;
 
@@ -1342,7 +1352,7 @@ implementation
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
-               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
+               hpn:=cparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
                n.varargsparas.add(hpn);
                para:=tcallparanode(n.left);
                while assigned(para) do
@@ -1355,6 +1365,14 @@ implementation
          end
         else
          n.varargsparas:=nil;
+{$ifdef symansistr}
+        n.fforcedprocname:=fforcedprocname;
+{$else symansistr}
+        if assigned(fforcedprocname) then
+          n.fforcedprocname:=stringdup(fforcedprocname^)
+        else
+          n.fforcedprocname:=nil;
+{$endif symansistr}
         result:=n;
       end;
 
@@ -1925,7 +1943,7 @@ implementation
                                   be marked as instantiatable (only the pointeddef will actually be
                                   recorded, so it's no problem that the clasrefdef is only temporary)
                                 }
-                                crefdef:=tclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
+                                crefdef:=cclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
                                 { and register it }
                                 crefdef.register_created_object_type;
                               end
@@ -1982,6 +2000,13 @@ implementation
             result:=LOC_FPUREGISTER
         else
           result:=LOC_REFERENCE
+      end;
+
+
+    procedure tcallnode.gen_syscall_para(para: tcallparanode);
+      begin
+        { unsupported }
+        internalerror(2014040101);
       end;
 
 
@@ -2059,7 +2084,11 @@ implementation
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
           Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
-        fobjcforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+{$ifdef symansistr}
+        fforcedprocname:=tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname;
+{$else symansistr}
+        fforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+{$endif symansistr}
 
         { B) Handle self }
         { 1) in case of sending a message to a superclass, self is a pointer to
@@ -2494,14 +2523,9 @@ implementation
                    begin
                      para.left:=gen_vmt_tree;
                    end
-{$if defined(powerpc) or defined(m68k)}
                 else
                  if vo_is_syscall_lib in para.parasym.varoptions then
-                   begin
-                     { lib parameter has no special type but proccalloptions must be a syscall }
-                     para.left:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
-                   end
-{$endif powerpc or m68k}
+                   gen_syscall_para(para)
                 else
                  if vo_is_parentfp in para.parasym.varoptions then
                    begin
@@ -2775,7 +2799,7 @@ implementation
               begin
                 if cpf_varargs_para in pt.callparaflags then
                   begin
-                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resultdef,[]);
+                    varargspara:=cparavarsym.create('va'+tostr(i),i,vs_value,pt.resultdef,[]);
                     dec(i);
                     { varargspara is left-right, use insert
                       instead of concat }
@@ -3435,7 +3459,9 @@ implementation
         para : tcallparanode;
       begin
         { Can we inline the procedure? }
-        if ([po_inline,po_has_inlininginfo] <= procdefinition.procoptions) then
+        if (po_inline in procdefinition.procoptions) and
+           (procdefinition.typ=procdef) and
+           tprocdef(procdefinition).has_inlininginfo then
           begin
              include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
@@ -3525,7 +3551,7 @@ implementation
            { allow only certain proc options }
            ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
              po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
-             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,po_has_inlininginfo,
+             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,
              po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
              po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
            begin

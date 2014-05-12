@@ -29,8 +29,6 @@ implementation
 uses
   dos;
 
-{$ASMMODE INTEL}
-
 var
   DelayCnt : Longint;
   VidSeg : Word;

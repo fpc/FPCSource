@@ -8,9 +8,8 @@ unit buildrtl;
       windows,  cmem, dynlibs,
       dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
-      strutils, typinfo, fgl, classes,
+      typinfo, fgl, classes,
       charset, character, getopts,
-      printer,
       fpwidestring,
       sharemem, fpintres, windirs,
       cpu, signals;

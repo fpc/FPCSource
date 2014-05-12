@@ -160,7 +160,10 @@ begin
     end
   else
     begin
-    Date:=Date+1/(msecsperday*2);
+    if Date>0 then
+      Date:=Date+1/(msecsperday*2)
+    else  
+      Date:=Date-1/(msecsperday*2);
     j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
     ly:= j DIV 146097;
     j:= j - 146097 * cardinal(ly);
@@ -368,6 +371,8 @@ var
    YearMoreThenTwoDigits : boolean;
 begin
   ErrorMsg:='';   Result:=0;
+  While (Len>0) and (S[Len-1] in [' ',#8,#9,#10,#12,#13]) do
+    Dec(len);
   if (Len=0) then
     begin
       FixErrorMsg(SInvalidDateFormat,'');

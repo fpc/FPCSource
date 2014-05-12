@@ -591,6 +591,51 @@ begin
                                  end;
                                end;
                              end;
+                    msiMemRegx16y32:
+                      begin
+                        for j := 1 to ops do
+                        begin
+                          if operands[j].Opr.Typ = OPR_REGISTER then
+                          begin
+                            case getsubreg(operands[j].opr.reg) of
+                              R_SUBMMX: begin
+                                          tx86operand(operands[i]).opsize := S_L;
+                                          tx86operand(operands[i]).size   := OS_M16;
+                                          break;
+                                        end;
+                              R_SUBMMY: begin
+                                          tx86operand(operands[i]).opsize := S_Q;
+                                          tx86operand(operands[i]).size   := OS_M32;
+                                          break;
+                                        end;
+                                   else Message(asmr_e_unable_to_determine_reference_size);
+                            end;
+                          end;
+                        end;
+                      end;
+
+                    msiMemRegx32y64:
+                      begin
+                        for j := 1 to ops do
+                        begin
+                          if operands[j].Opr.Typ = OPR_REGISTER then
+                          begin
+                            case getsubreg(operands[j].opr.reg) of
+                              R_SUBMMX: begin
+                                          tx86operand(operands[i]).opsize := S_L;
+                                          tx86operand(operands[i]).size   := OS_M32;
+                                          break;
+                                        end;
+                              R_SUBMMY: begin
+                                          tx86operand(operands[i]).opsize := S_Q;
+                                          tx86operand(operands[i]).size   := OS_M64;
+                                          break;
+                                        end;
+                                   else Message(asmr_e_unable_to_determine_reference_size);
+                            end;
+                          end;
+                        end;
+                      end;
                    msiMemRegx64y128:
                              begin
                                for j := 1 to ops do
@@ -1139,7 +1184,7 @@ begin
                case operands[i].size of
                    OS_8,OS_S8 :
                      asize:=OT_BITS8;
-                   OS_16,OS_S16 :
+                   OS_16,OS_S16, OS_M16:
                      asize:=OT_BITS16;
                    OS_32,OS_S32,OS_F32,OS_M32 :
                      asize:=OT_BITS32;

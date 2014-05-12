@@ -227,7 +227,7 @@ interface
       TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize,
                          msiMultiple, msiMultiple8, msiMultiple16, msiMultiple32,
                          msiMultiple64, msiMultiple128, msiMultiple256,
-                         msiMemRegSize, msiMemRegx64y128, msiMemRegx64y256,
+                         msiMemRegSize, msiMemRegx16y32, msiMemRegx32y64, msiMemRegx64y128, msiMemRegx64y256,
                          msiMem8, msiMem16, msiMem32, msiMem64, msiMem128, msiMem256);
 
       TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
@@ -427,9 +427,12 @@ implementation
        IF_SSE41  = $00200000;
        IF_SSE42  = $00200000;
        IF_AVX    = $00200000;
+       IF_AVX2   = $00200000;
        IF_BMI1   = $00200000;
        IF_BMI2   = $00200000;
        IF_16BITONLY = $00200000;
+       IF_FMA    = $00200000;
+       IF_FMA4   = $00200000;
 
        IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
@@ -1946,7 +1949,7 @@ implementation
         len     : shortint;
         ea_data : ea;
         exists_vex: boolean;
-        exists_vex_extention: boolean;
+        exists_vex_extension: boolean;
         exists_prefix_66: boolean;
         exists_prefix_F2: boolean;
         exists_prefix_F3: boolean;
@@ -1957,7 +1960,7 @@ implementation
         len:=0;
         codes:=@p^.code[0];
         exists_vex := false;
-        exists_vex_extention := false;
+        exists_vex_extension := false;
         exists_prefix_66 := false;
         exists_prefix_F2 := false;
         exists_prefix_F3 := false;
@@ -2113,24 +2116,25 @@ implementation
             243: // REX.W = 1
                  // =>> VEX prefix length = 3
               begin
-                if not(exists_vex_extention) then
+                if not(exists_vex_extension) then
                 begin
                   inc(len);
-                  exists_vex_extention := true;
+                  exists_vex_extension := true;
                 end;
               end;
             244: ; // VEX length bit
+            246, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
             247: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
-            248: // VEX-Extention prefix $0F
+            248: // VEX-Extension prefix $0F
                  // ignore for calculating length
                  ;
-            249, // VEX-Extention prefix $0F38
-            250: // VEX-Extention prefix $0F3A
+            249, // VEX-Extension prefix $0F38
+            250: // VEX-Extension prefix $0F3A
               begin
-                if not(exists_vex_extention) then
+                if not(exists_vex_extension) then
                 begin
                   inc(len);
-                  exists_vex_extention := true;
+                  exists_vex_extension := true;
                 end;
               end;
             192,193,194:
@@ -2168,8 +2172,8 @@ implementation
           if exists_prefix_F3 then dec(len);
 
   {$ifdef x86_64}
-          if not(exists_vex_extention) then
-            if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extention
+          if not(exists_vex_extension) then
+            if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extension
   {$endif x86_64}
 
         end;
@@ -2236,6 +2240,7 @@ implementation
        * \362          - VEX prefix for AVX instructions
        * \363          - VEX W1
        * \364          - VEX Vector length 256
+       * \366          - operand 2 (ymmreg) encoded in bit 4-7 of the immediate byte
        * \367          - operand 3 (ymmreg) encoded in bit 4-7 of the immediate byte
 
        * \370          - VEX 0F-FLAG
@@ -2352,7 +2357,7 @@ implementation
         data,s,opidx : longint;
         ea_data : ea;
         relsym : TObjSymbol;
-        needed_VEX_Extention: boolean;
+        needed_VEX_Extension: boolean;
         needed_VEX: boolean;
         opmode: integer;
         VEXvvvv: byte;
@@ -2385,7 +2390,7 @@ implementation
         // needed VEX Prefix (for AVX etc.)
 
         needed_VEX := false;
-        needed_VEX_Extention := false;
+        needed_VEX_Extension := false;
         opmode   := -1;
         VEXvvvv  := 0;
         VEXmmmmm := 0;
@@ -2406,17 +2411,17 @@ implementation
             241: VEXvvvv                := VEXvvvv  OR $01; // set SIMD-prefix $66
             242: needed_VEX             := true;
             243: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXvvvv              := VEXvvvv  OR (1 shl 7); // set REX.W
                  end;
             244: VEXvvvv                := VEXvvvv  OR $04; // vectorlength = 256 bits AND no scalar
             248: VEXmmmmm               := VEXmmmmm OR $01; // set leading opcode byte $0F
             249: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $02; // set leading opcode byte $0F38
                  end;
             250: begin
-                   needed_VEX_Extention := true;
+                   needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $03; // set leading opcode byte $0F3A
                  end;
 
@@ -2446,14 +2451,14 @@ implementation
           end
           else Internalerror(777101);
 
-          if not(needed_VEX_Extention) then
+          if not(needed_VEX_Extension) then
           begin
             {$ifdef x86_64}
-              if rex and $0B <> 0 then needed_VEX_Extention := true;
+              if rex and $0B <> 0 then needed_VEX_Extension := true;
             {$endif x86_64}
           end;
 
-          if needed_VEX_Extention then
+          if needed_VEX_Extension then
           begin
             // VEX-Prefix-Length = 3 Bytes
             bytes[0]:=$C4;
@@ -2493,7 +2498,7 @@ implementation
         end
         else
         begin
-          needed_VEX_Extention := false;
+          needed_VEX_Extension := false;
           opmode := -1;
         end;
 
@@ -2790,27 +2795,48 @@ implementation
                   are not needed }
               end;
             242..244: ; // VEX flags =>> nothing todo
-                 247: begin
-                        if needed_VEX then
-                        begin
-                          if ops = 4 then
-                          begin
-                            if (oper[3]^.typ=top_reg) then
-                            begin
-                              if (oper[3]^.ot and otf_reg_xmm <> 0) or
-                                 (oper[3]^.ot and otf_reg_ymm <> 0) then
-                              begin
-                                bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
-                                objdata.writebytes(bytes,1);
-                              end
-                              else Internalerror(777102);
-                            end
-                            else Internalerror(777103);
-                          end
-                          else Internalerror(777104);
-                        end
-                        else Internalerror(777105);
-                      end;
+            246: begin
+                   if needed_VEX then
+                   begin
+                     if ops = 4 then
+                     begin
+                       if (oper[2]^.typ=top_reg) then
+                       begin
+                         if (oper[2]^.ot and otf_reg_xmm <> 0) or
+                            (oper[2]^.ot and otf_reg_ymm <> 0) then
+                         begin
+                           bytes[0] := ((getsupreg(oper[2]^.reg) and 15) shl 4);
+                           objdata.writebytes(bytes,1);
+                         end
+                         else Internalerror(2014032001);
+                       end
+                       else Internalerror(2014032002);
+                     end
+                     else Internalerror(2014032003);
+                   end
+                   else Internalerror(2014032004);
+                 end;
+            247: begin
+                   if needed_VEX then
+                   begin
+                     if ops = 4 then
+                     begin
+                       if (oper[3]^.typ=top_reg) then
+                       begin
+                         if (oper[3]^.ot and otf_reg_xmm <> 0) or
+                            (oper[3]^.ot and otf_reg_ymm <> 0) then
+                         begin
+                           bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
+                           objdata.writebytes(bytes,1);
+                         end
+                         else Internalerror(2014032005);
+                       end
+                       else Internalerror(2014032006);
+                     end
+                     else Internalerror(2014032007);
+                   end
+                   else Internalerror(2014032008);
+                 end;
             248..250: ; // VEX flags =>> nothing todo
             31,
             48,49,50 :
@@ -3058,10 +3084,14 @@ implementation
       var
         tmpref: treference;
       begin
+        tmpref:=ref;
+{$ifdef i8086}
+        if tmpref.segment=NR_SS then
+          tmpref.segment:=NR_NO;
+{$endif i8086}
         case getregtype(r) of
           R_INTREGISTER :
             begin
-              tmpref:=ref;
               if getsubreg(r)=R_SUBH then
                 inc(tmpref.offset);
               { we don't need special code here for 32 bit loads on x86_64, since
@@ -3072,24 +3102,24 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,ref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,tmpref,r);
                 else
                   internalerror(200506043);
               end
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
+                  result:=taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,r);
                 else
                   internalerror(200506043);
               end;
@@ -3104,10 +3134,14 @@ implementation
         size: topsize;
         tmpref: treference;
       begin
+        tmpref:=ref;
+{$ifdef i8086}
+        if tmpref.segment=NR_SS then
+          tmpref.segment:=NR_NO;
+{$endif i8086}
         case getregtype(r) of
           R_INTREGISTER :
             begin
-              tmpref:=ref;
               if getsubreg(r)=R_SUBH then
                 inc(tmpref.offset);
               size:=reg2opsize(r);
@@ -3126,24 +3160,24 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,ref);
+                  result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,tmpref);
                 else
                   internalerror(200506042);
               end
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
-                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
+                  result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,tmpref);
                 else
                   internalerror(200506042);
               end;
@@ -3247,7 +3281,7 @@ implementation
             actConstSize     := 0;
             actConstCount    := 0;
 
-            if asmop = a_movups then
+            if asmop = a_vpmovzxbq then
             begin
               RegXMMSizeMask := RegXMMSizeMask;
             end;
@@ -3397,6 +3431,12 @@ implementation
              (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
           begin
             case RegXMMSizeMask of
+              OT_BITS16: case RegYMMSizeMask of
+                           OT_BITS32: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
+                        end;
+               OT_BITS32: case RegYMMSizeMask of
+                            OT_BITS64: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64;
+                         end;
                OT_BITS64: case RegYMMSizeMask of
                             OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
                             OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;

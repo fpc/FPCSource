@@ -11,17 +11,16 @@ loaders=
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
-      dos dl printer \
+      dos dl \
       sysutils typinfo fgl classes math types \
-      charset cpall buildcollations character getopts heaptrc lineinfo lnfodwrf lnfogdb \
-      errors ipc terminfo termio \
-      sysconst cthreads strutils rtlconsts cwstring bsd fpwidestring \
-      fpintres fpextres clocale objc objcbase unixcp
+      charset cpall character getopts heaptrc lineinfo lnfodwrf lnfogdb \
+      errors termio \
+      sysconst cthreads rtlconsts cwstring bsd fpwidestring \
+      fpintres fpextres objc objcbase unixcp
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      unicodedata unicodenumtable 
 
 rsts=math typinfo classes sysconst rtlconsts
 
@@ -30,7 +29,6 @@ nortl=y
 
 [install]
 fpcpackage=y
-buildunit=buildcollations
 
 [default]
 fpcdir=../..
@@ -46,10 +44,10 @@ libname=libfprtl.so
 libversion=2.0.0
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
-      dos crt objects printer \
+      dos crt objects  \
       sysutils typinfo math \
       cpu mmx getopts heaptrc \
-      errors  ipc
+      errors  
 
 [prerules]
 ifeq ($(CPU_TARGET),i386)
@@ -127,8 +125,6 @@ $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
-clocale$(PPUEXT): initc$(PPUEXT) sysutils$(PPUEXT) unixtype$(PPUEXT)
-
 fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 
 fpextres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
@@ -178,7 +174,6 @@ unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) ba
 dos$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Graph
@@ -200,7 +195,7 @@ typinfo$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlc
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -220,10 +215,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model
@@ -260,9 +251,6 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
-
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
@@ -274,10 +262,6 @@ termio$(PPUEXT) : baseunix$(PPUEXT)
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
-
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
-
-terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 

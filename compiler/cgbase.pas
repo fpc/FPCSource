@@ -99,8 +99,6 @@ interface
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
-         ,addr_far         // used for emitting 'call/jmp far label' instructions
-         ,addr_far_ref     // used for emitting 'call far [reference]' instructions
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          );
@@ -377,6 +375,8 @@ interface
     }
     function int_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
     function int_float_cgsize(const a: tcgint): tcgsize;
+
+    function tcgsize2str(cgsize: tcgsize):string;
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -669,6 +669,12 @@ implementation
           else
             internalerror(200603211);
         end;
+      end;
+
+
+    function tcgsize2str(cgsize: tcgsize):string;
+      begin
+        Str(cgsize, Result);
       end;
 
 

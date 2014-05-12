@@ -394,7 +394,7 @@ unit cpupara;
      end;
 
 
-    { TODO : fix tcpuparamanager.get_funcretloc }
+    { TODO : fix tavrparamanager.get_funcretloc }
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize : tcgsize;

@@ -1,9 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
-    member of the Free Pascal development team.
+    Copyright (c) 2014 by Free Pascal development team
 
-    FPC Pascal system unit for Amiga.
+    Low level directory functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -76,6 +75,8 @@ begin
       AOS_OrigDir:=tmpLock;
       tmpLock:=0;
     end;
+  end else begin
+    dosError2InOut(ERROR_DIR_NOT_FOUND);
   end;
 
   if tmpLock<>0 then Unlock(tmpLock);

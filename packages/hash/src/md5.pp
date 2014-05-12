@@ -671,7 +671,7 @@ end;
 //on error all fields are set to $00
 function StrtoMD5(const MD5String:String):TMDDigest;
    var I: Byte;
-       t: integer;
+       t: longint;
        f: boolean;
    begin
      f:= Length(MD5String) = 32;

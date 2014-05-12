@@ -11,17 +11,16 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
-      printer linuxvcs \
+      linuxvcs \
       sysutils typinfo math   \
-      charset cpall buildcollations character unixcp getopts \
-      errors  ipc serial terminfo dl dynlibs \
+      charset cpall character unixcp getopts \
+      errors dl dynlibs \
       types sysconst fpwidestring \
-      cthreads classes fgl strutils rtlconsts dos  cwstring fpcylix clocale
+      cthreads classes fgl rtlconsts dos cwstring fpcylix
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      unicodedata unicodenumtable 
 
 rsts=math typinfo sysconst rtlconsts
 
@@ -33,7 +32,6 @@ units=syslinux linux
 
 [install]
 fpcpackage=y
-buildunit=buildcollations
 
 [default]
 fpcdir=../..
@@ -78,7 +76,7 @@ endif
 
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
-SYSINIT_UNITS=   # si_prc si_c si_dll
+SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 
 # mipsel reuses mips files by including so some file names exist
@@ -214,9 +212,6 @@ uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
@@ -270,15 +265,6 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
                unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/dos.pp
 
-#crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#	$(COMPILER) $(UNIXINC)/crt.pp
-
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/objects.pp
-
-printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/printer.pp
-
 #
 # Delphi Compatible Units
 #
@@ -295,14 +281,11 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlc
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) buildcollations$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
-
-gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/gettext.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
@@ -315,10 +298,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                    sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model
@@ -363,9 +342,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
-
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 
@@ -381,12 +357,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(P
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/errors.pp
 
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/ipc.pp
-
-terminfo$(PPUEXT) : $(UNIXINC)/terminfo.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/terminfo.pp
-
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/callspec.pp
 
@@ -396,17 +366,11 @@ cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cthreads.pp
 
-serial$(PPUEXT) : $(UNIXINC)/serial.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/serial.pp
-
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
-
-clocale$(PPUEXT) :  $(UNIXINC)/clocale.pp sysutils$(PPUEXT) unixtype$(PPUEXT) initc$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/clocale.pp
 
 fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) fpcylix.pp

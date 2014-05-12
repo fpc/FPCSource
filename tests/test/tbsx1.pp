@@ -83,7 +83,7 @@ var
 begin
   for i:=0 to 31 do
   begin
-    x32:=1 shl i;
+    x32:=cardinal(1) shl i;
     f:=BsfDWord(x32);
     if (f<>i) then
     begin

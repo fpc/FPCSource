@@ -163,7 +163,7 @@ procedure TTestDBExport.SetUp;
 begin
   inherited SetUp;
   InitialiseDBConnector;
-  DBConnector.StartTest; //is this needed?
+  DBConnector.StartTest(TestName);
   FExportTempDir:=IncludeTrailingPathDelimiter(ExpandFileName(''))+'exporttests'+PathDelim; //Store output in subdirectory
   ForceDirectories(FExportTempDir);
   FKeepFilesAfterTest:=true; //keep test files; consistent with other units right now
@@ -172,7 +172,7 @@ end;
 procedure TTestDBExport.TearDown;
 begin
   inherited TearDown;
-  DBConnector.StopTest; //is this needed?
+  DBConnector.StopTest(TestName);
   FreeDBConnector;
 end;
 

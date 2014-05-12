@@ -115,17 +115,6 @@ var
 ****************************************************************************}
 
 const
-  { pointer checking (requires special code in FPC_CHECKPOINTER,
-    and can never work for libc-based targets or any other program
-    linking to an external library)
-  }
-  supported_targets_gc = [system_i386_linux,system_powerpc_linux]
-                        + [system_i386_win32]
-                        + [system_i386_GO32V2]
-                        + [system_i386_os2]
-                        + [system_i386_beos,system_i386_haiku]
-                        + [system_powerpc_morphos];
-
   { gprof (requires implementation of g_profilecode in the code generator) }
   supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
                         + [system_i386_win32]
@@ -208,9 +197,9 @@ var
   wpopt: twpoptimizerswitch;
   abi : tabi;
   asmmode : tasmmode;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -347,7 +336,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-        {$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr) or defined(mipsel)}
         hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
@@ -371,8 +360,8 @@ begin
             Comment(V_Normal,hs);
             hs1:=''
           end;
-        {$else defined(arm) or defined(avr)}
-        {$endif defined(arm) or defined(avr)}
+        {$else defined(arm) or defined(avr) or defined(mipsel)}
+        {$endif defined(arm) or defined(avr) or defined(mipsel)}
       end
      else
       Comment(V_Normal,s);
@@ -1310,7 +1299,7 @@ begin
                        begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_checkpointer)
-                         else if (target_info.system in supported_targets_gc) then
+                         else if (target_info.system in systems_support_checkpointer) then
                            include(init_settings.localswitches,cs_checkpointer)
                          else
                            UnsupportedPara('-gc');
@@ -1690,9 +1679,9 @@ begin
                            include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
                          If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_support_exceptions)
+                           SetCompileModeSwitch('EXCEPTIONS-',true)
                          else
-                           include(init_settings.globalswitches,cs_support_exceptions);
+                           SetCompileModeSwitch('EXCEPTIONS',true);
                        'y' :
                          If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_typed_addresses)
@@ -1969,7 +1958,7 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
                         if (target_info.system in systems_embedded) then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -1978,7 +1967,7 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':
@@ -2756,6 +2745,20 @@ begin
       Message(option_debug_external_unsupported);
       exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
     end;
+  { Also create a smartlinked version, on an assembler that
+    does not support smartlink sections like nasm?
+    This is not compatible with using internal linker. }
+  if ((cs_link_smart in init_settings.globalswitches) or
+      (cs_create_smart in init_settings.moduleswitches)) and
+     (af_needar in target_asm.flags) and
+     not (af_smartlink_sections in target_asm.flags) and
+     not (cs_link_extern in init_settings.globalswitches) and
+     (target_info.link<>ld_none) and
+      not (cs_link_nolink in init_settings.globalswitches) then
+    begin
+      Message(option_smart_link_requires_external_linker);
+      include(init_settings.globalswitches,cs_link_extern);
+    end;
 end;
 
 
@@ -3140,6 +3143,8 @@ begin
         system_avr_embedded:
           heapsize:=128;
         system_arm_embedded:
+          heapsize:=256;
+        system_mipsel_embedded:
           heapsize:=256;
         else
           heapsize:=256;

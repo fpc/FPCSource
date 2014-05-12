@@ -51,7 +51,7 @@ unit cpupi;
 
           property get_first_save_int_reg: tsuperregister read first_save_int_reg;
           property get_first_save_fpu_reg: tsuperregister read first_save_fpu_reg;
-
+          procedure postprocess_code;override;
        end;
 
 
@@ -63,7 +63,8 @@ unit cpupi;
        aasmtai,
        tgobj,cgobj,
        symconst,symsym,paramgr,symutil,symtable,
-       verbose;
+       verbose,
+       aasmcpu;
 
     constructor tppcprocinfo.create(aparent:tprocinfo);
 
@@ -198,6 +199,12 @@ unit cpupi;
           begin
             got := cg.getaddressregister(list);
           end;
+      end;
+
+
+    procedure tppcprocinfo.postprocess_code;
+      begin
+        fixup_jmps(aktproccode);
       end;
 
 

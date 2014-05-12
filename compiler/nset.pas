@@ -754,11 +754,11 @@ implementation
 
          if (labels^.label_type = ltConstString) then
            begin
-             endlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrofend'));
+             endlabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$casestrofend'));
              stmt_block:=internalstatements(stmt);
              for i:=0 to blocks.count-1 do
                begin
-                 pcaseblock(blocks[i])^.statementlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrof'));
+                 pcaseblock(blocks[i])^.statementlabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$casestrof'));
                  addstatement(stmt,pcaseblock(blocks[i])^.statementlabel);
                  addstatement(stmt,pcaseblock(blocks[i])^.statement);
                  pcaseblock(blocks[i])^.statement:=nil;

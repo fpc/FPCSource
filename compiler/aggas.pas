@@ -227,7 +227,7 @@ implementation
         );
 
       { Generic unaligned pseudo-instructions, seems ELF specific }
-      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android];
+      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android,system_mipsel_embedded,system_mipseb_embedded];
       ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
         of string[20]=(
           #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
@@ -1029,14 +1029,13 @@ implementation
                          else if (constdef in ait_unaligned_consts) and
                                  (target_info.system in use_ua_elf_systems) then
                            AsmWrite(ait_ua_elf_const2str[constdef])
-                          else if not(target_info.system in systems_aix) or
-                            (constdef<>aitconst_64bit) then
-                           AsmWrite(ait_const2str[constdef])
+                         { we can also have unaligned pointers in packed record
+                           constants, which don't get translated into
+                           unaligned tai -> always use vbyte }
+                         else if target_info.system in systems_aix then
+                            AsmWrite(#9'.vbyte'#9+tostr(tai_const(hp).size)+',')
                          else
-                           { can't use .llong, because that forces 8 byte
-                             alignnment and we sometimes store addresses on
-                             4-byte aligned addresses (e.g. in the RTTI) }
-                           AsmWrite('.vbyte'#9'8,');
+                           AsmWrite(ait_const2str[constdef]);
                          l:=0;
                          t := '';
                          repeat
@@ -1716,6 +1715,7 @@ implementation
         end;
 
       AsmLn;
+      WriteExtraFooter;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);

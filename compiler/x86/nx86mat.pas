@@ -176,13 +176,13 @@ interface
             end;
 
             reference_reset_symbol(href,l1,0,resultdef.alignment);
-            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-            cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
 
             if UseAVX then
-              cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,left.location.register,location.register,nil)
+              cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
             else
               begin
+                reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
                 cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
                 cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
               end;

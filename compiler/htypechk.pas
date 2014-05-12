@@ -2708,8 +2708,8 @@ implementation
               { for value and const parameters check precision of real, give
                 penalty for loosing of precision. var and out parameters must match exactly }
                if not(currpara.varspez in [vs_var,vs_out]) and
-                  is_real(def_from) and
-                  is_real(def_to) then
+                  is_real_or_cextended(def_from) and
+                  is_real_or_cextended(def_to) then
                  begin
                    eq:=te_equal;
                    if is_extended(def_to) then

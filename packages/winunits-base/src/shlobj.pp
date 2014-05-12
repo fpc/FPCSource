@@ -26,7 +26,7 @@ uses
       windows,activex,shellapi,commctrl;
 
 Const 
-   IID_IShellExtInit    ='{000214E8-0000-0000-C000-000000000046}';
+   IID_IShellExtInit   : TGUID ='{000214E8-0000-0000-C000-000000000046}';
    IID_IShellFolder    : TGUID ='{000214E6-0000-0000-C000-000000000046}';
    IID_IEnumList       : TGUID ='{000214F2-0000-0000-C000-000000000046}';
    IID_IAutoComplete   : TGUID ='{00bb2762-6a77-11d0-a535-00c04fd7d062}';
@@ -42,6 +42,17 @@ Const
    IID_IEXtractIconW   : TGUID ='{000214fa-0000-0000-c000-000000000046}';
    IID_IEXtractIconA   : TGUID ='{000214eb-0000-0000-c000-000000000046}';
    IID_IShellLinkA     : TGUID ='{000214EE-0000-0000-C000-000000000046}';
+   IID_IShellLinkW     : TGUID ='{000214F9-0000-0000-C000-000000000046}';
+   IID_IShellBrowser   : TGUID ='{000214E2-0000-0000-C000-000000000046}';
+   IID_IShellDetails   : TGUID ='{000214EC-0000-0000-C000-000000000046}';
+   IID_IShellIcon      : TGUID ='{000214E5-0000-0000-C000-000000000046}';
+   IID_IShellView      : TGUID ='{000214E3-0000-0000-C000-000000000046}';
+   IID_IShellView2     : TGUID ='{88E39E80-3578-11CF-AE69-08002B2E1262}';
+   IID_IEnumIDList     : TGUID ='{000214F2-0000-0000-C000-000000000046}';
+
+   CGID_Explorer       : TGUID ='{000214D0-0000-0000-C000-000000000046}';
+   CGID_ShellDocView   : TGUID ='{000214D1-0000-0000-C000-000000000046}';
+
    CLSID_StdMarshal                    : TGUID = '{00000017-0000-0000-c000-000000000046}';
    CLSID_IdentityUnmarshal             : TGUID = '{0000001b-0000-0000-c000-000000000046}';
    CLSID_InProcFreeMarshaler           : TGUID = '{0000001c-0000-0000-c000-000000000046}';
@@ -2491,8 +2502,13 @@ type
     end;
 
     IShellExtInit = Interface(IUnknown)
-          [IID_IShellExtInit]
+         ['{000214E8-0000-0000-C000-000000000046}']
          function Initialize(pidlfolder: LPCITEMIDLIST; pdtobj : IDataObject;hkeyProgID : HKEY):HResult; stdcall;
+         end;
+
+    IShellIcon = interface(IUnknown)
+         ['{000214E5-0000-0000-C000-000000000046}']
+         function GetIconOf(pidl: LPCITEMIDLIST; flags: UINT; out lpIconIndex: longint):HResult; stdcall;
          end;
 
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';

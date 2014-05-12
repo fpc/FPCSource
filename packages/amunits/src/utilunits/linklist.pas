@@ -759,9 +759,9 @@ begin
       { I don't want end of lines here (for use with amiga listviews)
         just change this if you need newline characters.
       }
-         Read(Inf, buffer);
+         Read(Inf, buf);
          tempnode := AddNewNode(thelist,buffer);
-         Readln(inf, buffer);
+         Readln(inf, buf);
       end;
       CLose(Inf);
       FileToList := true;

@@ -48,23 +48,49 @@ end;
 
 
 function GetBacktrace(Context: TContext; StartingFrame: Pointer; out Frames: PPointer): Longint;
+var
+  FrameCount: Longint;
+  oldebp: Cardinal;
 begin
-  // TODO
-  Frames:=nil;
-  result:=0;
+  Frames:=AllocMem(RaiseMaxFrameCount*sizeof(pointer));
+  FrameCount:=0;
+  repeat
+    oldebp:=context.ebp;
+    { get_caller_stackinfo checks against StackTop on i386 }
+    get_caller_stackinfo(pointer(Context.Ebp),codepointer(Context.Eip));
+    if (Context.ebp<=oldebp) or (FrameCount>=RaiseMaxFrameCount) then
+      break;
+    if (Pointer(Context.ebp)>StartingFrame) or (FrameCount>0) then
+    begin
+      Frames[FrameCount]:=Pointer(Context.eip);
+      Inc(FrameCount);
+    end;
+  until False;
+  result:=FrameCount;
+end;
+
+
+function RunErrorCode386(const rec: TExceptionRecord; const context: TContext): Longint;
+begin
+  result:=RunErrorCode(rec);
+  { deal with SSE exceptions }
+  if (result=-255) and ((context.ContextFlags and CONTEXT_EXTENDED_REGISTERS)<>0) then
+    TranslateMxcsr(PLongword(@context.ExtendedRegisters[24])^,result);
 end;
 
 
 procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   ctx: TContext;
-  args: array[0..3] of PtrUint;
+  args: array[0..4] of PtrUint;
 begin
-  //RtlCaptureContext(ctx);
+  ctx.Ebp:=Cardinal(AFrame);
+  ctx.Eip:=Cardinal(AnAddr);
   args[0]:=PtrUint(AnAddr);
   args[1]:=PtrUint(Obj);
   args[2]:=GetBacktrace(ctx,AFrame,PPointer(args[3]));
-  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
+  args[4]:=PtrUInt(AFrame);
+  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,5,@args[0]);
 end;
 
 
@@ -141,35 +167,73 @@ var
   code: longint;
   Obj: TObject;
   Adr: Pointer;
+  Frames: PCodePointer;
+  FrameCount: Longint;
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
+    { Athlon prefetch bug? }
+    if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(context.eip)) then
+    begin
+      result:=ExceptionContinueExecution;
+      exit;
+    end
+    else if (rec.ExceptionCode=STATUS_ILLEGAL_INSTRUCTION) and sse_check then
+    begin
+      os_supports_sse:=False;
+      { skip the offending movaps %xmm7,%xmm6 instruction }
+      inc(context.eip,3);
+      result:=ExceptionContinueExecution;
+      exit;
+    end;
+
     RtlUnwind(@frame,nil,@rec,nil);
+    asm
+      { RtlUnwind destroys nonvolatile registers, this assembler block prevents
+        regvar optimizations. }
+    end ['ebx','esi','edi'];
+
     if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
     begin
-      code:=RunErrorCode(rec);
+      code:=RunErrorCode386(rec,context);
       if code<0 then
         SysResetFPU;
+      code:=abs(code);
       Adr:=rec.ExceptionAddress;
       Obj:=nil;
       if Assigned(ExceptObjProc) then
-        Obj:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
+        Obj:=TObject(TExceptObjProc(ExceptObjProc)(code,rec));
       if Obj=nil then
-        RunError(abs(code));
+      begin
+        { This works because RtlUnwind does not actually unwind the stack on i386
+          (and only on i386) }
+        errorcode:=word(code);
+        errorbase:=pointer(context.Ebp);
+        erroraddr:=pointer(context.Eip);
+        Halt(code);
+      end;
+      FrameCount:=GetBacktrace(context,nil,Frames);
     end
     else
     begin
       Obj:=TObject(rec.ExceptionInformation[1]);
       Adr:=rec.ExceptionInformation[0];
+      Frames:=PCodePointer(rec.ExceptionInformation[3]);
+      FrameCount:=ptruint(rec.ExceptionInformation[2]);
       code:=217;
     end;
     if Assigned(ExceptProc) then
     begin
-      ExceptProc(Obj,Adr,0,nil {TODO: backtrace});
+      ExceptProc(Obj,Adr,FrameCount,Frames);
       Halt(217);
     end
     else
-      RunError(abs(code));
+    begin
+      errorcode:=word(code);
+      errorbase:=pointer(rec.ExceptionInformation[4]);
+      erroraddr:=pointer(Adr);
+      Halt(code);
+    end;
   end;
   result:=ExceptionContinueExecution;
 end;
@@ -210,7 +274,7 @@ begin
   if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
   begin
     Exc.FObject:=nil;
-    code:=RunErrorCode(rec);
+    code:=RunErrorCode386(rec,context);
     if Assigned(ExceptObjProc) then
       Exc.FObject:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
     if (Exc.FObject=nil) and (frame.Addr<>Pointer(@__FPC_except_safecall)) then
@@ -301,7 +365,7 @@ begin
       exit;
     end;
     { Are we going to catch it? }
-    TargetAddr:=FilterException(rec,0,PtrUInt(frame.HandlerArg));
+    TargetAddr:=FilterException(rec,0,PtrUInt(frame.HandlerArg),abs(RunErrorCode386(rec,context)));
     if assigned(TargetAddr) then
       CommonHandler(rec,frame,context,TargetAddr);
   end;

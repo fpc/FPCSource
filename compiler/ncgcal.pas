@@ -268,7 +268,7 @@ implementation
                secondpass(fparainit);
              secondpass(left);
 
-             maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
+             hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
@@ -779,7 +779,7 @@ implementation
 
     procedure tcgcallnode.pass_generate_code;
       var
-        name_to_call: shortstring;
+        name_to_call: TSymStr;
         regs_to_save_int,
         regs_to_save_address,
         regs_to_save_fpu,
@@ -884,11 +884,13 @@ implementation
                end;
 {$endif vtentry}
 
-             name_to_call:='';
-             if assigned(fobjcforcedprocname) then
-               name_to_call:=fobjcforcedprocname^;
-             { in the JVM, virtual method calls are also name-based }
-{$ifndef jvm}
+{$ifdef symansistr}
+              name_to_call:=fforcedprocname;
+{$else symansistr}
+              name_to_call:='';
+              if assigned(fforcedprocname) then
+                name_to_call:=fforcedprocname^;
+{$endif symansistr}
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (name_to_call='') and
@@ -967,7 +969,6 @@ implementation
                  extra_post_call_code;
                end
              else
-{$endif jvm}
                begin
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
@@ -998,10 +999,9 @@ implementation
                       extra_call_code;
                       retloc.resetiftemp;
                       if (name_to_call='') then
-                        if cnf_inherited in callnodeflags then
-                          retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,paralocs)
-                        else
-                          retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,paralocs,typedef,po_weakexternal in procdefinition.procoptions)
+                        name_to_call:=tprocdef(procdefinition).mangledname;
+                      if cnf_inherited in callnodeflags then
+                        retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
                       else
                         retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;

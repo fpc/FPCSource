@@ -23,6 +23,7 @@ type
   TDBConnectorClass = class of TDBConnector;
   TDBConnector = class(TPersistent)
      private
+       FLogTimeFormat: TFormatSettings; //for error logging only
        FFormatSettings: TFormatSettings;
        FChangedFieldDataset : boolean;
      protected
@@ -53,6 +54,10 @@ type
        // They should clean up all mess, like tables on disk or on a DB server
        procedure DropNDatasets; virtual; abstract;
        procedure DropFieldDataset; virtual; abstract;
+
+       // If logging is enabled, writes Message to log file and flushes
+       // Logging uses tab-separated columns
+       procedure LogMessage(Category,Message: string);
      public
        constructor Create; virtual;
        destructor Destroy; override;
@@ -67,8 +72,10 @@ type
        // Gets a dataset that tracks calculation of calculated fields etc.
        Function GetTraceDataset(AChange : Boolean) : TDataset; virtual;
 
-       procedure StartTest;
-       procedure StopTest;
+       // Run before a test is started
+       procedure StartTest(TestName: string);
+       // Run after a test is stopped
+       procedure StopTest(TestName: string);
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
        property FormatSettings: TFormatSettings read FFormatSettings;
      end;
@@ -117,12 +124,12 @@ const
 const
   testValuesCount = 25;
   testFloatValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678,2.4,3.2,0.4,23);
-  testCurrencyValues : Array[0..testValuesCount-1] of currency = (-100,-65.5,-54.34,-43.34,-2.50,-0.2,45.40,0.3,45.4,127,128,255,256,45,0.3,45.4,127,128,255,256,45,1234.56,43.23,43.43,99.88);
+  testCurrencyValues : Array[0..testValuesCount-1] of currency = (-MaxLongInt-1,-MaxSmallint-1,-256,-255,-43.34,-2.5,-0.21,0,0.32,45.45,256,45,1234.56,12.34,0.12,MaxSmallInt+1,MaxLongInt+1,-6871947.67,68719476736,2748779069.44,922337203685.47,-92233720368547,99999999999999,-9223372036854.25,-9223372036854.7);
   testFmtBCDValues : Array[0..testValuesCount-1] of string = ('-100','-65.5','-54.3333','-43.3334','-2.5','-0.234567','45.4','0.3','45.414585','127','128','255','256','45','0.3','45.4','127','128','255','256','45','1234.56789','43.23','43.500001','99.88');
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testWordValues : Array[0..testValuesCount-1] of Word = (1,2,3,4,5,6,7,8,0,1,127,128,255,256,maxSmallint,maxSmallint+1,maxSmallInt-1,maxSmallInt,65535,100,130,150,151,132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
-  testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = ( -$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
+  testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = (-$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
   testBooleanValues : Array[0..testValuesCount-1] of boolean = (true,false,false,true,true,false,false,true,false,true,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false);
   testStringValues : Array[0..testValuesCount-1] of string = (
     '',
@@ -188,15 +195,15 @@ const
     '33:25:15.000',
     '04:59:16.000',
     '05:45:59.000',
-    '16:35:42.000',
-    '14:45:52.000',
+    '11:45:12.000',
     '12:45:12.000',
+    '14:45:14.000',
+    '14:45:52.000',
+    '15:35:12.000',
+    '16:35:42.000',
+    '16:45:12.000',
     '18:45:22.000',
     '19:45:12.000',
-    '14:45:14.000',
-    '16:45:12.000',
-    '11:45:12.000',
-    '15:35:12.000',
     '16:45:12.010',
     '13:55:12.200',
     '13:46:12.543',
@@ -206,7 +213,7 @@ const
     '10:54:12.999',
     '12:25:12.000',
     '20:15:12.758',
-    '12:25:12.000'
+    '23:59:59.000'
   );
 
 
@@ -217,7 +224,9 @@ var dbtype,
     dbuser,
     dbhostname,
     dbpassword,
+    dblogfilename,
     dbQuoteChars   : string;
+    dblogfile      : TextFile;
     DataEvents     : string;
     DBConnector    : TDBConnector;
     testValues     : Array [TFieldType,0..testvaluescount -1] of string;
@@ -247,6 +256,17 @@ begin
   FFormatSettings.TimeSeparator:=':';
   FFormatSettings.ShortDateFormat:='yyyy/mm/dd';
   FFormatSettings.LongTimeFormat:='hh:nn:ss.zzz';
+
+  // Set up time format for logging output:
+  // ISO 8601 type date string so logging is uniform across machines
+  FLogTimeFormat.DecimalSeparator:='.';
+  FLogTimeFormat.ThousandSeparator:=#0;
+  FLogTimeFormat.DateSeparator:='-';
+  FLogTimeFormat.TimeSeparator:=':';
+  FLogTimeFormat.ShortDateFormat:='yyyy-mm-dd';
+  FLogTimeFormat.LongTimeFormat:='hh:nn:ss';
+
+
   FUsedDatasets := TFPList.Create;
   CreateFieldDataset;
   CreateNDatasets;
@@ -316,15 +336,17 @@ begin
   result := GetNDataset(AChange,NForTraceDataset);
 end;
 
-procedure TDBConnector.StartTest;
+procedure TDBConnector.StartTest(TestName: string);
 begin
-  // Do nothing?
+  // Log if necessary
+  LogMessage('Test','Starting test '+TestName);
 end;
 
-procedure TDBConnector.StopTest;
+procedure TDBConnector.StopTest(TestName: string);
 var i : integer;
     ds : TDataset;
 begin
+  LogMessage('Test','Stopping test '+TestName);
   for i := 0 to FUsedDatasets.Count -1 do
     begin
     ds := tdataset(FUsedDatasets[i]);
@@ -338,6 +360,23 @@ begin
     ResetNDatasets;
     fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
     break;
+    end;
+end;
+
+procedure TDBConnector.LogMessage(Category,Message: string);
+begin
+  if dblogfilename<>'' then //double check: only if logging enabled
+    begin
+    try
+      Message:=StringReplace(Message, #9, '\t', [rfReplaceAll, rfIgnoreCase]);
+      Message:=StringReplace(Message, LineEnding, '\n', [rfReplaceAll, rfIgnoreCase]);
+      writeln(dbLogFile, TimeToStr(Now(), FLogTimeFormat) + #9 +
+        Category + #9 +
+        Message);
+      Flush(dbLogFile); //in case tests crash
+    except
+      // ignore log file errors
+    end;
     end;
 end;
 
@@ -387,12 +426,12 @@ end;
 procedure TDBBasicsTestCase.SetUp;
 begin
   inherited SetUp;
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TDBBasicsTestCase.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
   inherited TearDown;
 end;
 
@@ -448,9 +487,40 @@ begin
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
+  dblogfilename := IniFile.ReadString(dbtype,'LogFile','');
   dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
 
   IniFile.Free;
+end;
+
+procedure SetupLog;
+begin
+  if dblogfilename<>'' then
+  begin
+    try
+      AssignFile(dblogfile,dblogfilename);
+      if not(FileExists(dblogfilename)) then
+      begin
+        ReWrite(dblogfile);
+        CloseFile(dblogfile);
+      end;
+      Append(dblogfile);
+    except
+      dblogfilename:=''; //rest of code relies on this as a log switch
+    end;
+  end;
+end;
+
+procedure CloseLog;
+begin
+  if dblogfilename<>'' then
+    begin
+    try
+      CloseFile(dbLogFile);
+    except
+      // Ignore log file errors
+    end;
+    end;
 end;
 
 procedure InitialiseDBConnector;
@@ -557,6 +627,10 @@ end;
 
 initialization
   ReadIniFile;
+  SetupLog;
   DBConnectorRefCount:=0;
+
+finalization
+  CloseLog;
 end.
 

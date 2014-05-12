@@ -69,6 +69,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('rtl-extra'); // clocale
     P.Dependencies.Add('ibase', SqldbConnectionOSes);
     P.Dependencies.Add('mysql', SqldbConnectionOSes);
     P.Dependencies.Add('odbc', SqldbConnectionOSes);

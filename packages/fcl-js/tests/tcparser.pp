@@ -23,6 +23,7 @@ type
     Procedure CreateParser(Const ASource : string);
     Procedure CheckClass(E : TJSElement; C : TJSElementClass);
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
+    Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
     Function  GetSourceElements : TJSSourceElements;
     Function  GetVars : TJSElementNodes;
     Function  GetStatements : TJSElementNodes;
@@ -123,13 +124,24 @@ type
     procedure TestTryFinally;
     procedure TestThrow;
     procedure TestReturn;
+    procedure TestAssignment;
+    procedure TestNew;
+    procedure TestLabeledStatement;
+    procedure TestContinue;
+    procedure TestContinueTarget;
+    procedure TestBreak;
+    procedure TestBreakTarget;
+    procedure TestSwitchEmpty;
+    procedure TestSwitchOne;
+    procedure TestSwitchTwo;
+    procedure TestSwitchTwoDefault;
   end;
 
 implementation
 
 uses typinfo;
 
-procedure TTestJSParser.AssertEquals(const AMessage: String; Expected,
+Procedure TTestJSParser.AssertEquals(Const AMessage: String; Expected,
   Actual: TJSType);
 
 Var
@@ -141,7 +153,22 @@ begin
   AssertEquals(AMessage,NE,NA);
 end;
 
-function TTestJSParser.GetFirstStatement: TJSElement;
+Procedure TTestJSParser.AssertIdentifier(Msg: String; El: TJSElement;
+  Const AName: TJSString);
+
+Var
+  L : TJSPrimaryExpressionIdent;
+  S1,S2 : String;
+begin
+  AssertNotNull(Msg+' have TJSPrimaryExpressionIdent element',El);
+  CheckClass(El,TJSPrimaryExpressionIdent);
+  L:=TJSPrimaryExpressionIdent(el);
+  S1:=L.Name;
+  S2:=Aname;
+  AssertEquals(Msg+'Identifier has correct name',S2,S1);
+end;
+
+Function TTestJSParser.GetFirstStatement: TJSElement;
 
 Var
   E : TJSElementNodes;
@@ -156,7 +183,7 @@ begin
   AssertNotNull('First statement assigned',Result);
 end;
 
-function TTestJSParser.GetFirstVar: TJSElement;
+Function TTestJSParser.GetFirstVar: TJSElement;
 Var
   E : TJSElementNodes;
   N : TJSElement;
@@ -171,7 +198,7 @@ begin
   AssertNotNull('First variable declaration',Result);
 end;
 
-function TTestJSParser.GetExpressionStatement: TJSExpressionStatement;
+Function TTestJSParser.GetExpressionStatement: TJSExpressionStatement;
 
 Var
   N : TJSElement;
@@ -1534,7 +1561,7 @@ begin
   AssertEquals('Array name correct','A',TJSPrimaryExpressionIdent(B.Mexpr).Name);
 end;
 
-procedure TTestJSParser.TestVarDeclarationSimple;
+Procedure TTestJSParser.TestVarDeclarationSimple;
 
 Var
   X : TJSELement;
@@ -1852,14 +1879,14 @@ procedure TTestJSParser.TestDoWhileSimple;
 
 Var
   E : TJSElement;
-  W : TJSWhileStatement;
+  W : TJSDoWhileStatement;
 //  B : TJSBlockStatement;
 
 begin
   CreateParser('do b; while (a);');
   E:=GetFirstStatement;
-  CheckClass(E,TJSWhileStatement);
-  W:=TJSWhileStatement(E);
+  CheckClass(E,TJSDoWhileStatement);
+  W:=TJSDoWhileStatement(E);
   AssertNotNull('Statement condition assigned',W.Cond);
   CheckClass(W.Cond,TJSPrimaryExpressionIdent);
   AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).Name);
@@ -1874,14 +1901,14 @@ procedure TTestJSParser.TestDoWhileBlock;
 
 Var
   E : TJSElement;
-  W : TJSWhileStatement;
+  W : TJSDoWhileStatement;
 //  B : TJSBlockStatement;
 
 begin
   CreateParser('do {b;} while (a);');
   E:=GetFirstStatement;
-  CheckClass(E,TJSWhileStatement);
-  W:=TJSWhileStatement(E);
+  CheckClass(E,TJSDoWhileStatement);
+  W:=TJSDoWhileStatement(E);
   AssertNotNull('Statement condition assigned',W.Cond);
   CheckClass(W.Cond,TJSPrimaryExpressionIdent);
   AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).Name);
@@ -2075,6 +2102,252 @@ begin
   AssertEquals('1 statement in functionbody elements',1,E.Statements.Count);
 end;
 
+procedure TTestJSParser.TestAssignment;
+Var
+  E : TJSElement;
+  ES : TJSExpressionStatement;
+  A : TJSSimpleAssignStatement;
+
+begin
+  CreateParser('a=b;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExpressionStatement);
+  ES:=TJSExpressionStatement(E);
+  CheckClass(ES.A,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(ES.A);
+  AssertNotNull('Have LHS',A.LHS);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Have LHS name','a',TJSPrimaryExpressionIdent(A.LHS).Name);
+  CheckClass(A.Expr,TJSPrimaryExpressionIdent);
+  AssertEquals('Have RHS name','b',TJSPrimaryExpressionIdent(A.Expr).Name);
+end;
+
+procedure TTestJSParser.TestNew;
+Var
+  E : TJSElement;
+  ES : TJSExpressionStatement;
+  A : TJSSimpleAssignStatement;
+  N : TJSNewMemberExpression;
+  L : TJSLiteral;
+
+begin
+  CreateParser('a = new b(123)');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExpressionStatement);
+  ES:=TJSExpressionStatement(E);
+  CheckClass(ES.A,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(ES.A);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Have LHS name','a',TJSPrimaryExpressionIdent(A.LHS).Name);
+  CheckClass(A.Expr,TJSNewMemberExpression);
+  N:=TJSNewMemberExpression(A.Expr);
+  AssertNotNull('Have LHS name',N.Mexpr);
+  CheckClass(N.Mexpr,TJSPrimaryExpressionIdent);
+  AssertEquals('Have LHS name','b',TJSPrimaryExpressionIdent(N.Mexpr).Name);
+  AssertNotNull('Have arguments',N.Args);
+  AssertEquals('One argument',1,N.Args.Elements.Count);
+  AssertNotNull('Have argument 0',N.Args.Elements[0].Expr);
+  CheckClass(N.Args.Elements[0].Expr,TJSLiteral);
+  L:=TJSLiteral(N.Args.Elements[0].Expr);
+  AssertNotNull('Expression value assigned',L.Value);
+  AssertEquals('Expression value type correct', jstNumber,L.Value.ValueType);
+  AssertEquals('Expression value correct', 123,L.Value.AsNumber);
+
+end;
+
+procedure TTestJSParser.TestLabeledStatement;
+Var
+  E : TJSElement;
+  ES : TJSExpressionStatement;
+  A : TJSSimpleAssignStatement;
+  N : TJSNewMemberExpression;
+  L : TJSLiteral;
+  LS : TJSLabeledStatement;
+
+begin
+  CreateParser('loc: a = new b(123)');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSLabeledStatement);
+  LS:=TJSLabeledStatement(E);
+  AssertNotNull('Have label',LS.TheLabel);
+  AssertEquals('Have correct label','loc',LS.TheLabel.Name);
+  CheckClass(LS.A,TJSExpressionStatement);
+  ES:=TJSExpressionStatement(LS.A);
+  CheckClass(ES.A,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(ES.A);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Have LHS name','a',TJSPrimaryExpressionIdent(A.LHS).Name);
+  CheckClass(A.Expr,TJSNewMemberExpression);
+  N:=TJSNewMemberExpression(A.Expr);
+  AssertNotNull('Have LHS name',N.Mexpr);
+  CheckClass(N.Mexpr,TJSPrimaryExpressionIdent);
+  AssertEquals('Have LHS name','b',TJSPrimaryExpressionIdent(N.Mexpr).Name);
+  AssertNotNull('Have arguments',N.Args);
+  AssertEquals('One argument',1,N.Args.Elements.Count);
+  AssertNotNull('Have argument 0',N.Args.Elements[0].Expr);
+  CheckClass(N.Args.Elements[0].Expr,TJSLiteral);
+  L:=TJSLiteral(N.Args.Elements[0].Expr);
+  AssertNotNull('Expression value assigned',L.Value);
+  AssertEquals('Expression value type correct', jstNumber,L.Value.ValueType);
+  AssertEquals('Expression value correct', 123,L.Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestContinue;
+
+Var
+  E : TJSElement;
+  C : TJSContinueStatement;
+
+begin
+  CreateParser('while (true) continue;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  E:=TJSWhileStatement(E).Body;
+  CheckClass(E,TJSContinueStatement);
+  C:=TJSContinueStatement(E);
+  AssertEquals('Have correct (empty) label','',C.TargetName);
+end;
+
+procedure TTestJSParser.TestContinueTarget;
+
+Var
+  E : TJSElement;
+  C : TJSContinueStatement;
+
+begin
+  CreateParser('a: while (true) continue a;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSLabeledStatement);
+  E:=TJSLabeledStatement(E).A;
+  CheckClass(E,TJSWhileStatement);
+  E:=TJSWhileStatement(E).Body;
+  CheckClass(E,TJSContinueStatement);
+  C:=TJSContinueStatement(E);
+  AssertEquals('Have correct  label','a',C.TargetName);
+end;
+
+procedure TTestJSParser.TestBreakTarget;
+Var
+  E : TJSElement;
+  C : TJSBreakStatement;
+
+begin
+  CreateParser('a: while (true) break a;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSLabeledStatement);
+  E:=TJSLabeledStatement(E).A;
+  CheckClass(E,TJSWhileStatement);
+  E:=TJSWhileStatement(E).Body;
+  CheckClass(E,TJSBreakStatement);
+  C:=TJSBreakStatement(E);
+  AssertEquals('Have correct  label','a',C.TargetName);
+end;
+
+procedure TTestJSParser.TestSwitchEmpty;
+Var
+  E : TJSElement;
+  S : TJSSwitchStatement;
+  P : TJSPrimaryExpressionIdent;
+
+begin
+  CreateParser('switch (a) {}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSSwitchStatement);
+  S:=TJSSwitchStatement(E);
+  AssertNotNull('Have condition',S.Cond);
+  AssertNull('Have no default',S.TheDefault);
+  AssertIdentifier('Case condition',S.Cond,'a');
+  S:=TJSSwitchStatement(E);
+  AssertEquals('No cases',0,S.Cases.Count)
+end;
+
+procedure TTestJSParser.TestSwitchOne;
+Var
+  E : TJSElement;
+  S : TJSSwitchStatement;
+  P : TJSPrimaryExpressionIdent;
+  C : TJSCaseElement;
+begin
+  CreateParser('switch (a) { case c : {}}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSSwitchStatement);
+  S:=TJSSwitchStatement(E);
+  AssertNotNull('Have condition',S.Cond);
+  AssertNull('Have no default',S.TheDefault);
+  AssertIdentifier('Case condition',S.Cond,'a');
+  S:=TJSSwitchStatement(E);
+  AssertEquals('1 case',1,S.Cases.Count);
+  C:=TJSCaseElement(S.Cases[0]);
+  AssertIdentifier('Case expression',C.Expr,'c');
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+end;
+
+procedure TTestJSParser.TestSwitchTwo;
+Var
+  E : TJSElement;
+  S : TJSSwitchStatement;
+  P : TJSPrimaryExpressionIdent;
+  C : TJSCaseElement;
+begin
+  CreateParser('switch (a) { case c: {}'+sLineBreak+' case d: {}}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSSwitchStatement);
+  S:=TJSSwitchStatement(E);
+  AssertNotNull('Have condition',S.Cond);
+  AssertNull('Have no default',S.TheDefault);
+  AssertIdentifier('Case condition',S.Cond,'a');
+  S:=TJSSwitchStatement(E);
+  AssertEquals('2 cases',2,S.Cases.Count);
+  C:=TJSCaseElement(S.Cases[0]);
+  AssertIdentifier('Case expression',C.Expr,'c');
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+  C:=TJSCaseElement(S.Cases[1]);
+  AssertIdentifier('Case expression',C.Expr,'d');
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+end;
+
+procedure TTestJSParser.TestSwitchTwoDefault;
+Var
+  E : TJSElement;
+  S : TJSSwitchStatement;
+  P : TJSPrimaryExpressionIdent;
+  C : TJSCaseElement;
+begin
+  CreateParser('switch (a) { case c: {} case d: {} default: {}}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSSwitchStatement);
+  S:=TJSSwitchStatement(E);
+  AssertNotNull('Have condition',S.Cond);
+  AssertNotNull('Have default',S.TheDefault);
+  AssertIdentifier('Case condition',S.Cond,'a');
+  S:=TJSSwitchStatement(E);
+  AssertEquals('2 cases',3,S.Cases.Count);
+  C:=TJSCaseElement(S.Cases[0]);
+  AssertIdentifier('Case expression',C.Expr,'c');
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+  C:=TJSCaseElement(S.Cases[1]);
+  AssertIdentifier('Case expression',C.Expr,'d');
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+  C:=TJSCaseElement(S.Cases[2]);
+  CheckClass(C.Body,TJSEmptyBlockStatement);
+  AssertSame('Default',C,S.TheDefault);
+end;
+
+procedure TTestJSParser.TestBreak;
+Var
+  E : TJSElement;
+  C : TJSBreakStatement;
+
+begin
+  CreateParser('while (true) break;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  E:=TJSWhileStatement(E).Body;
+  CheckClass(E,TJSBreakStatement);
+  C:=TJSBreakStatement(E);
+  AssertEquals('Have correct (empty) label','',C.TargetName);
+end;
+
 procedure TTestJSParser.TestIfElseSimple;
 
 Var
@@ -2260,18 +2533,18 @@ begin
   FReeAndNil(FSource);
 end;
 
-procedure TTestJSParser.CreateParser(const ASource: string);
+Procedure TTestJSParser.CreateParser(Const ASource: string);
 begin
   FSource:=TStringStream.Create(ASource);
   FParser:=TJSParser.Create(FSource);
 end;
 
-procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
+Procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
 begin
   AssertEquals(C,E.ClassType);
 end;
 
-function TTestJSParser.GetSourceElements: TJSSourceElements;
+Function TTestJSParser.GetSourceElements: TJSSourceElements;
 
 Var
   E : TJSElement;
@@ -2292,17 +2565,17 @@ begin
   Result:=FSE;
 end;
 
-function TTestJSParser.GetVars: TJSElementNodes;
+Function TTestJSParser.GetVars: TJSElementNodes;
 begin
   Result:=GetSourceElements.Vars;
 end;
 
-function TTestJSParser.GetStatements: TJSElementNodes;
+Function TTestJSParser.GetStatements: TJSElementNodes;
 begin
   Result:=GetSourceElements.Statements;
 end;
 
-function TTestJSParser.GetFunctions: TJSElementNodes;
+Function TTestJSParser.GetFunctions: TJSElementNodes;
 begin
   Result:=GetSourceElements.Functions;
 end;

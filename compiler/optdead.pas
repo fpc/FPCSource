@@ -28,7 +28,7 @@ unit optdead;
 
     uses
       globtype,
-      classes,cclasses,
+      cclasses,
       symtype,
       wpobase;
 
@@ -71,7 +71,7 @@ unit optdead;
         fsymnamepos  : longint;
         fsymfile     : text;
         fsymfilename : tcmdstr;
-        aixstrings   : tstringlist;
+        aixstrings   : TDynStringArray;
         fuseaixextractstrings : boolean;
         function parselinenm(const line: ansistring): boolean;
         function parselineobjdump(const line: ansistring): boolean;
@@ -229,7 +229,7 @@ const
                  (aixstrings[0][1]='.') then
                 fsymbols.add(copy(aixstrings[0],2,length(aixstrings[0])),pointer(1));
             end;
-          aixstrings.clear;
+          setlength(aixstrings,0);
         end
       else
         begin
@@ -330,7 +330,7 @@ const
             if not(line[1] in ['0'..'9','a'..'f','A'..'F']) then
               begin
                 fuseaixextractstrings:=true;
-                aixstrings:=tstringlist.create;
+                setlength(aixstrings,0);
                 result:=true;
                 exit;
               end;
@@ -462,7 +462,6 @@ const
 
   destructor twpodeadcodeinfofromexternallinker.destroy;
     begin
-      aixstrings.free;
       inherited destroy;
     end;
 

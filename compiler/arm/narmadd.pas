@@ -32,6 +32,7 @@ interface
        tarmaddnode = class(tcgaddnode)
        private
           function  GetResFlags(unsigned:Boolean):TResFlags;
+          function  GetFpuResFlags:TResFlags;
        public
           function pass_1 : tnode;override;
           function use_generic_mul32to64: boolean; override;
@@ -126,6 +127,27 @@ interface
       end;
 
 
+    function tarmaddnode.GetFpuResFlags:TResFlags;
+      begin
+        if nf_swapped in Flags then
+          internalerror(2014042001);
+        case NodeType of
+          equaln:
+            result:=F_EQ;
+          unequaln:
+            result:=F_NE;
+          ltn:
+            result:=F_MI;
+          lten:
+            result:=F_LS;
+          gtn:
+            result:=F_GT;
+          gten:
+            result:=F_GE;
+        end;
+      end;
+
+
     procedure tarmaddnode.second_addfloat;
       var
         op : TAsmOp;
@@ -142,8 +164,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -249,7 +271,7 @@ interface
           swapleftright;
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getresflags(false);
 
         case current_settings.fputype of
           fpu_fpa,
@@ -258,8 +280,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then
@@ -291,6 +313,7 @@ interface
                 left.location.register,right.location.register));
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_FMSTAT));
+              location.resflags:=GetFpuResFlags;
             end;
           fpu_fpv4_s16:
             begin
@@ -311,9 +334,6 @@ interface
             { this case should be handled already by pass1 }
             internalerror(2009112404);
         end;
-
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(false);
       end;
 
 
@@ -559,13 +579,13 @@ interface
                       procname:=procname+'_le';
                     gtn:
                       begin
-                        procname:=procname+'_le';
-                        notnode:=true;
+                        procname:=procname+'_lt';
+                        swapleftright;
                       end;
                     gten:
                       begin
-                        procname:=procname+'_lt';
-                        notnode:=true;
+                        procname:=procname+'_le';
+                        swapleftright;
                       end;
                     equaln:
                       procname:=procname+'_eq';

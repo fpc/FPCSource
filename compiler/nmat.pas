@@ -197,6 +197,14 @@ implementation
          result:=nil;
          typecheckpass(left);
          typecheckpass(right);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -584,11 +592,7 @@ implementation
               begin
                 { shl/shr are unsigned operations, so cut off upper bits }
                 case resultdef.size of
-                  1:
-                    rvalue:=tordconstnode(right).value and byte($7);
-                  2:
-                    rvalue:=tordconstnode(right).value and byte($f);
-                  4:
+                  1,2,4:
                     rvalue:=tordconstnode(right).value and byte($1f);
                   8:
                     rvalue:=tordconstnode(right).value and byte($3f);
@@ -637,13 +641,18 @@ implementation
     function tshlshrnode.pass_typecheck:tnode;
       var
          t : tnode;
-{$ifdef cpunodefaultint}
-         nd : tdef;
-{$endif cpunodefaultint}
       begin
          result:=nil;
          typecheckpass(left);
          typecheckpass(right);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -661,14 +670,6 @@ implementation
               exit;
            end;
 
-{$ifdef cpunodefaultint}
-         { for small cpus we use the smallest common type }
-         if (left.resultdef.typ=orddef) and (right.resultdef.typ=orddef) then
-           nd:=get_common_intdef(torddef(left.resultdef),torddef(right.resultdef),false)
-         else
-           nd:=s32inttype;
-{$endif cpunodefaultint}
-
          { calculations for ordinals < 32 bit have to be done in
            32 bit for backwards compatibility. That way 'shl 33' is
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
@@ -678,41 +679,27 @@ implementation
              { keep singness of orignal type }
              if is_signed(left.resultdef) then
                begin
-{$if defined(cpunodefaultint)}
-                 inserttypeconv(left,nd)
-{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,s32inttype)
-{$elseif defined(cpu16bitalu)}
-                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
-                   inserttypeconv(left,s32inttype)
-                 else
-                   inserttypeconv(left,sinttype);
+{$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
+                 inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true));
 {$else}
                  internalerror(2013031301);
 {$endif}
                end
              else
                begin
-{$if defined(cpunodefaultint)}
-                 inserttypeconv(left,nd)
-{$elseif defined(cpu64bitalu) or defined(cpu32bitalu)}
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                  inserttypeconv(left,u32inttype);
-{$elseif defined(cpu16bitalu)}
-                 if (left.resultdef.size > 2) or (right.resultdef.size > 2) then
-                   inserttypeconv(left,u32inttype)
-                 else
-                   inserttypeconv(left,uinttype);
+{$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
+                 inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
 {$else}
                  internalerror(2013031301);
 {$endif}
                end
            end;
 
-{$ifdef cpunodefaultint}
-         inserttypeconv(right,nd);
-{$else cpunodefaultint}
          inserttypeconv(right,sinttype);
-{$endif cpunodefaultint}
 
          resultdef:=left.resultdef;
 
@@ -818,6 +805,14 @@ implementation
       begin
          result:=nil;
          typecheckpass(left);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
@@ -968,6 +963,14 @@ implementation
       begin
         result:=nil;
         typecheckpass(left);
+
+        { avoid any problems with type parameters later on }
+        if is_typeparam(left.resultdef) then
+          begin
+            resultdef:=cundefinedtype;
+            exit;
+          end;
+
         set_varstate(left,vs_read,[vsf_must_be_valid]);
         if codegenerror then
           exit;
@@ -1093,26 +1096,24 @@ implementation
                u16bit,
                s16bit,
                s32bit,
-{$ifdef cpu64bitaddr}
                u32bit,
-{$endif cpu64bitaddr}
-               s64bit:
+               s64bit,
+               u64bit:
                  begin
-                   v:=int64(not int64(v));
-                   if (torddef(left.resultdef).ordtype<>s64bit) then
-                     def:=sinttype
+                   { unsigned, equal or bigger than the native int size? }
+                   if (torddef(left.resultdef).ordtype in [u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
+                      (is_nativeord(left.resultdef) or is_oversizedord(left.resultdef)) then
+                     begin
+                       { Delphi-compatible: not dword = dword (not word = longint) }
+                       { Extension: not qword = qword                              }
+                       v:=qword(not qword(v));
+                       { will be truncated by the ordconstnode for u32bit }
+                     end
                    else
-                     def:=s64inttype;
-                 end;
-{$ifndef cpu64bitaddr}
-               u32bit,
-{$endif not cpu64bitaddr}
-               u64bit :
-                 begin
-                   { Delphi-compatible: not dword = dword (not word = longint) }
-                   { Extension: not qword = qword                              }
-                   v:=qword(not qword(v));
-                   { will be truncated by the ordconstnode for u32bit }
+                     begin
+                       v:=int64(not int64(v));
+                       def:=get_common_intdef(torddef(left.resultdef),torddef(sinttype),false);
+                     end;
                  end;
                else
                  CGMessage(type_e_mismatch);
@@ -1144,6 +1145,14 @@ implementation
       begin
          result:=nil;
          typecheckpass(left);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;

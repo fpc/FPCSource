@@ -45,16 +45,16 @@ const
       end;
 
 
-    procedure SetSSECSR(w : dword);
+    procedure SetMXCSR(w : dword);
       begin
-        mxcsr:=w;
+        defaultmxcsr:=w;
         asm
           ldmxcsr w
         end;
       end;
 
 
-    function GetSSECSR : dword;assembler;
+    function GetMXCSR : dword;assembler;
       var
         _w : dword;
       asm
@@ -62,19 +62,22 @@ const
         movl    _w,%eax
       end;
 
+
+    procedure SetSSECSR(w : dword);
+      begin
+        SetMXCSR(w);
+      end;
+
+
+    function GetSSECSR: dword;
+      begin
+        result:=GetMXCSR;
+      end;
+
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
 
-    {$ifndef FPC_SYSTEM_HAS_PI}
-    {$define FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
-    {$endif FPC_SYSTEM_HAS_PI}
     {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
@@ -251,29 +254,6 @@ const
         movq res,%rax
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
-
-
-    {$ifndef FPC_SYSTEM_HAS_POWER}
-    {$define FPC_SYSTEM_HAS_POWER}
-    function power(bas,expo : extended) : extended;
-      begin
-         if bas=0 then
-           begin
-             if expo<>0 then
-               power:=0.0
-             else
-               HandleError(207);
-           end
-         else if expo=0 then
-          power:=1
-         else
-         { bas < 0 is not allowed }
-          if bas<0 then
-           handleerror(207)
-          else
-           power:=exp(ln(bas)*expo);
-      end;
-    {$endif FPC_SYSTEM_HAS_POWER}
 
 {$else FPC_HAS_TYPE_EXTENDED}
 

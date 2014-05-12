@@ -306,7 +306,7 @@ end;
   procedure TStream.WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
 
     var
-      FixupInfo: Integer;
+      FixupInfo: Longint;
 
     begin
 
@@ -319,7 +319,7 @@ end;
 
     end;
 
-  procedure TStream.WriteResourceHeader(const ResName: string; {!!!: out} var FixupInfo: Integer);
+  procedure TStream.WriteResourceHeader(const ResName: string; {!!!: out} var FixupInfo: Longint);
     var
       ResType, Flags : word;
     begin
@@ -342,10 +342,10 @@ end;
        FixupInfo := Position;
     end;
 
-  procedure TStream.FixupResourceHeader(FixupInfo: Integer);
+  procedure TStream.FixupResourceHeader(FixupInfo: Longint);
 
     var
-       ResSize,TmpResSize : Integer;
+       ResSize,TmpResSize : Longint;
 
     begin
 

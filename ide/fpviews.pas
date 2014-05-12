@@ -954,10 +954,18 @@ end;
 
 {$ifdef powerpc}
   {$define USE_TasmCondFlag}
+  { powerpc only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef powerpc64}
   {$define USE_TasmCondFlag}
+  { powerpc64 only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef i386}
@@ -4251,7 +4259,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2012 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2014 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);

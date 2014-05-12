@@ -12,6 +12,16 @@
 
  **********************************************************************}
 
+{ ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
+  type in ObjFpc and Delphi modes). It is defined here for use in the
+  implementation part of the System unit. }
+{$ifdef CPU16}
+type
+  ObjpasInt = SmallInt;
+{$else CPU16}
+type
+  ObjpasInt = LongInt;
+{$endif CPU16}
 
 { The RTTI is implemented through a series of constants : }
 

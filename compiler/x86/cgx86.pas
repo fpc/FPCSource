@@ -185,7 +185,7 @@ unit cgx86;
 
     function UseAVX: boolean;
       begin
-        Result:=current_settings.fputype in fpu_avx_instructionsets;
+        Result:=(current_settings.fputype in fpu_avx_instructionsets) {$ifndef i8086}or (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]){$endif i8086};
       end;
 
 
@@ -607,6 +607,9 @@ unit cgx86;
             href.base:=getaddressregister(list);
             { let the register allocator find a suitable register for the reference }
             list.Concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_SP, href.base));
+            { if DS<>SS in the current memory model, we need to add an SS: segment override as well }
+            if (ref.segment=NR_NO) and not segment_regs_equal(NR_DS,NR_SS) then
+              href.segment:=NR_SS;
             ref:=href;
           end;
 
@@ -615,6 +618,15 @@ unit cgx86;
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,S_W,ref.segment,NR_ES));
             ref.segment:=NR_ES;
+          end;
+
+        { can the segment override be dropped? }
+        if ref.segment<>NR_NO then
+          begin
+            if (ref.base=NR_BP) and segment_regs_equal(ref.segment,NR_SS) then
+              ref.segment:=NR_NO;
+            if (ref.base<>NR_BP) and segment_regs_equal(ref.segment,NR_DS) then
+              ref.segment:=NR_NO;
           end;
 {$endif}
       end;
@@ -1554,7 +1566,7 @@ unit cgx86;
     procedure tcgx86.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                         a:tcgint;src,dst:Tregister);
       var
-        power  : longint;
+        power,al  : longint;
         href : treference;
       begin
         power:=0;
@@ -1592,7 +1604,13 @@ unit cgx86;
           ) and
           not(cs_check_overflow in current_settings.localswitches) then
           begin
-            reference_reset_base(href,src,a,0);
+            { a might still be in the range 0x80000000 to 0xffffffff
+              which might trigger a range check error as
+              reference_reset_base expects a longint value. }
+{$push} {$R-}{$Q-}
+            al := longint (a); 
+{$pop}
+            reference_reset_base(href,src,al,0);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op=OP_SUB) and
@@ -2107,23 +2125,75 @@ unit cgx86;
      procedure tcgx86.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
        var
          ai : taicpu;
+         hl : tasmlabel;
+         f2 : tresflags;
        begin
+         hl:=nil;
+         f2:=f;
+         case f of
+           F_FNE:
+             begin
+               ai:=Taicpu.op_sym(A_Jcc,S_NO,l);
+               ai.SetCondition(C_P);
+               ai.is_jmp:=true;
+               list.concat(ai);
+               f2:=F_NE;
+             end;
+           F_FE,F_FA,F_FAE,F_FB,F_FBE:
+             begin
+               { JP before JA/JAE is redundant, but it must be generated here
+                 and left for peephole optimizer to remove. }
+               current_asmdata.getjumplabel(hl);
+               ai:=Taicpu.op_sym(A_Jcc,S_NO,hl);
+               ai.SetCondition(C_P);
+               ai.is_jmp:=true;
+               list.concat(ai);
+               f2:=FPUFlags2Flags[f];
+             end;
+         end;
          ai := Taicpu.op_sym(A_Jcc,S_NO,l);
-         ai.SetCondition(flags_to_cond(f));
+         ai.SetCondition(flags_to_cond(f2));
          ai.is_jmp := true;
          list.concat(ai);
+         if assigned(hl) then
+           a_label(list,hl);
        end;
 
 
     procedure tcgx86.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
       var
         ai : taicpu;
-        hreg : tregister;
+        f2 : tresflags;
+        hreg,hreg2 : tregister;
+        op: tasmop;
       begin
+        hreg2:=NR_NO;
+        op:=A_AND;
+        f2:=f;
+        case f of
+          F_FE,F_FNE,F_FB,F_FBE:
+            begin
+              hreg2:=getintregister(list,OS_8);
+              ai:=Taicpu.op_reg(A_SETcc,S_B,hreg2);
+              if (f=F_FNE) then       { F_FNE means "PF or (not ZF)" }
+                begin
+                  ai.setcondition(C_P);
+                  op:=A_OR;
+                end
+              else
+                ai.setcondition(C_NP);
+              list.concat(ai);
+              f2:=FPUFlags2Flags[f];
+            end;
+          F_FA,F_FAE:                 { These do not need PF check }
+            f2:=FPUFlags2Flags[f];
+        end;
         hreg:=makeregsize(list,reg,OS_8);
         ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
-        ai.setcondition(flags_to_cond(f));
+        ai.setcondition(flags_to_cond(f2));
         list.concat(ai);
+        if (hreg2<>NR_NO) then
+          list.concat(taicpu.op_reg_reg(op,S_B,hreg2,hreg));
         if reg<>hreg then
           a_load_reg_reg(list,OS_8,size,hreg,reg);
       end;
@@ -2133,13 +2203,24 @@ unit cgx86;
       var
         ai : taicpu;
         tmpref  : treference;
+        f2 : tresflags;
       begin
+        f2:=f;
+        case f of
+          F_FE,F_FNE,F_FB,F_FBE:
+            begin
+              inherited g_flags2ref(list,size,f,ref);
+              exit;
+            end;
+          F_FA,F_FAE:
+            f2:=FPUFlags2Flags[f];
+        end;
          tmpref:=ref;
          make_simple_ref(list,tmpref);
          if not(size in [OS_8,OS_S8]) then
            a_load_const_ref(list,size,0,tmpref);
          ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
-         ai.setcondition(flags_to_cond(f));
+         ai.setcondition(flags_to_cond(f2));
          list.concat(ai);
 {$ifndef cpu64bitalu}
          if size in [OS_S64,OS_64] then
@@ -2184,6 +2265,7 @@ unit cgx86;
         copysize:byte;
         cgsize:Tcgsize;
         cm:copymode;
+        saved_ds,saved_es: Boolean;
 
     begin
       cm:=copy_move;
@@ -2440,9 +2522,11 @@ unit cgx86;
         else {copy_string, should be a good fallback in case of unhandled}
           begin
             getcpuregister(list,REGDI);
-            if (dest.segment=NR_NO) then
+            if (dest.segment=NR_NO) and
+               (segment_regs_equal(NR_SS,NR_DS) or ((dest.base<>NR_BP) and (dest.base<>NR_SP))) then
               begin
                 a_loadaddr_ref_reg(list,dest,REGDI);
+                saved_es:=false;
 {$ifdef volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
@@ -2453,23 +2537,43 @@ unit cgx86;
                 dstref:=dest;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
-{$ifndef volatile_es}
+{$ifdef volatile_es}
+                saved_es:=false;
+{$else volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_ES));
-{$endif not volatile_es}
-                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment));
+                saved_es:=true;
+{$endif volatile_es}
+                if dest.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,dest.segment))
+                else if (dest.base=NR_BP) or (dest.base=NR_SP) then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
+                else
+                  internalerror(2014040401);
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
-            if (source.segment=NR_NO) then
-              a_loadaddr_ref_reg(list,source,REGSI)
+            if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
+               (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
+              begin
+                srcref:=source;
+                srcref.segment:=NR_NO;
+                a_loadaddr_ref_reg(list,srcref,REGSI);
+                saved_ds:=false;
+              end
             else
               begin
                 srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_DS));
-                list.concat(taicpu.op_reg(A_PUSH,S_L,source.segment));
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_DS));
+                list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
+                saved_ds:=true;
+                if source.segment<>NR_NO then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,source.segment))
+                else if (source.base=NR_BP) or (source.base=NR_SP) then
+                  list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_SS))
+                else
+                  internalerror(2014040402);
+                list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
               end;
 
             getcpuregister(list,REGCX);
@@ -2517,12 +2621,10 @@ unit cgx86;
             ungetcpuregister(list,REGCX);
             ungetcpuregister(list,REGSI);
             ungetcpuregister(list,REGDI);
-            if (source.segment<>NR_NO) then
+            if saved_ds then
               list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_DS));
-{$ifndef volatile_es}
-            if (dest.segment<>NR_NO) then
+            if saved_es then
               list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
-{$endif not volatile_es}
           end;
         end;
     end;
@@ -2726,10 +2828,30 @@ unit cgx86;
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DS));
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_ES));
-            reference_reset(dgroup,0);
-            dgroup.refaddr:=addr_dgroup;
-            list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
-            list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+            if current_settings.x86memorymodel=mm_tiny then
+              begin
+                { in the tiny memory model, we can't use dgroup, because that
+                  adds a relocation entry to the .exe and we can't produce a
+                  .com file (because they don't support relactions), so instead
+                  we initialize DS from CS. }
+                if cs_opt_size in current_settings.optimizerswitches then
+                  begin
+                    list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
+                    list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
+                  end
+                else
+                  begin
+                    list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_CS,NR_AX));
+                    list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                  end;
+              end
+            else
+              begin
+                reference_reset(dgroup,0);
+                dgroup.refaddr:=addr_dgroup;
+                list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,dgroup,NR_AX));
+                list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+              end;
           end;
 {$endif i8086}
 {$ifdef i386}

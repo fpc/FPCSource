@@ -228,6 +228,9 @@ interface
     {# Returns true, if definition is a "real" real (i.e. single/double/extended) }
     function is_real(def : tdef) : boolean;
 
+    {# Returns true for single,double,extended and cextended }
+    function is_real_or_cextended(def : tdef) : boolean;
+
     { true, if def is a 8 bit int type }
     function is_8bitint(def : tdef) : boolean;
 
@@ -339,7 +342,7 @@ interface
 implementation
 
     uses
-       verbose,cutils;
+       verbose,cutils,symcpu;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -392,6 +395,13 @@ implementation
       begin
         result:=(def.typ=floatdef) and
           (tfloatdef(def).floattype in [s32real,s64real,s80real]);
+      end;
+
+
+    function is_real_or_cextended(def: tdef): boolean;
+      begin
+        result:=(def.typ=floatdef) and
+          (tfloatdef(def).floattype in [s32real,s64real,s80real,sc80real]);
       end;
 
 
@@ -1201,12 +1211,11 @@ implementation
                 result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef,
-          formaldef:
+          pointerdef:
             begin
 {$ifdef x86}
               if (def.typ=pointerdef) and
-                 (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+                 (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
                 begin
                   {$if defined(i8086)}
                     result := OS_32;
@@ -1218,24 +1227,16 @@ implementation
                 end
               else
 {$endif x86}
-                result := OS_ADDR;
+                result := int_cgsize(def.size);
             end;
+          formaldef:
+            result := int_cgsize(voidpointertype.size);
           procvardef:
             result:=int_cgsize(def.size);
           stringdef :
-            begin
-              if is_ansistring(def) or is_wide_or_unicode_string(def) then
-                result := OS_ADDR
-              else
-                result:=int_cgsize(def.size);
-            end;
+            result:=int_cgsize(def.size);
           objectdef :
-            begin
-              if is_implicit_pointer_object_type(def) then
-                result := OS_ADDR
-              else
-                result:=int_cgsize(def.size);
-            end;
+            result:=int_cgsize(def.size);
           floatdef:
             if cs_fp_emulation in current_settings.moduleswitches then
               result:=int_cgsize(def.size)
@@ -1245,15 +1246,10 @@ implementation
             result:=int_cgsize(def.size);
           arraydef :
             begin
-              if not is_special_array(def) then
+              if is_dynamic_array(def) or not is_special_array(def) then
                 result := int_cgsize(def.size)
               else
-                begin
-                  if is_dynamic_array(def) then
-                    result := OS_ADDR
-                  else
-                    result := OS_NO;
-                end;
+                result := OS_NO;
             end;
           else
             begin
@@ -1441,13 +1437,13 @@ implementation
     { true if p is a far pointer def }
     function is_farpointer(p : tdef) : boolean;
       begin
-        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_far);
+        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
       end;
 
     { true if p is a huge pointer def }
     function is_hugepointer(p : tdef) : boolean;
       begin
-        result:=(p.typ=pointerdef) and (tpointerdef(p).x86pointertyp=x86pt_huge);
+        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
       end;
 {$endif i8086}
 

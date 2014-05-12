@@ -1,7 +1,5 @@
 unit system;
 
-{$ASMMODE intel}
-
 interface
 
 {$DEFINE FPC_NO_DEFAULT_HEAP}
@@ -49,6 +47,9 @@ const
   segA000: Word = $A000;
   segB000: Word = $B000;
   segB800: Word = $B800;
+{ The value that needs to be added to the segment to move the pointer by
+  64K bytes (BP7 compatibility) }
+  SelectorInc: Word = $1000;
 
 var
 { Mem[] support }
@@ -74,10 +75,10 @@ const
   LFNSupport = false;
 {$endif RTLLITE}
 
-procedure DebugWrite(const S: string);
-procedure DebugWriteLn(const S: string);
-
 implementation
+
+procedure DebugWrite(const S: string); forward;
+procedure DebugWriteLn(const S: string); forward;
 
 const
   fCarry = 1;
@@ -90,6 +91,11 @@ const
 {$else FPC_X86_CODE_FAR}
   extra_param_offset = 0;
 {$endif FPC_X86_CODE_FAR}
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  extra_data_offset = 2;
+{$else}
+  extra_data_offset = 0;
+{$endif}
 
 type
   PFarByte = ^Byte;far;
@@ -125,10 +131,19 @@ function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
 procedure DebugWrite(const S: string);
 begin
   asm
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    push ds
+	lds si, S
+{$else}
     mov si, S
+{$endif}
+{$ifdef FPC_ENABLED_CLD}
+    cld
+{$endif FPC_ENABLED_CLD}
     lodsb
     mov cl, al
     xor ch, ch
+    jcxz @@zero_length
     mov ah, 2
 
 @@1:
@@ -136,6 +151,10 @@ begin
     mov dl, al
     int 21h
     loop @@1
+@@zero_length:
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    pop ds
+{$endif}
   end ['ax','bx','cx','dx','si','di'];
 end;
 
@@ -197,16 +216,9 @@ var
   len, I: Integer;
 begin
   len := PFarByte(Ptr(dos_psp, $80))^;
-{$ifdef CG_BUG}
-  { doesn't work due to a code generator bug }
   SetLength(GetCommandLine, len);
   for I := 1 to len do
     GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
-{$else CG_BUG}
-  GetCommandLine := '';
-  for I := 1 to len do
-    GetCommandLine := GetCommandLine + PFarChar(Ptr(dos_psp, $80 + I))^;
-{$endif CG_BUG}
 end;
 
 
@@ -340,7 +352,6 @@ begin
 end;
 
 begin
-  StackTop := __stktop;
   StackBottom := __stkbottom;
   StackLength := __stktop - __stkbottom;
   InstallInterruptHandlers;

@@ -123,7 +123,7 @@ Const
                                   cs_opt_tailrecursion,cs_opt_nodecse,cs_useebp,
 				  cs_opt_reorder_fields,cs_opt_fastmath];
 
-   level1optimizerswitches = genericlevel1optimizerswitches + [cs_opt_peephole];
+   level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
@@ -137,7 +137,9 @@ type
        CPUX86_HAS_POPCNT,
        CPUX86_HAS_AVXUNIT,
        CPUX86_HAS_LZCNT,
-       CPUX86_HAS_MOVBE
+       CPUX86_HAS_MOVBE,
+       CPUX86_HAS_FMA,
+       CPUX86_HAS_FMA4
       );
 
  const
@@ -151,7 +153,7 @@ type
      { cpu_PentiumM  } [CPUX86_HAS_SSEUNIT],
      { cpu_core_i    } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT],
      { cpu_core_avx  } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT],
-     { cpu_core_avx2 } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
+     { cpu_core_avx2 } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
    );
 
 

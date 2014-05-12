@@ -36,9 +36,7 @@ interface
       end;
 
       tx86vecnode = class(tcgvecnode)
-{$ifndef i8086}
         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
-{$endif not i8086}
       end;
 
 implementation
@@ -47,7 +45,7 @@ implementation
       cutils,verbose,
       aasmtai,aasmdata,
       cgutils,cgobj,
-      symconst,symdef;
+      symconst,symdef,symcpu;
 
 {*****************************************************************************
                            TX86DEREFNODE
@@ -56,7 +54,7 @@ implementation
      procedure tx86derefnode.pass_generate_code;
        begin
          inherited pass_generate_code;
-         case tpointerdef(left.resultdef).x86pointertyp of
+         case tcpupointerdef(left.resultdef).x86pointertyp of
            x86pt_near: ;
            x86pt_near_cs: location.reference.segment:=NR_CS;
            x86pt_near_ds: location.reference.segment:=NR_DS;
@@ -81,7 +79,6 @@ implementation
                              TX86VECNODE
 *****************************************************************************}
 
-{$ifndef i8086}
      { this routine must, like any other routine, not change the contents }
      { of base/index registers of references, as these may be regvars.    }
      { The register allocator can coalesce one LOC_REGISTER being moved   }
@@ -94,6 +91,7 @@ implementation
        var
          l2 : integer;
          hreg : tregister;
+         saveseg: TRegister;
        begin
          { Optimized for x86 to use the index register and scalefactor }
          if location.reference.index=NR_NO then
@@ -120,7 +118,10 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+            { reference_reset_base kills the segment, so make sure we preserve it }
+            saveseg:=location.reference.segment;
             reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+            location.reference.segment:=saveseg;
           end;
          { insert the new index register and scalefactor or
            do the multiplication manual }
@@ -141,7 +142,6 @@ implementation
          end;
          location.reference.index:=hreg;
        end;
-{$endif not i8086}
 
 begin
    cderefnode:=tx86derefnode;

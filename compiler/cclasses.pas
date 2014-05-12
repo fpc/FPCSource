@@ -76,7 +76,7 @@ type
   TListSortCompare = function (Item1, Item2: Pointer): Integer;
   TListCallback = procedure(data,arg:pointer) of object;
   TListStaticCallback = procedure(data,arg:pointer);
-
+  TDynStringArray = Array Of String;
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -589,12 +589,74 @@ type
     function FPHash(const s:shortstring):LongWord; inline;
     function FPHash(const a:ansistring):LongWord; inline;
 
+    function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; var Strings: TDynStringArray; AddEmptyStrings : Boolean = False): Integer;
 
 implementation
 
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
+    function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; var Strings: TDynStringArray; AddEmptyStrings : Boolean = False): Integer;
+    var
+      b, c : pchar;
+
+      procedure SkipWhitespace;
+        begin
+          while (c^ in Whitespace) do
+            inc (c);
+        end;
+
+      procedure AddString;
+        var
+          l : integer;
+          s : string;
+        begin
+          l := c-b;
+          if (l > 0) or AddEmptyStrings then
+            begin
+              setlength(s, l);
+              if l>0 then
+                move (b^, s[1],l*SizeOf(char));
+              l:=length(Strings);
+              setlength(Strings,l+1);
+              Strings[l]:=S;  
+              inc (result);
+            end;
+        end;
+
+    var
+      quoted : char;
+    begin
+      result := 0;
+      c := Content;
+      Quoted := #0;
+      Separators := Separators + [#13, #10] - ['''','"'];
+      SkipWhitespace;
+      b := c;
+      while (c^ <> #0) do
+        begin
+          if (c^ = Quoted) then
+            begin
+              if ((c+1)^ = Quoted) then
+                inc (c)
+              else
+                Quoted := #0
+            end
+          else if (Quoted = #0) and (c^ in ['''','"']) then
+            Quoted := c^;
+          if (Quoted = #0) and (c^ in Separators) then
+            begin
+              AddString;
+              inc (c);
+              SkipWhitespace;
+              b := c;
+            end
+          else
+            inc (c);
+        end;
+      if (c <> b) then
+        AddString;
+    end;
 
     constructor tmemdebug.create(const s:string);
       begin

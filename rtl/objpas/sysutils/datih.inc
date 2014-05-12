@@ -89,8 +89,8 @@ type
 {$endif windows}
 
    TTimeStamp = record
-      Time: integer;   { Number of milliseconds since midnight }
-      Date: integer;   { One plus number of days since 1/1/0001 }
+      Time: longint;   { Number of milliseconds since midnight }
+      Date: longint;   { One plus number of days since 1/1/0001 }
    end ;
 
 

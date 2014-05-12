@@ -77,6 +77,7 @@ interface
           function pass_typecheck:tnode;override;
          protected
           mark_read_written: boolean;
+          function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; virtual;
        end;
        taddrnodeclass = class of taddrnode;
 
@@ -187,7 +188,7 @@ implementation
                           if assigned(current_structdef.genericdef) then
                             if current_structdef.genericdef=left.resultdef then
                               begin
-                                resultdef:=tclassrefdef.create(current_structdef);
+                                resultdef:=cclassrefdef.create(current_structdef);
                                 defaultresultdef:=false;
                               end
                             else
@@ -196,10 +197,10 @@ implementation
                       else
                         message(parser_e_cant_create_generics_of_this_type);
                       if defaultresultdef then
-                        resultdef:=tclassrefdef.create(left.resultdef);
+                        resultdef:=cclassrefdef.create(left.resultdef);
                     end
                   else
-                    resultdef:=tclassrefdef.create(left.resultdef);
+                    resultdef:=cclassrefdef.create(left.resultdef);
                 end
               else
                 CGMessage(parser_e_pointer_to_class_expected);
@@ -477,10 +478,9 @@ implementation
 
     function taddrnode.pass_typecheck:tnode;
       var
-         hp  : tnode;
+         hp : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
-         offset: asizeint;
       begin
         result:=nil;
         typecheckpass(left);
@@ -530,14 +530,7 @@ implementation
               begin
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
-{$ifdef i8086}
-                    if po_far in tabstractprocdef(left.resultdef).procoptions then
-                      result:=ctypeconvnode.create_internal(left,voidfarpointertype)
-                    else
-                      result:=ctypeconvnode.create_internal(left,voidnearpointertype);
-{$else i8086}
-                    result:=ctypeconvnode.create_internal(left,voidpointertype);
-{$endif i8086}
+                    result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -571,78 +564,16 @@ implementation
           end
         else
           begin
-            { what are we getting the address from an absolute sym? }
             hp:=left;
             while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
-{$if defined(i386) or defined(i8086)}
-            if (hp.nodetype=loadn) and
-               ((tloadnode(hp).symtableentry.typ=absolutevarsym) and
-               tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
+            if typecheck_non_proc(hp,result) then
               begin
-                {$if defined(i8086)}
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidfarpointertype
-                  else
-                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_far);
-                {$elseif defined(i386)}
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidnearfspointertype
-                  else
-                    resultdef:=tpointerdef.createx86(left.resultdef,x86pt_near_fs);
-                {$endif}
+                if assigned(result) then
+                  exit;
               end
-            else
-{$endif i386 or i8086}
-            if (hp.nodetype=loadn) and
-               (tloadnode(hp).symtableentry.typ=absolutevarsym) and
-{$if defined(i386) or defined(i8086)}
-               not(tabsolutevarsym(tloadnode(hp).symtableentry).absseg) and
-{$endif i386 or i8086}
-               (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
-               begin
-                 offset:=tabsolutevarsym(tloadnode(hp).symtableentry).addroffset;
-                 hp:=left;
-                 while assigned(hp)and(hp.nodetype=subscriptn) do
-                   begin
-                     hsym:=tsubscriptnode(hp).vs;
-                     if tabstractrecordsymtable(hsym.owner).is_packed then
-                       begin
-                         { can't calculate the address of a non-byte aligned field }
-                         if (hsym.fieldoffset mod 8)<>0 then
-                           exit;
-                         inc(offset,hsym.fieldoffset div 8)
-                       end
-                     else
-                       inc(offset,hsym.fieldoffset);
-                     hp:=tunarynode(hp).left;
-                   end;
-                 if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
-                 else
-                   result:=cpointerconstnode.create(offset,voidpointertype);
-                 exit;
-               end
-{$ifdef i8086}
-              else if (hp.nodetype=loadn) and
-               (tloadnode(hp).symtableentry.typ=labelsym) then
-                begin
-                  if current_settings.x86memorymodel in x86_far_code_models then
-                    resultdef:=voidfarpointertype
-                  else
-                    resultdef:=voidnearpointertype;
-                end
-{$endif i8086}
-              else if (nf_internal in flags) or
-                 valid_for_addr(left,true) then
-                begin
-                  if not(nf_typedaddr in flags) then
-                    resultdef:=voidpointertype
-                  else
-                    resultdef:=getpointerdef(left.resultdef);
-                end
             else
               CGMessage(type_e_variable_id_expected);
           end;
@@ -658,6 +589,55 @@ implementation
             { vsf_referred_not_inited                          }
             set_varstate(left,vs_read,[vsf_must_be_valid]);
           end;
+      end;
+
+
+    function taddrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+      var
+         hp  : tnode;
+         hsym : tfieldvarsym;
+         offset: asizeint;
+      begin
+        result:=false;
+        res:=nil;
+        if (realsource.nodetype=loadn) and
+           (tloadnode(realsource).symtableentry.typ=absolutevarsym) and
+           (tabsolutevarsym(tloadnode(realsource).symtableentry).abstyp=toaddr) then
+          begin
+            offset:=tabsolutevarsym(tloadnode(realsource).symtableentry).addroffset;
+            hp:=left;
+            while assigned(hp)and(hp.nodetype=subscriptn) do
+              begin
+                hsym:=tsubscriptnode(hp).vs;
+                if tabstractrecordsymtable(hsym.owner).is_packed then
+                  begin
+                    { can't calculate the address of a non-byte aligned field }
+                    if (hsym.fieldoffset mod 8)<>0 then
+                      begin
+                        CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                        exit
+                      end;
+                    inc(offset,hsym.fieldoffset div 8)
+                  end
+                else
+                  inc(offset,hsym.fieldoffset);
+                hp:=tunarynode(hp).left;
+              end;
+            if nf_typedaddr in flags then
+              res:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
+            else
+              res:=cpointerconstnode.create(offset,voidpointertype);
+            result:=true;
+          end
+        else if (nf_internal in flags) or
+           valid_for_addr(left,true) then
+          begin
+            if not(nf_typedaddr in flags) then
+              resultdef:=voidpointertype
+            else
+              resultdef:=getpointerdef(left.resultdef);
+            result:=true;
+          end
       end;
 
 
@@ -914,7 +894,7 @@ implementation
                     ((tarraydef(left.resultdef).lowrange<>tenumdef(htype).min) or
                      (tarraydef(left.resultdef).highrange<>tenumdef(htype).max)) then
                    {Convert array indexes to low_bound..high_bound.}
-                   inserttypeconv(right,tenumdef.create_subrange(tenumdef(right.resultdef),
+                   inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
                                                       asizeint(Tarraydef(left.resultdef).highrange)
                                                      ))
@@ -944,7 +924,7 @@ implementation
                        newordtyp:=Torddef(right.resultdef).ordtype
                      else
                        newordtyp:=torddef(ptrsinttype).ordtype;
-                     inserttypeconv(right,Torddef.create(newordtyp,
+                     inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange)
                                                         ))
@@ -957,7 +937,7 @@ implementation
                  inserttypeconv(right,u8inttype)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,Torddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);
@@ -1000,14 +980,19 @@ implementation
                { webtbs/tw8975                                                }
                if (cs_check_range in current_settings.localswitches) and
                   (is_open_array(left.resultdef) or
-                   is_array_of_const(left.resultdef)) and
-                  { cdecl functions don't have high() so we can not check the range }
-                  { (can't use current_procdef, since it may be a nested procedure) }
-                  not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+                   is_array_of_const(left.resultdef)) then
                    begin
-                     { load_high_value_node already typechecks }
-                     hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
-                     hightree.free;
+                     { expect to find the load node }
+                     if get_open_const_array(left).nodetype<>loadn then
+                       internalerror(2014040601);
+                     { cdecl functions don't have high() so we can not check the range }
+                     { (can't use current_procdef, since it may be a nested procedure) }
+                     if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+                       begin
+                         { load_high_value_node already typechecks }
+                         hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
+                         hightree.free;
+                       end;
                    end;
              end;
            pointerdef :
@@ -1024,7 +1009,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=tarraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1051,7 +1036,7 @@ implementation
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=Tarraydef.create_from_pointer(elementdef);
+                    htype:=carraydef.create_from_pointer(elementdef);
                     resultdef:=htype;
                   end
                 else

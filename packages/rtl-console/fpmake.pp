@@ -20,6 +20,9 @@ Const
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
+  TerminfoOSes = UnixLikes-[beos,haiku];
+
+  rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes;
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
@@ -36,7 +39,7 @@ begin
     P.Author := 'FPC core team, Pierre Mueller, Peter Vreman';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
-    P.OSes:=KVMALL+CrtOSes;
+    P.OSes:=Rtl_ConsoleOSes;
     P.Email := '';
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;

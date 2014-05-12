@@ -277,7 +277,7 @@ type
   TSF_FORMAT_INFO = record
                       format    : ctypes.cint;
                       name      : ctypes.pcchar;
-                      extention : ctypes.pcchar;
+                      extension : ctypes.pcchar;
                     end;
 
 {

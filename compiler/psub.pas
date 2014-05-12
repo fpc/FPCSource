@@ -123,9 +123,6 @@ implementation
        optloop,
        optconstprop,
        optdeadstore
-{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
-       ,aasmcpu
-{$endif arm}
 {$if defined(arm)}
        ,cpuinfo
 {$endif arm}
@@ -221,7 +218,7 @@ implementation
          exit;
         with tabstractnormalvarsym(p) do
          begin
-           if vo_is_default_var in varoptions then
+           if (vo_is_default_var in varoptions) and (vardef.size>0) then
              begin
                b:=tblocknode(arg);
                b.left:=cstatementnode.create(
@@ -468,7 +465,7 @@ implementation
                                     load_self_pointer_node,
                                     voidpointertype),
                                 ccallnode.create(nil,tprocsym(srsym),srsym.owner,
-                                  ctypeconvnode.create_internal(load_self_pointer_node,tclassrefdef.create(current_structdef)),
+                                  ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef)),
                                   [])),
                             nil));
                       end
@@ -1003,7 +1000,7 @@ implementation
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
                 not ((pi_has_stackparameter in flags)
-{$ifndef arm}  { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+{$ifndef arm}   { Outgoing parameter(s) on stack do not need stackframe on x86 targets
                  with fixed stack. On ARM it fails, see bug #25050 }
                   and (not paramanager.use_fixed_stack)
 {$endif arm}
@@ -1025,13 +1022,35 @@ implementation
                   (necessary to init para_stack_size)
                 }
                 generate_parameter_info;
+
                 if not(procdef.stack_tainting_parameter(calleeside)) and
                    not(has_assembler_child) and (para_stack_size=0) then
                   begin
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
                     tg.direction:=1;
+                  end
+{$if defined(arm)}
+                { On arm, the stack frame size can be estimated to avoid using an extra frame pointer,
+                  in case parameters are passed on the stack.
+
+                  However, the draw back is, if the estimation fails, compilation will break later on
+                  with an internal error, so this switch is not enabled by default yet. To overcome this,
+                  multipass compilation of subroutines must be supported
+                }
+                else if (cs_opt_forcenostackframe in current_settings.optimizerswitches) and
+                   not(has_assembler_child) then
+                  begin
+                    { Only need to set the framepointer }
+                    framepointer:=NR_STACK_POINTER_REG;
+                    tg.direction:=1;
+                    include(flags,pi_estimatestacksize);
+                    set_first_temp_offset;
+                    procdef.has_paraloc_info:=callnoside;
+                    generate_parameter_info;
+                    exit;
                   end;
+{$endif defined(arm)}
               end;
           end;
 {$endif defined(x86) or defined(arm)}
@@ -1132,12 +1151,12 @@ implementation
      procedure TCGProcinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
-        include(procdef.procoptions,po_has_inlininginfo);
         procdef.inlininginfo^.code:=code.getcopy;
         procdef.inlininginfo^.flags:=flags;
         { The blocknode needs to set an exit label }
         if procdef.inlininginfo^.code.nodetype=blockn then
           include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
+        procdef.has_inlininginfo:=true;
        end;
 
 
@@ -1222,7 +1241,7 @@ implementation
            { inlining not turned off? }
            (cs_do_inline in current_settings.localswitches) and
            { no inlining yet? }
-           not(po_has_inlininginfo in procdef.procoptions) and not(has_nestedprocs) and
+           not(procdef.has_inlininginfo) and not(has_nestedprocs) and
             not(procdef.proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize,potype_constructor,
                                            potype_destructor,potype_class_constructor,potype_class_destructor]) and
             ((procdef.procoptions*[po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck])=[]) and
@@ -1268,8 +1287,7 @@ implementation
         do_firstpass(code);
 
 {$if defined(i386) or defined(i8086)}
-        procdef.fpu_used:=node_resources_fpu(code);
-        if procdef.fpu_used>0 then
+        if node_resources_fpu(code)>0 then
           include(flags,pi_uses_fpu);
 {$endif i386 or i8086}
 
@@ -1585,17 +1603,8 @@ implementation
               end;
 {$endif NoOpt}
 
-
-{$ifdef ARM}
-            { because of the limited constant size of the arm, all data access is done pc relative }
-            finalizearmcode(aktproccode,aktlocaldata);
-{$endif ARM}
-
-{$ifdef AVR}
-            { because of the limited branch distance of cond. branches, they must be replaced
-              sometimes by normal jmps and an inverse branch }
-            finalizeavrcode(aktproccode);
-{$endif AVR}
+            { Perform target-specific processing if necessary }
+            postprocess_code;
 
             { Add end symbol and debug info }
             { this must be done after the pcrelativedata is appended else the distance calculation of
@@ -1605,9 +1614,7 @@ implementation
             current_filepos:=exitpos;
             hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$ifdef fpc_compiler_has_fixup_jmps}
-            fixup_jmps(aktproccode);
-{$endif}
+
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
@@ -2063,25 +2070,6 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
-                 { External declared in implementation, and there was already a
-                   forward (or interface) declaration then we need to generate
-                   a stub that calls the external routine }
-                 if (not pd.forwarddef) and
-                    (pd.hasforward)
-                    { it is unclear to me what's the use of the following condition,
-                      so commented out, see also issue #18371 (FK)
-                    and
-                    not(
-                        assigned(pd.import_dll) and
-                        (target_info.system in [system_i386_wdosx,
-                                                system_arm_wince,system_i386_wince])
-                       ) } then
-                   begin
-                     s:=proc_get_importname(pd);
-                     if s<>'' then
-                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
-                   end;
-
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
                    begin
@@ -2099,6 +2087,34 @@ implementation
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in target_info.flags then
                        current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+                   end;
+
+                 { External declared in implementation, and there was already a
+                   forward (or interface) declaration then we need to generate
+                   a stub that calls the external routine }
+                 if (not pd.forwarddef) and
+                    (pd.hasforward)
+                    { it is unclear to me what's the use of the following condition,
+                      so commented out, see also issue #18371 (FK)
+                    and
+                    not(
+                        assigned(pd.import_dll) and
+                        (target_info.system in [system_i386_wdosx,
+                                                system_arm_wince,system_i386_wince])
+                       ) } then
+                   begin
+                     s:=proc_get_importname(pd);
+                     if s<>'' then
+                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
+                     { remove the external stuff, so that the interface crc
+                       doesn't change. This makes the function calls less
+                       efficient, but it means that the interface doesn't
+                       change if the function is ever redirected to another
+                       function or implemented in the unit. }
+                     pd.procoptions:=pd.procoptions-[po_external,po_has_importname,po_has_importdll];
+                     stringdispose(pd.import_name);
+                     stringdispose(pd.import_dll);
+                     pd.import_nr:=0;
                    end;
                end;
            end;
@@ -2198,7 +2214,14 @@ implementation
                         Message(parser_w_unsupported_feature);
                         consume(_BEGIN);
                      end;
-                end
+                end;
+              _PROPERTY:
+                begin
+                  if (m_fpc in current_settings.modeswitches) then
+                    property_dec
+                  else
+                    break;
+                end;
               else
                 begin
                   case idtoken of
@@ -2218,13 +2241,6 @@ implementation
                             read_proc(is_classdef,nil);
                             is_classdef:=false;
                           end
-                        else
-                          break;
-                      end;
-                    _PROPERTY:
-                      begin
-                        if (m_fpc in current_settings.modeswitches) then
-                          property_dec
                         else
                           break;
                       end;

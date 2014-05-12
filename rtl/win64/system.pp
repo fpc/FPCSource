@@ -116,6 +116,12 @@ asm
 end;
 {$endif FPC_USE_WIN64_SEH}
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer; assembler;nostackframe;
+asm
+   movq  %gs:(8),%rax
+end;
+
 { include system independent routines }
 {$I system.inc}
 
@@ -581,14 +587,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-
-function GetExceptionPointer : Pointer; assembler;nostackframe;
-asm
-  movq %gs:(8),%rax
-end;
-
 begin
-  StackTop:=GetExceptionPointer;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;

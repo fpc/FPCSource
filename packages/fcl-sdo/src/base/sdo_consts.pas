@@ -103,7 +103,7 @@ resourcestring
   SERR_InvalidSchemaNode           = 'Invalid schema node.';
   SERR_InvalidSymbolTable          = 'Invalid Symbol table.';
   SERR_InvalidTypeDef_AttributeNotFound = 'Invalid type definition, attributes not found : "%s".';
-  SERR_InvalidTypeDef_BaseAttributeNotFound = 'Invalid extention/restriction of type "%s" : "base" attribute not found.';
+  SERR_InvalidTypeDef_BaseAttributeNotFound = 'Invalid extension/restriction of type "%s" : "base" attribute not found.';
   SERR_InvalidTypeDef_NamedAttributeNotFound = 'Invalid type definition, unable to find the "%s" attribute : "%s".';
   SERR_InvalidTypeDef_NoChild      = 'Invalid type definition, this element must have children.';
   SERR_InvalidTypeName             = 'Invalid type/element name( the name is empty ).';

@@ -342,7 +342,7 @@ implementation
                      resultdef:=tobjectdef(resultdef).extendeddef;
                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                     resultdef:=tclassrefdef.create(resultdef)
+                     resultdef:=cclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
                            (loadnf_load_self_pointer in loadnodeflags) then
                      resultdef:=getpointerdef(resultdef);
@@ -350,7 +350,7 @@ implementation
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
                    resultdef:=tprocdef(symtableentry.owner.defowner).struct;
-                   resultdef:=tclassrefdef.create(resultdef);
+                   resultdef:=cclassrefdef.create(resultdef);
                  end
                else
                  resultdef:=tabstractvarsym(symtableentry).vardef;
@@ -1066,7 +1066,7 @@ implementation
             is_array_of_const(hdef) or
             is_open_array(hdef) then
            hdef:=voidtype;
-         resultdef:=tarraydef.create(0,len-1,s32inttype);
+         resultdef:=carraydef.create(0,len-1,s32inttype);
          tarraydef(resultdef).elementdef:=hdef;
          include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then

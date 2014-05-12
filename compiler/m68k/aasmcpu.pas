@@ -464,7 +464,7 @@ type
         result:=operand_read;
 
         case opcode of
-          A_MOVE, A_MOVEQ, A_MOVEA, A_LEA:
+          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA:
             if opnr=1 then
               result:=operand_write;
           A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,

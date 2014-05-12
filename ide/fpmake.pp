@@ -107,6 +107,11 @@ begin
                         end;
               netbsd  : P.Options.Add('-Xd');
               linux   : P.Options.Add('-Xd');
+              aix     : begin
+                          P.Options.Add('-Xd');
+                          P.Options.Add('-Fl/opt/freeware/lib');
+                          P.Options.Add('-k-bbigtoc');
+                        end;
             end; {case}
 
             P.NeedLibc := true;

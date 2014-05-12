@@ -62,7 +62,7 @@ implementation
        verbose,
        systems,widestr,
        { symtable }
-       symconst,symtable,symsym,defutil,defcmp,
+       symconst,symtable,symsym,symcpu,defutil,defcmp,
        { module }
        fmodule,ppu,
        { pass 1 }
@@ -112,14 +112,14 @@ implementation
                 if tordconstnode(p).value>255 then
                   begin
                     { longstring is currently unsupported (CEC)! }
-{                    t:=tstringdef.createlong(tordconstnode(p).value))}
+{                    t:=cstringdef.createlong(tordconstnode(p).value))}
                     Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
-                    def:=tstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
                   end
                 else
                   if tordconstnode(p).value<>255 then
-                    def:=tstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
                 consume(_RECKKLAMMER);
               end;
              p.free;
@@ -332,13 +332,13 @@ implementation
                                   include(current_procinfo.flags,pi_has_nested_exit);
                                   exclude(current_procinfo.procdef.procoptions,po_inline);
 
-                                  exit_procinfo.nestedexitlabel:=tlabelsym.create('$nestedexit');
+                                  exit_procinfo.nestedexitlabel:=clabelsym.create('$nestedexit');
 
                                   { the compiler is responsible to define this label }
                                   exit_procinfo.nestedexitlabel.defined:=true;
                                   exit_procinfo.nestedexitlabel.used:=true;
 
-                                  exit_procinfo.nestedexitlabel.jumpbuf:=tlocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
@@ -877,9 +877,8 @@ implementation
               def:=nil;
               single_type(def,[stoAllowSpecialization]);
               statement_syssym:=cerrornode.create;
-              if def=generrordef then
-                Message(type_e_type_id_expected)
-              else
+              if def<>generrordef then
+                { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
                   Message1(type_e_type_is_not_completly_defined,tforwarddef(def).tosymname^)
                 else
@@ -2741,7 +2740,7 @@ implementation
                 undefinedsym :
                   begin
                     p1:=cnothingnode.Create;
-                    p1.resultdef:=tundefineddef.create;
+                    p1.resultdef:=cundefineddef.create;
                     { clean up previously created dummy symbol }
                     srsym.free;
                   end;
@@ -3004,7 +3003,7 @@ implementation
                                hdef:=hclassdef;
                              if (po_classmethod in current_procinfo.procdef.procoptions) or
                                 (po_staticmethod in current_procinfo.procdef.procoptions) then
-                               hdef:=tclassrefdef.create(hdef);
+                               hdef:=cclassrefdef.create(hdef);
                              p1:=ctypenode.create(hdef);
                              { we need to allow helpers here }
                              ttypenode(p1).helperallowed:=true;

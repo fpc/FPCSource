@@ -51,13 +51,16 @@ unit cpunode;
 
        n386add,
        n386cal,
+       n386ld,
        n386mem,
        n386set,
        n386inl,
 {$ifdef TEST_WIN32_SEH}
        n386flw,
 {$endif TEST_WIN32_SEH}
-       n386mat
+       n386mat,
+       { symtable }
+       symcpu
        ;
 
 end.

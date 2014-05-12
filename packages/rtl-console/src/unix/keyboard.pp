@@ -1598,9 +1598,8 @@ begin
   if is_console then
     SysGetShiftState:=ShiftState
   else
-{$else}
-    SysGetShiftState:=0;
 {$endif}
+    SysGetShiftState:=0;
 end;
 
 

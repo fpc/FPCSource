@@ -116,6 +116,7 @@ const
   scan_w_setpeoptflags_not_support=02092;
   scan_e_illegal_peflag=02093;
   scan_e_illegal_peoptflag=02094;
+  scan_e_unsupported_switch=02095;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -433,6 +434,7 @@ const
   parser_e_dir_not_allowed=03333;
   parser_e_no_assembler_in_generic=03334;
   parser_e_property_only_sgr=03335;
+  parser_e_overloaded_have_same_mangled_name=03336;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -544,6 +546,7 @@ const
   type_e_typeof_requires_vmt=04118;
   type_e_invalid_default_value=04119;
   type_e_type_not_allowed_for_type_helper=04120;
+  type_e_procedure_must_be_far=04121;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -618,6 +621,7 @@ const
   sym_e_duplicate_id_create_java_constructor=05085;
   sym_e_no_matching_inherited_parameterless_constructor=05086;
   sym_d_adding_helper_for=05087;
+  sym_e_param_list=05088;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -651,6 +655,7 @@ const
   cg_e_goto_across_procedures_with_exceptions_not_allowed=06053;
   cg_e_mod_only_defined_for_pos_quotient=06054;
   cg_d_autoinlining=06055;
+  cg_e_function_not_support_by_selected_instruction_set=06056;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -957,6 +962,7 @@ const
   option_w_unsupported_debug_format=11053;
   option_missing_arg=11054;
   option_malformed_para=11055;
+  option_smart_link_requires_external_linker=11056;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -981,9 +987,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 70977;
+  MsgTxtSize = 71327;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,95,336,121,88,56,126,27,202,64,
-    56,20,1,1,1,1,1,1,1,1
+    26,96,337,122,89,57,126,27,202,64,
+    57,20,1,1,1,1,1,1,1,1
   );

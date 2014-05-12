@@ -293,7 +293,7 @@ implementation
    uses
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,
+      symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
@@ -643,7 +643,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=tsetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -2508,7 +2508,12 @@ implementation
                 {  also done otherwise so there is no difference   }
                 {  in overload choosing etc between $r+ and $r-)   }
                 if (nf_internal in n.flags) then
-                  result:=true
+                  begin
+                    result:=true;
+                    { the result could become negative in this case }
+                    if n.nodetype=subn then
+                      gotsint:=true
+                  end
                 else
                   result:=
                     docheckremove64bittypeconvs(tbinarynode(n).left) and

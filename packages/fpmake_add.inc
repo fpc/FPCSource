@@ -25,6 +25,7 @@
   add_fcl_registry(ADirectory+IncludeTrailingPathDelimiter('fcl-registry'));
   add_fcl_res(ADirectory+IncludeTrailingPathDelimiter('fcl-res'));
   add_fcl_sdo(ADirectory+IncludeTrailingPathDelimiter('fcl-sdo'));
+  add_fcl_sound(ADirectory+IncludeTrailingPathDelimiter('fcl-sound'));
   add_fcl_stl(ADirectory+IncludeTrailingPathDelimiter('fcl-stl'));
   add_fcl_web(ADirectory+IncludeTrailingPathDelimiter('fcl-web'));
   add_fcl_xml(ADirectory+IncludeTrailingPathDelimiter('fcl-xml'));
@@ -99,6 +100,7 @@
   add_rtl_console(ADirectory+IncludeTrailingPathDelimiter('rtl-console'));
   add_rtl_extra(ADirectory+IncludeTrailingPathDelimiter('rtl-extra'));
   add_rtl_objpas(ADirectory+IncludeTrailingPathDelimiter('rtl-objpas'));
+  add_rtl_unicode(ADirectory+IncludeTrailingPathDelimiter('rtl-unicode'));
   add_sdl(ADirectory+IncludeTrailingPathDelimiter('sdl'));
   add_sqlite(ADirectory+IncludeTrailingPathDelimiter('sqlite'));
   add_svgalib(ADirectory+IncludeTrailingPathDelimiter('svgalib'));

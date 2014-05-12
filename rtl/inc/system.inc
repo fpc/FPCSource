@@ -12,6 +12,16 @@
 
  **********************************************************************}
 
+{ ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
+  type in ObjFpc and Delphi modes). It is defined here for use in the
+  implementation part of the System unit. }
+{$ifdef CPU16}
+type
+  ObjpasInt = SmallInt;
+{$else CPU16}
+type
+  ObjpasInt = LongInt;
+{$endif CPU16}
 
 { The RTTI is implemented through a series of constants : }
 
@@ -682,6 +692,13 @@ End;
                              Miscellaneous
 *****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer;
+begin
+  result:=StackBottom+StackLength;
+end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
+
 {$ifndef FPC_SYSTEM_HAS_GET_PC_ADDR}
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need
@@ -832,7 +849,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : {$ifdef VER2_6}longint{$else}nativeint{$endif};
+    InitCount  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;
@@ -846,7 +863,7 @@ var
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
-  i : nativeint;
+  i : ObjpasInt;
 {$ifdef DEBUG}
   pt : PInitFinalTable;
 {$endif}
@@ -968,11 +985,7 @@ Begin
   pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
-{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
-     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(DWord(erroraddr) shr 16,4),':',hexstr(DWord(erroraddr) and $FFFF,4));
-{$else}
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
-{$endif}
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
      dump_stack(pstdout^,ErrorBase,ErrorAddr);
@@ -1052,11 +1065,37 @@ end;
 
 function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
-{$if defined(CPUI8086) and defined(FPC_X86_CODE_FAR)}
-  SysBackTraceStr:='  $'+hexstr(DWord(addr) shr 16,4)+':'+hexstr(DWord(addr) and $FFFF,4);
-{$else}
   SysBackTraceStr:='  $'+hexstr(addr);
-{$endif}
+end;
+
+
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
+var
+  curr_frame,prev_frame: pointer;
+  curr_addr: codepointer;
+  i: sizeint;
+begin
+  curr_frame:=get_frame;
+  curr_addr:=get_pc_addr;
+  prev_frame:=curr_frame;
+  get_caller_stackinfo(curr_frame,curr_addr);
+  i:=-skipframes;
+  while (i<count) and (curr_frame>prev_frame) and
+     (curr_frame<StackTop) do
+    begin
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
+      if (curr_addr=nil) or
+         (curr_frame=nil) then
+        break;
+      if (i>=0) then
+        frames[i]:=curr_addr;
+      inc(i);
+    end;
+  if i<0 then
+    result:=0
+  else
+    result:=i;
 end;
 
 
@@ -1141,36 +1180,29 @@ Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
   i : Longint;
   prevfp : Pointer;
-  prevaddr : CodePointer;
   is_dev : boolean;
-  caller_frame : Pointer;
-  caller_addr : CodePointer;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-    prevfp:=fp-1;
-    prevaddr:=nil;
+    { Frame of this procedure acts as StackBottom, fp values below that are invalid. }
+    prevfp:=get_frame;
     i:=0;
     is_dev:=do_isdevice(textrec(f).Handle);
     { sanity checks, new frame pointer must be always greater than the old one, further
       it must point into the stack area, else something went wrong }
-    while (fp>prevfp) and (fp<StackTop) and (fp>StackBottom)  Do
+    while (fp>prevfp) and (fp<StackTop) do
      Begin
-       caller_addr := get_caller_addr(fp,addr);
-       caller_frame := get_caller_frame(fp,addr);
-       if (caller_addr=nil) then
+       prevfp:=fp;
+       get_caller_stackinfo(fp,addr);
+       if (addr=nil) then
          break;
-       Writeln(f,BackTraceStrFunc(caller_addr));
-       if (caller_frame=nil) then
+       Writeln(f,BackTraceStrFunc(addr));
+       if (fp=nil) then
          break;
        Inc(i);
        If ((i>max_frame_dump) and is_dev) or (i>256) Then
          break;
-       prevfp:=fp;
-       prevaddr:=addr;
-       fp:=caller_frame;
-       addr:=caller_addr;
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except

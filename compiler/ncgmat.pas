@@ -171,7 +171,13 @@ implementation
             internalerror(200406021);
         end;
         { flip sign-bit (bit 31/63) of single/double }
-        hlcg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,u32inttype,aint($80000000),href2);
+        hlcg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,u32inttype,
+{$ifdef cpu64bitalu}
+          aint($80000000),
+{$else cpu64bitalu}
+          longint($80000000),
+{$endif cpu64bitalu}
+          href2);
         hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
@@ -194,7 +200,7 @@ implementation
           begin
             tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,
-              aint($80000000),location.register64.reghi,tr);
+              longint($80000000),location.register64.reghi,tr);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
@@ -387,19 +393,23 @@ implementation
                   { purposes                }
                   hdenom := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hdenom);
-                  { verify if the divisor is zero, if so return an error
-                    immediately
+                  { verify if the divisor is zero, if so return an error immediately,
+                    except if we have a const node, where we don't need this, because
+                    then zero check was done earlier.
                   }
-                  current_asmdata.getjumplabel(hl);
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
-                  paraloc1.init;
-                  pd:=search_system_proc('fpc_handleerror');
-                  paramanager.getintparaloc(pd,1,paraloc1);
-                  cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
-                  paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
-                  paraloc1.done;
-                  cg.a_label(current_asmdata.CurrAsmList,hl);
+                  if (right.nodetype <> ordconstn) then
+                    begin
+                      current_asmdata.getjumplabel(hl);
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
+                      paraloc1.init;
+                      pd:=search_system_proc('fpc_handleerror');
+                      paramanager.getintparaloc(pd,1,paraloc1);
+                      cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
+                      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                      cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
+                      paraloc1.done;
+                      cg.a_label(current_asmdata.CurrAsmList,hl);
+                    end;
                   if nodetype = modn then
                     emit_mod_reg_reg(is_signed(left.resultdef),hdenom,hreg1)
                   else

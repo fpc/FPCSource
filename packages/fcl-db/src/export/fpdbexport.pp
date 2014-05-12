@@ -456,7 +456,8 @@ begin
     If (FDataset<>Nil) then
       FDataset.RemoveFreeNotification(Self);
     FDataset:=AValue;
-    FDataset.FreeNotification(Self);
+    if (FDataset<>Nil) then
+      FDataset.FreeNotification(Self);
     UnbindFields;
     end;
 end;

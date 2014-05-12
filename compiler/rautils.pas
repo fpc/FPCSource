@@ -41,28 +41,6 @@ Const
   {$define MAX_OPER_3}
 {$endif}
 
-{---------------------------------------------------------------------
-                       Local Label Management
----------------------------------------------------------------------}
-
-Type
-  { Each local label has this structure associated with it }
-  TLocalLabel = class(TFPHashObject)
-    Emitted : boolean;
-    constructor Create(AList:TFPHashObjectList;const n:string);
-    function  Gettasmlabel:tasmlabel;
-  private
-    lab : tasmlabel;
-  end;
-
-  TLocalLabelList = class(TFPHashObjectList)
-    procedure CheckEmitted;
-  end;
-
-var
-  LocalLabelList : TLocalLabelList;
-
-function CreateLocalLabel(const s: string; var hl: tasmlabel; emit:boolean):boolean;
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 
@@ -1150,71 +1128,6 @@ end;
     end;
 
 
-{***************************************************************************
-                                 TLocalLabel
-***************************************************************************}
-
-constructor TLocalLabel.create(AList:TFPHashObjectList;const n:string);
-begin
-  inherited Create(AList,n);
-  lab:=nil;
-  emitted:=false;
-end;
-
-
-function TLocalLabel.Gettasmlabel:tasmlabel;
-begin
-  if not assigned(lab) then
-   begin
-     current_asmdata.getjumplabel(lab);
-     { this label is forced to be used so it's always written }
-     lab.increfs;
-   end;
-  Gettasmlabel:=lab;
-end;
-
-
-{***************************************************************************
-                             TLocalLabelList
-***************************************************************************}
-
-procedure TLocalLabelList.CheckEmitted;
-var
-  i : longint;
-  lab : TLocalLabel;
-begin
-  for i:=0 to LocalLabelList.Count-1 do
-    begin
-      lab:=TLocalLabel(LocalLabelList[i]);
-      if not lab.emitted then
-        Message1(asmr_e_unknown_label_identifier,lab.name);
-    end;
-end;
-
-
-function CreateLocalLabel(const s: string; var hl: tasmlabel; emit:boolean):boolean;
-var
-  lab : TLocalLabel;
-Begin
-  CreateLocalLabel:=true;
-{ Check if it already is defined }
-  lab:=TLocalLabel(LocalLabellist.Find(s));
-  if not assigned(lab) then
-    lab:=TLocalLabel.Create(LocalLabellist,s);
-{ set emitted flag and check for dup syms }
-  if emit then
-   begin
-     if lab.Emitted then
-      begin
-        Message1(asmr_e_dup_local_sym,lab.Name);
-        CreateLocalLabel:=false;
-      end;
-     lab.Emitted:=true;
-   end;
-  hl:=lab.Gettasmlabel;
-end;
-
-
 {****************************************************************************
                       Symbol table helper routines
 ****************************************************************************}
@@ -1513,7 +1426,11 @@ Begin
             current_asmdata.getjumplabel(tlabelsym(sym).asmblocklabel);
         hl:=tlabelsym(sym).asmblocklabel;
         if emit then
-          tlabelsym(sym).defined:=true
+          begin
+            if tlabelsym(sym).defined then
+              Message(sym_e_label_already_defined);
+            tlabelsym(sym).defined:=true
+          end
         else
           tlabelsym(sym).used:=true;
         SearchLabel:=true;

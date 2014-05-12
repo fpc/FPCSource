@@ -28,13 +28,12 @@ Type
   TMimeType = Class(TObject)
   private
     FExtensions: String;
-    FExtentions: String;
     FMimeType: String;
   Public
     Constructor Create(Const AMimeType,AExtensions : String);
     Procedure MergeExtensions(AExtensions : String);
     Property MimeType : String Read FMimeType Write FMimeType;
-    Property Extensions : String Read FExtensions Write FExtentions;
+    Property Extensions : String Read FExtensions Write FExtensions;
   end;
 
   { TFPMimeTypes }

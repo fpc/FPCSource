@@ -11,12 +11,12 @@ type
   TOptions = class(TObject)
   private
     FHelp: boolean;
-    FNoDestFileExtention: boolean;
-    FNoSourceFileExtention: boolean;
+    FNoDestFileExtension: boolean;
+    FNoSourceFileExtension: boolean;
     FSilent: boolean;
-    FSourceFileExtention: String;
+    FSourceFileExtension: String;
     FSourceMask: String;
-    FDestFileExtention: String;
+    FDestFileExtension: String;
     FDestPath: String;
   public
     constructor Create;
@@ -25,12 +25,12 @@ type
 
     property Help                 : boolean read FHelp write FHelp;
     property SourceMask           : String read FSourceMask write FSourceMask;
-    property SourceFileExtention  : String read FSourceFileExtention write FSourceFileExtention;
-    property NoSourceFileExtention: boolean read FNoSourceFileExtention;
+    property SourceFileExtension  : String read FSourceFileExtension write FSourceFileExtension;
+    property NoSourceFileExtension: boolean read FNoSourceFileExtension;
 
     property DestPath             : String read FDestPath write FDestPath;
-    property DestFileExtention    : String read FDestFileExtention write FDestFileExtention;
-    property NoDestFileExtention  : boolean read FNoDestFileExtention;
+    property DestFileExtension    : String read FDestFileExtension write FDestFileExtension;
+    property NoDestFileExtension  : boolean read FNoDestFileExtension;
     property Silent               : boolean read FSilent;
   end;
 
@@ -44,8 +44,8 @@ constructor TOptions.Create;
 begin
   FHelp                     := false;
   FSourceMask               := '';
-  FNoSourceFileExtention    := false;
-  FDestFileExtention        := '';
+  FNoSourceFileExtension    := false;
+  FDestFileExtension        := '';
   FDestPath                 := '';
   FSilent                   := false;
 end;
@@ -61,12 +61,12 @@ begin
    else FHelp := false;
 
   FSourceMask            := IncludeTrailingBackslash(GetCurrentDir) + '*.*';
-  FSourceFileExtention   := '';
-  FNoSourceFileExtention := false;
+  FSourceFileExtension   := '';
+  FNoSourceFileExtension := false;
 
   FDestPath              := IncludeTrailingBackslash(GetCurrentDir);
-  FDestFileExtention     := '';
-  FNoDestFileExtention   := false;
+  FDestFileExtension     := '';
+  FNoDestFileExtension   := false;
 
   FSilent := false;
 
@@ -89,8 +89,8 @@ begin
                 if ExtractFileName(FSourceMask) = '' then FSourceMask := FSourceMask + '*';
               end;
          'n': begin
-                FSourceFileExtention   := sValue;
-                FNoSourceFileExtention := FSourceFileExtention = '';
+                FSourceFileExtension   := sValue;
+                FNoSourceFileExtension := FSourceFileExtension = '';
               end;
          'd': begin
                 FDestPath := sValue;
@@ -99,8 +99,8 @@ begin
                  else FDestPath := ExpandFileName(FDestPath);
               end;
          'e': begin
-                FDestFileExtention := sValue;
-                FNoDestFileExtention := FDestFileExtention = '';
+                FDestFileExtension := sValue;
+                FNoDestFileExtension := FDestFileExtension = '';
               end;
          's': FSilent := true;
          else begin
@@ -111,17 +111,17 @@ begin
     end
     else IsInvalidParam := true;
 
-    if (FNoSourceFileExtention = false) and
-       (FSourceFileExtention = '') then
+    if (FNoSourceFileExtension = false) and
+       (FSourceFileExtension = '') then
     begin
-      FSourceFileExtention := ExtractFileExt(FSourceMask);
+      FSourceFileExtension := ExtractFileExt(FSourceMask);
     end
     else if (ExtractFileExt(FSourceMask) <> '') and
-            (FSourceFileExtention <> '') and
-            (ExtractFileExt(FSourceMask) <> FSourceFileExtention) then
+            (FSourceFileExtension <> '') and
+            (ExtractFileExt(FSourceMask) <> FSourceFileExtension) then
     begin
-      writeln(format('parameter conflict: different sourcefile extention "%s" and "%s"',
-                     [ExtractFileExt(FSourceMask), FSourceFileExtention]));
+      writeln(format('parameter conflict: different sourcefile extension "%s" and "%s"',
+                     [ExtractFileExt(FSourceMask), FSourceFileExtension]));
       FHelp := true;
     end;
 

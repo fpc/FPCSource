@@ -547,7 +547,6 @@ begin
       With T.Dependencies do
         begin
           AddUnit('sysutils');
-          AddInclude('mathuh.inc');
           AddInclude('mathu.inc');
         end;
 

@@ -115,6 +115,10 @@ const
    fpc_in_arctan_real      = 130;
    fpc_in_ln_real          = 131;
    fpc_in_sin_real         = 132;
+   fpc_in_fma_single       = 133;
+   fpc_in_fma_double       = 134;
+   fpc_in_fma_extended     = 135;
+   fpc_in_fma_float128     = 136;
 
 { MMX functions }
 { these contants are used by the mmx unit }

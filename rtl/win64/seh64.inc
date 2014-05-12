@@ -264,6 +264,15 @@ begin
   Result:=FrameCount;
 end;
 
+
+function RunErrorCodex64(const rec: TExceptionRecord; const context: TContext): Longint;
+begin
+  result:=RunErrorCode(rec);
+  if (result=-255) then
+    TranslateMxcsr(context.MxCsr,result);
+end;
+
+
 {$push}
 {$codealign localmin=16}          { TContext record requires this }
 procedure fpc_RaiseException(Obj: TObject; AnAddr,AFrame: Pointer); [public,alias: 'FPC_RAISEEXCEPTION']; compilerproc;
@@ -302,30 +311,6 @@ begin
   RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
 end;
 
-{ The only difference from fpc_reraise is removing the topmost exception.
-  Normally this is done in __FPC_specific_handler, but it won't work for implicit
-  frames, as there's no room in scope record to store the end rva of 'except' part.
-
-  This can only happen in functions which return managed result in register;
-  eventually compiler must be fixed to return managed types in parameters only. }
-
-procedure fpc_reraise_implicit; [public,alias:'FPC_RERAISE_IMPLICIT'];
-var
-  hp: PExceptObject;
-  args: array[0..3] of PtrUInt;
-begin
-  hp:=ExceptObjectStack;
-  args[0]:=PtrUint(hp^.addr);
-  args[1]:=PtrUint(hp^.FObject);
-  args[2]:=hp^.FrameCount;
-  args[3]:=PtrUint(hp^.Frames);
-  hp^.refcount:=0;
-  hp^.FObject:=nil;
-  hp^.Frames:=nil;
-  Internal_PopObjectStack.Free;
-  RaiseException(FPC_EXCEPTION_CODE,EXCEPTION_NONCONTINUABLE,4,@args[0]);
-end;
-
 
 {$ifdef DEBUG_SEH}
 procedure PrintScope(idx: integer; scope: PScopeRec);
@@ -356,7 +341,7 @@ begin
   begin
     Obj:=nil;
     Result:=False;
-    code:=RunErrorCode(rec);
+    code:=RunErrorCodex64(rec,context);
     if Assigned(ExceptObjProc) then
       Obj:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
     if (Obj=nil) and (not AcceptNull) then
@@ -379,6 +364,8 @@ begin
   Result:=True;
 end;
 
+{ This is an outermost exception handler, installed using assembler around the
+  entrypoint and thread procedures. Its sole purpose is to provide sensible exitcode. }
 function __FPC_default_handler(
   var rec: TExceptionRecord;
   frame: Pointer;
@@ -404,7 +391,7 @@ begin
   begin
     Exc:=ExceptObjectStack;
     if Exc^.FObject=nil then
-      RunError(abs(RunErrorCode(rec)))  // !!prints wrong backtrace
+      RunError(abs(RunErrorCodex64(rec,context)))  // !!prints wrong backtrace
     else
     begin
       { if ExceptObjProc=nil, ExceptProc is typically also nil,
@@ -415,12 +402,18 @@ begin
         Halt(217);
       end;
 L1:
+      { RtlUnwindEx above resets execution context to the point where the handler
+        was installed, i.e. main_wrapper. It makes exiting this procedure no longer
+        possible, halting is the only possible action here. }
       RunError(217);
     end;
   end;
   result:=ExceptionContinueSearch;
 end;
 
+
+{ This handler is installed by compiler for every try..finally and try..except statement,
+  including implicit ones. }
 function __FPC_specific_handler(
   var rec: TExceptionRecord;
   frame: Pointer;
@@ -469,7 +462,7 @@ begin
 
         if scope^.Typ>SCOPE_IMPLICIT then  // filtering needed
         begin
-          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ);
+          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ,abs(RunErrorCodex64(rec,context)));
           if TargetAddr=nil then
           begin
             Inc(ScopeIdx);

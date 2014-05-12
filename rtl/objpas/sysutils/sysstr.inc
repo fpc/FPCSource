@@ -723,7 +723,7 @@ end ;
 
 {   IntToStr returns a string representing the value of Value    }
 
-function IntToStr(Value: integer): string;
+function IntToStr(Value: Longint): string;
 begin
  System.Str(Value, result);
 end ;
@@ -745,7 +745,7 @@ end ;
 const
    HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
-function IntToHex(Value: integer; Digits: integer): string;
+function IntToHex(Value: Longint; Digits: integer): string;
 var i: integer;
 begin
  If Digits=0 then 
@@ -784,7 +784,7 @@ begin
   result:=IntToHex(Int64(Value),Digits);
 end;
 
-function TryStrToInt(const s: string; out i : integer) : boolean;
+function TryStrToInt(const s: string; out i : Longint) : boolean;
 var Error : word;
 begin
   Val(s, i, Error);
@@ -794,7 +794,7 @@ end;
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
 
-function StrToInt(const S: string): integer;
+function StrToInt(const S: string): Longint;
 var Error: word;
 begin
   Val(S, result, Error);
@@ -836,7 +836,7 @@ end;
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
 
-function StrToIntDef(const S: string; Default: integer): integer;
+function StrToIntDef(const S: string; Default: Longint): Longint;
 var Error: word;
 begin
   Val(S, result, Error);

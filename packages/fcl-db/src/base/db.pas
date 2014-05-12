@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2014 by Michael Van Canneyt, member of the
     Free Pascal development team
 
 
@@ -100,13 +100,8 @@ type
 
   TFieldClass = class of TField;
 
-{
-  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
-    ftBoolean, ftFloat, ftDate, ftTime, ftDateTime,
-    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic,
-    ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor);
-}
-
+  // Data type for field.
+  // The order is determined by Delphi compatibility
   TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
     ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
@@ -115,7 +110,7 @@ type
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
 
-{ Part of DBCommon, but temporary defined here (bug 8206) }
+{ Part of DBCommon, but temporarily defined here (bug 8206) }
 
  TFieldMap = array[TFieldType] of Byte;
 
@@ -133,7 +128,7 @@ type
   TFieldAttribute = (faHiddenCol, faReadonly, faRequired, faLink, faUnNamed, faFixed);
   TFieldAttributes = set of TFieldAttribute;
 
-  { TNamedItem }
+{ TNamedItem }
 
   TNamedItem = class(TCollectionItem)
   private
@@ -147,7 +142,7 @@ type
     property Name : string read FName write SetDisplayName;
   end;
 
-  { TDefCollection }
+{ TDefCollection }
 
   TDefCollection = class(TOwnedCollection)
   private
@@ -164,7 +159,7 @@ type
     property Updated: boolean read FUpdated write FUpdated;
   end;
 
-  { TFieldDef }
+{ TFieldDef }
 
   TFieldDef = class(TNamedItem)
   Private
@@ -199,6 +194,7 @@ type
     property Size: Integer read FSize write SetSize;
   end;
   TFieldDefClass = Class of TFieldDef;
+
 { TFieldDefs }
 
   TFieldDefs = class(TDefCollection)
@@ -211,7 +207,7 @@ type
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
-    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNum : Integer) : TFieldDef; overload;
+    Function Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo : Integer) : TFieldDef; overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean); overload;
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
     procedure Add(const AName: string; ADataType: TFieldType); overload;
@@ -245,7 +241,7 @@ type
     Value: Variant;
   end;
 
-  { TLookupList }
+{ TLookupList }
 
   TLookupList = class(TObject)
   private
@@ -260,7 +256,7 @@ type
     procedure ValuesToStrings(AStrings: TStrings);
   end;
 
-  { TField }
+{ TField }
 
   TField = class(TComponent)
   private
@@ -512,8 +508,8 @@ type
     property Value: WideString read GetAsWideString write SetAsWideString;
   end;
 
-
 { TNumericField }
+
   TNumericField = class(TField)
   Private
     FDisplayFormat : String;
@@ -860,14 +856,21 @@ type
 
 { TBlobField }
   TBlobStreamMode = (bmRead, bmWrite, bmReadWrite);
-  TBlobType = ftBlob..ftWideMemo;
+  // This type is needed for compatibility. While it should contain only blob
+  // types, it actually does not.
+  // Instead of this, please use ftBlobTypes
+  TBlobType = ftBlob..ftWideMemo deprecated
+    'Warning: Does not contain BLOB types. Please use ftBlobTypes.';
 
   TBlobField = class(TField)
   private
-    FBlobType : TBlobType;
     FModified : Boolean;
     FTransliterate : Boolean;
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
+    // Wrapper that retrieves FDataType as a TBlobType
+    function GetBlobType: TBlobType;
+    // Wrapper that calls SetFieldtype
+    procedure SetBlobType(AValue: TBlobType);
   protected
     procedure FreeBuffers; override;
     function GetAsBytes: TBytes; override;
@@ -896,7 +899,7 @@ type
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
-    property BlobType: TBlobType read FBlobType write FBlobType;
+    property BlobType: TBlobType read GetBlobType write SetBlobType;
     property Size default 0;
   end;
 
@@ -1116,7 +1119,7 @@ type
     end;
   TFieldsClass = Class of TFields;
 
-  { TParam }
+{ TParam }
 
   TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
 
@@ -1158,6 +1161,7 @@ type
     Function GetDisplayName: string; override;
     Function GetIsNull: Boolean;
     Function IsEqual(AValue: TParam): Boolean;
+    Procedure SetAsBCD(const AValue: Currency);
     Procedure SetAsBlob(const AValue: TBlobData);
     Procedure SetAsBoolean(AValue: Boolean);
     Procedure SetAsCurrency(const AValue: Currency);
@@ -1194,6 +1198,7 @@ type
     Procedure SetData(Buffer: Pointer);
     Property AsBlob : TBlobData read GetAsString write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
+    Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
     Property AsDate : TDateTime read GetAsDateTime write SetAsDate;
     Property AsDateTime : TDateTime read GetAsDateTime write SetAsDateTime;
@@ -1223,7 +1228,7 @@ type
   end;
   TParamClass = Class of TParam;
 
-  { TParams }
+{ TParams }
 
   TParams = class(TCollection)
   private
@@ -1478,7 +1483,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
-    function  GetFieldValues(const fieldname : string) : Variant; virtual;
+    function  GetFieldValues(const FieldName : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetIndexDefs(IndexDefs : TIndexDefs; IndexTypes : TIndexOptions) : TIndexDefs;
     function  GetNextRecords: Longint; virtual;
@@ -1507,7 +1512,7 @@ type
     procedure SetFiltered(Value: Boolean); virtual;
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
-    procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
+    procedure SetFieldValues(const FieldName: string; Value: Variant); virtual;
     procedure SetFound(const Value: Boolean); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
@@ -1515,7 +1520,7 @@ type
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
-    Function Tempbuffer: TRecordBuffer;
+    Function TempBuffer: TRecordBuffer;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
@@ -1545,6 +1550,8 @@ type
     procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); virtual;
     procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
+    class function FieldDefsClass : TFieldDefsClass; virtual;
+    class function FieldsClass : TFieldsClass; virtual;
   protected { abstract methods }
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
@@ -1575,8 +1582,6 @@ type
     procedure PSSetCommandText(const CommandText: string); virtual;
     procedure PSSetParams(AParams: TParams); virtual;
     procedure PSStartTransaction; virtual;
-    class function FieldDefsClass : TFieldDefsClass; virtual;
-    class function FieldsClass : TFieldsClass; virtual;
     function PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet)
                                 : Boolean; virtual;
   public
@@ -1654,7 +1659,7 @@ type
     property RecordSize: Word read GetRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
-    property FieldValues[fieldname : string] : Variant read GetFieldValues write SetFieldValues; default;
+    property FieldValues[FieldName : string] : Variant read GetFieldValues write SetFieldValues; default;
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write SetFilterOptions;
@@ -1995,85 +2000,101 @@ type
 
 
 const
-  FieldTypetoVariantMap : array[TFieldType] of Integer = (varError, varOleStr, varSmallint,
-    varInteger, varSmallint, varBoolean, varDouble, varCurrency, varCurrency,
-    varDate, varDate, varDate, varOleStr, varOleStr, varInteger, varOleStr,
-    varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varError,
-    varOleStr, varOleStr, varError, varError, varError, varError, varError,
-    varOleStr, varOleStr, varVariant, varUnknown, varDispatch, varOleStr,
-    varOleStr, varDouble, varOleStr,varOleStr);
+  FieldTypetoVariantMap : array[TFieldType] of Integer =
+    (
+      {ftUnknown} varError,
+      {ftString} varOleStr,
+      {ftSmallint} varSmallint,
+      {ftInteger} varInteger,
+      {ftWord} varSmallint,
+      {ftBoolean} varBoolean,
+      {ftFloat} varDouble,
+      {ftCurrency} varCurrency,
+      {ftBCD} varCurrency,
+      {ftDate} varDate,
+      {ftTime} varDate,
+      {ftDateTime} varDate,
+      {ftBytes} varOleStr,
+      {ftVarBytes} varOleStr,
+      {ftAutoInc} varInteger,
+      {ftBlob} varOleStr,
+      {ftMemo} varOleStr,
+      {ftGraphic} varOleStr,
+      {ftFmtMemo} varOleStr,
+      {ftParadoxOle} varOleStr,
+      {ftDBaseOle} varOleStr,
+      {ftTypedBinary} varOleStr,
+      {ftCursor} varError,
+      {ftFixedChar} varOleStr,
+      {ftWideString} varOleStr,
+      {ftLargeint} varError,
+      {ftADT} varError,
+      {ftArray} varError,
+      {ftReference} varError,
+      {ftDataSet} varError,
+      {ftOraBlob} varOleStr,
+      {ftOraClob} varOleStr,
+      {ftVariant} varVariant,
+      {ftInterface} varUnknown,
+      {ftIDispatch} varDispatch,
+      {ftGuid} varOleStr,
+      {ftTimeStamp} varOleStr,
+      {ftFMTBcd} varDouble,
+      {ftFixedWideChar} varOleStr,
+      {ftWideMemo} varOleStr
+    );
 
 
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
     (
-      'Unknown',
-      'String',
-      'Smallint',
-      'Integer',
-      'Word',
-      'Boolean',
-      'Float',
-      'Currency',
-      'BCD',
-      'Date',
-      'Time',
-      'DateTime',
-      'Bytes',
-      'VarBytes',
-      'AutoInc',
-      'Blob',
-      'Memo',
-      'Graphic',
-      'FmtMemo',
-      'ParadoxOle',
-      'DBaseOle',
-      'TypedBinary',
-      'Cursor',
-      'FixedChar',
-      'WideString',
-      'Largeint',
-      'ADT',
-      'Array',
-      'Reference',
-      'DataSet',
-      'OraBlob',
-      'OraClob',
-      'Variant',
-      'Interface',
-      'IDispatch',
-      'Guid',
-      'TimeStamp',
-      'FMTBcd',
-      'FixedWideChar',
-      'WideMemo'
+      {ftUnknown} 'Unknown',
+      {ftString} 'String',
+      {ftSmallint} 'Smallint',
+      {ftInteger} 'Integer',
+      {ftWord} 'Word',
+      {ftBoolean} 'Boolean',
+      {ftFloat} 'Float',
+      {ftCurrency} 'Currency',
+      {ftBCD} 'BCD',
+      {ftDate} 'Date',
+      {ftTime} 'Time',
+      {ftDateTime} 'DateTime',
+      {ftBytes} 'Bytes',
+      {ftVarBytes} 'VarBytes',
+      {ftAutoInc} 'AutoInc',
+      {ftBlob} 'Blob',
+      {ftMemo} 'Memo',
+      {ftGraphic} 'Graphic',
+      {ftFmtMemo} 'FmtMemo',
+      {ftParadoxOle} 'ParadoxOle',
+      {ftDBaseOle} 'DBaseOle',
+      {ftTypedBinary} 'TypedBinary',
+      {ftCursor} 'Cursor',
+      {ftFixedChar} 'FixedChar',
+      {ftWideString} 'WideString',
+      {ftLargeint} 'Largeint',
+      {ftADT} 'ADT',
+      {ftArray} 'Array',
+      {ftReference} 'Reference',
+      {ftDataSet} 'DataSet',
+      {ftOraBlob} 'OraBlob',
+      {ftOraClob} 'OraClob',
+      {ftVariant} 'Variant',
+      {ftInterface} 'Interface',
+      {ftIDispatch} 'IDispatch',
+      {ftGuid} 'Guid',
+      {ftTimeStamp} 'TimeStamp',
+      {ftFMTBcd} 'FMTBcd',
+      {ftFixedWideChar} 'FixedWideChar',
+      {ftWideMemo} 'WideMemo'
     );
-    { 'Unknown',
-      'String',
-      'Smallint',
-      'Integer',
-      'Word',
-      'Boolean',
-      'Float',
-      'Date',
-      'Time',
-      'DateTime',
-      'Bytes',
-      'VarBytes',
-      'AutoInc',
-      'Blob',
-      'Memo',
-      'Graphic',
-      'FmtMemo',
-      'ParadoxOle',
-      'DBaseOle',
-      'TypedBinary',
-      'Cursor'
-    );}
+
 
 const
   DefaultFieldClasses : Array [TFieldType] of TFieldClass =
-    ( { ftUnknown} Tfield,
+    (
+      { ftUnknown} Tfield,
       { ftString} TStringField,
       { ftSmallint} TSmallIntField,
       { ftInteger} TLongintField,
@@ -2118,6 +2139,11 @@ const
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
     dsNewValue, dsInternalCalc];
+  // Correct list of all field types that are BLOB types.
+  // Please use this instead of checking TBlobType which will give
+  // incorrect results
+  ftBlobTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle,
+    ftDBaseOle, ftTypedBinary, ftOraBlob, ftOraClob, ftWideMemo];
 
 { Auxiliary functions }
 

@@ -205,7 +205,7 @@ const
 function upcase(c : char) : char;
 {$IFDEF IBM_CHAR_SET}
 var
-  i : sizeint;
+  i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['a'..'z']) then
@@ -230,7 +230,7 @@ end;
 {$define FPC_UPCASE_SHORTSTR}
 function upcase(const s : shortstring) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   upcase[0]:=s[0];
   for i := 1 to length (s) do
@@ -244,7 +244,7 @@ end;
 function lowercase(c : char) : char;overload;
 {$IFDEF IBM_CHAR_SET}
 var
-  i : sizeint;
+  i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['A'..'Z']) then
@@ -269,7 +269,7 @@ end;
 {$define FPC_LOWERCASE_SHORTSTR}
 function lowercase(const s : shortstring) : shortstring; overload;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   lowercase [0]:=s[0];
   for i:=1 to length(s) do
@@ -282,7 +282,7 @@ const
 
 function hexstr(val : longint;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   hexstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -294,7 +294,7 @@ end;
 
 function octstr(val : longint;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   octstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -307,7 +307,7 @@ end;
 
 function binstr(val : longint;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   binstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -320,7 +320,7 @@ end;
 
 function hexstr(val : int64;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   hexstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -333,7 +333,7 @@ end;
 
 function octstr(val : int64;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   octstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -346,7 +346,7 @@ end;
 
 function binstr(val : int64;cnt : byte) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
 begin
   binstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -387,7 +387,7 @@ end;
 {$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
 function hexstr(val : pointer) : shortstring;
 var
-  i : sizeint;
+  i : ObjpasInt;
   v : ptruint;
 begin
   v:=ptruint(val);

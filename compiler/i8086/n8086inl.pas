@@ -61,6 +61,13 @@ implementation
        begin
          result := nil;
          resultdef:=u16inttype;
+
+         { don't allow constants }
+         if is_constnode(left) then
+          begin
+            CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
+            exit;
+          end;
        end;
 
      function ti8086inlinenode.first_seg: tnode;
@@ -70,10 +77,48 @@ implementation
        end;
 
      procedure ti8086inlinenode.second_seg;
+       var
+         segref: treference;
        begin
-         location_reset(location,LOC_REGISTER,OS_16);
-         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-         current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
+         secondpass(left);
+
+         if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+           internalerror(2013040101);
+
+         { if a segment register is specified in ref, we use that }
+         if left.location.reference.segment<>NR_NO then
+           begin
+             location_reset(location,LOC_REGISTER,OS_16);
+             if is_segment_reg(left.location.reference.segment) then
+               begin
+                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                 current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,left.location.reference.segment,location.register));
+               end
+             else
+               location.register:=left.location.reference.segment;
+           end
+         { references relative to a symbol use the segment of the symbol,
+           which can be obtained by the SEG directive }
+         else if assigned(left.location.reference.symbol) then
+           begin
+             location_reset(location,LOC_REGISTER,OS_16);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+             reference_reset_symbol(segref,left.location.reference.symbol,0,0);
+             segref.refaddr:=addr_seg;
+             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,location.register);
+           end
+         else if left.location.reference.base=NR_BP then
+           begin
+             location_reset(location,LOC_REGISTER,OS_16);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,location.register));
+           end
+         else
+           begin
+             location_reset(location,LOC_REGISTER,OS_16);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+             current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
+           end;
        end;
 
      procedure ti8086inlinenode.second_get_frame;

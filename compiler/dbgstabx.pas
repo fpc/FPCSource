@@ -132,7 +132,7 @@ implementation
       st    : ansistring;
     begin
       { type prefix }
-      if def.typ in tagtypes then
+      if use_tag_prefix(def) then
         stabchar := tagtypeprefix
       else
         stabchar := 't';
@@ -300,7 +300,7 @@ implementation
       hp, inclinsertpos, last : tai;
       infile : tinputfile;
       i,
-      linenr,
+      linenr, stabx_func_level,
       nolineinfolevel: longint;
       nextlineisfunstart: boolean;
     begin
@@ -312,6 +312,7 @@ implementation
       hp:=Tai(list.first);
       nextlineisfunstart:=false;
       nolineinfolevel:=0;
+      stabx_func_level:=0;
       last:=nil;
       while assigned(hp) do
         begin
@@ -327,7 +328,11 @@ implementation
               if tai_symbol_end(hp).sym.typ = AT_FUNCTION then
                 begin
                   { end of function }
-                  list.insertbefore(Tai_stab.Create_str(stabx_ef,tostr(currfileinfo.line)),hp);
+                  if stabx_func_level > 0 then
+                    begin
+                      list.insertbefore(Tai_stab.Create_str(stabx_ef,tostr(currfileinfo.line)),hp);
+                      dec(stabx_func_level);
+                    end;
                 end;
             ait_marker :
               begin
@@ -381,6 +386,7 @@ implementation
                         may have been created in another file in case the body
                         is completely declared in an include file }
                       list.insertbefore(Tai_stab.Create_str(stabx_bf,tostr(currfileinfo.line)),hp);
+                      inc(stabx_func_level);
                       { -1 to avoid outputting a relative line 0 in the
                         function, because that means something different }
                       dec(curfunstartfileinfo.line);
@@ -389,6 +395,13 @@ implementation
 
                 end;
 
+              { implicit functions have no file information }
+              if nextlineisfunstart then
+                begin
+                  list.insertbefore(Tai_stab.Create_str(stabx_bf,tostr(currfileinfo.line)),hp);
+                  inc(stabx_func_level);
+                  nextlineisfunstart:=false;
+                end;
               if nolineinfolevel=0 then
                 begin
                   { line changed ? }

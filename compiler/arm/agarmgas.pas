@@ -296,7 +296,7 @@ unit agarmgas;
             postfix:='.w';
 
           if taicpu(hp).ops = 0 then
-            s:=#9+gas_op2str[op]+' '+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
+            s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else if (taicpu(hp).opcode>=A_VABS) and (taicpu(hp).opcode<=A_VSUB) then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else

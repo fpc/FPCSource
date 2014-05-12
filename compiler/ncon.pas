@@ -738,11 +738,6 @@ implementation
 
       begin
          inherited create(pointerconstn);
-{$ifdef i8086}
-         { truncate near pointers }
-         if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
-           v := Word(v);
-{$endif i8086}
          value:=v;
          typedef:=def;
       end;
@@ -971,7 +966,7 @@ implementation
                 l:=len-1
               else
                 l:=0;
-              resultdef:=tarraydef.create(0,l,s32inttype);
+              resultdef:=carraydef.create(0,l,s32inttype);
               tarraydef(resultdef).elementdef:=cansichartype;
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;

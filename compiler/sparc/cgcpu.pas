@@ -935,11 +935,21 @@ implementation
       var
         hl : tasmlabel;
       begin
-        current_asmdata.getjumplabel(hl);
-        a_load_const_reg(list,size,1,reg);
-        a_jmp_flags(list,f,hl);
-        a_load_const_reg(list,size,0,reg);
-        a_label(list,hl);
+        if (f in [F_B]) then
+          list.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,reg))
+        else if (f in [F_AE]) then
+          begin
+            a_load_const_reg(list,size,1,reg);
+            list.concat(taicpu.op_reg_reg_reg(A_SUBX,reg,NR_G0,reg));
+          end
+        else
+          begin
+            current_asmdata.getjumplabel(hl);
+            a_load_const_reg(list,size,1,reg);
+            a_jmp_flags(list,f,hl);
+            a_load_const_reg(list,size,0,reg);
+            a_label(list,hl);
+          end;
       end;
 
 
@@ -970,7 +980,7 @@ implementation
                                                pasbool8,pasbool16,pasbool32,pasbool64]))) then
                 begin
                   ai:=TAiCpu.Op_sym(A_Bxx,hl);
-                  ai.SetCondition(C_NO);
+                  ai.SetCondition(C_VC);
                   list.Concat(ai);
                   { Delay slot }
                   list.Concat(TAiCpu.Op_none(A_NOP));

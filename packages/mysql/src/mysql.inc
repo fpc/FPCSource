@@ -1877,6 +1877,7 @@ begin
     pointer(mysql_select_db) := GetProcedureAddress(MysqlLibraryHandle,'mysql_select_db');
     pointer(mysql_server_end) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_end');
     pointer(mysql_server_init) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_init');
+    pointer(mysql_set_character_set) := GetProcedureAddress(MysqlLibraryHandle,'mysql_set_character_set');
     pointer(mysql_set_server_option) := GetProcedureAddress(MysqlLibraryHandle,'mysql_set_server_option');
     pointer(mysql_sqlstate) := GetProcedureAddress(MysqlLibraryHandle,'mysql_sqlstate');
     pointer(mysql_shutdown) := GetProcedureAddress(MysqlLibraryHandle,'mysql_shutdown');

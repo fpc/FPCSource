@@ -86,7 +86,7 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
+      symconst,symbase,symdef,symsym,symcpu,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,ncnv,nutils,
@@ -107,16 +107,16 @@ implementation
         entry   : PHashSetItem;
 
       begin
-         location_reset(location,LOC_REGISTER,OS_ADDR);
+         location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
          if (left.nodetype=typen) then
            begin
-             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
                  reference_reset_symbol(href,
                    current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
-                   sizeof(pint));
-                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+                   voidpointertype.size);
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
                end
              else
                begin
@@ -132,8 +132,8 @@ implementation
                      { find/add necessary classref/classname pool entries }
                      objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
-                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,voidpointertype.size);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
                end;
            end
          else
@@ -157,14 +157,14 @@ implementation
       begin
         if (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
           begin
-            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
             location.register:=current_procinfo.framepointer;
           end
         else
           begin
             currpi:=current_procinfo;
-            location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+            location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
@@ -183,8 +183,8 @@ implementation
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
-                reference_reset_base(href,location.register,hsym.localloc.reference.offset,sizeof(pint));
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,sizeof(pint));
+                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
               end;
           end;
       end;
@@ -198,8 +198,8 @@ implementation
       begin
          secondpass(left);
 
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         location_reset(location,LOC_REGISTER,int_cgsize(resultdef.size));
+         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
          if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            { on x86_64-win64, array of chars can be returned in registers, however,
              when passing these arrays to other functions, the compiler wants to take
@@ -263,7 +263,7 @@ implementation
             LOC_CREGISTER,
             LOC_REGISTER:
               begin
-                maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
+                hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
               {$ifdef cpu_uses_separate_address_registers}
                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
@@ -293,7 +293,7 @@ implementation
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
 {$ifdef x86}
-            (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+            (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
 {$endif x86}
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }
@@ -347,7 +347,7 @@ implementation
                 (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
-                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
+                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),voidpointertype.size);
                  case left.location.loc of
                     LOC_CREGISTER,
                     LOC_REGISTER:
@@ -361,7 +361,7 @@ implementation
                           end
                         else
                       {$endif}
-                          location.reference.base := left.location.register;
+                          hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
                       end;
                     LOC_CREFERENCE,
                     LOC_REFERENCE,
@@ -371,7 +371,8 @@ implementation
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
                       begin
-                         location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
+                         hlcg.reference_reset_base(location.reference,left.resultdef,
+                           hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
@@ -737,10 +738,10 @@ implementation
           begin
             { cdecl functions don't have high() so we can not check the range }
             { (can't use current_procdef, since it may be a nested procedure) }
-            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
              begin
                { Get high value }
-               hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
+               hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
                { it must be available }
                if not assigned(hightree) then
                  internalerror(200212201);
@@ -894,13 +895,13 @@ implementation
                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,location.reference.base);
 {$else m68k}
-                    location.reference.base:=left.location.register;
+                    hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
 {$endif m68k}
                   end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
+                    hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.reference.base);
                   end;
                 else
@@ -922,11 +923,11 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_CREGISTER :
-                  location.reference.base:=left.location.register;
+                  hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                     hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment);
                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                       left.location.reference,location.reference.base);
                   end;
@@ -937,7 +938,7 @@ implementation
                 we assume to be always aligned to a multiple of the
                 pointer size
               }
-              location.reference.alignment:=sizeof(pint);
+              location.reference.alignment:=voidpointertype.size;
            end
          else
            begin
