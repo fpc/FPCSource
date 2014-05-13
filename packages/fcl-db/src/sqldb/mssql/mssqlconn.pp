@@ -964,7 +964,7 @@ begin
   case SchemaType of
     stTables     : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 1 as TABLE_TYPE', '''U''']);
     stSysTables  : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 4 as TABLE_TYPE', '''S''']);
-    stProcedures : Result := format(SCHEMA_QUERY, ['PROC_NAME , case type when ''P'' then 1 else 2 end as PROC_TYPE', '''P'',''FN'',''IF'',''TF''']);
+    stProcedures : Result := format(SCHEMA_QUERY, ['PROCEDURE_NAME , case type when ''P'' then 1 else 2 end as PROCEDURE_TYPE', '''P'',''FN'',''IF'',''TF''']);
     stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME,'+
                                     'c.name   as COLUMN_NAME,'+
                                     'colid    as COLUMN_POSITION,'+

@@ -1206,7 +1206,7 @@ end;
 
 procedure TSQLConnection.GetProcedureNames(List: TStrings);
 begin
-  GetDBInfo(stProcedures,'','proc_name',List);
+  GetDBInfo(stProcedures,'','procedure_name',List);
 end;
 
 procedure TSQLConnection.GetFieldNames(const TableName: string; List: TStrings);

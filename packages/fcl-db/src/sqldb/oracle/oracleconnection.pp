@@ -1032,7 +1032,7 @@ begin
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
     stProcedures : s := 'SELECT '+
-                          'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS proc_name '+
+                          'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS procedure_name '+
                         'FROM USER_PROCEDURES ';
   else
     DatabaseError(SMetadataUnavailable)
