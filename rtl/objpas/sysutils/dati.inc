@@ -512,39 +512,42 @@ function StrToDate(const S: string; FormatSettings: TFormatSettings): TDateTime;
 var
   Msg: AnsiString;
 begin
-  Result:=IntStrToDate(Msg,@S[1],Length(S),FormatSettings.ShortDateFormat,FormatSettings);
+  Result:=IntStrToDate(Msg,PChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings);
   if Msg<>'' then
     raise EConvertError.Create(Msg);
 end;
 
 function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),UseFormat,separator);
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
+  result := StrToDate(@S[1],Length(s),UseFormat,separator);
 end;
 
 function StrToDate(const S: AnsiString; const useformat : string; separator : char = #0): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),UseFormat,separator);
+  result := StrToDate(PChar(S),Length(s),UseFormat,separator);
 end;
 
 function StrToDate(const S: ShortString; separator : char): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
+  result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
 end;
 
 function StrToDate(const S: ShortString): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
+  result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 function StrToDate(const S: AnsiString; separator : char): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
+    result := StrToDate(Pchar(S),Length(s),DefaultFormatSettings.ShortDateFormat,separator)
 end;
 
 function StrToDate(const S: AnsiString): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
+  result := StrToDate(Pchar(S),Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 {   StrToTime converts the string S to a TDateTime value
@@ -731,29 +734,31 @@ function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime
 Var
   Msg : AnsiString;
 begin
-  Result:=IntStrToTime(Msg, @S[1], length(S), FormatSettings, #0);
+  Result:=IntStrToTime(Msg, PChar(S), length(S), FormatSettings, #0);
   If (Msg<>'') then
     Raise EConvertError.Create(Msg);
 end;
 
 function StrToTime(const s: ShortString; separator : char): TDateTime;
 begin
-   result := StrToTime(@s[1], length(s), separator);
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
+  result := StrToTime(@s[1], length(s), separator);
 end;
 
 function StrToTime(const s: AnsiString; separator : char): TDateTime;
 begin
-   result := StrToTime(@s[1], length(s), separator);
+   result := StrToTime(PChar(S), length(s), separator);
 end;
 
 function StrToTime(const s: ShortString): TDateTime;
 begin
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
    result := StrToTime(@s[1], length(s), #0);
 end;
 
 function StrToTime(const s: AnsiString): TDateTime;
 begin
-   result := StrToTime(@s[1], length(s), #0);
+   result:= StrToTime(PChar(s), length(s), #0);
 end;
 
 {   StrToDateTime converts the string S to a TDateTime value
@@ -1257,6 +1262,7 @@ Var
   Msg : Ansistring;
 
 begin
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
   Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,defaultformatsettings,separator);
   Result:=(Msg='');
 end;
@@ -1271,7 +1277,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,DefaultFormatSettings,Separator);
+    Value:=IntStrToDate(Msg,PChar(S),Length(S),useformat,DefaultFormatSettings,Separator);
     Result:=(Msg='');
     end;
 end;
@@ -1301,7 +1307,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToDate(Msg,@S[1],Length(S),FormatSettings.ShortDateFormat,FormatSettings,#0);
+      Value:=IntStrToDate(Msg,PChar(S),Length(S),FormatSettings.ShortDateFormat,FormatSettings,#0);
       Result:=(Msg='');
     end;
 end;
@@ -1311,6 +1317,7 @@ function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : ch
 Var
   Msg : AnsiString;
 begin
+  // S[1] always exists for shortstring. Length 0 will trigger an error.
   Value:=IntStrToTime(Msg,@S[1],Length(S),DefaultFormatSettings,Separator);
   result:=(Msg='');
 end;
@@ -1327,7 +1334,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToTime(Msg,@S[1],Length(S),DefaultFormatSettings,Separator);
+      Value:=IntStrToTime(Msg,PChar(S),Length(S),DefaultFormatSettings,Separator);
       Result:=(Msg='');
     end;
 end;
@@ -1343,7 +1350,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-      Value:=IntStrToTime(Msg,@S[1],Length(S),FormatSettings,#0);
+      Value:=IntStrToTime(Msg,PChar(S),Length(S),FormatSettings,#0);
       Result:=(Msg='');
     end;
 end;
