@@ -248,7 +248,7 @@ uses
             For I:=0 to R.Len-1 do
              begin
                C:=R.Value[i];
-               If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
+               If (ord(C)>31) and (Ord(c)<128) and (c<>'''') then
                 begin
                   If mode=Quoted then
                    Add(c)
