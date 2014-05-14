@@ -1641,7 +1641,7 @@ function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObject
 
 begin
   case SchemaType of
-    stProcedures: Result := 'SELECT * FROM INFORMATION_SCHEMA.ROUTINES';
+    stProcedures: Result := 'SELECT *, ROUTINE_NAME AS PROCEDURE_NAME FROM INFORMATION_SCHEMA.ROUTINES';
     stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
     else DatabaseError(SMetadataUnavailable);
   end;
