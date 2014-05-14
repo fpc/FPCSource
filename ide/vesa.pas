@@ -130,6 +130,9 @@ function VESAReturnMemoryWindow(Window: byte; var Position: word): boolean;
 function RegisterVesaVideoMode(Mode : word) : boolean;
 Procedure FreeVesaModes;
 
+const
+  DisableVESA : boolean = false;
+
 implementation
 
 uses
@@ -190,6 +193,8 @@ var r: registers;
     OK: boolean;
     M: MemPtr;
 begin
+  if disableVESA then
+    exit(false);
   StrToMem('VBE2',B.Signature);
   GetDosMem(M,SizeOf(B));
   M.MoveDataTo(B,sizeof(B));
@@ -207,6 +212,8 @@ var OK: boolean;
     VI: TVESAInfoBlock;
 begin
   FillChar(B,SizeOf(B),0);
+  if disableVESA then
+    exit(false);
   OK:=VESAGetInfo(VI);
   if OK then
   begin
@@ -243,6 +250,11 @@ var OK: boolean;
     VI: TVESAInfoBlock;
     S: array[0..256] of char;
 begin
+  if disableVESA then
+    begin
+      VESAGetOemString:='VESA disabled';
+      exit;
+    end;
   FillChar(S,SizeOf(S),0);
   OK:=VESAGetInfo(VI);
   if OK then
@@ -255,6 +267,8 @@ var r : registers;
     M : MemPtr;
     OK: boolean;
 begin
+  if disableVESA then
+    exit(false);
   r.ah:=$4f; r.al:=$01; r.cx:=Mode;
   GetDosMem(M,sizeof(B));
   r.es:=M.DosSeg; r.di:=M.DosOfs; {r.ds:=r.es;}
@@ -312,6 +326,8 @@ function VESASetMode(Mode: word): boolean;
 var r: registers;
     OK: boolean;
 begin
+  if disableVESA then
+    exit(false);
   r.ah:=$4f; r.al:=$02; r.bx:=Mode;
   dos.intr($10,r);
   OK:=(r.ax=$004f);
@@ -322,6 +338,10 @@ function VESAGetMode(var Mode: word): boolean;
 var r : registers;
     OK: boolean;
 begin
+  if disableVESA then
+    exit(false);
+  if disableVESA then
+    exit(false);
   r.ah:=$4f; r.al:=$03;
   dos.intr($10,r);
   OK:=(r.ax=$004f);
@@ -333,6 +353,8 @@ function VESASelectMemoryWindow(Window: byte; Position: word): boolean;
 var r : registers;
     OK : boolean;
 begin
+  if disableVESA then
+    exit(false);
   r.ah:=$4f; r.al:=$05; r.bh:=0; r.bl:=Window; r.dx:=Position;
   dos.intr($10,r);
   OK:=(r.ax=$004f);
@@ -343,6 +365,8 @@ function VESAReturnMemoryWindow(Window: byte; var Position: word): boolean;
 var r  : registers;
     OK : boolean;
 begin
+  if disableVESA then
+    exit(false);
   r.ah:=$4f; r.al:=$05; r.bh:=1; r.bl:=Window;
   dos.intr($10,r);
   OK:=(r.ax=$004f);
@@ -354,9 +378,10 @@ function VESAInit: boolean;
 var OK: boolean;
     VI: TVESAInfoBlock;
 begin
-  OK:=VESAGetInfo(VI);
-  if OK then
-
+  if disableVESA then
+    OK:=false
+  else
+    OK:=VESAGetInfo(VI);
   VESAInit:=OK;
 end;
 
@@ -394,6 +419,8 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
 
   begin
      res:=false;
+     if disableVESA then
+       exit(res);
      VH:=VesaVideoModeHead;
      while assigned(VH) do
        begin
@@ -635,8 +662,12 @@ begin
   SysDoneVideo();
 end;
 
+function SetVESAVideoDriver : boolean; forward;
+
 procedure VesaInitVideo;
 begin
+  if not SetVESAVideoDriver then
+    exit;
 {$ifdef TESTGRAPHIC}
   if IsGraphicMode then
     begin
@@ -673,7 +704,10 @@ Var
   i : longint;
 {$endif TESTGRAPHIC}
 
+function SetVESAVideoDriver : boolean;
 BEGIN
+  if disableVESA then
+    exit(false);
 { Get the videodriver to be used }
   GetVideoDriver (Driver);
 { Change needed functions }
@@ -706,4 +740,7 @@ BEGIN
 {$endif TESTGRAPHIC}
 
   SetVideoDriver (Driver);
+  SetVESAVideoDriver:=true;
+END;
+
 END.
