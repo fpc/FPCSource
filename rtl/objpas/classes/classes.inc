@@ -882,7 +882,7 @@ end;
 
 { TPropFixup }
 // Tainted. TPropFixup is being removed.
- 
+
 Type
   TInitHandler = Class(TObject)
     AHandler : TInitComponentHandler;
@@ -1044,7 +1044,9 @@ Var
   H : TFPResourceHandle;
 
 begin
-  H:=FindResource(HInstance,ResName,RT_RCDATA);
+  { Windows unit also has a FindResource function, use the one from
+    system unit here.  }
+  H:=system.FindResource(HInstance,ResName,RT_RCDATA);
   if (PtrInt(H)=0) then
     Result:=Nil
   else
@@ -1053,7 +1055,7 @@ begin
         Result:=ReadComponent(Instance);
       Finally
         Free;
-      end;  
+      end;
 end;
 
 function ReadComponentRes(const ResName: String; Instance: TComponent): TComponent;
@@ -1098,11 +1100,11 @@ end;
 Function FindNestedComponent(Root : TComponent; APath : String; CStyle : Boolean = True) : TComponent;
 
   Function GetNextName : String; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
-  
+
   Var
     P : Integer;
     CM : Boolean;
-    
+
   begin
     P:=Pos('.',APath);
     CM:=False;
@@ -1292,40 +1294,40 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
    if p = nil then begin
     res:= '''''';
    end
-   else 
+   else
     begin
     res := '';
     InString := False;
-    while P < LastP do 
+    while P < LastP do
       begin
       NewInString := InString;
       w := CharToOrdfunc(P);
-      if w = ord('''') then 
+      if w = ord('''') then
         begin //quote char
         if not InString then
           NewInString := True;
         NewStr := '''''';
-        end 
+        end
       else if (Ord(w) >= 32) and ((Ord(w) < 127) or (UseBytes and (Ord(w)<256))) then
         begin //printable ascii or bytes
         if not InString then
           NewInString := True;
         NewStr := char(w);
-        end 
-      else 
+        end
+      else
         begin //ascii control chars, non ascii
         if InString then
           NewInString := False;
         NewStr := '#' + IntToStr(w);
         end;
-      if NewInString <> InString then 
+      if NewInString <> InString then
         begin
         NewStr := '''' + NewStr;
         InString := NewInString;
         end;
       res := res + NewStr;
       end;
-    if InString then 
+    if InString then
       res := res + '''';
     end;
    OutStr(res);
@@ -1683,7 +1685,7 @@ type
   PLongWord = ^LongWord;
 const
   signature: PChar = 'TPF0';
-  
+
 begin
   if Input.ReadDWord <> PLongWord(Pointer(signature))^ then
     raise EReadError.Create('Illegal stream image' {###SInvalidImage});
@@ -1839,7 +1841,7 @@ var
     Output.WriteByte(Ord(vaWstring));
     WriteWString(ws);
   end;
-  
+
   procedure ProcessProperty; forward;
 
   procedure ProcessValue;
