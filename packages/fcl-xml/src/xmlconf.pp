@@ -43,6 +43,8 @@ type
    is the name of the value. The path components will be mapped to XML
    elements, the name will be an element attribute.}
 
+  { TXMLConfig }
+
   TXMLConfig = class(TComponent)
   private
     FFilename: String;
@@ -64,6 +66,7 @@ type
   protected
     Doc: TXMLDocument;
     FModified: Boolean;
+    FReadOnly: Boolean;
     procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -73,6 +76,7 @@ type
     procedure OpenKey(const aPath: DOMString);
     procedure CloseKey;
     procedure ResetKey;
+    procedure SaveAs(AFileName: string);
 
     function  GetValue(const APath: DOMString; const ADefault: DOMString): DOMString; overload;
     function  GetValue(const APath: DOMString; ADefault: Integer): Integer; overload;
@@ -92,6 +96,7 @@ type
     property Filename: String read FFilename write SetFilename;
     property StartEmpty: Boolean read FStartEmpty write SetStartEmpty;
     property RootName: DOMString read FRootName write SetRootName;
+    property ReadOnly: Boolean read FReadOnly write FReadOnly;
   end;
 
 
@@ -124,9 +129,17 @@ end;
 
 procedure TXMLConfig.Flush;
 begin
-  if Modified and (Filename <> '') then
+  if Modified and not FReadOnly then
   begin
-    WriteXMLFile(Doc, Filename);
+    SaveAs(FFilename)
+  end;
+end;
+
+procedure TXMLConfig.SaveAs(AFileName: string);
+begin
+  if AFileName <> '' then
+  begin
+    WriteXMLFile(Doc, AFilename);
     FModified := False;
   end;
 end;
