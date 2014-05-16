@@ -76,7 +76,7 @@ type
     procedure OpenKey(const aPath: DOMString);
     procedure CloseKey;
     procedure ResetKey;
-    procedure SaveAs(AFileName: string);
+    procedure SaveToFile(AFileName: string);
 
     function  GetValue(const APath: DOMString; const ADefault: DOMString): DOMString; overload;
     function  GetValue(const APath: DOMString; ADefault: Integer): Integer; overload;
@@ -131,11 +131,11 @@ procedure TXMLConfig.Flush;
 begin
   if Modified and not FReadOnly then
   begin
-    SaveAs(FFilename)
+    SaveToFile(FFilename)
   end;
 end;
 
-procedure TXMLConfig.SaveAs(AFileName: string);
+procedure TXMLConfig.SaveToFile(AFileName: string);
 begin
   if AFileName <> '' then
   begin
