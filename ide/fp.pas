@@ -177,6 +177,11 @@ begin
           begin
             disableVESA:=true;
           end else
+        if UpcaseStr(Param)='VESA' then
+          begin
+(* Force using VESA although it may have been disabled by default *)
+            disableVESA:=false;
+          end else
 {$endif VESA}
         if UpcaseStr(Param)='README' then
           begin
