@@ -743,4 +743,23 @@ BEGIN
   SetVESAVideoDriver:=true;
 END;
 
+function ChkWinNT: boolean;
+var
+  R: Registers;
+begin
+  ChkWinNT := false;
+  R.AX := $3306;
+  RealIntr ($21, R);
+  if (R.AL = 255) or (R.BX <> 50 * 256 + 5) then
+   Exit;
+  R.AX := $3000;
+  RealIntr ($21, R);
+  if (R.AX = 5) and (R.BH = 255) then
+   ChkWinNT := true;
+end;
+
+begin
+(* Let's disable VESA functions by default if running under MS Windows NT+ *)
+  if ChkWinNT then
+   DisableVESA := true;
 END.
