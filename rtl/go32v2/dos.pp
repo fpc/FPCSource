@@ -218,6 +218,8 @@ var
   fcb1_la,fcb2_la : longint;
   use_proxy       : boolean;
   proxy_argc      : longint;
+  ExecBufSize, TB : longint;
+  ExecBufPtr      : PChar;
   execblock       : texecblock;
   c               : ansistring;
   p               : string;
@@ -225,7 +227,9 @@ var
   function paste_to_dos(src : string;add_cr_at_end, include_string_length : boolean) : boolean;
   {Changed by Laaca - added parameter N}
   var
+{
     c : pchar;
+}
     CLen : cardinal;
     start_pos,ls : longint;
   begin
@@ -235,21 +239,32 @@ var
      else
        start_pos:=1;
      ls:=Length(src)-start_pos;
+{
      if current_dos_buffer_pos+ls+3>transfer_buffer+tb_size then
+}
+     if Current_Dos_Buffer_Pos + LS + 3 > ExecBufSize then
+     begin
+      FreeMem (ExecBufPtr);
       RunError(217);
+     end;
+{
      getmem(c,ls+3);
-     move(src[start_pos],c^,ls+1);
+}
+     Move (Src [Start_Pos], ExecBufPtr [Current_Dos_Buffer_Pos], LS + 1);
+     Inc (Current_Dos_Buffer_Pos, LS + 1);
      if add_cr_at_end then
       begin
-        c[ls+1]:=#13;
-        c[ls+2]:=#0;
-      end
-     else
-      c[ls+1]:=#0;
-     CLen := StrLen (C) + 1;
+        ExecBufPtr [Current_Dos_Buffer_Pos] := #13;
+        Inc (Current_Dos_Buffer_Pos);
+      end;
+      ExecBufPtr [Current_Dos_Buffer_Pos] := #0;
+      Inc (Current_Dos_Buffer_Pos);
+{
+      CLen := StrLen (C) + 1;
      seg_move(get_ds,longint(c),dosmemselector,current_dos_buffer_pos,CLen);
      current_dos_buffer_pos:=current_dos_buffer_pos+CLen;
      freemem(c,ls+3);
+}
      paste_to_dos:=true;
   end;
 
@@ -269,11 +284,11 @@ var
     current_arg:='';
     proxy_argc:=0;
     end_of_arg:=false;
-    while current_dos_buffer_pos mod 16 <> 0 do
+    while TB + current_dos_buffer_pos mod 16 <> 0 do
       inc(current_dos_buffer_pos);
-    la_proxy_seg:=current_dos_buffer_pos shr 4;
+    la_proxy_seg:=(TB + current_dos_buffer_pos) shr 4;
     { Also copy parameter 0 }
-    la_argv_ofs[0]:=current_dos_buffer_pos-la_proxy_seg*16;
+    la_argv_ofs[0]:=TB+current_dos_buffer_pos-la_proxy_seg*16;
     { Note that this should be done before
       alteriing p value }
     paste_to_dos(p,false,false);
@@ -322,7 +337,7 @@ var
                     writeln(stderr,'Too many arguments in Dos.exec');
                     RunError(217);
                   end;
-                la_argv_ofs[proxy_argc]:=current_dos_buffer_pos-la_proxy_seg*16;
+                la_argv_ofs[proxy_argc]:=TB + current_dos_buffer_pos - la_proxy_seg*16;
     {$ifdef DEBUG_PROXY}
                 writeln(stderr,'arg ',proxy_argc,'="',current_arg,'"');
     {$endif DEBUG_PROXY}
@@ -335,9 +350,13 @@ var
             end_of_arg:=false;
           end;
       end;
-    la_proxy_ofs:=current_dos_buffer_pos - la_proxy_seg*16;
+    la_proxy_ofs:=TB + current_dos_buffer_pos - la_proxy_seg*16;
+{
     seg_move(get_ds,longint(@la_argv_ofs),dosmemselector,
              current_dos_buffer_pos,proxy_argc*sizeof(word));
+}
+    Move (LA_ArgV_Ofs, ExecBufPtr [Current_Dos_Buffer_Pos],
+                                                   Proxy_ArgC * SizeOf (word));
     current_dos_buffer_pos:=current_dos_buffer_pos + proxy_argc*sizeof(word);
     c:='!proxy '+hexstr(proxy_argc,4)+' '+hexstr(la_proxy_seg,4)
        +' '+hexstr(la_proxy_ofs,4);
@@ -373,11 +392,21 @@ begin
   writeln(stderr,'Dos.exec path="',path,'"');
 {$endif DEBUG_PROXY}
   p:=path;
+  if LFNSupport then
+    GetShortName(p);
 { create buffer }
-  la_env:=transfer_buffer;
+  TB := Transfer_Buffer;
+  ExecBufSize := TB_Size;
+  GetMem (ExecBufPtr, ExecBufSize);
+  if ExecBufPtr = nil then
+   begin
+    DosError := 8;
+    Exit;
+   end;
+  la_env:=TB;
   while (la_env and 15)<>0 do
    inc(la_env);
-  current_dos_buffer_pos:=la_env;
+  current_dos_buffer_pos:=la_env - TB;
 { copy environment }
   for i:=1 to envcount do
    paste_to_dos(envstr(i),false,false);
@@ -387,22 +416,24 @@ begin
     setup_proxy_cmdline;
 { allow slash as backslash }
   DoDirSeparators(p);
-  if LFNSupport then
-    GetShortName(p);
   { Add program to DosBuffer with
     length at start }
-  la_p:=current_dos_buffer_pos;
+  la_p:=TB + current_dos_buffer_pos;
   paste_to_dos(p,false,true);
   { Add command line args to DosBuffer with
     length at start and Carriage Return at end }
-  la_c:=current_dos_buffer_pos;
+  la_c:=TB + current_dos_buffer_pos;
   paste_to_dos(c,true,true);
 
-  la_e:=current_dos_buffer_pos;
+  la_e:=TB + current_dos_buffer_pos;
   fcb1_la:=la_e;
   la_e:=la_e+16;
   fcb2_la:=la_e;
   la_e:=la_e+16;
+{$ifdef DEBUG_PROXY}
+  flush(stderr);
+{$endif DEBUG_PROXY}
+  seg_move (get_ds, PtrInt (ExecBufPtr), DosMemSelector, TB, Pred (Current_Dos_Buffer_Pos));
 { allocate FCB see dosexec code }
   arg_ofs:=1;
   while (c[arg_ofs] in [' ',#9]) and
@@ -420,9 +451,6 @@ begin
   dosregs.esi:=(la_c+arg_ofs) and 15;
   dosregs.es:=fcb2_la shr 4;
   dosregs.edi:=fcb2_la and 15;
-{$ifdef DEBUG_PROXY}
-  flush(stderr);
-{$endif DEBUG_PROXY}
   msdos(dosregs);
   with execblock do
    begin
