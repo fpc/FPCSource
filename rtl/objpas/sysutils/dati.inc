@@ -872,24 +872,26 @@ end;
 
 {   FormatDateTime formats DateTime to the given format string FormatStr   }
 
-function FormatDateTime(const FormatStr: string; DateTime: TDateTime): string;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; Options : TFormatDateTimeOptions = []): string;
 begin
-  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings);
+  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings,Options);
 end;
 
-function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []): string;
 begin
-  DateTimeToString(Result, FormatStr, DateTime, FormatSettings);
+  DateTimeToString(Result, FormatStr, DateTime, FormatSettings,Options);
 end;
 
 {   DateTimeToString formats DateTime to the given format in FormatStr   }
 
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
+procedure DateTimeToString(out Result: string; const FormatStr: string; 
+  const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
 begin
-  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings);
+  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings, Options);
 end;
 
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings);
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; 
+  const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
 var
   ResultLen: integer;
   ResultBuffer: array[0..255] of char;
@@ -977,13 +979,14 @@ var
 
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
-    Token, lastformattoken: char;
+    Token, lastformattoken, prevlasttoken: char;
     FormatCurrent: pchar;
     FormatEnd: pchar;
     Count: integer;
     Clock12: boolean;
     P: pchar;
     tmp: integer;
+    isInterval: Boolean;
 
   begin
     if Nesting > 1 then  // 0 is original string, 1 is included FormatString
@@ -992,6 +995,7 @@ var
     FormatCurrent := PChar(FormatStr);
     FormatEnd := FormatCurrent + Length(FormatStr);
     Clock12 := false;
+    isInterval := false;
     P := FormatCurrent;
     // look for unquoted 12-hour clock token
     while P < FormatEnd do
@@ -1019,6 +1023,7 @@ var
     end ;
     token := #255;
     lastformattoken := ' ';
+    prevlasttoken := 'H';
     while FormatCurrent < FormatEnd do
     begin
       Token := UpCase(FormatCurrent^);
@@ -1060,6 +1065,8 @@ var
         end ;
         '/': StoreStr(@FormatSettings.DateSeparator, 1);
         ':': StoreStr(@FormatSettings.TimeSeparator, 1);
+	'[': if (fdoInterval in Options) then isInterval := true else StoreStr(FormatCurrent, 1);
+	']': if (fdoInterval in Options) then isInterval := false else StoreStr(FormatCurrent, 1);
         ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' :
         begin
           while (P < FormatEnd) and (UpCase(P^) = Token) do
@@ -1074,6 +1081,9 @@ var
                 StoreInt(Year mod 100, 2);
             end;
             'M': begin
+	      if isInterval and ((prevlasttoken = 'H') or TimeFlag) then
+	        StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
+	      else
               if (lastformattoken = 'H') or TimeFlag then
               begin
                 if Count = 1 then
@@ -1103,7 +1113,11 @@ var
                 StoreFormat(FormatSettings.LongDateFormat, Nesting+1, False);
               end ;
             end ;
-            'H': if Clock12 then
+            'H': 
+	      if isInterval then
+	        StoreInt(Hour + trunc(abs(DateTime))*24, 0)
+	      else
+	      if Clock12 then
               begin
                 tmp := hour mod 12;
                 if tmp=0 then tmp:=12;
@@ -1118,11 +1132,17 @@ var
                 else
                   StoreInt(Hour, 2);
               end;
-            'N': if Count = 1 then
+            'N': if isInterval then
+	           StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
+		 else
+		 if Count = 1 then
                    StoreInt(Minute, 0)
                  else
                    StoreInt(Minute, 2);
-            'S': if Count = 1 then
+            'S': if isInterval then
+	           StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, 0)
+	         else 
+	         if Count = 1 then
                    StoreInt(Second, 0)
                  else
                    StoreInt(Second, 2);
@@ -1159,6 +1179,7 @@ var
                      Count := P - FormatCurrent;
                      StoreString(ConvertEraYearString(Count,Year,Month,Day));
                    end;
+		 prevlasttoken := lastformattoken;  
                  lastformattoken:=token;
                end;
              'G':
@@ -1172,10 +1193,12 @@ var
                      Count := P - FormatCurrent;
                      StoreString(ConvertEraString(Count,Year,Month,Day));
                    end;
+		 prevlasttoken := lastformattoken;
                  lastformattoken:=token;
                end;
 {$ENDIF MSWindows}
           end;
+	  prevlasttoken := lastformattoken;
           lastformattoken := token;
         end;
         else

@@ -18,7 +18,9 @@
 type
   PDayTable = ^TDayTable;
   TDayTable = array[1..12] of Word;
-
+  TFormatDateTimeOption = (fdoInterval);
+  TFormatDateTimeOptions =  set of TFormatDateTimeOption;
+  
 const
    HoursPerDay = 24;
    MinsPerHour = 60;
@@ -64,14 +66,22 @@ var
       yyyy   : year (four digits, with century)
       h      : hour
       hh     : hour (leading zero)
+      [h]    : hours including the hours of the full days, also: [hh]
+               Only available if fdoInterval is specified in options argument to FormatDateTime.
       n      : minute
       nn     : minute (leading zero)
+      [n]    : minutes including the minutes of the full hours and days,
+               also: [nn] (or [m] or [mm] if in time part of the format string)
+               Only available if fdoInterval is specified in options argument to FormatDateTime.
       s      : second
       ss     : second (leading zero)
+      [s]    : seconds (including the seconds of the full minutes, hours and days.
+               also: [ss]. 
+               Only available if fdoInterval is specified in options argument to FormatDateTime.
       t      : shorttimeformat
       tt     : longtimeformat
       am/pm  : use 12 hour clock and display am and pm accordingly
-                a/p    : use 12 hour clock and display a and p accordingly
+      a/p    : use 12 hour clock and display a and p accordingly
       /      : insert date seperator
       :      : insert time seperator
       "xx"   : literal text
@@ -138,10 +148,10 @@ function StrToDate(const S: PChar; Len : integer; const useformat : string; sepa
 function StrToDateTime(const S: AnsiString): TDateTime;
 function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
 function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
-function FormatDateTime(const FormatStr: string; DateTime: TDateTime):string;
-function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings);
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; Options : TFormatDateTimeOptions = []): string;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []): string;
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 Function FileDateToDateTime (Filedate : Longint) :TDateTime;
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
