@@ -4,9 +4,9 @@
 
     class procedure Check(pValue: boolean; pMessage: string = '');
     class procedure CheckEquals(expected, actual: extended; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: extended; delta: extended; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: string; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: unicodestring; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: extended; delta: extended; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: integer; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: boolean; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: TClass; msg: string = ''); overload;
@@ -55,7 +55,13 @@ end;
 
 class procedure TAssert.CheckEquals(expected, actual: extended; msg: string);
 begin
-  AssertEquals(msg, expected, actual);
+  CheckEquals(expected, actual, 0, msg);
+end;
+
+class procedure TAssert.CheckEquals(expected, actual: extended;
+  delta: extended; msg: string);
+begin
+  AssertEquals(msg, expected, actual, delta);
 end;
 
 class procedure TAssert.CheckEquals(expected, actual: string; msg: string);
@@ -65,12 +71,6 @@ end;
 class procedure TAssert.CheckEquals(expected, actual: unicodestring; msg: string);
 begin
   AssertEquals(msg, expected, actual);
-end;
-
-class procedure TAssert.CheckEquals(expected, actual: extended;
-  delta: extended; msg: string);
-begin
-  AssertEquals(msg, expected, actual, delta);
 end;
 
 class procedure TAssert.CheckEquals(expected, actual: integer; msg: string);
