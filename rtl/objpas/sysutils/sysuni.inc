@@ -195,8 +195,8 @@ function StrMove(dest,source : PWideChar;l : SizeInt) : PWideChar; overload;
  end;
 
 
-function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
-var Len: SizeInt;
+function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeUInt): PWideChar; overload;
+var Len: SizeUInt;
 begin
   Len := length(Source);
   if Len > MaxLen then
