@@ -237,8 +237,7 @@ begin
     GetShortName(p);
   { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) and
-   (arg_ofs<length(c)) do
+  while (arg_ofs<length(c)) and (c[arg_ofs] in [' ',#9]) do
     inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=Seg(c[arg_ofs]);

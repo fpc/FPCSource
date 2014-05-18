@@ -436,8 +436,7 @@ begin
   seg_move (get_ds, PtrInt (ExecBufPtr), DosMemSelector, TB, Pred (Current_Dos_Buffer_Pos));
 { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) and
-   (arg_ofs<length(c)) do
+  while (arg_ofs<length(c)) and (c[arg_ofs] in [' ',#9]) do
     inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=(la_c+arg_ofs) shr 4;
