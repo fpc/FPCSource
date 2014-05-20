@@ -2624,9 +2624,9 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
-    CheckEquals(testCurrencyValues[i],Fld.AsCurrency);
-    CheckEquals(testCurrencyValues[i],Fld.AsFloat);
+    CheckEquals(CurrToStr(testCurrencyValues[i]), Fld.AsString, 'AsString');
+    CheckEquals(testCurrencyValues[i], Fld.AsCurrency, 'AsCurrency');
+    CheckEquals(testCurrencyValues[i], Fld.AsFloat, 'AsFloat');
     ds.Next;
     end;
   ds.close;
