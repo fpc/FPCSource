@@ -230,7 +230,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); compilerproc;
+function float64_sqrt( a: float64 ): float64; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the double-precision floating-point value `a'
@@ -5389,14 +5389,13 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 );
+function float64_sqrt( a: float64 ): float64;
 {$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];compilerproc;{$endif}
 Var
     aSign: flag;
     aExp, zExp: int16;
     aSig0, aSig1, zSig0, zSig1, zSig2, doubleZSig0: bits32;
     rem0, rem1, rem2, rem3, term0, term1, term2, term3: bits32;
-    z: float64;
     label invalid;
 Begin
     aSig1 := extractFloat64Frac1( a );
@@ -5407,12 +5406,12 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 ) <> 0 then
         Begin
-           propagateFloat64NaN( a, a, out );
+           propagateFloat64NaN( a, a, result );
            exit;
         End;
         if ( aSign = 0) then
         Begin
-          out := a;
+          result := a;
           exit;
         End;
         goto invalid;
@@ -5421,21 +5420,20 @@ Begin
     Begin
         if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           out := a;
+           result := a;
            exit;
         End;
  invalid:
         float_raise( float_flag_invalid );
-        z.low := float64_default_nan_low;
-        z.high := float64_default_nan_high;
-        out := z;
+        result.low := float64_default_nan_low;
+        result.high := float64_default_nan_high;
         exit;
     End;
     if ( aExp = 0 ) then
     Begin
         if ( ( aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           packFloat64( 0, 0, 0, 0, out );
+           packFloat64( 0, 0, 0, 0, result );
            exit;
         End;
         normalizeFloat64Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
@@ -5476,7 +5474,7 @@ Begin
         zSig1 := zSig1 or bits32( ( rem1 OR  rem2 OR  rem3 ) <> 0 );
     End;
     shift64ExtraRightJamming( zSig0, zSig1, 0, 10, zSig0, zSig1, zSig2 );
-    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, out );
+    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, result );
 End;
 
 {*

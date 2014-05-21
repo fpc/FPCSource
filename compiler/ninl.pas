@@ -3748,11 +3748,43 @@ implementation
       end;
 
      function tinlinenode.first_sqrt_real : tnode;
+      var
+        fdef: tdef;
+        procname: string[31];
       begin
-        { create the call to the helper }
-        { on entry left node contains the parameter }
-        first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
+        if (cs_fp_emulation in current_settings.moduleswitches)
+{$ifdef cpufpemu}
+            or (current_settings.fputype=fpu_soft)
+{$endif cpufpemu}
+            and not (target_info.system in systems_wince) then
+          begin
+            case tfloatdef(left.resultdef).floattype of
+              s32real:
+                begin
+                  fdef:=search_system_type('FLOAT32REC').typedef;
+                  procname:='float32_sqrt';
+                end;
+              s64real:
+                begin
+                  fdef:=search_system_type('FLOAT64').typedef;
+                  procname:='float64_sqrt';
+                end;
+              {!!! not yet implemented
+              s128real:
+              }
+            else
+              internalerror(2014052101);
+            end;
+            first_sqrt_real:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+               ctypeconvnode.create_internal(left,fdef),nil)),resultdef);
+          end
+        else
+          begin
+            { create the call to the helper }
+            { on entry left node contains the parameter }
+            first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
                 ccallparanode.create(left,nil)),resultdef);
+          end;
         left := nil;
       end;
 
