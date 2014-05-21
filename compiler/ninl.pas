@@ -2469,8 +2469,27 @@ implementation
     function tinlinenode.pass_typecheck:tnode;
 
       procedure setfloatresultdef;
+        var
+          hnode: tnode;
         begin
-          if (left.resultdef.typ=floatdef) and
+          { System unit declares internal functions like this:
+              function foo(x: valreal): valreal; [internproc: number];
+            Calls to such functions are initially processed by callnode,
+            which typechecks the arguments, possibly inserting conversion to valreal.
+            To handle smaller types without excess precision, we need to remove
+            these extra typecasts. }
+          if (left.nodetype=typeconvn) and
+            (ttypeconvnode(left).left.resultdef.typ=floatdef) and
+            (left.flags*[nf_explicit,nf_internal]=[]) and
+            (tfloatdef(ttypeconvnode(left).left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
+            begin
+              hnode:=ttypeconvnode(left).left;
+              ttypeconvnode(left).left:=nil;
+              left.free;
+              left:=hnode;
+              resultdef:=left.resultdef;
+            end
+          else if (left.resultdef.typ=floatdef) and
             (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
             resultdef:=left.resultdef
           else
@@ -3093,7 +3112,6 @@ implementation
               in_cos_real,
               in_sin_real,
               in_arctan_real,
-              in_abs_real,
               in_ln_real :
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -3137,6 +3155,7 @@ implementation
                   resultdef:=s32inttype;
                 end;
 
+              in_abs_real,
               in_sqr_real,
               in_sqrt_real :
                 begin
