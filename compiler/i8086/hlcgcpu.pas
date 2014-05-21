@@ -271,7 +271,8 @@ implementation
             ref.segment:=NR_GS;
           x86pt_far,
           x86pt_huge:
-            ref.segment:=GetNextReg(reg);
+            if reg<>NR_NO then
+              ref.segment:=GetNextReg(reg);
         end;
     end;
 
