@@ -77,12 +77,14 @@ type
     function GetTypeInfoVar(ClassDef: TDef): string;
     function GetClassPrefix(ClassDef: TDef; const AClassName: string = ''): string;
     function IsJavaSimpleType(d: TDef): boolean;
-    function GetProcDeclaration(d: TProcDef; const ProcName: string = ''): string;
+    function IsJavaVarParam(ParamDef: TVarDef): boolean;
+    function GetProcDeclaration(d: TProcDef; const ProcName: string = ''; FullTypeNames: boolean = False): string;
     function GetJavaProcDeclaration(d: TProcDef; const ProcName: string = ''): string;
     function GetJniFuncType(d: TDef): string;
     function GetJavaClassName(cls: TDef; it: TDef): string;
     procedure RegisterPseudoClass(d: TDef);
     function GetPasIntType(Size: integer): string;
+    function GetPasType(d: TDef; FullName: boolean): string;
 //    procedure AddCustomProc(ParentDef: TDef; const JniName, Name: string; RetType: TBasicType; const Params: array of TBasicType);
     function AddCustomProc(ParentDef: TDef; const JniName, Name: string; RetType: TBasicType; const Params: array of TBasicType): TProcDef;
     procedure AddNativeMethod(ParentDef: TDef; const JniName, Name, Signature: string);
@@ -675,10 +677,11 @@ begin
 
       UseTempObjVar:=(ProcType = ptProcedure) and (Variable <> nil) and (Variable.VarType <> nil) and (Variable.VarType.DefType = dtProcType) and (Variable.Parent.DefType <> dtUnit);
 
-      for j:=0 to Count - 1 do
-        with TVarDef(Items[j]) do begin
+      for j:=0 to Count - 1 do begin
+        vd:=TVarDef(Items[j]);
+        with vd do begin
           s:=s + '; ' + Name + ': ';
-          if VarOpt * [voVar, voOut] = [] then
+          if not IsJavaVarParam(vd) then
             s:=s + DefToJniType(VarType, err)
           else begin
             s:=s + 'jarray';
@@ -690,6 +693,7 @@ begin
               Tag:=tempvars.AddObject('__tmp_' + Name, d.Items[j]) + 1;
           end;
         end;
+      end;
       s:=s + ')';
 
       if ProcType in [ptFunction, ptConstructor] then
@@ -710,7 +714,7 @@ begin
         if tempvars <> nil then begin
           for i:=0 to tempvars.Count - 1 do begin
             vd:=TVarDef(tempvars.Objects[i]);
-            Fps.WriteLn(Format('%s: %s;', [tempvars[i], vd.VarType.Name]));
+            Fps.WriteLn(Format('%s: %s;', [tempvars[i], GetPasType(vd.VarType, True)]));
             if IsJavaSimpleType(vd.VarType) then begin
               Fps.WriteLn(Format('%s_arr: P%s;', [tempvars[i], DefToJniType(vd.VarType, err)]));
               if s = '' then
@@ -1067,7 +1071,7 @@ begin
         BasicType:=btPointer;
       end;
       d.Insert(0, vd);
-      Fps.WriteLn(GetProcDeclaration(d, Format('%sHandler', [GetClassPrefix(d)])) + ';');
+      Fps.WriteLn(GetProcDeclaration(d, Format('%sHandler', [GetClassPrefix(d)]), True) + ';');
     finally
       vd.VarType.Free;
       vd.Free;
@@ -1078,10 +1082,12 @@ begin
     Fps.WriteLn('_mpi: _TMethodPtrInfo;');
     if d.Count > 0 then begin
       Fps.WriteLn(Format('_args: array[0..%d] of jvalue;', [d.Count - 1]));
-      for i:=0 to d.Count - 1 do
-        with TVarDef(d[i]) do
-          if (VarOpt * [voOut, voVar] <> []) and IsJavaSimpleType(VarType) then
+      for i:=0 to d.Count - 1 do begin
+        vd:=TVarDef(d[i]);
+        with vd do
+          if IsJavaVarParam(vd) and IsJavaSimpleType(VarType) then
             Fps.WriteLn(Format('_tmp_%s: P%s;', [Name, DefToJniType(VarType, err)]));
+      end;
     end;
     Fps.DecI;
     Fps.WriteLn('begin');
@@ -1094,9 +1100,10 @@ begin
     Fps.WriteLn('_MethodPointersCS.Leave;', 1);
     Fps.WriteLn('end;');
 
-    for i:=0 to d.Count - 1 do
-      with TVarDef(d[i]) do begin
-        if VarOpt * [voOut, voVar] = [] then begin
+    for i:=0 to d.Count - 1 do begin
+      vd:=TVarDef(d[i]);
+      with vd do begin
+        if not IsJavaVarParam(vd) then begin
           s:='L';
           if VarType.DefType = dtType then
             s:=Copy(JNITypeSig[TTypeDef(VarType).BasicType], 1, 1);
@@ -1115,9 +1122,10 @@ begin
           end;
         end;
         Fps.WriteLn(Format('_args[%d].%s:=%s;', [i, s, ss]));
-        if (voVar in VarOpt) and IsJavaSimpleType(VarType) then
+        if IsJavaVarParam(vd) and (voVar in VarOpt) and IsJavaSimpleType(VarType) then
           _AccessSimpleArray(TVarDef(d[i]), i, True);
       end;
+    end;
 
     if d.Count > 0 then
       s:='@_args'
@@ -1129,15 +1137,17 @@ begin
       s:=Format('Result:=%s', [JniToPasType(d.ReturnType, s, False)]);
     Fps.WriteLn(s + ';');
     // Processing var/out parameters
-    for i:=0 to d.Count - 1 do
-      with TVarDef(d[i]) do
-        if VarOpt * [voOut, voVar] <> [] then
+    for i:=0 to d.Count - 1 do begin
+      vd:=TVarDef(d[i]);
+      with vd do
+        if IsJavaVarParam(vd) then
           if IsJavaSimpleType(VarType) then
             _AccessSimpleArray(TVarDef(d[i]), i, False)
           else begin
             s:=Format('_env^^.GetObjectArrayElement(_env, _args[%d].L, 0)', [i]);
             Fps.WriteLn(Format('%s:=%s;', [Name, JniToPasType(VarType, s, False)]));
           end;
+    end;
 
     Fps.DecI;
     Fps.WriteLn('end;');
@@ -1619,7 +1629,13 @@ begin
   Result:=(d <> nil) and (d.DefType = dtType) and (Length(JNITypeSig[TTypeDef(d).BasicType]) = 1);
 end;
 
-function TWriter.GetProcDeclaration(d: TProcDef; const ProcName: string): string;
+function TWriter.IsJavaVarParam(ParamDef: TVarDef): boolean;
+begin
+  with ParamDef do
+    Result:=VarOpt * [voVar, voOut] <> [];
+end;
+
+function TWriter.GetProcDeclaration(d: TProcDef; const ProcName: string; FullTypeNames: boolean): string;
 var
   s, ss: string;
   j: integer;
@@ -1641,7 +1657,7 @@ begin
         else
         if voConst in VarOpt then
           s:=s + 'const ';
-        s:=s + Name + ': ' + VarType.Name;
+        s:=s + Name + ': ' + GetPasType(VarType, FullTypeNames);
       end;
 
     if Count > 0 then
@@ -1659,7 +1675,7 @@ begin
         ss:='';
     end;
     if ProcType in [ptConstructor, ptFunction] then
-      s:=s + ': ' + ReturnType.Name;
+      s:=s + ': ' + GetPasType(ReturnType, FullTypeNames);
     ss:=ss + ' ';
     if ProcName <> '' then
       ss:=ss + ProcName
@@ -1673,6 +1689,7 @@ function TWriter.GetJavaProcDeclaration(d: TProcDef; const ProcName: string): st
 var
   s: string;
   j: integer;
+  vd: TVarDef;
 begin
   with d do begin
     if ProcName <> '' then
@@ -1680,15 +1697,17 @@ begin
     else
       s:=AliasName;
     s:=DefToJavaType(ReturnType) + ' ' + s + '(';
-    for j:=0 to Count - 1 do
-      with TVarDef(Items[j]) do begin
+    for j:=0 to Count - 1 do begin
+      vd:=TVarDef(Items[j]);
+      with vd do begin
         if j > 0 then
           s:=s + ', ';
         s:=s + DefToJavaType(VarType);
-        if VarOpt * [voVar, voOut] <> [] then
+        if IsJavaVarParam(vd) then
           s:=s + '[]';
         s:=s + ' ' + AliasName;
       end;
+    end;
     s:=s + ')';
   end;
   Result:=s;
@@ -1746,6 +1765,13 @@ begin
   end;
 end;
 
+function TWriter.GetPasType(d: TDef; FullName: boolean): string;
+begin
+  Result:=d.Name;
+  if FullName and (d.DefType <> dtType) then
+    Result:=d.Parent.Name + '.' + Result;
+end;
+
 function TWriter.AddCustomProc(ParentDef: TDef; const JniName, Name: string; RetType: TBasicType; const Params: array of TBasicType): TProcDef;
 var
   i: integer;
@@ -1790,14 +1816,17 @@ end;
 function TWriter.GetProcSignature(d: TProcDef): string;
 var
   j: integer;
+  vd: TVarDef;
 begin
   Result:='(';
-  for j:=0 to d.Count - 1 do
-    with TVarDef(d[j]) do begin
-      if VarOpt * [voVar, voOut] <> [] then
+  for j:=0 to d.Count - 1 do begin
+    vd:=TVarDef(d[j]);
+    with vd do begin
+      if IsJavaVarParam(vd) then
         Result:=Result + '[';
       Result:=Result + DefToJniSig(VarType);
     end;
+  end;
   Result:=Result + ')' + DefToJniSig(d.ReturnType);
 end;
 
