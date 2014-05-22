@@ -253,6 +253,8 @@ implementation
                               A_ADDSS,
                               A_DIVSD,
                               A_DIVSS,
+                              A_SQRTSD,
+                              A_SQRTSS,
                               A_SHLD,
                               A_SHRD,
                               A_COMISD,
