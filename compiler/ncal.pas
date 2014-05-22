@@ -65,7 +65,8 @@ interface
           function  is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
           procedure maybe_load_in_temp(var p:tnode);
           function  gen_high_tree(var p:tnode;paradef:tdef):tnode;
-          function  gen_procvar_context_tree:tnode;
+          function  gen_procvar_context_tree_self:tnode;
+          function  gen_procvar_context_tree_parentfp:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
           procedure gen_hidden_parameters;
@@ -1742,12 +1743,21 @@ implementation
       end;
 
 
-    function tcallnode.gen_procvar_context_tree:tnode;
+    function tcallnode.gen_procvar_context_tree_self:tnode;
       begin
-        { Load tmehodpointer(right).self (either self or parentfp) }
+        { Load tmehodpointer(right).self }
         result:=genloadfield(ctypeconvnode.create_internal(
           right.getcopy,methodpointertype),
           'self');
+      end;
+
+
+    function tcallnode.gen_procvar_context_tree_parentfp: tnode;
+      begin
+        { Load tnestedprocpointer(right).parentfp }
+        result:=genloadfield(ctypeconvnode.create_internal(
+          right.getcopy,nestedprocpointertype),
+          'parentfp');
       end;
 
 
@@ -2508,7 +2518,7 @@ implementation
                  if vo_is_self in para.parasym.varoptions then
                    begin
                      if assigned(right) then
-                       para.left:=gen_procvar_context_tree
+                       para.left:=gen_procvar_context_tree_self
                      else
                        para.left:=gen_self_tree;
                      { make sure that e.g. the self pointer of an advanced
@@ -2540,7 +2550,7 @@ implementation
                            internalerror(200309287);
                        end
                      else
-                       para.left:=gen_procvar_context_tree;
+                       para.left:=gen_procvar_context_tree_parentfp;
                    end
                 else
                  if vo_is_range_check in para.parasym.varoptions then

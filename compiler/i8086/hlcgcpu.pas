@@ -52,7 +52,9 @@ interface
         and registerhi with the following sizes:
 
         register   - cgsize = int_cgsize(voidcodepointertype.size)
-        registerhi - cgsize = int_cgsize(voidpointertype.size) }
+        registerhi - cgsize = int_cgsize(voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
+                              (check d.size to determine which one of the two)
+        }
       function is_methodptr_like_type(d:tdef): boolean;
 
       { 4-byte records in registers need special handling as well. A record may
@@ -307,7 +309,13 @@ implementation
           tmpref:=ref;
           a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
           inc(tmpref.offset,voidcodepointertype.size);
-          a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref);
+          { the second part could be either self or parentfp }
+          if tosize.size=(voidcodepointertype.size+voidpointertype.size) then
+            a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref)
+          else if tosize.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
+          else
+            internalerror(2014052201);
         end
       else if is_fourbyterecord(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
@@ -396,7 +404,13 @@ implementation
 
           a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,l.register,tmpref);
           inc(tmpref.offset,voidcodepointertype.size);
-          a_load_reg_ref(list,voidpointertype,voidpointertype,l.registerhi,tmpref);
+          { the second part could be either self or parentfp }
+          if size.size=(voidcodepointertype.size+voidpointertype.size) then
+            a_load_reg_ref(list,voidpointertype,voidpointertype,l.registerhi,tmpref)
+          else if size.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,l.registerhi,tmpref)
+          else
+            internalerror(2014052202);
 
           location_reset_ref(l,LOC_REFERENCE,l.size,0);
           l.reference:=r;

@@ -496,6 +496,12 @@ implementation
             addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
             methodpointertype:=crecorddef.create('',hrecst);
             addtype('$methodpointer',methodpointertype);
+            { Add a type for nested proc pointers }
+            hrecst:=trecordsymtable.create('',1);
+            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+            addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
+            nestedprocpointertype:=crecorddef.create('',hrecst);
+            addtype('$nestedprocpointer',nestedprocpointertype);
           end;
         symtablestack.pop(systemunit);
       end;
@@ -593,6 +599,7 @@ implementation
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
         loadtype('methodpointer',methodpointertype);
+        loadtype('nestedprocpointer',nestedprocpointertype);
         loadtype('HRESULT',hresultdef);
         set_default_int_types;
         set_default_ptr_types;

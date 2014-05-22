@@ -986,6 +986,7 @@ interface
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
+       nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef,
        { we use only one variant def for every variant class }
        cvarianttype,
@@ -5597,7 +5598,12 @@ implementation
          if ((po_methodpointer in procoptions) or
              is_nested_pd(self)) and
             not(po_addressonly in procoptions) then
-           size:=voidcodepointertype.size+voidpointertype.size
+           begin
+             if is_nested_pd(self) then
+               size:=voidcodepointertype.size+parentfpvoidpointertype.size
+             else
+               size:=voidcodepointertype.size+voidpointertype.size;
+           end
          else
            size:=voidcodepointertype.size;
       end;
