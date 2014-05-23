@@ -1832,7 +1832,8 @@ begin
               end;
               Col:=FPColor(RedValue,GreenValue,BlueValue,AlphaValue);
             end;
-
+          //3 Palette/color map indexed
+          //4 Mask/holdout mask (obsolete by TIFF 6.0 specification)
           5: // CMYK plus optional alpha
             begin
               ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
@@ -1850,7 +1851,12 @@ begin
               // CMYK to RGB
               Col:=CMYKToFPColor(RedValue,GreenValue,BlueValue,GrayValue);
             end;
-
+           //6: YCBCR: CCIR 601
+           //8: CIELAB: 1976 CIE L*a*b*
+           //9: ICCLAB: ICC L*a*b*. Introduced post TIFF rev 6.0 by Adobe TIFF Technote 4
+           //10: ITULAB: ITU L*a*b*
+           //32844: LOGL: CIE Log2(L)
+           //32845: LOGLUV: CIE Log2(L) (u',v')
           else
             TiffError('PhotometricInterpretation='+IntToStr(IFD.PhotoMetricInterpretation)+' not supported');
           end;
