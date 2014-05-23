@@ -3752,11 +3752,11 @@ implementation
         fdef: tdef;
         procname: string[31];
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches)
+        if ((cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef cpufpemu}
             or (current_settings.fputype=fpu_soft)
 {$endif cpufpemu}
-            and not (target_info.system in systems_wince) then
+            ) and not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
