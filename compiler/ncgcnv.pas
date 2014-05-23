@@ -574,7 +574,12 @@ interface
                   since the global procedure won't use it, but it can help with
                   debugging }
                 inc(location.reference.offset,voidcodepointertype.size);
-                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference);
+                if (resultdef.typ=procvardef) and is_nested_pd(tprocvardef(resultdef)) then
+                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,parentfpvoidpointertype,0,location.reference)
+                else if tabstractprocdef(resultdef).is_methodpointer then
+                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference)
+                else
+                  internalerror(2014052301);
                 dec(location.reference.offset,voidcodepointertype.size);
               end;
           end;
