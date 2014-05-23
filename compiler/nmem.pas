@@ -481,6 +481,7 @@ implementation
          hp : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
+         procpointertype: tdef;
       begin
         result:=nil;
         typecheckpass(left);
@@ -541,14 +542,18 @@ implementation
                     if isprocvar or
                        is_nested_pd(tabstractprocdef(left.resultdef)) then
                       begin
+                        if tabstractprocdef(left.resultdef).is_methodpointer then
+                          procpointertype:=methodpointertype
+                        else
+                          procpointertype:=nestedprocpointertype;
                         { find proc field in methodpointer record }
-                        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
+                        hsym:=tfieldvarsym(trecorddef(procpointertype).symtable.Find('proc'));
                         if not assigned(hsym) then
                           internalerror(200412041);
                         { Load tmehodpointer(left).proc }
                         result:=csubscriptnode.create(
                                      hsym,
-                                     ctypeconvnode.create_internal(left,methodpointertype));
+                                     ctypeconvnode.create_internal(left,procpointertype));
                         left:=nil;
                       end
                     else
