@@ -1716,9 +1716,8 @@ unit cgcpu;
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
         r,hregister : TRegister;
-        spr : TRegister;
-        fpr : TRegister;
         ref : TReference;
+        ref2: TReference;
       begin
         if not nostackframe then
           begin
@@ -1752,15 +1751,23 @@ unit cgcpu;
                     hregister:=NR_A0;
                     cg.a_reg_alloc(list,hregister);
                     reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
-                    ref.direction:=dir_inc;
                     list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
+
+                    { instead of using a postincrement above (which also writes the     }
+                    { stackpointer reg) simply add 4 to the parasize, the instructions  }
+                    { below then take that size into account as well, so SP reg is only }
+                    { written once (KB) }
+                    parasize:=parasize+4;
 
                     r:=NR_SP;
                     { can we do a quick addition ... }
-                    if (parasize > 0) and (parasize < 9) then
+                    if (parasize < 9) then
                        list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
                     else { nope ... }
-                       list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
+                       begin
+                         reference_reset_base(ref2,NR_STACK_POINTER_REG,parasize,4);
+                         list.concat(taicpu.op_ref_reg(A_LEA,S_NO,ref2,r));
+                       end;
 
                     reference_reset_base(ref,hregister,0,4);
                     list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
