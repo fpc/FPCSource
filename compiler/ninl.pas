@@ -3728,8 +3728,8 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_abs_real := ccallnode.createintern('fpc_abs_real',
-                ccallparanode.create(left,nil));
+        first_abs_real := ctypeconvnode.create(ccallnode.createintern('fpc_abs_real',
+                ccallparanode.create(left,nil)),resultdef);
         left := nil;
       end;
 
