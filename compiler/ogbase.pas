@@ -1079,7 +1079,8 @@ implementation
           {sec_objc_nlclasslist} [oso_data,oso_load],
           {sec_objc_catlist} [oso_data,oso_load],
           {sec_objc_nlcatlist} [oso_data,oso_load],
-          {sec_objc_protolist'} [oso_data,oso_load]
+          {sec_objc_protolist'} [oso_data,oso_load],
+          {stack} [oso_load,oso_write]
         );
       begin
         result:=secoptions[atype];

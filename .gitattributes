@@ -263,6 +263,7 @@ compiler/i8086/n8086ld.pas svneol=native#text/plain
 compiler/i8086/n8086mat.pas svneol=native#text/plain
 compiler/i8086/n8086mem.pas svneol=native#text/plain
 compiler/i8086/n8086tcon.pas svneol=native#text/plain
+compiler/i8086/n8086util.pas svneol=native#text/plain
 compiler/i8086/r8086ari.inc svneol=native#text/plain
 compiler/i8086/r8086att.inc svneol=native#text/plain
 compiler/i8086/r8086con.inc svneol=native#text/plain

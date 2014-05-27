@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2014 by Nikolay Nikolov
 
-    Includes the i8086 code generator
+    i8086 version of some node tree helper routines
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,47 +19,40 @@
 
  ****************************************************************************
 }
-unit cpunode;
+unit n8086util;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
-  implementation
+  uses
+    ngenutil;
 
-    uses
-       { generic nodes }
-       ncgbas,
-       ncgld,
-       ncgflw,
-       ncgcnv,
-       ncgmem,
-       ncgmat,
-       ncgcon,
-       ncgcal,
-       ncgset,
-       ncginl,
-       ncgopt,
-       ncgobjc,
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       nx86set,
 
-       n8086add,
-       n8086cal,
-       n8086cnv,
-       n8086ld,
-       n8086mem{,
-       n386set},
-       n8086inl,
-       n8086mat,
-       n8086con,
-       { these are not really nodes }
-       n8086util,n8086tcon,tgcpu,
-       { symtable }
-       symcpu
-       ;
+  type
+    ti8086nodeutils = class(tnodeutils)
+      class procedure InsertMemorySizes; override;
+    end;
 
+
+implementation
+
+  uses
+    globals,cpuinfo,
+    aasmbase,aasmdata,aasmtai;
+
+
+  class procedure ti8086nodeutils.InsertMemorySizes;
+    begin
+      inherited;
+      if current_settings.x86memorymodel in x86_far_data_models then
+        begin
+          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__stack', 16);
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___stack', stacksize));
+        end;
+    end;
+
+
+begin
+  cnodeutils:=ti8086nodeutils;
 end.

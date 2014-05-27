@@ -539,7 +539,8 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack'
         );
 
 const go32v2stub : array[0..2047] of byte=(

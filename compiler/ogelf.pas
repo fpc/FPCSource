@@ -793,7 +793,8 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack'
         );
       var
         sep : string[3];

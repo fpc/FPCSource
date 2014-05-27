@@ -473,15 +473,15 @@ __nullarea:
         segment stack stack class=stack
         resb 256
         stacktop:
-    %else
-        ; todo: make FPC create the stack segment in far data models
-        segment stack stack class=stack align=16
-        resb 16384
     %endif
 %endif
 
 %ifdef __TINY__
         group dgroup text data bss
 %else
+    %ifdef __NEAR_DATA__
         group dgroup _NULL _AFTERNULL data bss stack
+    %else
+        group dgroup _NULL _AFTERNULL data bss
+    %endif
 %endif
