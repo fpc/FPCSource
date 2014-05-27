@@ -2,7 +2,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
-#   Russian (utf-8) Language File for Free Pascal
+#   Russian (cp866) Language File for Free Pascal
 #
 #   This file corresponds to SVN revision 13665 of errore.msg
 #   Translated by Sergei Gorelkin <sergei_gorelkin at mail.ru>
