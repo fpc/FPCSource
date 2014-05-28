@@ -658,9 +658,7 @@ implementation
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
-//             writeln('ajjaj');
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
-//             writeln('reccs?');
             end;
             if isjump then
              begin
