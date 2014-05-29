@@ -1842,7 +1842,7 @@ implementation
 {$endif symansistr}
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
-         ppufile.getderef(defaultconstsymderef);
+         ppufile.getderef(fieldvarsymderef);
          ppuload_platform(ppufile);
       end;
 
