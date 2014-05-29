@@ -53,6 +53,10 @@
         extern __nearheap_start
         extern __nearheap_end
 
+%ifdef __FAR_DATA__
+        extern ___stack
+%endif
+
         extern __SaveInt00
 
         extern FPC_HANDLEERROR
@@ -473,6 +477,11 @@ __nullarea:
         segment stack stack class=stack
         resb 256
         stacktop:
+    %else
+        segment data
+        ; add reference to the beginning of stack, so the object module,
+        ; containing the stack segment doesn't get smartlinked away
+        dd ___stack
     %endif
 %endif
 
