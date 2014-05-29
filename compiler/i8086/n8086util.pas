@@ -47,6 +47,7 @@ implementation
       inherited;
       if current_settings.x86memorymodel in x86_far_data_models then
         begin
+          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_stack,'__stack', 16);
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___stack', stacksize));
         end;
