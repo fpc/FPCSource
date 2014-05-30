@@ -2066,7 +2066,7 @@ end;
 function TCustomBufDataset.LoadBuffer(Buffer : TRecordBuffer): TGetResult;
 
 var NullMask        : pbyte;
-    x               : longint;
+    i               : longint;
     CreateBlobField : boolean;
     BufBlob         : PBufBlobField;
 
@@ -2081,21 +2081,30 @@ begin
     Exit;
     end;
 
+  if IsUniDirectional then
+    begin
+    // release blob buffers before new record is loaded
+    // in order to save memory
+    for i := 0 to high(FBlobBuffers) do
+      FreeBlobBuffer(FBlobBuffers[i]);
+    SetLength(FBlobBuffers, 0);
+    end;
+
   NullMask := pointer(buffer);
   fillchar(Nullmask^,FNullmaskSize,0);
   inc(buffer,FNullmaskSize);
 
-  for x := 0 to FieldDefs.Count-1 do
+  for i := 0 to FieldDefs.Count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
-      SetFieldIsNull(NullMask,x)
+    if not LoadField(FieldDefs[i], buffer, CreateBlobField) then
+      SetFieldIsNull(NullMask,i)
     else if CreateBlobField then
       begin
       BufBlob := PBufBlobField(Buffer);
       BufBlob^.BlobBuffer := GetNewBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[x],BufBlob);
+      LoadBlobIntoBuffer(FieldDefs[i], BufBlob);
       end;
-    inc(buffer,GetFieldSize(FieldDefs[x]));
+    inc(buffer, GetFieldSize(FieldDefs[i]));
     end;
   Result := grOK;
 end;
