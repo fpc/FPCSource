@@ -772,7 +772,10 @@ unit cgcpu;
                  ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
                 list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
               else
-                list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register));
+                { We don't have to specify the size here, the assembler will decide the size of
+                  the operand it needs. If this ends up as a MOVEA.W, that will sign extend the
+                  value in the dest. reg to full 32 bits (specific to Ax regs only) }
+                list.concat(taicpu.op_const_reg(A_MOVEA,S_NO,longint(a),register));
           end
         else
         if a = 0 then
@@ -827,7 +830,7 @@ unit cgcpu;
             ) then
           begin
             hreg:=getintregister(list,tosize);
-            list.concat(taicpu.op_const_reg(A_MOVE,tcgsize2opsize[tosize],longint(a),hreg));
+            a_load_const_reg(list,tosize,a,hreg);
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
           end
         else
