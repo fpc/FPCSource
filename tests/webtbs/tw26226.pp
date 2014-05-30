@@ -31,7 +31,7 @@
   THE SOFTWARE.
 }
 
-unit tw26266;
+unit tw26226;
 
 {$mode delphi}
 
