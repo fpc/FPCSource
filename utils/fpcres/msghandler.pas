@@ -41,12 +41,21 @@ type
     destructor Destroy; override;
     procedure DoError(const aMsg : string);
     procedure DoVerbose(const aMsg : string);
+    procedure Flush;
     property Verbose : boolean read fVerbose write SetVerbose;
   end;
   
 var Messages : TMessages;
 
+procedure Halt(errnum:Longint);
+
 implementation
+
+procedure Halt(errnum:Longint);
+begin
+  Messages.Flush;
+  System.Halt(errnum);
+end;
 
 { TMessages }
 
@@ -93,6 +102,12 @@ begin
   end;
   if fVerbose then
     writeln(fStdOut,'Debug: '+aMsg);
+end;
+
+procedure TMessages.Flush;
+begin
+  System.Flush(fStdOut);
+  System.Flush(fStdErr);
 end;
 
 initialization
