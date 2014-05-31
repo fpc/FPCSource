@@ -33,7 +33,7 @@ const
      IID_ISdpWalk:TIID = '{57134AE6-5D3C-462D-BF2F-810361FBD7E7}';
      IID_ISdpNodeContainer:TIID = '{43F6ED49-6E22-4F81-A8EB-DCED40811A77}';
      IID_ISdpSearch:TIID = '{D93B6B2A-5EEF-4E1E-BECF-F5A4340C65F5}';
-     IID_ISdpStream = '{A6ECD9FB-0C7A-41A3-9FF0-0B617E989357}';
+     IID_ISdpStream:TIID = '{A6ECD9FB-0C7A-41A3-9FF0-0B617E989357}';
      IID_ISdpRecord:TIID = '{10276714-1456-46D7-B526-8B1E83D5116E}';
      IID_IBluetoothDevice:TIID = '{5BD0418B-D705-4766-B215-183E4EADE341}';
      IID_IBluetoothAuthenticate:TIID = '{5F0FBA2B-8300-429D-99AD-96A2835D4901}';
@@ -273,12 +273,12 @@ type
 
 		   ISdpNodeContainer = interface(IUnknown)
       ['{43F6ED49-6E22-4F81-A8EB-DCED40811A77}']
-       function CreateStream(out ppStream:PUCHAR;{ppStream:PPUCHAR;} pSize:PULONG):HRESULT; stdcall;
+       function CreateStream(out pStream:PUCHAR;{ppStream:PPUCHAR;} pSize:PULONG):HRESULT; stdcall;
        function WriteStream(pStream:PUCHAR; pNumBytesWritten:PULONG):HRESULT; stdcall;
        function AppendNode(pData:PNODEDATA):HRESULT; stdcall;
        function GetType(pType:PNodeContainerType):HRESULT; stdcall;
        function SetType(_type:NodeContainerType):HRESULT; stdcall;
-       function Walk(pWalk:ISdpWalk):HRESULT; stdcall;
+       function Walk(Walk:ISdpWalk):HRESULT; stdcall;
        function SetNode(nodeIndex:ULONG; pData:PNODEDATA):HRESULT; stdcall;
        function GetNode(nodeIndex:ULONG; pData:PNODEDATA):HRESULT; stdcall;
        function LockContainer(lock:UCHAR):HRESULT; stdcall;
@@ -311,19 +311,19 @@ type
 
      ISdpStream = interface(IUnknown)
       ['{A6ECD9FB-0C7A-41A3-9FF0-0B617E989357}']
-{$IF DEFINED(WINCE) OR DEFINED(WINCE_EMULATION)}
+{$IF DEFINED(WINCE_EMULATION)}
        function Validate(pStream:PUCHAR; _size:ULONG; pErrorByte:PULONG):HRESULT; stdcall;
 {$ELSE}
        function Validate(pStream:PUCHAR; _size:ULONG; pErrorByte:PULONG_PTR):HRESULT; stdcall;
 {$ENDIF}
-       function Walk(pStream:PUCHAR; _size:ULONG; pWalk:ISdpWalk):HRESULT; stdcall;
+       function Walk(Walk:ISdpWalk):HRESULT; stdcall;
 
-       function RetrieveRecords(pStream:PUCHAR; _size:ULONG; var ppSdpRecords:ISdpRecord;{ppSdpRecords:PISdpRecord;} pNumRecords:PULONG):HRESULT; stdcall;
+       function RetrieveRecords(pStream:PUCHAR; _size:ULONG; var SdpRecords:ISdpRecord;{ppSdpRecords:PISdpRecord;} pNumRecords:PULONG):HRESULT; stdcall;
 
        function RetrieveUuid128(pStream:PUCHAR; pUuid128:PGUID):HRESULT; stdcall;
 
        function RetrieveUint16(pStream:PUCHAR; pUint16:PUSHORT):HRESULT; stdcall;
-       function RetrieveUint32(pStream:PUCHAR; pUint32:ULONG):HRESULT; stdcall;
+       function RetrieveUint32(pStream:PUCHAR; pUint32:PULONG):HRESULT; stdcall;
        function RetrieveUint64(pStream:PUCHAR; pUint64:PULONGLONG):HRESULT; stdcall;
        function RetrieveUint128(pStream:PUCHAR; pUint128:PSDP_ULARGE_INTEGER_16):HRESULT; stdcall;
        function RetrieveInt16(pStream:PUCHAR; pInt16:PSHORT):HRESULT; stdcall;
@@ -347,20 +347,20 @@ type
                                     pElementSpecificType:PSDP_SPECIFICTYPE;
                                     pElementSize:PULONG;
                                     pStorageSize:PULONG;
-                                    out ppData:PUCHAR{ppData:PPUCHAR}):HRESULT; stdcall;
-       function VerifySequenceOf(pStream:PUCHAR; _size:PULONG; ofType:SDP_TYPE; pSpecificSizes:PUCHAR; pNumFound:PULONG):HRESULT; stdcall;
+                                    out pData:PUCHAR{ppData:PPUCHAR}):HRESULT; stdcall;
+       function VerifySequenceOf(pStream:PUCHAR; _size:ULONG; ofType:SDP_TYPE; pSpecificSizes:PUCHAR; pNumFound:PULONG):HRESULT; stdcall;
      end;
 
      ISdpRecord = interface(IUnknown)
       ['{10276714-1456-46D7-B526-8B1E83D5116E}']
        function CreateFromStream(pStream:PUCHAR; _size:ULONG):HRESULT; stdcall;
-       function WriteToStream(out ppStream:PUCHAR;{ppStream:PPUCHAR;} pStreamSize:PULONG; preSize:ULONG; postSize:ULONG):HRESULT; stdcall;
+       function WriteToStream(out pStream:PUCHAR;{ppStream:PPUCHAR;} pStreamSize:PULONG; preSize:ULONG; postSize:ULONG):HRESULT; stdcall;
        function SetAttribute(attribute:USHORT; pNode:PNODEDATA):HRESULT; stdcall;
        function SetAttributeFromStream(attribute:USHORT; pStream:PUCHAR; _size:ULONG):HRESULT; stdcall;
        function GetAttribute(attribute:USHORT; pNode:PNODEDATA):HRESULT; stdcall;
-       function GetAttributeAsStream(attribute:USHORT; out ppStream:PUCHAR;{ppStream:PPUCHAR;} pSize:PULONG):HRESULT; stdcall;
-       function Walk(pWalk:ISdpWalk):HRESULT; stdcall;
-       function GetAttributeList(out ppList:PUSHORT;{ppList:PPUSHORT;} pListSize:PULONG):HRESULT; stdcall;
+       function GetAttributeAsStream(attribute:USHORT; out pStream:PUCHAR;{ppStream:PPUCHAR;} pSize:PULONG):HRESULT; stdcall;
+       function Walk(Walk:ISdpWalk):HRESULT; stdcall;
+       function GetAttributeList(out pList:PUSHORT;{ppList:PPUSHORT;} pListSize:PULONG):HRESULT; stdcall;
        function GetString(_offset:USHORT; pLangId:PUSHORT; var ppString:PWCHAR{ppString:PPWCHAR}):HRESULT; stdcall;
        function GetIcon(cxRes:longint; cyRes:longint; phIcon:LPHICON):HRESULT; stdcall;
        function GetServiceClass(pServiceClass:LPGUID):HRESULT; stdcall;
