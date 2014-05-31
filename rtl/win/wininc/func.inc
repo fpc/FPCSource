@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
-    Copyright (c) 1999-2000 by Florian KLaempfl,
+    Copyright (c) 1999-2014 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -189,8 +189,8 @@ function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTar
 function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetHandleInformation';
 function SetHandleInformation(hObject:HANDLE; dwMask:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'SetHandleInformation';
 function LoadModule(lpModuleName:LPCSTR; lpParameterBlock:LPVOID):DWORD; external 'kernel32' name 'LoadModule';
-// Winexec is a win16 legacy function, deprecated for 17 years (deprecated since win95). 
-// Annotated the MS deprecated status with a FPC deprecated directive  so it won't be used for new development.
+// Winexec is a win16 legacy function, deprecated for 17 years (deprecated since Windows 95).
+// Annotated the MS deprecated status with a FPC deprecated directive so it won't be used for new development.
 function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external 'kernel32' name 'WinExec'; deprecated;
 function ClearCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32' name 'ClearCommBreak';
 function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external 'kernel32' name 'ClearCommError';
@@ -256,6 +256,7 @@ function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; e
 function FileTimeToDosDateTime(lpFileTime:LPFILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
+// GetTickCount64 requires Windows Vista/Windows Server 2008 or higher
 function GetTickCount64:ULONGLONG; external 'kernel32' name 'GetTickCount64';
 function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
 function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
