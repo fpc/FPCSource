@@ -1363,21 +1363,7 @@ implementation
                       if (current_structdef.objname^='TOBJECT') then
                         class_tobject:=current_objectdef
                       else if (current_objectdef.objname^='JLOBJECT') then
-                        begin
-                          java_jlobject:=current_objectdef;
-                          { the methodpointer type is normally created in
-                            psystem, but java_jlobject is not yet available
-                            there... }
-                          hrecst:=trecordsymtable.create('',1);
-                          fsym:=cfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          fsym:=cfieldvarsym.create('$data',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          methodpointertype:=crecorddef.create('',hrecst);
-                          systemunit.insert(ctypesym.create('$methodpointer',methodpointertype));
-                        end
+                        java_jlobject:=current_objectdef;
                       else if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef
                       else if (current_objectdef.objname^='FPCBASERECORDTYPE') then

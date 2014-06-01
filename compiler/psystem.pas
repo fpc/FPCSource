@@ -490,19 +490,19 @@ implementation
             vmtarraytype:=carraydef.create(0,1,s32inttype);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
             addtype('$vtblarray',vmtarraytype);
-            { Add a type for methodpointers }
-            hrecst:=trecordsymtable.create('',1);
-            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-            addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-            methodpointertype:=crecorddef.create('',hrecst);
-            addtype('$methodpointer',methodpointertype);
-            { Add a type for nested proc pointers }
-            hrecst:=trecordsymtable.create('',1);
-            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-            addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
-            nestedprocpointertype:=crecorddef.create('',hrecst);
-            addtype('$nestedprocpointer',nestedprocpointertype);
           end;
+        { Add a type for methodpointers }
+        hrecst:=trecordsymtable.create('',1);
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+        methodpointertype:=crecorddef.create('',hrecst);
+        addtype('$methodpointer',methodpointertype);
+        { Add a type for nested proc pointers }
+        hrecst:=trecordsymtable.create('',1);
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
+        nestedprocpointertype:=crecorddef.create('',hrecst);
+        addtype('$nestedprocpointer',nestedprocpointertype);
         symtablestack.pop(systemunit);
       end;
 
