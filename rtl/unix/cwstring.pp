@@ -1029,11 +1029,15 @@ begin
 end;
 {$endif FPC_HAS_CPSTRING}
 
+var
+  OrgWideStringManager: TUnicodeStringManager;
+
 Procedure SetCWideStringManager;
 Var
   CWideStringManager : TUnicodeStringManager;
 begin
-  CWideStringManager:=widestringmanager;
+  GetUnicodeStringManager(OrgWideStringManager);
+  CWideStringManager:=OrgWideStringManager;
   With CWideStringManager do
     begin
       Wide2AnsiMoveProc:=@Wide2AnsiMove;
@@ -1106,4 +1110,7 @@ finalization
   { unload iconv library }
   if iconvlib<>0 then
     FreeLibrary(iconvlib);
+  { restore previous (probably default) widestring manager so that subsequent calls
+    into the widestring manager won't trigger the finalized functionality }
+  SetWideStringManager(OrgWideStringManager);
 end.
