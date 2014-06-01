@@ -1363,7 +1363,7 @@ implementation
                       if (current_structdef.objname^='TOBJECT') then
                         class_tobject:=current_objectdef
                       else if (current_objectdef.objname^='JLOBJECT') then
-                        java_jlobject:=current_objectdef;
+                        java_jlobject:=current_objectdef
                       else if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef
                       else if (current_objectdef.objname^='FPCBASERECORDTYPE') then
