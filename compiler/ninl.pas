@@ -1874,9 +1874,9 @@ implementation
             else
               begin
                 if r=0.0 then
-                  result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
-                else
                   result:=crealconstnode.create(MathNegInf.Value,pbestrealtype^)
+                else
+                  result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
               end
           else
             result:=crealconstnode.create(ln(r),pbestrealtype^)
@@ -2425,24 +2425,12 @@ implementation
               in_sqrt_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                    begin
-                      vr:=getconstrealvalue;
-                      if vr<0.0 then
-                        result:=handle_sqrt_const(vr)
-                      else
-                        setconstrealvalue(sqrt(vr));
-                    end
+                    result:=handle_sqrt_const(getconstrealvalue);
                 end;
               in_ln_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   begin
-                     vr:=getconstrealvalue;
-                     if vr<=0.0 then
-                       result:=handle_ln_const(vr)
-                     else
-                       setconstrealvalue(ln(vr));
-                   end
+                    result:=handle_ln_const(getconstrealvalue);
                 end;
               in_assert_x_y :
                 begin
