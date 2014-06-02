@@ -983,7 +983,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestLargeRecordSize;
-
+// probably tests situation, where total record size > 64K (TDataSet.RecordSize returns word value)
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
