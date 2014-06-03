@@ -500,6 +500,17 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsBytes: TBytes;
+begin
+  if IsNull then
+    Result:=nil
+  else if VarIsArray(FValue) then
+    Result:=FValue
+  else
+    // todo: conversion from other variant types to TBytes
+    Result:=FValue;
+end;
+
 Function TParam.GetAsCurrency: Currency;
 begin
   If IsNull then
@@ -576,7 +587,6 @@ begin
     Result := FValue;
 end;
 
-
 Function TParam.GetAsVariant: Variant;
 begin
   if IsNull then
@@ -635,16 +645,22 @@ begin
   Value:=AValue;
 end;
 
+procedure TParam.SetAsBytes(const AValue: TBytes);
+begin
+  FDataType:=ftVarBytes;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
   FDataType:=ftCurrency;
-  Value:=Avalue;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsDate(const AValue: TDateTime);
 begin
   FDataType:=ftDate;
-  Value:=Avalue;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsDateTime(const AValue: TDateTime);
@@ -730,7 +746,7 @@ begin
       if VarIsFmtBCD(Value) then
         FDataType:=ftFmtBCD
       else if VarIsArray(AValue) and (VarType(AValue) and varTypeMask = varByte) then
-        FDataType:=ftBytes
+        FDataType:=ftVarBytes
       else
         FDataType:=ftUnknown;
     end;

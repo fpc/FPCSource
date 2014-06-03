@@ -89,6 +89,7 @@ type
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
+    procedure TestBlobParamQuery;
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -1534,6 +1535,11 @@ begin
   TestXXParamQuery(ftBoolean, FieldtypeDefinitions[ftBoolean], testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBlobParamQuery;
+begin
+  TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -1588,14 +1594,15 @@ begin
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
-                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
         ftVarBytes: if cross then
                       Params.ParamByName('field1').AsString := testBytesValues[i]
                     else
-                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1629,6 +1636,7 @@ begin
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
