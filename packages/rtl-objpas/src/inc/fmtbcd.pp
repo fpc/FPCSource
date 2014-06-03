@@ -1042,17 +1042,17 @@ IMPLEMENTATION
 {$endif}
               LDig := Plac;
               FDig := LDig - Prec + 1;
-              j := -1;
+              j := 0;
               i := FDig;
               while i <= LDig do
                 begin
-                  Inc ( j );
                   vv := Fraction[j];
                   Singles[i] := ( vv {AND $f0} ) SHR 4;
                   if i < LDig
                     then Singles[i+1] := vv AND $0f;
-                 Inc ( i, 2 );
-                 end;
+                  Inc ( j );
+                  Inc ( i, 2 );
+                end;
              end;
          end;
      end;
@@ -1645,7 +1645,7 @@ IMPLEMENTATION
       if Decimals <> 4 then
         Result := NormalizeBCD ( BCD, BCD, Precision, Decimals )
       else
-        CurrToBCD := True;
+        Result := True;
      end;
 
 {$ifdef comproutines}
@@ -1695,53 +1695,58 @@ IMPLEMENTATION
       WITH bh do
         begin
           l := 0;
-          if Neg
-            then begin
+          if Neg then
+            begin
 {$ifndef use_ansistring}
-              Inc ( l );
-              result[l] := '-';
+            Inc ( l );
+            result[l] := '-';
 {$else}
-              result := result + '-';
+            result := result + '-';
 {$endif}
-             end;
-          if Prec = Plac
-            then begin
+            end;
+          if Plac >= Prec then
+            begin
+            // insert leading 0 before decimal point
 {$ifndef use_ansistring}
-              Inc ( l );
-              result[l] := '0';
+            Inc ( l );
+            result[l] := '0';
 {$else}
-              result := result + '0';
+            result := result + '0';
 {$endif}
-             end;
-          if Prec > 0
-            then begin
-              pp := low ( bh.FDig ) - 1;
-              if Plac > 0
-                then pp := 1;
-              for i := FDig TO LDig do
+            end;
+          if Prec > 0 then
+            begin
+            if Plac > 0 then
+              begin
+              if Plac > Prec then FDig := 1;
+              pp := 1;
+              end
+            else
+              pp := low ( bh.FDig ) - 1; // there is no decimal point
+            for i := FDig TO LDig do
+              begin
+              if i = pp then
                 begin
-                  if i = pp
-                    then begin
 {$ifndef use_ansistring}
-                      Inc ( l );
-                      result[l] := Format.DecimalSeparator;
+                Inc ( l );
+                result[l] := Format.DecimalSeparator;
 {$else}
-                      result := result + Format.DecimalSeparator;
+                result := result + Format.DecimalSeparator;
 {$endif}
-                     end;
+                end;
 {$ifndef use_ansistring}
-                  Inc ( l );
-                  result[l] := Chr ( Singles[i] + Ord ( '0' ) );
+              Inc ( l );
+              result[l] := Chr ( Singles[i] + Ord ( '0' ) );
 {$else}
-                  result := result + Chr ( Singles[i] + Ord ( '0' ) );
+              result := result + Chr ( Singles[i] + Ord ( '0' ) );
 {$endif}
-                 end;
-             end;
-         end;
+              end;
+            end;
+        end;
 {$ifndef use_ansistring}
       result[0] := Chr ( l );
 {$endif}
-     end;
+    end;
 
 {$ifndef FPUNONE}
   function BCDToDouble ( const BCD : tBCD ) : myRealtype;
@@ -2028,7 +2033,7 @@ IMPLEMENTATION
              end;
           if NOT pack_BCD ( bh, OutBCD )
             then begin
-              RAISE eBCDOverflowException.create ( 'in BCDAdd' );
+              RAISE eBCDOverflowException.Create ( 'in NormalizeBCD' );
              end;
          end;
      end;
