@@ -209,7 +209,7 @@ const
    supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse,
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
-   level1optimizerswitches = [cs_opt_level1];
+   level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
