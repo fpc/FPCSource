@@ -1199,7 +1199,11 @@ begin
   a_reg_alloc(list,NR_STACK_POINTER_REG);
 
   if nostackframe then
-    exit;
+    begin
+      list.concat(taicpu.op_none(A_P_SET_NOMIPS16));
+      list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+      exit;
+    end;
 
   if (pi_needs_stackframe in current_procinfo.flags) then
     a_reg_alloc(list,NR_FRAME_POINTER_REG);
