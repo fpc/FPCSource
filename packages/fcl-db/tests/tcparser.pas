@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL source syntax parser test suite
 
@@ -222,6 +222,7 @@ type
     Procedure TestSimpleDomainAs;
     Procedure TestNotNullDomain;
     procedure TestDefaultNotNullDomain;
+    procedure TestCheckDomain;
     procedure TestAlterDomainDropDefault;
     procedure TestAlterDomainDropCheck;
     procedure TestAlterDomainDropCheckError;
@@ -2233,6 +2234,23 @@ begin
   AssertNotNull('Have default value',T.DefaultValue);
   CheckClass(T.DefaultValue,TSQLINtegerLiteral);
   AssertEquals('Integer data type',sdtInteger,T.DataType);
+  AssertEquals('Not null',True,T.NotNull);
+end;
+
+procedure TTestDomainParser.TestCheckDomain;
+Var
+  P : TSQLCreateOrAlterStatement;
+  D : TSQLCreateDomainStatement;
+  T : TSQLTypeDefinition;
+
+begin
+  P:=TestCreateStatement('CREATE DOMAIN A AS CHAR(8) CHECK (VALUE STARTING WITH ''V'')','A',TSQLCreateDomainStatement);
+  CheckClass(P,TSQLCreateDomainStatement);
+  D:=TSQLCreateDomainStatement(P);
+  AssertNotNull('Have type Definition',D.TypeDefinition);
+  T:=D.TypeDefinition;
+  AssertNull('No default value',T.DefaultValue);
+  AssertEquals('Character data type',sdtChar,T.DataType);
   AssertEquals('Not null',True,T.NotNull);
 end;
 
