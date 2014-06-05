@@ -2140,6 +2140,7 @@ packages/fcl-db/src/sdf/testfix.pp svneol=native#text/plain
 packages/fcl-db/src/sdf/testsdf.pp svneol=native#text/plain
 packages/fcl-db/src/sql/Makefile svneol=native#text/plain
 packages/fcl-db/src/sql/Makefile.fpc svneol=native#text/plain
+packages/fcl-db/src/sql/README.txt svneol=native#text/plain
 packages/fcl-db/src/sql/fpsqlparser.pas svneol=native#text/plain
 packages/fcl-db/src/sql/fpsqlscanner.pp svneol=native#text/plain
 packages/fcl-db/src/sql/fpsqltree.pp svneol=native#text/plain
