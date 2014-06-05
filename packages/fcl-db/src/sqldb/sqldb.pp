@@ -363,7 +363,6 @@ type
     FLoadingFieldDefs    : boolean;
     FUpdateMode          : TUpdateMode;
     FusePrimaryKeyAsKey  : Boolean;
-    FSQLBuf              : String;
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
     FServerFilterText    : string;
@@ -2127,7 +2126,7 @@ begin
   if not Cursor.FSelectable then
     Exit;
   If LogEvent(detFetch) then
-    Log(detFetch,FSQLBuf);
+    Log(detFetch,FStatement.FServerSQL);
   if not FIsEof then FIsEOF := not SQLConnection.Fetch(Cursor);
   Result := not FIsEOF;
 end;
@@ -2236,24 +2235,21 @@ begin
       begin
       CreateFields;
 
-      if FUpdateable and (not IsUniDirectional) then
+      if FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
         begin
-        if FusePrimaryKeyAsKey then
+        for counter := 0 to ServerIndexDefs.Count-1 do
           begin
-          for counter := 0 to ServerIndexDefs.count-1 do
+          if ixPrimary in ServerIndexDefs[counter].Options then
             begin
-            if ixPrimary in ServerIndexDefs[counter].options then
+            IndexFields := TStringList.Create;
+            ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].Fields),IndexFields);
+            for fieldc := 0 to IndexFields.Count-1 do
               begin
-                IndexFields := TStringList.Create;
-                ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].fields),IndexFields);
-                for fieldc := 0 to IndexFields.Count-1 do
-                  begin
-                  F := FindField(IndexFields[fieldc]);
-                  if F <> nil then
-                    F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                  end;
-                IndexFields.Free;
+              F := FindField(IndexFields[fieldc]);
+              if F <> nil then
+                F.ProviderFlags := F.ProviderFlags + [pfInKey];
               end;
+            IndexFields.Free;
             end;
           end;
         end;
