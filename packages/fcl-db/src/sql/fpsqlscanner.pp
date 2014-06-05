@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL source lexical scanner
 
@@ -71,9 +71,9 @@ type
 const
   FirstKeyword = tsqlAll;
   LastKeyWord = tsqlWhen;
-  sqlComparisons = [tsqleq,tsqlGE,tsqlLE,tsqlNE,tsqlGT,tsqlLT,tsqlIn, tsqlis,
-                    tsqlbetween,tsqlLike,tsqlContaining,tsqlStarting,tsqlnot];
-  sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlin,tsqlis, tsqlbetween];
+  sqlComparisons = [tsqleq,tsqlGE,tsqlLE,tsqlNE,tsqlGT,tsqlLT,tsqlIn,tsqlIS,
+                    tsqlbetween,tsqlLike,tsqlContaining,tsqlStarting,tsqlNOT];
+  sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlin,tsqlIS, tsqlbetween];
 
   // Strings that represent tokens in TSQLToken
   TokenInfos: array[TSQLToken] of string = ('unknown',
@@ -632,7 +632,7 @@ begin
     Move(TokenStart^,FCurTokenString[1],Len);
   S:=UpperCase(FCurTokenString);
   // Check if this is a keyword or identifier
-  // !!!: Optimize this!
+  // to do: Optimize this!
   If FKeyWords.Count=0 then
     BuildKeyWords;
   P:=FKeyWords.Find(S);

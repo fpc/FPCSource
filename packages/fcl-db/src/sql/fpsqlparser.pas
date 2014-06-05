@@ -2497,7 +2497,7 @@ begin
   try
   {$ifdef debugexpr}  Writeln('Primitive ',TokenInfos[CurrentToken],': ',CurrentTokenString);{$endif debugexpr}
     Case CurrentToken of
-      tsqlintegerNumber,
+      tsqlIntegerNumber,
       tsqlString,
       tsqlFloatNumber,
       tsqlNull, // True and False belong here
@@ -2699,7 +2699,7 @@ begin
     Result:=D;
     end
   else
-    begin
+    begin //alter statement
     A:=Nil;
     NN:=False;
     try

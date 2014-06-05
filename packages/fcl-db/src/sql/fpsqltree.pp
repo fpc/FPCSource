@@ -4302,7 +4302,7 @@ end;
 function TSQLDatabaseFileInfo.GetAsSQL(Options: TSQLFormatOptions;
   AIndent: Integer): TSQLStringType;
 begin
-  Result:=SQlKeyWord('FILE ',OPtions)+SQLFormatString(FileName,Options);
+  Result:=SQlKeyWord('FILE ',Options)+SQLFormatString(FileName,Options);
   If Length>0 then
     Result:=Result+SQlKeyWord(' LENGTH ',Options)+IntToStr(Length)+SQlKeyWord(' PAGES',Options)
   else if (StartPage>0) then
