@@ -37,11 +37,11 @@ type
 
    TSQLToken = (tsqlUnknown,
    // Specials
-   tsqlEOF,tsqlWhiteSpace,tsqlString, tsqlIdentifier,tsqlIntegerNumber, tsqlFloatNumber, tsqlComment,
+   tsqlEOF,tsqlWhiteSpace,tsqlString,tsqlIdentifier,tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
-   tsqlPlaceHolder,tsqlCOMMA,tsqlCOLON, tsqlDOT,tsqlSEMICOLON, tsqlGT,tsqlLT,
+   tsqlPlaceHolder,tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,tsqlGT,tsqlLT,
    tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
-   tsqlEQ,tsqlGE, tsqlLE, tsqlNE,
+   tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
    { Reserved words start here. They must be last }
    tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto,tsqlAfter,tsqlAdmin,
    tsqlBETWEEN, tsqlBY, tsqlBLOB,tsqlBegin,  tsqlBefore,
@@ -75,6 +75,7 @@ const
                     tsqlbetween,tsqlLike,tsqlContaining,tsqlStarting,tsqlnot];
   sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlin,tsqlis, tsqlbetween];
 
+  // Strings that represent tokens in TSQLToken
   TokenInfos: array[TSQLToken] of string = ('unknown',
        // Specials
        'EOF','whitespace','String', 'identifier','integer number','float number', 'comment',
