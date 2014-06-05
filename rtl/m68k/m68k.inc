@@ -336,20 +336,6 @@ asm
 end;
 
 
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l : longint) : longint;
-  begin
-     asm
-        move.l l,d0
-        tst.l  d0
-        bpl @LMABS1
-        neg.l d0
-     @LMABS1:
-        move.l d0,@RESULT
-     end ['d0'];
-  end;
-
-
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
