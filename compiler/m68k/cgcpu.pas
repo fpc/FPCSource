@@ -1530,21 +1530,11 @@ unit cgcpu;
          orglen : tcgint;
       begin
          popaddress := false;
-
-//	 writeln('concatcopy:',len);
-
-         { this should never occur }
-         if len > 65535 then
-           internalerror(0);
-
          hregister := getintregister(list,OS_INT);
-//         if delsource then
-//            reference_release(list,source);
-
          orglen:=len;
 
          { from 12 bytes movs is being used }
-         if {(not loadref) and} ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
+         if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
            begin
               srcref := source;
               dstref := dest;
@@ -1602,11 +1592,7 @@ unit cgcpu;
               { iregister = source }
               { jregister = destination }
 
-{              if loadref then
-                 cg.a_load_ref_reg(list,OS_INT,OS_INT,source,iregister)
-              else}
-                 a_loadaddr_ref_reg(list,source,iregister);
-
+              a_loadaddr_ref_reg(list,source,iregister);
               a_loadaddr_ref_reg(list,dest,jregister);
 
               { double word move only on 68020+ machines }
@@ -1614,15 +1600,13 @@ unit cgcpu;
               { use fast loop mode }
               if (current_settings.cputype=cpu_MC68020) then
                 begin
+                   //list.concat(tai_comment.create(strpnew('g_concatcopy tight copy loop 020+')));
                    helpsize := len - len mod 4;
                    len := len mod 4;
-                   list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize div 4,hregister));
-                   current_asmdata.getjumplabel(hl2);
-                   a_jmp_always(list,hl2);
+                   a_load_const_reg(list,OS_INT,(helpsize div 4)-1,hregister);
                    current_asmdata.getjumplabel(hl);
                    a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_L,hp1,hp2));
-                   a_label(list,hl2);
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                    if len > 1 then
                      begin
@@ -1635,14 +1619,11 @@ unit cgcpu;
               else
                 begin
                    { Fast 68010 loop mode with no possible alignment problems }
-                   helpsize := len;
-                   list.concat(taicpu.op_const_reg(A_MOVE,S_L,helpsize,hregister));
-                   current_asmdata.getjumplabel(hl2);
-                   a_jmp_always(list,hl2);
+                   //list.concat(tai_comment.create(strpnew('g_concatcopy tight byte copy loop')));
+                   a_load_const_reg(list,OS_INT,len - 1,hregister);
                    current_asmdata.getjumplabel(hl);
                    a_label(list,hl);
                    list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
-                   a_label(list,hl2);
                    if current_settings.cputype in cpu_coldfire then
                      begin
                        { Coldfire does not support DBRA }
@@ -1652,18 +1633,7 @@ unit cgcpu;
                    else
                      list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
-
-              { restore the registers that we have just used olny if they are used! }
-              if jregister = NR_A1 then
-                hp2.base := NR_NO;
-              if iregister = NR_A0 then
-                hp1.base := NR_NO;
-//              reference_release(list,hp1);
-//              reference_release(list,hp2);
            end;
-
-//           if delsource then
-//               tg.ungetiftemp(list,source);
     end;
 
     procedure tcg68k.g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef);
