@@ -44,7 +44,7 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
@@ -170,7 +170,7 @@ implementation
                                 { or an unspecialized generic symbol, which is
                                   the case for generics defined in non-Delphi
                                   modes }
-                                (df_generic in ttypesym(srsym).typedef.defoptions) and
+                                tstoreddef(ttypesym(srsym).typedef).is_generic and
                                 not parse_generic
                               )
                             ) then
@@ -499,18 +499,25 @@ implementation
               begin
                 def:=t2
               end
-            else if (df_generic in def.defoptions) and
+            else if tstoreddef(def).is_generic and
                 not
                   (
                     parse_generic and
-                    (current_genericdef.typ in [recorddef,objectdef]) and
                     (
-                      { if both defs belong to the same generic (e.g. both are
-                        subtypes) then we must allow the usage }
-                      defs_belong_to_same_generic(def,current_genericdef) or
-                      { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
-                        declarations inside a generic }
-                      sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                      { if this is a generic parameter than it has already been checked that this is
+                        a valid usage of a generic }
+                      (sp_generic_para in srsym.symoptions) or
+                      (
+                        (current_genericdef.typ in [recorddef,objectdef]) and
+                        (
+                          { if both defs belong to the same generic (e.g. both are
+                            subtypes) then we must allow the usage }
+                          defs_belong_to_same_generic(def,current_genericdef) or
+                          { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
+                            declarations inside a generic }
+                          sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                        )
+                      )
                     )
                   )
                 then
@@ -558,12 +565,35 @@ implementation
       end;
 
 
-    procedure parse_record_members;
+    procedure parse_record_members(recsym:tsym);
 
       function IsAnonOrLocal: Boolean;
         begin
           result:=(current_structdef.objname^='') or
                   not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
+        end;
+
+      var
+        olddef : tdef;
+
+      procedure set_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef=current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=current_structdef;
+          current_structdef.typesym:=recsym;
+        end;
+
+      procedure reset_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef<>current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=olddef;
+          current_structdef.typesym:=nil;
         end;
 
       var
@@ -577,6 +607,14 @@ implementation
         if (token=_SEMICOLON) then
           Exit;
 
+        { the correct typesym<->def relationship is needed for example when
+          parsing parameters that are specializations of the record or when
+          using nested constants and such }
+        if assigned(recsym) then
+          olddef:=ttypesym(recsym).typedef
+        else
+          olddef:=nil;
+        set_typesym;
         current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
@@ -806,10 +844,11 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
+        reset_typesym;
       end;
 
     { reads a record declaration }
-    function record_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       var
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
@@ -874,7 +913,7 @@ implementation
 
          if m_advanced_records in current_settings.modeswitches then
            begin
-             parse_record_members;
+             parse_record_members(recsym);
            end
          else
            begin
@@ -907,7 +946,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;hadtypetoken:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -1051,7 +1090,7 @@ implementation
                          begin
                            def:=current_genericdef
                          end
-                       else if (df_generic in def.defoptions) and
+                       else if tstoreddef(def).is_generic and
                            { TODO : check once nested generics are allowed }
                            not
                              (
@@ -1146,7 +1185,7 @@ implementation
         end;
 
 
-      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:TFPObjectList);
+      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:tfphashobjectlist);
         var
           lowval,
           highval   : TConstExprInt;
@@ -1353,7 +1392,7 @@ implementation
         end;
 
 
-        function procvar_dec(genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
           var
             is_func:boolean;
             pd:tabstractprocdef;
@@ -1603,7 +1642,7 @@ implementation
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
-                  def:=record_dec(name,genericdef,genericlist);
+                  def:=record_dec(name,newsym,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -1639,7 +1678,7 @@ implementation
                         end;
                       else begin
                         consume(_RECORD);
-                        def:=record_dec(name,genericdef,genericlist);
+                        def:=record_dec(name,newsym,genericdef,genericlist);
                       end;
                     end;
                     current_settings.packrecords:=oldpackrecords;

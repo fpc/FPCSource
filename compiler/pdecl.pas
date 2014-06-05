@@ -438,7 +438,7 @@ implementation
          isgeneric,
          isunique,
          istyperenaming : boolean;
-         generictypelist : TFPObjectList;
+         generictypelist : tfphashobjectlist;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
          p:tnode;

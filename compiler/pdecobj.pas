@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
@@ -1293,7 +1293,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1482,10 +1482,12 @@ implementation
             parse_guid;
 
             { classes can handle links to themself not only inside type blocks
-              but in const blocks too. to make this possible we need to set
-              their symbols to real defs instead of errordef }
+              but in const blocks too. Additionally this is needed to parse parameters that are
+              specializations of the currently parsed type in basically everything except C++ and
+              ObjC classes. To make this possible we need to set their symbols to real defs instead
+              of errordef }
 
-            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass,odt_interfacejava]) then
+            if assigned(objsym) and not (objecttype in [odt_cppclass,odt_objccategory,odt_objcclass,odt_objcprotocol]) then
               begin
                 olddef:=ttypesym(objsym).typedef;
                 ttypesym(objsym).typedef:=current_structdef;

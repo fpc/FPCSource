@@ -36,10 +36,10 @@ uses
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);
-    function parse_generic_parameters(allowconstraints:boolean):TFPObjectList;
+    function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
     function parse_generic_specialization_types(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
-    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
+    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
     function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
     function resolve_generic_dummysym(const name:tidstring):tsym;
@@ -63,7 +63,7 @@ uses
   { global }
   globals,tokens,verbose,finput,
   { symtable }
-  symconst,symsym,symtable,defcmp,
+  symconst,symsym,symtable,defcmp,procinfo,
   { modules }
   fmodule,
   { pass 1 }
@@ -306,7 +306,11 @@ uses
             typeparam:=factor(false,true);
             if typeparam.nodetype=typen then
               begin
-                if df_generic in typeparam.resultdef.defoptions then
+                if tstoreddef(typeparam.resultdef).is_generic and
+                    (
+                      not parse_generic or
+                      not defs_belong_to_same_generic(typeparam.resultdef,current_genericdef)
+                    ) then
                   Message(parser_e_no_generics_as_params);
                 if assigned(poslist) then
                   begin
@@ -357,6 +361,25 @@ uses
 
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);
+
+        procedure unset_forwarddef(def: tdef);
+          var
+            st : TSymtable;
+            i : longint;
+          begin
+            case def.typ of
+              procdef:
+                tprocdef(def).forwarddef:=false;
+              objectdef,
+              recorddef:
+                begin
+                  st:=def.getsymtable(gs_record);
+                  for i:=0 to st.deflist.count-1 do
+                    unset_forwarddef(tdef(st.deflist[i]));
+                end;
+            end;
+          end;
+
       var
         st  : TSymtable;
         srsym : tsym;
@@ -371,7 +394,7 @@ uses
         genericdef,def : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
-        generictypelist : TFPObjectList;
+        generictypelist : tfphashobjectlist;
         prettyname,specializename : ansistring;
         ufinalspecializename,
         countstr,genname,ugenname,finalspecializename : string;
@@ -387,6 +410,7 @@ uses
         hmodule : tmodule;
         oldcurrent_filepos : tfileposinfo;
         poslist : tfplist;
+        recordbuf: tdynamicarray;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -405,7 +429,7 @@ uses
 
         { Only parse the parameters for recovery or
           for recording in genericbuf }
-        if parse_generic or errorrecovery then
+        if errorrecovery then
           begin
             first:=assigned(parsedtype);
             if not first and not try_to_consume(_LT) then
@@ -619,7 +643,7 @@ uses
             internalerror(200511182);
         end;
 
-        generictypelist:=tfpobjectlist.create(false);
+        generictypelist:=tfphashobjectlist.create(false);
 
         { build the list containing the types for the generic params }
         if not assigned(genericdef.genericparas) then
@@ -631,8 +655,7 @@ uses
             srsym:=tsym(genericdef.genericparas[i]);
             if not (sp_generic_para in srsym.symoptions) then
               internalerror(2013092602);
-            generictype:=ctypesym.create(srsym.realname,tdef(genericdeflist[i]));
-            generictypelist.add(generictype);
+            generictypelist.add(srsym.realname,tdef(genericdeflist[i]).typesym);
           end;
 
         { Special case if we are referencing the current defined object }
@@ -641,10 +664,37 @@ uses
           tt:=current_structdef;
 
         { decide in which symtable to put the specialization }
-        if current_module.is_unit and current_module.in_interface then
-          specializest:=current_module.globalsymtable
+        if parse_generic then
+          begin
+            if not assigned(current_genericdef) then
+              internalerror(2014050901);
+            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+              { if we are parsing the definition of a method we specialize into
+                the local symtable of it }
+              specializest:=current_procinfo.procdef.getsymtable(gs_local)
+            else
+              { we specialize the partial specialization into the symtable of the currently parsed
+                generic }
+              case current_genericdef.typ of
+                procvardef,
+                procdef:
+                  specializest:=current_genericdef.getsymtable(gs_local);
+                objectdef,
+                recorddef:
+                  specializest:=current_genericdef.getsymtable(gs_record);
+                arraydef:
+                  specializest:=tarraydef(current_genericdef).symtable;
+                else
+                  internalerror(2014050902);
+              end;
+          end
         else
-          specializest:=current_module.localsymtable;
+          if current_module.is_unit and current_module.in_interface then
+            specializest:=current_module.globalsymtable
+          else
+            specializest:=current_module.localsymtable;
+        if not assigned(specializest) then
+          internalerror(2014050910);
 
         { Can we reuse an already specialized type? }
 
@@ -663,6 +713,24 @@ uses
                 end;
               def:=tstoreddef(def.owner.defowner);
             until not assigned(def) or not (df_specialization in def.defoptions);
+          end;
+
+        { if the genericdef is the def we are currently parsing (or one of its parents) then we can
+          not use it for specializing as the tokenbuffer is not yet set (and we aren't done with
+          parsing anyway), so for now we treat those still as generic defs without doing a partial
+          specialization }
+        if not assigned(tt) then
+          begin
+            def:=current_genericdef;
+            while assigned(def) and (def.typ in [recorddef,objectdef]) do
+              begin
+                if def=genericdef then
+                  begin
+                    tt:=def;
+                    break;
+                  end;
+                def:=tstoreddef(def.owner.defowner);
+              end;
           end;
 
         { now check whether there is a specialization somewhere else }
@@ -748,6 +816,13 @@ uses
                 { use the index the module got from the current compilation process }
                 current_filepos.moduleindex:=hmodule.unit_index;
                 current_tokenpos:=current_filepos;
+                if parse_generic then
+                  begin
+                    recordbuf:=current_scanner.recordtokenbuf;
+                    current_scanner.recordtokenbuf:=nil;
+                  end
+                else
+                  recordbuf:=nil;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf);
                 read_named_type(tt,srsym,genericdef,generictypelist,false,false);
                 current_filepos:=oldcurrent_filepos;
@@ -802,6 +877,13 @@ uses
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
 
+                if assigned(recordbuf) then
+                  begin
+                    if assigned(current_scanner.recordtokenbuf) then
+                      internalerror(2014050909);
+                    current_scanner.recordtokenbuf:=recordbuf;
+                  end;
+
                 block_type:=old_block_type;
                 if parse_class_parent then
                   begin
@@ -827,6 +909,10 @@ uses
                 { using changeowner the def is automatically added to the new
                   symtable }
                 tdef(item).ChangeOwner(specializest);
+                { for partial specializations we implicitely declare any methods as having their
+                  implementations although we'll not specialize them in reality }
+                if parse_generic then
+                  unset_forwarddef(tdef(item));
               end;
 
             { if a generic was declared during the specialization we need to
@@ -858,7 +944,7 @@ uses
       end;
 
 
-    function parse_generic_parameters(allowconstraints:boolean):TFPObjectList;
+    function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
       var
         generictype : ttypesym;
         i,firstidx : longint;
@@ -870,7 +956,7 @@ uses
         constraintdata : tgenericconstraintdata;
         old_block_type : tblock_type;
       begin
-        result:=TFPObjectList.Create(false);
+        result:=tfphashobjectlist.create(false);
         firstidx:=0;
         old_block_type:=block_type;
         block_type:=bt_type;
@@ -879,7 +965,7 @@ uses
             begin
               generictype:=ctypesym.create(orgpattern,cundefinedtype);
               include(generictype.symoptions,sp_generic_para);
-              result.add(generictype);
+              result.add(orgpattern,generictype);
             end;
           consume(_ID);
           if try_to_consume(_COLON) then
@@ -1021,11 +1107,11 @@ uses
       end;
 
 
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
       var
-        i: longint;
-        generictype: ttypesym;
-        st: tsymtable;
+        i : longint;
+        generictype,sym : ttypesym;
+        st : tsymtable;
       begin
         def.genericdef:=genericdef;
         if not assigned(genericlist) then
@@ -1050,13 +1136,22 @@ uses
         for i:=0 to genericlist.count-1 do
           begin
             generictype:=ttypesym(genericlist[i]);
-            st.insert(generictype);
-            include(generictype.symoptions,sp_generic_para);
-            def.genericparas.add(generictype.name,generictype);
+            if assigned(generictype.owner) then
+              begin
+                sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef);
+                st.insert(sym);
+                include(sym.symoptions,sp_generic_para);
+              end
+            else
+              begin
+                st.insert(generictype);
+                include(generictype.symoptions,sp_generic_para);
+              end;
+            def.genericparas.add(genericlist.nameofindex(i),generictype);
           end;
        end;
 
-    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
+    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
       var
         gensym : ttypesym;
       begin

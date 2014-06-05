@@ -1582,6 +1582,7 @@ implementation
          usedalign,
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
+         stowner : tdef;
          pt : tnode;
          fieldvs   : tfieldvarsym;
          hstaticvs : tstaticvarsym;
@@ -1653,29 +1654,34 @@ implementation
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) then
                begin
-                 if hdef.typ=arraydef then
+                 stowner:=tdef(recst.defowner);
+                 while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
                    begin
-                     tmpdef:=hdef;
-                     while (tmpdef.typ=arraydef) do
+                     if hdef.typ=arraydef then
                        begin
-                         { dynamic arrays are allowed }
-                         if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                         tmpdef:=hdef;
+                         while (tmpdef.typ=arraydef) do
                            begin
-                             tmpdef:=nil;
-                             break;
+                             { dynamic arrays are allowed }
+                             if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                               begin
+                                 tmpdef:=nil;
+                                 break;
+                               end;
+                             tmpdef:=tarraydef(tmpdef).elementdef;
                            end;
-                         tmpdef:=tarraydef(tmpdef).elementdef;
+                       end
+                     else
+                       tmpdef:=hdef;
+                     if assigned(tmpdef) and
+                         (is_object(tmpdef) or is_record(tmpdef)) and
+                         is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
+                       begin
+                         Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
+                         { for error recovery or compiler will crash later }
+                         hdef:=generrordef;
                        end;
-                   end
-                 else
-                   tmpdef:=hdef;
-                 if assigned(tmpdef) and
-                     (is_object(tmpdef) or is_record(tmpdef)) and
-                     is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(tmpdef)) then
-                   begin
-                     Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
-                     { for error recovery or compiler will crash later }
-                     hdef:=generrordef;
+                     stowner:=tdef(stowner.owner.defowner);
                    end;
                end;
 

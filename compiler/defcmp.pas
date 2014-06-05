@@ -213,6 +213,7 @@ implementation
       var
          subeq,eq : tequaltype;
          hd1,hd2 : tdef;
+         def_generic : tstoreddef;
          hct : tconverttype;
          hobjdef : tobjectdef;
          hpd : tprocdef;
@@ -315,6 +316,42 @@ implementation
                      if diff then
                        break;
                    end;
+               end;
+             if not diff then
+               begin
+                 doconv:=tc_equal;
+                 { the definitions are not exactly the same, but only equal }
+                 compare_defs_ext:=te_equal;
+                 exit;
+               end;
+           end;
+         { handling of partial specializations }
+         if (
+               (df_generic in def_to.defoptions) and
+               (df_specialization in def_from.defoptions) and
+               (tstoreddef(def_from).genericdef=def_to)
+             ) or (
+               (df_generic in def_from.defoptions) and
+               (df_specialization in def_to.defoptions) and
+               (tstoreddef(def_to).genericdef=def_from)
+             ) then
+           begin
+             if tstoreddef(def_from).genericdef=def_to then
+               def_generic:=tstoreddef(def_to)
+             else
+               def_generic:=tstoreddef(def_from);
+             if not assigned(def_generic.genericparas) then
+               internalerror(2014052306);
+             diff:=false;
+             for i:=0 to def_generic.genericparas.count-1 do
+               begin
+                 symfrom:=tsym(def_generic.genericparas[i]);
+                 if symfrom.typ<>typesym then
+                   internalerror(2014052307);
+                 if ttypesym(symfrom).typedef.typ<>undefineddef then
+                   diff:=true;
+                 if diff then
+                   break;
                end;
              if not diff then
                begin
