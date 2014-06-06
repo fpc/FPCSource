@@ -70,6 +70,14 @@ implementation
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}
+
+{**************************************
+             Optimizer
+**************************************}
+
+    {$ifndef NOOPT}
+      , aoptcpu
+    {$endif NOOPT}
       ;
 
 end.
