@@ -1397,9 +1397,9 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=current_structdef
+          current_specializedef:=current_structdef;
         { reject declaration of generic class inside generic class }
-        else if assigned(genericlist) then
+        if assigned(genericlist) then
           current_genericdef:=current_structdef;
 
         { nested types of specializations are specializations as well }
