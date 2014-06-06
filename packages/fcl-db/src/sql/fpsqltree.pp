@@ -3424,7 +3424,7 @@ end;
 destructor TSQLCreateDatabaseStatement.Destroy;
 begin
   FreeAndNil(FSecondaryFiles);
-  FreeAndNil(FCHarSet);
+  FreeAndNil(FCharSet);
   inherited Destroy;
 end;
 
