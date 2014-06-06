@@ -1101,7 +1101,7 @@ unit cgcpu;
           OP_SUB:
               begin
                 { add/sub works the same way, so have it unified here }
-                if (a >= 1) and (a <= 8) and not isaddressregister(reg) then
+                if (a >= 1) and (a <= 8) then
                   if (op = OP_ADD) then
                     opcode:=A_ADDQ
                   else
@@ -1201,8 +1201,7 @@ unit cgcpu;
         opsize := TCGSize2OpSize[size];
 
         { on ColdFire all arithmetic operations are only possible on 32bit }
-        if not isvalidreference(ref) or
-           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
            and not (op in [OP_NONE,OP_MOVE])) then
           begin
             inherited;
