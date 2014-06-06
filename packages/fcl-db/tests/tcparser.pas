@@ -223,6 +223,7 @@ type
     Procedure TestNotNullDomain;
     procedure TestDefaultNotNullDomain;
     procedure TestCheckDomain;
+    procedure TestDefaultCheckNotNullDomain;
     procedure TestAlterDomainDropDefault;
     procedure TestAlterDomainDropCheck;
     procedure TestAlterDomainDropCheckError;
@@ -2238,7 +2239,7 @@ begin
 end;
 
 procedure TTestDomainParser.TestCheckDomain;
-Var
+var
   P : TSQLCreateOrAlterStatement;
   D : TSQLCreateDomainStatement;
   T : TSQLTypeDefinition;
@@ -2250,6 +2251,22 @@ begin
   AssertNotNull('Have type Definition',D.TypeDefinition);
   T:=D.TypeDefinition;
   AssertNull('No default value',T.DefaultValue);
+  AssertEquals('Character data type',sdtChar,T.DataType);
+  AssertEquals('Not null',True,T.NotNull);
+end;
+
+procedure TTestDomainParser.TestDefaultCheckNotNullDomain;
+var
+  P : TSQLCreateOrAlterStatement;
+  D : TSQLCreateDomainStatement;
+  T : TSQLTypeDefinition;
+begin
+  P:=TestCreateStatement('CREATE DOMAIN DEFCHECKNOTN AS VARCHAR(1) DEFAULT ''s'' CHECK (VALUE IN (''s'',''h'',''A'')) NOT NULL','A',TSQLCreateDomainStatement);
+  CheckClass(P,TSQLCreateDomainStatement);
+  D:=TSQLCreateDomainStatement(P);
+  AssertNotNull('Have type Definition',D.TypeDefinition);
+  T:=D.TypeDefinition;
+  AssertNotNull('Have default value',T.DefaultValue);
   AssertEquals('Character data type',sdtChar,T.DataType);
   AssertEquals('Not null',True,T.NotNull);
 end;
