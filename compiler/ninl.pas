@@ -3168,7 +3168,11 @@ implementation
                     begin
                       set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                       { check type }
-                      if is_boolean(left.resultdef) then
+                      if is_boolean(left.resultdef) or
+                          (
+                            (left.resultdef.typ=undefineddef) and
+                            (df_generic in current_procinfo.procdef.defoptions)
+                          ) then
                         begin
                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                            { must always be a string }
