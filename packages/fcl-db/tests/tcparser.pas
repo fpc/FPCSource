@@ -2252,7 +2252,7 @@ begin
   T:=D.TypeDefinition;
   AssertNull('No default value',T.DefaultValue);
   AssertEquals('Character data type',sdtChar,T.DataType);
-  AssertEquals('Not null',True,T.NotNull);
+  AssertEquals('Not null must be allowed',False,T.NotNull);
 end;
 
 procedure TTestDomainParser.TestDefaultCheckNotNullDomain;
