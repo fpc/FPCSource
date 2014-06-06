@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2014 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Dataset implementation
