@@ -55,10 +55,12 @@ Type
     Function CreateElement(AElementClass : TSQLElementClass; APArent : TSQLElement)  : TSQLElement; virtual;
     function CreateLiteral(AParent: TSQLElement): TSQLLiteral;
     Function CreateIdentifier(AParent : TSQLElement; Const AName : TSQLStringType) : TSQLIdentifierName;
+    // Verify that current token is the expect token; raise error if not
     procedure Expect(aToken: TSQLToken);
     procedure Expect(aTokens: TSQLTokens);
+    // Expects aToken and eats it
     procedure Consume(aToken: TSQLToken);
-    Procedure Error(Msg : String);
+    procedure Error(Msg : String);
     Procedure Error(Fmt : String; Args : Array of const);
     // Expression support
     function ParseExprLevel1(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
@@ -156,6 +158,7 @@ Type
     // Auxiliary stuff
     Function CurrentToken : TSQLToken;
     Function CurrentTokenString : String;
+    // Gets next token; also sets FCurrent to that token
     Function GetNextToken : TSQLToken;
     Function PeekNextToken : TSQLToken;
     Function PreviousToken : TSQLToken;
@@ -2135,10 +2138,15 @@ begin
         if Not (tt in sqlInvertableComparisons) then
           Error(SErrUnexpectedToken,[CurrentTokenString]);
         GetNextToken;
+        // Step past expected STARTING WITH
         If (tt=tsqlStarting) and (CurrentToken=tsqlWith) then
           GetNextToken;
         end
       else
+        begin
+        // Step past expected STARTING WITH
+        If (tt=tsqlStarting) and (CurrentToken=tsqlWith) then
+          GetNextToken;
         if (CurrentToken=tsqlNot) then
           begin
           GetNextToken;
@@ -2146,7 +2154,7 @@ begin
             UnexpectedToken;
           I:=true;
           end;
-
+        end;
 
       bw:=False;
       doin:=false;
@@ -2158,7 +2166,7 @@ begin
         tsqlEq : O:=boEq;
         tsqlNE : O:=boNE;
         tsqlLike : O:=boLike;
-        tsqlIn : doin:=true;
+        tsqlIn : doIn:=true;
         tsqlis : O:=boIs;
         tsqlContaining : O:=boContaining;
         tsqlStarting : O:=boStarting;
@@ -3833,7 +3841,7 @@ end;
 function TSQLParser.GetNextToken: TSQLToken;
 begin
   FPrevious:=FCurrent;
-  If (FPeekToken<>tsqlunknown) then
+  If (FPeekToken<>tsqlUnknown) then
      begin
      FCurrent:=FPeekToken;
      FCurrentString:=FPeekTokenString;
