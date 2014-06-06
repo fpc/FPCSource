@@ -83,6 +83,11 @@ var
   { this list holds all instances of external threads that need to be freed at
     the end of the program }
   ExternalThreads: TThreadList;
+
+  { this must be a global var, otherwise unwanted optimizations might happen in
+    TThread.SpinWait() }
+  SpinWaitDummy: LongWord;
+
 threadvar
   { the instance of the current thread; in case of an external thread this is
     Nil until TThread.GetCurrentThread was called once (the RTLs need to ensure
@@ -572,15 +577,23 @@ end;
 
 
 class procedure TThread.SpinWait(aIterations: LongWord);
+var
+  i: LongWord;
 begin
   { yes, it's just a simple busy wait to burn some cpu cycles... and as the job
     of this loop is to burn CPU cycles we switch off any optimizations that
     could interfere with this (e.g. loop unrolling) }
-{$PUSH}
-{$OPTIMIZATION OFF}
-  while aIterations > 0 do
-    Dec(aIterations);
-{$POP}
+  { Do *NOT* do $PUSH, $OPTIMIZATIONS OFF, <code>, $POP because optimization is
+    not a local switch, which means $PUSH/POP doesn't affect it, so that turns
+    off *ALL* optimizations for code below this point. Thanks to this we shipped
+    large parts of the classes unit with optimizations off between 2012-12-27
+    and 2014-06-06.
+    Instead, use a global var for the spinlock, because that is always handled
+    as volatile, so the access won't be optimized away by the compiler. (KB) }
+  for i:=1 to aIterations do
+    begin
+      Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    end;
 end;
 
 
