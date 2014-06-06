@@ -1262,7 +1262,9 @@ implementation
              in both cases we need "parse_generic" and "current_genericdef"
              so that e.g. specializations of another generic inside the
              current generic can be used (either inline ones or "type" ones) }
-           parse_generic:=(df_generic in arrdef.defoptions) or old_parse_generic;
+           if old_parse_generic then
+             include(arrdef.defoptions,df_generic);
+           parse_generic:=(df_generic in arrdef.defoptions);
            if parse_generic and not assigned(current_genericdef) then
              current_genericdef:=old_current_genericdef;
 
@@ -1426,7 +1428,9 @@ implementation
               in both cases we need "parse_generic" and "current_genericdef"
               so that e.g. specializations of another generic inside the
               current generic can be used (either inline ones or "type" ones) }
-            parse_generic:=(df_generic in pd.defoptions) or old_parse_generic;
+            if old_parse_generic then
+              include(pd.defoptions,df_generic);
+            parse_generic:=(df_generic in pd.defoptions);
             if parse_generic and not assigned(current_genericdef) then
               current_genericdef:=old_current_genericdef;
             { don't allow to add defs to the symtable - use it for type param search only }
