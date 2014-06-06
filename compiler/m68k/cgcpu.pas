@@ -1208,8 +1208,6 @@ unit cgcpu;
             exit;
           end;
 
-        href:=ref;
-        fixref(list,href);
         case op of
           OP_NONE :
             begin
@@ -1223,6 +1221,8 @@ unit cgcpu;
           OP_ADD,
           OP_SUB :
             begin
+              href:=ref;
+              fixref(list,href);
               { add/sub works the same way, so have it unified here }
               if (a >= 1) and (a <= 8) then
                 begin
@@ -1359,14 +1359,14 @@ unit cgcpu;
       var
         opcode : tasmop;
         opsize : topsize;
+        href   : treference;
       begin
         opcode := topcg2tasmop[op];
         opsize := TCGSize2OpSize[size];
 
         { on ColdFire all arithmetic operations are only possible on 32bit 
           and addressing modes are limited }
-        if not isvalidreference(ref) or
-           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
           begin
             inherited;
             exit;
@@ -1376,8 +1376,10 @@ unit cgcpu;
           OP_ADD,
           OP_SUB :
             begin
+              href:=ref;
+              fixref(list,href);
               { add/sub works the same way, so have it unified here }
-              list.concat(taicpu.op_reg_ref(opcode, opsize, reg, ref));
+              list.concat(taicpu.op_reg_ref(opcode, opsize, reg, href));
             end;
           else begin
 //            list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited')));
