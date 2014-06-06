@@ -798,8 +798,7 @@ implementation
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
-                       not(oo_is_forward in tobjectdef(hdef).objectoptions) and
-                       not(df_generic in hdef.defoptions) then
+                       not(oo_is_forward in tobjectdef(hdef).objectoptions) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;
