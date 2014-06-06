@@ -1,4 +1,5 @@
 { %NORUN }
+{ %OPT=-gt }
 
 {$MODE OBJFPC}
 program tw26271;
