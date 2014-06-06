@@ -407,6 +407,7 @@ implementation
          ((p.typ=paravarsym) and
           ((vo_is_funcret in tabstractnormalvarsym(p).varoptions) or
            (tabstractnormalvarsym(p).varspez=vs_out)))) and
+         not (vo_is_default_var in tabstractnormalvarsym(p).varoptions) and
          not is_managed_type(tabstractnormalvarsym(p).vardef) and
          not assigned(tabstractnormalvarsym(p).defaultconstsym);
     end;
