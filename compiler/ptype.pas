@@ -44,7 +44,7 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
@@ -946,7 +946,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -1802,6 +1802,9 @@ implementation
                     ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) and
                     (token=_ID) and (idtoken=_HELPER) then
                   begin
+                    { reset hadtypetoken, so that calling code knows that it should not be handled
+                      as a "unique" type }
+                    hadtypetoken:=false;
                     consume(_HELPER);
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                   end
@@ -1815,8 +1818,11 @@ implementation
 
 
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+      var
+        hadtypetoken : boolean;
       begin
-        read_named_type(def,nil,nil,nil,parseprocvardir,false);
+        hadtypetoken:=false;
+        read_named_type(def,nil,nil,nil,parseprocvardir,hadtypetoken);
       end;
 
 

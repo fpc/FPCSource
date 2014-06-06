@@ -384,6 +384,7 @@ uses
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
+        hadtypetoken,
         errorrecovery,
         found,
         first,
@@ -824,7 +825,8 @@ uses
                 else
                   recordbuf:=nil;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf);
-                read_named_type(tt,srsym,genericdef,generictypelist,false,false);
+                hadtypetoken:=false;
+                read_named_type(tt,srsym,genericdef,generictypelist,false,hadtypetoken);
                 current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
