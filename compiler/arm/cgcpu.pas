@@ -119,6 +119,7 @@ unit cgcpu;
       { tcgarm is shared between normal arm and thumb-2 }
       tcgarm = class(tbasecgarm)
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg;
@@ -685,6 +686,19 @@ unit cgcpu;
           a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
 
+     procedure tcgarm.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
+       var
+         tmpreg,tmpresreg : tregister;
+         tmpref : treference;
+       begin
+         tmpreg:=getintregister(list,size);
+         tmpresreg:=getintregister(list,size);
+         tmpref:=ref;
+         fixref(list,tmpref);
+         a_load_ref_reg(list,size,size,tmpref,tmpreg);
+         a_op_const_reg_reg(list,op,size,a,tmpreg,tmpresreg);
+         a_load_reg_ref(list,size,size,tmpresreg,tmpref);
+       end;
 
      procedure tcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
        var
