@@ -49,19 +49,20 @@ Type
     FPeekTokenString: String;
     Procedure CheckEOF;
   protected
-    Procedure UnexpectedToken; overload;
-    Procedure UnexpectedToken(AExpected : TSQLTokens); overload;
+    procedure UnexpectedToken; overload;
+    procedure UnexpectedToken(AExpected : TSQLTokens); overload;
     // All elements must be created with this factory function
-    Function CreateElement(AElementClass : TSQLElementClass; APArent : TSQLElement)  : TSQLElement; virtual;
+    function CreateElement(AElementClass : TSQLElementClass; APArent : TSQLElement)  : TSQLElement; virtual;
     function CreateLiteral(AParent: TSQLElement): TSQLLiteral;
-    Function CreateIdentifier(AParent : TSQLElement; Const AName : TSQLStringType) : TSQLIdentifierName;
-    // Verify that current token is the expect token; raise error if not
+    function CreateIdentifier(AParent : TSQLElement; Const AName : TSQLStringType) : TSQLIdentifierName;
+    // Verify that current token is the expected token; raise error if not
     procedure Expect(aToken: TSQLToken);
+    // Verify that current token is one of the expected tokens; raise error if not
     procedure Expect(aTokens: TSQLTokens);
-    // Expects aToken and eats it
+    // Expects aToken as current token and eats it
     procedure Consume(aToken: TSQLToken);
     procedure Error(Msg : String);
-    Procedure Error(Fmt : String; Args : Array of const);
+    procedure Error(Fmt : String; Args : Array of const);
     // Expression support
     function ParseExprLevel1(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
     function ParseExprLevel2(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
@@ -195,7 +196,7 @@ Resourcestring
   SErrUnexpectedTokenOf = 'Unexpected token: %s, expected one of %s';
   SErrTokenMismatch   = 'Unexpected token: ''%s'', expected: ''%s''';
   SErrExpectedDBObject = 'Expected database object type. Got: ''%s''';
-  SErrDomainNotAllowed = 'Domain name not allowed in typ definition.';
+  SErrDomainNotAllowed = 'Domain name not allowed in type definition.';
   SErrExpectedChar = 'Expected CHAR or CHARACTER, got "%s"';
   SERRVaryingNotAllowed = 'VARYING not allowed at this point.';
   SErrUnknownBooleanOp = 'Unknown boolean operation';
@@ -804,7 +805,7 @@ begin
       Result.ComputedBy:=ParseExprLevel1(Result,[eoComputedBy]);
       Consume(tsqlBraceClose);
       end
-    else
+    else //not computed, regular field
       Result.FieldType:=ParseTypeDefinition(Result,[ptfAllowDomainName,ptfAllowConstraint,ptfTableFieldDef]);
   except
     FreeAndNil(Result);
@@ -1618,8 +1619,13 @@ begin
     If CurrentToken=tsqlSubtype then   // SUB_TYPE T
       begin
       GetNextToken;
-      Expect(tsqlIntegerNumber);
-      ABlobType:=StrtoInt(CurrentTokenString);
+      Expect([tsqlIntegerNumber,tsqlBinary,tsqlText]);
+      case CurrentToken of
+        tsqlBinary: ABlobType:=0; //FB2.0+ see Language Reference Update
+        tsqlText: ABlobType:=1;
+        tsqlIntegerNumber: ABlobType:=StrtoInt(CurrentTokenString);
+        else Error('ParseBlobDefinition: internal error: unknown token type.');
+      end;
       GetNextToken;
       end;
     If (CurrentToken=tsqlSegment) then // SEGMENT SIZE S
@@ -1837,6 +1843,12 @@ begin
        dt:=sdtDate;
      tsqlTimeStamp:
        dt:=sdtDateTime;
+     tsqlDouble:
+       begin
+       GetNextToken;
+       Consume(tsqlPrecision); //DOUBLE PRECISION
+       dt:=sdtDoublePrecision;
+       end;
      tsqlFloat:
        dt:=sdtFloat;
      tsqlTime:

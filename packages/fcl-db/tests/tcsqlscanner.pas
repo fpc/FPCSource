@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL source lexical scanner test suite
 
@@ -291,7 +291,7 @@ Var
 begin
   CreateScanner(ASource);
   J:=Scanner.FetchToken;
-  EN2:=GetEnumName(TypeINfo(TSQLToken),Ord(AToken));
+  EN2:=GetEnumName(TypeInfo(TSQLToken),Ord(AToken));
   AssertEquals(Format('Source %s should result in %s.',[ASource,EN2]),AToken,J);
 end;
 

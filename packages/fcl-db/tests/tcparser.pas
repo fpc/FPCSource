@@ -166,6 +166,8 @@ type
     procedure TestBlob4;
     procedure TestBlob5;
     procedure TestBlob6;
+    procedure TestBlob7;
+    procedure TestBlob8;
     procedure TestBlobError1;
     procedure TestBlobError2;
     procedure TestBlobError3;
@@ -175,6 +177,7 @@ type
     procedure TestBlobError7;
     procedure TestSmallInt;
     procedure TestFloat;
+    procedure TestDoublePrecision;
   end;
 
   { TTestCheckParser }
@@ -1746,6 +1749,29 @@ begin
   AssertEquals('Blob segment size',0,TD.Len);
   AssertEquals('Character set','',TD.Charset);
 end;
+
+procedure TTestTypeParser.TestBlob7;
+var
+  TD : TSQLTypeDefinition;
+
+begin
+  TD:=TestType('BLOB SUB_TYPE BINARY',[],sdtBlob);
+  AssertEquals('Blob type 0',0,TD.BlobType);
+  AssertEquals('Blob segment size',0,TD.Len);
+  AssertEquals('Character set','',TD.Charset);
+end;
+
+procedure TTestTypeParser.TestBlob8;
+var
+  TD : TSQLTypeDefinition;
+
+begin
+  TD:=TestType('BLOB SUB_TYPE TEXT',[],sdtBlob);
+  AssertEquals('Blob type 1',1,TD.BlobType);
+  AssertEquals('Blob segment size',0,TD.Len);
+  AssertEquals('Character set','',TD.Charset);
+end;
+
 procedure TTestTypeParser.TestSmallInt;
 
 Var
@@ -1759,6 +1785,13 @@ Var
   TD : TSQLTypeDefinition;
 begin
   TD:=TestType('FLOAT',[],sdtFloat);
+end;
+
+procedure TTestTypeParser.TestDoublePrecision;
+var
+  TD : TSQLTypeDefinition;
+begin
+  TD:=TestType('DOUBLE PRECISION',[],sdtDoublePrecision);
 end;
 
 procedure TTestTypeParser.TestBlobError1;
