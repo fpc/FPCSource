@@ -1846,7 +1846,7 @@ begin
      tsqlDouble:
        begin
        GetNextToken;
-       Consume(tsqlPrecision); //DOUBLE PRECISION
+       Expect(tsqlPrecision); //DOUBLE PRECISION
        dt:=sdtDoublePrecision;
        end;
      tsqlFloat:

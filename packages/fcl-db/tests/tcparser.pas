@@ -178,6 +178,7 @@ type
     procedure TestSmallInt;
     procedure TestFloat;
     procedure TestDoublePrecision;
+    procedure TestDoublePrecisionDefault;
   end;
 
   { TTestCheckParser }
@@ -1792,6 +1793,13 @@ var
   TD : TSQLTypeDefinition;
 begin
   TD:=TestType('DOUBLE PRECISION',[],sdtDoublePrecision);
+end;
+
+procedure TTestTypeParser.TestDoublePrecisionDefault;
+var
+  TD : TSQLTypeDefinition;
+begin
+  TD:=TestType('DOUBLE PRECISION DEFAULT 0',[],sdtDoublePrecision);
 end;
 
 procedure TTestTypeParser.TestBlobError1;
