@@ -176,6 +176,12 @@ unit cgutils;
     { returns r with the given alignment }
     function setalignment(const r : treference;b : byte) : treference;
 
+    { Helper function which calculate "magic" values for replacement of division
+      by constant operation by multiplication. See the "PowerPC compiler developer
+      manual" for more information.
+      N is number of bits to handle, functionality tested for values 32 and 64. }
+    procedure calc_divconst_magic_signed(N: byte; d: aInt; out magic_m: aInt; out magic_s: byte);
+    procedure calc_divconst_magic_unsigned(N: byte; d: aWord; out magic_m: aWord; out magic_add: boolean; out magic_shift: byte);
 
 implementation
 
@@ -327,6 +333,99 @@ uses
           end;
       end;
 
+
+{$push}
+{$r-,q-}
+    procedure calc_divconst_magic_signed(N: byte; d: aInt; out magic_m: aInt; out magic_s: byte);
+      var
+        p: aInt;
+        ad,anc,delta,q1,r1,q2,r2,t: aWord;
+        two_N_minus_1: aWord;
+      begin
+        assert((d<-1) or (d>1));
+        two_N_minus_1:=aWord(1) shl (N-1);
+
+        ad:=abs(d);
+        t:=two_N_minus_1+(aWord(d) shr (N-1));
+        anc:=t-1-t mod ad;               { absolute value of nc }
+        p:=(N-1);                        { initialize p }
+        q1:=two_N_minus_1 div anc;       { initialize q1 = 2**p/abs(nc) }
+        r1:=two_N_minus_1-q1*anc;        { initialize r1 = rem(2**p,abs(nc)) }
+        q2:=two_N_minus_1 div ad;        { initialize q2 = 2**p/abs(d) }
+        r2:=two_N_minus_1-q2*ad;         { initialize r2 = rem(2**p,abs(d)) }
+        repeat
+          inc(p);
+          q1:=2*q1;           { update q1 = 2**p/abs(nc) }
+          r1:=2*r1;           { update r1 = rem(2**p/abs(nc)) }
+          if (r1>=anc) then   { must be unsigned comparison }
+            begin
+              inc(q1);
+              dec(r1,anc);
+            end;
+          q2:=2*q2;           { update q2 = 2p/abs(d) }
+          r2:=2*r2;           { update r2 = rem(2p/abs(d)) }
+          if (r2>=ad) then    { must be unsigned comparison }
+            begin
+              inc(q2);
+              dec(r2,ad);
+            end;
+          delta:=ad-r2;
+        until not ((q1<delta) or ((q1=delta) and (r1=0)));
+        magic_m:=q2+1;
+        if (d<0) then
+          magic_m:=-magic_m;  { resulting magic number }
+        magic_s:=p-N;         { resulting shift }
+      end;
+
+
+    procedure calc_divconst_magic_unsigned(N: byte; d: aWord; out magic_m: aWord; out magic_add: boolean; out magic_shift: byte);
+      var
+        p: aInt;
+        nc,delta,q1,r1,q2,r2,two_N_minus_1 : aWord;
+      begin
+        two_N_minus_1:=aWord(1) shl (N-1);
+        magic_add:=false;
+{$push}
+{$warnings off }
+        nc:=aWord(-1)-(-d) mod d;
+{$pop}
+        p:=N-1;                       { initialize p }
+        q1:=two_N_minus_1 div nc;     { initialize q1 = 2**p/nc }
+        r1:=two_N_minus_1-q1*nc;      { initialize r1 = rem(2**p,nc) }
+        q2:=(two_N_minus_1-1) div d;  { initialize q2 = (2**p-1)/d }
+        r2:=(two_N_minus_1-1)-q2*d;   { initialize r2 = rem((2**p-1),d) }
+        repeat
+          inc(p);
+          if (r1>=(nc-r1)) then
+            begin
+              q1:=2*q1+1;    { update q1 }
+              r1:=2*r1-nc;   { update r1 }
+            end
+          else
+            begin
+              q1:=2*q1;      { update q1 }
+              r1:=2*r1;      { update r1 }
+            end;
+          if ((r2+1)>=(d-r2)) then
+            begin
+              if (q2>=(two_N_minus_1-1)) then
+                magic_add:=true;
+              q2:=2*q2+1;    { update q2 }
+              r2:=2*r2+1-d;  { update r2 }
+            end
+          else
+            begin
+              if (q2>=two_N_minus_1) then
+                magic_add:=true;
+              q2:=2*q2;      { update q2 }
+              r2:=2*r2+1;    { update r2 }
+            end;
+          delta:=d-1-r2;
+        until not ((p<(2*N)) and ((q1<delta) or ((q1=delta) and (r1=0))));
+        magic_m:=q2+1;        { resulting magic number }
+        magic_shift:=p-N;     { resulting shift }
+      end;
+{$pop}
 
 end.
 
