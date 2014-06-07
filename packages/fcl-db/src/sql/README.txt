@@ -1,10 +1,10 @@
 SQL scanner/parser/Abstract Syntax Tree units
 
-This can parse the complete Firebird dialect 3 SQL syntax(which should come pretty close to SQL-92) and builds a syntax tree from it. The Abstract Syntax Tree can re-create the SQL with limited formatting support.
+This can parse the complete Firebird dialect 3 SQL syntax (which should come pretty close to SQL-92) and builds a syntax tree from it. The Abstract Syntax Tree can re-create the SQL with limited formatting support.
 
 It comes with extensive test suite (over 750 testcases; see the fcl-db\tests directory). It has been tested on almost 400,000 SQL statements. Nevertheless bugs may remain, so any test results you may produce are welcome. Especially the GRANT/REVOKE statements are tested only theoretically.
 
-The scanner/parser have been set up so they should be able to cope with other SQL dialects (using a set of flags) such as MySQL, but this support is currently not implemented.
+The scanner/parser have been designed so they should be able to cope with other SQL dialects (using a set of flags) such as MySQL, but this support is currently not implemented.
 
 
 The purpose is 3-fold:
