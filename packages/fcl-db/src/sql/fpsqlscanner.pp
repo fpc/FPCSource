@@ -29,7 +29,7 @@ resourcestring
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
   SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
-  SInvalidHexadecimalNumber = 'Invalid decimal number';
+  SInvalidHexadecimalNumber = 'Invalid hexadecimal number';
   SErrInvalidNonEqual = 'SyntaxError: != or !== expected';
   SBarExpected = '| character expected';
 

@@ -3829,8 +3829,8 @@ end;
 
 function TSQLParser.ParseScript(AllowPartial : Boolean = False): TSQLElementList;
 
-Var
-   E : TSQLElement;
+var
+  E : TSQLElement;
 
 begin
   Result:=TSQLElementList.Create(True);
