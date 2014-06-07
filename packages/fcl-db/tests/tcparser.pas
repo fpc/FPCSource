@@ -2261,13 +2261,15 @@ var
   D : TSQLCreateDomainStatement;
   T : TSQLTypeDefinition;
 begin
-  P:=TestCreateStatement('CREATE DOMAIN DEFCHECKNOTN AS VARCHAR(1) DEFAULT ''s'' CHECK (VALUE IN (''s'',''h'',''A'')) NOT NULL','A',TSQLCreateDomainStatement);
+  P:=TestCreateStatement(
+    'CREATE DOMAIN DEFCHECKNOTN AS VARCHAR(1) DEFAULT ''s'' CHECK (VALUE IN (''s'',''h'',''A'')) NOT NULL',
+    'DEFCHECKNOTN',TSQLCreateDomainStatement);
   CheckClass(P,TSQLCreateDomainStatement);
   D:=TSQLCreateDomainStatement(P);
   AssertNotNull('Have type Definition',D.TypeDefinition);
   T:=D.TypeDefinition;
   AssertNotNull('Have default value',T.DefaultValue);
-  AssertEquals('Character data type',sdtChar,T.DataType);
+  AssertEquals('Varchar data type',sdtVarChar,T.DataType);
   AssertEquals('Not null',True,T.NotNull);
 end;
 
