@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL source syntax parser
 
@@ -158,8 +158,9 @@ Type
     // Auxiliary stuff
     Function CurrentToken : TSQLToken;
     Function CurrentTokenString : String;
-    // Gets next token; also sets FCurrent to that token
+    // Gets next token; also updates current token
     Function GetNextToken : TSQLToken;
+    // Looks at next token without changing current token
     Function PeekNextToken : TSQLToken;
     Function PreviousToken : TSQLToken;
     Function IsEndOfLine : Boolean;
@@ -1810,7 +1811,7 @@ Var
   C : TSQLFieldConstraint;
 
 begin
- // We are positioned on the token prior to the type definition.
+  // We are positioned on the token prior to the type definition.
   AA:=True;
   GN:=True;
   prec:=0;
@@ -1890,7 +1891,7 @@ begin
   end;
   If GN then
     GetNextToken;
-  // We are now on array or rest of type.
+  // We are now on array definition or rest of type.
   If (CurrentToken=tsqlSquareBraceOpen) then
     begin
     GetNextToken;
@@ -1946,6 +1947,15 @@ begin
         begin
         D.Check:=ParseCheckConstraint(D,False);
         // Parsecheckconstraint is on next token.
+        end;
+      // Firebird 2.5 generates/accepts NOT NULL after CHECK constraint instead
+      // of before it in at least domain definitions:
+      if (CurrentToken=tsqlNot) then
+        begin
+        GetNextToken;
+        Expect(tsqlNULL);
+        D.NotNull:=True;
+        GetNextToken;
         end;
       // Constraint is before collation.
       if CurrentToken in [tsqlConstraint,tsqlCheck,tsqlUnique,tsqlprimary,tsqlReferences] then
