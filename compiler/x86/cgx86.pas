@@ -1570,6 +1570,19 @@ unit cgx86;
         href : treference;
       begin
         power:=0;
+        optimize_op_const(size,op,a);
+        case op of
+          OP_NONE:
+            begin
+              a_load_reg_reg(list,size,size,src,dst);
+              exit;
+            end;
+          OP_MOVE:
+            begin
+              a_load_const_reg(list,size,a,dst);
+              exit;
+            end;
+        end;
         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
