@@ -249,6 +249,10 @@ unit cgobj;
           { bit scan instructions }
           procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual; abstract;
 
+          { Multiplication with doubling result size.
+            dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
+          procedure a_mul_reg_reg_pair(list: TAsmList; size: tcgsize; src1,src2,dstlo,dsthi: TRegister);virtual;
+
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize:tcgsize; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
@@ -458,6 +462,9 @@ unit cgobj;
           { Generate code to exit an unwind-protected region. The default implementation
             produces a simple jump to destination label. }
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;
+          { Generate code for integer division by constant,
+            generic version is suitable for 3-address CPUs }
+          procedure g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister); virtual;
 
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
@@ -2500,6 +2507,69 @@ implementation
         Result:=TRegister(0);
         internalerror(200807238);
       end;
+
+
+    procedure tcg.a_mul_reg_reg_pair(list: TAsmList; size: TCgSize; src1,src2,dstlo,dsthi: TRegister);
+      begin
+        internalerror(2014060801);
+      end;
+
+
+    procedure tcg.g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister);
+      var
+        divreg: tregister;
+        magic: aInt;
+        u_magic: aWord;
+        u_shift: byte;
+        u_add: boolean;
+      begin
+        divreg:=getintregister(list,OS_INT);
+        if (size in [OS_S32,OS_S64]) then
+          begin
+            calc_divconst_magic_signed(tcgsize2size[size]*8,a,magic,u_shift);
+            { load magic value }
+            a_load_const_reg(list,OS_INT,magic,divreg);
+            { multiply, discarding low bits }
+            a_mul_reg_reg_pair(list,size,src,divreg,NR_NO,dst);
+            { add/subtract numerator }
+            if (a>0) and (magic<0) then
+              a_op_reg_reg_reg(list,OP_ADD,OS_INT,src,dst,dst)
+            else if (a<0) and (magic>0) then
+              a_op_reg_reg_reg(list,OP_SUB,OS_INT,src,dst,dst);
+            { shift shift places to the right (arithmetic) }
+            a_op_const_reg_reg(list,OP_SAR,OS_INT,u_shift,dst,dst);
+            { extract and add sign bit }
+            if (a>=0) then
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,tcgsize2size[size]*8-1,src,divreg)
+            else
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,tcgsize2size[size]*8-1,dst,divreg);
+            a_op_reg_reg_reg(list,OP_ADD,OS_INT,dst,divreg,dst);
+          end
+        else if (size in [OS_32,OS_64]) then
+          begin
+            calc_divconst_magic_unsigned(tcgsize2size[size]*8,a,u_magic,u_add,u_shift);
+            { load magic in divreg }
+            a_load_const_reg(list,OS_INT,tcgint(u_magic),divreg);
+            { multiply, discarding low bits }
+            a_mul_reg_reg_pair(list,size,src,divreg,NR_NO,dst);
+            if (u_add) then
+              begin
+                { Calculate "(numerator+result) shr u_shift", avoiding possible overflow }
+                a_op_reg_reg_reg(list,OP_SUB,OS_INT,dst,src,divreg);
+                { divreg=(numerator-result) }
+                a_op_const_reg_reg(list,OP_SHR,OS_INT,1,divreg,divreg);
+                { divreg=(numerator-result)/2 }
+                a_op_reg_reg_reg(list,OP_ADD,OS_INT,divreg,dst,divreg);
+                { divreg=(numerator+result)/2, already shifted by 1, so decrease u_shift. }
+                a_op_const_reg_reg(list,OP_SHR,OS_INT,u_shift-1,divreg,dst);
+              end
+            else
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,u_shift,dst,dst);
+          end
+        else
+          InternalError(2014060601);
+      end;
+
 
 {*****************************************************************************
                                     TCG64

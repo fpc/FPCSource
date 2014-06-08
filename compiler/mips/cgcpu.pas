@@ -76,6 +76,7 @@ type
     procedure g_flags2reg(list: tasmlist; size: TCgSize; const f: TResFlags; reg: tregister); override;
     procedure a_jmp_always(List: tasmlist; l: TAsmLabel); override;
     procedure a_jmp_name(list: tasmlist; const s: string); override;
+    procedure a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
     procedure g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef); override;
     procedure g_overflowCheck_loc(List: tasmlist; const Loc: TLocation; def: TDef; ovloc: tlocation); override;
     procedure g_proc_entry(list: tasmlist; localsize: longint; nostackframe: boolean); override;
@@ -1152,6 +1153,24 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
           list.Concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
       end;
   end;
+
+
+procedure TCGMIPS.a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+var
+  asmop: tasmop;
+begin
+  case size of
+    OS_32:  asmop:=A_MULTU;
+    OS_S32: asmop:=A_MULT;
+  else
+    InternalError(2014060802);
+  end;
+  list.concat(taicpu.op_reg_reg(asmop,src1,src2));
+  if (dstlo<>NR_NO) then
+    list.concat(taicpu.op_reg(A_MFLO,dstlo));
+  if (dsthi<>NR_NO) then
+    list.concat(taicpu.op_reg(A_MFHI,dsthi));
+end;
 
 
 procedure TCGMIPS.g_overflowCheck(List: tasmlist; const Loc: TLocation; def: TDef);

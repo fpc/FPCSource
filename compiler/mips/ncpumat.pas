@@ -86,16 +86,21 @@ begin
   numerator := left.location.Register;
 
   if (nodetype = divn) and
-    (right.nodetype = ordconstn) and
-    ispowerof2(tordconstnode(right).Value.svalue, power) then
+    (right.nodetype = ordconstn) then
   begin
-    tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 31, numerator, tmpreg);
-    { if signed, tmpreg=right value-1, otherwise 0 }
-    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).Value.svalue - 1, tmpreg);
-    { add left value }
-    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, numerator, tmpreg);
-    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), tmpreg, location.register);
+    if ispowerof2(tordconstnode(right).Value.svalue, power) then
+    begin
+      tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 31, numerator, tmpreg);
+      { if signed, tmpreg=right value-1, otherwise 0 }
+      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).Value.svalue - 1, tmpreg);
+      { add left value }
+      cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, numerator, tmpreg);
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, aword(power), tmpreg, location.register);
+    end
+    else
+      cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
+        tordconstnode(right).value.svalue,numerator,location.register);
   end
   else
   begin
