@@ -184,9 +184,10 @@ implementation
                         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
                         if m_add then
                           begin
-                            emit_reg_reg(A_SUB,S_L,NR_EDX,hreg1);
-                            emit_const_reg(A_SHR,S_L,1,hreg1);
+                            { addition can overflow, shift first bit considering carry,
+                              then shift remaining bits in regular way. }
                             emit_reg_reg(A_ADD,S_L,hreg1,NR_EDX);
+                            emit_const_reg(A_RCR,S_L,1,NR_EDX);
                             dec(s);
                           end;
                         if s<>0 then
