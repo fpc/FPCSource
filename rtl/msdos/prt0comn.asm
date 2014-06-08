@@ -56,6 +56,9 @@
 %ifdef __FAR_DATA__
         extern ___stack
 %endif
+%ifdef __NEAR_DATA__
+        extern ___stacktop
+%endif
 
         extern __SaveInt00
 
@@ -72,7 +75,7 @@
     %ifdef __NEAR_DATA__
         ; init the stack
         mov ss, bx
-        mov sp, stacktop
+        mov sp, ___stacktop wrt dgroup
     %endif
 %endif
 
@@ -475,8 +478,6 @@ __nullarea:
 
     %ifdef __NEAR_DATA__
         segment stack stack class=stack
-        resb 256
-        stacktop:
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,

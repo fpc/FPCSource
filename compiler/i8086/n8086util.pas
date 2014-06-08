@@ -47,8 +47,7 @@ implementation
   class procedure ti8086nodeutils.InsertMemorySizes;
     begin
       inherited;
-      if current_settings.x86memorymodel in x86_far_data_models then
-        InsertStackSegment;
+      InsertStackSegment;
     end;
 
 
@@ -73,6 +72,7 @@ implementation
           dec(stacksizeleft,stackblock);
           inc(i);
         end;
+      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___stacktop',AT_DATA,0));
     end;
 
 

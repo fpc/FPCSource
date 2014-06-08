@@ -1226,16 +1226,13 @@ interface
       AsmWriteLn('SECTION .fpc');
       { WLINK requires class=bss in order to leave the BSS section out of the executable }
       AsmWriteLn('SECTION .bss class=bss');
-      if current_settings.x86memorymodel in x86_far_data_models then
+      if current_settings.x86memorymodel<>mm_tiny then
         AsmWriteLn('SECTION stack stack class=stack align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
         AsmWriteLn('GROUP dgroup text rodata data fpc bss')
       else
-        if current_settings.x86memorymodel in x86_far_data_models then
-          AsmWriteLn('GROUP dgroup rodata data fpc bss stack')
-        else
-          AsmWriteLn('GROUP dgroup rodata data fpc bss');
+        AsmWriteLn('GROUP dgroup rodata data fpc bss stack');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
         begin
           AsmWriteLn('SECTION .debug_frame  use32 class=DWARF');
