@@ -962,22 +962,21 @@ begin
   AssertSQL(J,'A LEFT JOIN B ON (C = D)');
   J.JoinType:=jtRight;
   AssertSQL(J,'A RIGHT JOIN B ON (C = D)');
-  J.JoinType:=jtOuter;
-  AssertSQL(J,'A OUTER JOIN B ON (C = D)');
-  AssertSQL(J,'A'+sLinebreak+'OUTER JOIN B ON (C = D)',[sfoOneTablePerLine]);
-  AssertSQL(J,'A'+sLinebreak+'  OUTER JOIN B ON (C = D)',[sfoOneTablePerLine,sfoIndentTables]);
+  J.JoinType:=jtFullOuter;
+  AssertSQL(J,'A FULL OUTER JOIN B ON (C = D)');
+  AssertSQL(J,'A'+sLinebreak+'FULL OUTER JOIN B ON (C = D)',[sfoOneTablePerLine]);
+  AssertSQL(J,'A'+sLinebreak+'  FULL OUTER JOIN B ON (C = D)',[sfoOneTablePerLine,sfoIndentTables]);
   J2:=CreateJoinTableReference(CreateSimpleTableReference('E',''),CreateSimpleTableReference('F',''));
   J2.JoinClause:=CreateBinaryExpression(CreateIdentifierExpression('G'),CreateIdentifierExpression('H'));
   TSQLBinaryExpression(J2.JoinClause).Operation:=boEQ;
   J.Right.Free;
   J.Right:=J2;
   FTofree:=J;
-  AssertSQL(J,'A OUTER JOIN (E JOIN F ON (G = H)) ON (C = D)');
-  AssertSQL(J,'A OUTER JOIN E JOIN F ON (G = H) ON (C = D)',[sfoNoBracketRightJoin]);
+  AssertSQL(J,'A FULL OUTER JOIN (E JOIN F ON (G = H)) ON (C = D)');
+  AssertSQL(J,'A FULL OUTER JOIN E JOIN F ON (G = H) ON (C = D)',[sfoNoBracketRightJoin]);
   J.Right:=J.Left;
   J.Left:=J2;
-  AssertSQL(J,'(E JOIN F ON (G = H)) OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
-
+  AssertSQL(J,'(E JOIN F ON (G = H)) FULL OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
 end;
 
 procedure TTestGenerateSQL.TestPlanNatural;

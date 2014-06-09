@@ -680,7 +680,7 @@ Var
 begin
   Result:=tsqlUnknown;
 
-  // Get "word" finalized by end of string, space/tab.
+  // Get "word" finalized by end of string, space/tab/line ending.
   TokenStart:=TokenStr;
   repeat
     Inc(TokenStr);

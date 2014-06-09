@@ -208,7 +208,7 @@ Resourcestring
   SErrExpectedDBObject = 'Expected database object type. Got: ''%s''';
   SErrDomainNotAllowed = 'Domain name not allowed in type definition.';
   SErrExpectedChar = 'Expected CHAR or CHARACTER, got "%s"';
-  SERRVaryingNotAllowed = 'VARYING not allowed at this point.';
+  SErrVaryingNotAllowed = 'VARYING not allowed at this point.';
   SErrUnknownBooleanOp = 'Unknown boolean operation';
   SErrUnknownComparison = 'unknown Comparison operation';
   SErrIntegerExpected = 'Integer expression expected';
@@ -222,6 +222,7 @@ Resourcestring
   SErrNoAsteriskInSingleTon = '* not allowed in singleton select';
   SErrUnionFieldCountMatch =  'Field count mismatch in select union : %d <> %d';
   SErrInvalidExtract = 'Invalid element for extract: %s';
+  SErrOuterWithout = 'OUTER without previous LEFT, RIGHT or FULL';
 
 Function StringToSQLExtractElement(Const S : TSQLStringType; Out Res : TSQLExtractElement) : Boolean;
 
@@ -345,6 +346,7 @@ begin
        T.Params:=ParseValueList(AParent,[eoParamValue]);
        GetNextToken;
        end;
+     // Table aliases with and without AS keyword
      if (CurrentToken in [tsqlIdentifier,tsqlAs]) then
        begin
        if CurrentToken=tsqlAs then
@@ -357,7 +359,7 @@ begin
        end;
      end;
    Repeat
-     If CurrentToken in [tsqlInner,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight] then
+     If CurrentToken in [tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight] then
        begin
        J:=TSQLJoinTableReference(CreateElement(TSQLJoinTableReference,AParent));
        J.Left:=Result;
@@ -365,18 +367,26 @@ begin
        Case CurrentToken of
           tsqlInner : J.JoinType:=jtInner;
           tsqlJoin  : J.JoinType:=jtNone;
-          tsqlOuter : J.JoinType:=jtOuter;
+          tsqlFull  : J.JoinType:=jtFullOuter;
           tsqlLeft  : J.JoinType:=jtLeft;
           tsqlRight : J.JoinType:=jtRight;
        end;
        if CurrentToken<>tsqlJoin then
          GetNextToken;
+       // Ignore OUTER in FULL OUTER, LEFT OUTER, RIGHT OUTER...:
+       if CurrentToken=tsqlOuter then
+         begin
+         if PreviousToken in [tsqlFull, tsqlLeft, tSQLRight] then
+           Consume(tsqlOuter)
+         else
+           Error(SErrOuterWithout);
+         end;
        Consume(tsqlJoin);
        J.Right:=ParseTableRef(AParent);
        Consume(tsqlOn);
        J.JoinClause:=ParseExprLevel1(J,[eoJOIN]);
        end;
-  until Not (CurrentToken in [tsqlInner,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
+  until Not (CurrentToken in [tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
 end;
 
 procedure TSQLParser.ParseFromClause(AParent: TSQLSelectStatement;
@@ -1598,7 +1608,7 @@ begin
       GetNextToken
       end
     else
-      Error(SERRVaryingNotAllowed);
+      Error(SErrVaryingNotAllowed);
     end;
   If (CurrentToken=tsqlBraceOpen) then  // (LEN)
     begin

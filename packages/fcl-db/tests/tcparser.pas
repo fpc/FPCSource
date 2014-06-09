@@ -388,7 +388,8 @@ type
     procedure TestSelectTwoFieldsTwoTablesJoin;
     procedure TestSelectTwoFieldsTwoInnerTablesJoin;
     procedure TestSelectTwoFieldsTwoLeftTablesJoin;
-    procedure TestSelectTwoFieldsTwoOuterTablesJoin;
+    procedure TestSelectTwoFieldsTwoFullOuterTablesJoin;
+    procedure TestSelectTwoFieldsTwoFullTablesJoin;
     procedure TestSelectTwoFieldsTwoRightTablesJoin;
     procedure TestSelectTwoFieldsThreeTablesJoin;
     procedure TestSelectTwoFieldsBracketThreeTablesJoin;
@@ -3851,17 +3852,31 @@ begin
   AssertJoinOn(J.JoinClause,'E','F',boEq);
 end;
 
-procedure TTestSelectParser.TestSelectTwoFieldsTwoOuterTablesJoin;
+procedure TTestSelectParser.TestSelectTwoFieldsTwoFullOuterTablesJoin;
 Var
   J : TSQLJoinTableReference;
 
 begin
-  TestSelect('SELECT B,C FROM A OUTER JOIN D ON E=F');
+  TestSelect('SELECT B,C FROM A FULL OUTER JOIN D ON E=F');
   AssertEquals('Two fields',2,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
   AssertField(Select.Fields[1],'C');
   AssertEquals('One table',1,Select.Tables.Count);
-  J:=AssertJoin(Select.Tables[0],'A','D',jtOuter);
+  J:=AssertJoin(Select.Tables[0],'A','D',jtFullOuter);
+  AssertJoinOn(J.JoinClause,'E','F',boEq);
+end;
+
+procedure TTestSelectParser.TestSelectTwoFieldsTwoFullTablesJoin;
+Var
+  J : TSQLJoinTableReference;
+
+begin
+  TestSelect('SELECT B,C FROM A FULL JOIN D ON E=F');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  J:=AssertJoin(Select.Tables[0],'A','D',jtFullOuter);
   AssertJoinOn(J.JoinClause,'E','F',boEq);
 end;
 

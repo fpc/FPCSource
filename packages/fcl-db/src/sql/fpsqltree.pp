@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL Abstract syntax tree
 
@@ -614,7 +614,7 @@ Type
   end;
 
   { TSQLJoinTableReference }
-  TSQLJoinType = (jtNone,jtInner,jtLeft,jtRight,jtOuter);
+  TSQLJoinType = (jtNone,jtInner,jtLeft,jtRight,jtFullOuter);
   TSQLJoinTableReference = Class(TSQLTableReference)
   private
     FJoinClause: TSQLExpression;
@@ -3033,7 +3033,7 @@ function TSQLJoinTableReference.GetAsSQL(Options: TSQLFormatOptions;
 
 Const
   Opcodes : Array[TSQLJoinTYpe] of String
-          = ('','INNER ','LEFT ','RIGHT ','OUTER ');
+          = ('','INNER ','LEFT ','RIGHT ','FULL OUTER ');
 
 Var
   L,R,O,Sep,prefix : TSQLStringType;
