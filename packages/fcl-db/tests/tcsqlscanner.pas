@@ -197,8 +197,8 @@ type
     Procedure TestStarting;
     procedure TestString;
     procedure TestSubtype;
-    Procedure TestSum;
-    Procedure TestSuspend;
+    procedure TestSum;
+    procedure TestSuspend;
     Procedure TestTable;
     Procedure TestThen;
     Procedure TestTime;
@@ -244,6 +244,8 @@ type
     procedure TestFloatLiteral;
     procedure TestStringLiteral1;
     procedure TestStringLiteral2;
+    procedure TestSymbolLiteral1;
+    procedure TestSymbolLiteral2;
     procedure TestStringError;
     procedure TestFloatError;
     Procedure TestOptionsoDoubleQuoteStringLiteral;
@@ -362,7 +364,7 @@ begin
   FLineReader:=TStreamLineReader.Create(Fstream);
   FScanner:=TSQLScanner.Create(FLineReader);
   FScanner.Options:=AOptions;
-  Result:=FSCanner;
+  Result:=FScanner;
 end;
 
 procedure TTestSQLScanner.FreeScanner;
@@ -642,6 +644,16 @@ end;
 procedure TTestSQLScanner.TestSuspend;
 begin
   CheckToken(tsqlSuspend,'Suspend');
+end;
+
+procedure TTestSQLScanner.TestSymbolLiteral1;
+begin
+  CheckToken(tsqlSymbolLiteral,'%');
+end;
+
+procedure TTestSQLScanner.TestSymbolLiteral2;
+begin
+  CheckToken(tsqlSymbolLiteral,'%^');
 end;
 
 procedure TTestSQLScanner.TestStarting;
@@ -1392,8 +1404,8 @@ end;
 
 procedure TTestSQLScanner.TestIdentifier5;
 begin
-  FErrorSource:='$0';
-  AssertException('Identifier cannot start with _',ESQLScannerError,@TestErrorSource);
+  // $0 should not be parsed as an identifier but as a symbol literal
+  CheckToken(tsqlSymbolLiteral,'$0');
 end;
 
 procedure TTestSQLScanner.TestIdentifierDotIdentifier;
