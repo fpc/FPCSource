@@ -511,6 +511,7 @@ procedure TSQLParser.ParseOrderBy(AParent: TSQLSelectStatement;
 Var
   O : TSQLOrderByElement;
   F : TSQLElement;
+  BuildToken : string;
 
 begin
   // On entry we're on the ORDER token.
@@ -518,10 +519,21 @@ begin
   Expect(tsqlBy);
   Repeat
     GetNextToken;
+    // Deal with table.column notation:
     Case CurrentToken of
       tsqlIdentifier :
-        F:=CreateIdentifier(AParent,CurrentTokenString);
-      tsqlIntegerNumber :
+        begin
+        BuildToken:=CurrentTokenString;
+        If (PeekNextToken=tsqlDot) then
+          begin
+          GetNextToken; //past tsqlDot
+          GetNextToken;
+          Expect(tsqlIdentifier);
+          BuildToken:=BuildToken+'.'+CurrentTokenString;
+          end;
+        F:=CreateIdentifier(AParent,BuildToken);
+        end;
+      tsqlIntegerNumber : //e.g. ORDER BY 1
         begin
         F:=TSQLIntegerLiteral(CreateElement(TSQLIntegerLiteral,AParent));
         TSQLIntegerLiteral(F).Value:=StrToInt(CurrentTokenString);
@@ -2077,7 +2089,7 @@ begin
     tsqlNull :
       Result:=TSQLLiteral(CreateElement(TSQLNullLiteral,AParent));
     tsqlValue :
-        Result:=TSQLLiteral(CreateElement(TSQLValueLiteral,AParent));
+      Result:=TSQLLiteral(CreateElement(TSQLValueLiteral,AParent));
     tsqlUSER :
       Result:=TSQLLiteral(CreateElement(TSQLUserLiteral,AParent));
   else
@@ -2219,7 +2231,7 @@ begin
         if (CurrentToken=tsqlNot) then
           begin
           GetNextToken;
-          if not (tt=tsqlis) then
+          if not (tt=tsqlIS) then
             UnexpectedToken;
           Inverted:=true;
           end;

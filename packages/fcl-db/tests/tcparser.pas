@@ -378,6 +378,7 @@ type
     procedure TestSelectTwoFieldsOneTable;
     procedure TestSelectOneFieldAliasOneTable;
     procedure TestSelectTwoFieldAliasesOneTable;
+    procedure TestSelectOneTableFieldOneTable;
     procedure TestSelectOneDistinctFieldOneTable;
     procedure TestSelectOneAllFieldOneTable;
     procedure TestSelectAsteriskOneTable;
@@ -427,6 +428,7 @@ type
     procedure TestOrderByOneDescField;
     procedure TestOrderByTwoDescFields;
     procedure TestOrderByThreeDescFields;
+    procedure TestOrderByOneTableField;
     procedure TestOrderByOneColumn;
     procedure TestOrderByTwoColumns;
     procedure TestOrderByTwoColumnsDesc;
@@ -3755,6 +3757,16 @@ begin
   AssertTable(Select.Tables[0],'A');
 end;
 
+procedure TTestSelectParser.TestSelectOneTableFieldOneTable;
+
+begin
+  TestSelect('SELECT A.B FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+end;
+
 procedure TTestSelectParser.TestSelectOneDistinctFieldOneTable;
 begin
   TestSelect('SELECT DISTINCT B FROM A');
@@ -4274,6 +4286,7 @@ begin
   AssertOrderBy(Select.OrderBy[1],'D',0,obAscending);
   AssertOrderBy(Select.OrderBy[2],'E',0,obAscending);
 end;
+
 procedure TTestSelectParser.TestOrderByOneDescField;
 
 begin
@@ -4311,6 +4324,19 @@ begin
   AssertOrderBy(Select.OrderBy[1],'D',0,obDescending);
   AssertOrderBy(Select.OrderBy[2],'E',0,obDescending);
 end;
+
+procedure TTestSelectParser.TestOrderByOneTableField;
+
+begin
+  TestSelect('SELECT B FROM A ORDER BY C.D');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertTable(Select.Tables[0],'A');
+  AssertEquals('One order by field',1,Select.Orderby.Count);
+  AssertOrderBy(Select.OrderBy[0],'C',0,obAscending);
+end;
+
 
 procedure TTestSelectParser.TestOrderByOneColumn;
 begin

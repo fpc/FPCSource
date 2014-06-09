@@ -40,7 +40,7 @@ type
    tsqlEOF,tsqlWhiteSpace,
    tsqlString {string literal},
    tsqlIdentifier {a table etc name},
-   tsqlSymbolLiteral {a literal containing symbols/punctuation marks},
+   tsqlSymbolLiteral {a literal containing symbols/punctuation marks; only rarely used - e.g. in SET TERM ^ ;},
    tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
    tsqlStatementTerminator {statement separator, usually semicolon but may be changed by code. For now, limited to semicolon and symbol literals not already defined like tsqlCOMMA},
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,

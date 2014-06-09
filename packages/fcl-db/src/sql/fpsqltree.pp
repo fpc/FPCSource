@@ -150,6 +150,7 @@ Type
     Property Value : TSQLStringType Read FValue Write FValue;
   end;
 
+
   { TSQLIdentifierElement }
 
   TSQLIdentifierName = Class(TSQLElement)
@@ -585,13 +586,13 @@ Type
 
   TSQLSelectField = Class(TSQLSelectElement)
   private
-    FAliasName: TSQLIDentifierName;
+    FAliasName: TSQLIdentifierName;
     FExpression: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Expression : TSQLExpression Read FExpression Write FExpression;
-    Property AliasName : TSQLIDentifierName Read FAliasName Write FAliasName;
+    Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
   { TSQLTableReference }
@@ -602,7 +603,7 @@ Type
 
   TSQLSimpleTableReference = Class(TSQLTableReference)
   private
-    FAliasName: TSQLIDentifierName;
+    FAliasName: TSQLIdentifierName;
     FObjectName: TSQLIdentifierName;
     FParams: TSQLElementList;
   Public
@@ -610,7 +611,7 @@ Type
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property ObjectName : TSQLIdentifierName Read FObjectName Write FObjectName;
     Property Params : TSQLElementList Read FParams Write FParams;
-    Property AliasName : TSQLIDentifierName Read FAliasName Write FAliasName;
+    Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
   { TSQLJoinTableReference }
@@ -722,7 +723,7 @@ Type
     FPlan: TSQLSelectPlan;
     FStartAt: TSQLExpression;
     FTables: TSQLElementList;
-    FTN: TSQLidentifierName;
+    FTN: TSQLIdentifierName;
     FUnion: TSQLSelectStatement;
     FUnionAll: Boolean;
     FWhere: TSQLExpression;
@@ -730,7 +731,7 @@ Type
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property TransactionName : TSQLidentifierName Read FTN Write FTN;
+    Property TransactionName : TSQLIdentifierName Read FTN Write FTN;
     Property Tables : TSQLElementList Read FTables;
     Property Fields : TSQLElementList Read FFields;
     Property Where : TSQLExpression read FWhere write FWhere;
@@ -779,12 +780,12 @@ Type
 
   TSQLUpdatePair = Class(TSQLElement)
   private
-    FFieldName: TSQLidentifierName;
+    FFieldName: TSQLIdentifierName;
     FValue: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property FieldName : TSQLidentifierName Read FFieldName Write FFieldName;
+    Property FieldName : TSQLIdentifierName Read FFieldName Write FFieldName;
     Property Value : TSQLExpression Read FValue Write FValue;
   end;
 

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL Syntax Tree SQL generation tests
 
@@ -31,11 +31,11 @@ type
   Private
     FToFree:TSQLElement;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override;
-    procedure DoTestDropStatement(AClass: TSQLDropStatementClass; const AObjectName: String);
-    procedure DoTestAlterCreateProcedure(S: TSQLAlterCreateProcedureStatement; PHEAD: String);
-    procedure DoTestAlterCreateTrigger(S: TSQLAlterCreateTriggerStatement; PHEAD: String);
+    Procedure SetUp; override;
+    Procedure TearDown; override;
+    Procedure DoTestDropStatement(AClass: TSQLDropStatementClass; const AObjectName: String);
+    Procedure DoTestAlterCreateProcedure(S: TSQLAlterCreateProcedureStatement; PHEAD: String);
+    Procedure DoTestAlterCreateTrigger(S: TSQLAlterCreateTriggerStatement; PHEAD: String);
     Function CreateIdentifier(Const AName : TSQLStringType) : TSQLIdentifierName;
     Function CreateGrantee(Const AName : TSQLStringType; AClass : TSQLGranteeClass = Nil) : TSQLGrantee;
     Function CreateLiteral(Const AValue : Integer) : TSQLIntegerLiteral;
