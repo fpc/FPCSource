@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2013 by Joost van der Sluis and other members of the
+    Copyright (c) 1999-2014 by Joost van der Sluis and other members of the
     Free Pascal development team
 
     BufDataset implementation
@@ -2066,7 +2066,7 @@ end;
 function TCustomBufDataset.LoadBuffer(Buffer : TRecordBuffer): TGetResult;
 
 var NullMask        : pbyte;
-    i               : longint;
+    x               : longint;
     CreateBlobField : boolean;
     BufBlob         : PBufBlobField;
 
@@ -2081,30 +2081,21 @@ begin
     Exit;
     end;
 
-  if IsUniDirectional then
-    begin
-    // release blob buffers before new record is loaded
-    // in order to save memory
-    for i := 0 to high(FBlobBuffers) do
-      FreeBlobBuffer(FBlobBuffers[i]);
-    SetLength(FBlobBuffers, 0);
-    end;
-
   NullMask := pointer(buffer);
   fillchar(Nullmask^,FNullmaskSize,0);
   inc(buffer,FNullmaskSize);
 
-  for i := 0 to FieldDefs.Count-1 do
+  for x := 0 to FieldDefs.Count-1 do
     begin
-    if not LoadField(FieldDefs[i], buffer, CreateBlobField) then
-      SetFieldIsNull(NullMask,i)
+    if not LoadField(FieldDefs[x],buffer,CreateBlobField) then
+      SetFieldIsNull(NullMask,x)
     else if CreateBlobField then
       begin
       BufBlob := PBufBlobField(Buffer);
       BufBlob^.BlobBuffer := GetNewBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[i], BufBlob);
+      LoadBlobIntoBuffer(FieldDefs[x],BufBlob);
       end;
-    inc(buffer, GetFieldSize(FieldDefs[i]));
+    inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
   Result := grOK;
 end;
