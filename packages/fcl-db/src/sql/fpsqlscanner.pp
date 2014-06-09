@@ -37,10 +37,16 @@ type
 
    TSQLToken = (tsqlUnknown,
    // Specials
-   tsqlEOF,tsqlWhiteSpace,tsqlString,tsqlIdentifier,tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
+   tsqlEOF,tsqlWhiteSpace,
+   tsqlString {string literal},
+   tsqlIdentifier {a table etc name},
+   tsqlSymbolLiteral {a literal containing symbols/punctuation marks},
+   tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
+   tsqlStatementTerminator {statement separator, usually semicolon but may be changed by code. For now, limited to semicolon and symbol literals not already defined like tsqlCOMMA},
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
-   tsqlPlaceHolder,tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,tsqlGT,tsqlLT,
-   tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
+   tsqlPlaceHolder {question mark},
+   tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,
+   tsqlGT,tsqlLT,tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
    tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
    { Reserved words/keywords start here. They must be last }
    { Note: if adding before tsqlALL or after tsqlWHEN please update FirstKeyword/LastKeyword }
@@ -62,7 +68,7 @@ type
    tsqlPrecision, tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
    tsqlRIGHT, tsqlROLE, tsqlReferences, tsqlRollBack, tsqlRelease,  tsqlretain,  tsqlReturningValues,tsqlReturns, tsqlrevoke,
    tsqlSELECT, tsqlSET, tsqlSINGULAR, tsqlSOME, tsqlSTARTING, tsqlSUM, tsqlSKIP,tsqlSUBTYPE,tsqlSize,tsqlSegment, tsqlSORT, tsqlSnapShot,tsqlSchema,tsqlShadow,tsqlSuspend,tsqlSQLCode,tsqlSmallint,
-   tSQLTABLE, tsqlText, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
+   tSQLTABLE, tsqlText, tsqlTerm, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
    tsqlUNION, tsqlUPDATE, tsqlUPPER,  tsqlUNIQUE, tsqlUSER,
    tsqlValue, tsqlVALUES, tsqlVARIABLE,  tsqlVIEW, tsqlVARCHAR,TSQLVARYING,
    tsqlWHERE, tsqlWITH, tsqlWHILE, tsqlWork, tsqlWhen
@@ -79,7 +85,12 @@ const
   // Strings that represent tokens in TSQLToken
   TokenInfos: array[TSQLToken] of string = ('unknown',
        // Specials
-       'EOF','whitespace','String', 'identifier','integer number','float number', 'comment',
+       'EOF','whitespace',
+       'String',
+       'identifier',
+       'symbol literal',
+       'integer number','float number', 'comment',
+       ';' {value may be changed at run time to any symbol or set of symbols},
        '(',')', '[',']',
        '?',',',':','.',';','>','<',
        '+','-','*','/','||',
@@ -103,7 +114,7 @@ const
        'PRECISION', 'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
        'RIGHT', 'ROLE', 'REFERENCES', 'ROLLBACK','RELEASE', 'RETAIN', 'RETURNING_VALUES', 'RETURNS','REVOKE',
        'SELECT', 'SET', 'SINGULAR', 'SOME', 'STARTING', 'SUM', 'SKIP','SUB_TYPE', 'SIZE', 'SEGMENT', 'SORT', 'SNAPSHOT','SCHEMA','SHADOW','SUSPEND','SQLCODE','SMALLINT',
-       'TABLE', 'TEXT', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
+       'TABLE', 'TEXT', 'TERM', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
        'UNION', 'UPDATE', 'UPPER', 'UNIQUE', 'USER',
        'VALUE','VALUES','VARIABLE', 'VIEW','VARCHAR','VARYING',
        'WHERE', 'WITH', 'WHILE','WORK','WHEN'
@@ -149,6 +160,7 @@ Type
                        soReturnWhiteSpace,
                        soBackslashEscapes,
                        soNoDoubleDelimIsChar,
+                       soNoSetTerm {if set, do not allow changing terminator with SET TERM commands as used in Firebird},
                        soDoubleQuoteStringLiteral,  // Default: single quote is string literal
                        soSingleQuoteIdentifier,     // Default: double quote is identifier. Ignored if soDoubleQuoteStringLiteral is not specified
                        soBackQuoteIdentifier        // Default: double quote is identifier
@@ -172,12 +184,18 @@ Type
     FKeyWords : TFPHashList;
     FExclude : TStringList;
     function CommentDiv: TSQLToken;
+    // Used to parse out an identifier/name and store it in the list of identifiers
     function DoIdentifier : TSQLToken;
+    // Used to parse out a literal containing symbols
+    // Also looks for tsqlStatementTerminator
+    function DoSymbolLiteral : TSQLToken;
     function DoMultiLineComment: TSQLToken;
     function DoNumericLiteral: TSQLToken;
     function DoSingleLineComment: TSQLToken;
     function DoStringLiteral: TSQLToken;
     function DoWhiteSpace: TSQLToken;
+    // Reads a new line into TokenStr and returns true
+    // If no new lines, returns false
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
     function GetExcludeKeywords: TStrings;
@@ -211,11 +229,12 @@ Type
 implementation
 
 Var
+  // Keeps track of identifiers used
   IdentifierTokens : array[FirstKeyword..LastKeyWord] of TSQLToken;
   IdentifierTokensOK : Boolean;
 
 Resourcestring
-  SErrUNknownToken = 'Unknown token: %s';
+  SErrUnknownToken = 'Unknown token: %s';
 
 Procedure BuildIdentifierTokens;
 
@@ -316,10 +335,10 @@ begin
     Inc(TokenStr);
     if TokenStr[0] = #0 then
       if not FetchLine then
-       begin
-       FCurToken := Result;
-       exit;
-       end;
+        begin
+        FCurToken := Result;
+        exit;
+        end;
   until not (TokenStr[0] in [#9, ' ']);
 end;
 
@@ -454,7 +473,7 @@ begin
   If FKeywords.Count>0 then
     FKeywords.Clear;
   for I:=FirstKeyword to LastKeyword do
-    if (not Assigned(FExclude)) or (FExclude.INdexOf(TokenInfos[I])=-1) then
+    if (not Assigned(FExclude)) or (FExclude.IndexOf(TokenInfos[I])=-1) then
       FKeywords.Add(TokenInfos[I],@IdentifierTokens[i]);
 end;
 
@@ -616,7 +635,7 @@ function TSQLScanner.DoIdentifier : TSQLToken;
 Var
   TokenStart:PChar;
   Len : Integer;
-  I : TSQLToken;
+  {I : TSQLToken;}
   S : ShortString;
   P : ^TSQLToken;
 
@@ -650,6 +669,43 @@ begin
       end;
     I:=Succ(I);
     end;}
+end;
+
+function TSQLScanner.DoSymbolLiteral : TSQLToken;
+
+Var
+  Len : Integer;
+  P : ^TSQLToken;
+  TokenStart : PChar;
+begin
+  Result:=tsqlUnknown;
+
+  // Get "word" finalized by end of string, space/tab.
+  TokenStart:=TokenStr;
+  repeat
+    Inc(TokenStr);
+  until (TokenStr[0] in [#0, #9, #10, #13, ' ']);
+  Len:=(TokenStr-TokenStart);
+  if Len > 0 then
+    begin
+    result:=tsqlSymbolLiteral;
+    SetLength(FCurTokenString,Len);
+    Move(TokenStart^,FCurTokenString[1],Len);
+
+    // Check if it is the statement terminator
+    if FCurTokenString=TokenInfos[tsqlStatementTerminator] then
+      begin
+      exit(tsqlStatementTerminator);
+      end;
+
+    // Check if this is a keyword or identifier/literal
+    // Probably not (due to naming rules) but it doesn't hurt
+    If FKeyWords.Count=0 then
+      BuildKeyWords;
+    P:=FKeyWords.Find(FCurTokenString); //case-sensitive search
+    If (P<>Nil) then
+      Result:=P^; //keyword found, just in case
+    end;
 end;
 
 function TSQLScanner.FetchToken: TSQLToken;
@@ -819,7 +875,7 @@ begin
       begin
       Inc(TokenStr);
       if TokenStr[0] = '=' then
-	begin
+	      begin
         Inc(TokenStr);
         Result:=tsqlGE;
         end
@@ -830,7 +886,9 @@ begin
    'A'..'Z':
      Result:=DoIdentifier;
    else
-     Error(SErrUnknownToken,[TokenStr[0]]);
+     // Symbol of some sort
+     Result:=DoSymbolLiteral;
+     //Error(SErrUnknownToken,[TokenStr[0]]);
    end; // Case
   Until (Not (Result in [tsqlComment,tsqlWhitespace])) or
         ((Result=tsqlComment) and (soReturnComments in options)) or

@@ -59,8 +59,10 @@ Type
     procedure Expect(aToken: TSQLToken);
     // Verify that current token is one of the expected tokens; raise error if not
     procedure Expect(aTokens: TSQLTokens);
-    // Expects aToken as current token and eats it
+    // Expects aToken as current token and eats it by calling GetNextToken
     procedure Consume(aToken: TSQLToken);
+    // Expects aTokens tokens and eats the token by calling GetNextToken
+    procedure Consume(aTokens: TSQLTokens);
     procedure Error(Msg : String);
     procedure Error(Fmt : String; Args : Array of const);
     // Expression support
@@ -99,6 +101,7 @@ Type
     function ParseCreateViewStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseCreateTriggerStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseSetGeneratorStatement(AParent: TSQLElement) : TSQLSetGeneratorStatement;
+    function ParseSetTermStatement(AParent: TSQLElement) : TSQLSetTermStatement;
     function ParseCreateDatabaseStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateDatabaseStatement;
     function ParseCreateShadowStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateShadowStatement;
     function ParseAlterDatabaseStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLAlterDatabaseStatement;
@@ -146,6 +149,7 @@ Type
     Function ParseUpdateStatement(AParent : TSQLElement) : TSQLUpdateStatement;
     Function ParseInsertStatement(AParent : TSQLElement) : TSQLInsertStatement;
     Function ParseDeleteStatement(AParent : TSQLElement) : TSQLDeleteStatement;
+    // Parses both create and alter statements
     Function ParseCreateStatement(AParent : TSQLElement; IsAlter : Boolean = False) : TSQLCreateOrAlterStatement;
     Function ParseDropStatement(AParent : TSQLElement) : TSQLDropStatement;
     Function ParseRollbackStatement(AParent : TSQLElement) : TSQLRollbackStatement;
@@ -156,6 +160,12 @@ Type
     Function ParseRevokeStatement(AParent: TSQLElement): TSQLGrantStatement;
     Function Parse : TSQLElement;
     Function ParseScript(AllowPartial : Boolean = False) : TSQLElementList;
+    // Gets statement terminator (as e.g. used in SET TERM) so statements like
+    // EXECUTE BLOCK or CREATE PROCEDURE that contain semicolons can be parsed
+    function GetStatementTerminator: string;
+    // Sets statement terminator (as e.g. used in SET TERM) so statements like
+    // EXECUTE BLOCK or CREATE PROCEDURE that contain semicolons can be parsed
+    procedure SetStatementTerminator(AValue: string);
     // Auxiliary stuff
     Function CurrentToken : TSQLToken;
     Function CurrentTokenString : String;
@@ -253,6 +263,12 @@ begin
   GetNextToken;
 end;
 
+procedure TSQLParser.Consume(aTokens: TSQLTokens);
+begin
+  Expect(aTokens);
+  GetNextToken;
+end;
+
 function TSQLParser.CurSource: String;
 begin
   Result:=FScanner.CurFilename;
@@ -304,7 +320,8 @@ begin
   Result.SourcePos:=CurPos;
 end;
 
-Function TSQLParser.ParseTableRef(AParent : TSQLSelectStatement) : TSQLTableReference;
+function TSQLParser.ParseTableRef(AParent: TSQLSelectStatement
+  ): TSQLTableReference;
 Var
   T : TSQLSimpleTablereference;
   J  : TSQLJoinTableReference;
@@ -362,7 +379,8 @@ begin
   until Not (CurrentToken in [tsqlInner,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
 end;
 
-Procedure TSQLParser.ParseFromClause(AParent : TSQLSelectStatement; AList : TSQLElementList);
+procedure TSQLParser.ParseFromClause(AParent: TSQLSelectStatement;
+  AList: TSQLElementList);
 
 Var
   T : TSQLTableReference;
@@ -380,7 +398,8 @@ begin
   until Done;
 end;
 
-Procedure TSQLParser.ParseSelectFieldList(AParent : TSQLSelectStatement; AList : TSQLElementList; Singleton : Boolean);
+procedure TSQLParser.ParseSelectFieldList(AParent: TSQLSelectStatement;
+  AList: TSQLElementList; Singleton: Boolean);
 Var
   F : TSQLSelectField;
   B : Boolean;
@@ -429,7 +448,8 @@ begin
   until (CurrentToken=tsqlFROM);
 end;
 
-Procedure TSQLParser.ParseGroupBy(AParent : TSQLSelectStatement; AList : TSQLElementList);
+procedure TSQLParser.ParseGroupBy(AParent: TSQLSelectStatement;
+  AList: TSQLElementList);
 
 Var
   N : TSQLStringType;
@@ -455,7 +475,8 @@ begin
   until (CurrentToken<>tsqlComma);
 end;
 
-Function TSQLParser.ParseForUpdate(AParent : TSQLSelectStatement) : TSQLElementList;
+function TSQLParser.ParseForUpdate(AParent: TSQLSelectStatement
+  ): TSQLElementList;
 
 begin
   // On entry we're on the FOR token.
@@ -474,7 +495,8 @@ begin
   end;
 end;
 
-Procedure TSQLParser.ParseOrderBy(AParent : TSQLSelectStatement; AList : TSQLElementList);
+procedure TSQLParser.ParseOrderBy(AParent: TSQLSelectStatement;
+  AList: TSQLElementList);
 
 Var
   O : TSQLOrderByElement;
@@ -525,7 +547,7 @@ begin
   until (CurrentToken<>tsqlComma);
 end;
 
-Function TSQLParser.ParseSelectPlan(AParent : TSQLElement) : TSQLSelectPlan;
+function TSQLParser.ParseSelectPlan(AParent: TSQLElement): TSQLSelectPlan;
 
 Var
   E : TSQLSelectPlanExpr;
@@ -789,7 +811,7 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseTableFieldDef(AParent : TSQLElement) : TSQLTableFieldDef;
+function TSQLParser.ParseTableFieldDef(AParent: TSQLElement): TSQLTableFieldDef;
 begin
   // on entry, we're on the field name
   Result:=TSQLTableFieldDef(CreateElement(TSQLTableFieldDef,AParent));
@@ -1163,7 +1185,8 @@ begin
   end;
 end;
 
-Procedure TSQLParser.ParseProcedureParamList(AParent: TSQLElement; AList : TSQLElementList);
+procedure TSQLParser.ParseProcedureParamList(AParent: TSQLElement;
+  AList: TSQLElementList);
 
 Var
   P : TSQLProcedureParamDef;
@@ -1187,7 +1210,8 @@ begin
   Consume(tsqlBraceClose);
 end;
 
-Procedure TSQLParser.ParseCreateProcedureVariableList(AParent: TSQLElement; AList : TSQLElementList);
+procedure TSQLParser.ParseCreateProcedureVariableList(AParent: TSQLElement;
+  AList: TSQLElementList);
 
 Var
   P : TSQLProcedureParamDef;
@@ -1212,7 +1236,7 @@ begin
   Until (CurrentToken<>tsqlDeclare);
 end;
 
-Function TSQLParser.ParseIfStatement(AParent : TSQLElement) : TSQLIFStatement;
+function TSQLParser.ParseIfStatement(AParent: TSQLElement): TSQLIFStatement;
 
 Var
   Pt : TSQLToken;
@@ -1261,7 +1285,7 @@ begin
   Until (CurrentToken<>tsqlComma);
 end;
 
-Function TSQLParser.ParseForStatement(AParent : TSQLElement) : TSQLForStatement;
+function TSQLParser.ParseForStatement(AParent: TSQLElement): TSQLForStatement;
 
 begin
   // On Entry, we're on the FOR token
@@ -1280,7 +1304,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExceptionStatement(AParent : TSQLElement) : TSQLExceptionStatement;
+function TSQLParser.ParseExceptionStatement(AParent: TSQLElement
+  ): TSQLExceptionStatement;
 
 begin
   // On Entry, we're on the EXCEPTION token
@@ -1296,7 +1321,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseAssignStatement(AParent : TSQLElement) : TSQLAssignStatement;
+function TSQLParser.ParseAssignStatement(AParent: TSQLElement
+  ): TSQLAssignStatement;
 
 Var
   N  : TSQLStringType;
@@ -1324,7 +1350,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParsePostEventStatement(AParent : TSQLElement) : TSQLPostEventStatement;
+function TSQLParser.ParsePostEventStatement(AParent: TSQLElement
+  ): TSQLPostEventStatement;
 
 begin
   // On Entry, we're on the POST_EVENT token
@@ -1344,7 +1371,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseWhileStatement(AParent : TSQLElement) : TSQLWhileStatement;
+function TSQLParser.ParseWhileStatement(AParent: TSQLElement
+  ): TSQLWhileStatement;
 
 begin
   // On entry, we're on the WHILE Token
@@ -1362,7 +1390,7 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseWhenStatement(AParent : TSQLElement) : TSQLWhenStatement;
+function TSQLParser.ParseWhenStatement(AParent: TSQLElement): TSQLWhenStatement;
 
 Var
   E : TSQLWhenException;
@@ -1420,7 +1448,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseProcedureStatement(AParent : TSQLElement) : TSQLStatement;
+function TSQLParser.ParseProcedureStatement(AParent: TSQLElement
+  ): TSQLStatement;
 
 begin
   Result:=Nil;
@@ -1455,7 +1484,8 @@ begin
   end;
 end;
 
-Procedure TSQLParser.ParseStatementBlock(AParent: TSQLElement; Statements : TSQLElementList);
+procedure TSQLParser.ParseStatementBlock(AParent: TSQLElement;
+  Statements: TSQLElementList);
 
 Var
   S: TSQLStatement;
@@ -1467,7 +1497,7 @@ begin
     S:=ParseProcedureStatement(AParent);
     Statements.Add(S);
     if not (PreviousToken=tsqlEnd) then
-      Consume(tsqlSemicolon);
+      Consume([tsqlSemicolon,tsqlStatementTerminator]);
     end;
   Consume(tsqlEnd);
 end;
@@ -1538,7 +1568,8 @@ begin
   GetNextToken; // Comma;
 end;
 
-Procedure TSQLParser.ParseCharTypeDefinition(Out DT : TSQLDataType; Out Len : Integer; Out ACharset : TSQLStringType);
+procedure TSQLParser.ParseCharTypeDefinition(out DT: TSQLDataType; out
+  Len: Integer; out ACharset: TSQLStringType);
 
 begin
   Len:=0;
@@ -1592,7 +1623,8 @@ begin
     end;
 end;
 
-Procedure TSQLParser.ParseBlobDefinition(Var ASegmentSize,ABlobType : Integer; Var ACharset : TSQLStringType);
+procedure TSQLParser.ParseBlobDefinition(var ASegmentSize, ABlobType: Integer;
+  var ACharset: TSQLStringType);
 
 begin
   // On entry, we are on the blob token.
@@ -1647,7 +1679,8 @@ begin
     end;
 end;
 
-Function TSQLParser.ParseForeignKeyDefinition(AParent : TSQLElement) : TSQLForeignKeyDefinition;
+function TSQLParser.ParseForeignKeyDefinition(AParent: TSQLElement
+  ): TSQLForeignKeyDefinition;
 
   // On entry, we're on ON Return true if On delete
   Function ParseForeignKeyAction (Out Res : TForeignKeyAction) : Boolean;
@@ -1723,7 +1756,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseFieldConstraint(AParent : TSQLElement) : TSQLFieldConstraint;
+function TSQLParser.ParseFieldConstraint(AParent: TSQLElement
+  ): TSQLFieldConstraint;
 
 Var
   N : TSQLStringType;
@@ -1800,7 +1834,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseTypeDefinition(AParent : TSQLElement; Flags : TParseTypeFlags) : TSQLTypeDefinition;
+function TSQLParser.ParseTypeDefinition(AParent: TSQLElement;
+  Flags: TParseTypeFlags): TSQLTypeDefinition;
 
 Var
   TN : String;
@@ -2047,7 +2082,8 @@ begin
     Error('Unexpected end of command');
 end;
 
-Function TSQLParser.ParseExprLevel1(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprLevel1(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 
 var
   tt: TSQLToken;
@@ -2098,7 +2134,7 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseInoperand(AParent : TSQLElement) : TSQLExpression;
+function TSQLParser.ParseInoperand(AParent: TSQLElement): TSQLExpression;
 
 Var
   S : TSQLSelectExpression;
@@ -2133,7 +2169,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprLevel2(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprLevel2(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 var
   tt: TSQLToken;
   Right : TSQLExpression;
@@ -2141,7 +2178,7 @@ var
   T : TSQLTernaryExpression;
   O : TSQLBinaryOperation;
   U : TSQLUnaryExpression;
-  I,bw,doin : Boolean;
+  Inverted,bw,doin : Boolean;
 
 begin
   {$ifdef debugexpr}  Writeln('Level 2 ',TokenInfos[CurrentToken],': ',CurrentTokenString);{$endif debugexpr}
@@ -2150,11 +2187,11 @@ begin
     if (CurrentToken in sqlComparisons) then
       begin
       tt:=CurrentToken;
-      I:=CurrentToken=tsqlnot;
+      Inverted:=CurrentToken=tsqlnot;
       CheckEOF;
       GetNextToken;
       CheckEOF;
-      if I then
+      if Inverted then
         begin
         tt:=CurrentToken;
         if Not (tt in sqlInvertableComparisons) then
@@ -2174,12 +2211,13 @@ begin
           GetNextToken;
           if not (tt=tsqlis) then
             UnexpectedToken;
-          I:=true;
+          Inverted:=true;
           end;
         end;
 
       bw:=False;
       doin:=false;
+      B:=nil; //needed for test later
       Case tt of
         tsqlLT : O:=boLT;
         tsqlLE : O:=boLE;
@@ -2237,8 +2275,8 @@ begin
           B.Right:=Right;
           end;
         end;
-      If I then
-        if B.Operation=boIs then
+      If Inverted then
+        if (Assigned(B)) and (B.Operation=boIs) then
           B.Operation:=boIsNot
         else
           begin
@@ -2254,7 +2292,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprLevel3(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprLevel3(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 
   Function NegativeNumber : Boolean; inline;
 
@@ -2302,7 +2341,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprLevel4(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprLevel4(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 
 var
   tt : TSQLToken;
@@ -2333,7 +2373,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprLevel5(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprLevel5(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 
 Var
   tt : tsqltoken;
@@ -2365,7 +2406,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprLevel6(AParent : TSQLElement ; EO : TExpressionOptions ) : TSQLExpression;
+function TSQLParser.ParseExprLevel6(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLExpression;
 
 
 
@@ -2399,7 +2441,8 @@ begin
     Result:=ParseExprPrimitive(AParent,EO);
 end;
 
-Function TSQLParser.ParseIdentifierList(AParent : TSQLElement; AList : TSQLelementList) : integer;
+function TSQLParser.ParseIdentifierList(AParent: TSQLElement;
+  AList: TSQLelementList): integer;
 
 Var
   Done : Boolean;
@@ -2420,7 +2463,8 @@ begin
   GetNextToken;
 end;
 
-Function TSQLParser.ParseValueList(AParent : TSQLElement; EO : TExpressionOptions) : TSQLElementList;
+function TSQLParser.ParseValueList(AParent: TSQLElement; EO: TExpressionOptions
+  ): TSQLElementList;
 
 Var
     E : TSQLExpression;
@@ -2467,15 +2511,16 @@ begin
   Error(SErrUnexpectedTokenOf,[CurrentTokenString,S]);
 end;
 
-function TSQLParser.CreateIdentifier(AParent : TSQLElement; Const AName: TSQLStringType
-  ): TSQLIdentifierName;
+function TSQLParser.CreateIdentifier(AParent: TSQLElement;
+  const AName: TSQLStringType): TSQLIdentifierName;
 begin
   Result:=TSQLIdentifierName(CreateElement(TSQLIdentifierName,AParent));
   Result.Name:=AName;
 end;
 
 
-Function TSQLParser.ParseExprAggregate(AParent : TSQLElement; EO : TExpressionOptions) : TSQLAggregateFunctionExpression;
+function TSQLParser.ParseExprAggregate(AParent: TSQLElement;
+  EO: TExpressionOptions): TSQLAggregateFunctionExpression;
 begin
   Result:=TSQLAggregateFunctionExpression(CreateElement(TSQLAggregateFunctionExpression,AParent));
   try
@@ -2514,7 +2559,8 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseExprPrimitive(AParent : TSQLElement; EO : TExpressionOptions) : TSQLExpression;
+function TSQLParser.ParseExprPrimitive(AParent: TSQLElement;
+  EO: TExpressionOptions): TSQLExpression;
 
 Var
   L : TSQLElementList;
@@ -2900,6 +2946,38 @@ begin
   end;
 end;
 
+function TSQLParser.ParseSetTermStatement(AParent: TSQLElement
+  ): TSQLSetTermStatement;
+var
+  ExistingStatTerm: string;
+begin
+  // On entry, we're on the 'TERM' token
+  Consume(tsqlTerm) ;
+  try
+    Result:=TSQLSetTermStatement(CreateElement(TSQLSetTermStatement,AParent));
+    expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolLiteral,tsqlString]);
+    // Already set the expression's new value to the new terminator, but do not
+    // change tSQLStatementTerminator as GetNextToken etc need the old one to
+    // detect the closing terminator
+    case CurrentToken of
+      tsqlSemiColon, tsqlStatementTerminator: Result.NewValue:=TokenInfos[CurrentToken];
+      tsqlSymbolLiteral, tsqlString: Result.NewValue:=CurrentTokenString;
+    end;
+    // Expect the old terminator...
+    GetNextToken;
+    // Parser will give tsqlSemicolon rather than tsqlStatementTerminator:
+    if TokenInfos[tsqlStatementTerminator]=TokenInfos[tsqlSEMICOLON] then
+      Expect(tsqlSEMICOLON)
+    else
+      Expect(tsqlStatementTerminator);
+    //... and now set the new terminator:
+    TokenInfos[tsqlStatementTerminator]:=Result.NewValue; //process new terminator value
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
 function TSQLParser.ParseSecondaryFile(AParent: TSQLElement) : TSQLDatabaseFileInfo;
 
 Var
@@ -3163,7 +3241,7 @@ begin
 end;
 
 function TSQLParser.ParseRollbackStatement(AParent: TSQLElement
-  ): TSQLRollBackStatement;
+  ): TSQLRollbackStatement;
 
 
 begin
@@ -3302,7 +3380,8 @@ begin
   // On Entry, we're on the SET statement
   Consume(tsqlSet);
   Case CurrentToken of
-    tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent)
+    tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent);
+    tsqlTerm : Result:=ParseSetTermStatement(AParent);
   else
     // For the time being
     UnexpectedToken;
@@ -3375,7 +3454,8 @@ begin
   inherited Destroy;
 end;
 
-Function TSQLParser.ParseDeclareFunctionStatement(AParent : TSQLElement) : TSQLDeclareExternalFunctionStatement;
+function TSQLParser.ParseDeclareFunctionStatement(AParent: TSQLElement
+  ): TSQLDeclareExternalFunctionStatement;
 
 begin
   // On entry, we're on the EXTERNAL token
@@ -3410,7 +3490,7 @@ begin
   end;
 end;
 
-Function TSQLParser.ParseDeclareStatement(AParent : TSQLElement) : TSQLStatement;
+function TSQLParser.ParseDeclareStatement(AParent: TSQLElement): TSQLStatement;
 
 
 begin
@@ -3818,7 +3898,7 @@ begin
   else
     UnexpectedToken;
   end;
-  if Not (CurrentToken in [tsqlEOF,tsqlSemicolon]) then
+  if Not (CurrentToken in [tsqlEOF,tsqlSemicolon,tsqlStatementTerminator]) then
     begin
     FreeAndNil(Result);
     if (CurrentToken=tsqlBraceClose) then
@@ -3850,6 +3930,16 @@ begin
   end;
 end;
 
+function TSQLParser.GetStatementTerminator: string;
+begin
+  result:=TokenInfos[tsqlStatementTerminator];
+end;
+
+procedure TSQLParser.SetStatementTerminator(AValue: string);
+begin
+  TokenInfos[tsqlStatementTerminator]:=AValue;;
+end;
+
 function TSQLParser.CurrentToken: TSQLToken;
 begin
   Result:=FCurrent;
@@ -3863,13 +3953,14 @@ end;
 function TSQLParser.GetNextToken: TSQLToken;
 begin
   FPrevious:=FCurrent;
+  // Set if not already peeked; otherwise fetch and look
   If (FPeekToken<>tsqlUnknown) then
-     begin
-     FCurrent:=FPeekToken;
-     FCurrentString:=FPeekTokenString;
-     FPeekToken:=tsqlUnknown;
-     FPeekTokenString:='';
-     end
+    begin
+    FCurrent:=FPeekToken;
+    FCurrentString:=FPeekTokenString;
+    FPeekToken:=tsqlUnknown;
+    FPeekTokenString:='';
+    end
   else
     begin
     FCurrent:=FScanner.FetchToken;

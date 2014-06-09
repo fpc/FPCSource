@@ -889,6 +889,7 @@ Type
   public
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
+
   { TSQLSetGeneratorStatement }
 
   TSQLSetGeneratorStatement = Class(TSQLCreateOrAlterGenerator)
@@ -896,6 +897,15 @@ Type
     FNewValue: Integer;
   Public
     Property NewValue : Integer Read FNewValue Write FNewValue;
+  end;
+
+  { TSQLSetTermStatement }
+
+  TSQLSetTermStatement = Class(TSQLStatement)
+  private
+    FNewValue: string;
+  Public
+    Property NewValue : string Read FNewValue Write FNewValue;
   end;
 
   { TSQLCreateRoleStatement }
