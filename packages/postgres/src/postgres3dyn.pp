@@ -130,6 +130,8 @@ var
 { Set blocking/nonblocking connection to the backend  }
   PQsetnonblocking : function (conn:PPGconn; arg:longint):longint;cdecl;
   PQisnonblocking : function (conn:PPGconn):longint;cdecl;
+  PQisthreadsafe : function ():longint;cdecl;
+
 { Force the write buffer to be written (or at least try)  }
   PQflush : function (conn:PPGconn):longint;cdecl;
 {
@@ -162,6 +164,8 @@ var
   PQgetvalue : function (res:PPGresult; tup_num:longint; field_num:longint):Pchar;cdecl;
   PQgetlength : function (res:PPGresult; tup_num:longint; field_num:longint):longint;cdecl;
   PQgetisnull : function (res:PPGresult; tup_num:longint; field_num:longint):longint;cdecl;
+  PQnparams : function (res:PPGresult):longint;cdecl;
+  PQparamtype : function (res:PPGresult; param_num:longint):Oid;cdecl;
 { Delete a PGresult  }
   PQclear : procedure (res:PPGresult);cdecl;
 { For freeing other alloc'd results, such as PGnotify structs  }
@@ -178,9 +182,15 @@ var
 }
   PQmakeEmptyPGresult : function (conn:PPGconn; status:TExecStatusType):PPGresult;cdecl;
 { Quoting strings before inclusion in queries.  }
+  PQescapeStringConn : function (conn:PPGconn; str:Pcchar; from:Pcchar; length:size_t; error:Pcint):size_t;cdecl;
+  PQescapeLiteral : function (conn:PPGconn; str:Pcchar; len:size_t):Pcchar;cdecl;
+  PQescapeIdentifier : function (conn:PPGconn; str:Pcchar; len:size_t):Pcchar;cdecl;
+  PQescapeByteaConn : function (conn:PPGconn; from:Pbyte; from_length:size_t; to_length:Psize_t):Pbyte;cdecl;
+  PQunescapeBytea : function (strtext:Pbyte; retbuflen:Psize_t):Pbyte;cdecl;
+{ These forms are deprecated! }
   PQescapeString : function (till:Pchar; from:Pchar; length:size_t):size_t;cdecl;
   PQescapeBytea : function (bintext:Pbyte; binlen:size_t; bytealen:Psize_t):Pbyte;cdecl;
-  PQunescapeBytea : function (strtext:Pbyte; retbuflen:Psize_t):Pbyte;cdecl;
+
 { === in fe-print.c ===  }
 { output stream  }
   PQprint : procedure (fout:PFILE; res:PPGresult; ps:PPQprintOpt);cdecl;
@@ -209,14 +219,20 @@ var
   lo_lseek : function (conn:PPGconn; fd:longint; offset:longint; whence:longint):longint;cdecl;
   lo_creat : function (conn:PPGconn; mode:longint):Oid;cdecl;
   lo_tell : function (conn:PPGconn; fd:longint):longint;cdecl;
+  lo_truncate : function (conn:PPGconn; fd:longint; len:size_t):longint;cdecl;
   lo_unlink : function (conn:PPGconn; lobjId:Oid):longint;cdecl;
   lo_import : function (conn:PPGconn; filename:Pchar):Oid;cdecl;
+  lo_import_with_oid : function (conn:PPGconn; filename:Pcchar; lobjId:Oid):Oid;cdecl;
   lo_export : function (conn:PPGconn; lobjId:Oid; filename:Pchar):longint;cdecl;
 { === in fe-misc.c ===  }
 { Determine length of multibyte encoded char at *s  }
   PQmblen : function (s:Pbyte; encoding:longint):longint;cdecl;
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
+
+{ === in fe-auth.c === }
+  PQencryptPassword : function (passwd:Pcchar; user:Pcchar):Pcchar;cdecl;
+
 
 Function InitialisePostgres3(Const libpath : ansistring) : integer;
 Procedure InitialisePostgres3;
@@ -327,6 +343,7 @@ begin
       pointer(PQendcopy) := GetProcedureAddress(Postgres3LibraryHandle,'PQendcopy');
       pointer(PQsetnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQsetnonblocking');
       pointer(PQisnonblocking) := GetProcedureAddress(Postgres3LibraryHandle,'PQisnonblocking');
+      pointer(PQisthreadsafe) := GetProcedureAddress(Postgres3LibraryHandle,'PQisthreadsafe');
       pointer(PQflush) := GetProcedureAddress(Postgres3LibraryHandle,'PQflush');
       pointer(PQfn) := GetProcedureAddress(Postgres3LibraryHandle,'PQfn');
       pointer(PQresultStatus) := GetProcedureAddress(Postgres3LibraryHandle,'PQresultStatus');
@@ -351,12 +368,18 @@ begin
       pointer(PQgetvalue) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetvalue');
       pointer(PQgetlength) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetlength');
       pointer(PQgetisnull) := GetProcedureAddress(Postgres3LibraryHandle,'PQgetisnull');
+      pointer(PQnparams) := GetProcedureAddress(Postgres3LibraryHandle,'PQnparams');
+      pointer(PQparamtype) := GetProcedureAddress(Postgres3LibraryHandle,'PQparamtype');
       pointer(PQclear) := GetProcedureAddress(Postgres3LibraryHandle,'PQclear');
       pointer(PQfreemem) := GetProcedureAddress(Postgres3LibraryHandle,'PQfreemem');
       pointer(PQmakeEmptyPGresult) := GetProcedureAddress(Postgres3LibraryHandle,'PQmakeEmptyPGresult');
+      pointer(PQescapeStringConn) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeStringConn');
+      pointer(PQescapeLiteral) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeLiteral');
+      pointer(PQescapeIdentifier) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeIdentifier');
+      pointer(PQescapeByteaConn) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeByteaConn');
+      pointer(PQunescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQunescapeBytea');
       pointer(PQescapeString) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeString');
       pointer(PQescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQescapeBytea');
-      pointer(PQunescapeBytea) := GetProcedureAddress(Postgres3LibraryHandle,'PQunescapeBytea');
       pointer(PQprint) := GetProcedureAddress(Postgres3LibraryHandle,'PQprint');
       pointer(PQdisplayTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQdisplayTuples');
       pointer(PQprintTuples) := GetProcedureAddress(Postgres3LibraryHandle,'PQprintTuples');
@@ -367,11 +390,14 @@ begin
       pointer(lo_lseek) := GetProcedureAddress(Postgres3LibraryHandle,'lo_lseek');
       pointer(lo_creat) := GetProcedureAddress(Postgres3LibraryHandle,'lo_creat');
       pointer(lo_tell) := GetProcedureAddress(Postgres3LibraryHandle,'lo_tell');
+      pointer(lo_truncate) := GetProcedureAddress(Postgres3LibraryHandle,'lo_truncate');
       pointer(lo_unlink) := GetProcedureAddress(Postgres3LibraryHandle,'lo_unlink');
       pointer(lo_import) := GetProcedureAddress(Postgres3LibraryHandle,'lo_import');
+      pointer(lo_import_with_oid) := GetProcedureAddress(Postgres3LibraryHandle,'lo_import_with_oid');
       pointer(lo_export) := GetProcedureAddress(Postgres3LibraryHandle,'lo_export');
       pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
       pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
+      pointer(PQencryptPassword) := GetProcedureAddress(Postgres3LibraryHandle,'PQencryptPassword');
 
       InitialiseDllist(libpath);
       end
