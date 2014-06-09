@@ -848,6 +848,7 @@ type
   published
     procedure TestSetTerm;
     procedure TestSetTermSemicolon;
+    procedure TestSetTermCreateProcedure;
   end;
 
   { TTestGlobalParser }
@@ -892,6 +893,26 @@ begin
   AssertEquals('Closing ^','^',Parser.CurrentTokenString);
   Parser.GetNextToken;
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
+end;
+
+procedure TTestTermParser.TestSetTermCreateProcedure;
+Const
+  SQL =
+   'SET TERM ^ ;'+#13+#10+
+   ''+#13+#10+
+   'CREATE PROCEDURE PROCNAME'+#13+#10+
+   'AS'+#13+#10+
+   'BEGIN'+#13+#10+
+   '  /* Empty procedure */'+#13+#10+
+   'END^'+#13+#10+
+   ''+#13+#10+
+   'SET TERM ; ^';
+Var
+  S : TSQLSetTermStatement;
+
+begin
+  CreateParser(SQL);
+  FToFree:=Parser.Parse;
 end;
 
 
