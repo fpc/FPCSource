@@ -3762,7 +3762,9 @@ procedure TTestSelectParser.TestSelectOneTableFieldOneTable;
 begin
   TestSelect('SELECT A.B FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'B');
+  // Field does not support linking/refering to a table, so the field name is
+  // assigned as A.B (instead of B with a <link to table A>)
+  AssertField(Select.Fields[0],'A.B');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
@@ -4334,7 +4336,9 @@ begin
   AssertField(Select.Fields[0],'B');
   AssertTable(Select.Tables[0],'A');
   AssertEquals('One order by field',1,Select.Orderby.Count);
-  AssertOrderBy(Select.OrderBy[0],'C',0,obAscending);
+  // Field does not support linking/refering to a table, so the field name is
+  // assigned as C.D (instead of D with a <link to table C>)
+  AssertOrderBy(Select.OrderBy[0],'C.D',0,obAscending);
 end;
 
 
