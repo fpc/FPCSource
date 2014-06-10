@@ -4021,8 +4021,21 @@ begin
 end;
 
 procedure TUniDirectionalBufIndex.AddRecord;
+var
+  h,i: integer;
 begin
-  // Do nothing
+  // Release unneeded blob buffers, in order to save memory
+  // TDataSet has own buffer of records, so do not release blobs until they can be referenced
+  with FDataSet do
+    begin
+    h := high(FBlobBuffers) - BufferCount*BlobFieldCount;
+    if h > 10 then //Free in batches, starting with oldest (at beginning)
+      begin
+      for i := 0 to h do
+        FreeBlobBuffer(FBlobBuffers[i]);
+      FBlobBuffers := Copy(FBlobBuffers, h+1, high(FBlobBuffers)-h);
+      end;
+    end;
 end;
 
 procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
