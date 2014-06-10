@@ -1646,44 +1646,22 @@ unit cgcpu;
         r,rsp: TRegister;
         ref  : TReference;
       begin
+        { Carl's original code used 2x MOVE instead of LINK when localsize = 0.
+          However, a LINK seems faster than two moves on everything from 68000
+          to '060, so the two move branch here was dropped. (KB) }
         if not nostackframe then
           begin
-	    if localsize<>0 then
-	      begin
-	        { size can't be negative }
-		if (localsize < 0) then
-		  internalerror(2006122601);
+            { size can't be negative }
+            if (localsize < 0) then
+              internalerror(2006122601);
 
-                { Not to complicate the code generator too much, and since some }
-                { of the systems only support this format, the localsize cannot }
-                { exceed 32K in size.                                           }
-                if (localsize > high(smallint)) then
-                  CGMessage(cg_e_localsize_too_big);
+            { Not to complicate the code generator too much, and since some }
+            { of the systems only support this format, the localsize cannot }
+            { exceed 32K in size.                                           }
+            if (localsize > high(smallint)) then
+              CGMessage(cg_e_localsize_too_big);
 
-                list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
-	      end
-	    else
-	      begin
-	        list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
-(*
-		{ FIXME! - Carl's original code uses this method. However,
-		  according to the 68060 users manual, a LINK is faster than
-		  two moves. So, use a link in #0 case too, for now. I'm not
-		  really sure tho', that LINK supports #0 disposition, but i
-		  see no reason why it shouldn't support it. (KB) }
-
-	        { when localsize = 0, use two moves, instead of link }
-		r:=NR_FRAME_POINTER_REG;
-		rsp:=NR_STACK_POINTER_REG;
-
-	        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
-		ref.direction:=dir_dec;
-                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
-                instr:=taicpu.op_reg_reg(A_MOVE,S_L,rsp,r);
-                add_move_instruction(instr); mwould also be needed
-                list.concat(instr);
-		*)
-	      end;
+            list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
           end;
       end;
 
