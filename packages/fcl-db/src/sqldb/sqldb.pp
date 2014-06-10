@@ -2210,7 +2210,6 @@ begin
     //Cursor.FSelectable:=True;
     //Cursor.FStatementType:=stSelect;
     FUpdateable:=True;
-    BindFields(True);
     end
   else
     begin
@@ -2253,10 +2252,9 @@ begin
             end;
           end;
         end;
-      end
-    else
-      BindFields(True);
+      end;
     end;
+  BindFields(True);
 
   if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
     begin
