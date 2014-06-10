@@ -27,7 +27,7 @@ type
 
   TTestParser = Class(TSQLParser)
   public
-    procedure ParseStringDef(Out DT : TSQLDataType; Out Len : Integer; Out ACharset : TSQLStringtype);
+    Procedure ParseStringDef(Out DT : TSQLDataType; Out Len : Integer; Out ACharset : TSQLStringtype);
     Function  ParseType(Flags : TParseTypeFlags) : TSQLTypeDefinition;
     Function  ParseConstraint : TSQLExpression;
     Function  ParseProcedureStatements : TSQLStatement;
@@ -922,22 +922,22 @@ procedure TTestTermParser.TestSetTermCreateProcedureVar;
 // Procedure with variable
 Const
   SQL =
-   'SET TERM ^ ;'+#13+#10+
-   'CREATE PROCEDURE PROCWITHVAR'+#13+#10+
-   'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+#13+#10+
-   'AS'+#13+#10+
-   'DECLARE VARIABLE i INTEGER;'+#13+#10+
-  'BEGIN'+#13+#10+
-  '  i = 1;'+#13+#10+
-  '  WHILE (i <= 5) DO'+#13+#10+
-  '  BEGIN'+#13+#10+
-  '    SELECT language_req[:i] FROM job'+#13+#10+
-  '    INTO :languages;'+#13+#10+
-  '    i = i +1;'+#13+#10+
-  '    SUSPEND;'+#13+#10+
-  '  END'+#13+#10+
-  'END ^'+#13+#10+
-  'SET TERM ; ^';
+    'SET TERM ^ ;'+#13+#10+
+    'CREATE PROCEDURE PROCWITHVAR'+#13+#10+
+    'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+#13+#10+
+    'AS'+#13+#10+
+    'DECLARE VARIABLE i INTEGER;'+#13+#10+
+    'BEGIN'+#13+#10+
+    '  i = 1;'+#13+#10+
+    '  WHILE (i <= 5) DO'+#13+#10+
+    '  BEGIN'+#13+#10+
+    '    SELECT language_req[:i] FROM job'+#13+#10+
+    '    INTO :languages;'+#13+#10+
+    '    i = i +1;'+#13+#10+
+    '    SUSPEND;'+#13+#10+
+    '  END'+#13+#10+
+    'END ^'+#13+#10+
+    'SET TERM ; ^';
 
 Var
   S : TSQLSetTermStatement;
@@ -987,7 +987,7 @@ end;
 
 procedure TTestSQLParser.SetUp;
 begin
-
+  FParser.SetStatementTerminator(';');
 end;
 
 procedure TTestSQLParser.TearDown;
