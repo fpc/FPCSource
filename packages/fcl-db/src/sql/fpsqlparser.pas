@@ -2219,15 +2219,9 @@ begin
         if Not (tt in sqlInvertableComparisons) then
           Error(SErrUnexpectedToken,[CurrentTokenString]);
         GetNextToken;
-        // Step past expected STARTING WITH
-        If (tt=tsqlStarting) and (CurrentToken=tsqlWith) then
-          GetNextToken;
         end
       else
         begin
-        // Step past expected STARTING WITH
-        If (tt=tsqlStarting) and (CurrentToken=tsqlWith) then
-          GetNextToken;
         if (CurrentToken=tsqlNot) then
           begin
           GetNextToken;
@@ -2236,6 +2230,10 @@ begin
           Inverted:=true;
           end;
         end;
+
+      // Step past expected STARTING WITH
+      If (tt=tsqlStarting) and (CurrentToken=tsqlWith) then
+        GetNextToken;
 
       bw:=False;
       doin:=false;

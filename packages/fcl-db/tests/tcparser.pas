@@ -207,6 +207,8 @@ type
     procedure TestNotContaining;
     procedure TestStarting;
     procedure TestNotStarting;
+    procedure TestStartingWith;
+    procedure TestNotStartingWith;
     procedure TestBetween;
     procedure TestNotBetween;
     procedure TestLikeEscape;
@@ -849,6 +851,7 @@ type
     procedure TestSetTerm;
     procedure TestSetTermSemicolon;
     procedure TestSetTermCreateProcedure;
+    procedure TestSetTermCreateProcedureVar;
   end;
 
   { TTestGlobalParser }
@@ -907,6 +910,35 @@ Const
    'END^'+#13+#10+
    ''+#13+#10+
    'SET TERM ; ^';
+Var
+  S : TSQLSetTermStatement;
+
+begin
+  CreateParser(SQL);
+  FToFree:=Parser.Parse;
+end;
+
+procedure TTestTermParser.TestSetTermCreateProcedureVar;
+// Procedure with variable
+Const
+  SQL =
+   'SET TERM ^ ;'+#13+#10+
+   'CREATE PROCEDURE PROCWITHVAR'+#13+#10+
+   'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+#13+#10+
+   'AS'+#13+#10+
+   'DECLARE VARIABLE i INTEGER;'+#13+#10+
+  'BEGIN'+#13+#10+
+  '  i = 1;'+#13+#10+
+  '  WHILE (i <= 5) DO'+#13+#10+
+  '  BEGIN'+#13+#10+
+  '    SELECT language_req[:i] FROM job'+#13+#10+
+  '    INTO :languages;'+#13+#10+
+  '    i = i +1;'+#13+#10+
+  '    SUSPEND;'+#13+#10+
+  '  END'+#13+#10+
+  'END ^'+#13+#10+
+  'SET TERM ; ^';
+
 Var
   S : TSQLSetTermStatement;
 
@@ -2138,7 +2170,7 @@ Var
 
 begin
   B:=TSQLBinaryExpression(TestCheck('VALUE STARTING ''3''',TSQLBinaryExpression));
-  AssertEquals('Like operator',boStarting,B.Operation);
+  AssertEquals('Starting operator',boStarting,B.Operation);
   AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
@@ -2150,13 +2182,41 @@ Var
   U : TSQLUnaryExpression;
 begin
   U:=TSQLUnaryExpression(TestCheck('VALUE NOT STARTING ''3''',TSQLUnaryExpression));
-  AssertEquals('Like operator',uoNot,U.Operation);
+  AssertEquals('Not operator',uoNot,U.Operation);
   CheckClass(U.Operand,TSQLBinaryExpression);
   B:=TSQLBinaryExpression(U.Operand);
-  AssertEquals('Like operator',boStarting,B.Operation);
+  AssertEquals('Starting operator',boStarting,B.Operation);
   AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
+
+procedure TTestCheckParser.TestStartingWith;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE STARTING WITH ''3''',TSQLBinaryExpression));
+  AssertEquals('Starting operator',boStarting,B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
+end;
+
+procedure TTestCheckParser.TestNotStartingWith;
+
+Var
+  B : TSQLBinaryExpression;
+  U : TSQLUnaryExpression;
+begin
+  U:=TSQLUnaryExpression(TestCheck('VALUE NOT STARTING WITH ''3''',TSQLUnaryExpression));
+  AssertEquals('Not operator',uoNot,U.Operation);
+  CheckClass(U.Operand,TSQLBinaryExpression);
+  B:=TSQLBinaryExpression(U.Operand);
+  AssertEquals('Starting operator',boStarting,B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
+end;
+
 
 procedure TTestCheckParser.TestBetween;
 
