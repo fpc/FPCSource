@@ -50,7 +50,7 @@ type
    tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
    { Reserved words/keywords start here. They must be last }
    { Note: if adding before tsqlALL or after tsqlWHEN please update FirstKeyword/LastKeyword }
-   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto,tsqlAfter,tsqlAdmin,
+   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto, tsqlAutoDDL {not an FB reserved word but used in isql scripts}, tsqlAfter,tsqlAdmin,
    tsqlBETWEEN, tsqlBinary, tsqlBY, tsqlBLOB, tsqlBegin, tsqlBefore,
    tsqlCOLLATE, tsqlCONTAINING, tsqlCOUNT, tsqlCREATE, tsqlCOLUMN, tsqlCONSTRAINT, tsqlChar,tsqlCHARACTER, tsqlCHECK, tsqlComputed,tsqlCASCADE, tsqlCast, tsqlCommit,tsqlConnect,tsqlCache,tsqlConditional,tsqlCString,
    tsqlDESC, tsqlDESCENDING, tsqlDISTINCT, tsqlDEFAULT, tsqlDELETE, tsqlDO, tsqlDouble, tsqlDECLARE, tsqlDROP, tsqlDomain, tsqlDecimal, tsqlDate,tsqlDatabase,
@@ -64,11 +64,11 @@ type
    tsqlLEFT, tsqlLIKE, tsqlLength,
    tsqlMAX, tsqlMIN, tsqlMERGE, tsqlManual, tsqlModuleName,
    tsqlNOT, tsqlNULL, tsqlNUMERIC , tsqlNChar, tsqlNATIONAL,tsqlNO, tsqlNatural,
-   tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
+   tsqlOFF {not an FB reserved word; used in isql scripts}, tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
    tsqlPrecision, tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
    tsqlRIGHT, tsqlROLE, tsqlReferences, tsqlRollBack, tsqlRelease,  tsqlretain,  tsqlReturningValues,tsqlReturns, tsqlrevoke,
    tsqlSELECT, tsqlSET, tsqlSINGULAR, tsqlSOME, tsqlSTARTING, tsqlSUM, tsqlSKIP,tsqlSUBTYPE,tsqlSize,tsqlSegment, tsqlSORT, tsqlSnapShot,tsqlSchema,tsqlShadow,tsqlSuspend,tsqlSQLCode,tsqlSmallint,
-   tSQLTABLE, tsqlText, tsqlTerm, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
+   tSQLTABLE, tsqlText, tsqlTerm {not an FB reserved word, used in isql scripts}, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
    tsqlUNION, tsqlUPDATE, tsqlUPPER,  tsqlUNIQUE, tsqlUSER,
    tsqlValue, tsqlVALUES, tsqlVARIABLE,  tsqlVIEW, tsqlVARCHAR,TSQLVARYING,
    tsqlWHERE, tsqlWITH, tsqlWHILE, tsqlWork, tsqlWhen
@@ -96,7 +96,7 @@ const
        '+','-','*','/','||',
        '=','>=','<=','<>',
        // Identifiers last:
-       'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AFTER', 'ADMIN',
+       'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AUTODDL', 'AFTER', 'ADMIN',
        'BETWEEN', 'BINARY', 'BY', 'BLOB','BEGIN', 'BEFORE',
        'COLLATE', 'CONTAINING', 'COUNT', 'CREATE', 'COLUMN', 'CONSTRAINT', 'CHAR','CHARACTER','CHECK', 'COMPUTED','CASCADE','CAST', 'COMMIT', 'CONNECT', 'CACHE','CONDITIONAL', 'CSTRING',
        'DESC', 'DESCENDING', 'DISTINCT',  'DEFAULT', 'DELETE', 'DO', 'DOUBLE', 'DECLARE', 'DROP', 'DOMAIN', 'DECIMAL', 'DATE','DATABASE',
@@ -110,7 +110,7 @@ const
        'LEFT', 'LIKE', 'LENGTH',
        'MAX', 'MIN', 'MERGE', 'MANUAL', 'MODULE_NAME',
        'NOT', 'NULL', 'NUMERIC','NCHAR','NATIONAL', 'NO', 'NATURAL',
-       'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
+       'OFF', 'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
        'PRECISION', 'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
        'RIGHT', 'ROLE', 'REFERENCES', 'ROLLBACK','RELEASE', 'RETAIN', 'RETURNING_VALUES', 'RETURNS','REVOKE',
        'SELECT', 'SET', 'SINGULAR', 'SOME', 'STARTING', 'SUM', 'SKIP','SUB_TYPE', 'SIZE', 'SEGMENT', 'SORT', 'SNAPSHOT','SCHEMA','SHADOW','SUSPEND','SQLCODE','SMALLINT',

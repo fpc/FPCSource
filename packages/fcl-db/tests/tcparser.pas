@@ -844,10 +844,14 @@ type
     procedure Test2RolesToUser;
   end;
 
-  { TTestTermParser }
+  { TTestSetParser }
 
-  TTestTermParser = Class(TTestSQLParser)
+  TTestSetParser = Class(TTestSQLParser)
   published
+    procedure TestSetAutoDDL;
+    procedure TestSetAutoDDLOn;
+    procedure TestSetAutoDDLOff;
+    procedure TestSetAutoDDLCreateProcedure;
     procedure TestSetTerm;
     procedure TestSetTermSemicolon;
     procedure TestSetTermCreateProcedure;
@@ -865,9 +869,43 @@ implementation
 
 uses typinfo;
 
-{ TTestTermParser }
+{ TTestSetParser }
 
-procedure TTestTermParser.TestSetTerm;
+procedure TTestSetParser.TestSetAutoDDL;
+begin
+  CreateParser('SET AUTODDL;');
+  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+end;
+
+procedure TTestSetParser.TestSetAutoDDLOn;
+begin
+  CreateParser('SET AUTODDL ON;');
+  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+end;
+
+procedure TTestSetParser.TestSetAutoDDLOff;
+begin
+  CreateParser('SET AUTODDL OFF;');
+  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+end;
+
+procedure TTestSetParser.TestSetAutoDDLCreateProcedure;
+Const
+  SQL =
+   'SET AUTODDL ;'+LineEnding+
+   ''+LineEnding+
+   'CREATE PROCEDURE PROCNAME'+LineEnding+
+   'AS'+LineEnding+
+   'BEGIN'+LineEnding+
+   '  /* Empty procedure */'+LineEnding+
+   'END;';
+begin
+  CreateParser(SQL);
+  Parser.ParseScript;
+  //todo: test name etc of procedure
+end;
+
+procedure TTestSetParser.TestSetTerm;
 Var
   S : TSQLSetTermStatement;
 
@@ -881,7 +919,7 @@ begin
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
 end;
 
-procedure TTestTermParser.TestSetTermSemicolon;
+procedure TTestSetParser.TestSetTermSemicolon;
 Var
   S : TSQLSetTermStatement;
 
@@ -898,48 +936,50 @@ begin
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
 end;
 
-procedure TTestTermParser.TestSetTermCreateProcedure;
+procedure TTestSetParser.TestSetTermCreateProcedure;
 Const
   SQL =
-   'SET TERM ^ ;'+#13+#10+
-   ''+#13+#10+
-   'CREATE PROCEDURE PROCNAME'+#13+#10+
-   'AS'+#13+#10+
-   'BEGIN'+#13+#10+
-   '  /* Empty procedure */'+#13+#10+
-   'END^'+#13+#10+
-   ''+#13+#10+
+   'SET TERM ^ ;'+LineEnding+
+   ''+LineEnding+
+   'CREATE PROCEDURE PROCNAME'+LineEnding+
+   'AS'+LineEnding+
+   'BEGIN'+LineEnding+
+   '  /* Empty procedure */'+LineEnding+
+   'END^'+LineEnding+
+   ''+LineEnding+
    'SET TERM ; ^';
 
 begin
   CreateParser(SQL);
   Parser.ParseScript;
+  //todo: test name etc of procedure
 end;
 
-procedure TTestTermParser.TestSetTermCreateProcedureVar;
+procedure TTestSetParser.TestSetTermCreateProcedureVar;
 // Procedure with variable
 Const
   SQL =
-    'SET TERM ^ ;'+#13+#10+
-    'CREATE PROCEDURE PROCWITHVAR'+#13+#10+
-    'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+#13+#10+
-    'AS'+#13+#10+
-    'DECLARE VARIABLE i INTEGER;'+#13+#10+
-    'BEGIN'+#13+#10+
-    '  i = 1;'+#13+#10+
-    '  WHILE (i <= 5) DO'+#13+#10+
-    '  BEGIN'+#13+#10+
-    '    SELECT language_req[:i] FROM job'+#13+#10+
-    '    INTO :languages;'+#13+#10+
-    '    i = i +1;'+#13+#10+
-    '    SUSPEND;'+#13+#10+
-    '  END'+#13+#10+
-    'END ^'+#13+#10+
+    'SET TERM ^ ;'+LineEnding+
+    'CREATE PROCEDURE PROCWITHVAR'+LineEnding+
+    'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+LineEnding+
+    'AS'+LineEnding+
+    'DECLARE VARIABLE i INTEGER;'+LineEnding+
+    'BEGIN'+LineEnding+
+    '  i = 1;'+LineEnding+
+    '  WHILE (i <= 5) DO'+LineEnding+
+    '  BEGIN'+LineEnding+
+    '    SELECT language_req[:i] FROM job'+LineEnding+
+    '    INTO :languages;'+LineEnding+
+    '    i = i +1;'+LineEnding+
+    '    SUSPEND;'+LineEnding+
+    '  END'+LineEnding+
+    'END ^'+LineEnding+
     'SET TERM ; ^';
 
 begin
   CreateParser(SQL);
   Parser.ParseScript;
+  //todo: test name etc of procedure
 end;
 
 
@@ -8259,7 +8299,7 @@ initialization
                  TTestDeclareExternalFunctionParser,
                  TTestGrantParser,
                  TTestRevokeParser,
-                 TTestTermParser,
+                 TTestSetParser,
                  TTestGlobalParser]);
 end.
 

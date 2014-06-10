@@ -3412,8 +3412,22 @@ begin
   // On Entry, we're on the SET statement
   Consume(tsqlSet);
   Case CurrentToken of
-    tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent);
-    tsqlTerm : Result:=ParseSetTermStatement(AParent);
+    tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent); //SET GENERATOR
+    tsqlTerm : Result:=ParseSetTermStatement(AParent); //SET TERM
+    tsqlAutoDDL : //SET AUTODDL: ignore these isql commands for now
+      begin
+      // SET AUTODDL ON, SET AUTODDL OFF; optional arguments
+      if (PeekNextToken in [tsqlOn, tsqlOff]) then
+        begin
+        GetNextToken;
+        Consume([tsqlOn,tsqlOff]);
+        end
+      else
+        begin
+        Consume(tsqlAutoDDL);
+        end;
+        Result:=nil; //ignore
+      end;
   else
     // For the time being
     UnexpectedToken;
