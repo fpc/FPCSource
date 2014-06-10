@@ -872,21 +872,39 @@ uses typinfo;
 { TTestSetParser }
 
 procedure TTestSetParser.TestSetAutoDDL;
+Const
+  Desired='-- SET AUTODDL ON';
+Var
+  I: TSQLSetISQLStatement;
 begin
   CreateParser('SET AUTODDL;');
-  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+  FToFree:=Parser.Parse;
+  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
+  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
 end;
 
 procedure TTestSetParser.TestSetAutoDDLOn;
+Const
+  Desired='-- SET AUTODDL ON';
+Var
+  I: TSQLSetISQLStatement;
 begin
   CreateParser('SET AUTODDL ON;');
-  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+  FToFree:=Parser.Parse;
+  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
+  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
 end;
 
 procedure TTestSetParser.TestSetAutoDDLOff;
+Const
+  Desired='-- SET AUTODDL OFF';
+Var
+  I: TSQLSetISQLStatement;
 begin
   CreateParser('SET AUTODDL OFF;');
-  AssertNull('SET AUTODDL should be ignored and give nil result',Parser.Parse);
+  FToFree:=Parser.Parse;
+  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
+  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
 end;
 
 procedure TTestSetParser.TestSetAutoDDLCreateProcedure;
@@ -913,7 +931,7 @@ begin
   CreateParser('SET TERM ^ ;');
   FToFree:=Parser.Parse;
   S:=TSQLSetTermStatement(CheckClass(FToFree,TSQLSetTermStatement));
-  AssertEquals('New value','^',S.NewValue);
+  AssertEquals('New terminator','^',S.NewTerminator);
   AssertEquals('Closing semicolon',tsqlSEMICOLON,Parser.CurrentToken);
   Parser.GetNextToken;
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
@@ -929,7 +947,7 @@ begin
   AssertEquals('Closing statement terminator should match ^','^',Parser.GetStatementTerminator);
   FToFree:=Parser.Parse;
   S:=TSQLSetTermStatement(CheckClass(FToFree,TSQLSetTermStatement));
-  AssertEquals('New value',';',S.NewValue);
+  AssertEquals('New terminator',';',S.NewTerminator);
   AssertEquals('Closing terminator',tsqlStatementTerminator,Parser.CurrentToken);
   AssertEquals('Closing ^','^',Parser.CurrentTokenString);
   Parser.GetNextToken;

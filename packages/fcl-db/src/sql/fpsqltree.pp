@@ -26,7 +26,7 @@ Type
   TSQLFormatOption = (sfoDoubleQuotes,           // Use double quote character for string literals
                       sfoBackslashEscape,        // Backslash escapes in string literals
                       sfoSingleQuoteIdentifier,  // quote Identifiers using '
-                      sfoDoubleQuoteIdentifier,  // quote Identifiers using "
+                      sfoDoubleQuoteIdentifier,  // quote Identifiers using " (e.g. as in Firebird)
                       sfoBackQuoteIdentifier,    // quote Identifiers using `
                       sfoLowercaseKeyword,       // Lowercase SQL keywords
                       sfoOneFieldPerLine,        // One field per line in SELECT, Update, Insert
@@ -901,13 +901,29 @@ Type
     Property NewValue : Integer Read FNewValue Write FNewValue;
   end;
 
+  { TSQLSetISQLStatement }
+  // SET statements as used by the isql Firebird command line utility
+  TSQLSetISQLStatement = Class(TSQLStatement)
+  private
+    FArgument: string;
+  Public
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    // The test of the SET statement excluding the SET command
+    Property Arguments : string Read FArgument Write FArgument;
+  end;
+
   { TSQLSetTermStatement }
 
   TSQLSetTermStatement = Class(TSQLStatement)
   private
     FNewValue: string;
+    FOldValue: string;
   Public
-    Property NewValue : string Read FNewValue Write FNewValue;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    // The first, new terminator in the SET TERM statement
+    Property NewTerminator : string Read FNewValue Write FNewValue;
+    // The second, old terminator in the SET TERM statement
+    Property OldTerminator : string Read FOldValue Write FOldValue;
   end;
 
   { TSQLCreateRoleStatement }
@@ -1862,6 +1878,26 @@ begin
     end
   else
     Sep:=', ';
+end;
+
+{ TSQLSetISQLStatement }
+
+function TSQLSetISQLStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+begin
+  // Note: we generate this as a comment as this is ISQL-specific and will generate
+  // errors when passed as SQL to servers
+  Result:='-- SET '+Arguments;
+end;
+
+{ TSQLSetTermStatement }
+
+function TSQLSetTermStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+begin
+  // Note: we generate this as a comment as this is ISQL-specific and will generate
+  // errors when passed as SQL to servers
+  Result:='-- SET TERM '+NewTerminator+' '+OldTerminator;
 end;
 
 function TSQLElementList.GetE(AIndex : Integer): TSQLElement;

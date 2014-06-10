@@ -101,6 +101,7 @@ Type
     function ParseCreateViewStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseCreateTriggerStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseSetGeneratorStatement(AParent: TSQLElement) : TSQLSetGeneratorStatement;
+    function ParseSetISQLStatement(AParent: TSQLElement) : TSQLSetISQLStatement;
     function ParseSetTermStatement(AParent: TSQLElement) : TSQLSetTermStatement;
     function ParseCreateDatabaseStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateDatabaseStatement;
     function ParseCreateShadowStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateShadowStatement;
@@ -158,7 +159,9 @@ Type
     Function ParseConnectStatement(AParent : TSQLElement) : TSQLConnectStatement;
     Function ParseGrantStatement(AParent: TSQLElement): TSQLGrantStatement;
     Function ParseRevokeStatement(AParent: TSQLElement): TSQLGrantStatement;
+    // Parse single element
     Function Parse : TSQLElement;
+    // Parse script containing 1 or more elements
     Function ParseScript(AllowPartial : Boolean = False) : TSQLElementList;
     // Gets statement terminator (as e.g. used in SET TERM) so statements like
     // EXECUTE BLOCK or CREATE PROCEDURE that contain semicolons can be parsed
@@ -2965,16 +2968,47 @@ begin
   Consume(tsqlGenerator) ;
   try
     Result:=TSQLSetGeneratorStatement(CreateElement(TSQLSetGeneratorStatement,AParent));
-    expect(tsqlidentifier);
+    Expect(tsqlidentifier);
     Result.ObjectName:=CreateIdentifier(Result,CurrentTokenString);
     GetNextToken;
-    consume(tsqlto);
-    expect(tsqlIntegerNumber);
+    Consume(tsqlto);
+    Expect(tsqlIntegerNumber);
     Result.NewValue:=StrToInt(CurrentTokenString);
     GetNextToken;
   except
     FreeAndNil(Result);
     Raise;
+  end;
+end;
+
+function TSQLParser.ParseSetISQLStatement(AParent: TSQLElement
+  ): TSQLSetISQLStatement;
+begin
+  // On entry, we're on the first argument e.g. AUTODDL in SET AUTODDL
+  // for now, only support AutoDDL
+  //SET AUTODDL: ignore these isql commands for now
+  case CurrentToken of
+    tsqlAutoDDL:
+      begin
+      Result:=TSQLSetISQLStatement(CreateElement(TSQLSetISQLStatement,AParent));
+      // SET AUTODDL ON, SET AUTODDL OFF; optional arguments
+      if (PeekNextToken in [tsqlOn, tsqlOff]) then
+        begin
+        GetNextToken;
+        if CurrentToken=tsqlOFF then
+          Result.Arguments:='AUTODDL OFF'
+        else
+          Result.Arguments:='AUTODDL ON';
+        Consume([tsqlOn,tsqlOff]);
+        end
+      else
+        begin
+        Result.Arguments:='AUTODDL ON';
+        Consume(tsqlAutoDDL);
+        end;
+      end
+    else
+      UnexpectedToken;
   end;
 end;
 
@@ -2987,23 +3021,29 @@ begin
   Consume(tsqlTerm) ;
   try
     Result:=TSQLSetTermStatement(CreateElement(TSQLSetTermStatement,AParent));
-    expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolString,tsqlString]);
+    Expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolString,tsqlString]);
     // Already set the expression's new value to the new terminator, but do not
     // change tSQLStatementTerminator as GetNextToken etc need the old one to
     // detect the closing terminator
     case CurrentToken of
-      tsqlSemiColon, tsqlStatementTerminator: Result.NewValue:=TokenInfos[CurrentToken];
-      tsqlSymbolString, tsqlString: Result.NewValue:=CurrentTokenString;
+      tsqlSemiColon, tsqlStatementTerminator: Result.NewTerminator:=TokenInfos[CurrentToken];
+      tsqlSymbolString, tsqlString: Result.NewTerminator:=CurrentTokenString;
     end;
     // Expect the old terminator...
     GetNextToken;
     // Parser will give tsqlSemicolon rather than tsqlStatementTerminator:
     if TokenInfos[tsqlStatementTerminator]=TokenInfos[tsqlSEMICOLON] then
-      Expect(tsqlSEMICOLON)
+    begin
+      Expect(tsqlSEMICOLON);
+      Result.OldTerminator:=TokenInfos[tsqlSEMICOLON];
+    end
     else
+    begin
       Expect(tsqlStatementTerminator);
+      Result.OldTerminator:=TokenInfos[tsqlStatementTerminator];
+    end;
     //... and now set the new terminator:
-    TokenInfos[tsqlStatementTerminator]:=Result.NewValue; //process new terminator value
+    TokenInfos[tsqlStatementTerminator]:=Result.NewTerminator; //process new terminator value
   except
     FreeAndNil(Result);
     Raise;
@@ -3414,20 +3454,7 @@ begin
   Case CurrentToken of
     tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent); //SET GENERATOR
     tsqlTerm : Result:=ParseSetTermStatement(AParent); //SET TERM
-    tsqlAutoDDL : //SET AUTODDL: ignore these isql commands for now
-      begin
-      // SET AUTODDL ON, SET AUTODDL OFF; optional arguments
-      if (PeekNextToken in [tsqlOn, tsqlOff]) then
-        begin
-        GetNextToken;
-        Consume([tsqlOn,tsqlOff]);
-        end
-      else
-        begin
-        Consume(tsqlAutoDDL);
-        end;
-        Result:=nil; //ignore
-      end;
+    tsqlAutoDDL : Result:=ParseSetISQLStatement(AParent); //SET AUTODDL
   else
     // For the time being
     UnexpectedToken;
