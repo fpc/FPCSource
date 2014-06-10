@@ -160,7 +160,6 @@ Type
                        soReturnWhiteSpace,
                        soBackslashEscapes,
                        soNoDoubleDelimIsChar,
-                       soNoSetTerm {if set, do not allow changing terminator with SET TERM commands as used in Firebird},
                        soDoubleQuoteStringLiteral,  // Default: single quote is string literal
                        soSingleQuoteIdentifier,     // Default: double quote is identifier. Ignored if soDoubleQuoteStringLiteral is not specified
                        soBackQuoteIdentifier        // Default: double quote is identifier
@@ -186,9 +185,9 @@ Type
     function CommentDiv: TSQLToken;
     // Used to parse out an identifier/name and store it in the list of identifiers
     function DoIdentifier : TSQLToken;
-    // Used to parse out a literal containing symbols
+    // Used to parse out a string containing symbols
     // Also looks for tsqlStatementTerminator
-    function DoSymbolLiteral : TSQLToken;
+    function DoSymbolString : TSQLToken;
     function DoMultiLineComment: TSQLToken;
     function DoNumericLiteral: TSQLToken;
     function DoSingleLineComment: TSQLToken;
@@ -671,7 +670,7 @@ begin
     end;}
 end;
 
-function TSQLScanner.DoSymbolLiteral : TSQLToken;
+function TSQLScanner.DoSymbolString : TSQLToken;
 
 Var
   Len : Integer;
@@ -887,7 +886,7 @@ begin
      Result:=DoIdentifier;
    else
      // Symbol of some sort
-     Result:=DoSymbolLiteral;
+     Result:=DoSymbolString;
      //Error(SErrUnknownToken,[TokenStr[0]]);
    end; // Case
   Until (Not (Result in [tsqlComment,tsqlWhitespace])) or
