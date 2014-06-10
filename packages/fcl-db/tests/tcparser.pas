@@ -910,12 +910,10 @@ Const
    'END^'+#13+#10+
    ''+#13+#10+
    'SET TERM ; ^';
-Var
-  S : TSQLSetTermStatement;
 
 begin
   CreateParser(SQL);
-  FToFree:=Parser.Parse;
+  Parser.ParseScript;
 end;
 
 procedure TTestTermParser.TestSetTermCreateProcedureVar;
@@ -939,12 +937,9 @@ Const
     'END ^'+#13+#10+
     'SET TERM ; ^';
 
-Var
-  S : TSQLSetTermStatement;
-
 begin
   CreateParser(SQL);
-  FToFree:=Parser.Parse;
+  Parser.ParseScript;
 end;
 
 
