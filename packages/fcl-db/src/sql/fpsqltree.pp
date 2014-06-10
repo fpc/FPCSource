@@ -194,6 +194,7 @@ Type
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Identifier : TSQLIdentifierName Read FIdentifier Write FIdentifier;
+    // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
   end;
 

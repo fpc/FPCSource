@@ -648,12 +648,12 @@ end;
 
 procedure TTestSQLScanner.TestSymbolLiteral1;
 begin
-  CheckToken(tsqlSymbolLiteral,'%');
+  CheckToken(tsqlSymbolString,'%');
 end;
 
 procedure TTestSQLScanner.TestSymbolLiteral2;
 begin
-  CheckToken(tsqlSymbolLiteral,'%^');
+  CheckToken(tsqlSymbolString,'%^');
 end;
 
 procedure TTestSQLScanner.TestStarting;
@@ -1405,7 +1405,7 @@ end;
 procedure TTestSQLScanner.TestIdentifier5;
 begin
   // $0 should not be parsed as an identifier but as a symbol literal
-  CheckToken(tsqlSymbolLiteral,'$0');
+  CheckToken(tsqlSymbolString,'$0');
 end;
 
 procedure TTestSQLScanner.TestIdentifierDotIdentifier;

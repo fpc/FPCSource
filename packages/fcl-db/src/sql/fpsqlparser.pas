@@ -222,7 +222,7 @@ Resourcestring
   SErrNoAsteriskInSingleTon = '* not allowed in singleton select';
   SErrUnionFieldCountMatch =  'Field count mismatch in select union : %d <> %d';
   SErrInvalidExtract = 'Invalid element for extract: %s';
-  SErrOuterWithout = 'OUTER without previous LEFT, RIGHT or FULL';
+  SErrOuterWithout = 'OUTER without preceding LEFT, RIGHT or FULL';
 
 Function StringToSQLExtractElement(Const S : TSQLStringType; Out Res : TSQLExtractElement) : Boolean;
 
@@ -2709,18 +2709,30 @@ begin
             N:=N+'.'+CurrentTokenString;
             GetNextToken;
             end;
-          // plain identifier
+          // Plain identifier
           Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
-          TSQLIdentifierExpression(Result).IDentifier:=CreateIdentifier(Result,N);
+          TSQLIdentifierExpression(Result).Identifier:=CreateIdentifier(Result,N);
           // Array access ?
           If (CurrentToken=tsqlSquareBraceOpen) then
-             begin
-             If (GetNextToken<>tsqlIntegerNumber) then
-                Error(SErrIntegerExpected);
-             TSQLIdentifierExpression(Result).ElementIndex:=StrToInt(CurrentTokenString);
-             GetNextToken;
-             Consume(tsqlSquareBraceClose);
-             end;
+            // Either something like array[5] or,
+            // in procedures etc array[i:] where i is a variable
+            begin
+            case GetNextToken of
+              tsqlIntegerNumber: TSQLIdentifierExpression(Result).ElementIndex:=StrToInt(CurrentTokenString);
+              tsqlColon:
+                begin
+                GetNextToken;
+                Expect(tsqlIdentifier);
+                // We can't set element index here, but it IS an array...
+                //todo: verify if there are repercussions/what these would be
+                TSQLIdentifierExpression(Result).ElementIndex:=maxint;
+                end;
+            else
+               Error(SErrIntegerExpected);
+            end;
+            GetNextToken;
+            Consume(tsqlSquareBraceClose);
+            end;
           end
         else
           begin
@@ -2975,13 +2987,13 @@ begin
   Consume(tsqlTerm) ;
   try
     Result:=TSQLSetTermStatement(CreateElement(TSQLSetTermStatement,AParent));
-    expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolLiteral,tsqlString]);
+    expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolString,tsqlString]);
     // Already set the expression's new value to the new terminator, but do not
     // change tSQLStatementTerminator as GetNextToken etc need the old one to
     // detect the closing terminator
     case CurrentToken of
       tsqlSemiColon, tsqlStatementTerminator: Result.NewValue:=TokenInfos[CurrentToken];
-      tsqlSymbolLiteral, tsqlString: Result.NewValue:=CurrentTokenString;
+      tsqlSymbolString, tsqlString: Result.NewValue:=CurrentTokenString;
     end;
     // Expect the old terminator...
     GetNextToken;
