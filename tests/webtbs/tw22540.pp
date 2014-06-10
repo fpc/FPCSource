@@ -14,7 +14,7 @@ type
                        Type
                          PKey  = ^TKey;
                          PValue= ^TValue;
-                         TKeyCompareFunc  = function(const Key1, Key2: TKey): PtrInt; // returns ptrint in FPC, don't know about XE2
+                         TKeyCompareFunc  = function(const Key1, Key2: TKey): Integer; // returns Integer both in FPC and Delphi
                          TFinalizeKeyFunc = Procedure(var Key1:TKey) of object;
                        private
                          keycomparefunc:TKeyCompareFunc;
