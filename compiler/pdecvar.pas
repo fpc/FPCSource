@@ -1797,10 +1797,8 @@ implementation
                      fieldvs:=tfieldvarsym(sc[i]);
                      fieldvs.visibility:=visibility;
                      hstaticvs:=make_field_static(recst,fieldvs);
-                     { for generics it would be better to disable the following,
-                       but simply disabling it in that case breaks linking with
-                       debug info }
-                     cnodeutils.insertbssdata(hstaticvs);
+                     if not parse_generic then
+                       cnodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;
