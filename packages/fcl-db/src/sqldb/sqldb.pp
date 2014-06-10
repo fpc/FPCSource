@@ -2235,9 +2235,7 @@ begin
       CreateFields;
 
       if FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
-        begin
         for counter := 0 to ServerIndexDefs.Count-1 do
-          begin
           if ixPrimary in ServerIndexDefs[counter].Options then
             begin
             IndexFields := TStringList.Create;
@@ -2250,8 +2248,6 @@ begin
               end;
             IndexFields.Free;
             end;
-          end;
-        end;
       end;
     end;
   BindFields(True);
