@@ -71,14 +71,19 @@ implementation
       var
         power  : longint;
       begin
+        {We can handle all cases of constant division}
         if not(cs_check_overflow in current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
-           (ispowerof2(tordconstnode(right).value,power) or
+           not(is_64bitint(resultdef)) and
+           {Only the ARM and thumb2-isa support umull and smull, which are required for arbitary division by const optimization}
+           (GenerateArmCode or
+            GenerateThumb2Code or
+            (ispowerof2(tordconstnode(right).value,power) or
             (tordconstnode(right).value=1) or
             (tordconstnode(right).value=int64(-1))
-           ) and
-           not(is_64bitint(resultdef)) then
+            )
+           ) then
           result:=nil
         else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=divn) and
@@ -173,7 +178,10 @@ implementation
                   end
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
-             end;
+             end
+           else {Everything else is handled the generic code}
+             cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
+               tordconstnode(right).value.svalue,numerator,resultreg);
          end;
 
 {

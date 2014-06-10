@@ -114,6 +114,7 @@ unit cgcpu;
 
         { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
         procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
+
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -133,6 +134,9 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
+
+        {Multiply two 32-bit registers into lo and hi 32-bit registers}
+        procedure a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
       end;
 
       { normal arm cg }
@@ -1173,6 +1177,26 @@ unit cgcpu;
         maybeadjustresult(list,op,size,dst);
       end;
 
+    procedure tcgarm.a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+    var
+      asmop: tasmop;
+    begin
+      list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
+      case size of
+        OS_32:  asmop:=A_UMULL;
+        OS_S32: asmop:=A_SMULL;
+        else
+          InternalError(2014060802);
+      end;
+      { The caller might omit dstlo or dsthi, when he is not interested in it, we still
+        need valid registers everywhere. In case of dsthi = NR_NO we could fall back to
+        32x32=32 bit multiplication}
+      if (dstlo = NR_NO) then
+        dstlo:=getintregister(list,size);
+      if (dsthi = NR_NO) then
+        dsthi:=getintregister(list,size);
+      list.concat(taicpu.op_reg_reg_reg_reg(asmop, dstlo, dsthi, src1,src2));
+    end;
 
     function tbasecgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
