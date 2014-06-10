@@ -382,14 +382,26 @@ implementation
         opsize : tcgsize;
         hp : taicpu;
       begin
+        if GenerateThumbCode then
+          begin
+            inherited second_abs_long;
+            exit;
+          end;
+
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+
         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MOV,location.register,left.location.register), PF_S));
+
+        if GenerateThumb2Code then
+          current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
+
         current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI));
+
         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
       end;
 
