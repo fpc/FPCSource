@@ -2044,10 +2044,13 @@ Unit Rax86int;
           instr.opcode:=A_POPFW
         else if (instr.opcode=A_PUSHF) then
           instr.opcode:=A_PUSHFW
+{$ifndef x86_64}
         else if (instr.opcode=A_PUSHA) then
           instr.opcode:=A_PUSHAW
         else if (instr.opcode=A_POPA) then
-          instr.opcode:=A_POPAW;
+          instr.opcode:=A_POPAW
+{$endif x86_64}
+        ;
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
         is_far_const:=false;

@@ -311,8 +311,11 @@ implementation
               if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
                 begin
                   if ((opcode <> A_LGS) and (opcode <> A_LSS) and
-                      (opcode <> A_LFS) and (opcode <> A_LDS) and
-                      (opcode <> A_LES)) then
+                      (opcode <> A_LFS)
+{$ifndef x86_64}
+                      and (opcode <> A_LDS) and (opcode <> A_LES)
+{$endif x86_64}
+                      ) then
                    Begin
                      case s of
                       S_B : AsmWrite('byte ptr ');

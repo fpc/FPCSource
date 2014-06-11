@@ -244,7 +244,9 @@ implementation
                               A_CMOVcc,
                               A_MOVZX,
                               A_MOVSX,
+{$ifdef x86_64}
                               A_MOVSXD,
+{$endif x86_64}
                               A_MULSS,
                               A_MULSD,
                               A_SUBSS,
