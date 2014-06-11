@@ -408,7 +408,9 @@ interface
                 begin
                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
                           (opcode = A_LSS) or (opcode = A_LFS) or
+{$ifndef x86_64}
                           (opcode = A_LES) or (opcode = A_LDS) or
+{$endif x86_64}
                          // (opcode = A_SHR) or (opcode = A_SHL) or
                          // (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
@@ -472,23 +474,10 @@ interface
             else
               begin
                 if ai.opsize=S_FAR then
-                  AsmWrite('far ')
-                else
-                  begin
-{ NEAR forces NASM to emit near jumps, which are 386+ }
-{$ifndef i8086}
-                if not(
-                       (ai.opcode=A_JCXZ) or (ai.opcode=A_JECXZ) or
-    {$ifdef x86_64}
-                       (ai.opcode=A_JRCXZ) or
-    {$endif x86_64}
-                       (ai.opcode=A_LOOP) or (ai.opcode=A_LOOPE) or
-                       (ai.opcode=A_LOOPNE) or (ai.opcode=A_LOOPNZ) or
-                       (ai.opcode=A_LOOPZ)
-                      ) then
-                  AsmWrite('NEAR ');
-{$endif i8086}
-                  end;
+                  AsmWrite('far ');
+                { else
+                   AsmWrite('near ') just disables short branches, increasing code size. 
+                   Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
