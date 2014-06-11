@@ -2000,7 +2000,6 @@ unit cgcpu;
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
                     reference_reset_base(href,reference.index,reference.offset-sizeof(pint),sizeof(pint));
-                    list.concat(tai_comment.create(strpnew('m68k: g_adjust_self')));
                     { plain 68k could use SUBI on href directly, but this way it works on Coldfire too
                       and it's probably smaller code for the majority of cases (if ioffset small, the
                       load will use MOVEQ) (KB) }
