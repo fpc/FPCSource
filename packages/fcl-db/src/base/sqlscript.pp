@@ -280,19 +280,9 @@ end;
 
 function TCustomSQLScript.Available: Boolean;
 
-var 
-  SCol, 
-  SLine: Integer;
-  
 begin
-  SCol:=FCol;
-  SLine:=FLine;
-  try
-    Result:=Length(Trim(NextStatement()))>0;
-  Finally  
-    FCol:=SCol;
-    FLine:=SLine;
-  end;  
+  With FSQL do
+    Result:=(FLine<Count) or (FCol<Length(Strings[Count-1]))
 end;
 
 procedure TCustomSQLScript.InternalStatement(Statement: TStrings;  var StopExecution: Boolean);
@@ -438,11 +428,11 @@ begin
   FSkipStackIndex:=0;
   Faborted:=False;
   DefaultDirectives;
-  while not FAborted and Available() do
-    begin
+  Repeat
     NextStatement();
-    ProcessStatement;
-    end;
+    if Length(Trim(FCurrentStatement.Text))>0 then
+      ProcessStatement;
+  Until FAborted or Not Available;
 end;
 
 function TCustomSQLScript.NextStatement: AnsiString;
