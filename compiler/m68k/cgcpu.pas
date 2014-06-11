@@ -2000,9 +2000,12 @@ unit cgcpu;
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
                     reference_reset_base(href,reference.index,reference.offset-sizeof(pint),sizeof(pint));
-                    list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_D0));
-                    list.concat(taicpu.op_const_reg(A_SUB,S_L,ioffset,NR_D0));
-                    list.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_D0,href));
+                    list.concat(tai_comment.create(strpnew('m68k: g_adjust_self')));
+                    { plain 68k could use SUBI on href directly, but this way it works on Coldfire too
+                      and it's probably smaller code for the majority of cases (if ioffset small, the
+                      load will use MOVEQ) (KB) }
+                    a_load_const_reg(list,OS_ADDR,ioffset,NR_D0);
+                    list.concat(taicpu.op_reg_ref(A_SUB,S_L,NR_D0,href));
                   end
                 else
                   internalerror(2013100703);
@@ -2049,7 +2052,7 @@ unit cgcpu;
           reference_reset_base(href,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
           list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
           reference_reset_base(href,NR_A0,0,4);
-          list.concat(taicpu.op_ref(A_JMP,S_L,href));
+          list.concat(taicpu.op_ref(A_JMP,S_NO,href));
         end;
 
       var
@@ -2088,7 +2091,7 @@ unit cgcpu;
           end
         { case 0 }
         else
-          list.concat(taicpu.op_sym(A_JMP,S_L,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
