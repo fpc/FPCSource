@@ -203,6 +203,29 @@ var
    codes,
    flags   : string;
    optypes : array[1..max_operands] of string;
+   inschanges: string;
+   instrwritten: boolean;
+
+
+procedure DoWriteInstr;
+begin
+  if firstopcode then
+    firstopcode:=false
+  else
+    begin
+      writeln(opfile,',');
+      writeln(attfile,',');
+      writeln(attsuffile,',');
+      writeln(intfile,',');
+      writeln(propfile,',');
+    end;
+  write(opfile,opcode);
+  write(intfile,'''',intopcode,'''');
+  write(attfile,'''',attopcode,'''');
+  write(attsuffile,attsuffix);
+  write(propfile,'(Ch: ',inschanges,')');
+end;
+
 begin
    writeln('Nasm Instruction Table Converter Version ',Version);
    i8086:=paramstr(1)='i8086';
@@ -319,25 +342,12 @@ begin
             end;
            intopcode:=Lower(intopcode);
            attopcode:=Lower(attopcode);
-           if firstopcode then
-            firstopcode:=false
-           else
-            begin
-              writeln(opfile,',');
-              writeln(attfile,',');
-              writeln(attsuffile,',');
-              writeln(intfile,',');
-              writeln(propfile,',');
-            end;
-           write(opfile,opcode);
-           write(intfile,'''',intopcode,'''');
-           write(attfile,'''',attopcode,'''');
-           write(attsuffile,attsuffix);
+           instrwritten:=false;
+
            { read the next line which contains the Change options }
            repeat
-             readln(infile,s);
-           until eof(infile) or ((s<>'') and (s[1]<>';'));
-           write(propfile,'(Ch: ',s,')');
+             readln(infile,inschanges);
+           until eof(infile) or ((inschanges<>'') and (inschanges[1]<>';'));
            continue;
          end;
         { we must have an opcode }
@@ -443,6 +453,9 @@ begin
         { write instruction }
         if not skip then
           begin
+            if not instrwritten then
+              DoWriteInstr;
+            instrwritten:=true;
             if not(first) then
               writeln(insfile,',')
             else
