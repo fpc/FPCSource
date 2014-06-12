@@ -502,8 +502,7 @@ implementation
                  not(is_dispinterface(astruct)) then
                 begin
                   tpropertysym(overridden).makeduplicate(p,readprocdef,writeprocdef,paranr);
-                  p.overriddenpropsym:=tpropertysym(overridden);
-                  include(p.propoptions,ppo_overrides);
+                  p.register_override(tpropertysym(overridden));
                 end
               else
                 begin

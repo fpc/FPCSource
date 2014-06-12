@@ -349,6 +349,7 @@ interface
           procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
           { set up the accessors for this property }
           procedure add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+          procedure register_override(overriddenprop: tpropertysym); virtual;
        end;
        tpropertysymclass = class of tpropertysym;
 
@@ -1434,6 +1435,13 @@ implementation
           else
             Message(parser_e_ill_property_access_sym);
         end;
+      end;
+
+
+    procedure tpropertysym.register_override(overriddenprop: tpropertysym);
+      begin
+        overriddenpropsym:=tpropertysym(overriddenprop);
+        include(propoptions,ppo_overrides);
       end;
 
 
