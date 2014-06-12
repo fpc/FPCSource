@@ -520,79 +520,21 @@ implementation
 
          if not(is_dispinterface(astruct)) then
            begin
+             { parse accessors }
              if try_to_consume(_READ) then
                begin
                  p.propaccesslist[palt_read].clear;
                  if parse_symlist(p.propaccesslist[palt_read],def) then
                   begin
                     sym:=p.propaccesslist[palt_read].firstsym^.sym;
-                    case sym.typ of
-                      procsym :
-                        begin
-                          { read is function returning the type of the property }
-                          readprocdef.returndef:=p.propdef;
-                          { Insert hidden parameters }
-                          handle_calling_convention(readprocdef);
-                          { search procdefs matching readprocdef }
-                          { we ignore hidden stuff here because the property access symbol might have
-                            non default calling conventions which might change the hidden stuff;
-                            see tw3216.pp (FK) }
-                          p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_read].procdef) or
-                            { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                            ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym)
-                          else
-                            begin
-{$ifdef jvm}
-                              orgaccesspd:=tprocdef(p.propaccesslist[palt_read].procdef);
-                              wrongvisibility:=tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility;
-                              if (prop_auto_getter_prefix<>'') and
-                                 (wrongvisibility or
-                                   (p.propaccesslist[palt_read].firstsym^.sym.RealName<>prop_auto_getter_prefix+p.RealName)) then
-                                jvm_create_getter_for_property(p,orgaccesspd)
-                              { if the visibility of the getter is lower than
-                                the visibility of the property, wrap it so that
-                                we can call it from all contexts in which the
-                                property is visible }
-                              else if wrongvisibility then
-                               begin
-                                 p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
-                                 p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
-                               end;
-{$endif jvm}
-                            end;
-                        end;
-                      fieldvarsym :
-                        begin
-                          if not assigned(def) then
-                            internalerror(200310071);
-                          if compare_defs(def,p.propdef,nothingn)>=te_equal then
-                           begin
-                             { property parameters are allowed if this is
-                               an indexed property, because the index is then
-                               the parameter.
-                               Note: In the help of Kylix it is written
-                               that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) or
-                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
-                               Message(parser_e_ill_property_access_sym);
-{$ifdef jvm}
-                             { if the visibility of the field is lower than the
-                               visibility of the property, wrap it in a getter
-                               so that we can access it from all contexts in
-                               which the property is visibile }
-                             if (prop_auto_getter_prefix<>'') or
-                                (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_getter_for_property(p,nil);
-{$endif}
-                           end
-                          else
-                           IncompatibleTypes(def,p.propdef);
-                        end;
-                      else
-                        Message(parser_e_ill_property_access_sym);
-                    end;
+                    { getter is a function returning the type of the property }
+                    if sym.typ=procsym then
+                      begin
+                        readprocdef.returndef:=p.propdef;
+                        { Insert hidden parameters }
+                        handle_calling_convention(readprocdef);
+                      end;
+                    p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
                end;
              if try_to_consume(_WRITE) then
@@ -601,81 +543,18 @@ implementation
                  if parse_symlist(p.propaccesslist[palt_write],def) then
                   begin
                     sym:=p.propaccesslist[palt_write].firstsym^.sym;
-                    case sym.typ of
-                      procsym :
-                        begin
-                          { write is a procedure with an extra value parameter
-                            of the of the property }
-                          writeprocdef.returndef:=voidtype;
-                          inc(paranr);
-                          hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
-                          writeprocdef.parast.insert(hparavs);
-                          { Insert hidden parameters }
-                          handle_calling_convention(writeprocdef);
-                          { search procdefs matching writeprocdef }
-                          { skip hidden part (same as for _READ part ) because of the }
-                          { possible different calling conventions and especialy for  }
-                          { records - their methods hidden parameters are handled     }
-                          { after the full record parse                               }
-                          if cs_varpropsetter in current_settings.localswitches then
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez,cpo_ignorehidden])
-                          else
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_write].procdef) or
-                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym)
-                          else
-                            begin
-{$ifdef jvm}
-                              orgaccesspd:=tprocdef(p.propaccesslist[palt_write].procdef);
-                              wrongvisibility:=tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility;
-                              if (prop_auto_setter_prefix<>'') and
-                                 ((sym.RealName<>prop_auto_setter_prefix+p.RealName) or
-                                  wrongvisibility) then
-                                jvm_create_setter_for_property(p,orgaccesspd)
-                              { if the visibility of the setter is lower than
-                                the visibility of the property, wrap it so that
-                                we can call it from all contexts in which the
-                                property is visible }
-                              else if wrongvisibility then
-                                begin
-                                  p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
-                                  p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
-                                end;
-{$endif jvm}
-                            end;
-                        end;
-                      fieldvarsym :
-                        begin
-                          if not assigned(def) then
-                            internalerror(200310072);
-                          if compare_defs(def,p.propdef,nothingn)>=te_equal then
-                           begin
-                             { property parameters are allowed if this is
-                               an indexed property, because the index is then
-                               the parameter.
-                               Note: In the help of Kylix it is written
-                               that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) or
-                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
-                              Message(parser_e_ill_property_access_sym);
-{$ifdef jvm}
-                             { if the visibility of the field is lower than the
-                               visibility of the property, wrap it in a getter
-                               so that we can access it from all contexts in
-                               which the property is visibile }
-                             if (prop_auto_setter_prefix<>'') or
-                                (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_setter_for_property(p,nil);
-{$endif}
-                           end
-                          else
-                           IncompatibleTypes(def,p.propdef);
-                        end;
-                      else
-                        Message(parser_e_ill_property_access_sym);
-                    end;
+                    if sym.typ=procsym then
+                      begin
+                        { settter is a procedure with an extra value parameter
+                          of the of the property }
+                        writeprocdef.returndef:=voidtype;
+                        inc(paranr);
+                        hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                        writeprocdef.parast.insert(hparavs);
+                        { Insert hidden parameters }
+                        handle_calling_convention(writeprocdef);
+                      end;
+                    p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
                end;
            end

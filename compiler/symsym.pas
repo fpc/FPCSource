@@ -317,6 +317,9 @@ interface
        tpropaccesslisttypes=(palt_none,palt_read,palt_write,palt_stored);
 
        tpropertysym = class(Tstoredsym)
+         protected
+           procedure finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef); virtual;
+         public
           propoptions   : tpropertyoptions;
           overriddenpropsym : tpropertysym;
           overriddenpropsymderef : tderef;
@@ -344,6 +347,8 @@ interface
           procedure makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
           procedure add_accessor_parameters(readprocdef, writeprocdef: tprocdef);
           procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
+          { set up the accessors for this property }
+          procedure add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
        end;
        tpropertysymclass = class of tpropertysym;
 
@@ -1228,6 +1233,12 @@ implementation
                                 TPROPERTYSYM
 ****************************************************************************}
 
+    procedure tpropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+      begin
+        { do nothing by default }
+      end;
+
+
     constructor tpropertysym.create(const n : string);
       var
         pap : tpropaccesslisttypes;
@@ -1375,6 +1386,55 @@ implementation
           end;
       end;
 
+
+    procedure tpropertysym.add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+      var
+        cpo: tcompare_paras_options;
+      begin
+        case sym.typ of
+          procsym :
+            begin
+              { search procdefs matching accessordef }
+              { we ignore hidden stuff here because the property access symbol might have
+                non default calling conventions which might change the hidden stuff;
+                see tw3216.pp (FK) }
+              cpo:=[cpo_allowdefaults,cpo_ignorehidden];
+              { allow var-parameters for setters in case of VARPROPSETTER+ }
+              if (getset=palt_write) and
+                 (cs_varpropsetter in current_settings.localswitches) then
+                include(cpo,cpo_ignorevarspez);
+              propaccesslist[getset].procdef:=tprocsym(sym).find_procdef_bypara(accessordef.paras,accessordef.returndef,cpo);
+              if not assigned(propaccesslist[getset].procdef) or
+                 { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                 ((sp_static in symoptions)<>tprocdef(propaccesslist[getset].procdef).no_self_node) then
+                Message(parser_e_ill_property_access_sym)
+              else
+                finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
+            end;
+          fieldvarsym :
+            begin
+              if not assigned(fielddef) then
+                internalerror(200310071);
+              if compare_defs(fielddef,propdef,nothingn)>=te_equal then
+               begin
+                 { property parameters are allowed if this is
+                   an indexed property, because the index is then
+                   the parameter.
+                   Note: In the help of Kylix it is written
+                   that it isn't allowed, but the compiler accepts it (PFV) }
+                 if (ppo_hasparameters in propoptions) or
+                    ((sp_static in symoptions) <> (sp_static in sym.symoptions)) then
+                   Message(parser_e_ill_property_access_sym)
+                 else
+                   finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
+               end
+              else
+               IncompatibleTypes(fielddef,propdef);
+            end;
+          else
+            Message(parser_e_ill_property_access_sym);
+        end;
+      end;
 
 
     procedure tpropertysym.makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
