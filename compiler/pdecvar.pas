@@ -82,7 +82,7 @@ implementation
 
         { convert a node tree to symlist and return the last
           symbol }
-        function parse_symlist(pl:tpropaccesslist;var def:tdef):boolean;
+        function parse_symlist(pl:tpropaccesslist;out def:tdef):boolean;
           var
             idx : longint;
             sym : tsym;
