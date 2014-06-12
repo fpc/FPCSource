@@ -187,8 +187,10 @@ type
       visibility, then we have to create a getter and/or setter with that same
       higher visibility to make sure that using the property does not result
       in JVM verification errors }
-    procedure create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean);
+    function create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean): tprocdef;
     procedure finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef); override;
+    procedure register_override(overriddenprop: tpropertysym); override;
+    procedure maybe_create_overridden_getter_or_setter(getset: tpropaccesslisttypes);
   end;
   tcpupropertysymclass = class of tcpupropertysym;
 
@@ -222,7 +224,7 @@ implementation
                                tcpuproptertysym
   ****************************************************************************}
 
-  procedure tcpupropertysym.create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean);
+  function tcpupropertysym.create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean): tprocdef;
     var
       obj: tabstractrecorddef;
       ps: tprocsym;
@@ -309,6 +311,7 @@ implementation
                             parentpd.visibility:=visibility;
                             include(parentpd.procoptions,po_auto_raised_visibility);
                           end;
+                        result:=parentpd;
                         { we are done, no need to create a wrapper }
                         exit
                       end
@@ -319,7 +322,8 @@ implementation
                         if po_virtualmethod in parentpd.procoptions then
                           begin
                             procoptions:=procoptions+[po_virtualmethod,po_overridingmethod];
-                            Message2(parser_w_overriding_property_getter_setter,accessorname,FullTypeName(tdef(parentpd.owner.defowner),nil));
+                            if not(parentpd.synthetickind in [tsk_field_getter,tsk_field_setter]) then
+                              Message2(parser_w_overriding_property_getter_setter,accessorname,FullTypeName(tdef(parentpd.owner.defowner),nil));
                           end;
                         { otherwise we can't do anything, and
                           proc_add_definition will give an error }
@@ -340,6 +344,7 @@ implementation
                     finish_copied_procdef(pd,parentpd.procsym.realname,obj.symtable,obj);
                     exclude(pd.procoptions,po_external);
                     pd.synthetickind:=tsk_anon_inherited;
+                    result:=pd;
                     exit;
                   end;
               end;
@@ -394,6 +399,7 @@ implementation
         pd.procoptions:=pd.procoptions+procoptions;
         { visibility }
         pd.visibility:=visibility;
+        result:=pd;
 
         { new procsym? }
         if not assigned(sym) or
@@ -406,8 +412,6 @@ implementation
           ps:=tprocsym(sym);
         { associate procsym with procdef}
         pd.procsym:=ps;
-
-
 
         { function/procedure }
         accessorparapd:=nil;
@@ -496,7 +500,7 @@ implementation
 
   procedure tcpupropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
     var
-      orgaccesspd: tprocdef;
+      orgaccesspd, newaccesspd: tprocdef;
       pprefix: pstring;
       wrongvisibility: boolean;
     begin
@@ -505,24 +509,19 @@ implementation
         pprefix:=@prop_auto_getter_prefix
       else
         pprefix:=@prop_auto_setter_prefix;
+      newaccesspd:=nil;
       case sym.typ of
         procsym:
           begin
             orgaccesspd:=tprocdef(propaccesslist[getset].procdef);
             wrongvisibility:=tprocdef(propaccesslist[getset].procdef).visibility<visibility;
-            if (pprefix^<>'') and
-               (wrongvisibility or
-                (sym.RealName<>pprefix^+RealName)) then
-              create_getter_or_setter_for_property(orgaccesspd,getset=palt_read)
             { if the visibility of the accessor is lower than
               the visibility of the property, wrap it so that
               we can call it from all contexts in which the
               property is visible }
-            else if wrongvisibility then
-             begin
-               propaccesslist[getset].procdef:=jvm_wrap_method_with_vis(tprocdef(propaccesslist[palt_read].procdef),visibility);
-               propaccesslist[getset].firstsym^.sym:=tprocdef(propaccesslist[getset].procdef).procsym;
-             end;
+            if wrongvisibility or
+               (sym.RealName<>pprefix^+RealName) then
+              newaccesspd:=create_getter_or_setter_for_property(orgaccesspd,getset=palt_read)
           end;
         fieldvarsym:
           begin
@@ -532,11 +531,77 @@ implementation
               which the property is visibile }
             if (pprefix^<>'') or
                (tfieldvarsym(sym).visibility<visibility) then
-              create_getter_or_setter_for_property(nil,getset=palt_read);
+              newaccesspd:=create_getter_or_setter_for_property(nil,getset=palt_read);
           end;
         else
           internalerror(2014061101);
       end;
+      { update the getter/setter used for this property (already done in case
+        a new method was created from scratch, but not if we overrode a
+        getter/setter generated for the inherited property) }
+      if assigned(newaccesspd) then
+        begin
+          if propaccesslist[getset].firstsym^.sym.typ<>procsym then
+            internalerror(2014061201);
+          propaccesslist[getset].procdef:=newaccesspd;
+          propaccesslist[getset].firstsym^.sym:=newaccesspd.procsym;
+        end;
+    end;
+
+
+  procedure tcpupropertysym.register_override(overriddenprop: tpropertysym);
+    var
+      sym: tsym;
+    begin
+      inherited;
+      { new property has higher visibility than previous one -> maybe override
+        the getters/setters }
+      if (overriddenprop.visibility<visibility) then
+        begin
+          maybe_create_overridden_getter_or_setter(palt_read);
+          maybe_create_overridden_getter_or_setter(palt_write);
+        end;
+    end;
+
+
+  procedure tcpupropertysym.maybe_create_overridden_getter_or_setter(getset: tpropaccesslisttypes);
+    var
+      sym: tsym;
+      fielddef: tdef;
+      accessordef: tprocdef;
+      psym: tpropertysym;
+    begin
+      { find the last defined getter/setter/field accessed by an inherited
+        property }
+      psym:=overriddenpropsym;
+      while not assigned(psym.propaccesslist[getset].firstsym) do
+        begin
+          psym:=psym.overriddenpropsym;
+          { if there is simply no getter/setter for this property, we're done }
+          if not assigned(psym) then
+            exit;
+        end;
+      sym:=psym.propaccesslist[getset].firstsym^.sym;
+      case sym.typ of
+        procsym:
+          begin
+            accessordef:=tprocdef(psym.propaccesslist[getset].procdef);
+            if accessordef.visibility>=visibility then
+              exit;
+            fielddef:=nil;
+          end;
+        fieldvarsym:
+          begin
+            if sym.visibility>=visibility then
+              exit;
+            accessordef:=nil;
+            fielddef:=tfieldvarsym(sym).vardef;
+          end;
+        else
+          internalerror(2014061102);
+      end;
+      propaccesslist[getset]:=psym.propaccesslist[getset].getcopy;
+      finalize_getter_or_setter_for_sym(getset,sym,propdef,accessordef);
     end;
 
 

@@ -174,3 +174,7 @@ fi
 set -e
 $PPC -O2 -g -B -Sa tptrdynarr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tptrdynarr
+$PPC -O2 -g -B -Sa tprop5a
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprop5a
+$PPC -O2 -g -B -Sa tprop5a -CTautosetterprefix=Set -CTautogetterprefix=Get
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprop5a

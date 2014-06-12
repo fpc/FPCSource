@@ -162,6 +162,7 @@ interface
         constructor create;
         destructor  destroy;override;
         function  empty:boolean;
+        function getcopy: tpropaccesslist;
         procedure addsym(slt:tsltype;p:tsym);
         procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
         procedure addtype(slt:tsltype;d:tdef);
@@ -460,6 +461,27 @@ implementation
     function tpropaccesslist.empty:boolean;
       begin
         empty:=(firstsym=nil);
+      end;
+
+    function tpropaccesslist.getcopy: tpropaccesslist;
+      var
+        hp, dest : ppropaccesslistitem;
+      begin
+        result:=tpropaccesslist.create;
+        result.procdef:=procdef;
+        hp:=firstsym;
+        while assigned(hp) do
+          begin
+            new(dest);
+            dest^:=hp^;
+            dest^.next:=nil;
+            if not assigned(result.firstsym) then
+              result.firstsym:=dest;
+            if assigned(result.lastsym) then
+              result.lastsym^.next:=dest;
+            result.lastsym:=dest;
+            hp:=hp^.next;
+          end;
       end;
 
 
