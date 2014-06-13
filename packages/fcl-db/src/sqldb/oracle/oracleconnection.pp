@@ -732,7 +732,7 @@ end;
 function TOracleConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
 var rowcount: ub4;
 begin
-  if OCIAttrGet((cursor as TOracleCursor).FOciStmt, OCI_HTYPE_STMT, @rowcount, nil, OCI_ATTR_ROW_COUNT, FOciError) = OCI_SUCCESS then
+  if Assigned(cursor) and (OCIAttrGet((cursor as TOracleCursor).FOciStmt, OCI_HTYPE_STMT, @rowcount, nil, OCI_ATTR_ROW_COUNT, FOciError) = OCI_SUCCESS) then
     Result:=rowcount
   else
     Result:=inherited RowsAffected(cursor);
@@ -1112,6 +1112,6 @@ end;
 initialization
   RegisterConnection(TOracleConnectionDef);
 finalization
-  RegisterConnection(TOracleConnectionDef);
+  UnRegisterConnection(TOracleConnectionDef);
 end.
 
