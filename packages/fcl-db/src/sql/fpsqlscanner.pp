@@ -42,7 +42,8 @@ type
    tsqlIdentifier {a table etc name},
    tsqlSymbolString {a string containing symbols/punctuation marks; only rarely used - e.g. in SET TERM ^ ;},
    tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
-   tsqlStatementTerminator {statement separator, usually semicolon but may be changed by code. For now, limited to semicolon and symbol literals not already defined like tsqlCOMMA},
+   tsqlStatementTerminator {statement separator, usually semicolon but may be changed by code. For now, limited to semicolon and symbol literals not already defined like tsqlCOMMA.}
+   {todo: move this out of fpsqlscanner into fpsqlparser with an option to disable},
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
    tsqlPlaceHolder {question mark},
    tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,
