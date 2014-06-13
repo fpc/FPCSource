@@ -2426,6 +2426,7 @@ implementation
            callflags: tcallnodeflags;
            t : ttoken;
            unit_found : boolean;
+           tokenpos: tfileposinfo;
          begin
            { allow post fix operators }
            again:=true;
@@ -2448,6 +2449,8 @@ implementation
                unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
+               { store the position of the token before consuming it }
+               tokenpos:=current_filepos;
                consume(t);
                { named parameter support }
                found_arg_name:=false;
@@ -2508,7 +2511,7 @@ implementation
                      end
                    else
                      begin
-                       identifier_not_found(orgstoredpattern);
+                       identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
                        srsymtable:=nil;
                      end;
@@ -2761,6 +2764,9 @@ implementation
                     Message(parser_e_illegal_expression);
                   end;
               end; { end case }
+
+              if p1.nodetype<>errorn then
+                p1.fileinfo:=tokenpos;
             end;
          end;
 
