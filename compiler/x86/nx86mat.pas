@@ -377,6 +377,10 @@ interface
         op:Tasmop;
         cgsize:TCgSize;
         opsize:topsize;
+        e, sm: aint;
+        d,m: aword;
+        m_add: boolean;
+        s: byte;
       begin
         secondpass(left);
         if codegenerror then
@@ -397,33 +401,106 @@ interface
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
-        if (nodetype=divn) and (right.nodetype=ordconstn) and
-           ispowerof2(int64(tordconstnode(right).value),power) then
+        if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            { for signed numbers, the numerator must be adjusted before the
-              shift instruction, but not wih unsigned numbers! Otherwise,
-              "Cardinal($ffffffff) div 16" overflows! (JM) }
-            if is_signed(left.resultdef) Then
+            if ispowerof2(int64(tordconstnode(right).value),power) then
               begin
-                  { use a sequence without jumps, saw this in
-                    comp.compilers (JM) }
-                  { no jumps, but more operations }
-                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                  emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
-                  {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                  emit_const_reg(A_SAR,opsize,63,hreg2);
-                  {If signed, hreg2=right value-1, otherwise 0.}
-                  { (don't use emit_const_reg, because if value>high(longint)
-                     then it must first be loaded into a register) }
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
-                  { add to the left value }
-                  emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
-                  { do the shift }
-                  emit_const_reg(A_SAR,opsize,power,hreg1);
+                { for signed numbers, the numerator must be adjusted before the
+                  shift instruction, but not wih unsigned numbers! Otherwise,
+                  "Cardinal($ffffffff) div 16" overflows! (JM) }
+                if is_signed(left.resultdef) Then
+                  begin
+                    { use a sequence without jumps, saw this in
+                      comp.compilers (JM) }
+                    { no jumps, but more operations }
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                    {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
+                    emit_const_reg(A_SAR,opsize,63,hreg2);
+                    {If signed, hreg2=right value-1, otherwise 0.}
+                    { (don't use emit_const_reg, because if value>high(longint)
+                       then it must first be loaded into a register) }
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
+                    { add to the left value }
+                    emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
+                    { do the shift }
+                    emit_const_reg(A_SAR,opsize,power,hreg1);
+                  end
+                else
+                  emit_const_reg(A_SHR,opsize,power,hreg1);
+                location.register:=hreg1;
               end
             else
-              emit_const_reg(A_SHR,opsize,power,hreg1);
-            location.register:=hreg1;
+              begin
+                if is_signed(left.resultdef) then
+                  begin
+                    e:=tordconstnode(right).value.svalue;
+                    calc_divconst_magic_signed(resultdef.size*8,e,sm,s);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                    emit_const_reg(A_MOV,opsize,sm,rega);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                    emit_reg(A_IMUL,opsize,hreg1);
+                    { only the high half of result is used }
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                    { add or subtract dividend }
+                    if (e>0) and (sm<0) then
+                      emit_reg_reg(A_ADD,opsize,hreg1,regd)
+                    else if (e<0) and (sm>0) then
+                      emit_reg_reg(A_SUB,opsize,hreg1,regd);
+                    { shift if necessary }
+                    if (s<>0) then
+                      emit_const_reg(A_SAR,opsize,s,regd);
+                    { extract and add the sign bit }
+                    if (e<0) then
+                      emit_reg_reg(A_MOV,opsize,regd,hreg1);
+                    { if e>=0, hreg1 still contains dividend }
+                    emit_const_reg(A_SHR,opsize,left.resultdef.size*8-1,hreg1);
+                    emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
+                  end
+                else
+                  begin
+                    d:=tordconstnode(right).value.svalue;
+                    if d>=aword(1) shl (left.resultdef.size*8-1) then
+                      begin
+                        if (cgsize in [OS_64,OS_S64]) then
+                          begin
+                            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                            emit_const_reg(A_MOV,opsize,aint(d),hreg2);
+                            emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
+                          end
+                        else
+                          emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,0,location.register);
+                        emit_const_reg(A_SBB,opsize,-1,location.register);
+                      end
+                    else
+                      begin
+                        calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                        emit_const_reg(A_MOV,opsize,aint(m),rega);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                        emit_reg(A_MUL,opsize,hreg1);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                        if m_add then
+                          begin
+                            { addition can overflow, shift first bit considering carry,
+                              then shift remaining bits in regular way. }
+                            emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                            emit_const_reg(A_RCR,opsize,1,regd);
+                            dec(s);
+                          end;
+                        if s<>0 then
+                          emit_const_reg(A_SHR,opsize,aint(s),regd);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
+                      end;
+                  end;
+              end;
           end
         else
           begin
