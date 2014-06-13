@@ -382,12 +382,14 @@ uses
       var
         p: aInt;
         nc,delta,q1,r1,q2,r2,two_N_minus_1 : aWord;
+        mask: aWord;
       begin
         two_N_minus_1:=aWord(1) shl (N-1);
         magic_add:=false;
 {$push}
 {$warnings off }
-        nc:=aWord(-1)-(-d) mod d;
+        mask:=aWord(not 0) shr (64-N);
+        nc:=(mask-(-d) mod d);
 {$pop}
         p:=N-1;                       { initialize p }
         q1:=two_N_minus_1 div nc;     { initialize q1 = 2**p/nc }
@@ -422,7 +424,7 @@ uses
             end;
           delta:=d-1-r2;
         until not ((p<(2*N)) and ((q1<delta) or ((q1=delta) and (r1=0))));
-        magic_m:=q2+1;        { resulting magic number }
+        magic_m:=(q2+1) and mask;        { resulting magic number }
         magic_shift:=p-N;     { resulting shift }
       end;
 {$pop}
