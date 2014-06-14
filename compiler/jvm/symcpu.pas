@@ -501,7 +501,7 @@ implementation
   procedure tcpupropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
     var
       orgaccesspd, newaccesspd: tprocdef;
-      pprefix: pstring;
+      pprefix: pshortstring;
       wrongvisibility: boolean;
     begin
       inherited;
