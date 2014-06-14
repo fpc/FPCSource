@@ -388,6 +388,7 @@ implementation
               -> copy original procdef }
             pd:=tprocdef(orgaccesspd.getcopy);
             exclude(pd.procoptions,po_abstractmethod);
+            exclude(pd.procoptions,po_overridingmethod);
             { can only construct the artificial accessorname now, because it requires
               pd.defid }
             if not explicitwrapper then
