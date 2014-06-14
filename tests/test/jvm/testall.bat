@@ -298,3 +298,7 @@ ppcjvm -O2 -g -B -Sa tprop5a
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tprop5a
 ppcjvm -O2 -g -B -Sa tprop5a -CTautosetterprefix=Set -CTautogetterprefix=Get
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tprop5a
+ppcjvm -O2 -g -B -Sa tprop6a
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tprop6a
+ppcjvm -O2 -g -B -Sa tprop6a -CTautosetterprefix=Set -CTautogetterprefix=Get
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tprop6a

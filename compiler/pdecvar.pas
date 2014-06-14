@@ -535,7 +535,9 @@ implementation
                       end;
                     p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
-               end;
+               end
+             else
+               p.inherit_accessor(palt_read);
              if try_to_consume(_WRITE) then
                begin
                  p.propaccesslist[palt_write].clear;
@@ -555,7 +557,9 @@ implementation
                       end;
                     p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
-               end;
+               end
+             else
+               p.inherit_accessor(palt_write);
            end
          else
            parse_dispinterface(p,readprocdef,writeprocdef,paranr);

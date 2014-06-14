@@ -187,10 +187,11 @@ type
       visibility, then we have to create a getter and/or setter with that same
       higher visibility to make sure that using the property does not result
       in JVM verification errors }
-    function create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean): tprocdef;
+    procedure create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean);
     procedure finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef); override;
-    procedure register_override(overriddenprop: tpropertysym); override;
     procedure maybe_create_overridden_getter_or_setter(getset: tpropaccesslisttypes);
+   public
+    procedure inherit_accessor(getset: tpropaccesslisttypes); override;
   end;
   tcpupropertysymclass = class of tcpupropertysym;
 
@@ -224,7 +225,7 @@ implementation
                                tcpuproptertysym
   ****************************************************************************}
 
-  function tcpupropertysym.create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean): tprocdef;
+  procedure tcpupropertysym.create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean);
     var
       obj: tabstractrecorddef;
       ps: tprocsym;
@@ -311,7 +312,6 @@ implementation
                             parentpd.visibility:=visibility;
                             include(parentpd.procoptions,po_auto_raised_visibility);
                           end;
-                        result:=parentpd;
                         { we are done, no need to create a wrapper }
                         exit
                       end
@@ -344,7 +344,10 @@ implementation
                     finish_copied_procdef(pd,parentpd.procsym.realname,obj.symtable,obj);
                     exclude(pd.procoptions,po_external);
                     pd.synthetickind:=tsk_anon_inherited;
-                    result:=pd;
+                    { set the accessor in the property }
+                    propaccesslist[accesstyp].clear;
+                    propaccesslist[accesstyp].addsym(sl_call,pd.procsym);
+                    propaccesslist[accesstyp].procdef:=pd;
                     exit;
                   end;
               end;
@@ -400,7 +403,6 @@ implementation
         pd.procoptions:=pd.procoptions+procoptions;
         { visibility }
         pd.visibility:=visibility;
-        result:=pd;
 
         { new procsym? }
         if not assigned(sym) or
@@ -501,7 +503,7 @@ implementation
 
   procedure tcpupropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
     var
-      orgaccesspd, newaccesspd: tprocdef;
+      orgaccesspd: tprocdef;
       pprefix: pshortstring;
       wrongvisibility: boolean;
     begin
@@ -510,7 +512,6 @@ implementation
         pprefix:=@prop_auto_getter_prefix
       else
         pprefix:=@prop_auto_setter_prefix;
-      newaccesspd:=nil;
       case sym.typ of
         procsym:
           begin
@@ -523,7 +524,7 @@ implementation
             if wrongvisibility or
                ((pprefix^<>'') and
                 (sym.RealName<>pprefix^+RealName)) then
-              newaccesspd:=create_getter_or_setter_for_property(orgaccesspd,getset=palt_read)
+              create_getter_or_setter_for_property(orgaccesspd,getset=palt_read)
           end;
         fieldvarsym:
           begin
@@ -533,43 +534,17 @@ implementation
               which the property is visibile }
             if (pprefix^<>'') or
                (tfieldvarsym(sym).visibility<visibility) then
-              newaccesspd:=create_getter_or_setter_for_property(nil,getset=palt_read);
+              create_getter_or_setter_for_property(nil,getset=palt_read);
           end;
         else
           internalerror(2014061101);
       end;
-      { update the getter/setter used for this property (already done in case
-        a new method was created from scratch, but not if we overrode a
-        getter/setter generated for the inherited property) }
-      if assigned(newaccesspd) then
-        begin
-          if propaccesslist[getset].firstsym^.sym.typ<>procsym then
-            internalerror(2014061201);
-          propaccesslist[getset].procdef:=newaccesspd;
-          propaccesslist[getset].firstsym^.sym:=newaccesspd.procsym;
-        end;
-    end;
-
-
-  procedure tcpupropertysym.register_override(overriddenprop: tpropertysym);
-    var
-      sym: tsym;
-    begin
-      inherited;
-      { new property has higher visibility than previous one -> maybe override
-        the getters/setters }
-      if (overriddenprop.visibility<visibility) then
-        begin
-          maybe_create_overridden_getter_or_setter(palt_read);
-          maybe_create_overridden_getter_or_setter(palt_write);
-        end;
     end;
 
 
   procedure tcpupropertysym.maybe_create_overridden_getter_or_setter(getset: tpropaccesslisttypes);
     var
       sym: tsym;
-      fielddef: tdef;
       accessordef: tprocdef;
       psym: tpropertysym;
     begin
@@ -590,20 +565,29 @@ implementation
             accessordef:=tprocdef(psym.propaccesslist[getset].procdef);
             if accessordef.visibility>=visibility then
               exit;
-            fielddef:=nil;
           end;
         fieldvarsym:
           begin
             if sym.visibility>=visibility then
               exit;
             accessordef:=nil;
-            fielddef:=tfieldvarsym(sym).vardef;
           end;
         else
           internalerror(2014061102);
       end;
       propaccesslist[getset]:=psym.propaccesslist[getset].getcopy;
       finalize_getter_or_setter_for_sym(getset,sym,propdef,accessordef);
+    end;
+
+
+  procedure tcpupropertysym.inherit_accessor(getset: tpropaccesslisttypes);
+    begin
+      inherited;
+      { new property has higher visibility than previous one -> maybe override
+        the getters/setters }
+      if assigned(overriddenpropsym) and
+         (overriddenpropsym.visibility<visibility) then
+        maybe_create_overridden_getter_or_setter(getset);
     end;
 
 

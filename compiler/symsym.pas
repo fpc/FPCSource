@@ -349,7 +349,9 @@ interface
           procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
           { set up the accessors for this property }
           procedure add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
-          procedure register_override(overriddenprop: tpropertysym); virtual;
+          procedure register_override(overriddenprop: tpropertysym);
+          { inherit the read/write property }
+          procedure inherit_accessor(getset: tpropaccesslisttypes); virtual;
        end;
        tpropertysymclass = class of tpropertysym;
 
@@ -1442,6 +1444,12 @@ implementation
       begin
         overriddenpropsym:=tpropertysym(overriddenprop);
         include(propoptions,ppo_overrides);
+      end;
+
+
+    procedure tpropertysym.inherit_accessor(getset: tpropaccesslisttypes);
+      begin
+        { nothing to do by default }
       end;
 
 
