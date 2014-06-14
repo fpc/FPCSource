@@ -1005,7 +1005,13 @@ begin
                     's' :
                       begin
                          val(copy(more,j+1,length(more)-j),stacksize,code);
-                         if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
+                         if (code<>0)
+{$ifdef cpu16bitaddr}
+                            or (stacksize>=65521)
+{$else cpu16bitaddr}
+                            or (stacksize>=67107840)
+{$endif cpu16bitaddr}
+                            or (stacksize<1024) then
                           IllegalPara(opt);
                          break;
                       end;
