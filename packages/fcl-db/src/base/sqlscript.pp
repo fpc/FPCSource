@@ -47,8 +47,10 @@ type
     FCommentsInSQL: Boolean;
     FTerminator: AnsiString;
     FSQL: TStrings;
+    FCurrentStripped,
     FCurrentStatement: TStrings;
     FDirectives: TStrings;
+    FComment,
     FEmitLine: Boolean;
     procedure SetDefines(const Value: TStrings);
     function FindNextSeparator(sep: array of string): AnsiString;
@@ -57,15 +59,16 @@ type
     procedure SetSQL(value: TStrings);
     procedure SQLChange(Sender: TObject);
     function GetLine: Integer;
-    Function ProcessConditional(Directive : String; Param : String) : Boolean; virtual;
-    function NextStatement: AnsiString;
-    procedure ProcessStatement;
-    function Available: Boolean;
-    procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean);
-    procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean);
-    // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
-    procedure InternalCommit(CommitRetaining: boolean=true);
   protected
+    procedure ClearStatement; virtual;
+    procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean); virtual;
+    procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean); virtual;
+    // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
+    procedure InternalCommit(CommitRetaining: boolean=true); virtual;
+    Function ProcessConditional(Directive : String; Param : String) : Boolean; virtual;
+    function NextStatement: AnsiString; virtual;
+    procedure ProcessStatement; virtual;
+    function Available: Boolean; virtual;
     procedure DefaultDirectives; virtual;
     procedure ExecuteStatement (Statement: TStrings; var StopExecution: Boolean); virtual; abstract;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); virtual; abstract;
@@ -179,21 +182,6 @@ begin
   Result:=Trim(Result);
 end;
 
-function DeleteComments(SQL_Text: AnsiString; ATerminator: AnsiString = ';'): AnsiString;
-
-begin
-  With TCustomSQLScript.Create (Nil) do
-    try
-      Terminator:=ATerminator;
-      Script.Add(SQL_Text);
-      Script.Add(Terminator);
-      CommentsInSQL:=False;
-      Result:=ConvertWhiteSpace(NextStatement);
-    finally
-      Free;
-    end;
-end;
-
 { ---------------------------------------------------------------------
     TSQLScript
   ---------------------------------------------------------------------}
@@ -238,12 +226,20 @@ end;
 
 procedure TCustomSQLScript.AddToStatement(value: AnsiString; ForceNewLine : Boolean);
 
+  Procedure DA(L : TStrings);
+
+  begin
+    With L do
+      if ForceNewLine or (Count=0) then
+        Add(value)
+      else
+        Strings[Count-1]:=Strings[Count-1] + value;
+  end;
+
 begin
-  With FCurrentStatement do
-    if ForceNewLine or (Count=0) then
-      Add(value)
-    else
-      Strings[Count-1]:=Strings[Count-1] + value;
+  DA(FCurrentStatement);
+  if Not FComment then
+    DA(FCurrentStripped);
 end;
 
 function TCustomSQLScript.FindNextSeparator(Sep: array of string): AnsiString;
@@ -365,6 +361,13 @@ begin
   end;
 end;
 
+procedure TCustomSQLScript.ClearStatement;
+
+begin
+  FCurrentStatement.Clear;
+  FCurrentStripped.Clear;
+end;
+
 procedure TCustomSQLScript.ProcessStatement;
 
 Var
@@ -375,7 +378,7 @@ Var
 begin
   if (FCurrentStatement.Count=0) then
     Exit;
-  S:=DeleteComments(FCurrentStatement.Text, Terminator);
+  S:=Trim(FCurrentStripped.Text);
   I:=0;
   Directive:='';
   While (i<FDirectives.Count) and (Directive='') do
@@ -430,7 +433,7 @@ begin
   DefaultDirectives;
   Repeat
     NextStatement();
-    if Length(Trim(FCurrentStatement.Text))>0 then
+    if Length(Trim(FCurrentStripped.Text))>0 then
       ProcessStatement;
   Until FAborted or Not Available;
 end;
@@ -443,10 +446,10 @@ var
 
 begin
   terminator_found:=False;
-  FCurrentStatement.Clear;
+  ClearStatement;
   while FLine <= FSQL.Count do
     begin
-    pnt:=FindNextSeparator([FTerminator, '/*', '"', '''']);
+    pnt:=FindNextSeparator([FTerminator, '/*', '"', '''', '--']);
     if (pnt=FTerminator) then
       begin
       FCol:=FCol + length(pnt);
@@ -455,6 +458,7 @@ begin
       end
     else if pnt = '/*' then
       begin
+      FComment:=True;
       if FCommentsInSQL then
         AddToStatement(pnt,false)
       else
@@ -466,6 +470,16 @@ begin
       else
         FEmitLine:=True;
       FCol:=FCol + length(pnt);
+      FComment:=False;
+      end
+    else if pnt = '--' then
+      begin
+      FComment:=True;
+      if FCommentsInSQL then
+        AddToStatement(Copy(FSQL[FLine-1],FCol,Length(FSQL[FLine-1])-FCol+1),True);
+      Inc(Fline);
+      FCol:=0;
+      FComment:=False;
       end
     else if pnt = '"' then
       begin
@@ -485,9 +499,11 @@ begin
       end;
     end;
   if not terminator_found then
-    FCurrentStatement.Clear();
+    ClearStatement;
   while (FCurrentStatement.Count > 0) and (trim(FCurrentStatement.Strings[0]) = '') do
     FCurrentStatement.Delete(0);
+  while (FCurrentStripped.Count > 0) and (trim(FCurrentStripped.Strings[0]) = '') do
+    FCurrentStripped.Delete(0);
   Result:=FCurrentStatement.Text;
 end;
 
@@ -511,6 +527,7 @@ begin
   L.OnChange:=@SQLChange;
   FSQL:=L;
   FDirectives:=TStringList.Create();
+  FCurrentStripped:=TStringList.Create();
   FCurrentStatement:=TStringList.Create();
   FLine:=1;
   FCol:=1;
@@ -522,7 +539,9 @@ begin
 end;
 
 destructor TCustomSQLScript.Destroy;
+
 begin
+  FreeAndNil(FCurrentStripped);
   FreeAndNil(FCurrentStatement);
   FreeAndNil(FSQL);
   FreeAndNil(FDirectives);
