@@ -460,7 +460,7 @@ FPC_CHECK_NULLAREA:
         ret
 %endif
 
-        segment data
+        segment data class=data
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
 not_enough_mem_msg:
