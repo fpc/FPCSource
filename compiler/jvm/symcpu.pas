@@ -520,7 +520,8 @@ implementation
               we can call it from all contexts in which the
               property is visible }
             if wrongvisibility or
-               (sym.RealName<>pprefix^+RealName) then
+               ((pprefix^<>'') and
+                (sym.RealName<>pprefix^+RealName)) then
               newaccesspd:=create_getter_or_setter_for_property(orgaccesspd,getset=palt_read)
           end;
         fieldvarsym:
