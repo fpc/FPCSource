@@ -277,7 +277,10 @@ begin
     LinkRes.Add('format dos com')
   else
     LinkRes.Add('format dos');
-  LinkRes.Add('option dosseg');
+  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('order clname CODE clname DATA clname BSS')
+  else
+    LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK');
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
