@@ -733,26 +733,25 @@ unit cgcpu;
     procedure tcg68k.a_call_reg(list : TAsmList;reg: tregister);
       var
         tmpref : treference;
-	tmpreg : tregister;
+        tmpreg : tregister;
         instr : taicpu;
       begin
-	if isaddressregister(reg) then
-	  begin
-	    { if we have an address register, we can jump to the address directly }
+        if isaddressregister(reg) then
+          begin
+            { if we have an address register, we can jump to the address directly }
             reference_reset_base(tmpref,reg,0,4);
-	  end
-	else
-	  begin
-	    { if we have a data register, we need to move it to an address register first }
-	    tmpreg:=getaddressregister(list);
+          end
+        else
+          begin
+            { if we have a data register, we need to move it to an address register first }
+            tmpreg:=getaddressregister(list);
             reference_reset_base(tmpref,tmpreg,0,4);
             instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg);
             add_move_instruction(instr);
             list.concat(instr);
-	  end;
-	list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
+          end;
+        list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
      end;
-
 
 
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);
