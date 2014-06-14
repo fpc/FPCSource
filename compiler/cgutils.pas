@@ -389,7 +389,7 @@ uses
 {$push}
 {$warnings off }
         mask:=aWord(not 0) shr (64-N);
-        nc:=(mask-(-d) mod d);
+        nc:=(mask-(-d) mod aInt(d));
 {$pop}
         p:=N-1;                       { initialize p }
         q1:=two_N_minus_1 div nc;     { initialize q1 = 2**p/nc }
