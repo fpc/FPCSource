@@ -416,7 +416,7 @@ interface
                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
                     {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                    emit_const_reg(A_SAR,opsize,63,hreg2);
+                    emit_const_reg(A_SAR,opsize,resultdef.size*8-1,hreg2);
                     {If signed, hreg2=right value-1, otherwise 0.}
                     { (don't use emit_const_reg, because if value>high(longint)
                        then it must first be loaded into a register) }
