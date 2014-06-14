@@ -47,7 +47,8 @@ implementation
   class procedure ti8086nodeutils.InsertMemorySizes;
     begin
       inherited;
-      InsertStackSegment;
+      if current_settings.x86memorymodel<>mm_tiny then
+        InsertStackSegment;
     end;
 
 

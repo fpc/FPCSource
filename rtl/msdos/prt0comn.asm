@@ -53,11 +53,13 @@
         extern __nearheap_start
         extern __nearheap_end
 
-%ifdef __FAR_DATA__
+%ifndef __TINY__
+    %ifdef __FAR_DATA__
         extern ___stack
-%endif
-%ifdef __NEAR_DATA__
+    %endif
+    %ifdef __NEAR_DATA__
         extern ___stacktop
+    %endif
 %endif
 
         extern __SaveInt00
