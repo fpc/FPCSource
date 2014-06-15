@@ -1438,6 +1438,15 @@ implementation
                    begin
                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                      consume(_ID);
+                     { in case of @Object.Method1.Method2, we have to call
+                       Method1 -> create a loadvmtaddr node as self instead of
+                       a typen (the typenode would be changed to self of the
+                       current method in case Method1 is a constructor, see
+                       mantis #24844) }
+                     if not(block_type in [bt_type,bt_const_type,bt_var_type]) and
+                        (srsym.typ=procsym) and
+                        (token in [_CARET,_POINT]) then
+                       result:=cloadvmtaddrnode.create(result);
                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
                    end
                   else
