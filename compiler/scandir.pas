@@ -706,8 +706,15 @@ unit scandir;
       begin
         current_scanner.skipspace;
         l:=current_scanner.readval;
-        if l>1024 then
-          stacksize:=l;
+        if (l>=1024)
+{$ifdef cpu16bitaddr}
+          and (l<=65521) { TP7's $M directive allows specifying a stack size of
+                           65521, but it actually sets the stack size to 65520 }
+{$else cpu16bitaddr}
+          and (l<67107840)
+{$endif cpu16bitaddr}
+        then
+          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif});
         if c=',' then
           begin
             current_scanner.readchar;
