@@ -280,6 +280,69 @@ unit i_embed;
             abi : abi_default
           );
 
+       system_spc32_embedded_info : tsysteminfo =
+          (
+            system       : system_spc32_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive
+	                          ,tf_smartlink_sections];
+            cpu          : cpu_spc32;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_spc32_elf32;
+            assemextern  : as_gas;
+            link         : ld_int_embedded;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 1;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 4096;
+            stackalign   : 4;
+            abi : abi_default
+          );
+
   implementation
 
 initialization
@@ -303,4 +366,9 @@ initialization
     set_source_info(system_i386_embedded_info);
   {$endif embedded}
 {$endif CPUI386}
+{$ifdef CPUSPC32}
+  {$ifdef embedded}
+    set_source_info(system_spc32_embedded_info);
+  {$endif embedded}
+{$endif CPUSPC32}
 end.

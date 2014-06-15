@@ -224,6 +224,20 @@
   {$define SUPPORT_SAFECALL}
 {$endif mips}
 
+{$ifdef spc32}
+  {$define cpu32bit}
+  {$define cpu32bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpurequiresproperalignment}
+  {$define cpufpemu}
+  {$define cpuneedsdiv32helper}
+  {$define cpuneedsmulhelper}
+  {$define cpucapabilities}
+  { define cpumm}
+{$endif mips}
+
 {$ifdef jvm}
   {$define cpu32bit}
   {$define cpu64bitalu}

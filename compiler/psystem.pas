@@ -106,6 +106,8 @@ implementation
         systemunit.insert(csyssym.create('Default',in_default_x));
         systemunit.insert(cconstsym.create_ord('False',constord,0,pasbool8type));
         systemunit.insert(cconstsym.create_ord('True',constord,1,pasbool8type));
+
+
       end;
 
 
@@ -293,6 +295,13 @@ implementation
 {$else i8086}
         parentfpvoidpointertype:=cpointerdef.create(voidtype);
 {$endif i8086}
+{$ifdef spc32}
+        s32floattype:=tfloatdef.create(s32real);
+        s64floattype:=tfloatdef.create(s64real);
+        s80floattype:=tfloatdef.create(s80real);
+        sc80floattype:=tfloatdef.create(sc80real);
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif spc32}
 {$ifdef x86}
         voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near);
         voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs);

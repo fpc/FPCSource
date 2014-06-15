@@ -24,6 +24,7 @@
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
 
+{$define EXTDEBUG}
 
 unit rgobj;
 
@@ -2152,7 +2153,7 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$if defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
+{$if defined(x86) or defined(mips) or defined(sparc) or defined(arm) or defined(spc32)}
         { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions
 
@@ -2167,7 +2168,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif defined(x86) or defined(mips) or defined(sparc) or defined(arm)}
+{$endif defined(x86) or defined(mips) or defined(sparc) or defined(arm) or defined(spc32)}
 
         {
           There are registers that need are spilled. We generate the
@@ -2283,7 +2284,8 @@ unit rgobj;
             begin
               if mustbespilled and regwritten then
                 begin
-                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg);
+                  do_spill_written(list,instr,spilltemplist[orgreg],tempreg);
+                  //do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg);
                   ungetregisterinline(list,tempreg);
                 end;
             end;

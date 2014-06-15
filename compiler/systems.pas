@@ -347,7 +347,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086', 'spc32');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -918,6 +918,10 @@ begin
 {$ifdef i8086}
   default_target(system_i8086_msdos);
 {$endif i8086}
+
+{$ifdef spc32}
+  default_target(system_spc32_embedded);
+{$endif spc32}
 end;
 
 

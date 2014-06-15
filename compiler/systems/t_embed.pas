@@ -33,7 +33,9 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
-       cpuinfo;
+       cpuinfo,
+       import,export,expunix,
+       ogelf;
 
     type
        TlinkerEmbedded=class(texternallinker)
@@ -46,6 +48,186 @@ implementation
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
+       TInternalLinkerEmbedded=class(TInternalLinker)
+       public
+         constructor Create;override;
+         procedure DefaultLinkScript;override;
+       end;
+
+       timportlibembedded=class(timportlib)
+       end;
+
+       texportlibembedded=class(texportlibunix)
+       end;
+
+
+{*****************************************************************************
+                                  TlinkerEmbedded
+*****************************************************************************}
+
+
+constructor TInternalLinkerEmbedded.Create;
+begin
+  inherited Create;
+  CExeOutput:=ElfExeOutputClass;
+  CObjInput:=TElfObjInput;
+end;
+
+
+procedure TInternalLinkerEmbedded.DefaultLinkScript;
+begin
+  LinkScript.Concat('ENTRYNAME _START');
+
+  ScriptAddSourceStatements(true);
+
+  with LinkScript do
+    begin
+      Concat('HEADER');
+      Concat('EXESECTION .interp');
+      Concat('  OBJSECTION .interp');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .note.ABI-tag');
+      Concat('  OBJSECTION .note.ABI-tag');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .note.gnu.build-id');
+      Concat('  OBJSECTION .note.gnu.build-id');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .hash');
+      Concat('  OBJSECTION .hash');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynsym');
+      Concat('  OBJSECTION .dynsym');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynstr');
+      Concat('  OBJSECTION .dynstr');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version');
+      Concat('  OBJSECTION .gnu.version');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version_d');
+      Concat('  OBJSECTION .gnu.version_d');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gnu.version_r');
+      Concat('  OBJSECTION .gnu.version_r');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .plt');
+      Concat('  OBJSECTION .plt');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .text');
+      Concat('  OBJSECTION .init*');
+      Concat('  OBJSECTION .text*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .fini');
+      Concat('  OBJSECTION .fini');
+      Concat('  PROVIDE __etext');
+      Concat('  PROVIDE _etext');
+      Concat('  PROVIDE etext');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .rodata');
+      Concat('  OBJSECTION .rodata*');
+      Concat('ENDEXESECTION');
+{$ifdef arm}
+      Concat('EXESECTION .ARM.extab');
+      Concat('  OBJSECTION .ARM.extab*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .ARM.exidx');
+      Concat('  SYMBOL __exidx_start');
+      Concat('  OBJSECTION .ARM.exidx*');
+      Concat('  SYMBOL __exidx_end');
+      Concat('ENDEXESECTION');
+{$endif}
+      Concat('EXESECTION .eh_frame');
+      Concat('  OBJSECTION .eh_frame');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .gcc_except_table');
+      Concat('  OBJSECTION .gcc_except_table');
+      Concat('  OBJSECTION .gcc_except_table.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .tdata');
+      Concat('  OBJSECTION .tdata');
+      Concat('  OBJSECTION .tdata.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .tbss');
+      Concat('  OBJSECTION .tbss');
+      Concat('  OBJSECTION .tbss.*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .preinit_array');
+      Concat('  PROVIDE __preinit_array_start');
+      Concat('  OBJSECTION .preinit_array');
+      Concat('  PROVIDE __preinit_array_end');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .init_array');
+      Concat('  PROVIDE __init_array_start');
+      { why the hell .ctors are both here and exesection .ctors below?? }
+      //  KEEP ( *(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
+      Concat('  OBJSECTION .init_array');
+      //  KEEP ( *(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
+      Concat('PROVIDE __init_array_end');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .fini_array');
+      Concat('  PROVIDE __fini_array_start');
+      //  KEEP ( *(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
+      Concat('  OBJSECTION .fini_array');
+      //  KEEP ( *(EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
+      Concat('  PROVIDE __fini_array_end');
+      Concat('ENDEXESECTION');
+
+      Concat('EXESECTION .ctors');
+      Concat('  OBJSECTION .ctors*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dtors');
+      Concat('  OBJSECTION .dtors*');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .jcr');
+      Concat('  OBJSECTION .jcr');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .dynamic');
+      Concat('  OBJSECTION .dynamic');
+      Concat('ENDEXESECTION');
+{$ifndef mips}
+      Concat('EXESECTION .got');
+{$ifdef arm}
+      Concat('  OBJSECTION .got.plt');
+{$endif arm}
+      Concat('  OBJSECTION .got');
+      Concat('ENDEXESECTION');
+{$endif mips}
+{$ifndef arm}
+      Concat('EXESECTION .got.plt');
+      Concat('  OBJSECTION .got.plt');
+      Concat('ENDEXESECTION');
+{$endif arm}
+      Concat('EXESECTION .data');
+      Concat('  OBJSECTION .data*');
+      Concat('  OBJSECTION .fpc*');
+      Concat('  OBJSECTION fpc.resources');
+      Concat('  PROVIDE _edata');
+      Concat('  PROVIDE edata');
+      Concat('ENDEXESECTION');
+{$ifdef mips}
+      Concat('EXESECTION .got');
+      Concat('  OBJSECTION .got');
+      Concat('ENDEXESECTION');
+{$endif mips}
+      Concat('EXESECTION .bss');
+      Concat('  OBJSECTION .dynbss');
+      Concat('  OBJSECTION .bss*');
+      Concat('  OBJSECTION fpc.reshandles');
+      Concat('  PROVIDE end');
+      Concat('  SYMBOL _end');
+      Concat('ENDEXESECTION');
+
+      ScriptAddGenericSections('.debug_aranges,.debug_pubnames,.debug_info,'+
+         '.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
+         '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges');
+      Concat('EXESECTION .stab');
+      Concat('  OBJSECTION .stab');
+      Concat('ENDEXESECTION');
+      Concat('EXESECTION .stabstr');
+      Concat('  OBJSECTION .stabstr');
+      Concat('ENDEXESECTION');
+    end;
+end;
 
 
 {*****************************************************************************
@@ -1254,5 +1436,13 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_mipsel_embedded_info);
 {$endif mipsel}
+{$ifdef spc32}
+  RegisterLinker(ld_int_embedded,TInternalLinkerEmbedded);
 
+  RegisterImport(system_spc32_embedded,timportlibembedded);
+  RegisterExport(system_spc32_embedded,texportlibembedded);
+
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_spc32_embedded_info);
+{$endif spc32}
 end.

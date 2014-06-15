@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 170;
+  CurrentPPUVersion = 171;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -188,7 +188,8 @@ const
     { 12 } 16 {'avr'},
     { 13 } 32 {'mipsel'},
     { 14 } 32 {'jvm'},
-    { 15 } 16 {'i8086'}
+    { 15 } 16 {'i8086'},
+    { 16 } 32 {'spc32'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -207,7 +208,8 @@ const
     { 12 }  8 {'avr'},
     { 13 } 32 {'mipsel'},
     { 14 } 64 {'jvm'},
-    { 15 } 16 {'i8086'}
+    { 15 } 16 {'i8086'},
+    { 16 } 32 {'spc32'}
     );
 {$endif generic_cpu}
 

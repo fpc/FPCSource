@@ -49,7 +49,8 @@
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
-             cpu_i8086                     { 15 }
+             cpu_i8086,                    { 15 }
+             cpu_spc32                     { 16 }
        );
 
        tasmmode= (asmmode_none
@@ -162,7 +163,8 @@
              system_i8086_msdos,        { 79 }
              system_mipsel_android,     { 80 }
              system_mipseb_embedded,    { 81 }
-             system_mipsel_embedded     { 82 }
+             system_mipsel_embedded,    { 82 }
+             system_spc32_embedded      { 83 }
        );
 
      type
@@ -208,6 +210,7 @@
              ,as_i8086_nasm
              ,as_i8086_nasmobj
              ,as_gas_powerpc_xcoff
+             ,as_spc32_elf32
        );
 
        tlink = (ld_none,
@@ -241,7 +244,8 @@
              ld_int_linux,
              ld_int_nativent,
              ld_int_netware,
-             ld_int_windows
+             ld_int_windows,
+             ld_int_embedded
        );
 
        tar = (ar_none

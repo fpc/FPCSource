@@ -3068,6 +3068,12 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif jvm}
+{$ifdef spc32}
+  def_system_macro('CPUSPC32');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif spc32}
 
 {$ifdef mipsel}
   def_system_macro('CPUMIPS');
@@ -3369,14 +3375,14 @@ begin
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,system_m68k_linux,
-         system_arm_nds,system_arm_embedded])
+         system_arm_nds,system_arm_embedded,system_spc32_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$if defined(arm) or defined (m68k)}
+{$if defined(arm) or defined (m68k) or defined (spc32)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm or m68k}
+{$endif arm or m68k or spc32}
   then
     begin
 {$ifdef cpufpemu}

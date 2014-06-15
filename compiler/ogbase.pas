@@ -69,6 +69,10 @@ interface
 {$ifdef arm}
          RELOC_RELATIVE_24,
 {$endif arm}
+{$ifdef spc32}
+         RELOC_LO16,
+         RELOC_HI16,
+{$endif spc32}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }

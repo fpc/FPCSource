@@ -76,7 +76,8 @@ const
     { 12 } 'avr',
     { 13 } 'mipsel',
     { 14 } 'jvm',
-    { 15 } 'i8086'
+    { 15 } 'i8086',
+    { 16 } 'spc32'
     );
 
 { List of all supported system-cpu couples }
@@ -164,7 +165,8 @@ const
   { 79 }  'MSDOS-i8086',
   { 80 }  'Android-MIPSel',
   { 81 }  'Embedded-mipseb',
-  { 82 }  'Embedded-mipsel'
+  { 82 }  'Embedded-mipsel',
+  { 83 }  'Embedded-spc32'
   );
 
 const

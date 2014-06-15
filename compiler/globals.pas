@@ -483,6 +483,11 @@ interface
         optimizecputype : cpu_8086;
         fputype : fpu_x87;
   {$endif i8086}
+  {$ifdef spc32}
+        cputype : cpu_spc32v1;
+        optimizecputype : cpu_spc32v1;
+        fputype : fpu_soft;
+  {$endif spc32}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

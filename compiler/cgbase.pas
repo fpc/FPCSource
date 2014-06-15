@@ -101,6 +101,10 @@ interface
          ,addr_dgroup      // the data segment group
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
+         {$IFDEF SPC32}
+         ,addr_lo16
+         ,addr_hi16
+         {$ENDIF}
          );
 
 

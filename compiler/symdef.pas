@@ -1052,6 +1052,9 @@ interface
        { FPC java procvar base class }
        java_procvarbase          : tobjectdef;
 
+{$ifdef SPC32}
+       pbestrealtype : ^tdef = @s64floattype;
+{$endif SPC32}
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
     function make_dllmangledname(const dllname,importname:TSymStr;

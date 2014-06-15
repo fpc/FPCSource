@@ -83,6 +83,7 @@ interface
     EM_PPC        = 20;
     EM_ARM        = 40;
     EM_X86_64     = 62;
+    EM_SPC32      = 353; // Invented machine index
 
     { ElfSechdr.sh_num }
     SHN_UNDEF     = 0;

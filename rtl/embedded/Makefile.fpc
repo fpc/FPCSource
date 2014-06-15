@@ -80,6 +80,11 @@ CPU_UNITS=lpc8xx lpc11xx lpc122x cortexm0
 endif
 endif
 
+ifeq ($(ARCH),spc32)
+CPU_SPECIFIC_COMMON_UNITS=sysutils sysconst
+CPU_UNITS=spc32v1
+endif
+
 ifeq ($(ARCH),avr)
 CPU_UNITS=atmega128
 endif

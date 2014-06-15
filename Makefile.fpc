@@ -79,6 +79,9 @@ endif
 ifeq ($(CPU_TARGET),avr)
 PPSUF=avr
 endif
+ifeq ($(CPU_TARGET),spc32)
+PPSUF=spc32
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)
