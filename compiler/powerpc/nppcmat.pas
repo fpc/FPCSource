@@ -61,93 +61,6 @@ implementation
       cpubase,
       ncgutil,cgcpu;
 
-{$push}
-{$r-}
-{$q-}
-{ helper functions }
-procedure getmagic_unsigned32(d : dword; out magic_m : dword; out magic_add : boolean; out magic_shift : dword);
-var
-    p : longint;
-    nc, delta, q1, r1, q2, r2 : dword;
-    
-begin
-    assert(d > 0);
-    
-    magic_add := false;
-    nc := dword(- 1) - dword(-d) mod d;
-    p := 31; { initialize p }
-    q1 := $80000000 div nc; { initialize q1 = 2p/nc }
-    r1 := $80000000 - q1*nc; { initialize r1 = rem(2p,nc) }
-    q2 := $7FFFFFFF div d; { initialize q2 = (2p-1)/d }
-    r2 := $7FFFFFFF - q2*d; { initialize r2 = rem((2p-1),d) }
-    repeat
-        inc(p);
-        if (r1 >= (nc - r1)) then begin
-            q1 := 2 * q1 + 1; { update q1 }
-            r1 := 2*r1 - nc; { update r1 }
-        end else begin
-            q1 := 2*q1; { update q1 }
-            r1 := 2*r1; { update r1 }
-        end;
-        if ((r2 + 1) >= (d - r2)) then begin
-            if (q2 >= $7FFFFFFF) then
-                magic_add := true;
-            q2 := 2*q2 + 1; { update q2 }
-            r2 := 2*r2 + 1 - d; { update r2 }
-        end else begin
-            if (q2 >= $80000000) then 
-                magic_add := true;
-            q2 := 2*q2; { update q2 }
-            r2 := 2*r2 + 1; { update r2 }
-        end;
-        delta := d - 1 - r2;
-    until not ((p < 64) and ((q1 < delta) or ((q1 = delta) and (r1 = 0))));
-    magic_m := q2 + 1; { resulting magic number }
-    magic_shift := p - 32; { resulting shift }
-end;
-
-procedure getmagic_signed32(d : longint; out magic_m : longint; out magic_s : longint);
-const
-    two_31 : DWord = high(longint)+1;
-var
-    p : Longint;
-    ad, anc, delta, q1, r1, q2, r2, t : DWord;
-    
-begin
-    assert((d < -1) or (d > 1));
-
-    ad := abs(d);
-    t := two_31 + (DWord(d) shr 31);
-    anc := t - 1 - t mod ad; { absolute value of nc }
-    p := 31; { initialize p }
-    q1 := two_31 div anc; { initialize q1 = 2p/abs(nc) }
-    r1 := two_31 - q1*anc; { initialize r1 = rem(2p,abs(nc)) }
-    q2 := two_31 div ad; { initialize q2 = 2p/abs(d) }
-    r2 := two_31 - q2*ad; { initialize r2 = rem(2p,abs(d)) }
-    repeat 
-        inc(p);
-        q1 := 2*q1; { update q1 = 2p/abs(nc) }
-        r1 := 2*r1; { update r1 = rem(2p/abs(nc)) }
-        if (r1 >= anc) then begin { must be unsigned comparison }
-            inc(q1);
-            dec(r1, anc);
-        end;
-        q2 := 2*q2; { update q2 = 2p/abs(d) }
-        r2 := 2*r2; { update r2 = rem(2p/abs(d)) }
-        if (r2 >= ad) then begin { must be unsigned comparison }
-            inc(q2);
-            dec(r2, ad);
-        end;
-        delta := ad - r2;
-    until not ((q1 < delta) or ((q1 = delta) and (r1 = 0)));
-    magic_m := q2 + 1;
-    if (d < 0) then begin
-        magic_m := -magic_m; { resulting magic number }
-    end;
-    magic_s := p - 32; { resulting shift }
-end;
-
-{$pop}
 
 {*****************************************************************************
                              TPPCMODDIVNODE
@@ -181,10 +94,6 @@ end;
          const
              negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
          var
-             magic, shift : longint;
-             u_magic, u_shift : dword;
-             u_add : boolean;
-             
              divreg : tregister;
          begin
              if (tordconstnode(right).value = 0) then begin
@@ -204,44 +113,8 @@ end;
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, power, numerator, resultreg)
                 end;
              end else begin
-                 { replace division by multiplication, both implementations }
-                 { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
-                 divreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-                 if (is_signed(right.resultdef)) then begin
-                     getmagic_signed32(tordconstnode(right).value.svalue, magic, shift);
-                     // load magic value
-                     cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, magic, divreg);
-                     // multiply
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHW, resultreg, numerator, divreg));
-                     // add/subtract numerator
-                     if (tordconstnode(right).value > 0) and (magic < 0) then begin
-                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, numerator, resultreg, resultreg);
-                     end else if (tordconstnode(right).value < 0) and (magic > 0) then begin
-                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, numerator, resultreg, resultreg);
-                     end;
-                     // shift shift places to the right (arithmetic)
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, shift, resultreg, resultreg);                     
-                     // extract and add sign bit
-                     if (tordconstnode(right).value >= 0) then begin
-                         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 31, numerator, divreg);
-                     end else begin
-                         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 31, resultreg, divreg);
-                     end;                     
-                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, resultreg, divreg, resultreg);
-                 end else begin
-                     getmagic_unsigned32(tordconstnode(right).value.uvalue, u_magic, u_add, u_shift);
-                     // load magic in divreg
-                     cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, aint(u_magic), divreg);
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHWU, resultreg, numerator, divreg));
-                     if (u_add) then begin
-                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, divreg);
-                         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT,  1, divreg, divreg);
-                         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, divreg, resultreg, divreg);
-                         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift-1, divreg, resultreg);
-                     end else begin
-                         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift, resultreg, resultreg);
-                     end;
-                 end;
+                 cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
+                     tordconstnode(right).value.svalue,numerator,resultreg);
              end;
              done := true;
          end;
