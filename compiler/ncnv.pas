@@ -2493,23 +2493,12 @@ implementation
           case n.nodetype of
             subn,orn,xorn:
               begin
-                { nf_internal is set by taddnode.typecheckpass in  }
-                { case the arguments of this subn were u32bit, but }
-                { upcasted to s64bit for calculation correctness   }
-                { (normally only needed when range checking, but   }
-                {  also done otherwise so there is no difference   }
-                {  in overload choosing etc between $r+ and $r-)   }
-                if (nf_internal in n.flags) then
-                  begin
-                    result:=true;
-                    { the result could become negative in this case }
-                    if n.nodetype=subn then
-                      gotsint:=true
-                  end
-                else
-                  result:=
-                    docheckremove64bittypeconvs(tbinarynode(n).left) and
-                    docheckremove64bittypeconvs(tbinarynode(n).right);
+                { the result could become negative in this case }
+                if n.nodetype=subn then
+                  gotsint:=true;
+                result:=
+                  docheckremove64bittypeconvs(tbinarynode(n).left) and
+                  docheckremove64bittypeconvs(tbinarynode(n).right);
               end;
             addn,muln,divn,modn,andn:
               begin
