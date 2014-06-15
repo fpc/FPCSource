@@ -844,20 +844,6 @@ type
     procedure Test2RolesToUser;
   end;
 
-  { TTestSetParser }
-
-  TTestSetParser = Class(TTestSQLParser)
-  published
-    procedure TestSetAutoDDL;
-    procedure TestSetAutoDDLOn;
-    procedure TestSetAutoDDLOff;
-    procedure TestSetAutoDDLCreateProcedure;
-    procedure TestSetTerm;
-    procedure TestSetTermSemicolon;
-    procedure TestSetTermCreateProcedure;
-    procedure TestSetTermCreateProcedureVar;
-  end;
-
   { TTestGlobalParser }
 
   TTestGlobalParser = Class(TTestSQLParser)
@@ -868,138 +854,6 @@ type
 implementation
 
 uses typinfo;
-
-{ TTestSetParser }
-
-procedure TTestSetParser.TestSetAutoDDL;
-Const
-  Desired='-- SET AUTODDL ON';
-Var
-  I: TSQLSetISQLStatement;
-begin
-  CreateParser('SET AUTODDL;');
-  FToFree:=Parser.Parse;
-  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
-  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
-end;
-
-procedure TTestSetParser.TestSetAutoDDLOn;
-Const
-  Desired='-- SET AUTODDL ON';
-Var
-  I: TSQLSetISQLStatement;
-begin
-  CreateParser('SET AUTODDL ON;');
-  FToFree:=Parser.Parse;
-  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
-  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
-end;
-
-procedure TTestSetParser.TestSetAutoDDLOff;
-Const
-  Desired='-- SET AUTODDL OFF';
-Var
-  I: TSQLSetISQLStatement;
-begin
-  CreateParser('SET AUTODDL OFF;');
-  FToFree:=Parser.Parse;
-  I:=TSQLSetISQLStatement(CheckClass(FToFree,TSQLSetISQLStatement));
-  AssertEquals('GetAsSQL',I.GetAsSQL([]),Desired);
-end;
-
-procedure TTestSetParser.TestSetAutoDDLCreateProcedure;
-Const
-  SQL =
-   'SET AUTODDL ;'+LineEnding+
-   ''+LineEnding+
-   'CREATE PROCEDURE PROCNAME'+LineEnding+
-   'AS'+LineEnding+
-   'BEGIN'+LineEnding+
-   '  /* Empty procedure */'+LineEnding+
-   'END;';
-begin
-  CreateParser(SQL);
-  Parser.ParseScript;
-  //todo: test name etc of procedure
-end;
-
-procedure TTestSetParser.TestSetTerm;
-Var
-  S : TSQLSetTermStatement;
-
-begin
-  CreateParser('SET TERM ^ ;');
-  FToFree:=Parser.Parse;
-  S:=TSQLSetTermStatement(CheckClass(FToFree,TSQLSetTermStatement));
-  AssertEquals('New terminator','^',S.NewTerminator);
-  AssertEquals('Closing semicolon',tsqlSEMICOLON,Parser.CurrentToken);
-  Parser.GetNextToken;
-  AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
-end;
-
-procedure TTestSetParser.TestSetTermSemicolon;
-Var
-  S : TSQLSetTermStatement;
-
-begin
-  CreateParser('SET TERM ; ^');
-  FParser.SetStatementTerminator('^'); // emulate a previous SET TERM ^ ;
-  AssertEquals('Closing statement terminator should match ^','^',Parser.GetStatementTerminator);
-  FToFree:=Parser.Parse;
-  S:=TSQLSetTermStatement(CheckClass(FToFree,TSQLSetTermStatement));
-  AssertEquals('New terminator',';',S.NewTerminator);
-  AssertEquals('Closing terminator',tsqlStatementTerminator,Parser.CurrentToken);
-  AssertEquals('Closing ^','^',Parser.CurrentTokenString);
-  Parser.GetNextToken;
-  AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
-end;
-
-procedure TTestSetParser.TestSetTermCreateProcedure;
-Const
-  SQL =
-   'SET TERM ^ ;'+LineEnding+
-   ''+LineEnding+
-   'CREATE PROCEDURE PROCNAME'+LineEnding+
-   'AS'+LineEnding+
-   'BEGIN'+LineEnding+
-   '  /* Empty procedure */'+LineEnding+
-   'END^'+LineEnding+
-   ''+LineEnding+
-   'SET TERM ; ^';
-
-begin
-  CreateParser(SQL);
-  Parser.ParseScript;
-  //todo: test name etc of procedure
-end;
-
-procedure TTestSetParser.TestSetTermCreateProcedureVar;
-// Procedure with variable
-Const
-  SQL =
-    'SET TERM ^ ;'+LineEnding+
-    'CREATE PROCEDURE PROCWITHVAR'+LineEnding+
-    'RETURNS (LANGUAGES VARCHAR(15) CHARACTER SET NONE)'+LineEnding+
-    'AS'+LineEnding+
-    'DECLARE VARIABLE i INTEGER;'+LineEnding+
-    'BEGIN'+LineEnding+
-    '  i = 1;'+LineEnding+
-    '  WHILE (i <= 5) DO'+LineEnding+
-    '  BEGIN'+LineEnding+
-    '    SELECT language_req[:i] FROM job'+LineEnding+
-    '    INTO :languages;'+LineEnding+
-    '    i = i +1;'+LineEnding+
-    '    SUSPEND;'+LineEnding+
-    '  END'+LineEnding+
-    'END ^'+LineEnding+
-    'SET TERM ; ^';
-
-begin
-  CreateParser(SQL);
-  Parser.ParseScript;
-  //todo: test name etc of procedure
-end;
-
 
 { TTestGlobalParser }
 
@@ -1040,7 +894,7 @@ end;
 
 procedure TTestSQLParser.SetUp;
 begin
-  FParser.SetStatementTerminator(';');
+  // nothing yet
 end;
 
 procedure TTestSQLParser.TearDown;
@@ -8317,7 +8171,6 @@ initialization
                  TTestDeclareExternalFunctionParser,
                  TTestGrantParser,
                  TTestRevokeParser,
-                 TTestSetParser,
                  TTestGlobalParser]);
 end.
 

@@ -101,8 +101,6 @@ Type
     function ParseCreateViewStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseCreateTriggerStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
     function ParseSetGeneratorStatement(AParent: TSQLElement) : TSQLSetGeneratorStatement;
-    function ParseSetISQLStatement(AParent: TSQLElement) : TSQLSetISQLStatement;
-    function ParseSetTermStatement(AParent: TSQLElement) : TSQLSetTermStatement;
     function ParseCreateDatabaseStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateDatabaseStatement;
     function ParseCreateShadowStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLCreateShadowStatement;
     function ParseAlterDatabaseStatement(AParent: TSQLElement; IsAlter: Boolean ): TSQLAlterDatabaseStatement;
@@ -163,12 +161,6 @@ Type
     Function Parse : TSQLElement;
     // Parse script containing 1 or more elements
     Function ParseScript(AllowPartial : Boolean = False) : TSQLElementList;
-    // Gets statement terminator (as e.g. used in SET TERM) so statements like
-    // EXECUTE BLOCK or CREATE PROCEDURE that contain semicolons can be parsed
-    function GetStatementTerminator: string;
-    // Sets statement terminator (as e.g. used in SET TERM) so statements like
-    // EXECUTE BLOCK or CREATE PROCEDURE that contain semicolons can be parsed
-    procedure SetStatementTerminator(AValue: string);
     // Auxiliary stuff
     Function CurrentToken : TSQLToken;
     Function CurrentTokenString : String;
@@ -1522,7 +1514,7 @@ begin
     S:=ParseProcedureStatement(AParent);
     Statements.Add(S);
     if not (PreviousToken=tsqlEnd) then
-      Consume([tsqlSemicolon,tsqlStatementTerminator]);
+      Consume([tsqlSemicolon]);
     end;
   Consume(tsqlEnd);
 end;
@@ -2981,74 +2973,6 @@ begin
   end;
 end;
 
-function TSQLParser.ParseSetISQLStatement(AParent: TSQLElement
-  ): TSQLSetISQLStatement;
-begin
-  // On entry, we're on the first argument e.g. AUTODDL in SET AUTODDL
-  // for now, only support AutoDDL
-  //SET AUTODDL: ignore these isql commands for now
-  case CurrentToken of
-    tsqlAutoDDL:
-      begin
-      Result:=TSQLSetISQLStatement(CreateElement(TSQLSetISQLStatement,AParent));
-      // SET AUTODDL ON, SET AUTODDL OFF; optional arguments
-      if (PeekNextToken in [tsqlOn, tsqlOff]) then
-        begin
-        GetNextToken;
-        if CurrentToken=tsqlOFF then
-          Result.Arguments:='AUTODDL OFF'
-        else
-          Result.Arguments:='AUTODDL ON';
-        Consume([tsqlOn,tsqlOff]);
-        end
-      else
-        begin
-        Result.Arguments:='AUTODDL ON';
-        Consume(tsqlAutoDDL);
-        end;
-      end
-    else
-      UnexpectedToken;
-  end;
-end;
-
-function TSQLParser.ParseSetTermStatement(AParent: TSQLElement
-  ): TSQLSetTermStatement;
-var
-  ExistingStatTerm: string;
-begin
-  // On entry, we're on the 'TERM' token
-  Consume(tsqlTerm) ;
-  try
-    Result:=TSQLSetTermStatement(CreateElement(TSQLSetTermStatement,AParent));
-    Expect([tsqlSemiColon,tsqlStatementTerminator,tsqlSymbolString,tsqlString]);
-    // Already set the expression's new value to the new terminator, but do not
-    // change tSQLStatementTerminator as GetNextToken etc need the old one to
-    // detect the closing terminator
-    case CurrentToken of
-      tsqlSemiColon, tsqlStatementTerminator: Result.NewTerminator:=TokenInfos[CurrentToken];
-      tsqlSymbolString, tsqlString: Result.NewTerminator:=CurrentTokenString;
-    end;
-    // Expect the old terminator...
-    GetNextToken;
-    // Parser will give tsqlSemicolon rather than tsqlStatementTerminator:
-    if TokenInfos[tsqlStatementTerminator]=TokenInfos[tsqlSEMICOLON] then
-    begin
-      Expect(tsqlSEMICOLON);
-      Result.OldTerminator:=TokenInfos[tsqlSEMICOLON];
-    end
-    else
-    begin
-      Expect(tsqlStatementTerminator);
-      Result.OldTerminator:=TokenInfos[tsqlStatementTerminator];
-    end;
-    //... and now set the new terminator:
-    TokenInfos[tsqlStatementTerminator]:=Result.NewTerminator; //process new terminator value
-  except
-    FreeAndNil(Result);
-    Raise;
-  end;
-end;
 
 function TSQLParser.ParseSecondaryFile(AParent: TSQLElement) : TSQLDatabaseFileInfo;
 
@@ -3453,8 +3377,6 @@ begin
   Consume(tsqlSet);
   Case CurrentToken of
     tsqlGenerator : Result:=ParseSetGeneratorStatement(AParent); //SET GENERATOR
-    tsqlTerm : Result:=ParseSetTermStatement(AParent); //SET TERM
-    tsqlAutoDDL : Result:=ParseSetISQLStatement(AParent); //SET AUTODDL
   else
     // For the time being
     UnexpectedToken;
@@ -3971,7 +3893,7 @@ begin
   else
     UnexpectedToken;
   end;
-  if Not (CurrentToken in [tsqlEOF,tsqlSemicolon,tsqlStatementTerminator]) then
+  if Not (CurrentToken in [tsqlEOF,tsqlSemicolon]) then
     begin
     FreeAndNil(Result);
     if (CurrentToken=tsqlBraceClose) then
@@ -4001,16 +3923,6 @@ begin
       Raise;
       end;
   end;
-end;
-
-function TSQLParser.GetStatementTerminator: string;
-begin
-  result:=TokenInfos[tsqlStatementTerminator];
-end;
-
-procedure TSQLParser.SetStatementTerminator(AValue: string);
-begin
-  TokenInfos[tsqlStatementTerminator]:=AValue;;
 end;
 
 function TSQLParser.CurrentToken: TSQLToken;

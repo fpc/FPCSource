@@ -42,8 +42,6 @@ type
    tsqlIdentifier {a table etc name},
    tsqlSymbolString {a string containing symbols/punctuation marks; only rarely used - e.g. in SET TERM ^ ;},
    tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
-   tsqlStatementTerminator {statement separator, usually semicolon but may be changed by code. For now, limited to semicolon and symbol literals not already defined like tsqlCOMMA.}
-   {todo: move this out of fpsqlscanner into fpsqlparser with an option to disable},
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
    tsqlPlaceHolder {question mark},
    tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,
@@ -51,7 +49,7 @@ type
    tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
    { Reserved words/keywords start here. They must be last }
    { Note: if adding before tsqlALL or after tsqlWHEN please update FirstKeyword/LastKeyword }
-   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto, tsqlAutoDDL {not an FB reserved word but used in isql scripts}, tsqlAfter,tsqlAdmin,
+   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto, tsqlAfter,tsqlAdmin,
    tsqlBETWEEN, tsqlBinary, tsqlBY, tsqlBLOB, tsqlBegin, tsqlBefore,
    tsqlCOLLATE, tsqlCONTAINING, tsqlCOUNT, tsqlCREATE, tsqlCOLUMN, tsqlCONSTRAINT, tsqlChar,tsqlCHARACTER, tsqlCHECK, tsqlComputed,tsqlCASCADE, tsqlCast, tsqlCommit,tsqlConnect,tsqlCache,tsqlConditional,tsqlCString,
    tsqlDESC, tsqlDESCENDING, tsqlDISTINCT, tsqlDEFAULT, tsqlDELETE, tsqlDO, tsqlDouble, tsqlDECLARE, tsqlDROP, tsqlDomain, tsqlDecimal, tsqlDate,tsqlDatabase,
@@ -69,7 +67,7 @@ type
    tsqlPrecision, tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
    tsqlRIGHT, tsqlROLE, tsqlReferences, tsqlRollBack, tsqlRelease,  tsqlretain,  tsqlReturningValues,tsqlReturns, tsqlrevoke,
    tsqlSELECT, tsqlSET, tsqlSINGULAR, tsqlSOME, tsqlSTARTING, tsqlSUM, tsqlSKIP,tsqlSUBTYPE,tsqlSize,tsqlSegment, tsqlSORT, tsqlSnapShot,tsqlSchema,tsqlShadow,tsqlSuspend,tsqlSQLCode,tsqlSmallint,
-   tSQLTABLE, tsqlText, tsqlTerm {not an FB reserved word, used in isql scripts}, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
+   tSQLTABLE, tsqlText, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
    tsqlUNION, tsqlUPDATE, tsqlUPPER,  tsqlUNIQUE, tsqlUSER,
    tsqlValue, tsqlVALUES, tsqlVARIABLE,  tsqlVIEW, tsqlVARCHAR,TSQLVARYING,
    tsqlWHERE, tsqlWITH, tsqlWHILE, tsqlWork, tsqlWhen
@@ -89,15 +87,14 @@ const
        'EOF','whitespace',
        'String',
        'identifier',
-       'symbol literal',
+       'symbol string',
        'integer number','float number', 'comment',
-       ';' {value may be changed at run time to any symbol or set of symbols},
        '(',')', '[',']',
        '?',',',':','.',';','>','<',
        '+','-','*','/','||',
        '=','>=','<=','<>',
        // Identifiers last:
-       'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AUTODDL', 'AFTER', 'ADMIN',
+       'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AFTER', 'ADMIN',
        'BETWEEN', 'BINARY', 'BY', 'BLOB','BEGIN', 'BEFORE',
        'COLLATE', 'CONTAINING', 'COUNT', 'CREATE', 'COLUMN', 'CONSTRAINT', 'CHAR','CHARACTER','CHECK', 'COMPUTED','CASCADE','CAST', 'COMMIT', 'CONNECT', 'CACHE','CONDITIONAL', 'CSTRING',
        'DESC', 'DESCENDING', 'DISTINCT',  'DEFAULT', 'DELETE', 'DO', 'DOUBLE', 'DECLARE', 'DROP', 'DOMAIN', 'DECIMAL', 'DATE','DATABASE',
@@ -115,7 +112,7 @@ const
        'PRECISION', 'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
        'RIGHT', 'ROLE', 'REFERENCES', 'ROLLBACK','RELEASE', 'RETAIN', 'RETURNING_VALUES', 'RETURNS','REVOKE',
        'SELECT', 'SET', 'SINGULAR', 'SOME', 'STARTING', 'SUM', 'SKIP','SUB_TYPE', 'SIZE', 'SEGMENT', 'SORT', 'SNAPSHOT','SCHEMA','SHADOW','SUSPEND','SQLCODE','SMALLINT',
-       'TABLE', 'TEXT', 'TERM', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
+       'TABLE', 'TEXT', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
        'UNION', 'UPDATE', 'UPPER', 'UNIQUE', 'USER',
        'VALUE','VALUES','VARIABLE', 'VIEW','VARCHAR','VARYING',
        'WHERE', 'WITH', 'WHILE','WORK','WHEN'
@@ -187,7 +184,6 @@ Type
     // Used to parse out an identifier/name and store it in the list of identifiers
     function DoIdentifier : TSQLToken;
     // Used to parse out a string containing symbols
-    // Also looks for tsqlStatementTerminator
     function DoSymbolString : TSQLToken;
     function DoMultiLineComment: TSQLToken;
     function DoNumericLiteral: TSQLToken;
@@ -691,12 +687,6 @@ begin
     result:=tsqlSymbolString;
     SetLength(FCurTokenString,Len);
     Move(TokenStart^,FCurTokenString[1],Len);
-
-    // Check if it is the statement terminator
-    if FCurTokenString=TokenInfos[tsqlStatementTerminator] then
-      begin
-      exit(tsqlStatementTerminator);
-      end;
 
     // Check if this is a keyword or identifier/literal
     // Probably not (due to naming rules) but it doesn't hurt

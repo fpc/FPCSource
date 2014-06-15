@@ -912,20 +912,6 @@ Type
     Property Arguments : string Read FArgument Write FArgument;
   end;
 
-  { TSQLSetTermStatement }
-
-  TSQLSetTermStatement = Class(TSQLStatement)
-  private
-    FNewValue: string;
-    FOldValue: string;
-  Public
-    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    // The first, new terminator in the SET TERM statement
-    Property NewTerminator : string Read FNewValue Write FNewValue;
-    // The second, old terminator in the SET TERM statement
-    Property OldTerminator : string Read FOldValue Write FOldValue;
-  end;
-
   { TSQLCreateRoleStatement }
 
   TSQLCreateRoleStatement = Class(TSQLCreateOrAlterStatement)
@@ -1888,16 +1874,6 @@ begin
   // Note: we generate this as a comment as this is ISQL-specific and will generate
   // errors when passed as SQL to servers
   Result:='-- SET '+Arguments;
-end;
-
-{ TSQLSetTermStatement }
-
-function TSQLSetTermStatement.GetAsSQL(Options: TSQLFormatOptions;
-  AIndent: Integer): TSQLStringType;
-begin
-  // Note: we generate this as a comment as this is ISQL-specific and will generate
-  // errors when passed as SQL to servers
-  Result:='-- SET TERM '+NewTerminator+' '+OldTerminator;
 end;
 
 function TSQLElementList.GetE(AIndex : Integer): TSQLElement;
