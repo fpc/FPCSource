@@ -1191,12 +1191,14 @@ Unit AoptObj;
         hp2:=tai(hp1.next);
         while assigned(hp2) and (hp2.typ in SkipInstr) do
           hp2:=tai(hp2.next);
+{$ifndef SPC32}
         if assigned(hp2) and (hp2.typ=ait_instruction) and
           (taicpu(hp2).opcode=A_NOP) then
           begin
             asml.remove(hp2);
             hp2.free;
           end;
+{$endif}
         { Anything except A_NOP must be left in place: these instructions
           execute before branch, so code stays correct if branch is removed. }
       end;
@@ -1398,6 +1400,7 @@ Unit AoptObj;
   {$ifdef arm}
                                       and (taicpu(p).condition<>C_None)
   {$endif arm}
+                                      and (inverse_cond(taicpu(p).condition)<>C_None)
                                     then
                                       begin
                                         taicpu(p).condition:=inverse_cond(taicpu(p).condition);
