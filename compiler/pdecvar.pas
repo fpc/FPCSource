@@ -58,9 +58,6 @@ implementation
 {$if defined(i386) or defined(i8086)}
        symcpu,
 {$endif}
-{$ifdef jvm}
-       jvmdef,
-{$endif}
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
@@ -70,9 +67,6 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
-{$ifdef jvm}
-       pjvm,
-{$endif}
        { link }
        import
        ;
@@ -347,10 +341,6 @@ implementation
          storedprocdef: tprocvardef;
          readprocdef,
          writeprocdef : tprocdef;
- {$ifdef jvm}
-          orgaccesspd : tprocdef;
-          wrongvisibility : boolean;
- {$endif}
       begin
          result:=nil;
          { Generate temp procdefs to search for matching read/write
