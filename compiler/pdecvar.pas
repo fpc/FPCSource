@@ -335,7 +335,8 @@ implementation
          paranr : word;
          i      : longint;
          ImplIntf     : TImplementedInterface;
-         found        : boolean;
+         found,
+         gotreadorwrite: boolean;
          hreadparavs,
          hparavs      : tparavarsym;
          storedprocdef: tprocvardef;
@@ -509,9 +510,11 @@ implementation
 
          if not(is_dispinterface(astruct)) then
            begin
+             gotreadorwrite:=false;
              { parse accessors }
              if try_to_consume(_READ) then
                begin
+                 gotreadorwrite:=true;
                  p.propaccesslist[palt_read].clear;
                  if parse_symlist(p.propaccesslist[palt_read],def) then
                   begin
@@ -530,6 +533,7 @@ implementation
                p.inherit_accessor(palt_read);
              if try_to_consume(_WRITE) then
                begin
+                 gotreadorwrite:=true;
                  p.propaccesslist[palt_write].clear;
                  if parse_symlist(p.propaccesslist[palt_write],def) then
                   begin
@@ -550,6 +554,12 @@ implementation
                end
              else
                p.inherit_accessor(palt_write);
+             { a new property (needs to declare a getter or setter, except in
+               an interface }
+             if not(ppo_overrides in p.propoptions) and
+                not is_interface(astruct) and
+                not gotreadorwrite then
+               Consume(_READ);
            end
          else
            parse_dispinterface(p,readprocdef,writeprocdef,paranr);

@@ -150,7 +150,7 @@ type
 
     Property FileModified : Boolean Read FFileModified;
     // TMemDataset does not implement Filter. Please use OnFilter instead.
-    Property Filter: string; unimplemented;
+    Property Filter; unimplemented;
 
   published
     Property FileName : String Read FFileName Write FFileName;
