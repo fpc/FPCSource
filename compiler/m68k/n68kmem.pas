@@ -69,6 +69,7 @@ implementation
             hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             { if we have a possibility, setup a scalefactor instead of the MUL }
             if (location.reference.base=NR_NO) or (location.reference.index<>NR_NO) or
+               (current_settings.cputype in [cpu_m68000]) or
                ((current_settings.cputype in cpu_coldfire) and not (l in [2,4])) or
                not (l in [2,4,8]) then
               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg)
