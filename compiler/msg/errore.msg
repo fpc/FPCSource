@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02095 is the last used one
+# 02096 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -396,6 +396,11 @@ scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 % ordinal value
 scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
 % Not all compiler directives are supported on all targets.
+scan_w_invalid_stacksize=02096_W_The specified stack size is not within the valid range for the platform. Setting the stack size ignored.
+% The valid range for the stack size is 1024 - 67107839 on 32-bit and 64-bit
+% platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
+% compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
+% actually sets the stack size to 65520.
 % \end{description}
 #
 # Parser

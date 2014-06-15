@@ -714,7 +714,9 @@ unit scandir;
           and (l<67107840)
 {$endif cpu16bitaddr}
         then
-          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif});
+          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
+        else
+          Message(scan_w_invalid_stacksize);
         if c=',' then
           begin
             current_scanner.readchar;
