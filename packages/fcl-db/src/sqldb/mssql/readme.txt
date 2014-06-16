@@ -1,17 +1,29 @@
 Compiling FreeTDS DB-Lib with MS Visual C++ 2005/2008/2010:
 ===========================================================
 1.   Download sources from www.freetds.org
-2.   Open FreeTDS.dsw from /win32/msvc6 source directory
-2.1  in libTDS / Header Files edit config.h and comment "HAVE_INTTYPES_H":
-     /* #undef HAVE_INTTYPES_H */
-     (http://www.freetds.org/userguide/osissues.htm#WINDOWS)
-2.2  In Build / Configuration Manager select "Release"
-     Right-click on project "dblib_dll" and select "Properties". Note: select Configuration Properties first if in Visual C++ 2010.
-     C/C++ / Preprocesor / Preprocessor Definitions add "MSDBLIB" (optionally default TDS version "TDS71")
-     Linker / Input / Additional Dependencies add ".\tds_Release\libTDS.lib"
-     Linker / General / Output File change from ".\dbdll_Release\dblib_dll.dll" to ".\dbdll_Release\dblib.dll"
-3.   Build "dblib_dll"
-4.   The dblib.dll will appear in the .\dbdll_Release\ subdirectory
+2.1  Using Perl interpreter generate files:
+     perl.exe encodings.pl > encodings.h
+     perl.exe num_limits.pl > num_limits.h
+     perl.exe tds_willconvert.pl > tds_willconvert.h
+     perl.exe types.pl ../../misc/types.csv ../../include/freetds/proto.h > tds_types.h
+2.2  Copy include/tds_sysdep_public.h.in to tds_sysdep_public.h and replace "@dblib_define@" with "#define MSDBLIB"
+     Copy include/freetds/version.h.in to version.h and replace "@..@" variables
+     Copy win32/config.h.in to config.h
+3.   Open FreeTDS.sln from root source directory
+3.1  in TDS / Header Files edit config.h and comment "HAVE_INTTYPES_H":
+       /* #define HAVE_INTTYPES_H 1 */
+       (http://www.freetds.org/userguide/osissues.htm#WINDOWS)
+3.2  In Build / Configuration Manager select "Release"
+     Right-click on project "db-lib" and select "Properties". Note: select Configuration Properties first if in Visual C++ 2010.
+       General / Configuration Type = "Dynamic library (.dll)"
+       C/C++ / Preprocesor / Preprocessor Definitions add "MSDBLIB" (optionally default TDS version "TDS71")
+       Linker / Input / Additional Dependencies add "ws2_32.lib"
+                      / Module Definition File = "..\..\win32\dblib.def"
+       Linker / General / Output File change from "$(OutDir)\$(ProjectName).dll" to "$(OutDir)\dblib.dll"
+     Right-click on project "replacements" and select "Properties".
+       C/C++ / Preprocesor / Preprocessor Definitions add "_WIN32_WINNT=0x0400"
+4.   Build "db-lib"
+5.   The dblib.dll will appear in the Release\ subdirectory
      Note: To avoid dependency on msvc*.dll you can set in C/C++ / Code Generation / Runtime Library : "Multi-threaded (/MT)" in all projects
 
      To build dblib.dll under MS Visual C++ 2010 Express for Win64 you must:
@@ -30,11 +42,12 @@ Compiling FreeTDS with iconv support:
 	Developer files: http://gnuwin32.sourceforge.net/downlinks/libiconv-lib-zip.php (include/iconv.h and lib/libiconv.lib)
 	Binaries: http://gnuwin32.sourceforge.net/downlinks/libiconv-bin-zip.php  (bin/libiconv2.dll)
     and extract them to a directory, e.g. the directory iconv below your root FreeTDS folder	
-2.  in libTDS / Header Files edit config.h and uncomment /* #undef HAVE_ICONV */:
-    #define HAVE_ICONV 1
-3.  in Project properties:
-    libTDS: C/C++ / General / Additional Include Directories add path to "include/iconv.h" (e.g. "..\..\iconv\src\libiconv\1.9.2\libiconv-1.9.2\include"
-    dblib_dll: Linker / Input / Additional Dependencies add "lib/libiconv.lib" (e.g. "..\..\iconv\lib\libiconv.lib"
+2.  in TDS / Header Files edit config.h and change /* #undef HAVE_ICONV */ to #define HAVE_ICONV 1
+3.  in TDS Project properties:
+      C/C++ / General / Additional Include Directories add path to "include/iconv.h" (e.g. "$(SolutionDir)..\iconv\include"
+    in db-lib Project properties:
+      C/C++ / General / Additional Include Directories add path to "include/iconv.h" (e.g. "$(SolutionDir)..\iconv\include"
+      Linker / Input / Additional Dependencies add "lib/libiconv.lib" (e.g. "$(SolutionDir)..\iconv\lib\libiconv.lib"
 4.  Follow regular compilation instructions above
 5.  Distribute libiconv2.dll with your dblib.dll
 
