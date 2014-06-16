@@ -143,15 +143,18 @@ const
   SQLDATETIM4=$3a;
   SQLDECIMAL=$6a;
   SQLNUMERIC=$6c;
-  //from tds.h:
+  // from proto.h:
   SYBNTEXT=$63;
-  SYBINT8=$7F;
-  SYBUNIQUE=$24;
+  // MS only types:
+  SYBINT8   =$7F;
+  SYBUNIQUE =$24;
   SYBVARIANT=$62;
-  //XSYBVARCHAR=$A7;
-  //XSYBNVARCHAR=$E7;
-  //XSYBNCHAR = $EF;
-  //XSYBBINARY= $AD;
+  SYBMSUDT  =$F0;
+  SYBMSXML  =$F1;
+  SYBMSDATE =$28;
+  SYBMSTIME =$29;
+  SYBMSDATETIME2=$2A;
+  SYBMSDATETIMEOFFSET=$2B; 
 
   MAXTABLENAME ={$IFDEF freetds}512+1{$ELSE}30{$ENDIF};
   MAXCOLNAMELEN={$IFDEF freetds}512+1{$ELSE}30{$ENDIF};
@@ -201,6 +204,18 @@ type
   end;
   PDBDATETIME=^DBDATETIME;
 
+  DBDATETIMEALL=record
+    time: qword;         // time, 7 digit precision (64-bit unsigned)
+    date: longint;       // date, 0 = 1900-01-01 (32-bit int)
+    offset: smallint;    // time offset (16-bit int)
+    info: word;          // unsigned short time_prec:3;
+                         // unsigned short _res:10;
+                         // unsigned short has_time:1;
+                         // unsigned short has_date:1;
+                         // unsigned short has_offset:1;
+  end;
+  PDBDATETIMEALL=^DBDATETIMEALL;
+
   // DBDATEREC structure used by dbdatecrack
   DBDATEREC=packed record
     case boolean of
@@ -237,6 +252,11 @@ type
     );
   end;
   PDBDATEREC=^DBDATEREC;
+
+  DBMONEY=record
+    mnyhigh: DBINT;
+    mnylow: ULONG;
+  end;
 
   DBNUMERIC=packed record
    	precision: BYTE;
@@ -308,6 +328,7 @@ var
   function dbprtype(token:INT):PChar; cdecl; external DBLIBDLL;
   function dbdatlen(dbproc:PDBPROCESS; column:INT):DBINT; cdecl; external DBLIBDLL;
   function dbdata(dbproc:PDBPROCESS; column:INT):PByte; cdecl; external DBLIBDLL;
+  function dbwillconvert(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl; external DBLIBDLL;
   function dbconvert(dbproc:PDBPROCESS; srctype:INT; src:PByte; srclen:DBINT; desttype:INT; dest:PByte; destlen:DBINT):INT; cdecl; external DBLIBDLL;
   function dbdatecrack(dbproc:PDBPROCESS; dateinfo:PDBDATEREC; datetime: PDBDATETIME):RETCODE; cdecl; external DBLIBDLL;
   function dbcount(dbproc:PDBPROCESS):DBINT; cdecl; external DBLIBDLL;
@@ -356,6 +377,7 @@ var
   dbprtype: function(token:INT):PChar; cdecl;
   dbdatlen: function(dbproc:PDBPROCESS; column:INT):DBINT; cdecl;
   dbdata: function(dbproc:PDBPROCESS; column:INT):PByte; cdecl;
+  dbwillconvert: function(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl;
   dbconvert: function(dbproc:PDBPROCESS; srctype:INT; src:PByte; srclen:DBINT; desttype:INT; dest:PByte; destlen:DBINT):INT; cdecl;
   dbdatecrack: function(dbproc:PDBPROCESS; dateinfo:PDBDATEREC; datetime: PDBDATETIME):RETCODE; cdecl;
   dbcount: function(dbproc:PDBPROCESS):DBINT; cdecl;
@@ -397,6 +419,8 @@ procedure dbwinexit;
 {$ENDIF}
 function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
+function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
+function dbmoneytocurr(pdbmoney: PQWord): Currency;
 
 function InitialiseDBLib(const LibraryName : ansistring): integer;
 procedure ReleaseDBLib;
@@ -452,6 +476,7 @@ begin
    pointer(dbprtype) := GetProcedureAddress(DBLibLibraryHandle,'dbprtype');
    pointer(dbdatlen) := GetProcedureAddress(DBLibLibraryHandle,'dbdatlen');
    pointer(dbdata) := GetProcedureAddress(DBLibLibraryHandle,'dbdata');
+   pointer(dbwillconvert) := GetProcedureAddress(DBLibLibraryHandle,'dbwillconvert');
    pointer(dbconvert) := GetProcedureAddress(DBLibLibraryHandle,'dbconvert');
    pointer(dbdatecrack) := GetProcedureAddress(DBLibLibraryHandle,'dbdatecrack');
    pointer(dbcount) := GetProcedureAddress(DBLibLibraryHandle,'dbcount');
@@ -573,6 +598,25 @@ begin
   Result:='DB Library version 8.00';
 end;
 {$ENDIF}
+
+
+function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
+begin
+  if dta^.info and $4000 = 0 then
+    Result := 0
+  else
+    Result := dta^.date + 2;
+  Result := ComposeDateTime(Result, dta^.time/MSecsPerDay/10000 + dta^.offset/MinsPerDay);
+end;
+
+function dbmoneytocurr(pdbmoney: PQWord): Currency;
+begin
+{$IFDEF ENDIAN_LITTLE}
+  PQWord(@Result)^ := pdbmoney^ shr 32 or pdbmoney^ shl 32;
+{$ELSE}
+  move(pdbmoney^, Result, sizeof(Currency));
+{$ENDIF}
+end;
 
 {
 //ntwdblib uses low significant values first
