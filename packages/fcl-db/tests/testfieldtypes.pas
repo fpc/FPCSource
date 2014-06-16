@@ -908,6 +908,8 @@ begin
     ssFirebird, ssInterbase,
     ssMySQL:
       datatype:='FLOAT';
+    ssOracle:
+      datatype:='BINARY_FLOAT';
     else
       datatype:='REAL';
   end;
