@@ -1026,11 +1026,13 @@ begin
                           'NULLABLE as column_nullable, '+
                           'DATA_LENGTH as column_length, '+
                           'DATA_PRECISION as column_precision, '+
-                          'DATA_SCALE as column_scale, '+
-                          'DATA_DEFAULT '+
+                          'DATA_SCALE as column_scale '+
+                          {DATA_DEFAULT is type LONG; no support for that in 
+													 oracleconnection so removed this from query }
                         'FROM ALL_TAB_COLUMNS '+
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
+    // Columns of tables, views and clusters accessible to user; hidden columns are filtered out.												
     stProcedures : s := 'SELECT '+
                           'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS procedure_name '+
                         'FROM USER_PROCEDURES ';
