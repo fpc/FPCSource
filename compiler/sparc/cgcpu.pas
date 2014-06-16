@@ -1455,8 +1455,6 @@ implementation
 
 
     procedure TCg64Sparc.a_op64_reg_reg(list:TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst:TRegister64);
-      var
-        op1,op2 : TAsmOp;
       begin
         case op of
           OP_NEG :
@@ -1464,33 +1462,21 @@ implementation
               { Use the simple code: y=0-z }
               list.concat(taicpu.op_reg_reg_reg(A_SUBcc,NR_G0,regsrc.reglo,regdst.reglo));
               list.concat(taicpu.op_reg_reg_reg(A_SUBX,NR_G0,regsrc.reghi,regdst.reghi));
-              exit;
             end;
           OP_NOT :
             begin
               list.concat(taicpu.op_reg_reg_reg(A_XNOR,regsrc.reglo,NR_G0,regdst.reglo));
               list.concat(taicpu.op_reg_reg_reg(A_XNOR,regsrc.reghi,NR_G0,regdst.reghi));
-              exit;
             end;
+        else
+          a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
         end;
-        get_64bit_ops(op,op1,op2,false);
-        list.concat(taicpu.op_reg_reg_reg(op1,regdst.reglo,regsrc.reglo,regdst.reglo));
-        list.concat(taicpu.op_reg_reg_reg(op2,regdst.reghi,regsrc.reghi,regdst.reghi));
       end;
 
 
     procedure TCg64Sparc.a_op64_const_reg(list:TAsmList;op:TOpCG;size : tcgsize;value:int64;regdst:TRegister64);
-      var
-        op1,op2:TAsmOp;
       begin
-        case op of
-          OP_NEG,
-          OP_NOT :
-            internalerror(200306017);
-        end;
-        get_64bit_ops(op,op1,op2,false);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reglo,tcgint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op2,regdst.reghi,tcgint(hi(value)),regdst.reghi);
+        a_op64_const_reg_reg(list,op,size,value,regdst,regdst);
       end;
 
 
@@ -1518,10 +1504,16 @@ implementation
           OP_NEG,
           OP_NOT :
             internalerror(200306017);
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg_reg(list,op,OS_INT,tcgint(lo(value)),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_INT,tcgint(hi(value)),regsrc.reghi,regdst.reghi);
+            end;
+        else
+          get_64bit_ops(op,op1,op2,setflags);
+          tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,tcgint(lo(value)),regdst.reglo);
+          tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,tcgint(hi(value)),regdst.reghi);
         end;
-        get_64bit_ops(op,op1,op2,setflags);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,tcgint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,tcgint(hi(value)),regdst.reghi);
       end;
 
 
