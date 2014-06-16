@@ -592,7 +592,7 @@ procedure TOracleConnection.SetParameters(cursor : TSQLCursor;AParams : TParams)
 var SQLVarNr       : integer;
     i              : integer;
     f              : double;
-    year,month,day : word;
+    year, month, day, hour, minute, second, millisecond : word;
     db             : array[0..4] of byte;
     pb             : pbyte;
     s              : string;
@@ -619,14 +619,15 @@ begin
                             end;
         ftDate, ftDateTime: begin
                             DecodeDate(asDateTime,year,month,day);
+                            DecodeTime(asDateTime,hour,minute,second,millisecond);
                             pb := parambuffers[SQLVarNr].buffer;
                             pb[0] := (year div 100)+100;
                             pb[1] := (year mod 100)+100;
                             pb[2] := month;
                             pb[3] := day;
-                            pb[4] := 1;
-                            pb[5] := 1;
-                            pb[6] := 1;
+                            pb[4] := hour+1;
+                            pb[5] := minute+1;
+                            pb[6] := second+1;
                             end;
         ftFmtBCD,ftBCD    : begin
                             FmtBCD2Nvu(asFmtBCD,parambuffers[SQLVarNr].buffer);
@@ -885,7 +886,7 @@ function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; bu
 
 var dt        : TDateTime;
     b         : pbyte;
-    size,i    :  byte;
+    size,i    : byte;
     exp       : shortint;
     cur       : Currency;
     odt       : POCIdateTime;
@@ -925,7 +926,7 @@ begin
       ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
       ftDate  : begin
                 b := fieldbuffers[FieldDef.FieldNo-1].buffer;
-                dt := EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]);
+                dt := ComposeDateTime(EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]), EncodeTime(b[4]-1, b[5]-1, b[6]-1, 0));
                 move(dt,buffer^,sizeof(dt));
                 end;
       ftDateTime : begin
