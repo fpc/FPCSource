@@ -388,7 +388,7 @@ uses
         magic_add:=false;
 {$push}
 {$warnings off }
-        mask:=aWord(not 0) shr (64-N);
+        mask:=aWord(not 0) shr ((64-N) and (sizeof(aWord)*8-1));
         nc:=(mask-(-d) mod aInt(d));
 {$pop}
         p:=N-1;                       { initialize p }
