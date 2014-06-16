@@ -55,30 +55,12 @@ unit cpugas;
       cutils, systems, cpuinfo,
       globals, verbose, itcpugas, cgbase, cgutils;
 
-    function gas_std_regname(r:Tregister):string;
-      var
-        hr: tregister;
-      begin
-        { Double uses the same table as single }
-        hr := r;
-        case getsubreg(hr) of
-          R_SUBFD:
-            setsubreg(hr, R_SUBFS);
-          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
-           setsubreg(hr, R_SUBD);
-        end;
-        if getregtype(r)=R_SPECIALREGISTER then
-          result:=tostr(getsupreg(r))
-        else
-          result:=std_regname(hr);
-      end;
-
 
       function asm_regname(reg : TRegister) : string;
 
         begin
           if use_std_regnames then
-            asm_regname:='$'+gas_std_regname(reg)
+            asm_regname:='$'+std_regname(reg)
           else
             asm_regname:=gas_regname(reg);
         end;

@@ -377,12 +377,25 @@ unit cpubase;
     function std_regname(r:Tregister):string;
       var
         p : tregisterindex;
+        hr : tregister;
       begin
-        p:=findreg_by_number_table(r,regnumber_index);
-        if p<>0 then
-          result:=std_regname_table[p]
+        if getregtype(r)=R_SPECIALREGISTER then
+          result:=tostr(getsupreg(r))
         else
-          result:=generic_regname(r);
+          begin
+            hr:=r;
+            case getsubreg(hr) of
+              R_SUBFD:
+                setsubreg(hr, R_SUBFS);
+              R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+               setsubreg(hr, R_SUBD);
+            end;
+            p:=findreg_by_number_table(hr,regnumber_index);
+            if p<>0 then
+              result:=std_regname_table[p]
+            else
+              result:=generic_regname(r);
+          end;
       end;
 
     function dwarf_reg(r:tregister):shortint;
