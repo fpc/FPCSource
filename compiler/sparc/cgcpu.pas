@@ -721,24 +721,12 @@ implementation
 
 
     procedure TCgSparc.a_op_reg_reg(list:TAsmList;Op:TOpCG;size:TCGSize;src, dst:TRegister);
-      var
-        a : aint;
       begin
         Case Op of
           OP_NEG :
             list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],src,dst));
           OP_NOT :
-            begin
-              case size of
-                OS_8 :
-                  a:=aint($ffffff00);
-                OS_16 :
-                  a:=aint($ffff0000);
-                else
-                  a:=0;
-              end;
-              handle_reg_const_reg(list,A_XNOR,src,a,dst);
-            end;
+            list.concat(taicpu.op_reg_reg_reg(A_XNOR,src,NR_G0,dst));
           else
             list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src,dst));
         end;
@@ -938,10 +926,7 @@ implementation
         if (f in [F_B]) then
           list.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,reg))
         else if (f in [F_AE]) then
-          begin
-            a_load_const_reg(list,size,1,reg);
-            list.concat(taicpu.op_reg_reg_reg(A_SUBX,reg,NR_G0,reg));
-          end
+          list.concat(taicpu.op_reg_const_reg(A_SUBX,NR_G0,-1,reg))
         else
           begin
             current_asmdata.getjumplabel(hl);
