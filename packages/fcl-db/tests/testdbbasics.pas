@@ -20,6 +20,9 @@ type
 
   TTestDBBasics = class(TDBBasicsTestCase)
   private
+    procedure SetupFieldDefinitionDataset(AFieldType: TFieldType;
+      var ADS: TDataset; var AFld: TField);
+    // Sets up dataset and verifies field type and data size match expected values
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
@@ -2409,16 +2412,25 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
-
-var i          : byte;
-
+procedure TTestDBBasics.SetupFieldDefinitionDataset(AFieldType: TFieldType;
+  var ADS: TDataset; var AFld: TField);
 begin
   ADS := DBConnector.GetFieldDataset;
   ADS.Open;
 
   AFld := ADS.FindField('F'+FieldTypeNames[AfieldType]);
+  {$ifdef fpc}
+  if not assigned (AFld) then
+    Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
+  {$endif fpc}
+end;
 
+procedure TTestDBBasics.TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
+
+var i          : byte;
+
+begin
+  SetupFieldDefinitionDataset(AFieldType,ADS, AFld);
 {$ifdef fpc}
   if not assigned (AFld) then
     Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
@@ -2442,7 +2454,17 @@ begin
       Ignore('TDBF: only Visual Foxpro and DBase7 support full integer range.');
   end;
 
-  TestfieldDefinition(ftInteger,4,ds,Fld);
+  if (uppercase(dbconnectorname)='SQL') and
+    (uppercase(dbconnectorparams)='ORACLE') then
+  begin
+    // Oracle: NUMERIC fields that map to ftFMTBCD are used; these do not map to ftInteger
+    // We still want to run the value tests below, so set up things manually:
+    SetupFieldDefinitionDataset(ftInteger,DS,Fld);
+  end
+  else
+  begin
+    TestfieldDefinition(ftInteger,4,ds,Fld);
+  end;
 
   for i := 0 to testValuesCount-1 do
     begin
