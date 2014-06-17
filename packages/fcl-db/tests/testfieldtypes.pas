@@ -479,7 +479,7 @@ var
   i             : byte;
 
 begin
-  if SQLServerType<>ssPostgreSQL then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLServerType<>ssPostgreSQL then Ignore('This test only applies to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -1225,7 +1225,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLServerType in [ssMySQL]) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLServerType in [ssMySQL]) then Ignore('This test only applies to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
