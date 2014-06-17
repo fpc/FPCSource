@@ -2412,9 +2412,9 @@ implementation
                   if left.nodetype=ordconstn then
                     begin
                       if tordconstnode(left).value<0 then
-                        result:=cordconstnode.create((-tordconstnode(left).value),s32inttype,false)
+                        result:=cordconstnode.create((-tordconstnode(left).value),resultdef,false)
                       else
-                        result:=cordconstnode.create((tordconstnode(left).value),s32inttype,false);
+                        result:=cordconstnode.create((tordconstnode(left).value),resultdef,false);
                     end
                 end;
               in_sqr_real :
@@ -3139,8 +3139,7 @@ implementation
               in_abs_long:
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  inserttypeconv(left,s32inttype);
-                  resultdef:=s32inttype;
+                  resultdef:=left.resultdef;
                 end;
 
               in_abs_real,
