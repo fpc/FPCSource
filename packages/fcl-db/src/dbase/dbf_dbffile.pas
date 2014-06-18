@@ -380,7 +380,7 @@ var
 
     version := PDbfHdr(Header)^.VerDBF;
     FDbfVersion := xUnknown;
-    // Some hardcode versions for Visual FoxPro; see MS documentation
+    // Some hardcoded versions for Visual FoxPro; see MS documentation
     // (including the correction at the bottom):
     // http://msdn.microsoft.com/en-US/library/st4a0s68%28v=vs.80%29.aspx
     case version of
@@ -389,14 +389,15 @@ var
     end;
     if FDbfVersion = xUnknown then
       case (version and $07) of
-        $03: //dbf without memo. Could be foxpro, too
-          if LanguageID = 0 then
+        $03: //dbf with/without memo. Could be Foxpro, too
+          if not(version in [$03,$8B]) {dbase IV, even with cleared language ID} and
+            (LanguageID = 0) then
             FDbfVersion := xBaseIII
           else
             FDbfVersion := xBaseIV;
         $04:
           FDbfVersion := xBaseVII;
-        $02 {FoxBase, not readable by current Visual FoxPro driver}, $05:
+        $02 {FoxBase, not readable by current MS Visual FoxPro driver}, $05:
           FDbfVersion := xFoxPro;
       else
         begin
