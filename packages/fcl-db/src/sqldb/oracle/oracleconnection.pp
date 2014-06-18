@@ -85,7 +85,7 @@ type
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
-//    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
+//  procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
@@ -554,11 +554,18 @@ begin
         begin
 
         case AParams[counter].DataType of
-          ftInteger : begin OFieldType := SQLT_INT; OFieldSize := sizeof(integer); end;
-          ftFloat : begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
-          ftDate, ftDateTime : begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
-          ftString  : begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
-          ftFMTBcd,ftBCD : begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
+          ftSmallInt, ftInteger :
+            begin OFieldType := SQLT_INT; OFieldSize := sizeof(integer); end;
+          ftLargeInt :
+            begin OFieldType := SQLT_INT; OFieldSize := sizeof(int64); end;
+          ftFloat :
+            begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
+          ftDate, ftDateTime :
+            begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
+          ftFixedChar, ftString :
+            begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
+          ftFMTBcd, ftBCD :
+            begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
         else
           DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[counter].DataType]],self);
         end;
@@ -605,15 +612,18 @@ begin
         parambuffers[SQLVarNr].ind := 0;
 
       case DataType of
+        ftSmallInt,
         ftInteger         : begin
                             i := asInteger;
                             move(i,parambuffers[SQLVarNr].buffer^,sizeof(integer));
                             end;
+        ftLargeInt        : PInt64(parambuffers[SQLVarNr].buffer)^ := AsLargeInt;
         ftFloat           : begin
                             f := asFloat;
                             move(f,parambuffers[SQLVarNr].buffer^,sizeof(double));
                             end;
-        ftString          : begin
+        ftString,
+        ftFixedChar       : begin
                             s := asString+#0;
                             move(s[1],parambuffers[SQLVarNr].buffer^,length(s)+1);
                             end;
@@ -792,7 +802,7 @@ begin
                                   HandleError;
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@Oscale,nil,OCI_ATTR_SCALE,FOciError) = OCI_ERROR then
                                   HandleError;
-                                if (Oscale = 0) and (Oprecision<9) then
+                                if (Oscale = 0) and (Oprecision < 10) then
                                   begin
                                   if Oprecision=0 then //Number(0,0) = number(32,4)
                                     begin
@@ -837,23 +847,38 @@ begin
                                 end;
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
-        OCI_TYPECODE_VARCHAR2 : begin FieldType := ftString; FieldSize := OFieldSize; inc(OFieldsize) ;OFieldType:=SQLT_STR end;
+        OCI_TYPECODE_VARCHAR2 : begin
+                                FieldType := ftString;
+                                FieldSize := OFieldSize;
+                                inc(OFieldSize);
+                                OFieldType:=SQLT_STR;
+                                end;
         OCI_TYPECODE_DATE     : FieldType := ftDate;
         OCI_TYPECODE_TIMESTAMP,
         OCI_TYPECODE_TIMESTAMP_LTZ,
-        OCI_TYPECODE_TIMESTAMP_TZ  : begin
-                                     FieldType := ftDateTime;
-                                     OFieldType := SQLT_ODT;
-                                     end;
+        OCI_TYPECODE_TIMESTAMP_TZ :
+                                begin
+                                FieldType := ftDateTime;
+                                OFieldType := SQLT_ODT;
+                                end;
+        OCI_TYPECODE_BFLOAT,
+        OCI_TYPECODE_BDOUBLE  : begin
+                                FieldType := ftFloat;
+                                OFieldType := SQLT_BDOUBLE;
+                                OFieldSize := sizeof(double);
+                                end
       else
         FieldType := ftUnknown;
       end;
 
       FieldBuffers[counter-1].buffer := getmem(OFieldSize);
 
-      FOciDefine := nil;
-      if OciDefineByPos(FOciStmt,FOciDefine,FOciError,counter,fieldbuffers[counter-1].buffer,OFieldSize,OFieldType,@(fieldbuffers[counter-1].ind),nil,nil,OCI_DEFAULT) = OCI_ERROR then
-        HandleError;
+      if FieldType <> ftUnknown then
+        begin
+        FOciDefine := nil;
+        if OciDefineByPos(FOciStmt,FOciDefine,FOciError,counter,fieldbuffers[counter-1].buffer,OFieldSize,OFieldType,@(fieldbuffers[counter-1].ind),nil,nil,OCI_DEFAULT) = OCI_ERROR then
+          HandleError;
+        end;
 
       if OCIAttrGet(Param,OCI_DTYPE_PARAM,@OFieldName,@OFNameLength,OCI_ATTR_NAME,FOciError) <> OCI_SUCCESS then
         HandleError;
@@ -936,14 +961,12 @@ begin
                    end;
     else
       Result := False;
-
     end;
     end;
 end;
 
-{function TOracleConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+{procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 begin
-//  Result:=inherited CreateBlobStream(Field, Mode);
 end;}
 
 procedure TOracleConnection.FreeFldBuffers(cursor: TSQLCursor);
