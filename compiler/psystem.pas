@@ -235,8 +235,6 @@ implementation
         cunicodestringtype:=cstringdef.createunicode;
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0);
-        openchararraytype:=carraydef.create(0,-1,s32inttype);
-        tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
@@ -286,6 +284,8 @@ implementation
 {$endif jvm}
         set_default_int_types;
         { some other definitions }
+        openchararraytype:=carraydef.create(0,-1,ptrsinttype);
+        tarraydef(openchararraytype).elementdef:=cansichartype;
         charpointertype:=cpointerdef.create(cansichartype);
         widecharpointertype:=cpointerdef.create(cwidechartype);
 {$ifdef i8086}
