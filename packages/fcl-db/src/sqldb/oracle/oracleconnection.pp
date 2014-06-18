@@ -726,7 +726,7 @@ end;
 
 procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
 begin
-  if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, AParams);
+  if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, AParams);
   if cursor.FStatementType = stSelect then
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
@@ -736,7 +736,7 @@ begin
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
-    if Assigned(APArams) and (AParams.count > 0) then GetParameters(cursor, AParams);
+    if Assigned(AParams) and (AParams.Count > 0) then GetParameters(cursor, AParams);
     end;
 end;
 
@@ -810,6 +810,12 @@ begin
                                     FieldSize := 4;
                                     OFieldType := SQLT_VNU;
                                     OFieldSize:= 22;
+                                    end
+                                  else if Oprecision < 5 then
+                                    begin
+                                    FieldType := ftSmallint;
+                                    OFieldType := SQLT_INT;
+                                    OFieldSize := sizeof(smallint);
                                     end
                                   else
                                     begin
@@ -948,6 +954,7 @@ begin
                            pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
                            end;
       ftFloat           : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
+      ftSmallInt        : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(smallint));
       ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
       ftDate  : begin
                 b := fieldbuffers[FieldDef.FieldNo-1].buffer;

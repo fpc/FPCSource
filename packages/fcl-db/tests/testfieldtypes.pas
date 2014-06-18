@@ -258,6 +258,11 @@ begin
       datatype  := 'TINYINT UNSIGNED';
       fieldtype := ftWord;
       end;
+    ssOracle:
+      begin
+      datatype  := 'NUMBER(3)';
+      fieldtype := ftSmallint;
+      end;
     ssSQLite:
       begin
       datatype  := 'TINYINT';
@@ -2301,7 +2306,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2320,7 +2325,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLServerType in [ssFirebird, ssInterbase] then
+      if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;
