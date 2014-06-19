@@ -810,40 +810,40 @@ begin
                                     FieldSize := 4;
                                     OFieldType := SQLT_VNU;
                                     OFieldSize:= 22;
-                                    end
+                                    end;
                                   else if Oprecision < 5 then
                                     begin
                                     FieldType := ftSmallint;
                                     OFieldType := SQLT_INT;
                                     OFieldSize := sizeof(smallint);
-                                    end
-                                  else
+                                    end;
+                                  else //OPrecision=5..9, OScale=0
                                     begin
                                     FieldType := ftInteger;
                                     OFieldType := SQLT_INT;
                                     OFieldSize:= sizeof(integer);
                                     end;
-                                  end
+                                  end;
                                 else if (Oscale = -127) {and (OPrecision=0)} then
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
                                   OFieldSize:=sizeof(double);
-                                  end
+                                  end;
                                 else if (Oscale >=0) and (Oscale <=4) and (OPrecision<=12) then
                                   begin
                                   FieldType := ftBCD;
                                   FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
-                                  end
+                                  end;
                                 else if (OPrecision-Oscale<64) and (Oscale < 64) then // limited to 63 digits before or after decimal point
                                   begin
                                   FieldType := ftFMTBCD;
                                   FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
-                                  end
+                                  end;
                                 else // approximation with double, best we can do
                                   begin
                                   FieldType := ftFloat;
