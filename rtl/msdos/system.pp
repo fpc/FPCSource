@@ -293,8 +293,10 @@ begin
          if h>=5 then
            do_close(h);
       end;
+{$ifndef FPC_MM_TINY}
   if not CheckNullArea then
     writeln(stderr, 'Nil pointer assignment');
+{$endif FPC_MM_TINY}
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch

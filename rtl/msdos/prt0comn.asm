@@ -439,12 +439,9 @@ int_number:
         ret 4
 %endif
 
+%ifndef __TINY__
         global FPC_CHECK_NULLAREA
 FPC_CHECK_NULLAREA:
-%ifdef __TINY__
-        ; tiny model has no nil pointer assignment checking; always return true.
-        mov al, 1
-%else
         push ds
         pop es
         xor di, di
@@ -455,11 +452,11 @@ FPC_CHECK_NULLAREA:
         je .skip
         dec ax   ; 1 byte shorter than dec al
 .skip:
-%endif
-%ifdef __FAR_CODE__
+    %ifdef __FAR_CODE__
         retf
-%else
+    %else
         ret
+    %endif
 %endif
 
         segment data class=data
