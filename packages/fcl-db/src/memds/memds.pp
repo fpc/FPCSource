@@ -349,7 +349,8 @@ function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
-   dsBrowse:
+   dsBrowse,
+   dsBlockRead:
      if IsEmpty then
        Buffer:=nil
      else
