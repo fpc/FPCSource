@@ -53,6 +53,8 @@
         extern __nearheap_start
         extern __nearheap_end
 
+        extern ___heap
+
 %ifndef __TINY__
     %ifdef __FAR_DATA__
         extern ___stack
@@ -465,6 +467,9 @@ mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
 not_enough_mem_msg:
         db 'Not enough memory', 13, 10, '$'
+        ; add reference to the beginning of the minimal heap, so the object
+        ; module, containing the heap segment doesn't get smartlinked away
+        dd ___heap
 
         segment bss class=bss
 

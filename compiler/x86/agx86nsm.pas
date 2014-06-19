@@ -559,7 +559,8 @@ interface
           '.objc_catlist',
           '.obcj_nlcatlist',
           '.objc_protolist',
-          '.stack'
+          '.stack',
+          '.heap'
         );
       begin
         AsmLn;
@@ -1217,11 +1218,12 @@ interface
       AsmWriteLn('SECTION .bss class=bss');
       if current_settings.x86memorymodel<>mm_tiny then
         AsmWriteLn('SECTION stack stack class=stack align=16');
+      AsmWriteLn('SECTION heap class=heap align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP dgroup text rodata data fpc bss')
+        AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
       else if current_settings.x86memorymodel in x86_near_data_models then
-        AsmWriteLn('GROUP dgroup rodata data fpc bss stack')
+        AsmWriteLn('GROUP dgroup rodata data fpc bss stack heap')
       else
         AsmWriteLn('GROUP dgroup rodata data fpc bss');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then

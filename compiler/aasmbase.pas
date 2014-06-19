@@ -142,7 +142,9 @@ interface
          sec_objc_nlcatlist,
          sec_objc_protolist,
          { stack segment for 16-bit DOS }
-         sec_stack
+         sec_stack,
+         { initial heap segment for 16-bit DOS }
+         sec_heap
        );
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);

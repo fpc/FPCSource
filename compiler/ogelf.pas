@@ -794,7 +794,8 @@ implementation
           '.objc_catlist',
           '.obcj_nlcatlist',
           '.objc_protolist',
-          '.stack'
+          '.stack',
+          '.heap'
         );
       var
         sep : string[3];

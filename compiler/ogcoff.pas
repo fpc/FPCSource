@@ -540,7 +540,8 @@ implementation
           '.objc_catlist',
           '.obcj_nlcatlist',
           '.objc_protolist',
-          '.stack'
+          '.stack',
+          '.heap'
         );
 
 const go32v2stub : array[0..2047] of byte=(
