@@ -199,4 +199,10 @@
 'movf.s',
 'movt.d',
 'movf.d',
+'movn',
+'movz',
+'movn.s',
+'movz.s',
+'movn.d',
+'movz.d',
 'end_def'
