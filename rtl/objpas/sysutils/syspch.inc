@@ -61,7 +61,7 @@ begin
   len:=strlen(p)+1;
   Result:=StrAlloc(Len);
   if Result<>nil then
-   strmove(Result,p,len);
+   move(p^,Result^,len);
 end;
 
 
