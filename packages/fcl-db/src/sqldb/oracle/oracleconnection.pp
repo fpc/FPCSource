@@ -116,7 +116,7 @@ ResourceString
   SErrHandleAllocFailed = 'The allocation of the error handle failed.';
   SErrOracle = 'Oracle returned error %s:';
 
-//callback functions
+// Callback functions
 
 function cbf_no_data(ictxp:Pdvoid; bindp:POCIBind; iter:ub4; index:ub4; bufpp:PPdvoid;
              alenp:Pub4; piecep:Pub1; indp:PPdvoid):sb4;cdecl;
@@ -134,7 +134,7 @@ function cbf_get_data(octxp:Pdvoid; bindp:POCIBind; iter:ub4; index:ub4; bufpp:P
              alenp:PPub4; piecep:Pub1; indp:PPdvoid; rcodep:PPub2):sb4;cdecl;
 
 begin
-//only 1 row can be stored. No support for multiple rows. When multiple rows, only last is kept.
+// Only 1 row can be stored. No support for multiple rows: only the last row is kept.
   bufpp^:=TOraFieldBuf(octxp^).Buffer;
   indp^ := @TOraFieldBuf(octxp^).Ind;
   TOraFieldBuf(octxp^).Len:=TOraFieldBuf(octxp^).Size;   //reset size to full buffer
@@ -144,7 +144,7 @@ begin
   result:=OCI_CONTINUE;
 end;
 
-//conversions
+// Conversions
 
 Procedure FmtBCD2Nvu(bcd:tBCD;b:pByte);
 var
@@ -177,10 +177,10 @@ begin
     exp:=(BCDPrecision(bcd)-BCDScale(bcd)+1) div 2;
     cnt:=exp+(BCDScale(bcd)+1) div 2;
     // to avoid "ora 01438: value larger than specified precision allowed for this column"
-    // remove trailing zeros (scale < 0)
+    // remove trailing zeros (scale < 0)...
     while (nibbles[cnt*2-2]*10+nibbles[cnt*2-1])=0 do
       cnt:=cnt-1;
-    // and remove leading zeros (scale > precision)
+    // ... and remove leading zeros (scale > precision)
     j:=0;
     while (nibbles[j*2]*10+nibbles[j*2+1])=0 do
       begin
@@ -530,7 +530,7 @@ begin
     begin
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
-    // get statement type
+    // Get statement type
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@stmttype,nil,OCI_ATTR_STMT_TYPE,FOciError) = OCI_ERROR then
       HandleError;
     case stmttype of
@@ -781,7 +781,7 @@ begin
       begin
       // Clear OFieldSize. Oracle 9i, 10g doc says *ub4 but some clients use *ub2 leaving
       // high 16 bit untouched resulting in huge values and ORA-01062
-      // WARNING: this is not working in big endian systems !!!!
+      // WARNING: this does not work on big endian systems !!!!
       // To be tested if BE systems have this *ub2<->*ub4 problem
       OFieldSize:=0;
 
@@ -810,40 +810,40 @@ begin
                                     FieldSize := 4;
                                     OFieldType := SQLT_VNU;
                                     OFieldSize:= 22;
-                                    end;
+                                    end
                                   else if Oprecision < 5 then
                                     begin
                                     FieldType := ftSmallint;
                                     OFieldType := SQLT_INT;
                                     OFieldSize := sizeof(smallint);
-                                    end;
-                                  else //OPrecision=5..9, OScale=0
+                                    end
+                                  else // OPrecision=5..9, OScale=0
                                     begin
                                     FieldType := ftInteger;
                                     OFieldType := SQLT_INT;
                                     OFieldSize:= sizeof(integer);
                                     end;
-                                  end;
+                                  end
                                 else if (Oscale = -127) {and (OPrecision=0)} then
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
                                   OFieldSize:=sizeof(double);
-                                  end;
+                                  end
                                 else if (Oscale >=0) and (Oscale <=4) and (OPrecision<=12) then
                                   begin
                                   FieldType := ftBCD;
                                   FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
-                                  end;
+                                  end
                                 else if (OPrecision-Oscale<64) and (Oscale < 64) then // limited to 63 digits before or after decimal point
                                   begin
                                   FieldType := ftFMTBCD;
                                   FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
-                                  end;
+                                  end
                                 else // approximation with double, best we can do
                                   begin
                                   FieldType := ftFloat;
@@ -935,7 +935,7 @@ begin
                            b := fieldbuffers[FieldDef.FieldNo-1].buffer;
                            size := b[0];
                            cur := 0;
-                           if (b[1] and $80)=$80 then // then the number is positive
+                           if (b[1] and $80)=$80 then // the number is positive
                              begin
                              exp := (b[1] and $7f)-65;
                              for i := 2 to size do
