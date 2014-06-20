@@ -2442,6 +2442,7 @@ implementation
 
            { preinitalize tokenpos }
            tokenpos:=current_filepos;
+           p1:=nil;
 
            { first check for identifier }
            if token<>_ID then
