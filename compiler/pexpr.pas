@@ -2440,6 +2440,9 @@ implementation
            { allow post fix operators }
            again:=true;
 
+           { preinitalize tokenpos }
+           tokenpos:=current_filepos;
+
            { first check for identifier }
            if token<>_ID then
              begin
@@ -2774,7 +2777,7 @@ implementation
                   end;
               end; { end case }
 
-              if p1.nodetype<>errorn then
+              if assigned(p1) and (p1.nodetype<>errorn) then
                 p1.fileinfo:=tokenpos;
             end;
          end;
