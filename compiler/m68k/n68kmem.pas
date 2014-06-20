@@ -62,37 +62,50 @@ implementation
     procedure t68kvecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
       var
         hreg: tregister;
-        hreg2: tregister;
+        scaled: boolean;
       begin
+        scaled:=false;
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: called')));
         if l<>1 then
           begin
+            //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
             hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             { if we have a possibility, setup a scalefactor instead of the MUL }
-            if (location.reference.base=NR_NO) or (location.reference.index<>NR_NO) or
-               (current_settings.cputype in [cpu_m68000]) or
+            if (location.reference.index<>NR_NO) or
+               (current_settings.cputype in [cpu_mc68000]) or
                ((current_settings.cputype in cpu_coldfire) and not (l in [2,4])) or
                not (l in [2,4,8]) then
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg)
-            else
               begin
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,maybe_const_reg,hreg);
-                location.reference.scalefactor:=l;
-              end;
-            { prefer an address reg, if we will be a base, otherwise for indexes
-              a data register is better choice }
-            if location.reference.base=NR_NO then
-              begin
-                hreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hreg,hreg2);
-                maybe_const_reg:=hreg2;
+                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
               end
             else
-              maybe_const_reg:=hreg;
+              begin
+                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: scale')));
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,maybe_const_reg,hreg);
+                scaled:=true;
+              end;
+            maybe_const_reg:=hreg;
           end;
-        if location.reference.base=NR_NO then
-          location.reference.base:=maybe_const_reg
+
+        if (location.reference.base=NR_NO) and not (scaled) then
+          begin
+           { prefer an address reg, if we will be a base, for indexes any register works }
+            if isintregister(maybe_const_reg) then
+              begin
+                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
+                hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,maybe_const_reg,hreg);
+                maybe_const_reg:=hreg;
+              end;
+            location.reference.base:=maybe_const_reg;
+          end
         else if location.reference.index=NR_NO then
-          location.reference.index:=maybe_const_reg
+          begin
+            location.reference.index:=maybe_const_reg;
+            if (scaled) then
+              location.reference.scalefactor:=l;
+          end
         else
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -100,6 +113,8 @@ implementation
             reference_reset_base(location.reference,hreg,0,location.reference.alignment);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
+            if (scaled) then
+              location.reference.scalefactor:=l;
           end;
           { update alignment }
           if (location.reference.alignment=0) then
