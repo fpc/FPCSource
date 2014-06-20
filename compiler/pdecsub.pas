@@ -255,6 +255,8 @@ implementation
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
                  Message(parser_e_default_value_only_one_para);
+               if not(vs.varspez in [vs_value,vs_const]) then
+                 Message(parser_e_default_value_val_const);
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }

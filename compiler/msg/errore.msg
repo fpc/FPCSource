@@ -405,7 +405,7 @@ scan_w_invalid_stacksize=02096_W_The specified stack size is not within the vali
 #
 # Parser
 #
-# 03336 is the last used one
+# 03337 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1513,6 +1513,12 @@ parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the 
 % a prescribed way, and this encoding may map different Pascal types to the same encoded
 % (a.k.a.\ ``mangled'') name. This error can only be solved by removing or changing the
 % conflicting definitions' parameter declarations or routine names.
+parser_e_default_value_val_const=03337_E_Default values can only be specified for value, const and constref parameters
+% A default parameter value allows you to not specify a value for this parameter
+% when calling the routine, and the compiler will instead pass the specified
+% default (constant) value. As a result, default values can only be specified
+% for parameters that can accept constant values.
+%
 %
 %
 % \end{description}
