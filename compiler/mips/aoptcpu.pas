@@ -38,6 +38,7 @@ unit aoptcpu;
           var AllUsedRegs: TAllUsedRegs): Boolean;
         function TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+        procedure PeepHoleOptPass2; override;
       End;
 
   Implementation
@@ -89,6 +90,56 @@ unit aoptcpu;
 
       result:=(p.ops>0) and (p.oper[0]^.typ=top_reg) and
         (p.oper[0]^.reg=reg);
+    end;
+
+
+  function CanBeCMOV(p: tai): boolean;
+    begin
+      result:=assigned(p) and (p.typ=ait_instruction) and
+        (taicpu(p).opcode in [A_MOV_D,A_MOV_S,A_MOVE]);
+    end;
+
+
+  procedure ChangeToCMOV(p: taicpu; cond: tasmcond; reg: tregister);
+    begin
+      case cond of
+        C_COP1TRUE:
+          case p.opcode of
+            A_MOV_D: p.opcode:=A_MOVT_D;
+            A_MOV_S: p.opcode:=A_MOVT_S;
+            A_MOVE:  p.opcode:=A_MOVT;
+          else
+            InternalError(2014061701);
+          end;
+        C_COP1FALSE:
+          case p.opcode of
+            A_MOV_D: p.opcode:=A_MOVF_D;
+            A_MOV_S: p.opcode:=A_MOVF_S;
+            A_MOVE:  p.opcode:=A_MOVF;
+          else
+            InternalError(2014061702);
+          end;
+        C_EQ:
+          case p.opcode of
+            A_MOV_D: p.opcode:=A_MOVZ_D;
+            A_MOV_S: p.opcode:=A_MOVZ_S;
+            A_MOVE:  p.opcode:=A_MOVZ;
+          else
+            InternalError(2014061703);
+          end;
+        C_NE:
+          case p.opcode of
+            A_MOV_D: p.opcode:=A_MOVN_D;
+            A_MOV_S: p.opcode:=A_MOVN_S;
+            A_MOVE:  p.opcode:=A_MOVN;
+          else
+            InternalError(2014061704);
+          end;
+      else
+        InternalError(2014061705);
+      end;
+      p.ops:=3;
+      p.loadreg(2,reg);
     end;
 
 
@@ -355,6 +406,158 @@ unit aoptcpu;
             end;
           end;
       end;
+    end;
+
+
+  procedure TCpuAsmOptimizer.PeepHoleOptPass2;
+    var
+      p: tai;
+      l: longint;
+      hp1,hp2,hp3: tai;
+      condition: tasmcond;
+      condreg: tregister;
+    begin
+      { Currently, everything below is mips4+ }
+      if (current_settings.cputype<cpu_mips4) then
+        exit;
+      p:=BlockStart;
+      ClearUsedRegs;
+      while (p<>BlockEnd) Do
+        begin
+          UpdateUsedRegs(tai(p.next));
+          case p.typ of
+            ait_instruction:
+              begin
+                case taicpu(p).opcode of
+                  A_BC:
+                    begin
+                      condreg:=NR_NO;
+                      if (taicpu(p).condition in [C_COP1TRUE,C_COP1FALSE]) then
+                        { TODO: must be taken from "p" if/when codegen makes use of multiple %fcc }
+                        condreg:=NR_FCC0
+                      else if (taicpu(p).condition in [C_EQ,C_NE]) then
+                        begin
+                          if (taicpu(p).oper[0]^.reg=NR_R0) then
+                            condreg:=taicpu(p).oper[1]^.reg
+                          else if (taicpu(p).oper[1]^.reg=NR_R0) then
+                            condreg:=taicpu(p).oper[0]^.reg
+                        end;
+
+                      if (condreg<>NR_NO) then
+                        begin
+                          { check for
+                              bCC   xxx
+                              <several movs>
+                          xxx:
+                          }
+                          l:=0;
+                          GetNextInstruction(p, hp1);
+                          while CanBeCMOV(hp1) do       // CanBeCMOV returns False for nil or labels
+                            begin
+                              inc(l);
+                              GetNextInstruction(hp1,hp1);
+                            end;
+                          if assigned(hp1) then
+                            begin
+                              if FindLabel(tasmlabel(taicpu(p).oper[taicpu(p).ops-1]^.ref^.symbol),hp1) then
+                                begin
+                                  if (l<=4) and (l>0) then
+                                    begin
+                                      condition:=inverse_cond(taicpu(p).condition);
+                                      hp2:=p;
+                                      GetNextInstruction(p,hp1);
+                                      p:=hp1;
+                                      repeat
+                                        ChangeToCMOV(taicpu(hp1),condition,condreg);
+                                        GetNextInstruction(hp1,hp1);
+                                      until not CanBeCMOV(hp1);
+                                      { wait with removing else GetNextInstruction could
+                                        ignore the label if it was the only usage in the
+                                        jump moved away }
+                                      tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol).decrefs;
+                                      RemoveDelaySlot(hp2);
+                                      asml.remove(hp2);
+                                      hp2.free;
+                                      continue;
+                                    end;
+                                end
+                              else
+                                begin
+                                  { check further for
+                                        bCC   xxx
+                                        <several movs 1>
+                                        b     yyy
+                                    xxx:
+                                        <several movs 2>
+                                    yyy:
+                                  }
+                                  { hp2 points to jmp yyy }
+                                  hp2:=hp1;
+                                  { skip hp1 to xxx }
+                                  GetNextInstruction(hp1, hp1);
+                                  if assigned(hp2) and
+                                    assigned(hp1) and
+                                    (l<=3) and
+                                    (hp2.typ=ait_instruction) and
+                                    (taicpu(hp2).opcode=A_BA) and
+                                    { real label and jump, no further references to the
+                                      label are allowed }
+                                    (tasmlabel(taicpu(p).oper[taicpu(p).ops-1]^.ref^.symbol).getrefs<=2) and
+                                    FindLabel(tasmlabel(taicpu(p).oper[taicpu(p).ops-1]^.ref^.symbol),hp1) then
+                                    begin
+                                      l:=0;
+                                      { skip hp1 to <several moves 2> }
+                                      GetNextInstruction(hp1, hp1);
+                                      while CanBeCMOV(hp1) do
+                                        begin
+                                          inc(l);
+                                          GetNextInstruction(hp1, hp1);
+                                        end;
+                                      { hp1 points to yyy: }
+                                      if assigned(hp1) and
+                                        FindLabel(tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol),hp1) then
+                                        begin
+                                          condition:=inverse_cond(taicpu(p).condition);
+                                          GetNextInstruction(p,hp1);
+                                          hp3:=p;
+                                          p:=hp1;
+                                          repeat
+                                            ChangeToCMOV(taicpu(hp1),condition,condreg);
+                                            GetNextInstruction(hp1,hp1);
+                                          until not CanBeCMOV(hp1);
+                                          { hp2 is still at b yyy }
+                                          GetNextInstruction(hp2,hp1);
+                                          { hp2 is now at xxx: }
+                                          condition:=inverse_cond(condition);
+                                          GetNextInstruction(hp1,hp1);
+                                          { hp1 is now at <several movs 2> }
+                                          repeat
+                                            ChangeToCMOV(taicpu(hp1),condition,condreg);
+                                            GetNextInstruction(hp1,hp1);
+                                          until not CanBeCMOV(hp1);
+                                          { remove bCC }
+                                          tasmlabel(taicpu(hp3).oper[taicpu(hp3).ops-1]^.ref^.symbol).decrefs;
+                                          RemoveDelaySlot(hp3);
+                                          asml.remove(hp3);
+                                          hp3.free;
+                                          { remove jmp }
+                                          tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol).decrefs;
+                                          RemoveDelaySlot(hp2);
+                                          asml.remove(hp2);
+                                          hp2.free;
+                                          continue;
+                                        end;
+                                    end;
+                                end;
+                            end;
+                        end;
+                    end;
+                end;
+              end;
+          end;
+          UpdateUsedRegs(p);
+          p:=tai(p.next);
+        end;
     end;
 
 begin
