@@ -319,6 +319,9 @@ begin
       FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19,0)';
       FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
       FieldtypeDefinitions[ftMemo]     := 'CLOB';
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR2(10)';
+      FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
+      //FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
     ssPostgreSQL:
       begin
