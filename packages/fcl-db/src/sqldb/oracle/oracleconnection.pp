@@ -7,7 +7,7 @@ unit oracleconnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb,db,dbconst,
+  Classes, SysUtils, db,dbconst, sqldb, bufdataset,
 {$IfDef LinkDynamically}
   ocidyn,
 {$ELSE}
@@ -34,10 +34,11 @@ type
   end;
   
   TOraFieldBuf = record
-    Buffer : pointer;
-    Ind    : sb2;
-    Len    : ub4;
-    Size   : ub4;
+    DataType : ub2;
+    Buffer   : pointer;
+    Ind      : sb2;      // indicator
+    Len      : ub4;
+    Size     : ub4;
   end;
 
   TOracleCursor = Class(TSQLCursor)
@@ -85,7 +86,7 @@ type
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
-//  procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction); override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
@@ -472,15 +473,19 @@ end;
 
 procedure TOracleConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 
-var counter : word;
+var i : word;
 
 begin
   with cursor as TOracleCursor do
     begin
     if Length(FieldBuffers) > 0 then
-      for counter := 0 to high(FieldBuffers) do freemem(FieldBuffers[counter].buffer);
+      for i := 0 to high(FieldBuffers) do
+        if FieldBuffers[i].DataType in [SQLT_BLOB, SQLT_CLOB] then
+          OciDescriptorFree(FieldBuffers[i].buffer, OCI_DTYPE_LOB)
+        else
+          freemem(FieldBuffers[i].buffer);
     if Length(ParamBuffers) > 0 then
-      for counter := 0 to high(ParamBuffers) do freemem(ParamBuffers[counter].buffer);
+      for i := 0 to high(ParamBuffers) do freemem(ParamBuffers[i].buffer);
     end;
   FreeAndNil(cursor);
 end;
@@ -766,6 +771,7 @@ var Param      : POCIParam;
     FOciDefine   : POCIDefine;
     OPrecision   : sb2;
     OScale       : sb1;
+    OBuffer      : pointer;
 
 begin
   Param := nil;
@@ -872,17 +878,35 @@ begin
                                 FieldType := ftFloat;
                                 OFieldType := SQLT_BDOUBLE;
                                 OFieldSize := sizeof(double);
+                                end;
+        SQLT_BLOB             : begin
+                                FieldType := ftBlob;
+                                OFieldSize := 0;
+                                end;
+        SQLT_CLOB             : begin
+                                FieldType := ftMemo;
+                                OFieldSize := 0;
                                 end
       else
         FieldType := ftUnknown;
       end;
 
-      FieldBuffers[counter-1].buffer := getmem(OFieldSize);
+      FieldBuffers[counter-1].DataType := OFieldType;
+      if OFieldType in [SQLT_BLOB, SQLT_CLOB] then
+        begin
+        OBuffer := @FieldBuffers[counter-1].buffer;
+        OCIDescriptorAlloc(FOciEnvironment, OBuffer, OCI_DTYPE_LOB, 0, nil);
+        end
+      else
+        begin
+        OBuffer := getmem(OFieldSize);
+        FieldBuffers[counter-1].buffer := OBuffer;
+        end;
 
       if FieldType <> ftUnknown then
         begin
         FOciDefine := nil;
-        if OciDefineByPos(FOciStmt,FOciDefine,FOciError,counter,fieldbuffers[counter-1].buffer,OFieldSize,OFieldType,@(fieldbuffers[counter-1].ind),nil,nil,OCI_DEFAULT) = OCI_ERROR then
+        if OciDefineByPos(FOciStmt,FOciDefine,FOciError,counter,OBuffer,OFieldSize,OFieldType,@FieldBuffers[counter-1].ind,nil,nil,OCI_DEFAULT) = OCI_ERROR then
           HandleError;
         end;
 
@@ -966,15 +990,29 @@ begin
                    dt := ComposeDateTime(EncodeDate(odt^.year,odt^.month,odt^.day), EncodeTime(odt^.hour,odt^.min,odt^.sec,0));
                    move(dt,buffer^,sizeof(dt));
                    end;
+      ftBlob,
+      ftMemo     : CreateBlob := true;
     else
       Result := False;
     end;
     end;
 end;
 
-{procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+var LobLocator: pointer;
+    len: ub4;
 begin
-end;}
+  LobLocator := (cursor as TOracleCursor).FieldBuffers[FieldDef.FieldNo-1].Buffer;
+  //if OCILobLocatorIsInit(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @is_init) = OCI_ERROR then
+  //  HandleError;
+  if OciLobGetLength(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len) = OCI_ERROR then
+    HandleError;
+  // Len - For character LOBs, it is the number of characters, for binary LOBs and BFILEs it is the number of bytes
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, len);
+  ABlobBuf^.BlobBuffer^.Size := len;
+  if OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len, 1, ABlobBuf^.BlobBuffer^.Buffer, len, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
+    HandleError;
+end;
 
 procedure TOracleConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
