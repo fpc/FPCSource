@@ -336,6 +336,29 @@ begin
       ct_at91sam7x256,
       ct_at91sam7xc256,
 
+      ct_stm32f030c6,
+      ct_stm32f030c8,
+      ct_stm32f030f4,
+      ct_stm32f030k6,
+      ct_stm32f030r8,
+      ct_stm32f050c4,
+      ct_stm32f050c6,
+      ct_stm32f050f4,
+      ct_stm32f050f6,
+      ct_stm32f050g4,
+      ct_stm32f050g6,
+      ct_stm32f050k4,
+      ct_stm32f050k6,
+      ct_stm32f051c4,
+      ct_stm32f051c6,
+      ct_stm32f051c8,
+      ct_stm32f051k4,
+      ct_stm32f051k6,
+      ct_stm32f051k8,
+      ct_stm32f051r4,
+      ct_stm32f051r6,
+      ct_stm32f051r8,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -368,6 +391,16 @@ begin
       ct_stm32f107x8,
       ct_stm32f107xB,
       ct_stm32f107xC,
+      ct_stm32f105r8,
+      ct_stm32f105rb,
+      ct_stm32f105rc,
+      ct_stm32f105v8,
+      ct_stm32f105vb,
+      ct_stm32f105vc,
+      ct_stm32f107rb,
+      ct_stm32f107rc,
+      ct_stm32f107vb,
+      ct_stm32f107vc,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -475,6 +508,13 @@ begin
 
               Add('}');
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+    
+              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
+              writeln(controllerunitstr);
+              if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
+              if (controllerunitstr = 'LPC13XX') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + MemoryManagement_interrupt + 1 + BusFault_interrupt + 1 + UsageFault_interrupt + 1);');
             end;
         end
     else
