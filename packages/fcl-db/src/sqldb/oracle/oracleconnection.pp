@@ -330,7 +330,6 @@ var SQLVarNr       : integer;
     i              : integer;
     f              : double;
     year,month,day : word;
-    db             : array[0..4] of byte;
     pb             : pbyte;
     s              : string;
 
@@ -605,7 +604,6 @@ var SQLVarNr       : integer;
     i              : integer;
     f              : double;
     year, month, day, hour, minute, second, millisecond : word;
-    db             : array[0..4] of byte;
     pb             : pbyte;
     s              : string;
 
@@ -857,6 +855,7 @@ begin
                                   OFieldSize:=sizeof(double);
                                   end;
                                 end;
+        SQLT_LNG,
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
         OCI_TYPECODE_VARCHAR2 : begin
@@ -1096,8 +1095,7 @@ begin
                           'DATA_LENGTH as column_length, '+
                           'DATA_PRECISION as column_precision, '+
                           'DATA_SCALE as column_scale '+
-                          {DATA_DEFAULT is type LONG; no support for that in 
-													 oracleconnection so removed this from query }
+                          {DATA_DEFAULT is type LONG; no support for that in oracleconnection so removed this from query}
                         'FROM ALL_TAB_COLUMNS '+
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
