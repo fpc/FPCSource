@@ -31,13 +31,13 @@ asm
   .init
   .globl _start
 _start:
-  ld 0x1000
-  //ldu hi16(0x1000)
+  ld lo16(_stack_top)
+  ldu hi16(_stack_top)
   st r6
   
-  nul
+  ld lo16(Pascalmain)
   ldu hi16(Pascalmain)
-  jmp lo16(Pascalmain)
+  jmp 0
   .text
 end;
 

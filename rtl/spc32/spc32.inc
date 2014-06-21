@@ -54,25 +54,23 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : pointer;assembler;
   asm
+    ld r6
+    st r0
   end;
 
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
   asm
-    ld -1
-    st r1
     ld r0
-    inc r1
+    inc -1
     st r0
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
   asm
-    ld 1
-    st r1
     ld r0
-    inc r1
+    inc 1
     st r0
   end;
 
