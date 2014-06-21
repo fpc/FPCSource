@@ -448,6 +448,7 @@ unit cgcpu;
          hreg,idxreg : tregister;
          href : treference;
          instr : taicpu;
+         scale : aint;
        begin
          result:=false;
          { The MC68020+ has extended
@@ -565,76 +566,70 @@ unit cgcpu;
                  begin
                    if assigned(ref.symbol) then
                      begin
+                       //list.concat(tai_comment.create(strpnew('fixref: symbol')));
                        hreg:=cg.getaddressregister(list);
                        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
                        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
                        if ref.index<>NR_NO then
                          begin
+                           { fold the symbol + offset into the base, not the base into the index,
+                             because that might screw up the scalefactor of the reference }
+                           //list.concat(tai_comment.create(strpnew('fixref: symbol + offset (index + base)')));
                            idxreg:=getaddressregister(list);
-                           instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,idxreg);
-                           //add_move_instruction(instr);
-                           list.concat(instr);
-                           list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,idxreg));
-                           ref.index:=idxreg;
+                           reference_reset_base(href,ref.base,0,ref.alignment);
+                           href.index:=hreg;
+                           hreg:=getaddressregister(list);
+                           list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                           ref.base:=hreg;
                          end
                        else
-                         ref.index:=ref.base;
-                       ref.base:=hreg;
+                         ref.index:=hreg;
+
                        ref.offset:=0;
                        ref.symbol:=nil;
-                     end;
-                   { once the above is verified to work the below code can be
-                     removed }
-                   {if assigned(ref.symbol) and (ref.index=NR_NO) then
-                     begin
-                       hreg:=cg.getaddressregister(list);
-                       reference_reset_symbol(href,ref.symbol,0,ref.alignment);
-                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
-                       ref.index:=ref.base;
-                       ref.base:=hreg;
-                       ref.symbol:=nil;
-                     end;
-                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,hreg));
-                       ref.base:=hreg;
-                       ref.index:=NR_NO;
-                     end;}
-                   {if (ref.index <> NR_NO) and assigned(ref.symbol) then
-                      internalerror(2002081403);}
-                   { base + reg }
-                   if ref.index <> NR_NO then
-                      begin
+                       fixref:=true;
+                     end
+                   else
+                     { base + reg }
+                     if ref.index <> NR_NO then
+                       begin
                          { base + reg + offset }
                          if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
                            begin
-                              hreg:=getaddressregister(list);
-                              instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                              //add_move_instruction(instr);
-                              list.concat(instr);
-                              list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                              fixref:=true;
-                              ref.base:=hreg;
-                              ref.offset:=0;
-                              exit;
+                             hreg:=getaddressregister(list);
+                             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+                               begin
+                                 instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                                 //add_move_instruction(instr);
+                                 list.concat(instr);
+                                 list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                               end
+                             else
+                               begin
+                                 //list.concat(tai_comment.create(strpnew('fixref: base + reg + offset lea')));
+                                 reference_reset_base(href,ref.base,ref.offset,ref.alignment);
+                                 list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
+                               end;
+                             fixref:=true;
+                             ref.base:=hreg;
+                             ref.offset:=0;
+                             exit;
                            end;
-                      end
-                   else
-                   { base + offset }
-                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                       //add_move_instruction(instr);
-                       list.concat(instr);
-                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                       fixref:=true;
-                       ref.offset:=0;
-                       ref.base:=hreg;
-                       exit;
-                     end;
+                       end
+                     else
+                       { base + offset }
+                       if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
+                         begin
+                           hreg:=getaddressregister(list);
+                           instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                           //add_move_instruction(instr);
+                           list.concat(instr);
+                           list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                           fixref:=true;
+                           ref.offset:=0;
+                           ref.base:=hreg;
+                           exit;
+                         end;
                  end
                else
                  { Note: symbol -> ref would be supported as long as ref does not
@@ -644,10 +639,12 @@ unit cgcpu;
                    begin
                      hreg:=cg.getaddressregister(list);
                      idxreg:=ref.index;
+                     scale:=ref.scalefactor;
                      ref.index:=NR_NO;
                      list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
                      reference_reset_base(ref,hreg,0,ref.alignment);
                      ref.index:=idxreg;
+                     ref.scalefactor:=scale;
                      fixref:=true;
                    end;
              end;
