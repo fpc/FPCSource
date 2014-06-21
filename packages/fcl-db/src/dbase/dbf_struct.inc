@@ -36,17 +36,24 @@ type
     // $04: (Visual FoxPro): is this a dbc/database container
     MDXFlag     : Byte;     // 28 Flags:
     Language    : Byte;     // 29 code page mark
-    Dummy3      : Word;     // 30-31
+    Dummy3      : Word;     // 30-31 reserved
   end;
 //====================================================================
-  PAfterHdrIII = ^rAfterHdrIII;
-  rAfterHdrIII = packed record // Empty
-  end;
-//====================================================================
-  PAfterHdrVII = ^rAfterHdrVII;
-  rAfterHdrVII = packed record
-    LanguageDriverName  : array[32..63] of Char;
+  // Data at end of the fixed part of the header for DBaseVII -
+  // before the variable length part (e.g. the field descriptor array)
+  PEndFixedHdrVII = ^rEndFixedHdrVII;
+  rEndFixedHdrVII = packed record
+    LanguageDriverName  : array[32..63] of Char; //starting position 32 of header
     Dummy               : array[64..67] of Byte;
+  end;
+//====================================================================
+  // Data at end of header for Visual Foxpro, after the variable length part
+  PEndHdrVFP = ^rEndHdrVFP;
+  rEndHdrVFP = packed record
+    { Relative path of an associated database (.dbc) file or filled with $00.
+      If the first byte is $00, the file is a "free table", not associated with
+      a database file. Therefore, database files always contain $00. }
+    Backlink  : array[0..262] of Char; //263 bytees
   end;
 //====================================================================
 // DBase III,IV,FoxPro,VisualFoxPro field description

@@ -45,6 +45,8 @@ type
 
   TDbfFile = class(TPagedFile)
   protected
+    FBackLink: string;
+    FBackLinkOffset: integer; //position of VFP backlink within header
     FMdxFile: TIndexFile;
     FMemoFile: TMemoFile;
     FMemoStream: TStream;
@@ -153,6 +155,10 @@ type
     property FileCodePage: Cardinal read FFileCodePage;
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
     property FileLangId: Byte read FFileLangId write FFileLangId;
+    // Visual Foxpro: relative path to .dbc database file containing
+    // long field names and other metadata
+    // Empty if this is a "free table", not linked to a .dbc file
+    property BackLink: string read FBackLink write FBackLink;
     // Dbase (clone) version that this format emulates. Related to tablelevel.
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: TRecordBuffer read FPrevBuffer;
@@ -325,6 +331,8 @@ end;
 constructor TDbfFile.Create;
 begin
   // init variables first
+  FBackLink := '';
+  FBackLinkOffset := 0;
   FFieldDefs := TDbfFieldDefs.Create(nil);
   FIndexNames := TStringList.Create;
   FIndexFiles := TList.Create;
@@ -366,7 +374,7 @@ var
   var
     version: byte;
   begin
-    // OH 2000-11-15 dBase7 support. I build dBase Tables with different
+    // OH 2000-11-15 dBase7 support. I built dBase Tables with different
     // BDE dBase Level (1. without Memo, 2. with Memo)
     //                          Header Byte ($1d hex) (29 dec) -> Language driver ID.
     //  $03,$83 xBaseIII        Header Byte $1d=$00, Float -> N($13.$04) DateTime C($1E)
@@ -390,7 +398,7 @@ var
     if FDbfVersion = xUnknown then
       case (version and $07) of
         $03: //dbf with/without memo. Could be Foxpro, too
-          if not(version in [$03,$8B]) {dbase IV, even with cleared language ID} and
+          if not(version in [$03,$8B]) {e.g. dbase IV < v2.0 with 0 language ID} and
             (LanguageID = 0) then
             FDbfVersion := xBaseIII
           else
@@ -417,7 +425,7 @@ var
       xBaseVII:
       begin
         // cache language str
-        LangStr := @PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+        LangStr := @PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
         // VdBase 7 Language strings
         //  'DBWIN...' -> Charset 1252 (ansi)
         //  'DB999...' -> Code page 999, 9 any digit
@@ -462,6 +470,16 @@ var
       FUseCodePage := DbfGlobals.DefaultOpenCodePage;
   end;
 
+  procedure GetBackLink;
+  // Gets backlink info - only supported in Visual Foxpro
+  begin
+    FBackLink:='';
+    if FDBFVersion=xVisualFoxPro then //only format that supports it
+    begin
+      FBackLink:= StrPas(@PEndHdrVFP(PChar(Header) + FBackLinkOffset)^.Backlink);
+    end;
+  end;
+
 begin
   // check if not already opened
   if not Active then
@@ -497,6 +515,8 @@ begin
       GetCodePage;
       // get list of fields
       ConstructFieldDefs;
+      GetBackLink;
+
       // open blob file if present
       lMemoFileName := ChangeFileExt(FileName, GetMemoExt);
       if HasBlob then
@@ -525,12 +545,13 @@ begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
           lModified := true;
         end;
-      end else
+      end else // no HasBlob
         if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF and $7F;
           lModified := true;
         end;
+
       // check if mdx flagged
       if not(FDbfVersion in [xFoxPro,xVisualFoxPro]) and (PDbfHdr(Header)^.MDXFlag <> 0) then
       begin
@@ -637,6 +658,7 @@ end;
 
 procedure TDbfFile.FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
 var
+  lEndHdrVFP:  rEndHdrVFP; //Contains Visual FoxPro backlink
   lFieldDescIII: rFieldDescIII;
   lFieldDescVII: rFieldDescVII;
   lFieldDescPtr: Pointer;
@@ -646,7 +668,6 @@ var
   lHasBlob: Boolean;
   lLocaleID: LCID;
   lNullVarFlagCount:integer; //(VFP only) Keeps track of number null/varlength flags needed for _NULLFLAGS size calculation
-
 begin
   try
     // first reset file
@@ -670,31 +691,35 @@ begin
     lLocaleID := LangId_To_Locale[FFileLangId];
     FUseCodePage := FFileCodePage;
 
-
-    // prepare header size
+    // Prepare header size. This size may be changed later depending on number
+    // of fields etc - we start out with the first, fixed part of the header,
+    // write out the variable parts (field descriptor arrays etc) and then
+    // correct the header length in the header.
     if FDbfVersion = xBaseVII then
     begin
       // version xBaseVII without memo
-      HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrVII);
+      HeaderSize := SizeOf(rDbfHdr) + SizeOf(rEndFixedHdrVII);
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
       PDbfHdr(Header)^.VerDBF := $04;
       // write language string. FPC needs an explicit cast to pchar to avoid calling widestring version of StrPLCopy
       StrPLCopy(
-        PChar(@PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
+        PChar(@PEndFixedHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
         PChar(ConstructLangName(FFileCodePage, lLocaleID, false)),
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
       // DBase III..V, (Visual) FoxPro without memo
-      HeaderSize := SizeOf(rDbfHdr) + SizeOf(rAfterHdrIII);
+      // rEndHdrVFP is covered at the end as it is placed after the variable
+      // length part of the header.
+      HeaderSize := SizeOf(rDbfHdr);
       RecordSize := SizeOf(rFieldDescIII);
       FillChar(Header^, HeaderSize, #0);
       // Note: VerDBF may be changed later on depending on what features/fields are used
       // (autoincrement etc)
       case FDbfVersion of
         xFoxPro: PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo
-        alternative $02 FoxBASE is not readable by current Visual FoxPro drivers.
+        alternative $02 FoxBASE is not readable by current MS Visual FoxPro drivers.
         }
         xVisualFoxPro: PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro no autoincrement,no varchar}
         else PDbfHdr(Header)^.VerDBF := $03; {FoxBASE+/FoxPro/dBASE III PLUS/dBASE IV, no memo}
@@ -709,7 +734,9 @@ begin
       // init field ptr
       lFieldDescPtr := @lFieldDescIII;
     end;
-    // begin writing field definitions
+
+    // Begin variable part of the header
+    // Writing field definitions
     FFieldDefs.Clear;
     // deleted mark takes 1 byte, so skip over that
     lFieldOffset := 1;
@@ -730,13 +757,13 @@ begin
       lFieldDef.FieldName := AnsiUpperCase(lFieldDef.FieldName);
       lFieldDef.Offset := lFieldOffset;
       lHasBlob := lHasBlob or lFieldDef.IsBlob;
-      // Check for foxpro, too, as it can get auto-upgraded to vfp:
+      // Check for Foxpro, too, as it can get auto-upgraded to vfp:
       if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
         begin
         if (lFieldDef.NativeFieldType='Q') or (lFieldDef.NativeFieldType='V') then
-          begin
+        begin
           lNullVarFlagCount:=lNullVarFlagCount+1;
-          end;
+        end;
         if (lFieldDef.NullPosition>=0) then
           lNullVarFlagCount:=lNullVarFlagCount+1;
         end;
@@ -756,7 +783,7 @@ begin
         lSize := lSize and $FF;
       end;
 
-      // update temp field props
+      // update temp field properties
       if FDbfVersion = xBaseVII then
       begin
         FillChar(lFieldDescVII, SizeOf(lFieldDescVII), #0);
@@ -782,12 +809,11 @@ begin
         begin
           // VerDBF=$03 also includes dbase formats, so we perform an extra check
           if (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
-           ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or (lNullVarFlagCount>0))
-           then
-           begin
-             PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
-             FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
-           end;
+            ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or (lNullVarFlagCount>0)) then
+          begin
+            PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+            FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
+          end;
           //AutoInc only support in Visual Foxpro; another upgrade
           //Note: .AutoIncrementNext is really a cardinal (see the definition)
           lFieldDescIII.AutoIncrementNext:=SwapIntLE(lFieldDef.AutoInc);
@@ -816,7 +842,7 @@ begin
         AutoInc := 0;
       end;
 
-      // save field props
+      // save field properties
       WriteRecord(I, lFieldDescPtr);
       Inc(lFieldOffset, lFieldDef.Size);
     end;
@@ -831,17 +857,26 @@ begin
       lFieldDescIII.FieldPrecision := 0;
       lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
       lFieldDescIII.VisualFoxProFlags:=$01+$04 ; //System column (hidden)+Column can store null values (which is a bit of a paradox)
-      // save field props
+      // Save field properties
       WriteRecord(AFieldDefs.Count+1, @lFieldDescIII);
       Inc(lFieldOffset, lFieldDescIII.FieldSize);
     end;
 
-    // end of field descriptor; ussually end of header -
+    // End of field descriptor; usually end of header as well.
     // Visual Foxpro backlink info is part of the header but comes after the
     // terminator
     WriteChar(FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
-    // write memo bit
+    { For Visual FoxPro, add back-link info }
+    if (FDbfVersion = xVisualFoxPro) then
+    begin
+      FBackLinkOffset := Stream.Position;
+      // Backlink is defined as all $0 bytes if empty
+      lEndHdrVFP.Backlink:=FBackLink+StringOfChar(#0, SizeOf(lEndHdrVFP.BackLink));
+      WriteBlock(@lEndHdrVFP,SizeOf(lEndHdrVFP),Stream.Position);
+    end;
+
+    // Write memo bit to begin of header
     if lHasBlob then
     begin
       case FDbfVersion of
@@ -854,19 +889,14 @@ begin
       end;
     end;
 
-    // update header
+    // Update header to correct sizes
     PDbfHdr(Header)^.RecordSize := lFieldOffset;
     if lNullVarFlagCount>0 then
-      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count+1) + 1
+      PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * (AFieldDefs.Count + 1) + 1
     else
       PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
-    { For Visual FoxPro only, add empty "back-link" info:
-      A 263-byte range that contains the backlink, which is the relative path of
-      an associated database (.dbc) file, information. If the first byte is 0x00, 
-      the file is not associated with a database. Therefore, database files always 
-      contain 0x00. }
-    if (FDbfVersion = xVisualFoxPro) then
-      Inc(PDbfHdr(Header)^.FullHdrSize, 263);
+    if DbfVersion=xVisualFoxPro then
+      PDbfHdr(Header)^.FullHdrSize := PDbfHdr(Header)^.FullHdrSize + SizeOf(rEndHdrVFP);
 
     // write dbf header to disk
     inherited WriteHeader;
@@ -957,7 +987,12 @@ end;
 
 procedure TDbfFile.ConstructFieldDefs;
 var
-  {lColumnCount,}lHeaderSize,lFieldSize: Integer;
+  // The size of the fixed part of the header
+  // excluding the field descriptor array
+  // also excluding everything that comes after the field descriptor array
+  // like VFP backlink records
+  lFakeHeaderSize: Integer;
+  lFieldSize: Integer;
   lPropHdrOffset, lFieldOffset: Integer;
   lFieldDescIII: rFieldDescIII;
   lFieldDescVII: rFieldDescVII;
@@ -976,22 +1011,36 @@ var
   lCurrentNullPosition: integer;
 begin
   FFieldDefs.Clear;
-  if DbfVersion = xBaseVII then
-  begin
-    lHeaderSize := SizeOf(rAfterHdrVII) + SizeOf(rDbfHdr);
-    lFieldSize := SizeOf(rFieldDescVII);
-  end else begin
-    // DBase III..V, (Visual) FoxPro
-    lHeaderSize := SizeOf(rAfterHdrIII) + SizeOf(rDbfHdr);
-    lFieldSize := SizeOf(rFieldDescIII);
+  case DbfVersion of
+    xBaseVII:
+      begin
+        lFakeHeaderSize := SizeOf(rDbfHdr) + SizeOf(rEndFixedHdrVII);
+        lFieldSize := SizeOf(rFieldDescVII);
+      end;
+    else
+    begin
+      // DBase III..V, (Visual) FoxPro
+      if DBfVersion = xVisualFoxPro then
+        lFakeHeaderSize := SizeOf(rDbfHdr)
+      else
+        lFakeHeaderSize := SizeOf(rDbfHdr);
+      lFieldSize := SizeOf(rFieldDescIII);
+    end;
   end;
-  HeaderSize := lHeaderSize;
-  RecordSize := lFieldSize;
 
+  // This is of course not true but it shrinks the perceived header to just
+  // before the records with field info:
+  HeaderSize := lFakeHeaderSize;
+  RecordSize := lFieldSize;
+  if FDbfVersion=xVisualFoxPro then
+    lColumnCount := (PDbfHdr(Header)^.FullHdrSize - lFakeHeaderSize - SizeOf(rEndHdrVFP)) div lFieldSize
+  else
+    lColumnCount := (PDbfHdr(Header)^.FullHdrSize - lFakeHeaderSize) div lFieldSize;
+
+  FBackLinkOffset := 0;
   FLockField := nil;
   FNullField := nil;
   FAutoIncPresent := false;
-  lColumnCount := (PDbfHdr(Header)^.FullHdrSize - lHeaderSize) div lFieldSize;
   lFieldOffset := 1;
   lAutoInc := 0;
   I := 1;
@@ -1107,6 +1156,9 @@ begin
       // or end of header reached
     until (I > lColumnCount) or (ReadChar = FIELD_DESCRIPTOR_ARRAY_TERMINATOR);
 
+    if FDbfVersion=xVisualFoxPro then
+      FBackLinkOffset:=Stream.Position+SizeOf(FIELD_DESCRIPTOR_ARRAY_TERMINATOR); //after FIELD_DESCRIPTION_ARRAY_TERMINATOR
+
     // test if not too many fields
     if FFieldDefs.Count >= 4096 then
       raise EDbfError.CreateFmt(STRING_INVALID_FIELD_COUNT, [FFieldDefs.Count]);
@@ -1119,7 +1171,7 @@ begin
 
     // dBase 7 -> read field properties, test if enough space, maybe no header
     if (FDbfVersion = xBaseVII) and (lPropHdrOffset + Sizeof(lFieldPropsHdr) <
-            PDbfHdr(Header)^.FullHdrSize) then
+      PDbfHdr(Header)^.FullHdrSize) then
     begin
       // read in field properties header
       ReadBlock(@lFieldPropsHdr, SizeOf(lFieldPropsHdr), lPropHdrOffset);
@@ -1164,10 +1216,11 @@ begin
             ReadBlock(dataPtr, lStdProp.DataSize, lPropHdrOffset + lStdProp.DataOffset);
         end;
       end;
-      // todo: read custom properties...not implemented
-      // todo: read RI/referential integrity properties...not implemented
+      // todo: read dbase7 custom properties...not implemented
+      // todo: read dbase7 RI/referential integrity properties...not implemented
     end;
   finally
+    // Restore proper sizes so normal records after the header can be read
     HeaderSize := PDbfHdr(Header)^.FullHdrSize;
     RecordSize := PDbfHdr(Header)^.RecordSize;
   end;
@@ -1181,7 +1234,7 @@ end;
 function TDbfFile.GetLanguageStr: string;
 begin
   if FDbfVersion >= xBaseVII then
-    Result := PAfterHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+    Result := PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
 end;
 
 function TDbfFile.IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
@@ -2327,7 +2380,7 @@ begin
         (TempFieldDef.NativeFieldType = '+') then
       begin
         // read current auto inc, from header or field, depending on sharing
-        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
+        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rEndFixedHdrVII) +
           FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
         if NeedLocks then
         begin
@@ -2343,12 +2396,12 @@ begin
         // write new value to header buffer
         PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
       end
-      else
+      else //No DBaseVII
       if (DbfVersion=xVisualFoxPro) and
         (TempFieldDef.AutoIncStep<>0) then
       begin
         // read current auto inc from field header
-        NextVal:=TempFieldDef.AutoInc; //todo: is this correc
+        NextVal:=TempFieldDef.AutoInc; //todo: is this correct
         PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal); //todo: is swapintbe correct?
         // Increase with step size
         NextVal:=NextVal+TempFieldDef.AutoIncStep;

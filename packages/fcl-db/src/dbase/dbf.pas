@@ -169,7 +169,8 @@ type
     FEditingRecNo: Integer;
 {$ifdef SUPPORT_VARIANTS}    
     FLocateRecNo: Integer;
-{$endif}    
+{$endif}
+    FBackLink: String;
     FLanguageID: Byte;
     FTableLevel: Integer;
     FExclusive: Boolean;
@@ -203,6 +204,7 @@ type
     function GetKeySize: Integer;
     function GetMasterFields: string;
     function FieldDefsStored: Boolean;
+    procedure SetBackLink(NewBackLink: String);
 
     procedure SetIndexName(AIndexName: string);
     procedure SetDbfIndexDefs(const Value: TDbfIndexDefs);
@@ -392,6 +394,10 @@ type
     property AbsolutePath: string read FAbsolutePath;
     property DbfFieldDefs: TDbfFieldDefs read GetDbfFieldDefs;
     property PhysicalRecNo: Integer read GetPhysicalRecNo write SetPhysicalRecNo;
+    // Visual Foxpro: relative path to .dbc database file containing
+    // long field names and other metadata
+    // Empty if this is a "free table", not linked to a .dbc file
+    property BackLink: String read FBackLink write SetBackLink;
     property LanguageID: Byte read FLanguageID write SetLanguageID;
     property LanguageStr: String read GetLanguageStr;
     property CodePage: Cardinal read GetCodePage;
@@ -1267,6 +1273,7 @@ begin
     xFoxPro:       FTableLevel := TDBF_TABLELEVEL_FOXPRO;
     xVisualFoxPro: FTableLevel := TDBF_TABLELEVEL_VISUALFOXPRO;
   end;
+  FBackLink := FDbfFile.BackLink;
   FLanguageID := FDbfFile.LanguageID;
 
   // build VCL fielddef list from native DBF FieldDefs
@@ -1549,6 +1556,7 @@ begin
       InitDbfFile(pfExclusiveCreate);
       FDbfFile.CopyDateTimeAsString := FInCopyFrom and FCopyDateTimeAsString;
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
+      FDbfFile.BackLink := FBackLink;
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
       // Default memo blocklength for FoxPro/VisualFoxpro is 64 (not 512 as specs say)
@@ -2201,6 +2209,13 @@ end;
 function TDbf.FieldDefsStored: Boolean;
 begin
   Result := StoreDefs and (FieldDefs.Count > 0);
+end;
+
+procedure TDbf.SetBackLink(NewBackLink: String);
+begin
+  CheckInactive;
+
+  FBackLink := NewBackLink;
 end;
 
 procedure TDbf.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); {override virtual abstract from TDataset}
