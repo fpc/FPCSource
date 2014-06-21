@@ -578,6 +578,12 @@ interface
           AsmWrite('.tls'#9'bss')
         else if secnames[atype]='.text' then
           AsmWrite(CodeSectionName(aname))
+{$ifdef i8086}
+        else if (target_info.system=system_i8086_msdos) and
+                (atype=sec_heap) and
+                (current_settings.x86memorymodel in x86_far_data_models) then
+          AsmWrite('heap class=heap align=16')
+{$endif i8086}
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -1218,7 +1224,8 @@ interface
       AsmWriteLn('SECTION .bss class=bss');
       if current_settings.x86memorymodel<>mm_tiny then
         AsmWriteLn('SECTION stack stack class=stack align=16');
-      AsmWriteLn('SECTION heap class=heap align=16');
+      if current_settings.x86memorymodel in x86_near_data_models then
+        AsmWriteLn('SECTION heap class=heap align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
         AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
