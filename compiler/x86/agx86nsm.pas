@@ -1197,7 +1197,7 @@ interface
 
     procedure TX86NasmAssembler.WriteHeader;
       begin
-{$ifdef i8086}
+{$if defined(i8086)}
       AsmWriteLn('BITS 16');
       case current_settings.cputype of
         cpu_8086: AsmWriteLn('CPU 8086');
@@ -1242,16 +1242,14 @@ interface
         end;
       if not (cs_huge_code in current_settings.moduleswitches) then
         AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
-{$else i8086}
-{$ifdef i386}
+{$elseif defined(i386)}
       AsmWriteLn('BITS 32');
       using_relative:=false;
-{$else not i386}
+{$elseif defined(x86_64)}
       AsmWriteLn('BITS 64');
       AsmWriteLn('default rel');
       using_relative:=true;
-{$endif not i386}
-{$endif i8086}
+{$endif}
       end;
 
 
