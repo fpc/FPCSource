@@ -181,6 +181,8 @@ unit cgcpu;
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
+
+        function handle_load_store(list: TAsmList; op: tasmop; oppostfix: toppostfix; reg: tregister; ref: treference): treference; override;
       end;
 
       tthumbcg64farm = class(tbasecg64farm)
@@ -3866,8 +3868,8 @@ unit cgcpu;
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
-                     (ref.offset<-255) or
-                     (ref.offset>4094) or
+                     (ref.offset<-124) or
+                     (ref.offset>124) or
                      { sometimes the compiler reused registers }
                      (reg=ref.index) or
                      (reg=ref.base) then
@@ -3899,8 +3901,8 @@ unit cgcpu;
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
-                     (ref.offset<-255) or
-                     (ref.offset>4092) or
+                     (ref.offset<-124) or
+                     (ref.offset>124) or
                      { sometimes the compiler reused registers }
                      (reg=ref.index) or
                      (reg=ref.base) then
@@ -4046,6 +4048,54 @@ unit cgcpu;
               end;
               paraloc:=next;
             end;
+      end;
+
+
+    function tthumbcgarm.handle_load_store(list: TAsmList; op: tasmop; oppostfix: toppostfix; reg: tregister; ref: treference): treference;
+      var
+        href : treference;
+        tmpreg : TRegister;
+      begin
+        href:=ref;
+        if (op in [A_STR,A_STRB,A_STRH]) and
+           (abs(ref.offset)>124) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           (oppostfix in [PF_None]) and
+           (ref.base<>NR_STACK_POINTER_REG)  and
+           (abs(ref.offset)>124) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           (oppostfix in [PF_None]) and
+           (ref.base=NR_STACK_POINTER_REG) and
+           (abs(ref.offset)>1020) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           ((oppostfix in [PF_SH,PF_SB]) or
+            (abs(ref.offset)>124)) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end;
+
+        Result:=inherited handle_load_store(list, op, oppostfix, reg, href);
       end;
 
 

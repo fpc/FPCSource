@@ -1206,6 +1206,12 @@ Implementation
                           (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg))
                        ) and
                        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+
+                       // Make sure that Thumb code doesn't propagate a high register into a reference
+                       ((GenerateThumbCode and
+                         (getsupreg(taicpu(p).oper[1]^.reg) < RS_R8)) or
+                        (not GenerateThumbCode)) and
+
                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
                       begin
                         DebugMsg('Peephole MovLdr2Ldr done', hp1);
@@ -1600,7 +1606,8 @@ Implementation
                       to
                       str/ldr reg3,[reg1,const2+/-const1]
                     }
-                    if (taicpu(p).opcode in [A_ADD,A_SUB]) and
+                    if (not GenerateThumbCode) and
+                       (taicpu(p).opcode in [A_ADD,A_SUB]) and
                        (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
