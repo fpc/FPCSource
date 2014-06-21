@@ -580,6 +580,10 @@ interface
           AsmWrite(CodeSectionName(aname))
 {$ifdef i8086}
         else if (target_info.system=system_i8086_msdos) and
+                (atype=sec_stack) and
+                (current_settings.x86memorymodel in x86_far_data_models) then
+          AsmWrite('stack stack class=stack align=16')
+        else if (target_info.system=system_i8086_msdos) and
                 (atype=sec_heap) and
                 (current_settings.x86memorymodel in x86_far_data_models) then
           AsmWrite('heap class=heap align=16')
@@ -1222,7 +1226,8 @@ interface
       AsmWriteLn('SECTION .fpc class=data');
       { WLINK requires class=bss in order to leave the BSS section out of the executable }
       AsmWriteLn('SECTION .bss class=bss');
-      if current_settings.x86memorymodel<>mm_tiny then
+      if (current_settings.x86memorymodel<>mm_tiny) and
+         (current_settings.x86memorymodel in x86_near_data_models) then
         AsmWriteLn('SECTION stack stack class=stack align=16');
       if current_settings.x86memorymodel in x86_near_data_models then
         AsmWriteLn('SECTION heap class=heap align=16');
