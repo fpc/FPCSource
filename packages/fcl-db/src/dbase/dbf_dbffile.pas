@@ -667,7 +667,7 @@ var
   I, lFieldOffset, lSize, lPrec: Integer;
   lHasBlob: Boolean;
   lLocaleID: LCID;
-  lNullVarFlagCount:integer; //(VFP only) Keeps track of number null/varlength flags needed for _NULLFLAGS size calculation
+  lNullVarFlagCount: integer; //(VFP only) Keeps track of number null/varlength flags needed for _NULLFLAGS size calculation
 begin
   try
     // first reset file
@@ -759,14 +759,14 @@ begin
       lHasBlob := lHasBlob or lFieldDef.IsBlob;
       // Check for Foxpro, too, as it can get auto-upgraded to vfp:
       if (FDbfVersion in [xFoxPro,xVisualFoxPro]) then
-        begin
+      begin
         if (lFieldDef.NativeFieldType='Q') or (lFieldDef.NativeFieldType='V') then
         begin
           lNullVarFlagCount:=lNullVarFlagCount+1;
         end;
         if (lFieldDef.NullPosition>=0) then
           lNullVarFlagCount:=lNullVarFlagCount+1;
-        end;
+      end;
 
       // apply field transformation tricks
       lSize := lFieldDef.Size;
@@ -809,11 +809,21 @@ begin
         begin
           // VerDBF=$03 also includes dbase formats, so we perform an extra check
           if (PDbfHdr(Header)^.VerDBF in [$02,$03]) and
-            ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or (lNullVarFlagCount>0)) then
+            ((lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+', 'Q', 'V']) or
+            (lNullVarFlagCount>0)) then
+          begin
+            PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
+            FDBFVersion:=xVisualFoxPro;
+          end;
+
+          // Upgrade if a non-empty backlink is specified - for FoxPro only
+          if (FBackLink<>'') and
+            ((FDBFVersion=xFoxPro) or (PDbfHdr(Header)^.VerDBF=$02)) then
           begin
             PDbfHdr(Header)^.VerDBF := $30; {Visual FoxPro}
             FDBFVersion:=xVisualFoxPro; //needed to write the backlink info
           end;
+
           //AutoInc only support in Visual Foxpro; another upgrade
           //Note: .AutoIncrementNext is really a cardinal (see the definition)
           lFieldDescIII.AutoIncrementNext:=SwapIntLE(lFieldDef.AutoInc);
@@ -834,7 +844,7 @@ begin
         end;
       end;
 
-      // update our field list
+      // Update our field list
       with FFieldDefs.AddFieldDef do
       begin
         Assign(lFieldDef);

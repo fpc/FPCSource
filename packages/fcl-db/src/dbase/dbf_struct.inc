@@ -18,12 +18,12 @@ type
 
   PDbfHdr = ^rDbfHdr;
   rDbfHdr = packed record
-    VerDBF      : Byte;     // 0
+    VerDBF      : Byte;     // 0 DBF file type/version
     Year        : Byte;     // 1 year last updated
     Month       : Byte;     // 2 month last updated
     Day         : Byte;     // 3 day last updated
     RecordCount : Integer;  // 4-7 number of records in file
-    FullHdrSize : Word;     // 8-9
+    FullHdrSize : Word;     // 8-9 size of the header in bytes
     RecordSize  : Word;     // 10-11 sum of all field sizes, including delete flag
     Dummy1      : Word;     // 12-13
     IncTrans    : Byte;     // 14

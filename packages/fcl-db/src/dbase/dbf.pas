@@ -397,6 +397,8 @@ type
     // Visual Foxpro: relative path to .dbc database file containing
     // long field names and other metadata
     // Empty if this is a "free table", not linked to a .dbc file
+    // Setting this with a FoxPro tablelevel will auto-upgrade to Visual Foxpro
+    // Unsupported for other versions
     property BackLink: String read FBackLink write SetBackLink;
     property LanguageID: Byte read FLanguageID write SetLanguageID;
     property LanguageStr: String read GetLanguageStr;
@@ -2213,6 +2215,10 @@ end;
 
 procedure TDbf.SetBackLink(NewBackLink: String);
 begin
+  // Only supported in Visual Foxpro but allow auto-upgrade from Foxpro
+  if not(Tablelevel in [TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
+    raise EDbfError.CreateFmt(STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL,
+      [Tablelevel]);
   CheckInactive;
 
   FBackLink := NewBackLink;
