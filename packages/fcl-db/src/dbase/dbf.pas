@@ -2216,7 +2216,9 @@ end;
 procedure TDbf.SetBackLink(NewBackLink: String);
 begin
   // Only supported in Visual Foxpro but allow auto-upgrade from Foxpro
-  if not(Tablelevel in [TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO]) then
+  // as well as resetting existing backlinks in any tablelevel
+  if (NewBackLink<>'') and
+    (not(Tablelevel in [TDBF_TABLELEVEL_FOXPRO,TDBF_TABLELEVEL_VISUALFOXPRO])) then
     raise EDbfError.CreateFmt(STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL,
       [Tablelevel]);
   CheckInactive;
