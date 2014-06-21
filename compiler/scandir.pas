@@ -722,7 +722,7 @@ unit scandir;
             current_scanner.readchar;
             current_scanner.skipspace;
             l:=current_scanner.readval;
-            if l>1024 then
+            if l>=1024 then
               heapsize:=l;
           end;
       end;
