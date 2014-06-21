@@ -1490,7 +1490,6 @@ implementation
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-        list.concat(Tai_align.create(current_settings.alignment.procalign));
         if (po_global in pd.procoptions) then
           list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
         else
