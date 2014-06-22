@@ -1243,8 +1243,10 @@ end;
 
 function TDbfFile.GetLanguageStr: string;
 begin
-  if FDbfVersion >= xBaseVII then
-    Result := PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+  if FDbfVersion = xBaseVII then
+    Result := PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName
+  else
+    Result := '';  // Only supported in DbaseVII
 end;
 
 function TDbfFile.IsNullFlagSet(const Src: Pointer; var AFieldDef: TDbfFieldDef; WhichField: TNullFieldFlag): boolean;
