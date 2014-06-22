@@ -154,6 +154,7 @@ cpu_detect_done:
         mov dx, dgroup
 %endif
         sub dx, cx  ; dx = (ds - psp) in paragraphs
+        push dx  ; save (ds - psp)
         add dx, 1000h  ; 64kb in paragraphs
 
          ; get our MCB size in paragraphs
@@ -175,10 +176,8 @@ cpu_detect_done:
 skip_mem_realloc:
 
         ; bx = the new size in paragraphs
-%ifndef __TINY__
-        add bx, word [dos_psp]
-        sub bx, dgroup
-%endif
+        pop cx  ; cx = (ds - psp)
+        sub bx, cx
         mov cl, 4
         shl bx, cl
         sub bx, 2
@@ -234,6 +233,8 @@ not_enough_mem:
         jmp error_msg
 
 mem_realloc_err:
+        ; at this point there's still (ds-psp) pushed on the stack, but we won't
+        ; bother popping it, because we exit to DOS with an error message here
         mov dx, mem_realloc_err_msg
 error_msg:
         mov ah, 9
