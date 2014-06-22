@@ -1269,7 +1269,7 @@ begin
       CheckTrue(odd(FieldByName('ID').asinteger));
       next;
       end;
-    CheckTrue(EOF);
+    CheckTrue(EOF, 'Filter should give only odd records');
     end;
 end;
 
@@ -1288,7 +1288,7 @@ begin
       CheckEquals(Counter, FieldByName('ID').AsInteger);
       Next;
       end;
-    CheckTrue(EOF);
+    CheckTrue(EOF, 'Filter (id>4) and (id<9)');
 
     Filter := '-id-ID=-4';
     CheckEquals(2, FieldByName('ID').AsInteger, 'Unary minus');
