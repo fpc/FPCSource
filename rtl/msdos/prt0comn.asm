@@ -151,10 +151,9 @@ cpu_detect_done:
         mov cx, cs
         mov dx, 1000h  ; 64kb in paragraphs
 %else
-        mov dx, word [dos_psp]
-        mov cx, dx
-        sub dx, dgroup
-        neg dx  ; dx = (ds - psp) in paragraphs
+        mov cx, word [dos_psp]
+        mov dx, dgroup
+        sub dx, cx  ; dx = (ds - psp) in paragraphs
         add dx, 1000h  ; 64kb in paragraphs
 %endif
 
