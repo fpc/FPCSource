@@ -147,15 +147,14 @@ cpu_detect_done:
         ; allocate max heap
         ; TODO: also support user specified heap size
         ; try to resize our main DOS memory block until the end of the data segment
-%ifdef __TINY__
-        mov cx, cs
-        mov dx, 1000h  ; 64kb in paragraphs
-%else
         mov cx, word [dos_psp]
+%ifdef __TINY__
+        mov dx, cs
+%else
         mov dx, dgroup
+%endif
         sub dx, cx  ; dx = (ds - psp) in paragraphs
         add dx, 1000h  ; 64kb in paragraphs
-%endif
 
          ; get our MCB size in paragraphs
         dec cx
