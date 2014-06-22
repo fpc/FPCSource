@@ -72,12 +72,15 @@ F29,$02,$06,$1D,f29,$f29,61,61
 F30,$02,$06,$1E,f30,$f30,62,62
 F31,$02,$06,$1F,f31,$f31,63,63
 
+; Range 0..31 of R_SPECIALREGISTER is used without symbolic names
+; and actual register they refer to depends on instruction.
+
 ; mips4+ floating-point condition code registers (1-bit)
-FCC0,$05,$00,$00,fcc0,$fcc0,-1,-1
-FCC1,$05,$00,$01,fcc1,$fcc1,-1,-1
-FCC2,$05,$00,$02,fcc2,$fcc2,-1,-1
-FCC3,$05,$00,$03,fcc3,$fcc3,-1,-1
-FCC4,$05,$00,$04,fcc4,$fcc4,-1,-1
-FCC5,$05,$00,$05,fcc5,$fcc5,-1,-1
-FCC6,$05,$00,$06,fcc6,$fcc6,-1,-1
-FCC7,$05,$00,$07,fcc7,$fcc7,-1,-1
+FCC0,$05,$00,$20,fcc0,$fcc0,-1,-1
+FCC1,$05,$00,$21,fcc1,$fcc1,-1,-1
+FCC2,$05,$00,$22,fcc2,$fcc2,-1,-1
+FCC3,$05,$00,$23,fcc3,$fcc3,-1,-1
+FCC4,$05,$00,$24,fcc4,$fcc4,-1,-1
+FCC5,$05,$00,$25,fcc5,$fcc5,-1,-1
+FCC6,$05,$00,$26,fcc6,$fcc6,-1,-1
+FCC7,$05,$00,$27,fcc7,$fcc7,-1,-1

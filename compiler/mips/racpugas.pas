@@ -566,8 +566,12 @@ Interface
             condition := actcondition;
             if is_calljmp(opcode) then
               ConvertCalljmp(instr);
-            if (opcode in [A_MTC0,A_MFC0]) then
+            { Coprocessor-related instructions have operands referring to both coprocessor registers
+              and general-purpose ones. The input representation "$<number>" is the same for both,
+              but symbolic names must not be used for non-GPRs on output. }
+            if (opcode in [A_MTC0,A_MFC0,A_CFC1,A_CTC1{,A_CFC2,A_CTC2}]) then
               begin
+                { operands are 1-based here }
                 if (ops<2) or (operands[2].opr.typ<>OPR_REGISTER) then
                   message(asmr_e_syn_operand);
                 operands[2].opr.reg:=newreg(R_SPECIALREGISTER,getsupreg(operands[2].opr.reg),R_SUBNONE);
