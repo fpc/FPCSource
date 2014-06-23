@@ -7,6 +7,11 @@ uses erroru;
 const
   c : byte = 5;
   r : real = 3.4;
+{$ifdef cpu16}
+  alignment = 2;
+{$else cpu16}
+  alignment = 4;
+{$endif cpu16}
 var
   l : longint;
   cc : char;
@@ -14,14 +19,14 @@ var
 
 begin
   l:=longint(@r);
-  if (l mod 4)<>0 then
+  if (l mod alignment)<>0 then
     begin
        Writeln('static const are not aligned properly !');
        error;
     end;
   cc:='d';
   l:=longint(@rr);
-  if (l mod 4)<>0 then
+  if (l mod alignment)<>0 then
     begin
        Writeln('static var are not aligned properly !');
        error;
