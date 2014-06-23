@@ -34,7 +34,7 @@ type
   end;
   
   TOraFieldBuf = record
-    DataType : ub2;
+    DescType : ub4;      // descriptor type
     Buffer   : pointer;
     Ind      : sb2;      // indicator
     Len      : ub4;
@@ -472,19 +472,22 @@ end;
 
 procedure TOracleConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 
-var i : word;
+  procedure FreeOraFieldBuffers(b: array of TOraFieldBuf);
+  var i : integer;
+  begin
+    if Length(b) > 0 then
+      for i := low(b) to high(b) do
+        if b[i].DescType <> 0 then
+          OciDescriptorFree(b[i].buffer, b[i].DescType)
+        else
+          freemem(b[i].buffer);
+  end;
 
 begin
   with cursor as TOracleCursor do
     begin
-    if Length(FieldBuffers) > 0 then
-      for i := 0 to high(FieldBuffers) do
-        if FieldBuffers[i].DataType in [SQLT_BLOB, SQLT_CLOB] then
-          OciDescriptorFree(FieldBuffers[i].buffer, OCI_DTYPE_LOB)
-        else
-          freemem(FieldBuffers[i].buffer);
-    if Length(ParamBuffers) > 0 then
-      for i := 0 to high(ParamBuffers) do freemem(ParamBuffers[i].buffer);
+    FreeOraFieldBuffers(FieldBuffers);
+    FreeOraFieldBuffers(ParamBuffers);
     end;
   FreeAndNil(cursor);
 end;
@@ -769,6 +772,7 @@ var Param      : POCIParam;
     FOciDefine   : POCIDefine;
     OPrecision   : sb2;
     OScale       : sb1;
+    ODescType    : ub4;
     OBuffer      : pointer;
 
 begin
@@ -788,6 +792,7 @@ begin
       // WARNING: this does not work on big endian systems !!!!
       // To be tested if BE systems have this *ub2<->*ub4 problem
       OFieldSize:=0;
+      ODescType :=0;
 
       if OCIParamGet(FOciStmt,OCI_HTYPE_STMT,FOciError,Param,counter) = OCI_ERROR then
         HandleError;
@@ -870,7 +875,8 @@ begin
         OCI_TYPECODE_TIMESTAMP_TZ :
                                 begin
                                 FieldType := ftDateTime;
-                                OFieldType := SQLT_ODT;
+                                OFieldType := SQLT_TIMESTAMP;
+                                ODescType := OCI_DTYPE_TIMESTAMP;
                                 end;
         OCI_TYPECODE_BFLOAT,
         OCI_TYPECODE_BDOUBLE  : begin
@@ -880,21 +886,22 @@ begin
                                 end;
         SQLT_BLOB             : begin
                                 FieldType := ftBlob;
-                                OFieldSize := 0;
+                                ODescType := OCI_DTYPE_LOB;
                                 end;
         SQLT_CLOB             : begin
                                 FieldType := ftMemo;
-                                OFieldSize := 0;
+                                ODescType := OCI_DTYPE_LOB;
                                 end
       else
         FieldType := ftUnknown;
       end;
 
-      FieldBuffers[counter-1].DataType := OFieldType;
-      if OFieldType in [SQLT_BLOB, SQLT_CLOB] then
+      FieldBuffers[counter-1].DescType := ODescType;
+      if ODescType <> 0 then
         begin
         OBuffer := @FieldBuffers[counter-1].buffer;
-        OCIDescriptorAlloc(FOciEnvironment, OBuffer, OCI_DTYPE_LOB, 0, nil);
+        OCIDescriptorAlloc(FOciEnvironment, OBuffer, ODescType, 0, nil);
+        OFieldSize := sizeof(pointer);
         end
       else
         begin
@@ -938,12 +945,23 @@ end;
 
 function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
 
-var dt        : TDateTime;
-    b         : pbyte;
-    size,i    : byte;
-    exp       : shortint;
-    cur       : Currency;
-    odt       : POCIdateTime;
+type
+  TODateTime = record
+    year  : sb2;
+    month : ub1;
+    day   : ub1;
+    hour  : ub1;
+    min   : ub1;
+    sec   : ub1;
+    fsec  : ub4;
+  end;
+
+var
+  b       : pbyte;
+  size,i  : byte;
+  exp     : shortint;
+  cur     : Currency;
+  odt     : TODateTime;
 
 begin
   CreateBlob := False;
@@ -951,46 +969,52 @@ begin
     Result := False
   else
     begin
-    result := True;
+    Result := True;
     case FieldDef.DataType of
-      ftString          : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,FieldDef.Size);
-      ftBCD             :  begin
-                           b := fieldbuffers[FieldDef.FieldNo-1].buffer;
-                           size := b[0];
-                           cur := 0;
-                           if (b[1] and $80)=$80 then // the number is positive
-                             begin
-                             exp := (b[1] and $7f)-65;
-                             for i := 2 to size do
-                               cur := cur + (b[i]-1) * intpower(100,-(i-2)+exp);
-                             end
-                           else
-                             begin
-                             exp := (not(b[1]) and $7f)-65;
-                             for i := 2 to size-1 do
-                               cur := cur + (101-b[i]) * intpower(100,-(i-2)+exp);
-                             cur := -cur;
-                             end;
-                           move(cur,buffer^,SizeOf(Currency));
-                           end;
-      ftFMTBCD             :  begin
-                           pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
-                           end;
-      ftFloat           : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
-      ftSmallInt        : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(smallint));
-      ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
-      ftDate  : begin
-                b := fieldbuffers[FieldDef.FieldNo-1].buffer;
-                dt := ComposeDateTime(EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]), EncodeTime(b[4]-1, b[5]-1, b[6]-1, 0));
-                move(dt,buffer^,sizeof(dt));
-                end;
-      ftDateTime : begin
-                   odt := fieldbuffers[FieldDef.FieldNo-1].buffer;
-                   dt := ComposeDateTime(EncodeDate(odt^.year,odt^.month,odt^.day), EncodeTime(odt^.hour,odt^.min,odt^.sec,0));
-                   move(dt,buffer^,sizeof(dt));
-                   end;
+      ftString :
+        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,FieldDef.Size);
+      ftBCD :
+        begin
+        b := fieldbuffers[FieldDef.FieldNo-1].buffer;
+        size := b[0];
+        cur := 0;
+        if (b[1] and $80)=$80 then // the number is positive
+          begin
+          exp := (b[1] and $7f)-65;
+          for i := 2 to size do
+            cur := cur + (b[i]-1) * intpower(100,-(i-2)+exp);
+          end
+        else
+          begin
+          exp := (not(b[1]) and $7f)-65;
+          for i := 2 to size-1 do
+            cur := cur + (101-b[i]) * intpower(100,-(i-2)+exp);
+          cur := -cur;
+          end;
+        move(cur,buffer^,SizeOf(Currency));
+        end;
+      ftFmtBCD :
+        pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
+      ftFloat :
+        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
+      ftSmallInt :
+        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(smallint));
+      ftInteger :
+        move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
+      ftDate :
+        begin
+        b := fieldbuffers[FieldDef.FieldNo-1].buffer;
+        PDateTime(buffer)^ := ComposeDateTime(EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]), EncodeTime(b[4]-1, b[5]-1, b[6]-1, 0));
+        end;
+      ftDateTime :
+        begin
+        OCIDateTimeGetDate(FOciUserSession, FOciError, FieldBuffers[FieldDef.FieldNo-1].buffer, @odt.year, @odt.month, @odt.day);
+        OCIDateTimeGetTime(FOciUserSession, FOciError, FieldBuffers[FieldDef.FieldNo-1].buffer, @odt.hour, @odt.min, @odt.sec, @odt.fsec);
+        PDateTime(buffer)^ := ComposeDateTime(EncodeDate(odt.year,odt.month,odt.day), EncodeTime(odt.hour,odt.min,odt.sec,odt.fsec div 1000000));
+        end;
       ftBlob,
-      ftMemo     : CreateBlob := true;
+      ftMemo :
+        CreateBlob := True;
     else
       Result := False;
     end;
