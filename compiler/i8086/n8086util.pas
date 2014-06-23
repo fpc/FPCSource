@@ -34,6 +34,7 @@ interface
       class procedure InsertMemorySizes; override;
       class procedure InsertStackSegment;
       class procedure InsertHeapSegment;
+      class procedure InsertStackPlusHeapSize;
     end;
 
 
@@ -51,6 +52,8 @@ implementation
       if current_settings.x86memorymodel<>mm_tiny then
         InsertStackSegment;
       InsertHeapSegment;
+      if current_settings.x86memorymodel in x86_near_data_models then
+        InsertStackPlusHeapSize;
     end;
 
 
@@ -101,6 +104,21 @@ implementation
           inc(i);
         end;
       current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___heaptop',AT_DATA,0));
+    end;
+
+
+  class procedure ti8086nodeutils.InsertStackPlusHeapSize;
+    var
+      maxheapsize_para: Word;
+      stacksize_para: Word;
+    begin
+      maxheapsize_para:=(maxheapsize+15) div 16;
+      stacksize_para:=(stacksize+15) div 16;
+
+      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_stackplusmaxheap_in_para',sizeof(pint));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_stackplusmaxheap_in_para',AT_DATA,4));
+      current_asmdata.asmlists[al_globals].concat(Tai_const.Create_16bit(min($1000,stacksize_para+maxheapsize_para)));
     end;
 
 

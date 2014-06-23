@@ -124,13 +124,22 @@ implementation
              include(supported_calling_conventions,pocall_syscall);
 {$ifdef i8086}
            system_i8086_msdos:
-             if stacksize=0 then
-               begin
-                 if init_settings.x86memorymodel in x86_far_data_models then
-                   stacksize:=16384
-                 else
-                   stacksize:=4096;
-               end;
+             begin
+               if stacksize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     stacksize:=16384
+                   else
+                     stacksize:=4096;
+                 end;
+               if maxheapsize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     maxheapsize:=655360
+                   else
+                     maxheapsize:=65520;
+                 end;
+             end;
 {$endif i8086}
          end;
       end;

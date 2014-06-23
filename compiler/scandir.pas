@@ -724,6 +724,14 @@ unit scandir;
             l:=current_scanner.readval;
             if l>=1024 then
               heapsize:=l;
+            if c=',' then
+              begin
+                current_scanner.readchar;
+                current_scanner.skipspace;
+                l:=current_scanner.readval;
+                if l>=heapsize then
+                  maxheapsize:=l;
+              end;
           end;
       end;
 

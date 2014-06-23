@@ -55,6 +55,10 @@
 
         extern ___heap
 
+%ifdef __NEAR_DATA__
+        extern __fpc_stackplusmaxheap_in_para
+%endif
+
 %ifndef __TINY__
     %ifdef __FAR_DATA__
         extern ___stack
@@ -145,8 +149,18 @@ cpu_detect_done:
 ; ****************************************************************************
 
         ; allocate max heap
-        ; TODO: also support user specified heap size
-        ; try to resize our main DOS memory block until the end of the data segment
+        ; first we determine in paragraphs ax:=min(64kb, data+bss+stack+maxheap)
+        mov ax, _end wrt dgroup
+        add ax, 15
+        mov cl, 4
+        shr ax, cl
+        add ax, word [__fpc_stackplusmaxheap_in_para]
+        cmp ax, 1000h  ; 1000h = 64k in paragraphs
+        jbe data_with_maxheap_less_than_64k
+        mov ax, 1000h
+data_with_maxheap_less_than_64k:
+
+        ; try to resize our main DOS memory block until the end of the data segment (or even smaller, if maxheap is small)
         mov cx, word [dos_psp]
 %ifdef __TINY__
         mov dx, cs
