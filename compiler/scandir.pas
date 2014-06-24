@@ -730,7 +730,9 @@ unit scandir;
                 current_scanner.skipspace;
                 l:=current_scanner.readval;
                 if l>=heapsize then
-                  maxheapsize:=l;
+                  maxheapsize:=l
+                else
+                  Message(scan_w_heapmax_lessthan_heapmin);
               end;
           end;
       end;

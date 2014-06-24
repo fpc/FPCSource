@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02096 is the last used one
+# 02097 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -401,6 +401,9 @@ scan_w_invalid_stacksize=02096_W_The specified stack size is not within the vali
 % platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
 % compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
 % actually sets the stack size to 65520.
+scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
+% The HeapMax value (if specified) must be greater than or equal to the HeapMin
+% value. Otherwise, the HeapMax value is ignored.
 % \end{description}
 #
 # Parser
