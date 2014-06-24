@@ -58,8 +58,8 @@ type
     FOciUserSession : POCISession;
     FUserMem        : pointer;
     procedure HandleError;
-    procedure GetParameters(cursor : TSQLCursor;AParams : TParams);
-    procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
+    procedure GetParameters(cursor : TSQLCursor; AParams : TParams);
+    procedure SetParameters(cursor : TSQLCursor; AParams : TParams);
   protected
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -116,6 +116,17 @@ ResourceString
   SErrEnvCreateFailed = 'The creation of an Oracle environment failed.';
   SErrHandleAllocFailed = 'The allocation of the error handle failed.';
   SErrOracle = 'Oracle returned error %s:';
+
+type
+  TODateTime = record
+    year  : sb2;
+    month : ub1;
+    day   : ub1;
+    hour  : ub1;
+    min   : ub1;
+    sec   : ub1;
+    fsec  : ub4;
+  end;
 
 // Callback functions
 
@@ -324,46 +335,35 @@ begin
   Raise E;
 end;
 
-procedure TOracleConnection.GetParameters(cursor: TSQLCursor; AParams: TParams
-  );
-var SQLVarNr       : integer;
-    i              : integer;
-    f              : double;
-    year,month,day : word;
-    pb             : pbyte;
-    s              : string;
+procedure TOracleConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
+var
+    i    : integer;
+    odt  : TODateTime;
+    s    : string;
 
 begin
-  with cursor as TOracleCursor do for SQLVarNr := 0 to High(ParamBuffers) do
-    with AParams[SQLVarNr] do
+  with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do
+    with AParams[i] do
       if ParamType=ptOutput then
       begin
-      if parambuffers[SQLVarNr].ind = -1 then
+      if ParamBuffers[i].ind = -1 then
         Value:=null;
 
       case DataType of
-        ftInteger         : begin
-                            move(parambuffers[SQLVarNr].buffer^,i,sizeof(integer));
-                            asInteger := i;
-                            end;
-        ftFloat           : begin
-                            move(parambuffers[SQLVarNr].buffer^,f,sizeof(double));
-                            asFloat := f;
-                            end;
+        ftInteger         : AsInteger := PInteger(ParamBuffers[i].buffer)^;
+        ftFloat           : AsFloat := PDouble(ParamBuffers[i].buffer)^;
         ftString          : begin
-                            SetLength(s,parambuffers[SQLVarNr].Len);
-                            move(parambuffers[SQLVarNr].buffer^,s[1],length(s)+1);
-                            asString:=s;
+                            SetLength(s,ParamBuffers[i].Len);
+                            move(ParamBuffers[i].buffer^,s[1],length(s)+1);
+                            AsString:=s;
                             end;
         ftDate, ftDateTime: begin
-                            pb := parambuffers[SQLVarNr].buffer;
-                            year:=(pb[0]-100)*100+pb[1]-100;
-                            month:=pb[2];
-                            day:=pb[3];
-                            asDateTime:=EncodeDate(year,month,day);
+                            OCIDateTimeGetDate(FOciUserSession, FOciError, ParamBuffers[i].buffer, @odt.year, @odt.month, @odt.day);
+                            OCIDateTimeGetTime(FOciUserSession, FOciError, ParamBuffers[i].buffer, @odt.hour, @odt.min, @odt.sec, @odt.fsec);
+                            AsDateTime := ComposeDateTime(EncodeDate(odt.year,odt.month,odt.day), EncodeTime(odt.hour,odt.min,odt.sec,odt.fsec div 1000000));
                             end;
         ftFMTBcd          : begin
-                            AsFMTBCD:=Nvu2FmtBCE(parambuffers[SQLVarNr].buffer);
+                            AsFMTBCD:=Nvu2FmtBCE(ParamBuffers[i].buffer);
                             end;
         end;
 
@@ -524,11 +524,13 @@ end;
 procedure TOracleConnection.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
   
-var counter  : integer;
+var i        : integer;
     FOcibind : POCIDefine;
     
     OFieldType   : ub2;
     OFieldSize   : sb4;
+    ODescType    : ub4;
+    OBuffer      : pointer;
 
     stmttype     : ub2;
 
@@ -541,14 +543,14 @@ begin
     if OCIAttrGet(FOciStmt,OCI_HTYPE_STMT,@stmttype,nil,OCI_ATTR_STMT_TYPE,FOciError) = OCI_ERROR then
       HandleError;
     case stmttype of
-      OCI_STMT_SELECT:FStatementType := stSelect;
-      OCI_STMT_UPDATE:FStatementType := stUpdate;
-      OCI_STMT_DELETE:FStatementType := stDelete;
-      OCI_STMT_INSERT:FStatementType := stInsert;
+      OCI_STMT_SELECT: FStatementType := stSelect;
+      OCI_STMT_UPDATE: FStatementType := stUpdate;
+      OCI_STMT_DELETE: FStatementType := stDelete;
+      OCI_STMT_INSERT: FStatementType := stInsert;
       OCI_STMT_CREATE,
       OCI_STMT_DROP,
       OCI_STMT_DECLARE,
-      OCI_STMT_ALTER:FStatementType := stDDL;
+      OCI_STMT_ALTER:  FStatementType := stDDL;
     else
       FStatementType := stUnknown;
     end;
@@ -557,10 +559,10 @@ begin
     if assigned(AParams) then
       begin
       setlength(ParamBuffers,AParams.Count);
-      for counter := 0 to AParams.Count-1 do
+      for i := 0 to AParams.Count-1 do
         begin
-
-        case AParams[counter].DataType of
+        ODescType := 0;
+        case AParams[i].DataType of
           ftSmallInt, ftInteger :
             begin OFieldType := SQLT_INT; OFieldSize := sizeof(integer); end;
           ftLargeInt :
@@ -568,31 +570,45 @@ begin
           ftFloat :
             begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
           ftDate, ftDateTime :
-            begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
+            begin OFieldType := SQLT_TIMESTAMP; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_TIMESTAMP; end;
           ftFixedChar, ftString :
             begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
           ftFMTBcd, ftBCD :
             begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
+          ftBlob :
+            begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
+          ftMemo :
+            begin OFieldType := SQLT_LVC; OFieldSize := 65535; end;
         else
-          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[counter].DataType]],self);
+          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
         end;
-        parambuffers[counter].buffer := getmem(OFieldSize);
-        parambuffers[counter].Len := OFieldSize;
-        parambuffers[counter].Size := OFieldSize;
 
+        ParamBuffers[i].DescType := ODescType;
+        ParamBuffers[i].Len      := OFieldSize;
+        ParamBuffers[i].Size     := OFieldSize;
+        if ODescType <> 0 then
+          begin
+          OBuffer := @ParamBuffers[i].buffer;
+          OCIDescriptorAlloc(FOciEnvironment, OBuffer, ODescType, 0, nil);
+          end
+        else
+          begin
+          OBuffer := getmem(OFieldSize);
+          ParamBuffers[i].buffer := OBuffer;
+          end;
 
         FOciBind := nil;
 
-        if AParams[counter].ParamType=ptInput then
+        if AParams[i].ParamType=ptInput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[counter].Name),length(AParams[counter].Name),ParamBuffers[counter].buffer,OFieldSize,OFieldType,@ParamBuffers[counter].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[i].Name),length(AParams[i].Name),OBuffer,OFieldSize,OFieldType,@ParamBuffers[i].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
             HandleError;
           end
-        else if AParams[counter].ParamType=ptOutput then
+        else if AParams[i].ParamType=ptOutput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[counter].Name),length(AParams[counter].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[i].Name),length(AParams[i].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
             HandleError;
-          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[counter], @cbf_get_data) <> OCI_SUCCESS then
+          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[i], @cbf_get_data) <> OCI_SUCCESS then
             HandleError;
           end;
         end;
@@ -601,42 +617,36 @@ begin
     end;
 end;
 
-procedure TOracleConnection.SetParameters(cursor : TSQLCursor;AParams : TParams);
+procedure TOracleConnection.SetParameters(cursor : TSQLCursor; AParams : TParams);
 
-var SQLVarNr       : integer;
-    i              : integer;
-    f              : double;
-    year, month, day, hour, minute, second, millisecond : word;
-    pb             : pbyte;
+var i              : integer;
+    year, month, day, hour, min, sec, msec : word;
     s              : string;
+    blobbuf        : string;
+    bloblen        : ub4;
 
 begin
-  with cursor as TOracleCursor do for SQLVarNr := 0 to High(ParamBuffers) do with AParams[SQLVarNr] do
+  with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do with AParams[i] do
     if ParamType=ptInput then
       begin
-      if IsNull then parambuffers[SQLVarNr].ind := -1 else
-        parambuffers[SQLVarNr].ind := 0;
+      if IsNull then ParamBuffers[i].ind := -1 else ParamBuffers[i].ind := 0;
 
       case DataType of
         ftSmallInt,
-        ftInteger         : begin
-                            i := asInteger;
-                            move(i,parambuffers[SQLVarNr].buffer^,sizeof(integer));
-                            end;
-        ftLargeInt        : PInt64(parambuffers[SQLVarNr].buffer)^ := AsLargeInt;
-        ftFloat           : begin
-                            f := asFloat;
-                            move(f,parambuffers[SQLVarNr].buffer^,sizeof(double));
-                            end;
+        ftInteger         : PInteger(ParamBuffers[i].buffer)^ := AsInteger;
+        ftLargeInt        : PInt64(ParamBuffers[i].buffer)^ := AsLargeInt;
+        ftFloat           : PDouble(ParamBuffers[i].buffer)^ := AsFloat;
         ftString,
         ftFixedChar       : begin
                             s := asString+#0;
-                            move(s[1],parambuffers[SQLVarNr].buffer^,length(s)+1);
+                            move(s[1],parambuffers[i].buffer^,length(s)+1);
                             end;
         ftDate, ftDateTime: begin
                             DecodeDate(asDateTime,year,month,day);
-                            DecodeTime(asDateTime,hour,minute,second,millisecond);
-                            pb := parambuffers[SQLVarNr].buffer;
+                            DecodeTime(asDateTime,hour,min,sec,msec);
+                            if OCIDateTimeConstruct(FOciUserSession, FOciError, ParamBuffers[i].buffer, year, month, day, hour, min, sec, msec*1000000, nil, 0) = OCI_ERROR then
+                              HandleError;
+{                           pb := ParamBuffers[i].buffer;
                             pb[0] := (year div 100)+100;
                             pb[1] := (year mod 100)+100;
                             pb[2] := month;
@@ -644,9 +654,19 @@ begin
                             pb[4] := hour+1;
                             pb[5] := minute+1;
                             pb[6] := second+1;
+}
                             end;
-        ftFmtBCD,ftBCD    : begin
-                            FmtBCD2Nvu(asFmtBCD,parambuffers[SQLVarNr].buffer);
+        ftFmtBCD, ftBCD   : begin
+                            FmtBCD2Nvu(asFmtBCD,parambuffers[i].buffer);
+                            end;
+        ftBlob, ftMemo    : begin
+                            blobbuf := AsBlob; // todo: use AsBytes
+                            bloblen := length(blobbuf);
+                            if bloblen > 65531 then bloblen := 65531;
+                            PInteger(ParamBuffers[i].Buffer)^ := bloblen;
+                            Move(blobbuf[1], (ParamBuffers[i].Buffer+sizeof(integer))^, bloblen);
+                            //if OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].buffer, @bloblen, 1, @blobbuf[1], bloblen, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
+                            //  HandleError;
                             end;
         else
           DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);
@@ -944,17 +964,6 @@ begin
 end;
 
 function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
-
-type
-  TODateTime = record
-    year  : sb2;
-    month : ub1;
-    day   : ub1;
-    hour  : ub1;
-    min   : ub1;
-    sec   : ub1;
-    fsec  : ub4;
-  end;
 
 var
   b       : pbyte;
