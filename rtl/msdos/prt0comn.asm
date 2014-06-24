@@ -39,7 +39,7 @@
         segment text use16 class=code
 
         extern PASCALMAIN
-        extern dos_psp
+        extern __fpc_PrefixSeg
         extern dos_version
         extern __Test8086
 
@@ -102,9 +102,9 @@
         ; init DS
         mov ds, bx
 
-        ; pop the PSP from stack and store it in the pascal variable dos_psp
+        ; pop the PSP from stack and store it in the pascal variable PrefixSeg
         pop ax
-        mov word [dos_psp], ax
+        mov word [__fpc_PrefixSeg], ax
 
         ; get DOS version and save it in the pascal variable dos_version
         mov ax, 3000h
@@ -161,7 +161,7 @@ cpu_detect_done:
 data_with_maxheap_less_than_64k:
 
         ; try to resize our main DOS memory block until the end of the data segment (or even smaller, if maxheap is small)
-        mov cx, word [dos_psp]
+        mov cx, word [__fpc_PrefixSeg]
 %ifdef __TINY__
         mov dx, cs
 %else

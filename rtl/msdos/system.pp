@@ -62,7 +62,8 @@ var
   envp:PPchar; //!! public name 'operatingsystem_parameter_envp';
   dos_argv0 : pchar; //!! public name 'dos_argv0';
 
-  dos_psp:Word;public name 'dos_psp';
+{ The DOS Program Segment Prefix segment (TP7 compatibility) }
+  PrefixSeg:Word;public name '__fpc_PrefixSeg';
 
   SaveInt00: FarPointer;public name '__SaveInt00';
 
@@ -179,7 +180,7 @@ begin
       GetProgramName := '';
       exit;
     end;
-  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
   ofs := 1;
   repeat
     Ch := PFarChar(Ptr(dos_env_seg,ofs - 1))^;
@@ -215,10 +216,10 @@ function GetCommandLine: string;
 var
   len, I: Integer;
 begin
-  len := PFarByte(Ptr(dos_psp, $80))^;
+  len := PFarByte(Ptr(PrefixSeg, $80))^;
   SetLength(GetCommandLine, len);
   for I := 1 to len do
-    GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
+    GetCommandLine[I] := PFarChar(Ptr(PrefixSeg, $80 + I))^;
 end;
 
 
@@ -345,7 +346,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
-  GetProcessID := dos_psp;
+  GetProcessID := PrefixSeg;
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
