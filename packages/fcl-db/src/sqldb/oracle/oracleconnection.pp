@@ -19,9 +19,9 @@ const
   DefaultTimeOut = 60;
 
 type
-  EOraDatabaseError = class(EDatabaseError)
+  EOraDatabaseError = class(ESQLDatabaseError)
     public
-      ORAErrorCode : Longint;
+      property ORAErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of ORAErrorCode'; // June 2014
   end;
 
   TOracleTrans = Class(TSQLHandle)
@@ -331,7 +331,7 @@ begin
   else
     E := EOraDatabaseError.Create(pchar(buf));
 
-  E.ORAErrorCode := errcode;
+  E.ErrorCode := errcode;
   Raise E;
 end;
 
