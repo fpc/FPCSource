@@ -1014,20 +1014,15 @@ begin
   RegisterPseudoClass(d);
 
   WriteComment(d, 'enum');
-  Fjs.WriteLn(Format('public enum %s {', [d.Name]));
+  Fjs.WriteLn(Format('public static class %s extends system.Enum {', [d.Name]));
   Fjs.IncI;
   for i:=0 to d.Count - 1 do begin
-    s:=Format('%s (%s)', [d[i].Name, TConstDef(d[i]).Value]);
-    if i <> d.Count - 1 then
-      s:=s + ','
-    else
-      s:=s + ';';
+    s:=Format('public final static int %s = %s;', [d[i].Name, TConstDef(d[i]).Value]);
     Fjs.WriteLn(s);
   end;
   Fjs.WriteLn;
-  Fjs.WriteLn('private final int Value;');
-  Fjs.WriteLn(Format('%s(int v) { Value=v; }', [d.Name]));
-  Fjs.WriteLn('public int Ord() { return Value; }');
+  Fjs.WriteLn(Format('public %s(int v) { Value = v; }', [d.Name]));
+  Fjs.WriteLn(Format('@Override public boolean equals(Object o) { return ((o instanceof %0:s) && Value == ((%0:s)o).Value) || super.equals(o); }', [d.Name]));
   Fjs.DecI;
   Fjs.WriteLn('}');
   Fjs.WriteLn;
@@ -1283,6 +1278,8 @@ begin
       Fjs.IncI;
       Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
       Fjs.WriteLn('protected long _pasobj = 0;');
+      Fjs.WriteLn('@Override public boolean equals(Object o) { return ((o instanceof PascalObject) && _pasobj == ((PascalObject)o)._pasobj); }');
+      Fjs.WriteLn('@Override public int hashCode() { return (int)_pasobj; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
@@ -1342,8 +1339,19 @@ begin
       Fjs.WriteLn('}');
       Fjs.WriteLn;
 
-      // Set base class
-      Fjs.WriteLn('public static class Set<TS extends Set<?,?>,TE> {');
+      // Base class for Enum
+      Fjs.WriteLn('public static class Enum {');
+      Fjs.IncI;
+      Fjs.WriteLn('public int Value;');
+      Fjs.WriteLn('public int Ord() { return Value; }');
+      Fjs.WriteLn('@Override public boolean equals(Object o) { return (o instanceof Integer) && Value == (Integer)o; }');
+      Fjs.WriteLn('@Override public int hashCode() { return Value; }');
+      Fjs.DecI;
+      Fjs.WriteLn('}');
+      Fjs.WriteLn;
+
+      // Base class for Set
+      Fjs.WriteLn('public static class Set<TS extends Set<?,?>,TE extends Enum> {');
       Fjs.IncI;
       Fjs.WriteLn('protected int Value = 0;');
       Fjs.WriteLn('protected byte Size() { return 0; }');
@@ -1364,8 +1372,11 @@ begin
       Fjs.WriteLn('public void Exclude(TS s) { Value=Value & ~s.Value; }');
       Fjs.WriteLn('public void Assign(TS s) { Value=s.Value; }');
       Fjs.WriteLn('public void Intersect(TS s) { Value=Value & s.Value; }');
-      Fjs.WriteLn('public boolean Compare(TS s) { return Value == s.Value; }');
       Fjs.WriteLn('public boolean Has(TE Element) { return (Value & GetMask(Element)) != 0; }');
+      Fjs.WriteLn('public boolean IsEmpty() { return Value == 0; }');
+      Fjs.WriteLn('public boolean equals(TS s) { return Value == s.Value; }');
+      Fjs.WriteLn('public boolean equals(TE Element) { return Value == Ord(Element); }');
+      Fjs.WriteLn('public boolean equals(int Element) { return Value == Element; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
