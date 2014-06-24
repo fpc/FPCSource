@@ -2430,7 +2430,7 @@ end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
 
-var i          : byte;
+var i, FS      : integer;
     FT         : TFieldType;
     DS         : TDataset;
     Fld        : TField;
@@ -2450,11 +2450,15 @@ begin
     // Oracle: NUMERIC fields that map to ftFMTBCD are used; these do not map to ftInteger
     // We still want to run the value tests below, so set up things manually:
     FT:=ftFmtBCD;
+    FS:=sizeof(TBCD);
   end
   else
+    begin
     FT:=ftInteger;
+    FS:=sizeof(integer);
+    end;
 
-  TestfieldDefinition(FT,4,DS,Fld);
+  TestfieldDefinition(FT,FS,DS,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
