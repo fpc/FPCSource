@@ -1286,7 +1286,7 @@ begin
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
-      Fjs.WriteLn('public static long Pointer(PascalObject obj) { return (obj == null) ? null : obj._pasobj; }');
+      Fjs.WriteLn('public static long Pointer(PascalObject obj) { return (obj == null) ? 0 : obj._pasobj; }');
 
       // Record
       Fjs.WriteLn;
