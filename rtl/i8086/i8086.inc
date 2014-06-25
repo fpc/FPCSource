@@ -223,20 +223,33 @@ asm
 {$ifdef FPC_X86_CODE_FAR}
   xor dx, dx
 {$endif FPC_X86_CODE_FAR}
+{$ifdef FPC_X86_DATA_NEAR}
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
   jz @@Lg_a_null
   xchg ax, bx  // 1 byte shorter than a mov
   mov ax, [bx+2]
-{$ifdef FPC_X86_CODE_FAR}
+ {$ifdef FPC_X86_CODE_FAR}
   mov dx, [bx+4]
-{$endif FPC_X86_CODE_FAR}
+ {$endif FPC_X86_CODE_FAR}
+{$else FPC_X86_DATA_NEAR}
+  les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+  mov dx, es
+  or dx, ax
+  jz @@Lg_a_null
+  xchg ax, bx  // 1 byte shorter than a mov
+  mov ax, es:[bx+2]
+ {$ifdef FPC_X86_CODE_FAR}
+  mov dx, es:[bx+4]
+ {$endif FPC_X86_CODE_FAR}
+{$endif FPC_X86_DATA_NEAR}
 @@Lg_a_null:
 end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;nostackframe;assembler;
 asm
+{$ifdef FPC_X86_DATA_NEAR}
   mov si, sp
   mov ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
   or ax, ax
@@ -244,6 +257,18 @@ asm
   xchg ax, si  // 1 byte shorter than a mov
   lodsw
 @@Lgnf_null:
+{$else FPC_X86_DATA_NEAR}
+  mov si, sp
+  les ax, ss:[si + 4 + extra_param_offset + extra_param_offset]  // framebp
+  mov dx, es
+  or dx, ax
+  jz @@Lgnf_null
+  xchg ax, si  // 1 byte shorter than a mov
+  db 26h  // 'seges' not yet supported, so we use db
+  lodsw
+  mov dx, es
+@@Lgnf_null:
+{$endif FPC_X86_DATA_NEAR}
 end;
 
 {TODO: use smallint?}
