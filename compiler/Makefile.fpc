@@ -261,7 +261,7 @@ endif
 
 # m68k specific
 ifeq ($(PPC_TARGET),m68k)
-override LOCALOPT+=-dNOOPT
+override LOCALOPT+=
 endif
 
 # Sparc specific
