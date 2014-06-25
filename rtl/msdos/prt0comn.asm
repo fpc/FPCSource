@@ -259,39 +259,43 @@ error_msg:
 FPC_INT00_HANDLER:
         sub sp, 4  ; reserve space on the stack for the retf
 
-        push bx
         push cx
         push ds
+        push bp
 
         ; init ds
 %ifdef __TINY__
-        mov bx, cs
+        mov bp, cs
 %else
-        mov bx, dgroup
+        mov bp, dgroup
 %endif
-        mov ds, bx
+        mov ds, bp
 
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
         ; check whether we're running on the same stack
         mov cx, ss
-        cmp bx, cx
+        cmp bp, cx
         jne .call_previous_handler
+%endif
 
 %ifndef __FAR_CODE__
         ; check whether we're coming from the same code segment
-        mov bx, sp
-        mov cx, [bx + 3*2 + 6]  ; get caller segment
-        mov bx, cs
-        cmp bx, cx
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
         jne .call_previous_handler
 %endif
 
         ; runerror 200
-        mov bx, sp
-        mov cx, [bx + 3*2 + 4]  ; get caller offset
+        mov bp, sp
+        mov cx, [bp + 3*2 + 4]  ; get caller offset
 %ifdef __FAR_CODE__
-        mov dx, [bx + 3*2 + 6]  ; get caller segment
+        mov dx, [bp + 3*2 + 6]  ; get caller segment
 %endif
-        add sp, 3*2 + 4 + 6
+        pop bp
+        add sp, 2*2 + 4 + 6
         xor ax, ax
         push ax
         mov ax, 200
@@ -308,14 +312,14 @@ FPC_INT00_HANDLER:
 %endif
 
 .call_previous_handler:
-        mov bx, sp
+        mov bp, sp
         mov cx, [__SaveInt00]
-        mov [ss:bx + 3*2], cx
+        mov [bp + 3*2], cx
         mov cx, [__SaveInt00+2]
-        mov [ss:bx + 3*2 + 2], cx
+        mov [bp + 3*2 + 2], cx
+        pop bp
         pop ds
         pop cx
-        pop bx
         retf  ; jumps to the previous handler with all registers and stack intact
 
 
