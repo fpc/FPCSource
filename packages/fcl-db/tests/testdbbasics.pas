@@ -20,8 +20,9 @@ type
 
   TTestDBBasics = class(TDBBasicsTestCase)
   private
-    procedure TestfieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld: TField);
-    procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
+    procedure TestFieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld: TField); overload;
+    procedure TestFieldDefinition(AFld: TField; AFieldType : TFieldType; ADataSize : integer); overload;
+    procedure TestCalculatedField_OnCalcfields(DataSet: TDataSet);
 
   published
     // fields
@@ -236,7 +237,6 @@ begin
 end;
 
 procedure TTestDBBasics.TestSelectQueryBasics;
-var b : TFieldType;
 begin
   with DBConnector.GetNDataset(1) do
     begin
@@ -381,7 +381,7 @@ begin
 end;
 
 procedure TTestDBBasics.TestDataEventsResync;
-var i,count     : integer;
+var
     aDatasource : TDataSource;
     aDatalink   : TDataLink;
     ds          : tdataset;
@@ -420,7 +420,7 @@ end;
 
 procedure TTestDBBasics.TestdeFieldListChange;
 
-var i,count     : integer;
+var
     aDatasource : TDataSource;
     aDatalink   : TDataLink;
     ds          : TDataset;
@@ -1246,8 +1246,6 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
-var
-  a : TDataSetState;
 begin
   Accept := odd(Dataset.FieldByName('ID').AsInteger);
 end;
@@ -1343,8 +1341,6 @@ end;
 
 procedure TTestCursorDBBasics.TestStringFilter;
 // Tests string expression filters
-var
-  Counter : byte;
 begin
   with DBConnector.GetNDataset(15) do
     begin
@@ -1750,9 +1746,7 @@ end;
 
 procedure TTestBufDatasetDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS : boolean);
 var ds : TCustomBufDataset;
-    FList : TStringList;
     LastValue : Variant;
-    StrValue : String;
 begin
   ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
@@ -2025,15 +2019,12 @@ begin
 end;
 
 procedure TTestBufDatasetDBBasics.TestAddIndexActiveDS;
-var ds   : TCustomBufDataset;
-    I    : integer;
 begin
   TestAddIndexFieldType(ftString,true);
 end;
 
 procedure TTestBufDatasetDBBasics.TestAddIndexEditDS;
 var ds        : TCustomBufDataset;
-    I         : integer;
     LastValue : String;
 begin
   ds := DBConnector.GetNDataset(True,5) as TCustomBufDataset;
@@ -2239,7 +2230,6 @@ procedure TTestBufDatasetDBBasics.TestIndexEditRecord;
 // with a value at the end of the alphabet
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
-    i : integer;
     OldID : Integer;
     OldStringValue : string;
 begin
@@ -2410,28 +2400,30 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestfieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld: TField);
-
-var i          : byte;
-
+procedure TTestDBBasics.TestFieldDefinition(AFieldType: TFieldType; ADataSize: integer; out ADS: TDataset; out AFld: TField);
 begin
   ADS := DBConnector.GetFieldDataset;
   ADS.Open;
 
-  AFld := ADS.FindField('F'+FieldTypeNames[AfieldType]);
+  AFld := ADS.FindField('F'+FieldTypeNames[AFieldType]);
 
 {$ifdef fpc}
   if not assigned (AFld) then
-    Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
+    Ignore('Fields of the type ' + FieldTypeNames[AFieldType] + ' are not supported by this type of dataset');
 {$endif fpc}
-  CheckEquals(ord(AFieldType), ord(AFld.DataType), 'DataType');
+  if ADataSize <> -1 then
+    TestFieldDefinition(AFld, AFieldType, ADataSize);
+end;
+
+procedure TTestDBBasics.TestFieldDefinition(AFld: TField; AFieldType: TFieldType; ADataSize: integer);
+begin
+  CheckEquals(FieldTypeNames[AFieldType], FieldTypeNames[AFld.DataType], 'DataType');
   CheckEquals(ADatasize, AFld.DataSize, 'DataSize');
 end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
 
-var i, FS      : integer;
-    FT         : TFieldType;
+var i          : integer;
     DS         : TDataset;
     Fld        : TField;
     DbfTableLevel: integer;
@@ -2444,27 +2436,16 @@ begin
       Ignore('TDBF: only Visual Foxpro and DBase7 support full integer range.');
   end;
 
-  if (uppercase(dbconnectorname)='SQL') and
-     (uppercase(dbconnectorparams)='ORACLE') then
-  begin
-    // Oracle: NUMERIC fields that map to ftFMTBCD are used; these do not map to ftInteger
-    // We still want to run the value tests below, so set up things manually:
-    FT:=ftFmtBCD;
-    FS:=sizeof(TBCD);
-  end
-  else
-    begin
-    FT:=ftInteger;
-    FS:=sizeof(integer);
-    end;
-
-  TestfieldDefinition(FT,FS,DS,Fld);
+  TestFieldDefinition(ftInteger,-1,DS,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testIntValues[i],Fld.AsInteger);
     DS.Next;
     end;
+
+  TestFieldDefinition(Fld,ftInteger,4);
+
   DS.Close;
 end;
 
@@ -2478,14 +2459,17 @@ begin
   if (uppercase(dbconnectorname)='DBF') then
     Ignore('TDBF: Smallint support only from -999 to 9999');
 
-  TestfieldDefinition(ftSmallint,2,ds,Fld);
+  TestFieldDefinition(ftSmallint,-1,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testSmallIntValues[i],Fld.AsInteger);
     ds.Next;
     end;
-  ds.close;
+
+  TestFieldDefinition(Fld,ftSmallint,2);
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportWordFields;
@@ -2494,14 +2478,15 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftWord,2,ds,Fld);
+  TestFieldDefinition(ftWord,2,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testWordValues[i],Fld.AsInteger);
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 
@@ -2512,7 +2497,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftString,11,ds,Fld);
+  TestFieldDefinition(ftString,11,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
@@ -2522,7 +2507,8 @@ begin
       CheckEquals(TrimRight(testStringValues[i]),Fld.AsString);
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportBooleanFields;
@@ -2532,14 +2518,15 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftBoolean,2,ds,Fld);
+  TestFieldDefinition(ftBoolean,2,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testBooleanValues[i],Fld.AsBoolean);
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportFloatFields;
@@ -2549,14 +2536,15 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFloat,8,ds,Fld);
+  TestFieldDefinition(ftFloat,-1,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testFloatValues[i],Fld.AsFloat);
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportLargeIntFields;
@@ -2566,14 +2554,17 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftLargeint,8,ds,Fld);
+  TestFieldDefinition(ftLargeint,-1,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testLargeIntValues[i],Fld.AsLargeInt);
     ds.Next;
     end;
-  ds.close;
+
+  TestFieldDefinition(Fld,ftLargeint,8);
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportDateFields;
@@ -2583,14 +2574,15 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftDate,8,ds,Fld);
+  TestFieldDefinition(ftDate,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testDateValues[i], FormatDateTime('yyyy/mm/dd', Fld.AsDateTime, DBConnector.FormatSettings));
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportTimeFields;
@@ -2598,14 +2590,15 @@ var i          : byte;
     ds         : TDataset;
     Fld        : TField;
 begin
-  TestfieldDefinition(ftTime,8,ds,Fld);
+  TestFieldDefinition(ftTime,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testTimeValues[i],DateTimeToTimeString(fld.AsDateTime));
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportDateTimeFields;
@@ -2613,13 +2606,14 @@ var i          : integer;
     DS         : TDataSet;
     Fld        : TField;
 begin
-  TestfieldDefinition(ftDateTime,8,DS,Fld);
+  TestFieldDefinition(ftDateTime,8,DS,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testValues[ftDateTime,i], DateTimeToStr(Fld.AsDateTime, DBConnector.FormatSettings));
     DS.Next;
     end;
+
   DS.Close;
 end;
 
@@ -2633,7 +2627,7 @@ begin
   if (uppercase(dbconnectorname)='DBF') then
     Ignore('This test does not apply to TDBF as they store currency in BCD fields.');
 
-  TestfieldDefinition(ftCurrency,8,ds,Fld);
+  TestFieldDefinition(ftCurrency,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
@@ -2641,7 +2635,8 @@ begin
     CheckEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportBCDFields;
@@ -2651,7 +2646,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftBCD,8,ds,Fld);
+  TestFieldDefinition(ftBCD,-1,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
@@ -2660,7 +2655,10 @@ begin
     CheckEquals(testCurrencyValues[i], Fld.AsFloat, 'AsFloat');
     ds.Next;
     end;
-  ds.close;
+
+  TestFieldDefinition(Fld, ftBCD, 8);
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportFmtBCDFields;
@@ -2669,7 +2667,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFMTBcd,sizeof(TBCD),ds,Fld);
+  TestFieldDefinition(ftFMTBcd,sizeof(TBCD),ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
@@ -2677,7 +2675,8 @@ begin
     CheckEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat, 1e-12, 'AsFloat');
     ds.Next;
     end;
-  ds.close;
+
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportFixedStringFields;
@@ -2686,7 +2685,8 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFixedChar,11,ds,Fld);
+  TestFieldDefinition(ftFixedChar,11,ds,Fld);
+
   for i := 0 to testValuesCount-1 do
     begin
     if Fld.IsNull then // If the field is null, .AsString always returns an empty, non-padded string
@@ -2699,7 +2699,7 @@ begin
 {$endif fpc}
     ds.Next;
     end;
-  ds.close;
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportBlobFields;
@@ -2708,14 +2708,14 @@ var i          : byte;
     ds         : TDataset;
     Fld        : TField;
 begin
-  TestfieldDefinition(ftBlob,0,ds,Fld);
+  TestFieldDefinition(ftBlob,0,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testValues[ftBlob,i],Fld.AsString);
     ds.Next;
     end;
-  ds.close;
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestSupportMemoFields;
@@ -2723,14 +2723,14 @@ var i          : byte;
     ds         : TDataset;
     Fld        : TField;
 begin
-  TestfieldDefinition(ftMemo,0,ds,Fld);
+  TestFieldDefinition(ftMemo,0,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
     CheckEquals(testValues[ftMemo,i],Fld.AsString);
     ds.Next;
     end;
-  ds.close;
+  ds.Close;
 end;
 
 procedure TTestDBBasics.TestBlobBlobType;
@@ -2765,7 +2765,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
+procedure TTestDBBasics.TestCalculatedField_OnCalcfields(DataSet: TDataSet);
 begin
   case dataset.fieldbyname('ID').asinteger of
     1 : dataset.fieldbyname('CALCFLD').AsInteger := 5;
