@@ -349,8 +349,8 @@ Unit Rax86int;
                     c:=current_scanner.asmgetchar;
                   end;
                  uppervar(actasmpattern);
-                 { after prefix we allow also a new opcode }
-                 If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
+                 { after prefix (or segment override) we allow also a new opcode }
+                 If (is_prefix(actopcode) or is_override(actopcode)) and is_asmopcode(actasmpattern) then
                   Begin
                     { if we are not in a constant }
                     { expression than this is an  }
