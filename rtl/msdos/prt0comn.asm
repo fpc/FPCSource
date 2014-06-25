@@ -447,9 +447,9 @@ int_number:
         pop ds
         pop bp
 %ifdef __FAR_CODE__
-        retf 4
+        retf 4 + extra_data_offset
 %else
-        ret 4
+        ret 4 + extra_data_offset
 %endif
 
 %ifndef __TINY__
