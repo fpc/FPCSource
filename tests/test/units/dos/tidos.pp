@@ -22,6 +22,12 @@ uses dos;
 {$DEFINE NOEXESUFFIX}
 {$endif}
 
+{$ifdef msdos}
+  {$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    {$M 16384,0,16384}  { 16k stack, up to 16k heap }
+  {$endif}
+{$endif}
+
 procedure TestInfo;
 var
   dt    : DateTime;
