@@ -242,6 +242,7 @@ skip_mem_realloc:
         jmp PASCALMAIN
 %endif
 
+%ifdef __NEAR_DATA__
 not_enough_mem:
         mov dx, not_enough_mem_msg
         jmp error_msg
@@ -255,6 +256,7 @@ error_msg:
         int 21h
         mov ax, 4CFFh
         int 21h
+%endif
 
 FPC_INT00_HANDLER:
         sub sp, 4  ; reserve space on the stack for the retf
@@ -477,10 +479,12 @@ FPC_CHECK_NULLAREA:
 %endif
 
         segment data class=data
+%ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
 not_enough_mem_msg:
         db 'Not enough memory', 13, 10, '$'
+%endif
         ; add reference to the beginning of the minimal heap, so the object
         ; module, containing the heap segment doesn't get smartlinked away
         dd ___heap
