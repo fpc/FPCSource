@@ -20,7 +20,7 @@ type
 
   TTestDBBasics = class(TDBBasicsTestCase)
   private
-    procedure TestFieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld: TField); overload;
+    procedure TestFieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld : TField); overload;
     procedure TestFieldDefinition(AFld: TField; AFieldType : TFieldType; ADataSize : integer); overload;
     procedure TestCalculatedField_OnCalcfields(DataSet: TDataSet);
 
@@ -1493,7 +1493,6 @@ end;
 
 procedure TTestBufDatasetDBBasics.TestFileNameProperty;
 var ds1,ds2: TDataset;
-    LoadDs: TCustomBufDataset;
 begin
   ds2 := nil;
   ds1 := DBConnector.GetNDataset(true,5);
@@ -2536,7 +2535,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestFieldDefinition(ftFloat,-1,ds,Fld);
+  TestFieldDefinition(ftFloat,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
