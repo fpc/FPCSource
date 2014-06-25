@@ -72,6 +72,7 @@ unit cgcpu;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); override;
 
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister; l : tasmlabel);override;
+        procedure a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;const ref : treference; l : tasmlabel); override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
@@ -1440,6 +1441,27 @@ unit cgcpu;
 
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
+      end;
+
+    procedure tcg68k.a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;const ref : treference; l : tasmlabel);
+      var
+        tmpref: treference;
+      begin
+        { optimize for usage of TST here, so ref compares against zero, which is the 
+          most common case by far in the RTL code at least (KB) }
+        if (a = 0) then
+          begin
+            //list.concat(tai_comment.create(strpnew('a_cmp_const_ref_label with TST')));
+            tmpref:=ref;
+            fixref(list,tmpref);
+            list.concat(taicpu.op_ref(A_TST,tcgsize2opsize[size],tmpref));
+            a_jmp_cond(list,cmp_op,l);
+          end
+        else
+          begin
+            //list.concat(tai_comment.create(strpnew('a_cmp_const_ref_label inherited')));
+            inherited;
+          end;
       end;
 
     procedure tcg68k.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
