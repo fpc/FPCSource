@@ -264,8 +264,7 @@ asm
   or dx, ax
   jz @@Lgnf_null
   xchg ax, si  // 1 byte shorter than a mov
-  seges
-  lodsw
+  seges lodsw
   mov dx, es
 @@Lgnf_null:
 {$endif FPC_X86_DATA_NEAR}
