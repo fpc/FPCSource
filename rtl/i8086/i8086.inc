@@ -264,7 +264,7 @@ asm
   or dx, ax
   jz @@Lgnf_null
   xchg ax, si  // 1 byte shorter than a mov
-  db 26h  // 'seges' not yet supported, so we use db
+  seges
   lodsw
   mov dx, es
 @@Lgnf_null:
