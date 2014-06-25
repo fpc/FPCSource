@@ -516,9 +516,10 @@ implementation
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse:array[TAsmCond] of TAsmCond=(C_None,
-{ TODO: TODO, this is just a copy!}
-           C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
-           C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+         //C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
+           C_CS,C_HI,C_CC,C_GE,C_NE,C_PL,C_T,C_EQ,
+         //C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+           C_LT,C_MI,C_LE,C_F,C_LS,C_VS,C_GT,C_VC
         );
       begin
         result := inverse[c];
