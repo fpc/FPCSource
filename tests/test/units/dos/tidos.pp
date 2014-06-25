@@ -75,17 +75,13 @@ begin
   writeln('**************');
   write('Press Enter for an Exec of ''hello -good -day''');
   Readln;
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
 {$ifdef noexesuffix}
   Exec('hello','-good -day');
 {$else}
   Exec('hello.exe','-good -day');
 {$endif}
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
   writeln('Exit should be 213 : ',DosExitCode);
   writeln('Error code should be 0 : ',DosError);
   write('Press Enter');
