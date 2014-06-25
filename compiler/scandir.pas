@@ -703,7 +703,27 @@ unit scandir;
     procedure dir_memory;
       var
         l : longint;
+        heapsize_limit: longint;
+        maxheapsize_limit: longint;
       begin
+{$if defined(i8086)}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            heapsize_limit:=655360;
+            maxheapsize_limit:=655360;
+          end
+        else
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end;
+{$elseif defined(cpu16bitaddr)}
+        heapsize_limit:=65520;
+        maxheapsize_limit:=65520;
+{$else}
+        heapsize_limit:=high(heapsize);
+        maxheapsize_limit:=high(maxheapsize);
+{$endif}
         current_scanner.skipspace;
         l:=current_scanner.readval;
         if (l>=1024)
@@ -723,14 +743,14 @@ unit scandir;
             current_scanner.skipspace;
             l:=current_scanner.readval;
             if l>=1024 then
-              heapsize:=l;
+              heapsize:=min(l,heapsize_limit);
             if c=',' then
               begin
                 current_scanner.readchar;
                 current_scanner.skipspace;
                 l:=current_scanner.readval;
                 if l>=heapsize then
-                  maxheapsize:=l
+                  maxheapsize:=min(l,maxheapsize_limit)
                 else
                   Message(scan_w_heapmax_lessthan_heapmin);
               end;
