@@ -515,7 +515,11 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+{$ifdef i8086}
+             current_settings.asmmode:=asmmode_i8086_intel;
+{$else i8086}
              current_settings.asmmode:=asmmode_i386_intel;
+{$endif i8086}
            if changeinit then
              init_settings.asmmode:=current_settings.asmmode;
 {$endif i386 or i8086}
