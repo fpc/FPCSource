@@ -98,6 +98,7 @@ unit cgcpu;
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; reg: tregister);
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
 
+        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
      protected
         function fixref(list: TAsmList; var ref: treference): boolean;
 
@@ -2111,6 +2112,12 @@ unit cgcpu;
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
+    procedure tcg68k.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+      begin
+        list.concat(taicpu.op_const_reg(A_SUB,S_L,localsize,NR_STACK_POINTER_REG));
       end;
 
 
