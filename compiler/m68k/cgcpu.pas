@@ -725,7 +725,7 @@ unit cgcpu;
         else
           sym:=current_asmdata.WeakRefAsmSymbol(s);
 
-        list.concat(taicpu.op_sym(A_JSR,S_NO,current_asmdata.RefAsmSymbol(s)));
+        list.concat(taicpu.op_sym(A_JSR,S_NO,sym));
       end;
 
 
@@ -995,7 +995,6 @@ unit cgcpu;
      var
       opsize : topsize;
       href : treference;
-      tmpreg : tregister;
       begin
         opsize := tcgsize2opsize[fromsize];
         { extended is not supported, since it is not available on Coldfire }
@@ -1079,9 +1078,6 @@ unit cgcpu;
        scratch_reg : tregister;
        scratch_reg2: tregister;
        opcode : tasmop;
-       r,r2 : Tregister;
-       instr : taicpu;
-       paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
@@ -1247,8 +1243,7 @@ unit cgcpu;
 
     procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
-        hreg1, hreg2,r,r2: tregister;
-        instr : taicpu;
+        hreg1, hreg2: tregister;
         opcode : tasmop;
         opsize : topsize;
       begin
@@ -1535,23 +1530,16 @@ unit cgcpu;
      var
          helpsize : longint;
          i : byte;
-         reg8,reg32 : tregister;
-         swap : boolean;
          hregister : tregister;
          iregister : tregister;
          jregister : tregister;
          hp1 : treference;
          hp2 : treference;
          hl : tasmlabel;
-         hl2: tasmlabel;
-         popaddress : boolean;
          srcref,dstref : treference;
          alignsize : tcgsize;
-         orglen : tcgint;
       begin
-         popaddress := false;
          hregister := getintregister(list,OS_INT);
-         orglen:=len;
 
          { from 12 bytes movs is being used }
          if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
@@ -1661,9 +1649,6 @@ unit cgcpu;
       end;
 
     procedure tcg68k.g_proc_entry(list: TAsmList; localsize: longint; nostackframe:boolean);
-      var
-        r,rsp: TRegister;
-        ref  : TReference;
       begin
         { Carl's original code used 2x MOVE instead of LINK when localsize = 0.
           However, a LINK seems faster than two moves on everything from 68000
@@ -2063,7 +2048,6 @@ unit cgcpu;
         procedure op_ona0methodaddr;
         var
           href : treference;
-          offs : longint;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(2013100701);
@@ -2126,7 +2110,6 @@ unit cgcpu;
 {****************************************************************************}
     procedure tcg64f68k.a_op64_reg_reg(list : TAsmList;op:TOpCG;size: tcgsize; regsrc,regdst : tregister64);
       var
-        hreg1, hreg2 : tregister;
         opcode : tasmop;
         xopcode : tasmop;
         instr : taicpu;
