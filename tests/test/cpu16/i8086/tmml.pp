@@ -44,10 +44,13 @@ begin
   DS := DSeg;
   SS := SSeg;
   HS := Seg(HeapP^);
+  Writeln('PrefixSeg=', PrefixSeg);
   Writeln('CS=', CS);
   Writeln('DS=', DS);
   Writeln('SS=', SS);
   Writeln('Heap Seg=', HS);
+  if not (PrefixSeg < CS) then
+    Error('PrefixSeg >= CS');
   if not (CS < DS) then
     Error('CS >= DS');
   if not (DS < SS) then
