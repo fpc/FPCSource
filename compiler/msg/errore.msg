@@ -3099,7 +3099,7 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 #
 #  Options
 #
-# 11056 is the last used one
+# 11057 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3244,6 +3244,7 @@ option_missing_arg=11054_E_argument to "$1" is missing
 option_malformed_para=11055_E_malformed parameter: $1
 % Given argument is not valid for parameter.
 option_smart_link_requires_external_linker=11056_W_Smart linking requires external linker
+option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported in the current memory model. Only the tiny memory model supports making .COM files.
 
 
 %\end{description}

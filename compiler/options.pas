@@ -2719,6 +2719,14 @@ end;
 
 procedure TOption.checkoptionscompatibility;
 begin
+{$ifdef i8086}
+  if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
+    begin
+      Message(option_com_files_require_tiny_model);
+      StopOptions(1);
+    end;
+{$endif i8086}
+
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in (systems_darwin+[system_i8086_msdos])) then
     begin
