@@ -29,8 +29,16 @@ begin
   ErrorsFound := True;
 end;
 
+var
+  ProcVar: Procedure;
 begin
   ErrorsFound := False;
+  Writeln('SizeOf(Pointer)=', SizeOf(Pointer));
+  if SizeOf(Pointer) <> 4 then
+    Error('SizeOf(Pointer) <> 4');
+  Writeln('SizeOf(ProcVar)=', SizeOf(ProcVar));
+  if SizeOf(ProcVar) <> 4 then
+    Error('SizeOf(ProcVar) <> 4');
   GetMem(HeapP, 5);
   CS := CSeg;
   DS := DSeg;
