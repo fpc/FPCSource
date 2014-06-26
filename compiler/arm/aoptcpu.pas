@@ -1702,6 +1702,8 @@ Implementation
                       (taicpu(p).oper[2]^.typ = top_reg) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1,[A_ADD,A_SUB],[C_None],[PF_None]) and
+                      (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
+                      (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p, hp1)) and
 
                       (((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype>=cpu_armv4)) or
                        ((taicpu(hp1).opcode=A_SUB) and (current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and
