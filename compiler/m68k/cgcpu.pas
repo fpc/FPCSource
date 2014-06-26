@@ -42,7 +42,7 @@ unit cgcpu;
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        //procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
@@ -404,46 +404,23 @@ unit cgcpu;
           inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
-{
+
     procedure tcg68k.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
-        tmpreg : tregister;
-        opsize : topsize;
+        tmpref : treference;
       begin
-        with r do
+        { 68k always passes arguments on the stack }
+        if use_push(cgpara) then
           begin
-            { i suppose this is not required for m68k (KB) }
-//            if (segment<>NR_NO) then
-//              cgmessage(cg_e_cant_use_far_pointer_there);
-            if not use_push(cgpara) then
-              begin
-                cgpara.check_simple_location;
-                opsize:=tcgsize2opsize[OS_ADDR];
-                if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
-                  begin
-                    if assigned(symbol) then
-//                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
-                    else;
-//                      list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
-                  end
-                else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
-                        (offset=0) and (scalefactor=0) and (symbol=nil) then
-//                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
-                        (offset=0) and (symbol=nil) then
-//                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
-                else
-                  begin
-                    tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
-//                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                  end;
-              end
-            else
-              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
-          end;
+            list.concat(tai_comment.create(strpnew('a_loadaddr_ref_cgpara: PEA')));
+            cgpara.check_simple_location;
+            tmpref:=r;
+            fixref(list,tmpref);
+            list.concat(taicpu.op_ref(A_PEA,S_NO,tmpref));
+          end
+        else
+          inherited a_loadaddr_ref_cgpara(list,r,cgpara);
       end;
-}
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
        var
