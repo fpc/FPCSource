@@ -135,6 +135,7 @@ type
     _FAIL,
     _FILE,
     _GOTO,
+    _HUGE,
     _NAME,
     _NEAR,
     _READ,
@@ -452,6 +453,7 @@ const
       (str:'FAIL'          ;special:false;keyword:[m_none];op:NOTOKEN), { only set within constructors PM }
       (str:'FILE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'GOTO'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
+      (str:'HUGE'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NAME'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NEAR'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'READ'          ;special:false;keyword:[m_none];op:NOTOKEN),
