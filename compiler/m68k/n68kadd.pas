@@ -366,11 +366,9 @@ implementation
     procedure t68kaddnode.second_addfloat;
       var
         op    : TAsmOp;
-        cmpop : boolean;
       begin
         pass_left_right;
 
-        cmpop:=false;
         case nodetype of
           addn :
             op:=A_FADD;
@@ -380,12 +378,6 @@ implementation
             op:=A_FSUB;
           slashn :
             op:=A_FDIV;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
-            begin
-//              op:=A_FCMPO;
-              cmpop:=true;
-            end;
           else
             internalerror(200403182);
         end;
@@ -400,37 +392,20 @@ implementation
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
-        if not cmpop then
-          begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            if left.location.loc = LOC_FPUREGISTER then
-              location.register := left.location.register
-            else if right.location.loc = LOC_FPUREGISTER then
-              location.register := right.location.register
-            else
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-          end
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        if left.location.loc = LOC_FPUREGISTER then
+          location.register := left.location.register
+        else if right.location.loc = LOC_FPUREGISTER then
+          location.register := right.location.register
         else
-         begin
-           location_reset(location,LOC_FLAGS,OS_NO);
-           // FIX ME!
-//           location.resflags := getresflags;
-         end;
+          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
         // emit the actual operation
-        if not cmpop then
-          begin
-          {
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              location.register,left.location.register,
-              right.location.register))
-             }
-          end
-        else
-          begin
-{            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
-          end;
+        {
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
+            location.register,left.location.register,
+            right.location.register))
+        }
       end;
 
 
