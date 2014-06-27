@@ -1960,7 +1960,7 @@ implementation
               end
             else
               resultdef:=right.resultdef;
-            inserttypeconv(left,sinttype);
+            inserttypeconv(left,get_int_type_for_pointer_arithmetic(rd));
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in current_settings.moduleswitches) or
@@ -1972,7 +1972,7 @@ implementation
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=caddnode.create(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(rd).pointeddef.size,get_int_type_for_pointer_arithmetic(rd),true));
                      typecheckpass(left);
                    end;
               end
@@ -1991,7 +1991,7 @@ implementation
              else
                resultdef:=left.resultdef;
 
-             inserttypeconv(right,sinttype);
+             inserttypeconv(right,get_int_type_for_pointer_arithmetic(ld));
              if nodetype in [addn,subn] then
                begin
                  if (lt=niln) then
@@ -2008,7 +2008,7 @@ implementation
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=caddnode.create(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(ld).pointeddef.size,get_int_type_for_pointer_arithmetic(ld),true));
                      typecheckpass(right);
                    end
                  end else
@@ -2016,7 +2016,7 @@ implementation
                       (tarraydef(ld).elementdef.size>1) then
                      begin
                        right:=caddnode.create(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,sinttype,true));
+                         cordconstnode.create(tarraydef(ld).elementdef.size,get_int_type_for_pointer_arithmetic(ld),true));
                        typecheckpass(right);
                      end;
                end
