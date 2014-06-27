@@ -728,7 +728,7 @@ implementation
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
-                       { TODO: decide if we still want to keep this }
+                       Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
                        consume(_SEMICOLON);
                      end
@@ -755,10 +755,10 @@ implementation
                        end;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
-                      far even on non-x86 platforms.
-                      TODO: decide if we still want to keep this }
+                      far even on non-x86 platforms. }
                     if try_to_consume(_FAR) then
                      begin
+                       Message1(parser_w_ptr_type_ignored,'FAR');
                        consume(_SEMICOLON);
                      end;
 {$endif x86}

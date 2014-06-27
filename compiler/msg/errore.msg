@@ -408,7 +408,7 @@ scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller t
 #
 # Parser
 #
-# 03337 is the last used one
+# 03338 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1521,6 +1521,10 @@ parser_e_default_value_val_const=03337_E_Default values can only be specified fo
 % when calling the routine, and the compiler will instead pass the specified
 % default (constant) value. As a result, default values can only be specified
 % for parameters that can accept constant values.
+parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
+% The specified pointer type modifier is ignored, because it is not supported on
+% the current platform. This happens, for example, when a far pointer is
+% declared on a non-x86 platform.
 %
 %
 %
