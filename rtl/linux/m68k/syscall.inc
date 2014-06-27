@@ -29,7 +29,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 
@@ -41,7 +45,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 
@@ -54,7 +62,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 
@@ -68,7 +80,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; [public,alias:'FPC_SYSCALL4'];
@@ -82,7 +98,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 
@@ -98,7 +118,11 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
 
@@ -115,6 +139,10 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5', 'a0'];
-  if (result < 0) then seterrno(-result);
+  if (result < 0) then
+  begin
+    seterrno(-result);
+    result:=TSysResult(-1);
+  end;
 end;
 
