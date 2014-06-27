@@ -115,7 +115,8 @@ interface
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
                   end;
               end
-{$if not defined(cpu16bitalu) and not defined(cpu8bitalu)}
+{$if not defined(cpu16bitalu) and not defined(cpu8bitalu) and not defined(m68k)}
+            { FIXME: reg_cgsize incorrectly identifies m68k as "without subregisters" }
             { On targets without 8/16 bit register components, 8/16-bit operations
               always adjust high bits of result, see 'maybeadjustresult' method in
               respective cgcpu.pas. Therefore 8/16-bit locations are valid as larger
