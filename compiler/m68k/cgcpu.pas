@@ -815,17 +815,14 @@ unit cgcpu;
 
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
-       href : treference;
-        size : tcgsize;
+        href : treference;
       begin
         href := ref;
         fixref(list,href);
         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-          size:=fromsize
-        else
-          size:=tosize;
+          a_load_reg_reg(list,fromsize,tosize,register,register);
         { move to destination reference }
-        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[size],register,href));
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],register,href));
       end;
 
 
@@ -1506,7 +1503,6 @@ unit cgcpu;
          hp2 : treference;
          hl : tasmlabel;
          srcref,dstref : treference;
-         alignsize : tcgsize;
          orglen : tcgint;
       begin
          hregister := getintregister(list,OS_INT);
@@ -1530,14 +1526,7 @@ unit cgcpu;
               { move a word }
               if len>1 then
                 begin
-                   if (orglen<sizeof(aint)) and
-                       (source.base=NR_FRAME_POINTER_REG) and
-                       (source.offset>0) then
-                     { copy of param to local location }
-                     alignsize:=OS_INT
-                   else
-                     alignsize:=OS_16;
-                   a_load_ref_reg(list,alignsize,alignsize,srcref,hregister);
+                   a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
                    a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
@@ -1546,14 +1535,7 @@ unit cgcpu;
               { move a single byte }
               if len>0 then
                 begin
-                   if (orglen<sizeof(aint)) and
-                       (source.base=NR_FRAME_POINTER_REG) and
-                       (source.offset>0) then
-                     { copy of param to local location }
-                     alignsize:=OS_INT
-                   else
-                     alignsize:=OS_8;
-                   a_load_ref_reg(list,alignsize,alignsize,srcref,hregister);
+                   a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
                    a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
            end

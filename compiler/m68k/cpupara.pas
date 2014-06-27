@@ -39,7 +39,8 @@ unit cpupara;
          rtl are used.
        }
        tm68kparamanager = class(tparamanager)
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -80,35 +81,24 @@ unit cpupara;
       end;
 
 
-    procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    function tm68kparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var
         paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
       begin
-         if nr<1 then
-           internalerror(2002070801);
-         psym:=tparavarsym(pd.paras[nr-1]);
-         pdef:=psym.vardef;
-         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-           pdef:=getpointerdef(pdef);
-         cgpara.reset;
-         cgpara.size:=def_cgsize(pdef);
-         cgpara.intsize:=tcgsize2size[cgpara.size];
-         cgpara.alignment:=std_param_align;
-         cgpara.def:=pdef;
-         paraloc:=cgpara.add_location;
-         with paraloc^ do
-           begin
-              { warning : THIS ONLY WORKS WITH INTERNAL ROUTINES,
-                WHICH MUST ALWAYS PASS 4-BYTE PARAMETERS!!
-              }
-              loc:=LOC_REFERENCE;
-              reference.index:=NR_STACK_POINTER_REG;
-              reference.offset:=target_info.first_parm_offset+nr*4;
-              size:=def_cgsize(pdef);
-              def:=pdef;
-           end;
+        if not assigned(cgpara.location) then
+          internalerror(200410102);
+        result:=true;
+        { All locations are LOC_REFERENCE }
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            if (paraloc^.loc<>LOC_REFERENCE) then
+              begin
+                result:=false;
+                exit;
+              end;
+            paraloc:=paraloc^.next;
+          end;
       end;
 
 
@@ -127,7 +117,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef:
-            result:=true;
+            result:=false;
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -140,7 +130,8 @@ unit cpupara;
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           procvardef :
-            result:=po_methodpointer in tprocvardef(def).procoptions;
+            { Handling of methods must match that of records }
+            result:=false;
         end;
       end;
 
@@ -150,6 +141,24 @@ unit cpupara;
         curintreg:=RS_D0;
         curfloatreg:=RS_FP0;
       end;
+
+
+    function tm68kparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+      begin
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
+
+        case def.typ of
+          recorddef:
+            if def.size in [1,2,4] then
+              begin
+                result:=false;
+                exit;
+              end;
+        end;
+        result:=inherited ret_in_param(def,pd);
+      end;
+
 
     function tm68kparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
@@ -286,7 +295,7 @@ unit cpupara;
 
                 paracgsize:=def_cgsize(paradef);
                 { for things like formaldef }
-                if (paracgsize=OS_NO) then
+                if (paracgsize=OS_NO) and (paradef.typ<>recorddef) then
                   begin
                     paracgsize:=OS_ADDR;
                     paralen := tcgsize2size[OS_ADDR];
@@ -314,17 +323,21 @@ unit cpupara;
 
                 paraloc^.loc:=LOC_REFERENCE;
                 paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                if paradef.typ<>orddef then
-                  paracgsize:=int_cgsize(paralen);
-                if paracgsize=OS_NO then
-                  paraloc^.size:=OS_INT
+                if (paradef.typ=floatdef) then
+                  paraloc^.size:=int_float_cgsize(paralen)
                 else
-                  paraloc^.size:=paracgsize;
+                  paraloc^.size:=int_cgsize(paralen);
+
+                paraloc^.reference.offset:=stack_offset;
                 if (side = callerside) then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
-                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                paraloc^.reference.offset:=stack_offset;
+                  begin
+                    paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    { M68K is a big-endian target }
+                    if (paralen<tcgsize2size[OS_INT]) then
+                      inc(paraloc^.reference.offset,4-paralen);
+                  end;
                 inc(stack_offset,align(paralen,4));
                 paralen := 0;
 

@@ -91,9 +91,7 @@ procedure FillChar(var x; count : longint; value : byte); assembler;
 asm
   move.l x, a0          { destination                   }
   move.l count, d1      { number of bytes to fill       }
-{ FIXME: this should be move.b, but everything is pushed as long on
-         the stack ATM (KB) }
-  move.l value, d0      { fill data                     }
+  move.b value, d0      { fill data                     }
   tst.l  d1             { anything to fill at all?      }
   ble    @LMEMSET5
 {$ifdef CPUM68K_HAS_DBRA}
@@ -321,9 +319,7 @@ procedure FillWord(var x; count : longint; value : word); assembler;
 asm
   move.l x, a0         { destination              }
   move.l count, d1     { number of bytes to fill  }
-{ FIXME: this should be move.w, but everything is pushed as long on
-         the stack ATM (KB) }
-  move.l value, d0     { fill data                }
+  move.w value, d0     { fill data                }
   tst.l  d1            { anything to fill at all? }
   ble @LMEMSET3
   bra @LMEMSET21
