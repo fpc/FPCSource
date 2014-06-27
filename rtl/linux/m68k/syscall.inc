@@ -29,7 +29,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -45,7 +45,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -62,7 +62,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -80,7 +80,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -98,7 +98,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4'];
-  if (result < 0) then
+    if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -118,7 +118,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
@@ -139,7 +139,7 @@ begin
     trap #0
     move.l d0, @Result
   end ['d0', 'd1', 'd2', 'd3', 'd4', 'd5', 'a0'];
-  if (result < 0) then
+  if (ptruint(result) > ptruint(-4096)) then
   begin
     seterrno(-result);
     result:=TSysResult(-1);
