@@ -145,7 +145,8 @@ interface
          cs_check_var_copyout,
          cs_zerobasedstrings,
          { i8086 specific }
-         cs_force_far_calls
+         cs_force_far_calls,
+         cs_hugeptr_normalization
        );
        tlocalswitches = set of tlocalswitch;
 

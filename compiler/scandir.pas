@@ -1569,6 +1569,16 @@ unit scandir;
         do_moduleswitch(cs_huge_code);
       end;
 
+    procedure dir_hugepointernormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message(scan_w_hugepointernormalization_not_support);
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_normalization);
+      end;
+
     procedure dir_weakpackageunit;
       begin
       end;
@@ -1672,6 +1682,7 @@ unit scandir;
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('HUGECODE',directive_all, @dir_hugecode);
+        AddDirective('HUGEPOINTERNORMALIZATION',directive_all,@dir_hugepointernormalization);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
