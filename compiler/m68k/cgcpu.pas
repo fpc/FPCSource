@@ -63,7 +63,7 @@ unit cgcpu;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
-        procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
+        procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); override;
 
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister; l : tasmlabel);override;
@@ -94,9 +94,8 @@ unit cgcpu;
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
 
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
-     protected
         function fixref(list: TAsmList; var ref: treference): boolean;
-
+     protected
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
      private
@@ -1178,7 +1177,7 @@ unit cgcpu;
         end;
       end;
 
-    procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
+    procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
       var
         hreg1, hreg2: tregister;
         opcode : tasmop;
@@ -1197,18 +1196,18 @@ unit cgcpu;
                 if current_settings.cputype in cpu_coldfire then
                   begin
                     { operation only allowed only a longword }
-                    sign_extend(list, size, reg1);
-                    sign_extend(list, size, reg2);
+                    sign_extend(list, size, src);
+                    sign_extend(list, size, dst);
                   end;
-                list.concat(taicpu.op_reg_reg(opcode, opsize, reg1, reg2));
+                list.concat(taicpu.op_reg_reg(opcode, opsize, src, dst));
               end;
           OP_AND,OP_OR,
           OP_SAR,OP_SHL,
           OP_SHR,OP_XOR:
               begin
                 { load to data registers }
-                hreg1 := force_to_dataregister(list, size, reg1);
-                hreg2 := force_to_dataregister(list, size, reg2);
+                hreg1 := force_to_dataregister(list, size, src);
+                hreg2 := force_to_dataregister(list, size, dst);
 
                 if current_settings.cputype in cpu_coldfire then
                   begin
@@ -1226,7 +1225,7 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
 
                 { move back result into destination register }
-                move_if_needed(list, size, hreg2, reg2);
+                move_if_needed(list, size, hreg2, dst);
               end;
           OP_DIV,
           OP_IDIV :
@@ -1239,14 +1238,14 @@ unit cgcpu;
                 if (current_settings.cputype <> cpu_mc68020) and
                    (not (current_settings.cputype in cpu_coldfire)) then
                   if op = OP_MUL then
-                    call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_dword')
+                    call_rtl_mul_reg_reg(list,src,dst,'fpc_mul_dword')
                   else
-                    call_rtl_mul_reg_reg(list,reg1,reg2,'fpc_mul_longint')
+                    call_rtl_mul_reg_reg(list,src,dst,'fpc_mul_longint')
                 else
                   begin
                     { 68020+ and ColdFire codepath, probably could be improved }
-                    hreg1 := force_to_dataregister(list, size, reg1);
-                    hreg2 := force_to_dataregister(list, size, reg2);
+                    hreg1 := force_to_dataregister(list, size, src);
+                    hreg2 := force_to_dataregister(list, size, dst);
 
                     sign_extend(list, size, hreg1);
                     sign_extend(list, size, hreg2);
@@ -1254,7 +1253,7 @@ unit cgcpu;
                     list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
 
                     { move back result into destination register }
-                    move_if_needed(list, size, hreg2, reg2);
+                    move_if_needed(list, size, hreg2, dst);
                   end;
               end;
           OP_NEG,
@@ -1263,10 +1262,10 @@ unit cgcpu;
                 { if there are two operands, move the register,
                   since the operation will only be done on the result
                   register. }
-                if reg1 <> NR_NO then
-                  hreg1:=reg1
+                if src <> NR_NO then
+                  hreg1:=src
                 else
-                  hreg1:=reg2;
+                  hreg1:=dst;
 
                 hreg2 := force_to_dataregister(list, size, hreg1);
 
@@ -1277,7 +1276,7 @@ unit cgcpu;
                 list.concat(taicpu.op_reg(opcode, opsize, hreg2));
 
                 { move back the result to the result register if needed }
-                move_if_needed(list, size, hreg2, reg2);
+                move_if_needed(list, size, hreg2, dst);
               end;
         else
             internalerror(20020729);
