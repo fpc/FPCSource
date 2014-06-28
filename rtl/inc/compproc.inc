@@ -746,3 +746,15 @@ function fpc_longword_to_double(i: longword): double; compilerproc;
 
 function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$endif}; compilerproc;
 procedure fpc_longjmp(var s : jmp_buf; value : {$ifdef CPU16}smallint{$else}longint{$endif}); compilerproc;
+
+{$ifdef i8086}
+{ i8086 huge pointer helpers }
+function fpc_hugeptr_add_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_add_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+procedure fpc_hugeptr_inc_longint(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_inc_longint_normalized(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_dec_longint(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_dec_longint_normalized(var p: HugePointer; n: LongInt); compilerproc;
+{$endif i8086}

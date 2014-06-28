@@ -667,4 +667,5 @@ Procedure SysResetFPU;
   end;
 
 {$I int32p.inc}
+{$I hugeptr.inc}
 

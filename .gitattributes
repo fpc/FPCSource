@@ -8176,6 +8176,7 @@ rtl/i386/setjump.inc svneol=native#text/plain
 rtl/i386/setjumph.inc svneol=native#text/plain
 rtl/i386/strings.inc svneol=native#text/plain
 rtl/i386/stringss.inc svneol=native#text/plain
+rtl/i8086/hugeptr.inc svneol=native#text/plain
 rtl/i8086/i8086.inc svneol=native#text/plain
 rtl/i8086/int32p.inc svneol=native#text/plain
 rtl/i8086/int64p.inc svneol=native#text/plain
