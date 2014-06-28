@@ -1262,12 +1262,10 @@ unit cgcpu;
                 { if there are two operands, move the register,
                   since the operation will only be done on the result
                   register. }
-                if src <> NR_NO then
-                  hreg1:=src
-                else
-                  hreg1:=dst;
+                if (src<>dst) then
+                  a_load_reg_reg(list,size,size,src,dst);
 
-                hreg2 := force_to_dataregister(list, size, hreg1);
+                hreg2 := force_to_dataregister(list, size, dst);
 
                 { coldfire only supports long version }
                 if current_settings.cputype in cpu_ColdFire then
