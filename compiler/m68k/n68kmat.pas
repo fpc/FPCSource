@@ -36,11 +36,10 @@ interface
       end;
 
       tm68kmoddivnode = class(tcgmoddivnode)
-      private
-        procedure call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
       public
-         procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
-         procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
+        function first_moddivint: tnode;override;
+        procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
+        procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
       end;
 
       tm68kshlshrnode = class(tshlshrnode)
@@ -126,34 +125,20 @@ implementation
           end;
       end;
 
-  procedure tm68kmoddivnode.call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
-    var
-      paraloc1,paraloc2 : tcgpara;
-      pd : tprocdef;
-    begin
-      pd:=search_system_proc(name);
-      paraloc1.init;
-      paraloc2.init;
-      paramanager.getintparaloc(pd,1,paraloc1);
-      paramanager.getintparaloc(pd,2,paraloc2);
-      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,num,paraloc2);
-      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,denum,paraloc1);
-      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
-      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
-      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
-      cg.a_call_name(current_asmdata.CurrAsmList,name,false);
-      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
-      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
-      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,NR_FUNCTION_RESULT_REG,num);
-      paraloc2.done;
-      paraloc1.done;
-    end;
 
 {*****************************************************************************
                                TM68KMODDIVNODE
 *****************************************************************************}
+
+  function tm68kmoddivnode.first_moddivint: tnode;
+    begin
+      if current_settings.cputype=cpu_MC68020 then
+        result:=nil
+      else
+        result:=inherited first_moddivint;
+    end;
+
+
   procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
    begin
      if current_settings.cputype=cpu_MC68020 then
@@ -164,13 +149,7 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
        end
      else
-       begin
-         { On MC68000/68010/Coldfire we must pass through RTL routines }
-         if signed then
-           call_rtl_divmod_reg_reg(denum,num,'fpc_div_longint')
-         else
-           call_rtl_divmod_reg_reg(denum,num,'fpc_div_dword');
-       end;
+       InternalError(2014062801);
    end;
 
 
@@ -192,13 +171,7 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,num,tmpreg));
        end
      else
-       begin
-         { On MC68000/68010/coldfire we must pass through RTL routines }
-         if signed then
-           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_longint')
-         else
-           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_dword');
-       end;
+       InternalError(2014062802);
     end;
 
 
