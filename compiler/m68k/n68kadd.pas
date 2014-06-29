@@ -480,19 +480,11 @@ implementation
          lten,
          gten:
            begin
-             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,right.location.value,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end
-             else
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,right.location.register,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end;
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,right.location.register));
              location.resflags:=F_E;
            end;
          else
