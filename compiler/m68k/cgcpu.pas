@@ -152,8 +152,8 @@ unit cgcpu;
        A_LSR,
        A_SUB,
        A_EOR,
-       A_NONE,
-       A_NONE
+       A_ROL,
+       A_ROR
       );
 
       { opcode with extend bits table lookup, used by 64bit cg }
@@ -1092,6 +1092,8 @@ unit cgcpu;
                         call_rtl_mul_const_reg(list, size, a, reg,'fpc_mul_longint');
                   end;
               end;
+          OP_ROL,
+          OP_ROR,
           OP_SAR,
           OP_SHL,
           OP_SHR :
