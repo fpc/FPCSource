@@ -1410,10 +1410,16 @@ implementation
                by typecasting an int64 constant to a record of 8 bytes }
              if locsize = OS_F64 then
                begin
-                 tmploc:=l;
-                 location_force_mem(list,tmploc,size);
-                 cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                 location_freetemp(list,tmploc);
+                 if (cgpara.Location^.Next=nil) and (l.size in [OS_64,OS_S64]) and
+                   (cgpara.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_reg_cgpara(list,l.register64,cgpara)
+                 else
+                   begin
+                     tmploc:=l;
+                     location_force_mem(list,tmploc,size);
+                     cg.a_load_loc_cgpara(list,tmploc,cgpara);
+                     location_freetemp(list,tmploc);
+                   end;
                end
              else
 {$endif not cpu64bitalu}
