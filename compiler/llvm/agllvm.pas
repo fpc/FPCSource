@@ -73,7 +73,6 @@ interface
         owner: TLLVMAssember;
         fstr: TSymStr;
 
-        function InstructionToString(hp : tai): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
       end;
 
@@ -339,21 +338,19 @@ implementation
 
 
   procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
-    begin
-      owner.AsmWriteLn(InstructionToString(hp));
-    end;
-
-
-  function TLLVMInstrWriter.InstructionToString(hp: tai): TSymStr;
     var
       op: tllvmop;
-      sep: TSymStr;
+      sep, tmpstr: TSymStr;
       i, opstart: byte;
       nested: boolean;
       done: boolean;
     begin
       op:=taillvm(hp).llvmopcode;
-      fstr:=#9;
+      { we write everything immediately rather than adding it into a string,
+        because operands may contain other tai that will also write things out
+        (and their output must come after everything that was processed in this
+         instruction, such as its opcode or previous operands) }
+      owner.AsmWrite(#9);
       sep:=' ';
       done:=false;
       opstart:=0;
@@ -372,13 +369,13 @@ implementation
         la_call:
           begin
             if taillvm(hp).oper[0]^.reg<>NR_NO then
-              fstr:=fstr+getregisterstring(taillvm(hp).oper[0]^.reg)+' = ';
+              owner.AsmWrite(getregisterstring(taillvm(hp).oper[0]^.reg)+' = ');
             sep:=' ';
             opstart:=1;
           end;
         la_alloca:
           begin
-            fstr:=fstr+getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ';
+            owner.AsmWrite(getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ');
             sep:=' ';
             opstart:=1;
           end;
@@ -391,20 +388,27 @@ implementation
               data initialisers }
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
-              fstr:=fstr+getopstr(taillvm(hp).oper[0]^,false)+' = '
+              begin
+                owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ');
+              end
             else
               nested:=true;
-            fstr:=fstr+llvm_op2str[op]+' '+
-              getopstr(taillvm(hp).oper[1]^,false)+' '+
-              getopstr(taillvm(hp).oper[2]^,false)+' to '+
-              getopstr(taillvm(hp).oper[3]^,false);
+            owner.AsmWrite(llvm_op2str[op]);
+            owner.AsmWrite(' ');
+            owner.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
+            owner.AsmWrite(' ');
+            owner.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
+            owner.AsmWrite(' to ');
+            owner.AsmWrite(getopstr(taillvm(hp).oper[3]^,false));
             done:=true;
           end
         else
           begin
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
-              fstr:=fstr+getopstr(taillvm(hp).oper[0]^,true)+' = '
+              begin
+                owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,true)+' = ');
+              end
             else
               nested:=true;
             sep:=' ';
@@ -414,14 +418,15 @@ implementation
       { process operands }
       if not done then
         begin
-          fstr:=fstr+llvm_op2str[op];
+          owner.AsmWrite(llvm_op2str[op]);
           if nested then
-            fstr:=fstr+' (';
+            owner.AsmWrite(' (');
           if taillvm(hp).ops<>0 then
             begin
               for i:=opstart to taillvm(hp).ops-1 do
                 begin
-                   fstr:=fstr+sep+getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]);
+                   owner.AsmWrite(sep);
+                   owner.AsmWrite(getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]));
                    if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
                       (op=la_call) then
                      sep :=' '
@@ -431,12 +436,10 @@ implementation
             end;
         end;
       if op=la_alloca then
-        begin
-          fstr:=fstr+getreferencealignstring(taillvm(hp).oper[0]^.ref^)
-        end;
+        owner.AsmWrite(getreferencealignstring(taillvm(hp).oper[0]^.ref^));
       if nested then
-        fstr:=fstr+')';
-      result:=fstr;
+        owner.AsmWrite(')');
+      owner.AsmLn;
     end;
 
 {****************************************************************************}
