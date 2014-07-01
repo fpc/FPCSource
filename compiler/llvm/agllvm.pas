@@ -544,7 +544,8 @@ implementation
         pdata: pbyte;
         index, step, swapmask, count: longint;
       begin
-//        if do_line then
+        if do_line and
+           (fdecllevel=0) then
           begin
             case tai_realconst(hp).realtyp of
               aitrealconst_s32bit:
@@ -562,6 +563,21 @@ implementation
                 internalerror(2014050604);
             end;
           end;
+        case hp.realtyp of
+          aitrealconst_s32bit:
+            AsmWriteln(llvmdoubletostr(hp.value.s32val));
+          aitrealconst_s64bit:
+            AsmWriteln(llvmdoubletostr(hp.value.s64val));
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+          aitrealconst_s80bit:
+            AsmWriteln(llvmextendedtostr(hp.value.s80val));
+{$endif defined(cpuextended)}
+          aitrealconst_s64comp:
+            { handled as int64 most of the time in llvm }
+            AsmWriteln(tostr(round(hp.value.s64compval)));
+          else
+            internalerror(2014062401);
+        end;
       end;
 
 
@@ -569,7 +585,8 @@ implementation
       var
         consttyp: taiconst_type;
       begin
-        asmwrite(target_asm.comment+' const ');
+        if fdecllevel=0 then
+          asmwrite(target_asm.comment+' const ');
         consttyp:=hp.consttype;
         case consttyp of
           aitconst_got,
