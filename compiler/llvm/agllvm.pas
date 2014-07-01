@@ -842,47 +842,47 @@ implementation
 
 
     procedure TLLVMAssember.WriteDirectiveName(dir: TAsmDirective);
-    begin
-      AsmWrite('.'+directivestr[dir]+' ');
-    end;
+      begin
+        AsmWrite('.'+directivestr[dir]+' ');
+      end;
 
 
     procedure TLLVMAssember.WriteAsmList;
-    var
-      n : string;
-      hal : tasmlisttype;
-      i: longint;
-    begin
+      var
+        n : string;
+        hal : tasmlisttype;
+        i: longint;
+      begin
 
-      if current_module.mainsource<>'' then
-        n:=ExtractFileName(current_module.mainsource)
-      else
-        n:=InputFileName;
+        if current_module.mainsource<>'' then
+          n:=ExtractFileName(current_module.mainsource)
+        else
+          n:=InputFileName;
 
-      { gcc does not add it either for Darwin. Grep for
-        TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
-      }
-      if not(target_info.system in systems_darwin) then
-        AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+        { gcc does not add it either for Darwin. Grep for
+          TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
+        }
+        if not(target_info.system in systems_darwin) then
+          AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
 
-      WriteExtraHeader;
-      AsmStartSize:=AsmSize;
-      symendcount:=0;
+        WriteExtraHeader;
+        AsmStartSize:=AsmSize;
+        symendcount:=0;
 
-      for hal:=low(TasmlistType) to high(TasmlistType) do
-        begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
-        end;
+        for hal:=low(TasmlistType) to high(TasmlistType) do
+          begin
+            AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+            writetree(current_asmdata.asmlists[hal]);
+            AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+          end;
 
-      { add weak symbol markers }
-      for i:=0 to current_asmdata.asmsymboldict.count-1 do
-        if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
+        { add weak symbol markers }
+        for i:=0 to current_asmdata.asmsymboldict.count-1 do
+          if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
+            writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
-      AsmLn;
-    end;
+        AsmLn;
+      end;
 
 
 
