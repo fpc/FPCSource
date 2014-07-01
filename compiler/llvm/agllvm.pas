@@ -850,10 +850,12 @@ implementation
 
           ait_symbol :
             begin
-              { should be emitted as part of the variable/function def }
-              asmwrite('; (ait_symbol error, should be part of variable/function def) :');
+              if fdecllevel=0 then
+                AsmWrite(target_asm.comment);
               asmwriteln(tai_symbol(hp).sym.name);
-//             internalerror(2013010705);
+              { todo }
+              if tai_symbol(hp).has_value then
+                internalerror(2014062402);
             end;
           ait_llvmdecl:
             begin
