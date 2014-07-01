@@ -141,9 +141,12 @@ interface
     { declarations/definitions of symbols (procedures, variables), both defined
       here and external }
     taillvmdecl = class(tai)
+      { initialisation data, if any }
+      initdata: tasmlist;
       namesym: tasmsymbol;
       def: tdef;
-      constructor create(_namesym: tasmsymbol; _def: tdef);
+      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist);
+      destructor destroy; override;
     end;
 
     { parameter to an llvm call instruction }
@@ -168,12 +171,19 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef);
+    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist);
       begin
         inherited create;
         typ:=ait_llvmdecl;
         namesym:=_namesym;
         def:=_def;
+        initdata:=_initdata;
+      end;
+
+    destructor taillvmdecl.destroy;
+      begin
+        initdata.free;
+        inherited destroy;
       end;
 
     { taillvmalias }
@@ -209,7 +219,7 @@ uses
               internalerror(2014020701);
             def:=tpointerdef(def).pointeddef;
           end;
-        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def));
+        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil));
         ref.symbol.declared:=true;
       end;
 

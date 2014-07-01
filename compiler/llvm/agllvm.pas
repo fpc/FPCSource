@@ -36,6 +36,8 @@ interface
 
       TLLVMAssember=class(texternalassembler)
       protected
+        fdecllevel: longint;
+
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
@@ -48,6 +50,7 @@ interface
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
        public
         constructor create(smart: boolean); override;
+        procedure AsmLn; override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -576,6 +579,86 @@ implementation
 
 
     procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
+
+      procedure WriteTypedConstData(hp: tai_abstracttypedconst);
+        var
+          p: tai_abstracttypedconst;
+          pval: tai;
+          defstr: TSymStr;
+          first, gotstring: boolean;
+        begin
+          { special case: tck_simple_procvar2proc; this means that we want the
+            procdef of the procvardef, rather than both the procdef and the
+            method/nestedfp/... pointers }
+          if hp.adetyp<>tck_simple_procvar2proc then
+            defstr:=llvmencodetype(hp.def)
+          else
+            defstr:=llvmencodeproctype(tabstractprocdef(hp.def),'',lpd_procvar);
+          { write the struct, array or simple type }
+          case hp.adetyp of
+            tck_record:
+              begin
+                AsmWrite(defstr);
+                AsmWrite(' ');
+                AsmWrite('<{');
+                first:=true;
+                for p in tai_aggregatetypedconst(hp) do
+                  begin
+                    if not first then
+                      AsmWrite(', ')
+                    else
+                      first:=false;
+                    WriteTypedConstData(p);
+                  end;
+                AsmWrite('}>');
+              end;
+            tck_array:
+              begin
+                AsmWrite(defstr);
+                first:=true;
+                gotstring:=false;
+                for p in tai_aggregatetypedconst(hp) do
+                  begin
+                    if not first then
+                      AsmWrite(',')
+                    else
+                      begin
+                        AsmWrite(' ');
+                        if (tai_abstracttypedconst(p).adetyp=tck_simple) and
+                           (tai_simpletypedconst(p).val.typ=ait_string) then
+                          begin
+                            gotstring:=true;
+                          end
+                        else
+                          begin
+                            AsmWrite('[');
+                          end;
+                        first:=false;
+                      end;
+                    { cannot concat strings and other things }
+                    if gotstring and
+                       ((tai_abstracttypedconst(p).adetyp<>tck_simple) or
+                        (tai_simpletypedconst(p).val.typ<>ait_string)) then
+                      internalerror(2014062701);
+                    WriteTypedConstData(p);
+                  end;
+                if not gotstring then
+                  AsmWrite(']');
+              end;
+            tck_simple,
+            tck_simple_procvar2proc:
+              begin
+                pval:=tai_simpletypedconst(hp).val;
+                if pval.typ<>ait_string then
+                  begin
+                    AsmWrite(defstr);
+                    AsmWrite(' ');
+                  end;
+                WriteTai(replaceforbidden,do_line,InlineLevel,pval);
+              end;
+          end;
+        end;
+
       var
         hp2: tai;
         s: string;
@@ -713,9 +796,28 @@ implementation
                     else
                       internalerror(2014020104);
                   end;
-                  asmwrite(llvmencodetype(taillvmdecl(hp).def));
-                  if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
-                    asmwrite(' zeroinitializer');
+                  if not assigned(taillvmdecl(hp).initdata) then
+                    begin
+                      asmwrite(llvmencodetype(taillvmdecl(hp).def));
+                      if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
+                        asmwrite(' zeroinitializer');
+                    end
+                  else
+                    begin
+                      inc(fdecllevel);
+                      { can't have an external symbol with initialisation data }
+                      if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL] then
+                        internalerror(2014052905);
+                      { bitcast initialisation data to the type of the constant }
+                      { write initialisation data }
+                      hp2:=tai(taillvmdecl(hp).initdata.first);
+                      while assigned(hp2) do
+                        begin
+                          WriteTai(replaceforbidden,do_line,InlineLevel,hp2);
+                          hp2:=tai(hp2.next);
+                        end;
+                      dec(fdecllevel);
+                    end;
                   { alignment }
                   asmwrite(', align ');
                   asmwriteln(tostr(taillvmdecl(hp).def.alignment));
@@ -827,6 +929,10 @@ implementation
                   std_regname(tai_varloc(hp).newlocation)));
               AsmLn;
             end;
+           ait_typedconst:
+             begin
+               WriteTypedConstData(tai_abstracttypedconst(hp));
+             end
           else
             internalerror(2006012201);
         end;
@@ -837,6 +943,14 @@ implementation
       begin
         inherited create(smart);
         InstrWriter:=TLLVMInstrWriter.create(self);
+      end;
+
+
+    procedure TLLVMAssember.AsmLn;
+      begin
+        { don't write newlines in the middle of declarations }
+        if fdecllevel=0 then
+          inherited AsmLn;
       end;
 
 

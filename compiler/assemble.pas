@@ -120,7 +120,7 @@ interface
         Procedure AsmWriteLn(const s:ansistring);
 
         {# Write a new line to the assembler file }
-        Procedure AsmLn;
+        Procedure AsmLn; virtual;
 
         procedure AsmCreate(Aplace:tcutplace);
         procedure AsmClose;
