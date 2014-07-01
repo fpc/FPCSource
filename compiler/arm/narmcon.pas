@@ -53,11 +53,11 @@ interface
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
       const
-        floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+        floattype2ait:array[tfloattype] of tairealconsttype=
+          (aitrealconst_s32bit,aitrealconst_s64bit,aitrealconst_s80bit,aitrealconst_s80bit,aitrealconst_s64comp,aitrealconst_s64comp,aitrealconst_s128bit);
       var
          lastlabel : tasmlabel;
-         realait : taitype;
+         realait : tairealconsttype;
          hiloswapped : boolean;
 
       begin
@@ -73,55 +73,55 @@ interface
             current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
             location.reference.symboldata:=current_procinfo.aktlocaldata.last;
             case realait of
-              ait_real_32bit :
+              aitrealconst_s32bit :
                 begin
-                  current_procinfo.aktlocaldata.concat(Tai_real_32bit.Create(ts32real(value_real)));
+                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s32real(ts32real(value_real)));
                   { range checking? }
                   if floating_point_range_check_error and
-                    (tai_real_32bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
+                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s32val=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 
-              ait_real_64bit :
+              aitrealconst_s64bit :
                 begin
                   if hiloswapped then
-                    current_procinfo.aktlocaldata.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
+                    current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
                   else
-                    current_procinfo.aktlocaldata.concat(Tai_real_64bit.Create(ts64real(value_real)));
+                    current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real(ts64real(value_real)));
 
                   { range checking? }
                   if floating_point_range_check_error and
-                    (tai_real_64bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
+                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s64val=MathInf.Value) then
                     Message(parser_e_range_check_error);
                end;
 
-              ait_real_80bit :
+              aitrealconst_s80bit :
                 begin
-                  current_procinfo.aktlocaldata.concat(Tai_real_80bit.Create(value_real,tfloatdef(resultdef).size));
+                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
 
                   { range checking? }
                   if floating_point_range_check_error and
-                    (tai_real_80bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
+                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s80val=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 {$ifdef cpufloat128}
-              ait_real_128bit :
+              aitrealconst_s128bit :
                 begin
-                  current_procinfo.aktlocaldata.concat(Tai_real_128bit.Create(value_real));
+                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s128real(value_real));
 
                   { range checking? }
                   if floating_point_range_check_error and
-                    (tai_real_128bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
+                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s128val=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 {$endif cpufloat128}
 
               { the round is necessary for native compilers where comp isn't a float }
-              ait_comp_64bit :
+              aitrealconst_s64comp :
                 if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
                   message(parser_e_range_check_error)
                 else
-                  current_procinfo.aktlocaldata.concat(Tai_comp_64bit.Create(round(value_real)));
+                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s64compreal(round(value_real)));
             else
               internalerror(2005092401);
             end;

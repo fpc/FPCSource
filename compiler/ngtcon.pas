@@ -734,25 +734,25 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
         case def.floattype of
            s32real :
-             list.concat(Tai_real_32bit.Create(ts32real(value)));
+             list.concat(tai_realconst.create_s32real(ts32real(value)));
            s64real :
 {$ifdef ARM}
              if is_double_hilo_swapped then
-               list.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value)))
+               list.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value)))
              else
 {$endif ARM}
-               list.concat(Tai_real_64bit.Create(ts64real(value)));
+               list.concat(tai_realconst.create_s64real(ts64real(value)));
            s80real :
-             list.concat(Tai_real_80bit.Create(value,s80floattype.size));
+             list.concat(tai_realconst.create_s80real(value,s80floattype.size));
            sc80real :
-             list.concat(Tai_real_80bit.Create(value,sc80floattype.size));
+             list.concat(tai_realconst.create_s80real(value,sc80floattype.size));
            s64comp :
              { the round is necessary for native compilers where comp isn't a float }
-             list.concat(Tai_comp_64bit.Create(round(value)));
+             list.concat(tai_realconst.create_s64compreal(round(value)));
            s64currency:
-             list.concat(Tai_comp_64bit.Create(round(value*10000)));
+             list.concat(tai_realconst.create_s64compreal(round(value*10000)));
            s128real:
-             list.concat(Tai_real_128bit.Create(value));
+             list.concat(tai_realconst.create_s128real(value));
            else
              internalerror(200611053);
         end;

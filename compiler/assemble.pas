@@ -83,6 +83,10 @@ interface
         lastsectype : TAsmSectionType;
         procedure WriteSourceLine(hp: tailineinfo);
         procedure WriteTempalloc(hp: tai_tempalloc);
+        procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+        function single2str(d : single) : string; virtual;
+        function double2str(d : double) : string; virtual;
+        function extended2str(e : extended) : string; virtual;
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -270,6 +274,40 @@ Implementation
 {*****************************************************************************
                                  TExternalAssembler
 *****************************************************************************}
+
+    function TExternalAssembler.single2str(d : single) : string;
+      var
+         hs : string;
+      begin
+         str(d,hs);
+      { replace space with + }
+         if hs[1]=' ' then
+          hs[1]:='+';
+         single2str:='0d'+hs
+      end;
+
+    function TExternalAssembler.double2str(d : double) : string;
+      var
+         hs : string;
+      begin
+         str(d,hs);
+      { replace space with + }
+         if hs[1]=' ' then
+          hs[1]:='+';
+         double2str:='0d'+hs
+      end;
+
+    function TExternalAssembler.extended2str(e : extended) : string;
+      var
+         hs : string;
+      begin
+         str(e,hs);
+      { replace space with + }
+         if hs[1]=' ' then
+          hs[1]:='+';
+         extended2str:='0d'+hs
+      end;
+
 
     Function DoPipe:boolean;
       begin
@@ -774,6 +812,109 @@ Implementation
             tostr(hp.tempsize)+' '+tempallocstr[hp.allocation]);
       end;
 
+
+    procedure TExternalAssembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+      var
+        pdata: pbyte;
+        index, step, swapmask, count: longint;
+        ssingle: single;
+        ddouble: double;
+        ccomp: comp;
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+        eextended: extended;
+{$endif cpuextended}
+      begin
+        if do_line then
+          begin
+            case tai_realconst(hp).realtyp of
+              aitrealconst_s32bit:
+                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+              aitrealconst_s64bit:
+                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+              { can't write full 80 bit floating point constants yet on non-x86 }
+              aitrealconst_s80bit:
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+{$endif cpuextended}
+              aitrealconst_s64comp:
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+              else
+                internalerror(2014050604);
+            end;
+          end;
+        AsmWrite(dbdir);
+        { generic float writing code: get start address of value, then write
+          byte by byte. Can't use fields directly, because e.g ts64comp is
+          defined as extended on x86 }
+        case tai_realconst(hp).realtyp of
+          aitrealconst_s32bit:
+            begin
+              ssingle:=single(tai_realconst(hp).value.s32val);
+              pdata:=@ssingle;
+            end;
+          aitrealconst_s64bit:
+            begin
+              ddouble:=double(tai_realconst(hp).value.s64val);
+              pdata:=@ddouble;
+            end;
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+          { can't write full 80 bit floating point constants yet on non-x86 }
+          aitrealconst_s80bit:
+            begin
+              eextended:=extended(tai_realconst(hp).value.s80val);
+              pdata:=@eextended;
+            end;
+{$endif cpuextended}
+          aitrealconst_s64comp:
+            begin
+              ccomp:=comp(tai_realconst(hp).value.s64compval);
+              pdata:=@ccomp;
+            end;
+          else
+            internalerror(2014051001);
+        end;
+        count:=tai_realconst(hp).datasize;
+        { write bytes in inverse order if source and target endianess don't
+          match }
+        if source_info.endian<>target_info.endian then
+          begin
+            { go from back to front }
+            index:=count-1;
+            step:=-1;
+          end
+        else
+          begin
+            index:=0;
+            step:=1;
+          end;
+{$ifdef ARM}
+        { ARM-specific: low and high dwords of a double may be swapped }
+        if tai_realconst(hp).formatoptions=fo_hiloswapped then
+          begin
+            { only supported for double }
+            if tai_realconst(hp).datasize<>8 then
+              internalerror(2014050605);
+            { switch bit of the index so that the words are written in
+              the opposite order }
+            swapmask:=4;
+          end
+        else
+{$endif ARM}
+          swapmask:=0;
+        repeat
+          AsmWrite(tostr(pdata[index xor swapmask]));
+          inc(index,step);
+          dec(count);
+          if count<>0 then
+            AsmWrite(',');
+        until count=0;
+        { padding }
+        for count:=tai_realconst(hp).datasize+1 to tai_realconst(hp).savesize do
+          AsmWrite(',0');
+        AsmLn;
+      end;
+
+
     procedure TExternalAssembler.WriteTree(p:TAsmList);
       begin
       end;
@@ -1161,14 +1302,8 @@ Implementation
                      ObjData.alloc(Tai_datablock(hp).size);
                    end;
                end;
-             ait_real_80bit :
-               ObjData.alloc(tai_real_80bit(hp).savesize);
-             ait_real_64bit :
-               ObjData.alloc(8);
-             ait_real_32bit :
-               ObjData.alloc(4);
-             ait_comp_64bit :
-               ObjData.alloc(8);
+             ait_realconst:
+               ObjData.alloc(tai_realconst(hp).savesize);
              ait_const:
                begin
                  { if symbols are provided we can calculate the value for relative symbols.
@@ -1291,14 +1426,8 @@ Implementation
                      ObjData.alloc(Tai_datablock(hp).size);
                    end;
                end;
-             ait_real_80bit :
-               ObjData.alloc(tai_real_80bit(hp).savesize);
-             ait_real_64bit :
-               ObjData.alloc(8);
-             ait_real_32bit :
-               ObjData.alloc(4);
-             ait_comp_64bit :
-               ObjData.alloc(8);
+             ait_realconst:
+               ObjData.alloc(tai_realconst(hp).savesize);
              ait_const:
                begin
                  { Recalculate relative symbols }
@@ -1427,21 +1556,10 @@ Implementation
                      ObjData.alloc(Tai_datablock(hp).size);
                    end;
                end;
-             ait_real_80bit :
+             ait_realconst:
                begin
-                 ObjData.writebytes(Tai_real_80bit(hp).value,10);
-                 ObjData.writebytes(zerobuf,Tai_real_80bit(hp).savesize-10);
-               end;
-             ait_real_64bit :
-               ObjData.writebytes(Tai_real_64bit(hp).value,8);
-             ait_real_32bit :
-               ObjData.writebytes(Tai_real_32bit(hp).value,4);
-             ait_comp_64bit :
-               begin
-{$ifdef x86}
-                 co:=comp(Tai_comp_64bit(hp).value);
-                 ObjData.writebytes(co,8);
-{$endif x86}
+                 ObjData.writebytes(tai_realconst(hp).value,tai_realconst(hp).datasize);
+                 ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-tai_realconst(hp).datasize);
                end;
              ait_string :
                ObjData.writebytes(Tai_string(hp).str^,Tai_string(hp).len);

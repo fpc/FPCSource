@@ -391,19 +391,9 @@ implementation
 //                 internalerror(2010122702);
                end;
 
-             ait_real_64bit :
+             ait_realconst :
                begin
                  internalerror(2010122703);
-               end;
-
-             ait_real_32bit :
-               begin
-                 internalerror(2010122703);
-               end;
-
-             ait_comp_64bit :
-               begin
-                 internalerror(2010122704);
                end;
 
              ait_string :

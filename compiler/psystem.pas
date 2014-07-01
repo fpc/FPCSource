@@ -700,10 +700,7 @@ implementation
         aiclass[ait_directive]:=tai_directive;
         aiclass[ait_label]:=tai_label;
         aiclass[ait_const]:=tai_const;
-        aiclass[ait_real_32bit]:=tai_real_32bit;
-        aiclass[ait_real_64bit]:=tai_real_64bit;
-        aiclass[ait_real_80bit]:=tai_real_80bit;
-        aiclass[ait_comp_64bit]:=tai_comp_64bit;
+        aiclass[ait_realconst]:=tai_realconst;
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;

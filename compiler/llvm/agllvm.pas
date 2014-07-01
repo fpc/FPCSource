@@ -43,6 +43,7 @@ interface
 //        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
         procedure WriteWeakSymbolDef(s: tasmsymbol);
+        procedure WriteRealConst(hp: tai_realconst; do_line: boolean);
        public
         constructor create(smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
@@ -532,38 +533,9 @@ implementation
                AsmWriteln('const');
              end;
 
-           { the "and defined(FPC_HAS_TYPE_EXTENDED)" isn't optimal but currently the only solution
-             it prevents proper cross compilation to i386 though
-           }
-{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
-           ait_real_80bit :
+           ait_realconst :
              begin
-//               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_real_80bit(hp).value));
-             end;
-{$endif cpuextended}
-
-           ait_real_32bit,
-           ait_real_64bit:
-             begin
-               if hp.typ=ait_real_32bit then
-                 begin
-//                   if do_line then
-                    AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
-//                   d:=tai_real_32bit(hp).value
-                 end
-               else
-                 begin
-//                   if do_line then
-                     AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
-//                   d:=tai_real_64bit(hp).value;
-                 end;
-             end;
-
-           ait_comp_64bit :
-             begin
-//               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_comp_64bit(hp).value));
+               WriteRealConst(tai_realconst(hp),do_line);
              end;
 
            ait_string :
@@ -790,6 +762,32 @@ implementation
     procedure TLLVMAssember.WriteWeakSymbolDef(s: tasmsymbol);
       begin
         AsmWriteLn(#9'.weak '+s.name);
+      end;
+
+
+    procedure TLLVMAssember.WriteRealConst(hp: tai_realconst; do_line: boolean);
+      var
+        pdata: pbyte;
+        index, step, swapmask, count: longint;
+      begin
+//        if do_line then
+          begin
+            case tai_realconst(hp).realtyp of
+              aitrealconst_s32bit:
+                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+              aitrealconst_s64bit:
+                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+              { can't write full 80 bit floating point constants yet on non-x86 }
+              aitrealconst_s80bit:
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+{$endif cpuextended}
+              aitrealconst_s64comp:
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+              else
+                internalerror(2014050604);
+            end;
+          end;
       end;
 
 
