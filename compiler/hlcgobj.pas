@@ -3991,7 +3991,7 @@ implementation
                 cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
               else
 {$endif cpu64bitalu}
-                cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
+                a_load_reg_reg(list,n.resultdef,n.resultdef,n.location.register,rr.new);
             end;
           LOC_CFPUREGISTER:
             cg.a_loadfpu_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
@@ -4000,7 +4000,7 @@ implementation
             cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);
 {$endif SUPPORT_MMX}
           LOC_CMMREGISTER:
-            cg.a_loadmm_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new,nil);
+            a_loadmm_reg_reg(list,n.resultdef,n.resultdef,n.location.register,rr.new,nil);
           else
             internalerror(2006090920);
         end;
