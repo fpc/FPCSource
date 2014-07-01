@@ -94,6 +94,8 @@ interface
       (struct, array) }
     function llvmaggregatetype(def: tdef): boolean;
 
+    function llvmconvop(fromsize, tosize: tdef): tllvmop;
+
 
 implementation
 
@@ -102,7 +104,7 @@ implementation
     verbose,systems,
     fmodule,
     symtable,symconst,symsym,
-    llvmsym,
+    llvmsym,hlcgobj,
     defutil,cgbase,paramgr;
 
 
@@ -122,6 +124,75 @@ implementation
         is_object(def) or
         ((def.typ=procvardef) and
          not tprocvardef(def).is_addressonly)
+    end;
+
+
+  function llvmconvop(fromsize, tosize: tdef): tllvmop;
+    var
+      fromregtyp,
+      toregtyp: tregistertype;
+      frombytesize,
+      tobytesize: asizeint;
+    begin
+      fromregtyp:=hlcg.def2regtyp(fromsize);
+      toregtyp:=hlcg.def2regtyp(tosize);
+      { int to pointer or vice versa }
+      if fromregtyp=R_ADDRESSREGISTER then
+        begin
+          case toregtyp of
+            R_INTREGISTER:
+              result:=la_ptrtoint;
+            R_ADDRESSREGISTER:
+              result:=la_bitcast;
+            else
+              result:=la_ptrtoint_to_x;
+            end;
+        end
+      else if toregtyp=R_ADDRESSREGISTER then
+        begin
+          case fromregtyp of
+            R_INTREGISTER:
+              result:=la_inttoptr;
+            R_ADDRESSREGISTER:
+              result:=la_bitcast;
+            else
+              result:=la_x_to_inttoptr;
+            end;
+        end
+      else
+        begin
+          frombytesize:=fromsize.size;
+          tobytesize:=tosize.size;
+          { need zero/sign extension, float truncation or plain bitcast? }
+          if tobytesize<>frombytesize then
+            begin
+              case fromregtyp of
+                R_FPUREGISTER,
+                R_MMREGISTER:
+                  begin
+                    { todo: update once we support vectors }
+                    if not(toregtyp in [R_FPUREGISTER,R_MMREGISTER]) then
+                      internalerror(2014062203);
+                    if tobytesize<frombytesize then
+                      result:=la_fptrunc
+                    else
+                      result:=la_fpext
+                  end;
+                else
+                  begin
+                    if tobytesize<frombytesize then
+                      result:=la_trunc
+                    else if is_signed(fromsize) then
+                      { fromsize is signed -> sign extension }
+                      result:=la_sext
+                    else
+                      result:=la_zext;
+                  end;
+              end;
+            end
+          else
+            result:=la_bitcast;
+        end;
     end;
 
 

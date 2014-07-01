@@ -480,32 +480,35 @@ implementation
 
   procedure thlcgllvm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     var
-      fromregtyp,
-      toregtyp: tregistertype;
       op: tllvmop;
+      tmpreg: tregister;
+      tmpintdef: tdef;
     begin
-      fromregtyp:=def2regtyp(fromsize);
-      toregtyp:=def2regtyp(tosize);
-      { int to pointer or vice versa }
-      if (fromregtyp=R_ADDRESSREGISTER) and
-         (toregtyp=R_INTREGISTER) then
-        op:=la_ptrtoint
-      else if (fromregtyp=R_INTREGISTER) and
-         (toregtyp=R_ADDRESSREGISTER) then
-        op:=la_inttoptr
-      { int to int or ptr to ptr: need zero/sign extension, or plain bitcast? }
-      else if tosize.size<>fromsize.size then
-        begin
-          if tosize.size<fromsize.size then
-            op:=la_trunc
-          else if is_signed(fromsize) then
-            { fromsize is signed -> sign extension }
-            op:=la_sext
-          else
-            op:=la_zext;
-        end
-      else
-        op:=la_bitcast;
+      op:=llvmconvop(fromsize,tosize);
+      { converting from pointer to something else and vice versa is only
+        possible via an intermediate pass to integer. Same for "something else"
+        to pointer. }
+      case op of
+        la_ptrtoint_to_x,
+        la_x_to_inttoptr:
+          begin
+            { convert via an integer with the same size as "x" }
+            if op=la_ptrtoint_to_x then
+              begin
+                tmpintdef:=cgsize_orddef(def_cgsize(tosize));
+                op:=la_bitcast
+              end
+            else
+              begin
+                tmpintdef:=cgsize_orddef(def_cgsize(fromsize));
+                op:=la_inttoptr;
+              end;
+            tmpreg:=getintregister(list,tmpintdef);
+            a_load_reg_reg(list,fromsize,tmpintdef,reg1,tmpreg);
+            reg1:=tmpreg;
+            fromsize:=tmpintdef;
+          end;
+      end;
       { reg2 = bitcast fromsize reg1 to tosize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
     end;

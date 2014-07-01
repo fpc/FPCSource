@@ -58,7 +58,9 @@ interface
         'phi', 'select', 'call',
         'va_arg', 'landingpad',
         { fpc pseudo opcodes }
-        'type' { type definition }
+        'type', { type definition }
+        'invalid1', { la_x_to_inttoptr }
+        'invalid2'  { la_ptrtoint_to_x }
       );
 
       llvm_cond2str : array[topcmp] of ansistring = ('',
