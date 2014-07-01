@@ -71,6 +71,7 @@ interface
         procedure WriteInstruction(hp : tai);
        protected
         owner: TLLVMAssember;
+        fstr: TSymStr;
 
         function InstructionToString(hp : tai): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
@@ -265,6 +266,8 @@ implementation
    function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
      var
        hs : ansistring;
+       hp: tai;
+       tmpinline: cardinal;
      begin
        case o.typ of
          top_reg:
@@ -316,7 +319,12 @@ implementation
            end;
          top_tai:
            begin
-             result:=InstructionToString(o.ai);
+             tmpinline:=1;
+             hp:=o.ai;
+             owner.AsmWrite(fstr);
+             fstr:='';
+             owner.WriteTai(false,false,tmpinline,hp);
+             result:='';
            end;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
          top_extended80:
@@ -339,15 +347,17 @@ implementation
   function TLLVMInstrWriter.InstructionToString(hp: tai): TSymStr;
     var
       op: tllvmop;
-      s, sep: TSymStr;
+      sep: TSymStr;
       i, opstart: byte;
+      nested: boolean;
       done: boolean;
     begin
       op:=taillvm(hp).llvmopcode;
-      s:=#9;
+      fstr:=#9;
       sep:=' ';
       done:=false;
       opstart:=0;
+      nested:=false;
       case op of
         la_ret, la_br, la_switch, la_indirectbr,
         la_invoke, la_resume,
@@ -362,13 +372,13 @@ implementation
         la_call:
           begin
             if taillvm(hp).oper[0]^.reg<>NR_NO then
-              s:=s+getregisterstring(taillvm(hp).oper[0]^.reg)+' = ';
+              fstr:=fstr+getregisterstring(taillvm(hp).oper[0]^.reg)+' = ';
             sep:=' ';
             opstart:=1;
           end;
         la_alloca:
           begin
-            s:=s+getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ';
+            fstr:=fstr+getreferencestring(taillvm(hp).oper[0]^.ref^,false)+' = ';
             sep:=' ';
             opstart:=1;
           end;
@@ -381,8 +391,10 @@ implementation
               data initialisers }
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
-              s:=s+getopstr(taillvm(hp).oper[0]^,false)+' = ';
-            s:=s+llvm_op2str[op]+' '+
+              fstr:=fstr+getopstr(taillvm(hp).oper[0]^,false)+' = '
+            else
+              nested:=true;
+            fstr:=fstr+llvm_op2str[op]+' '+
               getopstr(taillvm(hp).oper[1]^,false)+' '+
               getopstr(taillvm(hp).oper[2]^,false)+' to '+
               getopstr(taillvm(hp).oper[3]^,false);
@@ -390,7 +402,11 @@ implementation
           end
         else
           begin
-            s:=s+getopstr(taillvm(hp).oper[0]^,true)+' = ';
+            if (taillvm(hp).oper[0]^.typ<>top_reg) or
+               (taillvm(hp).oper[0]^.reg<>NR_NO) then
+              fstr:=fstr+getopstr(taillvm(hp).oper[0]^,true)+' = '
+            else
+              nested:=true;
             sep:=' ';
             opstart:=1
           end;
@@ -398,12 +414,14 @@ implementation
       { process operands }
       if not done then
         begin
-          s:=s+llvm_op2str[op];
+          fstr:=fstr+llvm_op2str[op];
+          if nested then
+            fstr:=fstr+' (';
           if taillvm(hp).ops<>0 then
             begin
               for i:=opstart to taillvm(hp).ops-1 do
                 begin
-                   s:=s+sep+getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]);
+                   fstr:=fstr+sep+getopstr(taillvm(hp).oper[i]^,op in [la_load,la_store]);
                    if (taillvm(hp).oper[i]^.typ in [top_def,top_cond,top_fpcond]) or
                       (op=la_call) then
                      sep :=' '
@@ -414,9 +432,11 @@ implementation
         end;
       if op=la_alloca then
         begin
-          s:=s+getreferencealignstring(taillvm(hp).oper[0]^.ref^)
+          fstr:=fstr+getreferencealignstring(taillvm(hp).oper[0]^.ref^)
         end;
-      result:=s;
+      if nested then
+        fstr:=fstr+')';
+      result:=fstr;
     end;
 
 {****************************************************************************}
