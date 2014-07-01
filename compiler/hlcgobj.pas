@@ -106,7 +106,7 @@ unit hlcgobj;
              check whether this is actually possible, but if it's loaded in a register
              by the compiler for any purpose other than parameter passing/function
              result loading, this is the register type used }
-          function def2regtyp(def: tdef): tregistertype; virtual;
+          class function def2regtyp(def: tdef): tregistertype; virtual;
 
           {# Returns a reference with its base address set from a pointer that
              has been loaded in a register.
@@ -723,7 +723,7 @@ implementation
       cg.translate_register(reg);
     end;
 
-  function thlcgobj.def2regtyp(def: tdef): tregistertype;
+  class function thlcgobj.def2regtyp(def: tdef): tregistertype;
     begin
         case def.typ of
           enumdef,

@@ -47,7 +47,7 @@ uses
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
 
-      function def2regtyp(def: tdef): tregistertype; override;
+      class function def2regtyp(def: tdef): tregistertype; override;
 
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
@@ -288,7 +288,7 @@ implementation
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
-  function thlcgjvm.def2regtyp(def: tdef): tregistertype;
+  class function thlcgjvm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
         { records and enums are implemented via classes }
