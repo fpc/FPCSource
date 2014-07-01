@@ -628,18 +628,21 @@ implementation
           aitconst_32bit_unaligned,
           aitconst_64bit_unaligned:
             begin
+              if fdecllevel=0 then
+                AsmWrite(target_asm.comment);
               { can't have compile-time differences between symbols; these are
                 normally for PIC, but llvm takes care of that for us }
               if assigned(hp.endsym) then
                 internalerror(2014052902);
               if assigned(hp.sym) then
                 begin
-                  { type of struct vs type of field; type of asmsym? }
-{                  if hp.value<>0 then
-                    xxx }
                   AsmWrite(hp.sym.name);
+                  { can't have offsets }
                   if hp.value<>0 then
-                    AsmWrite(tostr_with_plus(hp.value));
+                    if fdecllevel<>0 then
+                      internalerror(2014052903)
+                    else
+                      asmwrite(' -- symbol offset: ' + tostr(hp.value));
                 end
               else
                 AsmWrite(tostr(hp.value));
