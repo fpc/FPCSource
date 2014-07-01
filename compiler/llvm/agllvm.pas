@@ -217,31 +217,54 @@ implementation
      end;
 
 
-   function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
-     var
-       hs : ansistring;
-       doubleval: record
+   function llvmdoubletostr(const d: double): TSymStr;
+     type
+       tdoubleval = record
          case byte of
            1: (d: double);
            2: (i: int64);
        end;
-{$ifdef cpuextended}
-       extendedval: record
-         case byte of
-           1: (e: extended);
-           2: (r: record
-{$ifdef FPC_LITTLE_ENDIAN}
-                 l: int64;
-                 h: word;
-{$else FPC_LITTLE_ENDIAN}
-                 h: int64;
-                 l: word;
-{$endif FPC_LITTLE_ENDIAN}
-               end;
-              );
-       end;
+     begin
+       { "When using the hexadecimal form, constants of types half,
+         float, and double are represented using the 16-digit form shown
+         above (which matches the IEEE754 representation for double)"
+
+         And always in big endian form (sign bit leftmost)
+       }
+       result:='0x'+hexstr(tdoubleval(d).i,16);
+     end;
+
+
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+    function llvmextendedtostr(const e: extended): TSymStr;
+      var
+        extendedval: record
+          case byte of
+            1: (e: extended);
+            2: (r: packed record
+      {$ifdef FPC_LITTLE_ENDIAN}
+                  l: int64;
+                  h: word;
+      {$else FPC_LITTLE_ENDIAN}
+                  h: int64;
+                  l: word;
+      {$endif FPC_LITTLE_ENDIAN}
+                end;
+               );
+        end;
+      begin
+        extendedval.e:=e;
+        { hex format is always big endian in llvm }
+        result:='0xK'+hexstr(extendedval.r.h,sizeof(extendedval.r.h)*2)+
+                      hexstr(extendedval.r.l,sizeof(extendedval.r.l)*2);
+      end;
+
 {$endif cpuextended}
 
+
+   function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
+     var
+       hs : ansistring;
      begin
        case o.typ of
          top_reg:
@@ -283,10 +306,9 @@ implementation
                And always in big endian form (sign bit leftmost)
              }
              if o.typ=top_double then
-               doubleval.d:=o.dval
+               result:=llvmdoubletostr(o.dval)
              else
-               doubleval.d:=o.sval;
-             result:='0x'+hexstr(doubleval.i,16);
+               result:=llvmdoubletostr(o.sval)
            end;
          top_para:
            begin
@@ -296,12 +318,10 @@ implementation
            begin
              result:=InstructionToString(o.ai);
            end;
-{$ifdef cpuextended}
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
          top_extended80:
            begin
-             { hex format is always big endian in llvm }
-             extendedval.e:=o.eval;
-             result:='0xK'+hexstr(extendedval.r.h,sizeof(extendedval.r.h)*2)+hexstr(extendedval.r.l,sizeof(extendedval.r.l)*2);
+             result:=llvmextendedtostr(o.eval);
            end;
 {$endif cpuextended}
          else
