@@ -369,18 +369,20 @@ implementation
                   encodedstr:=encodedstr+']';
                 end;
             end;
+          procdef,
           procvardef :
             begin
-              if tprocvardef(def).is_addressonly then
+              if (def.typ=procdef) or
+                 tprocvardef(def).is_addressonly then
                 begin
-                  llvmaddencodedproctype(tprocdef(def),'',lpd_procvar,encodedstr);
+                  llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else
                 begin
                   encodedstr:=encodedstr+'{';
                   { code pointer }
-                  llvmaddencodedproctype(tprocvardef(def),'',lpd_procvar,encodedstr);
+                  llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
                   { data pointer (maybe todo: generate actual layout if
                     available) }
                   encodedstr:=encodedstr+'*, i8*}';
@@ -415,11 +417,6 @@ implementation
           undefineddef,
           errordef :
             internalerror(2013100604);
-          procdef :
-            begin
-              { should be handled via llvmencodeproctype/llvmaddencodedproctype }
-              internalerror(2014012601);
-            end;
         else
           internalerror(2013100603);
         end;
