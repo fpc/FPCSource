@@ -738,6 +738,8 @@ implementation
       var
         hp2: tai;
         s: string;
+        i: longint;
+        ch: ansichar;
       begin
         case hp.typ of
           ait_comment :
@@ -803,8 +805,24 @@ implementation
 
           ait_string :
             begin
-              AsmWrite(target_asm.comment);
-              AsmWriteln('string');
+              if fdecllevel=0 then
+                AsmWrite(target_asm.comment);
+              AsmWrite('c"');
+              for i:=1 to tai_string(hp).len do
+               begin
+                 ch:=tai_string(hp).str[i-1];
+                 case ch of
+                           #0, {This can't be done by range, because a bug in FPC}
+                      #1..#31,
+                   #128..#255,
+                          '"',
+                          '\' : s:='\'+tostr(ord(ch) shr 8)+tostr((ord(ch) and $f));
+                 else
+                   s:=ch;
+                 end;
+                 AsmWrite(s);
+               end;
+              AsmWriteLn('"');
             end;
 
           ait_label :
