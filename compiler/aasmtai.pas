@@ -262,6 +262,7 @@ interface
 {$ifdef cpuextended}
        ,top_extended80
 {$endif cpuextended}
+       ,top_tai
        ,top_def
        ,top_fpcond
        ,top_cond
@@ -282,49 +283,6 @@ interface
         localforceref : boolean
       end;
       plocaloper = ^tlocaloper;
-
-      { please keep the size of this record <=12 bytes and keep it properly aligned }
-      toper = record
-        ot : longint;
-        case typ : toptype of
-          top_none   : ();
-          top_reg    : (reg:tregister);
-          top_ref    : (ref:preference);
-          top_const  : (val:tcgint);
-          top_bool   : (b:boolean);
-          { local varsym that will be inserted in pass_generate_code }
-          top_local  : (localoper:plocaloper);
-      {$ifdef arm}
-          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-          top_conditioncode : (cc : TAsmCond);
-          top_modeflags : (modeflags : tcpumodeflags);
-          top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
-      {$endif arm}
-      {$if defined(arm) or defined(aarch64)}
-          top_shifterop : (shifterop : pshifterop);
-      {$endif defined(arm) or defined(aarch64)}
-      {$ifdef m68k}
-          top_regset : (dataregset,addrregset:^tcpuregisterset);
-      {$endif m68k}
-      {$ifdef jvm}
-          top_single : (sval:single);
-          top_double : (dval:double);
-          top_string : (pcvallen: aint; pcval: pchar);
-          top_wstring : (pwstrval: pcompilerwidestring);
-      {$endif jvm}
-      {$ifdef llvm}
-          top_single : (sval:single);
-          top_double : (dval:double);
-        {$ifdef cpuextended}
-          top_extended80 : (eval:extended);
-        {$endif cpuextended}
-          top_def    : (def: tdef);
-          top_cond   : (cond: topcmp);
-          top_fpcond : (fpcond: tllvmfpcmp);
-          top_para   : (paras: tfplist);
-      {$endif llvm}
-      end;
-      poper=^toper;
 
     const
       { ait_* types which don't result in executable code or which don't influence
@@ -438,6 +396,52 @@ interface
       );
 
     type
+        tai = class;
+
+        { please keep the size of this record <=12 bytes and keep it properly aligned }
+        toper = record
+          ot : longint;
+          case typ : toptype of
+            top_none   : ();
+            top_reg    : (reg:tregister);
+            top_ref    : (ref:preference);
+            top_const  : (val:tcgint);
+            top_bool   : (b:boolean);
+            { local varsym that will be inserted in pass_generate_code }
+            top_local  : (localoper:plocaloper);
+        {$ifdef arm}
+            top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
+            top_conditioncode : (cc : TAsmCond);
+            top_modeflags : (modeflags : tcpumodeflags);
+            top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
+        {$endif arm}
+        {$if defined(arm) or defined(aarch64)}
+            top_shifterop : (shifterop : pshifterop);
+        {$endif defined(arm) or defined(aarch64)}
+        {$ifdef m68k}
+            top_regset : (dataregset,addrregset:^tcpuregisterset);
+        {$endif m68k}
+        {$ifdef jvm}
+            top_single : (sval:single);
+            top_double : (dval:double);
+            top_string : (pcvallen: aint; pcval: pchar);
+            top_wstring : (pwstrval: pcompilerwidestring);
+        {$endif jvm}
+        {$ifdef llvm}
+            top_single : (sval:single);
+            top_double : (dval:double);
+          {$ifdef cpuextended}
+            top_extended80 : (eval:extended);
+          {$endif cpuextended}
+            top_tai    : (ai: tai);
+            top_def    : (def: tdef);
+            top_cond   : (cond: topcmp);
+            top_fpcond : (fpcond: tllvmfpcmp);
+            top_para   : (paras: tfplist);
+        {$endif llvm}
+        end;
+        poper=^toper;
+
        { abstract assembler item }
        tai = class(TLinkedListItem)
 {$ifndef NOOPT}
@@ -2807,6 +2811,8 @@ implementation
 {$ifdef llvm}
               top_para:
                 paras.free;
+              top_tai:
+                ai.free;
 {$endif llvm}
             end;
             typ:=top_none;

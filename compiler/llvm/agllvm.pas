@@ -71,6 +71,9 @@ interface
         procedure WriteInstruction(hp : tai);
        protected
         owner: TLLVMAssember;
+
+        function InstructionToString(hp : tai): TSymStr;
+        function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
       end;
 
 
@@ -214,7 +217,7 @@ implementation
      end;
 
 
-   function getopstr(const o:toper; refwithalign: boolean) : ansistring;
+   function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
      var
        hs : ansistring;
        doubleval: record
@@ -289,6 +292,10 @@ implementation
            begin
              result:=getparas(o);
            end;
+         top_tai:
+           begin
+             result:=InstructionToString(o.ai);
+           end;
 {$ifdef cpuextended}
          top_extended80:
            begin
@@ -303,12 +310,17 @@ implementation
      end;
 
 
-  procedure TLlvmInstrWriter.WriteInstruction(hp: tai);
+  procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
+    begin
+      owner.AsmWriteLn(InstructionToString(hp));
+    end;
+
+
+  function TLLVMInstrWriter.InstructionToString(hp: tai): TSymStr;
     var
       op: tllvmop;
-      s: string;
+      s, sep: TSymStr;
       i, opstart: byte;
-      sep: string[3];
       done: boolean;
     begin
       op:=taillvm(hp).llvmopcode;
@@ -345,8 +357,12 @@ implementation
         la_ptrtoint, la_inttoptr,
         la_bitcast:
           begin
-            s:=s+getopstr(taillvm(hp).oper[0]^,false)+' = '+
-              llvm_op2str[op]+' '+
+            { destination can be empty in case of nested constructs, or
+              data initialisers }
+            if (taillvm(hp).oper[0]^.typ<>top_reg) or
+               (taillvm(hp).oper[0]^.reg<>NR_NO) then
+              s:=s+getopstr(taillvm(hp).oper[0]^,false)+' = ';
+            s:=s+llvm_op2str[op]+' '+
               getopstr(taillvm(hp).oper[1]^,false)+' '+
               getopstr(taillvm(hp).oper[2]^,false)+' to '+
               getopstr(taillvm(hp).oper[3]^,false);
@@ -380,7 +396,7 @@ implementation
         begin
           s:=s+getreferencealignstring(taillvm(hp).oper[0]^.ref^)
         end;
-      owner.AsmWriteLn(s);
+      result:=s;
     end;
 
 {****************************************************************************}

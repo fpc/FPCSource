@@ -68,6 +68,8 @@ interface
 {$endif cpuextended}
         { e.g. dst = bitcast fromsize @globalvar to tosize }
         constructor op_reg_size_sym_size(op:tllvmop;dst:tregister;fromsize:tdef;src:TAsmSymbol;tosize:tdef);
+        { e.g. dst = bitcast fromsize <abstracttaidata> to tosize }
+        constructor op_reg_size_tai_size(op:tllvmop;dst:tregister;fromsize:tdef;src:tai;tosize:tdef);
 
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
@@ -97,10 +99,12 @@ interface
         { e.g. dst = getelementptr ptrsize ref, i32 0 (if indirect), index1type index1 }
         constructor getelementptr_reg_size_ref_size_reg(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:tregister;indirect:boolean);
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
+        constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:taillvm;indextype:tdef;index1:ptrint;indirect:boolean);
 
         { e.g. dst = call retsize (paras) }
         constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
 
+        procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
         procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
@@ -229,6 +233,19 @@ uses
         create(a_none);
         llvmopcode:=op;
         typ:=ait_llvmins;
+      end;
+
+
+    procedure taillvm.loadtai(opidx: longint; _ai: tai);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_tai then
+             clearop(opidx);
+           ai:=_ai;
+           typ:=top_tai;
+         end;
       end;
 
 
@@ -605,6 +622,17 @@ uses
       end;
 
 
+    constructor taillvm.op_reg_size_tai_size(op:tllvmop;dst:tregister;fromsize:tdef;src:tai;tosize:tdef);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,fromsize);
+        loadtai(2,src);
+        loaddef(3,tosize);
+      end;
+
+
     constructor taillvm.op_reg_size_ref_size(op: tllvmop; dst: tregister; fromsize: tdef; const src: treference; tosize: tdef);
       begin
         create_llvm(op);
@@ -778,6 +806,31 @@ uses
         loaddef(index,indextype);
         loadconst(index+1,index1);
       end;
+
+
+    constructor taillvm.getelementptr_reg_tai_size_const(dst: tregister; const ai: taillvm; indextype: tdef; index1: ptrint; indirect: boolean);
+      var
+        index: longint;
+      begin
+        create_llvm(la_getelementptr);
+        if indirect then
+          ops:=6
+        else
+          ops:=4;
+        loadreg(0,dst);
+        loadtai(1,ai);
+        if indirect then
+          begin
+            loaddef(2,s32inttype);
+            loadconst(3,0);
+            index:=4;
+          end
+        else
+          index:=2;
+        loaddef(index,indextype);
+        loadconst(index+1,index1);
+      end;
+
 
     constructor taillvm.call_size_name_paras(dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
