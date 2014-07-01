@@ -26,8 +26,8 @@ unit ngtcon;
 interface
 
     uses
-      globtype,
-      aasmdata,
+      globtype,cclasses,constexp,
+      aasmbase,aasmdata,aasmtai,aasmcnst,
       node,nbas,
       symtype, symbase, symdef,symsym;
 
@@ -76,11 +76,15 @@ interface
 
       tasmlisttypedconstbuilder = class(ttypedconstbuilder)
        private
+        fsym: tstaticvarsym;
         curoffset: asizeint;
 
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
+        procedure flush_packed_value(var bp: tbitpackedval);
        protected
-        list: tasmlist;
+        ftcb: ttai_lowleveltypedconstbuilder;
+
+        function get_final_asmlist: tasmlist;
 
         procedure parse_packed_array_def(def: tarraydef);
         procedure parse_arraydef(def:tarraydef);override;
@@ -97,7 +101,8 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
         constructor create(sym: tstaticvarsym);virtual;
-        function parse_into_asmlist: tasmlist;
+        procedure parse_into_asmlist;
+        property final_asmlist: tasmlist read get_final_asmlist;
       end;
       tasmlisttypedconstbuilderclass = class of tasmlisttypedconstbuilder;
 
@@ -136,10 +141,10 @@ implementation
 
 uses
    SysUtils,
-   cclasses,systems,tokens,verbose,constexp,
+   systems,tokens,verbose,
    cutils,globals,widestr,scanner,
    symconst,symtable,
-   aasmbase,aasmtai,aasmcpu,defutil,defcmp,
+   aasmcpu,defutil,defcmp,
    { pass 1 }
    htypechk,procinfo,
    nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -350,7 +355,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         inc(bp.curbitoffset,bp.packedbitsize);
       end;
 
-    procedure flush_packed_value(list: tasmlist; var bp: tbitpackedval);
+    procedure tasmlisttypedconstbuilder.flush_packed_value(var bp: tbitpackedval);
       var
         bitstowrite: longint;
         writeval : AInt;
@@ -381,10 +386,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 bp.curval:=bp.curval shl bp.loadbitsize;
               end;
             case bp.loadbitsize of
-              8: list.concat(tai_const.create_8bit(writeval));
-              16: list.concat(tai_const.create_16bit(writeval));
-              32: list.concat(tai_const.create_32bit(writeval));
-              64: list.concat(tai_const.create_64bit(writeval));
+              8: ftcb.emit_tai(tai_const.create_8bit(writeval),u8inttype);
+              16: ftcb.emit_tai(tai_const.create_16bit(writeval),u16inttype);
+              32: ftcb.emit_tai(tai_const.create_32bit(writeval),u32inttype);
+              64: ftcb.emit_tai(tai_const.create_64bit(writeval),u64inttype);
               else
                 internalerror(2013111101);
             end;
@@ -424,7 +429,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           exit;
         { flush final incomplete value if necessary }
         if (bp.curbitoffset <> 0) then
-          flush_packed_value(list,bp);
+          flush_packed_value(bp);
         consume(_RKLAMMER);
       end;
 
@@ -433,7 +438,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     constructor tasmlisttypedconstbuilder.create(sym: tstaticvarsym);
       begin
         inherited;
-        list:=tasmlist.create;
+        fsym:=sym;
+        ftcb:=ctai_typedconstbuilder.create;
         curoffset:=0;
       end;
 
@@ -519,17 +525,18 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             case def.stringtype of
               st_shortstring:
                 begin
+                  ftcb.maybe_begin_aggregate(def);
                   if strlength>=def.size then
                    begin
                      message2(parser_w_string_too_long,strpas(strval),tostr(def.size-1));
                      strlength:=def.size-1;
                    end;
-                  list.concat(Tai_const.Create_8bit(strlength));
+                  ftcb.emit_tai(Tai_const.Create_8bit(strlength),cansichartype);
                   { this can also handle longer strings }
                   getmem(ca,strlength+1);
                   move(strval^,ca^,strlength);
                   ca[strlength]:=#0;
-                  list.concat(Tai_string.Create_pchar(ca,strlength));
+                  ftcb.emit_tai(Tai_string.Create_pchar(ca,strlength),getarraydef(cansichartype,strlength+1));
                   { fillup with spaces if size is shorter }
                   if def.size>strlength then
                    begin
@@ -539,7 +546,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      fillchar(ca[0],def.size-strlength-1,' ');
                      ca[def.size-strlength-1]:=#0;
                      { this can also handle longer strings }
-                     list.concat(Tai_string.Create_pchar(ca,def.size-strlength-1));
+                     ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-strlength-1),getarraydef(cansichartype,def.size-strlength-1));
+                     ftcb.maybe_end_aggregate(def);
                    end;
                 end;
               st_ansistring:
@@ -552,7 +560,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      end
                    else
                      ll:=emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
-                   list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
+                   ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),getpointerdef(cansichartype));
                 end;
               st_unicodestring,
               st_widestring:
@@ -588,7 +596,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                            Include(tcsym.varoptions,vo_force_finalize);
                          end;
                      end;
-                   list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
+                   ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),getpointerdef(cwidechartype));
                 end;
               else
                 internalerror(200107081);
@@ -617,7 +625,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constboolnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    list.concat(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)))
+                    ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def)
                   end
                 else
                   do_error;
@@ -628,7 +636,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constboolnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    list.concat(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)))
+                    ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def)
                   end
                 else
                   do_error;
@@ -639,7 +647,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constboolnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    list.concat(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)))
+                    ftcb.emit_tai(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)),def)
                   end
                 else
                   do_error;
@@ -650,7 +658,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constboolnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    list.concat(Tai_const.Create_64bit(int64(tordconstnode(node).value.svalue)))
+                    ftcb.emit_tai(Tai_const.Create_64bit(int64(tordconstnode(node).value.svalue)),def)
                   end
                 else
                   do_error;
@@ -663,7 +671,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   ((m_delphi in current_settings.modeswitches) and
                    is_constwidecharnode(node) and
                    (tordconstnode(node).value <= 255)) then
-                  list.concat(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)))
+                  ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def)
                 else
                   do_error;
              end;
@@ -672,7 +680,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constcharnode(node) then
                   inserttypeconv(node,cwidechartype);
                 if is_constwidecharnode(node) then
-                  list.concat(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)))
+                  ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def)
                 else
                   do_error;
              end;
@@ -686,13 +694,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     testrange(def,tordconstnode(node).value,false,false);
                     case def.size of
                       1 :
-                        list.concat(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)));
+                        ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def);
                       2 :
-                        list.concat(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)));
+                        ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def);
                       4 :
-                        list.concat(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)));
+                        ftcb.emit_tai(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)),def);
                       8 :
-                        list.concat(Tai_const.Create_64bit(tordconstnode(node).value.svalue));
+                        ftcb.emit_tai(Tai_const.Create_64bit(tordconstnode(node).value.svalue),def);
                     end;
                   end
                 else
@@ -710,7 +718,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     intvalue:=0;
                     IncompatibleTypes(node.resultdef, def);
                   end;
-               list.concat(Tai_const.Create_64bit(intvalue));
+               ftcb.emit_tai(Tai_const.Create_64bit(intvalue),def);
              end;
            else
              internalerror(200611052);
@@ -734,25 +742,25 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
         case def.floattype of
            s32real :
-             list.concat(tai_realconst.create_s32real(ts32real(value)));
+             ftcb.emit_tai(tai_realconst.create_s32real(ts32real(value)),def);
            s64real :
 {$ifdef ARM}
              if is_double_hilo_swapped then
-               list.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value)))
+               ftcb.emit_tai(tai_realconst.create_s64real_hiloswapped(ts64real(value)),def)
              else
 {$endif ARM}
-               list.concat(tai_realconst.create_s64real(ts64real(value)));
+               ftcb.emit_tai(tai_realconst.create_s64real(ts64real(value)),def);
            s80real :
-             list.concat(tai_realconst.create_s80real(value,s80floattype.size));
+             ftcb.emit_tai(tai_realconst.create_s80real(value,s80floattype.size),def);
            sc80real :
-             list.concat(tai_realconst.create_s80real(value,sc80floattype.size));
+             ftcb.emit_tai(tai_realconst.create_s80real(value,sc80floattype.size),def);
            s64comp :
              { the round is necessary for native compilers where comp isn't a float }
-             list.concat(tai_realconst.create_s64compreal(round(value)));
+             ftcb.emit_tai(tai_realconst.create_s64compreal(round(value)),def);
            s64currency:
-             list.concat(tai_realconst.create_s64compreal(round(value*10000)));
+             ftcb.emit_tai(tai_realconst.create_s64compreal(round(value*10000)),def);
            s128real:
-             list.concat(tai_realconst.create_s128real(value));
+             ftcb.emit_tai(tai_realconst.create_s128real(value),def);
            else
              internalerror(200611053);
         end;
@@ -766,10 +774,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if not def_is_related(tobjectdef(tclassrefdef(node.resultdef).pointeddef),tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
-              list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)));
+              { TODO for correct type? }
+              ftcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)),voidpointertype);
             end;
            niln:
-             list.concat(Tai_const.Create_sym(nil));
+             ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
            else if is_constnode(node) then
              IncompatibleTypes(node.resultdef, def)
            else
@@ -786,11 +795,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         ca        : pchar;
         pw        : pcompilerwidestring;
         i,len     : longint;
-        base,
-        offset    : aint;
-        v         : Tconstexprint;
         ll        : tasmlabel;
         varalign  : shortint;
+        datadef   : tdef;
+        datatcb   : ttai_lowleveltypedconstbuilder;
       begin
         { remove equal typecasts for pointer/nil addresses }
         if (node.nodetype=typeconvn) then
@@ -816,31 +824,31 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (node.nodetype = pointerconstn) then
           begin
             {$if sizeof(TConstPtrUInt)=8}
-              list.concat(Tai_const.Create_64bit(int64(tpointerconstnode(node).value)));
+              ftcb.emit_tai(Tai_const.Create_64bit(int64(tpointerconstnode(node).value)),def);
             {$else}
               {$if sizeof(TConstPtrUInt)=4}
-                list.concat(Tai_const.Create_32bit(longint(tpointerconstnode(node).value)));
+                ftcb.emit_tai(Tai_const.Create_32bit(longint(tpointerconstnode(node).value)),def);
               {$else}
                 internalerror(200404122);
             {$endif} {$endif}
           end
         { nil pointer ? }
         else if node.nodetype=niln then
-          list.concat(Tai_const.Create_sym(nil))
+          ftcb.emit_tai(Tai_const.Create_sym(nil),def)
         { maybe pchar ? }
         else
           if is_char(def.pointeddef) and
              (node.nodetype<>addrn) then
             begin
+              { create a tcb for the string data (it's placed in a separate
+                asmlist) }
+              datatcb:=ctai_typedconstbuilder.create;
               current_asmdata.getdatalabel(ll);
-              list.concat(Tai_const.Create_sym(ll));
               if node.nodetype=stringconstn then
-               varalign:=size_2_align(tstringconstnode(node).len)
+                varalign:=size_2_align(tstringconstnode(node).len)
               else
-               varalign:=0;
-              varalign:=const_align(varalign);
-              new_section(current_asmdata.asmlists[al_const], sec_rodata, ll.name, varalign);
-              current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
+                varalign:=0;
+              { represent the string data as an array }
               if node.nodetype=stringconstn then
                 begin
                   len:=tstringconstnode(node).len;
@@ -848,23 +856,44 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   if (m_tp7 in current_settings.modeswitches) and
                      (len>255) then
                    len:=255;
-                  getmem(ca,len+2);
+                  getmem(ca,len+1);
                   move(tstringconstnode(node).value_str^,ca^,len+1);
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create_pchar(ca,len+1));
+                  datadef:=getarraydef(cansichartype,len+1);
+                  datatcb.maybe_begin_aggregate(datadef);
+                  datatcb.emit_tai(Tai_string.Create_pchar(ca,len+1),datadef);
+                  datatcb.maybe_end_aggregate(datadef);
+                end
+              else if is_constcharnode(node) then
+                begin
+                  datadef:=getarraydef(cansichartype,2);
+                  datatcb.maybe_begin_aggregate(datadef);
+                  datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
+                  datatcb.maybe_end_aggregate(datadef);
                 end
               else
-                if is_constcharnode(node) then
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0))
-              else
-                IncompatibleTypes(node.resultdef, def);
-          end
+                begin
+                  IncompatibleTypes(node.resultdef, def);
+                  datadef:=getarraydef(cansichartype,1);
+                end;
+              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign,true));
+              datatcb.free;
+              { we now emit the address of the first element of the array
+                containing the string data }
+              ftcb.queue_init(def);
+              { address of ... }
+              ftcb.queue_addrn(def.pointeddef,def);
+              { ... the first element ... }
+              ftcb.queue_vecn(datadef,0);
+              { ... of the string array }
+              ftcb.queue_emit_asmsym(ll,datadef);
+            end
         { maybe pwidechar ? }
         else
           if is_widechar(def.pointeddef) and
              (node.nodetype<>addrn) then
             begin
               current_asmdata.getdatalabel(ll);
-              list.concat(Tai_const.Create_sym(ll));
+              ftcb.emit_tai(Tai_const.Create_sym(ll),def);
               current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
               current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
               if (node.nodetype in [stringconstn,ordconstn]) then
@@ -896,53 +925,28 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if (hp.nodetype=loadn) then
                 begin
                   hp:=node;
-                  offset:=0;
+                  ftcb.queue_init(def);
                   while assigned(hp) and (hp.nodetype<>loadn) do
                     begin
                        case hp.nodetype of
                          vecn :
                            begin
-                             len:=1;
-                             base:=0;
-                             case tvecnode(hp).left.resultdef.typ of
-                               stringdef :
-                                 ;
-                               arraydef :
-                                 begin
-                                    if not is_packed_array(tvecnode(hp).left.resultdef) then
-                                      begin
-                                        len:=tarraydef(tvecnode(hp).left.resultdef).elesize;
-                                        base:=tarraydef(tvecnode(hp).left.resultdef).lowrange;
-                                      end
-                                    else
-                                      Message(parser_e_packed_dynamic_open_array);
-                                 end;
-                               else
-                                 Message(parser_e_illegal_expression);
-                             end;
                              if is_constintnode(tvecnode(hp).right) then
-                               begin
-                                 {Prevent overflow.}
-                                 v:=get_ordinal_value(tvecnode(hp).right)-base;
-                                 if (v<int64(low(offset))) or (v>int64(high(offset))) then
-                                   message3(type_e_range_check_error_bounds,tostr(v),tostr(low(offset)),tostr(high(offset)));
-                                 if high(offset)-offset div len>v then
-                                   inc(offset,len*v.svalue)
-                                 else
-                                   message3(type_e_range_check_error_bounds,tostr(v),'0',tostr(high(offset)-offset div len))
-                               end
+                               ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right))
                              else
                                Message(parser_e_illegal_expression);
                            end;
                          subscriptn :
-                           inc(offset,tsubscriptnode(hp).vs.fieldoffset);
+                           ftcb.queue_subscriptn(tabstractrecorddef(tsubscriptnode(hp).left.resultdef),tsubscriptnode(hp).vs);
                          typeconvn :
                            begin
                              if not(ttypeconvnode(hp).convtype in [tc_equal,tc_proc_2_procvar]) then
-                               Message(parser_e_illegal_expression);
+                               Message(parser_e_illegal_expression)
+                             else
+                               ftcb.queue_typeconvn(ttypeconvnode(hp).left.resultdef,hp.resultdef);
                            end;
                          addrn :
-                           ;
+                           ftcb.queue_addrn(taddrnode(hp).left.resultdef,hp.resultdef);
                          else
                            Message(parser_e_illegal_expression);
                        end;
@@ -958,15 +962,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         if po_abstractmethod in pd.procoptions then
                           Message(type_e_cant_take_address_of_abstract_method)
                         else
-                          list.concat(Tai_const.Createname(pd.mangledname,offset));
+                          ftcb.queue_emit_proc(pd);
                       end;
                     staticvarsym :
-                      list.concat(Tai_const.Createname(tstaticvarsym(srsym).mangledname,offset));
+                      ftcb.queue_emit_staticvar(tstaticvarsym(srsym));
                     labelsym :
-                      list.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
+                      ftcb.queue_emit_label(tlabelsym(srsym));
                     constsym :
                       if tconstsym(srsym).consttyp=constresourcestring then
-                        list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),AT_DATA,sizeof(pint)))
+                        ftcb.queue_emit_const(tconstsym(srsym))
                       else
                         Message(type_e_variable_id_expected);
                     else
@@ -983,8 +987,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if (tinlinenode(node).left.nodetype=typen) then
                 begin
-                  list.concat(Tai_const.createname(
-                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0));
+                  // TODO correct type?
+                  ftcb.emit_tai(Tai_const.createname(
+                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0),
+                    voidpointertype);
                 end
               else
                 Message(parser_e_illegal_expression);
@@ -1012,18 +1018,20 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               Message(parser_e_illegal_expression)
             else
               begin
+                ftcb.maybe_begin_aggregate(def);
                 tsetconstnode(node).adjustforsetbase;
                 { this writing is endian-dependant   }
                 if source_info.endian = target_info.endian then
                   begin
                     for i:=0 to node.resultdef.size-1 do
-                      list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]));
+                      ftcb.emit_tai(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]),u8inttype);
                   end
                 else
                   begin
                     for i:=0 to node.resultdef.size-1 do
-                      list.concat(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i])));
+                      ftcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i])),u8inttype);
                   end;
+                  ftcb.maybe_end_aggregate(def);
               end;
           end
         else
@@ -1040,9 +1048,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 testrange(def,tordconstnode(node).value,false,false);
                 case longint(node.resultdef.size) of
-                  1 : list.concat(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)));
-                  2 : list.concat(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)));
-                  4 : list.concat(Tai_const.Create_32bit(Longint(tordconstnode(node).value.svalue)));
+                  1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
+                  2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);
+                  4 : ftcb.emit_tai(Tai_const.Create_32bit(Longint(tordconstnode(node).value.svalue)),def);
                 end;
               end
             else
@@ -1077,8 +1085,48 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else
           bitpackval(Tordconstnode(node).value.uvalue,bp);
         if (bp.curbitoffset>=AIntBits) then
-          flush_packed_value(list,bp);
+          flush_packed_value(bp);
         node.free;
+      end;
+
+    function tasmlisttypedconstbuilder.get_final_asmlist: tasmlist;
+      var
+        asmsym: tasmsymbol;
+        addstabx: boolean;
+        sec: TAsmSectiontype;
+        secname: ansistring;
+      begin
+        addstabx:=false;
+        if fsym.globalasmsym then
+          begin
+            if (target_dbg.id=dbg_stabx) and
+               (cs_debuginfo in current_settings.moduleswitches) and
+               not assigned(current_asmdata.GetAsmSymbol(fsym.name)) then
+              addstabx:=true;
+            asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA)
+          end
+        else
+          asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_LOCAL,AT_DATA);
+        if vo_has_section in fsym.varoptions then
+          begin
+            sec:=sec_user;
+            secname:=fsym.section;
+          end
+        else
+          begin
+            if fsym.varspez=vs_const then
+              sec:=sec_rodata
+            else
+              sec:=sec_data;
+            secname:=asmsym.Name;
+          end;
+        result:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment,false);
+        if addstabx then
+          begin
+            { see same code in ncgutil.insertbssdata }
+            result.insert(tai_directive.Create(asd_reference,fsym.name));
+            result.insert(tai_symbol.Create(current_asmdata.DefineAsmSymbol(fsym.name,AB_LOCAL,AT_DATA),0));
+          end;
       end;
 
 
@@ -1099,7 +1147,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { Only allow nil initialization }
             consume(_NIL);
-            list.concat(Tai_const.Create_sym(nil));
+            ftcb.emit_tai(Tai_const.Create_sym(nil),def);
           end
         { packed array constant }
         else if is_packed_array(def) and
@@ -1111,6 +1159,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { normal array const between brackets }
         else if try_to_consume(_LKLAMMER) then
           begin
+            ftcb.maybe_begin_aggregate(def);
             oldoffset:=curoffset;
             curoffset:=0;
             for i:=def.lowrange to def.highrange-1 do
@@ -1129,10 +1178,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             read_typed_const_data(def.elementdef);
             consume(_RKLAMMER);
             curoffset:=oldoffset;
+            ftcb.maybe_end_aggregate(def);
           end
         { if array of char then we allow also a string }
         else if is_anychar(def.elementdef) then
           begin
+             ftcb.maybe_begin_aggregate(def);
              char_size:=def.elementdef.size;
              n:=comp_expr(true,false);
              if n.nodetype=stringconstn then
@@ -1225,8 +1276,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                  else
                    {Fill the remaining positions with #0.}
                    int_const:=Tai_const.Create_char(char_size,0);
-                 list.concat(int_const)
+                 ftcb.emit_tai(int_const,def.elementdef)
                end;
+             ftcb.maybe_end_aggregate(def);
              n.free;
           end
         else
@@ -1246,9 +1298,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { under tp:  =nil or =var under fpc: =nil or =@var }
         if try_to_consume(_NIL) then
           begin
-             list.concat(Tai_const.Create_sym(nil));
+             ftcb.maybe_begin_aggregate(def);
+             { we need the procdef type called by the procvar here, not the
+               procvar record }
+             ftcb.emit_tai_procvar2procdef(Tai_const.Create_sym(nil),def);
              if not def.is_addressonly then
-               list.concat(Tai_const.Create_sym(nil));
+               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+             ftcb.maybe_end_aggregate(def);
              exit;
           end;
         { you can't assign a value other than NIL to a typed constant  }
@@ -1273,10 +1329,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n.free;
             exit;
           end;
+        { in case of a nested procdef initialised with a global routine }
+        ftcb.maybe_begin_aggregate(def);
+        { to handle type conversions }
+        ftcb.queue_init(def);
         { remove typeconvs, that will normally insert a lea
           instruction which is not necessary for us }
         while n.nodetype=typeconvn do
           begin
+            ftcb.queue_typeconvn(ttypeconvnode(n).left.resultdef,n.resultdef);
             tmpn:=ttypeconvnode(n).left;
             ttypeconvnode(n).left:=nil;
             n.free;
@@ -1285,6 +1346,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { remove addrn which we also don't need here }
         if n.nodetype=addrn then
           begin
+            ftcb.queue_addrn(taddrnode(n).left.resultdef,n.resultdef);
             tmpn:=taddrnode(n).left;
             taddrnode(n).left:=nil;
             n.free;
@@ -1295,7 +1357,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (tloadnode(n).symtableentry.typ=procsym) then
           begin
             pd:=tloadnode(n).procdef;
-            list.concat(Tai_const.createname(pd.mangledname,0));
+            ftcb.queue_emit_proc(pd);
             { nested procvar typed consts can only be initialised with nil
               (checked above) or with a global procedure (checked here),
               because in other cases we need a valid frame pointer }
@@ -1303,11 +1365,17 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 if is_nested_pd(pd) then
                   Message(parser_e_no_procvarnested_const);
-                list.concat(Tai_const.Create_sym(nil));
-              end
+                ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+              end;
+            ftcb.maybe_end_aggregate(def);
           end
         else if n.nodetype=pointerconstn then
-          list.concat(Tai_const.Create_pint(tpointerconstnode(n).value))
+          begin
+            ftcb.maybe_begin_aggregate(def);
+            ftcb.emit_tai_procvar2procdef(Tai_const.Create_pint(tpointerconstnode(n).value),def);
+            if not def.is_addressonly then
+              ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+          end
         else
           Message(parser_e_illegal_expression);
         n.free;
@@ -1337,11 +1405,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           hs:=strpas(tstringconstnode(n).value_str);
           if string2guid(hs,tmpguid) then
             begin
-              list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-              list.concat(Tai_const.Create_16bit(tmpguid.D2));
-              list.concat(Tai_const.Create_16bit(tmpguid.D3));
+              ftcb.maybe_begin_aggregate(rec_tguid);
+              ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
+              ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
+              ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
               for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
+              ftcb.maybe_end_aggregate(rec_tguid);
             end
           else
             Message(parser_e_improper_guid_syntax);
@@ -1362,12 +1432,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 inserttypeconv(n,rec_tguid);
                 if n.nodetype=guidconstn then
                   begin
+                    ftcb.maybe_begin_aggregate(rec_tguid);
                     tmpguid:=tguidconstnode(n).value;
-                    list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-                    list.concat(Tai_const.Create_16bit(tmpguid.D2));
-                    list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                    ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
+                    ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
+                    ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
                     for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                      list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                      ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
+                    ftcb.maybe_end_aggregate(rec_tguid);
                   end
                 else
                   Message(parser_e_illegal_expression);
@@ -1386,6 +1458,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n.free;
             exit;
           end;
+        ftcb.maybe_begin_aggregate(def);
         { bitpacked record? }
         is_packed:=is_packed_record_or_object(def);
         if (is_packed) then
@@ -1471,14 +1544,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       fillbytes:=tfieldvarsym(srsym).fieldoffset-recoffset
                     else
                       begin
-                        flush_packed_value(list,bp);
+                        flush_packed_value(bp);
                         { curoffset is now aligned to the next byte }
                         recoffset:=align(recoffset,8);
                         { offsets are in bits in this case }
                         fillbytes:=(tfieldvarsym(srsym).fieldoffset-recoffset) div 8;
                       end;
                     for i:=1 to fillbytes do
-                      list.concat(Tai_const.Create_8bit(0))
+                      ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype)
                   end;
 
                 { new position }
@@ -1495,7 +1568,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   begin
                     if is_packed then
                       begin
-                        flush_packed_value(list,bp);
+                        flush_packed_value(bp);
                         recoffset:=align(recoffset,8);
                       end;
                     curoffset:=startoffset+tfieldvarsym(srsym).fieldoffset;
@@ -1536,13 +1609,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           fillbytes:=def.size-recoffset
         else
           begin
-            flush_packed_value(list,bp);
+            flush_packed_value(bp);
             recoffset:=align(recoffset,8);
             fillbytes:=def.size-(recoffset div 8);
           end;
         for i:=1 to fillbytes do
-          list.concat(Tai_const.Create_8bit(0));
+          ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
 
+        ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
       end;
 
@@ -1576,7 +1650,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 consume_all_until(_SEMICOLON);
               end
             else
-              list.concat(Tai_const.Create_sym(nil));
+              ftcb.emit_tai(Tai_const.Create_sym(nil),def);
             n.free;
             exit;
           end;
@@ -1588,6 +1662,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             Message(parser_e_type_object_constants);
             exit;
           end;
+
+        ftcb.maybe_begin_aggregate(def);
 
         consume(_LKLAMMER);
         startoffset:=curoffset;
@@ -1637,8 +1713,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      (def.vmt_offset<fieldoffset) then
                     begin
                       for i:=1 to def.vmt_offset-objoffset do
-                        list.concat(tai_const.create_8bit(0));
-                      list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
+                        ftcb.emit_tai(tai_const.create_8bit(0),u8inttype);
+                      // TODO VMT type proper tdef?
+                      ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),voidpointertype);
                       { this is more general }
                       objoffset:=def.vmt_offset + sizeof(pint);
                       vmtwritten:=true;
@@ -1647,7 +1724,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   { if needed fill }
                   if fieldoffset>objoffset then
                     for i:=1 to fieldoffset-objoffset do
-                      list.concat(Tai_const.Create_8bit(0));
+                      ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
 
                   { new position }
                   objoffset:=fieldoffset+vardef.size;
@@ -1666,21 +1743,22 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (def.vmt_offset>=objoffset) then
           begin
             for i:=1 to def.vmt_offset-objoffset do
-              list.concat(tai_const.create_8bit(0));
-            list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
+              ftcb.emit_tai(tai_const.create_8bit(0),u8inttype);
+            // TODO VMT type proper tdef?
+            ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),voidpointertype);
             { this is more general }
             objoffset:=def.vmt_offset + sizeof(pint);
           end;
         for i:=1 to def.size-objoffset do
-          list.concat(Tai_const.Create_8bit(0));
+          ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
+        ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
       end;
 
 
-    function tasmlisttypedconstbuilder.parse_into_asmlist: tasmlist;
+    procedure tasmlisttypedconstbuilder.parse_into_asmlist;
       begin
         read_typed_const_data(tcsym.vardef);
-        result:=list;
       end;
 
 

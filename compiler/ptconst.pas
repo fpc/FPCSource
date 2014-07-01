@@ -37,17 +37,15 @@ implementation
        aasmbase,aasmtai,
        procinfo,fmodule,
        scanner,pbase,pdecvar,
-       node,nbas,ngtcon,
+       node,nbas,ngtcon,ngenutil,
        symconst,symbase,symdef
        ;
 
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
       var
         storefilepos : tfileposinfo;
-        cursectype   : TAsmSectionType;
         section      : ansistring;
         tcbuilder    : ttypedconstbuilder;
-        reslist      : tasmlist;
         restree,
         previnit     : tnode;
       begin
@@ -64,14 +62,9 @@ implementation
 
         if not(target_info.system in systems_typed_constants_node_init) then
           begin
-            if sym.varspez=vs_const then
-              cursectype:=sec_rodata
-            else
-              cursectype:=sec_data;
             maybe_new_object_file(list);
             tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym);
-            reslist:=tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
-            tcbuilder.free;
+            tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
           end
         else
           begin
@@ -85,9 +78,6 @@ implementation
               current_structdef.tcinitcode:=restree
             else
               current_module.tcinitcode:=restree;
-            tcbuilder.free;
-            reslist:=nil;
-            cursectype:=sec_none;
           end;
 
         { Parse hints }
@@ -133,37 +123,16 @@ implementation
 
         if not(target_info.system in systems_typed_constants_node_init) then
           begin
-            { only now add items based on the symbolname, because it may }
-            { have been modified by the directives parsed above          }
-            if vo_has_section in sym.varoptions then
-              new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
-            else
-              new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
-            if sym.globalasmsym then
-              begin
-                { see same code in ncgutil.insertbssdata }
-                if (target_dbg.id=dbg_stabx) and
-                   (cs_debuginfo in current_settings.moduleswitches) and
-                   not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
-                  begin
-                    list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
-                    list.concat(tai_directive.Create(asd_reference,sym.name));
-                  end;
-                list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
-              end
-            else
-              list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
-
-            { add the parsed value }
-            list.concatlist(reslist);
-            reslist.free;
-            list.concat(tai_symbol_end.Createname(sym.mangledname));
+            { only now get the final asmlist, because inserting the symbol
+              information depends on potential section information set above }
+            list.concatlist(tasmlisttypedconstbuilder(tcbuilder).final_asmlist);
           end
         else
           begin
             { nothing to do }
           end;
 
+        tcbuilder.free;
         current_filepos:=storefilepos;
       end;
 

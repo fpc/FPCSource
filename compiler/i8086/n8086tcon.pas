@@ -63,9 +63,9 @@ uses
         if node.nodetype=niln then
           begin
             if is_farpointer(def) or is_hugepointer(def) then
-              list.concat(Tai_const.Create_32bit(0))
+              ftcb.emit_tai(Tai_const.Create_32bit(0),u32inttype)
             else
-              list.concat(Tai_const.Create_16bit(0));
+              ftcb.emit_tai(Tai_const.Create_16bit(0),u16inttype);
           end
         else
           inherited tc_emit_pointerdef(def, node);
