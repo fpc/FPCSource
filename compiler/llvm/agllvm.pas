@@ -44,6 +44,8 @@ interface
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
         procedure WriteWeakSymbolDef(s: tasmsymbol);
         procedure WriteRealConst(hp: tai_realconst; do_line: boolean);
+        procedure WriteOrdConst(hp: tai_const);
+        procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
        public
         constructor create(smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
@@ -432,36 +434,20 @@ implementation
 
     procedure TLLVMAssember.WriteTree(p:TAsmList);
     var
-      ch       : char;
-      lasthp,
       hp       : tai;
-      constdef : taiconst_type;
-      s,t      : string;
-      i,pos,l  : longint;
       InlineLevel : cardinal;
-      last_align : longint;
-      co       : comp;
-      sin      : single;
-      d        : double;
-{$ifdef cpuextended}
-      e        : extended;
-{$endif cpuextended}
       do_line  : boolean;
-
-      sepChar : char;
       replaceforbidden: boolean;
     begin
       if not assigned(p) then
        exit;
       replaceforbidden:=target_asm.dollarsign<>'$';
 
-      last_align := 2;
       InlineLevel:=0;
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
                  and (p=current_asmdata.asmlists[al_procedures]));
-      lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -474,258 +460,7 @@ implementation
               WriteSourceLine(hp as tailineinfo);
           end;
 
-         case hp.typ of
-
-           ait_comment :
-             Begin
-               AsmWrite(target_asm.comment);
-               AsmWritePChar(tai_comment(hp).str);
-               AsmLn;
-             End;
-
-           ait_regalloc :
-             begin
-               if (cs_asm_regalloc in current_settings.globalswitches) then
-                 begin
-                   AsmWrite(#9+target_asm.comment+'Register ');
-                   repeat
-                     AsmWrite(std_regname(Tai_regalloc(hp).reg));
-                     if (hp.next=nil) or
-                        (tai(hp.next).typ<>ait_regalloc) or
-                        (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
-                       break;
-                     hp:=tai(hp.next);
-                     AsmWrite(',');
-                   until false;
-                   AsmWrite(' ');
-                   AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
-                 end;
-             end;
-
-           ait_tempalloc :
-             begin
-               if (cs_asm_tempalloc in current_settings.globalswitches) then
-                 WriteTempalloc(tai_tempalloc(hp));
-             end;
-
-           ait_align :
-             begin
-               { has to be specified as part of the symbol declaration }
-               AsmWriteln('; error: explicit aligns are forbidden');
-//               internalerror(2013010714);
-             end;
-
-           ait_section :
-             begin
-               AsmWrite(target_asm.comment);
-               AsmWriteln('section');
-             end;
-
-           ait_datablock :
-             begin
-               AsmWrite(target_asm.comment);
-               AsmWriteln('datablock');
-             end;
-
-           ait_const:
-             begin
-               AsmWrite(target_asm.comment);
-               AsmWriteln('const');
-             end;
-
-           ait_realconst :
-             begin
-               WriteRealConst(tai_realconst(hp),do_line);
-             end;
-
-           ait_string :
-             begin
-               AsmWrite(target_asm.comment);
-               AsmWriteln('string');
-             end;
-
-           ait_label :
-             begin
-               if (tai_label(hp).labsym.is_used) then
-                begin
-                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
-                    begin
-                      { should be emitted as part of the variable/function def }
-                      internalerror(2013010703);
-                    end;
-                  if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
-                   begin
-                     { should be emitted as part of the variable/function def }
-                     //internalerror(2013010704);
-                     AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
-                   end;
-                  if replaceforbidden then
-                    AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
-                  else
-                    AsmWrite(tai_label(hp).labsym.name);
-                  AsmWriteLn(':');
-                end;
-             end;
-
-           ait_symbol :
-             begin
-               { should be emitted as part of the variable/function def }
-               asmwrite('; (ait_symbol error, should be part of variable/function def) :');
-               asmwriteln(tai_symbol(hp).sym.name);
-//               internalerror(2013010705);
-             end;
-           ait_llvmdecl:
-             begin
-               if taillvmdecl(hp).def.typ=procdef then
-                 begin
-                   if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL] then
-                     begin
-                       asmwrite('declare');
-                       asmwriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),taillvmdecl(hp).namesym.name,lpd_decl));
-                     end
-                   else
-                     begin
-                       asmwrite('define');
-                       asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def),'',lpd_decl));
-                       asmwriteln(' {');
-                     end;
-                 end
-               else
-                 begin
-                   asmwrite(taillvmdecl(hp).namesym.name);
-                   case taillvmdecl(hp).namesym.bind of
-                     AB_EXTERNAL:
-                       asmwrite(' = external global ');
-                     AB_COMMON:
-                       asmwrite(' = common global ');
-                     AB_LOCAL:
-                       asmwrite(' = internal global ');
-                     AB_GLOBAL:
-                       asmwrite(' = global ');
-                     AB_WEAK_EXTERNAL:
-                       asmwrite(' = extern_weak global ');
-                     AB_PRIVATE_EXTERN:
-                       asmwrite('= linker_private global ');
-                     else
-                       internalerror(2014020104);
-                   end;
-                   asmwrite(llvmencodetype(taillvmdecl(hp).def));
-                   if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
-                     asmwrite(' zeroinitializer');
-                   asmwrite(', align ');
-                   asmwriteln(tostr(taillvmdecl(hp).def.alignment));
-                 end;
-             end;
-           ait_llvmalias:
-             begin
-               asmwrite('@'+taillvmalias(hp).newsym.name);
-               asmwrite(' = alias ');
-               if taillvmalias(hp).linkage<>lll_default then
-                 begin
-                   str(taillvmalias(hp).linkage,s);
-                   asmwrite(copy(s,length('lll_'),255));
-                   asmwrite(' ');
-                 end
-               else
-                 asmwrite('external ');
-               if taillvmalias(hp).vis<>llv_default then
-                 begin
-                   str(taillvmalias(hp).vis,s);
-                   asmwrite(copy(s,length('llv_'),255));
-                   asmwrite(' ');
-                 end;
-               asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def),'',lpd_alias));
-               asmwrite('* ');
-               asmwriteln(taillvmalias(hp).oldsym.name);
-             end;
-{$ifdef arm}
-           ait_thumb_func:
-             begin
-               { should be emitted as part of the function def }
-               internalerror(2013010706);
-             end;
-           ait_thumb_set:
-             begin
-               { should be emitted as part of the symbol def }
-               internalerror(2013010707);
-             end;
-{$endif arm}
-           ait_set:
-             begin
-               { should be emitted as part of the symbol def }
-               internalerror(2013010708);
-             end;
-
-           ait_weak:
-             begin
-               { should be emitted as part of the symbol def }
-               internalerror(2013010709);
-             end;
-
-           ait_symbol_end :
-             begin
-               if tai_symbol_end(hp).sym.typ=AT_FUNCTION then
-                 asmwriteln('}')
-               else
-                 asmwriteln('; ait_symbol_end error, should not be generated');
-//               internalerror(2013010711);
-             end;
-
-           ait_instruction :
-             begin
-               WriteInstruction(hp);
-             end;
-
-           ait_llvmins:
-             begin
-               WriteLlvmInstruction(hp);
-             end;
-
-           ait_stab :
-             begin
-               internalerror(2013010712);
-             end;
-
-           ait_force_line,
-           ait_function_name :
-             ;
-
-           ait_cutobject :
-             begin
-             end;
-
-           ait_marker :
-             if tai_marker(hp).kind=mark_NoLineInfoStart then
-               inc(InlineLevel)
-             else if tai_marker(hp).kind=mark_NoLineInfoEnd then
-               dec(InlineLevel);
-
-           ait_directive :
-             begin
-               WriteDirectiveName(tai_directive(hp).directive);
-               if tai_directive(hp).name <>'' then
-                 AsmWrite(tai_directive(hp).name);
-               AsmLn;
-             end;
-
-           ait_seh_directive :
-             begin
-               internalerror(2013010713);
-             end;
-           ait_varloc:
-             begin
-               if tai_varloc(hp).newlocationhi<>NR_NO then
-                 AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
-               else
-                 AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocation)));
-               AsmLn;
-             end;
-           else
-             internalerror(2006012201);
-         end;
-         lasthp:=hp;
+         WriteTai(replaceforbidden, do_line, InlineLevel, hp);
          hp:=tai(hp.next);
        end;
     end;
@@ -788,6 +523,313 @@ implementation
                 internalerror(2014050604);
             end;
           end;
+      end;
+
+
+    procedure TLLVMAssember.WriteOrdConst(hp: tai_const);
+      var
+        consttyp: taiconst_type;
+      begin
+        asmwrite(target_asm.comment+' const ');
+        consttyp:=hp.consttype;
+        case consttyp of
+          aitconst_got,
+          aitconst_gotoff_symbol,
+          aitconst_uleb128bit,
+          aitconst_sleb128bit,
+          aitconst_rva_symbol,
+          aitconst_secrel32_symbol,
+          aitconst_darwin_dwarf_delta32,
+          aitconst_darwin_dwarf_delta64,
+          aitconst_half16bit:
+            internalerror(2014052901);
+          aitconst_128bit,
+          aitconst_64bit,
+          aitconst_32bit,
+          aitconst_16bit,
+          aitconst_8bit,
+          aitconst_16bit_unaligned,
+          aitconst_32bit_unaligned,
+          aitconst_64bit_unaligned:
+            begin
+              { can't have compile-time differences between symbols; these are
+                normally for PIC, but llvm takes care of that for us }
+              if assigned(hp.endsym) then
+                internalerror(2014052902);
+              if assigned(hp.sym) then
+                begin
+                  { type of struct vs type of field; type of asmsym? }
+{                  if hp.value<>0 then
+                    xxx }
+                  AsmWrite(hp.sym.name);
+                  if hp.value<>0 then
+                    AsmWrite(tostr_with_plus(hp.value));
+                end
+              else
+                AsmWrite(tostr(hp.value));
+              AsmLn;
+            end;
+          else
+            internalerror(200704251);
+        end;
+      end;
+
+
+    procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
+      var
+        hp2: tai;
+        s: string;
+      begin
+        case hp.typ of
+          ait_comment :
+            begin
+              AsmWrite(target_asm.comment);
+              AsmWritePChar(tai_comment(hp).str);
+              AsmLn;
+            end;
+
+          ait_regalloc :
+            begin
+              if (cs_asm_regalloc in current_settings.globalswitches) then
+                begin
+                  AsmWrite(#9+target_asm.comment+'Register ');
+                  repeat
+                    AsmWrite(std_regname(Tai_regalloc(hp).reg));
+                     if (hp.next=nil) or
+                       (tai(hp.next).typ<>ait_regalloc) or
+                       (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
+                      break;
+                    hp:=tai(hp.next);
+                    AsmWrite(',');
+                  until false;
+                  AsmWrite(' ');
+                  AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
+                end;
+            end;
+
+          ait_tempalloc :
+            begin
+              if (cs_asm_tempalloc in current_settings.globalswitches) then
+                WriteTempalloc(tai_tempalloc(hp));
+            end;
+
+          ait_align :
+            begin
+              { has to be specified as part of the symbol declaration }
+              AsmWriteln('; error: explicit aligns are forbidden');
+//             internalerror(2013010714);
+            end;
+
+          ait_section :
+            begin
+              AsmWrite(target_asm.comment);
+              AsmWriteln('section');
+            end;
+
+          ait_datablock :
+            begin
+              AsmWrite(target_asm.comment);
+              AsmWriteln('datablock');
+            end;
+
+          ait_const:
+            begin
+              WriteOrdConst(tai_const(hp));
+            end;
+
+          ait_realconst :
+            begin
+              WriteRealConst(tai_realconst(hp), do_line);
+            end;
+
+          ait_string :
+            begin
+              AsmWrite(target_asm.comment);
+              AsmWriteln('string');
+            end;
+
+          ait_label :
+            begin
+              if (tai_label(hp).labsym.is_used) then
+                begin
+                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
+                    begin
+                     { should be emitted as part of the variable/function def }
+                     internalerror(2013010703);
+                   end;
+                 if tai_label(hp).labsym.bind in [AB_GLOBAL, AB_PRIVATE_EXTERN] then
+                   begin
+                     { should be emitted as part of the variable/function def }
+                     //internalerror(2013010704);
+                     AsmWriteln(target_asm.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
+                   end;
+                 if replaceforbidden then
+                   AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                 else
+                   AsmWrite(tai_label(hp).labsym.name);
+                 AsmWriteLn(':');
+               end;
+            end;
+
+          ait_symbol :
+            begin
+              { should be emitted as part of the variable/function def }
+              asmwrite('; (ait_symbol error, should be part of variable/function def) :');
+              asmwriteln(tai_symbol(hp).sym.name);
+//             internalerror(2013010705);
+            end;
+          ait_llvmdecl:
+            begin
+              if taillvmdecl(hp).def.typ=procdef then
+                begin
+                  if taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL] then
+                    begin
+                      asmwrite('declare');
+                      asmwriteln(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), taillvmdecl(hp).namesym.name, lpd_decl));
+                    end
+                  else
+                    begin
+                      asmwrite('define');
+                      asmwrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
+                      asmwriteln(' {');
+                    end;
+                end
+              else
+                begin
+                  asmwrite(taillvmdecl(hp).namesym.name);
+                  case taillvmdecl(hp).namesym.bind of
+                    AB_EXTERNAL:
+                      asmwrite(' = external global ');
+                    AB_COMMON:
+                      asmwrite(' = common global ');
+                    AB_LOCAL:
+                      asmwrite(' = internal global ');
+                    AB_GLOBAL:
+                      asmwrite(' = global ');
+                    AB_WEAK_EXTERNAL:
+                      asmwrite(' = extern_weak global ');
+                    AB_PRIVATE_EXTERN:
+                      asmwrite('= linker_private global ');
+                    else
+                      internalerror(2014020104);
+                  end;
+                  asmwrite(llvmencodetype(taillvmdecl(hp).def));
+                  if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
+                    asmwrite(' zeroinitializer');
+                  { alignment }
+                  asmwrite(', align ');
+                  asmwriteln(tostr(taillvmdecl(hp).def.alignment));
+                end;
+            end;
+          ait_llvmalias:
+            begin
+              asmwrite('@'+taillvmalias(hp).newsym.name);
+              asmwrite(' = alias ');
+              if taillvmalias(hp).linkage<>lll_default then
+                begin
+                  str(taillvmalias(hp).linkage, s);
+                  asmwrite(copy(s, length('lll_'), 255));
+                  asmwrite(' ');
+                end
+              else
+                asmwrite('external ');
+              if taillvmalias(hp).vis<>llv_default then
+                begin
+                  str(taillvmalias(hp).vis, s);
+                  asmwrite(copy(s, length('llv_'), 255));
+                  asmwrite(' ');
+                end;
+              asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias));
+              asmwrite('* ');
+              asmwriteln(taillvmalias(hp).oldsym.name);
+            end;
+         {$ifdef arm}
+          ait_thumb_func:
+            begin
+              { should be emitted as part of the function def }
+              internalerror(2013010706);
+            end;
+          ait_thumb_set:
+            begin
+              { should be emitted as part of the symbol def }
+              internalerror(2013010707);
+            end;
+         {$endif arm}
+          ait_set:
+            begin
+              { should be emitted as part of the symbol def }
+              internalerror(2013010708);
+            end;
+
+          ait_weak:
+            begin
+              { should be emitted as part of the symbol def }
+              internalerror(2013010709);
+            end;
+
+          ait_symbol_end :
+            begin
+              if tai_symbol_end(hp).sym.typ=AT_FUNCTION then
+                asmwriteln('}')
+              else
+                asmwriteln('; ait_symbol_end error, should not be generated');
+//                internalerror(2013010711);
+            end;
+
+          ait_instruction :
+            begin
+              WriteInstruction(hp);
+            end;
+
+          ait_llvmins:
+            begin
+              WriteLlvmInstruction(hp);
+            end;
+
+          ait_stab :
+            begin
+              internalerror(2013010712);
+            end;
+
+          ait_force_line,
+          ait_function_name :
+            ;
+
+          ait_cutobject :
+            begin
+            end;
+
+          ait_marker :
+            if tai_marker(hp).kind=mark_NoLineInfoStart then
+              inc(InlineLevel)
+            else if tai_marker(hp).kind=mark_NoLineInfoEnd then
+              dec(InlineLevel);
+
+          ait_directive :
+            begin
+              WriteDirectiveName(tai_directive(hp).directive);
+              if tai_directive(hp).name <>'' then
+                AsmWrite(tai_directive(hp).name);
+              AsmLn;
+            end;
+
+          ait_seh_directive :
+            begin
+              internalerror(2013010713);
+            end;
+          ait_varloc:
+            begin
+              if tai_varloc(hp).newlocationhi<>NR_NO then
+                AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                  std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
+              else
+                AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                  std_regname(tai_varloc(hp).newlocation)));
+              AsmLn;
+            end;
+          else
+            internalerror(2006012201);
+        end;
       end;
 
 
