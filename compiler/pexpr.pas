@@ -1278,6 +1278,16 @@ implementation
                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
                              (tcallnode(p1).procdefinition.owner.defowner<>find_real_class_definition(tobjectdef(structh),false)) then
                             Message(parser_e_java_no_inherited_constructor);
+                          { Provide a warning if we try to create an instance of a
+                            abstract class using the type name of that class. We
+                            must not provide a warning if we use a "class of"
+                            variable of that type though as we don't know the
+                            type of the class }
+                          if (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                              (oo_is_abstract in structh.objectoptions) and
+                              assigned(tcallnode(p1).methodpointer) and
+                              (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
+                            Message1(type_w_instance_abstract_class,structh.RttiName);
                         end;
                    end;
                  fieldvarsym:

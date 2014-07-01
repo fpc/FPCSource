@@ -1534,7 +1534,7 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 %
 # Type Checking
 #
-# 04121 is the last used one
+# 04122 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1961,6 +1961,9 @@ type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by 
 type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order to allow taking its address: "$1"
 % In certain i8086 memory models (medium, large and huge), procedures and functions
 % have to be declared 'far' in order to allow their address to be taken.
+type_w_instance_abstract_class=04122_-W_Creating an instance of abstract class "$1"
+% The specified class is declared as \var{abstract} and thus no instance of this class
+% should be created. This is merely a warning for Delphi compatibility.
 % \end{description}
 #
 # Symtable
