@@ -350,7 +350,8 @@ implementation
         because operands may contain other tai that will also write things out
         (and their output must come after everything that was processed in this
          instruction, such as its opcode or previous operands) }
-      owner.AsmWrite(#9);
+      if owner.fdecllevel=0 then
+        owner.AsmWrite(#9);
       sep:=' ';
       done:=false;
       opstart:=0;
