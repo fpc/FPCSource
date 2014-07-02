@@ -32,6 +32,61 @@ uses
   symtype,symdef,symsym;
 
 type
+   { typed const: integer/floating point/string/pointer/... const along with
+     tdef info; tck_simple_procvar2proc is to indicate that we mean the
+     procdef corresponding to the procvar rather than the tmethod-like
+     struct in case of a complex procvar }
+   ttypedconstkind = (tck_simple, tck_simple_procvar2proc, tck_array, tck_record);
+
+   { the type of the element and its def }
+   tai_abstracttypedconst = class abstract (tai)
+    protected
+     fadetyp: ttypedconstkind;
+     { the def of this element }
+     fdef: tdef;
+    public
+     constructor create(_adetyp: ttypedconstkind; _def: tdef);
+     property adetyp: ttypedconstkind read fadetyp;
+     property def: tdef read fdef;
+   end;
+
+   { a simple data element; the value is stored as a tai }
+   tai_simpletypedconst = class(tai_abstracttypedconst)
+    protected
+     fval: tai;
+    public
+     constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     property val: tai read fval;
+   end;
+
+
+   { an aggregate data element (record or array). Values are stored as an
+     array of tsimpledataelement. }
+   tai_aggregatetypedconst = class(tai_abstracttypedconst)
+    public type
+     { iterator to walk over all individual items in the aggregate }
+     tadeenumerator = class(tobject)
+      private
+       fvalues: tfplist;
+       fvaluespos: longint;
+       function getcurrent: tai_abstracttypedconst;
+      public
+       constructor create(data: tai_aggregatetypedconst);
+       function movenext: boolean;
+       procedure reset;
+       property current: tai_abstracttypedconst read getcurrent;
+     end;
+
+    protected
+     fvalues: tfplist;
+    public
+     constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
+     function getenumerator: tadeenumerator;
+     procedure addvalue(val: tai_abstracttypedconst);
+     destructor destroy; override;
+   end;
+
+
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
    ttai_lowleveltypedconstbuilder = class abstract
@@ -121,6 +176,96 @@ implementation
    uses
      verbose,globals,
      symconst,defutil;
+
+
+{****************************************************************************
+                            tai_abstracttypedconst
+ ****************************************************************************}
+
+   constructor tai_abstracttypedconst.create(_adetyp: ttypedconstkind; _def: tdef);
+     begin
+       inherited create;
+       typ:=ait_typedconst;
+       fadetyp:=_adetyp;
+       fdef:=_def;
+     end;
+
+
+{****************************************************************************
+                                tai_simpletypedconst
+ ****************************************************************************}
+
+   constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     begin
+       inherited create(_adetyp,_def);
+       fval:=_val;
+     end;
+
+
+{****************************************************************************
+              tai_aggregatetypedconst.tadeenumerator
+ ****************************************************************************}
+
+   constructor tai_aggregatetypedconst.tadeenumerator.create(data: tai_aggregatetypedconst);
+     begin
+       fvalues:=data.fvalues;
+       fvaluespos:=-1;
+     end;
+
+
+   function tai_aggregatetypedconst.tadeenumerator.getcurrent: tai_abstracttypedconst;
+     begin
+       result:=tai_abstracttypedconst(fvalues[fvaluespos]);
+     end;
+
+
+   function tai_aggregatetypedconst.tadeenumerator.movenext: boolean;
+     begin
+       if fvaluespos<pred(fvalues.count) then
+         begin
+           inc(fvaluespos);
+           result:=true
+         end
+       else
+         result:=false;
+     end;
+
+
+   procedure tai_aggregatetypedconst.tadeenumerator.reset;
+     begin
+       fvaluespos:=0
+     end;
+
+
+{****************************************************************************
+                            tai_aggregatetypedconst
+ ****************************************************************************}
+
+   constructor tai_aggregatetypedconst.create(_adetyp: ttypedconstkind; _fdef: tdef);
+     begin
+       inherited;
+       fvalues:=tfplist.create;
+     end;
+
+
+   function tai_aggregatetypedconst.getenumerator: tadeenumerator;
+     begin
+       result:=tadeenumerator.create(self);
+     end;
+
+
+   procedure tai_aggregatetypedconst.addvalue(val: tai_abstracttypedconst);
+     begin
+       fvalues.add(val);
+     end;
+
+
+   destructor tai_aggregatetypedconst.destroy;
+     begin
+       fvalues.free;
+       inherited destroy;
+     end;
+
 
  {*****************************************************************************
                               ttai_lowleveltypedconstbuilder

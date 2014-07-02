@@ -83,7 +83,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,
       fmodule,verbose,
-      symconst,symdef,
+      aasmcnst,symconst,symdef,
       llvmbase,aasmllvm,itllvm,llvmdef,
       cgbase,cgutils,cpubase;
 
