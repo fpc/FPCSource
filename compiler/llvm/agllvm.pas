@@ -90,9 +90,6 @@ implementation
     const
       line_length = 70;
 
-    var
-      symendcount  : longint;
-
     type
 {$ifdef cpuextended}
       t80bitarray = array[0..9] of byte;
@@ -340,7 +337,7 @@ implementation
   procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
     var
       op: tllvmop;
-      sep, tmpstr: TSymStr;
+      sep: TSymStr;
       i, opstart: byte;
       nested: boolean;
       done: boolean;
@@ -564,9 +561,6 @@ implementation
 
 
     procedure TLLVMAssember.WriteRealConst(hp: tai_realconst; do_line: boolean);
-      var
-        pdata: pbyte;
-        index, step, swapmask, count: longint;
       begin
         if do_line and
            (fdecllevel=0) then
@@ -1081,7 +1075,6 @@ implementation
 
         WriteExtraHeader;
         AsmStartSize:=AsmSize;
-        symendcount:=0;
 
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
