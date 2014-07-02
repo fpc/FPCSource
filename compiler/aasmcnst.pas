@@ -79,10 +79,16 @@ type
 
     protected
      fvalues: tfplist;
+     fisstring: boolean;
+
+     { converts the existing data to a single tai_string }
+     procedure convert_to_string;
+     procedure add_to_string(strtai: tai_string; othertai: tai);
     public
      constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
      function getenumerator: tadeenumerator;
      procedure addvalue(val: tai_abstracttypedconst);
+     procedure finish;
      destructor destroy; override;
    end;
 
@@ -241,9 +247,56 @@ implementation
                             tai_aggregatetypedconst
  ****************************************************************************}
 
+   procedure tai_aggregatetypedconst.convert_to_string;
+     var
+       ai: tai_abstracttypedconst;
+       newstr: tai_string;
+     begin
+       newstr:=tai_string.Create('');
+       for ai in self do
+          begin
+            if ai.adetyp<>tck_simple then
+              internalerror(2014070103);
+            add_to_string(newstr,tai_simpletypedconst(ai).val);
+            ai.free;
+          end;
+       fvalues.count:=0;
+       { the "nil" def will be replaced with an array def of the appropriate
+         size once we're finished adding data, so we don't create intermediate
+         arraydefs all the time }
+       fvalues.add(tai_simpletypedconst.create(tck_simple,nil,newstr));
+     end;
+
+   procedure tai_aggregatetypedconst.add_to_string(strtai: tai_string; othertai: tai);
+     begin
+       case othertai.typ of
+         ait_string:
+           begin
+             strtai.str:=reallocmem(strtai.str,strtai.len+tai_string(othertai).len+1);
+             { also copy null terminator }
+             move(tai_string(othertai).str[0],strtai.str[strtai.len],tai_string(othertai).len+1);
+             { the null terminator is not part of the length }
+             strtai.len:=strtai.len+tai_string(othertai).len;
+           end;
+         ait_const:
+           begin
+             if tai_const(othertai).size<>1 then
+               internalerror(2014070101);
+             strtai.str:=reallocmem(strtai.str,strtai.len+1);
+             strtai.str[strtai.len]:=ansichar(tai_const(othertai).value);
+             strtai.str[strtai.len+1]:=#0;
+             inc(strtai.len);
+           end;
+         else
+           internalerror(2014070102);
+       end;
+     end;
+
+
    constructor tai_aggregatetypedconst.create(_adetyp: ttypedconstkind; _fdef: tdef);
      begin
        inherited;
+       fisstring:=false;
        fvalues:=tfplist.create;
      end;
 
@@ -256,7 +309,44 @@ implementation
 
    procedure tai_aggregatetypedconst.addvalue(val: tai_abstracttypedconst);
      begin
-       fvalues.add(val);
+       { merge string constants and ordinal constants added in an array of
+         char, to unify the length and the string data }
+       if fisstring or
+          ((val.adetyp=tck_simple) and
+           (tai_simpletypedconst(val).val.typ=ait_string)) then
+         begin
+           if not fisstring and
+              (fvalues.count>0) then
+             convert_to_string;
+           fisstring:=true;
+           case fvalues.count of
+             0: fvalues.add(val);
+             1:
+               begin
+                 add_to_string(tai_string(tai_simpletypedconst(fvalues[0]).val),tai_simpletypedconst(val).val);
+                 val.free
+               end
+             else
+               internalerror(2014070104);
+           end;
+         end
+       else
+         fvalues.add(val);
+     end;
+
+
+   procedure tai_aggregatetypedconst.finish;
+     begin
+       if fisstring then
+         begin
+           { set the def: an array of char with the same length as the string
+             data }
+           if fvalues.count<>1 then
+             internalerror(2014070105);
+           tai_simpletypedconst(fvalues[0]).fdef:=
+             getarraydef(cansichartype,
+               tai_string(tai_simpletypedconst(fvalues[0]).val).len);
+         end;
      end;
 
 

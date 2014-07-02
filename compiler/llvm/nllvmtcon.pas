@@ -209,6 +209,7 @@ implementation
           if not assigned(faggregates) or
              (faggregates.count=0) then
             internalerror(2014060101);
+          tai_aggregatetypedconst(faggregates[faggregates.count-1]).finish;
           { already added to the asmlist if necessary }
           faggregates.count:=faggregates.count-1;
         end;
