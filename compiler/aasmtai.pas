@@ -2057,8 +2057,9 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         len:=ppufile.getlongint;
-        getmem(str,len);
+        getmem(str,len+1);
         ppufile.getdata(str^,len);
+        str[len]:=#0
       end;
 
 
