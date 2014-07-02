@@ -562,7 +562,7 @@ implementation
        { getpointerdef, because "sym" represents the address of whatever the
          data is }
        def:=getpointerdef(def);
-       emit_tai(Tai_const.Create_sym(sym),def);
+       emit_tai(Tai_const.Create_sym_offset(sym,fqueue_offset),def);
        fqueue_offset:=low(fqueue_offset);
      end;
 
