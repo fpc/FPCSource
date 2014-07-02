@@ -532,23 +532,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      strlength:=def.size-1;
                    end;
                   ftcb.emit_tai(Tai_const.Create_8bit(strlength),cansichartype);
-                  { this can also handle longer strings }
-                  getmem(ca,strlength+1);
+                  { room for the string data + terminating #0 }
+                  getmem(ca,def.size);
                   move(strval^,ca^,strlength);
+                  { zero-terminate and fill with spaces if size is shorter }
+                  fillchar(ca[strlength],def.size-strlength-1,' ');
                   ca[strlength]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_pchar(ca,strlength),getarraydef(cansichartype,strlength+1));
-                  { fillup with spaces if size is shorter }
-                  if def.size>strlength then
-                   begin
-                     getmem(ca,def.size-strlength);
-                     { def.size contains also the leading length, so we }
-                     { we have to subtract one                       }
-                     fillchar(ca[0],def.size-strlength-1,' ');
-                     ca[def.size-strlength-1]:=#0;
-                     { this can also handle longer strings }
-                     ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-strlength-1),getarraydef(cansichartype,def.size-strlength-1));
-                     ftcb.maybe_end_aggregate(def);
-                   end;
+                  ca[def.size-1]:=#0;
+                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),getarraydef(cansichartype,def.size-1));
+                  ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
                 begin
