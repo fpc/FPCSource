@@ -1441,7 +1441,10 @@ unit scandir;
         end;
 
         if ident='CONSTRUCTING_ABSTRACT' then
-          recordpendingmessagestate(type_w_instance_with_abstract, msgstate)
+          begin
+            recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
+            recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
+          end
         else
         if ident='IMPLICIT_VARIANTS' then
           recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
