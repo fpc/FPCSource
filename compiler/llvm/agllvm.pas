@@ -386,13 +386,14 @@ implementation
               data initialisers }
             if (taillvm(hp).oper[0]^.typ<>top_reg) or
                (taillvm(hp).oper[0]^.reg<>NR_NO) then
-              begin
-                owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ');
-              end
+              owner.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ')
             else
               nested:=true;
             owner.AsmWrite(llvm_op2str[op]);
-            owner.AsmWrite(' ');
+            if not nested then
+              owner.AsmWrite(' ')
+            else
+              owner.AsmWrite(' (');
             owner.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
             owner.AsmWrite(' ');
             owner.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
