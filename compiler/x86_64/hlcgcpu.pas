@@ -42,4 +42,6 @@ implementation
       create_codegen;
     end;
 
+begin
+  chlcgobj:=thlcgx86;
 end.

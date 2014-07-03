@@ -152,4 +152,6 @@ implementation
       create_codegen;
     end;
 
+begin
+  chlcgobj:=thlcgmips;
 end.

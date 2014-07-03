@@ -427,5 +427,6 @@ implementation
     end;
 
 
-
+begin
+  chlcgobj:=thlcgcpu;
 end.

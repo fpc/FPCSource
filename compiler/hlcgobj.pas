@@ -580,10 +580,15 @@ unit hlcgobj;
             produces a simple jump to destination label. }
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;abstract;
        end;
+     thlcgobjclass = class of thlcgobj;
 
     var
        {# Main high level code generator class }
        hlcg : thlcgobj;
+       { class type of high level code generator class (also valid when hlcg is
+         nil, in order to be able to call its virtual class methods) }
+       chlcgobj: thlcgobjclass;
+
 
     procedure destroy_hlcodegen;
 

@@ -1483,4 +1483,6 @@ implementation
       cgllvm.create_codegen
     end;
 
+begin
+  chlcgobj:=thlcgllvm;
 end.

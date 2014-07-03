@@ -42,4 +42,6 @@ implementation
       create_codegen;
     end;
 
+begin
+  chlcgobj:=thlcg2ll;
 end.

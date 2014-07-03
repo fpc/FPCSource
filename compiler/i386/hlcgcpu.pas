@@ -200,4 +200,6 @@ implementation
 
 
 
+begin
+  chlcgobj:=thlcgcpu;
 end.
