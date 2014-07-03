@@ -40,8 +40,6 @@ uses
     function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean=True):tasmlabofs;
     function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):tasmlabofs;
 
-    function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
-
 
 implementation
 
@@ -49,7 +47,7 @@ uses
   globals,
   systems,
   verbose,
-  aasmtai,
+  aasmtai,aasmcnst,
   widestr,
   symdef;
 
@@ -88,7 +86,7 @@ uses
             result.ofs:=0;
           end;
         { sanity check }
-        if result.ofs<>get_string_symofs(st_ansistring,false) then
+        if result.ofs<>ctai_typedconstbuilder.get_string_symofs(st_ansistring,false) then
           internalerror(2012051701);
 
         getmem(s,len+1);
@@ -141,7 +139,7 @@ uses
                 result.ofs:=0;
               end;
             { sanity check }
-            if result.ofs<>get_string_symofs(st_unicodestring,false) then
+            if result.ofs<>ctai_typedconstbuilder.get_string_symofs(st_unicodestring,false) then
               internalerror(2012051702);
           end;
         if cwidechartype.size = 2 then
@@ -153,41 +151,6 @@ uses
           end
         else
           InternalError(200904271); { codegeneration for other sizes must be written }
-      end;
-
-
-    function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
-      const
-        ansistring_header_size =
-          { encoding }
-          2 +
-          { elesize }
-          2 +
-{$ifdef cpu64bitaddr}
-          { alignment }
-          4 +
-{$endif cpu64bitaddr}
-          { reference count }
-          sizeof(pint) +
-          { length }
-          sizeof(pint);
-        unicodestring_header_size = ansistring_header_size;
-      begin
-        if not(target_info.system in systems_darwin) then
-          result:=0
-        else case typ of
-          st_ansistring:
-            result:=ansistring_header_size;
-          st_unicodestring:
-            result:=unicodestring_header_size;
-          st_widestring:
-            if winlikewidestring then
-              result:=0
-            else
-              result:=unicodestring_header_size;
-          else
-            result:=0;
-        end;
       end;
 
 

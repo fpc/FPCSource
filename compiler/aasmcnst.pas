@@ -29,7 +29,7 @@ interface
 uses
   cclasses,globtype,constexp,
   aasmbase,aasmdata,aasmtai,
-  symtype,symdef,symsym;
+  symconst,symtype,symdef,symsym;
 
 type
    { typed const: integer/floating point/string/pointer/... const along with
@@ -171,6 +171,12 @@ type
        another list first. This property should only be accessed once all
        data has been added. }
      function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; lab: boolean): tasmlist;
+
+     { returns the offset of the string data relative to ansi/unicode/widestring
+       constant labels. On most platforms, this is 0 (with the header at a
+       negative offset), but on some platforms such negative offsets are not
+       supported }
+     class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
    end;
    ttai_lowleveltypedconstbuilderclass = class of ttai_lowleveltypedconstbuilder;
 
@@ -180,8 +186,8 @@ type
 implementation
 
    uses
-     verbose,globals,
-     symconst,defutil;
+     verbose,globals,systems,
+     defutil;
 
 
 {****************************************************************************
@@ -412,6 +418,42 @@ implementation
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
+     end;
+
+
+   class function ttai_lowleveltypedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+     const
+       ansistring_header_size =
+         { encoding }
+         2 +
+         { elesize }
+         2 +
+  {$ifdef cpu64bitaddr}
+         { alignment }
+         4 +
+  {$endif cpu64bitaddr}
+         { reference count }
+         sizeof(pint) +
+         { length }
+         sizeof(pint);
+       unicodestring_header_size = ansistring_header_size;
+     begin
+       { darwin's linker does not support negative offsets }
+       if not(target_info.system in systems_darwin) then
+         result:=0
+       else case typ of
+         st_ansistring:
+           result:=ansistring_header_size;
+         st_unicodestring:
+           result:=unicodestring_header_size;
+         st_widestring:
+           if winlikewidestring then
+             result:=0
+           else
+             result:=unicodestring_header_size;
+         else
+           result:=0;
+       end;
      end;
 
 

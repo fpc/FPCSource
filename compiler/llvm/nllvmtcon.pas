@@ -28,7 +28,7 @@ interface
   uses
     cclasses,constexp,globtype,
     aasmbase,aasmtai,aasmcnst,aasmllvm,
-    symtype,symdef,symsym,
+    symconst,symtype,symdef,symsym,
     ngtcon;
 
   type
@@ -64,6 +64,8 @@ interface
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
       procedure queue_typeconvn(fromdef, todef: tdef); override;
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
+
+      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
     end;
 
 implementation
@@ -72,7 +74,7 @@ implementation
     verbose,
     aasmdata,
     cpubase,llvmbase,
-    symconst,symtable,llvmdef,defutil;
+    symtable,llvmdef,defutil;
 
 
   procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean);
@@ -344,6 +346,13 @@ implementation
         the tasmsymbol }
       fqueue_offset:=0;
       inherited;
+    end;
+
+
+  class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+    begin
+      { LLVM does not support labels in the middle of a declaration }
+      result:=0;
     end;
 
 

@@ -73,6 +73,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,cutils,
+      aasmcnst,
       symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
@@ -330,7 +331,7 @@ implementation
                                lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>get_string_symofs(st_ansistring,false) then
+                               if lastlabel.ofs<>ctai_typedconstbuilder.get_string_symofs(st_ansistring,false) then
                                  internalerror(2012051703);
                              end;
                         end;
@@ -347,7 +348,7 @@ implementation
                                                winlikewidestring);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
+                               if lastlabel.ofs<>ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
                                  internalerror(2012051704);
                              end;
                         end;
@@ -394,7 +395,7 @@ implementation
            begin
              location_reset(location, LOC_REGISTER, def_cgsize(strpointerdef));
              reference_reset_symbol(href, lab_str,
-               get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring),
+               ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring),
                const_align(strpointerdef.size));
              location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,elementdef,strpointerdef,href,location.register)
