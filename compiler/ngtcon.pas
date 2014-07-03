@@ -884,22 +884,38 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           if is_widechar(def.pointeddef) and
              (node.nodetype<>addrn) then
             begin
-              current_asmdata.getdatalabel(ll);
-              ftcb.emit_tai(Tai_const.Create_sym(ll),def);
-              current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
-              current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
+                  current_asmdata.getdatalabel(ll);
                   { convert to unicodestring stringconstn }
                   inserttypeconv(node,cunicodestringtype);
                   if (node.nodetype=stringconstn) and
                      (tstringconstnode(node).cst_type in [cst_widestring,cst_unicodestring]) then
                    begin
+                     { create a tcb for the string data (it's placed in a separate
+                       asmlist) }
+                     datatcb:=ctai_typedconstbuilder.create;
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
+                     { include terminating #0 }
+                     datadef:=getarraydef(cwidechartype,tstringconstnode(node).len+1);
+                     datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pw^.data[i]));
+                       datatcb.emit_tai(Tai_const.Create_16bit(pw^.data[i]),cwidechartype);
                      { ending #0 }
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0))
+                     datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
+                     datatcb.maybe_end_aggregate(datadef);
+                     { concat add the string data to the al_const asmlist }
+                     current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint)),true));
+                     datatcb.free;
+                     { we now emit the address of the first element of the array
+                       containing the string data }
+                     ftcb.queue_init(def);
+                     { address of ... }
+                     ftcb.queue_addrn(def.pointeddef,def);
+                     { ... the first element ... }
+                     ftcb.queue_vecn(datadef,0);
+                     { ... of the string array }
+                     ftcb.queue_emit_asmsym(ll,datadef);
                    end;
                 end
               else
