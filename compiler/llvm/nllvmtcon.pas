@@ -63,6 +63,7 @@ interface
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
       procedure queue_typeconvn(fromdef, todef: tdef); override;
+      procedure queue_emit_staticvar(vs: tstaticvarsym); override;
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
@@ -336,6 +337,16 @@ implementation
       end;
       ai:=taillvm.op_reg_size_tai_size(op,NR_NO,fromdef,nil,todef);
       update_queued_tai(todef,ai,ai,2);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
+    begin
+      { we've already incorporated the offset via the inserted operations above,
+        make sure it doesn't get emitted again as part of the tai_const for
+        the tasmsymbol }
+      fqueue_offset:=0;
+      inherited;
     end;
 
 
