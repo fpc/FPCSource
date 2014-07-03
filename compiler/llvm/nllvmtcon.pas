@@ -95,6 +95,12 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
     begin
+      { is the result of the outermost expression different from the type of
+        this typed const? -> insert type conversion }
+      if not assigned(fqueued_tai) and
+         (resdef<>fqueued_def) and
+         (llvmencodetype(resdef)<>llvmencodetype(fqueued_def)) then
+        queue_typeconvn(resdef,fqueued_def);
       if assigned(fqueued_tai) then
         begin
           taillvm(flast_added_tai).loadtai(fqueued_tai_opidx,outerai);
