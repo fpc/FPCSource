@@ -92,7 +92,7 @@ unit tgobj;
 
             the forcesize parameter is so that it can be used for defs that
             don't have an inherent size (e.g., array of const) }
-          procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); virtual;
+          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); virtual;
           procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
@@ -521,7 +521,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+    procedure ttgobj.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
         gettemp(list,forcesize,def.alignment,temptype,ref);
       end;
