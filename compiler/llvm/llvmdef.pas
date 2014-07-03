@@ -134,8 +134,8 @@ implementation
       frombytesize,
       tobytesize: asizeint;
     begin
-      fromregtyp:=hlcg.def2regtyp(fromsize);
-      toregtyp:=hlcg.def2regtyp(tosize);
+      fromregtyp:=chlcgobj.def2regtyp(fromsize);
+      toregtyp:=chlcgobj.def2regtyp(tosize);
       { int to pointer or vice versa }
       if fromregtyp=R_ADDRESSREGISTER then
         begin
