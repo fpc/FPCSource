@@ -59,6 +59,7 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
+          function first_addpointer: tnode; virtual;
 
           { override and return false if you can handle 32x32->64 }
           { bit multiplies directly in your code generator. If    }
@@ -2671,6 +2672,13 @@ implementation
       end;
 
 
+    function taddnode.first_addpointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_REGISTER;
+      end;
+
+
     function taddnode.first_addfloat : tnode;
       var
         procname: string[31];
@@ -3072,7 +3080,7 @@ implementation
          else if (ld.typ=pointerdef) then
             begin
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                expectloc:=LOC_REGISTER
+                result:=first_addpointer
               else
                 expectloc:=LOC_FLAGS;
            end
@@ -3106,7 +3114,7 @@ implementation
 
          else if (rd.typ=pointerdef) or (ld.typ=pointerdef) then
             begin
-              expectloc:=LOC_REGISTER;
+              result:=first_addpointer;
             end
 
          else  if (rd.typ=procvardef) and
