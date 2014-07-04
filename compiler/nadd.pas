@@ -60,6 +60,7 @@ interface
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
           function first_addpointer: tnode; virtual;
+          function first_cmppointer: tnode; virtual;
 
           { override and return false if you can handle 32x32->64 }
           { bit multiplies directly in your code generator. If    }
@@ -2679,6 +2680,13 @@ implementation
       end;
 
 
+    function taddnode.first_cmppointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_FLAGS;
+      end;
+
+
     function taddnode.first_addfloat : tnode;
       var
         procname: string[31];
@@ -3082,7 +3090,7 @@ implementation
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
                 result:=first_addpointer
               else
-                expectloc:=LOC_FLAGS;
+                result:=first_cmppointer;
            end
 
          else if is_implicit_pointer_object_type(ld) then
