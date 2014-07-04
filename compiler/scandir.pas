@@ -1573,13 +1573,53 @@ unit scandir;
       end;
 
     procedure dir_hugepointernormalization;
+      var
+        hs : string;
       begin
         if target_info.system<>system_i8086_msdos then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
           end;
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        case hs of
+          'BORLANDC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          'MICROSOFTC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
+             end;
+          'WATCOMC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+        end;
+      end;
+
+    procedure dir_hugepointerarithmeticnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
+            exit;
+          end;
         do_localswitch(cs_hugeptr_arithmetic_normalization);
+      end;
+
+    procedure dir_hugepointercomparisonnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_comparison_normalization);
       end;
 
     procedure dir_weakpackageunit;
@@ -1686,6 +1726,8 @@ unit scandir;
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('HUGECODE',directive_all, @dir_hugecode);
         AddDirective('HUGEPOINTERNORMALIZATION',directive_all,@dir_hugepointernormalization);
+        AddDirective('HUGEPOINTERARITHMETICNORMALIZATION',directive_all,@dir_hugepointerarithmeticnormalization);
+        AddDirective('HUGEPOINTERCOMPARISONNORMALIZATION',directive_all,@dir_hugepointercomparisonnormalization);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
