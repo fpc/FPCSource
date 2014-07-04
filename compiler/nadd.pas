@@ -3011,9 +3011,9 @@ implementation
          else if is_pchar(ld) then
            begin
              if nodetype in [addn,subn,muln,andn,orn,xorn] then
-               expectloc:=LOC_REGISTER
+               result:=first_addpointer
              else
-               expectloc:=LOC_FLAGS;
+               result:=first_cmppointer;
            end
 
          { is one of the operands a string }
