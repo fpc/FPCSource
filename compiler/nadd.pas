@@ -1642,11 +1642,15 @@ implementation
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
 {$elseif defined(i8086)}
-                    if is_farpointer(left.resultdef) then
+                    if is_hugepointer(left.resultdef) then
+                      inserttypeconv_internal(left,charhugepointertype)
+                    else if is_farpointer(left.resultdef) then
                       inserttypeconv_internal(left,charfarpointertype)
                     else
                       inserttypeconv_internal(left,charnearpointertype);
-                    if is_farpointer(right.resultdef) then
+                    if is_hugepointer(right.resultdef) then
+                      inserttypeconv_internal(right,charhugepointertype)
+                    else if is_farpointer(right.resultdef) then
                       inserttypeconv_internal(right,charfarpointertype)
                     else
                       inserttypeconv_internal(right,charnearpointertype);

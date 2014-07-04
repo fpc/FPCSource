@@ -306,6 +306,7 @@ implementation
         voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge);
         charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near);
         charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far);
+        charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge);
         bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far);
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
@@ -447,6 +448,7 @@ implementation
         addtype('$void_hugepointer',voidhugepointertype);
         addtype('$char_nearpointer',charnearpointertype);
         addtype('$char_farpointer',charfarpointertype);
+        addtype('$char_hugepointer',charhugepointertype);
         addtype('$byte_farpointer',bytefarpointertype);
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
@@ -584,6 +586,7 @@ implementation
         loadtype('void_hugepointer',voidhugepointertype);
         loadtype('char_nearpointer',charnearpointertype);
         loadtype('char_farpointer',charfarpointertype);
+        loadtype('char_hugepointer',charhugepointertype);
         loadtype('byte_farpointer',bytefarpointertype);
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);

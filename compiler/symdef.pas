@@ -942,6 +942,7 @@ interface
        voidhugepointertype,
        charnearpointertype,
        charfarpointertype,
+       charhugepointertype,
        bytefarpointertype,        { used for Mem[] }
        wordfarpointertype,        { used for MemW[] }
        longintfarpointertype,     { used for MemL[] }
