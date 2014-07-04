@@ -395,10 +395,18 @@ implementation
             else
               owner.AsmWrite(' (');
             owner.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
-            owner.AsmWrite(' ');
-            owner.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
+            { if there's a tai operand, its def is used instead of an
+              explicit def operand }
+            if taillvm(hp).ops=4 then
+              begin
+                owner.AsmWrite(' ');
+                owner.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
+                opstart:=3;
+              end
+            else
+              opstart:=2;
             owner.AsmWrite(' to ');
-            owner.AsmWrite(getopstr(taillvm(hp).oper[3]^,false));
+            owner.AsmWrite(getopstr(taillvm(hp).oper[opstart]^,false));
             done:=true;
           end
         else

@@ -52,6 +52,7 @@ interface
           next queued tai }
       procedure update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
       procedure emit_tai_intern(p: tai; def: tdef; procvar2procdef: boolean);
+      function wrap_with_type(p: tai; def: tdef): tai;
      public
       constructor create; override;
       destructor destroy; override;
@@ -95,6 +96,11 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
     begin
+      { the outer tai must always be a typed constant (possibly a wrapper
+        around a taillvm or so), in order for result type information to be
+        available }
+      if outerai.typ<>ait_typedconst then
+        internalerror(2014060401);
       { is the result of the outermost expression different from the type of
         this typed const? -> insert type conversion }
       if not assigned(fqueued_tai) and
@@ -121,7 +127,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.emit_tai_intern(p: tai; def: tdef; procvar2procdef: boolean);
     var
       ai: tai;
-      stc: tai_simpletypedconst;
+      stc: tai_abstracttypedconst;
       kind: ttypedconstkind;
     begin
       if assigned(fqueued_tai) then
@@ -136,11 +142,13 @@ implementation
             add anything further }
           update_queued_tai(def,ai,ai,-1);
           { and emit it }
-          p:=fqueued_tai;
+          stc:=tai_abstracttypedconst(fqueued_tai);
           def:=fqueued_def;
           { ensure we don't try to emit this one again }
           fqueued_tai:=nil;
-        end;
+        end
+      else
+        stc:=tai_simpletypedconst.create(tck_simple,def,p);
       { these elements can be aggregates themselves, e.g. a shortstring can
         be emitted as a series of bytes and string data arrays }
       if not procvar2procdef then
@@ -152,12 +160,17 @@ implementation
           (faggregates.count=0) or
           (tai_aggregatetypedconst(faggregates[faggregates.count-1]).adetyp<>kind)) then
         internalerror(2014052906);
-      stc:=tai_simpletypedconst.create(tck_simple,def,p);
       if assigned(faggregates) and
          (faggregates.count>0) then
         tai_aggregatetypedconst(faggregates[faggregates.count-1]).addvalue(stc)
       else
         inherited emit_tai(stc,def);
+    end;
+
+
+  function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
+    begin
+      result:=tai_simpletypedconst.create(tck_simple,def,p);
     end;
 
 
@@ -240,6 +253,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.queue_vecn(def: tdef; const index: tconstexprint);
     var
       ai: taillvm;
+      aityped: tai;
       eledef: tdef;
     begin
       { update range checking info }
@@ -263,14 +277,16 @@ implementation
         else
           internalerror(2014062203);
       end;
-      update_queued_tai(getpointerdef(eledef),ai,ai,1);
+      aityped:=wrap_with_type(ai,getpointerdef(eledef));
+      update_queued_tai(getpointerdef(eledef),aityped,ai,1);
     end;
 
 
   procedure tllvmtai_typedconstbuilder.queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym);
     var
       getllvmfieldaddr,
-      getpascalfieldaddr: taillvm;
+      getpascalfieldaddr,
+      getllvmfieldaddrtyped: tai;
       llvmfielddef: tdef;
     begin
       { update range checking info }
@@ -279,9 +295,12 @@ implementation
       { get the address of the llvm-struct field that corresponds to this
         Pascal field }
       getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);
+      { getelementptr doesn't contain its own resultdef, so encode it via a
+        tai_simpletypedconst tai }
+      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,getpointerdef(llvmfielddef));
       { if it doesn't match the requested field exactly (variant record),
         fixup the result }
-      getpascalfieldaddr:=getllvmfieldaddr;
+      getpascalfieldaddr:=getllvmfieldaddrtyped;
       if (vs.offsetfromllvmfield<>0) or
          (llvmfielddef<>vs.vardef) then
         begin
@@ -291,16 +310,19 @@ implementation
               { convert to a pointer to a 1-sized element }
               if llvmfielddef.size<>1 then
                 begin
-                  getpascalfieldaddr:=taillvm.op_reg_size_tai_size(la_bitcast,NR_NO,getpointerdef(llvmfielddef),getpascalfieldaddr,u8inttype);
+                  getpascalfieldaddr:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,u8inttype);
                   { update the current fielddef of the expression }
                   llvmfielddef:=u8inttype;
                 end;
               { add the offset }
               getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
+              { ... and set the result type of the getelementptr }
+              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,getpointerdef(u8inttype));
+              llvmfielddef:=u8inttype;
             end;
           { bitcast the data at the final offset to the right type }
           if llvmfielddef<>vs.vardef then
-            getpascalfieldaddr:=taillvm.op_reg_size_tai_size(la_bitcast,NR_NO,getpointerdef(llvmfielddef),getpascalfieldaddr,getpointerdef(vs.vardef));
+            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,getpointerdef(vs.vardef)),getpointerdef(vs.vardef));
         end;
       update_queued_tai(getpointerdef(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
     end;
@@ -309,6 +331,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
     var
       ai: taillvm;
+      typedai: tai;
       tmpintdef: tdef;
       op,
       firstop,
@@ -335,14 +358,16 @@ implementation
               end;
             { since we have to queue operations from outer to inner, first queue
               the conversion from the tempintdef to the todef }
-            ai:=taillvm.op_reg_size_tai_size(secondop,NR_NO,tmpintdef,nil,todef);
-            update_queued_tai(todef,ai,ai,2);
+            ai:=taillvm.op_reg_tai_size(secondop,NR_NO,nil,todef);
+            typedai:=wrap_with_type(ai,todef);
+            update_queued_tai(todef,typedai,ai,1);
             todef:=tmpintdef;
             op:=firstop
           end;
       end;
-      ai:=taillvm.op_reg_size_tai_size(op,NR_NO,fromdef,nil,todef);
-      update_queued_tai(todef,ai,ai,2);
+      ai:=taillvm.op_reg_tai_size(op,NR_NO,nil,todef);
+      typedai:=wrap_with_type(ai,todef);
+      update_queued_tai(todef,typedai,ai,1);
     end;
 
 

@@ -69,7 +69,7 @@ interface
         { e.g. dst = bitcast fromsize @globalvar to tosize }
         constructor op_reg_size_sym_size(op:tllvmop;dst:tregister;fromsize:tdef;src:TAsmSymbol;tosize:tdef);
         { e.g. dst = bitcast fromsize <abstracttaidata> to tosize }
-        constructor op_reg_size_tai_size(op:tllvmop;dst:tregister;fromsize:tdef;src:tai;tosize:tdef);
+        constructor op_reg_tai_size(op:tllvmop;dst:tregister;src:tai;tosize:tdef);
 
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
@@ -99,7 +99,7 @@ interface
         { e.g. dst = getelementptr ptrsize ref, i32 0 (if indirect), index1type index1 }
         constructor getelementptr_reg_size_ref_size_reg(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:tregister;indirect:boolean);
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
-        constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:taillvm;indextype:tdef;index1:ptrint;indirect:boolean);
+        constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
         { e.g. dst = call retsize (paras) }
         constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
@@ -622,14 +622,13 @@ uses
       end;
 
 
-    constructor taillvm.op_reg_size_tai_size(op:tllvmop;dst:tregister;fromsize:tdef;src:tai;tosize:tdef);
+    constructor taillvm.op_reg_tai_size(op:tllvmop;dst:tregister;src:tai;tosize:tdef);
       begin
         create_llvm(op);
-        ops:=4;
+        ops:=3;
         loadreg(0,dst);
-        loaddef(1,fromsize);
-        loadtai(2,src);
-        loaddef(3,tosize);
+        loadtai(1,src);
+        loaddef(2,tosize);
       end;
 
 
@@ -808,7 +807,7 @@ uses
       end;
 
 
-    constructor taillvm.getelementptr_reg_tai_size_const(dst: tregister; const ai: taillvm; indextype: tdef; index1: ptrint; indirect: boolean);
+    constructor taillvm.getelementptr_reg_tai_size_const(dst: tregister; const ai: tai; indextype: tdef; index1: ptrint; indirect: boolean);
       var
         index: longint;
       begin
