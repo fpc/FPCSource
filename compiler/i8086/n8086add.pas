@@ -334,7 +334,7 @@ interface
             internalerror(2014070301);
         end;
 
-        if cs_hugeptr_normalization in current_settings.localswitches then
+        if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
           procname:=procname+'_normalized';
 
         if is_hugepointer(left.resultdef) then

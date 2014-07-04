@@ -1579,7 +1579,7 @@ unit scandir;
             Message(scan_w_hugepointernormalization_not_support);
             exit;
           end;
-        do_localswitch(cs_hugeptr_normalization);
+        do_localswitch(cs_hugeptr_arithmetic_normalization);
       end;
 
     procedure dir_weakpackageunit;
