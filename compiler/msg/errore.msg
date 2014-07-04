@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02098 is the last used one
+# 02097 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -404,8 +404,6 @@ scan_w_invalid_stacksize=02096_W_The specified stack size is not within the vali
 scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
 % The HeapMax value (if specified) must be greater than or equal to the HeapMin
 % value. Otherwise, the HeapMax value is ignored.
-scan_w_hugepointernormalization_not_support=02098_W_HUGEPOINTERNORMALIZATION is not supported by the target platform
-% The \var{\{\$HUGEPOINTERNORMALIZATION\}} directive is not supported by the target platform.
 % \end{description}
 #
 # Parser

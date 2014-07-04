@@ -1576,7 +1576,7 @@ unit scandir;
       begin
         if target_info.system<>system_i8086_msdos then
           begin
-            Message(scan_w_hugepointernormalization_not_support);
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
           end;
         do_localswitch(cs_hugeptr_arithmetic_normalization);
