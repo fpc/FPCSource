@@ -105,7 +105,7 @@ unit hlcgobj;
           {# Returns the kind of register this type should be loaded in (it does not
              check whether this is actually possible, but if it's loaded in a register
              by the compiler for any purpose other than parameter passing/function
-             result loading, this is the register type used }
+             result loading, this is the register type used) }
           class function def2regtyp(def: tdef): tregistertype; virtual;
 
           {# Returns a reference with its base address set from a pointer that
