@@ -885,20 +885,26 @@ implementation
                   asmwrite(taillvmdecl(hp).namesym.name);
                   case taillvmdecl(hp).namesym.bind of
                     AB_EXTERNAL:
-                      asmwrite(' = external global ');
+                      asmwrite(' = external ');
                     AB_COMMON:
-                      asmwrite(' = common global ');
+                      asmwrite(' = common ');
                     AB_LOCAL:
-                      asmwrite(' = internal global ');
+                      asmwrite(' = internal ');
                     AB_GLOBAL:
-                      asmwrite(' = global ');
+                      asmwrite(' = ');
                     AB_WEAK_EXTERNAL:
-                      asmwrite(' = extern_weak global ');
+                      asmwrite(' = extern_weak ');
                     AB_PRIVATE_EXTERN:
-                      asmwrite('= linker_private global ');
+                      asmwrite('= linker_private ');
                     else
                       internalerror(2014020104);
                   end;
+                  { todo: handle more different section types (mainly
+                      Objective-C }
+                  if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then
+                    asmwrite('unnamed_addr constant ')
+                  else
+                    asmwrite('global ');
                   if not assigned(taillvmdecl(hp).initdata) then
                     begin
                       asmwrite(llvmencodetype(taillvmdecl(hp).def));

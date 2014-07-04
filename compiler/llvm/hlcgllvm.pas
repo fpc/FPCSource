@@ -307,7 +307,7 @@ implementation
         begin
           asmsym:=current_asmdata.RefAsmSymbol(pd.mangledname);
           if not asmsym.declared then
-            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil));
+            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code));
         end;
       callparas:=tfplist.Create;
       for i:=0 to high(paras) do
@@ -940,7 +940,7 @@ implementation
             list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,llv_default,lll_default));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef,nil));
+      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef,nil,sec_code));
     end;
 
 

@@ -62,7 +62,7 @@ implementation
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
-      list.concat(taillvmdecl.Create(asmsym,sym.vardef,nil));
+      list.concat(taillvmdecl.Create(asmsym,sym.vardef,nil,sec_data));
     end;
 
 

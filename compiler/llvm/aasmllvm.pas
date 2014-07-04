@@ -149,7 +149,8 @@ interface
       initdata: tasmlist;
       namesym: tasmsymbol;
       def: tdef;
-      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist);
+      sec: TAsmSectiontype;
+      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype);
       destructor destroy; override;
     end;
 
@@ -175,13 +176,14 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist);
+    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype);
       begin
         inherited create;
         typ:=ait_llvmdecl;
         namesym:=_namesym;
         def:=_def;
         initdata:=_initdata;
+        sec:=_sec;
       end;
 
     destructor taillvmdecl.destroy;
@@ -223,7 +225,7 @@ uses
               internalerror(2014020701);
             def:=tpointerdef(def).pointeddef;
           end;
-        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil));
+        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none));
         ref.symbol.declared:=true;
       end;
 
