@@ -77,3 +77,33 @@ begin
   linear:=(LongInt(Seg(p^)) shl 4)+Ofs(p^)-n;
   p:=HugePointer(Ptr(linear shr 4,linear and $F));
 end;
+
+function fpc_hugeptr_cmp_normalized_e(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_e:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))=((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
+function fpc_hugeptr_cmp_normalized_ne(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_ne:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))<>((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
+function fpc_hugeptr_cmp_normalized_b(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_b:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))<((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
+function fpc_hugeptr_cmp_normalized_be(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_be:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))<=((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
+function fpc_hugeptr_cmp_normalized_a(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_a:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))>((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
+function fpc_hugeptr_cmp_normalized_ae(p1, p2: HugePointer): Boolean; compilerproc;
+begin
+  fpc_hugeptr_cmp_normalized_ae:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))>=((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
