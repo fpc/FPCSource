@@ -1599,6 +1599,8 @@ unit scandir;
                recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
                recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
              end;
+          else
+            Message(scan_e_illegal_hugepointernormalization);
         end;
       end;
 

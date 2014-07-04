@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02097 is the last used one
+# 02098 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -404,6 +404,9 @@ scan_w_invalid_stacksize=02096_W_The specified stack size is not within the vali
 scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
 % The HeapMax value (if specified) must be greater than or equal to the HeapMin
 % value. Otherwise, the HeapMax value is ignored.
+scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTERNORMALIZATION
+% The only allowed values for HUGEPOINTERNORMALIZATION are BORLANDC, MICROSOFTC
+% and WATCOMC.
 % \end{description}
 #
 # Parser
