@@ -105,72 +105,70 @@
         b, p, prev: PTinyHeapBlock;
         concatenated: boolean;
       begin
-        concatenated := true;
-        while concatenated do
-          begin
-            concatenated := false;
-            b := addr;
+        repeat
+          concatenated := false;
+          b := addr;
 
-            b^.Next := TinyHeapBlocks;
-            b^.Size := Size;
-            b^.EndAddr := pointer(ptruint(addr)+size);
+          b^.Next := TinyHeapBlocks;
+          b^.Size := Size;
+          b^.EndAddr := pointer(ptruint(addr)+size);
 
-            if TinyHeapBlocks = nil then
-              TinyHeapBlocks := b
-            else
-              begin
-                p := TinyHeapBlocks;
-                prev := nil;
+          if TinyHeapBlocks = nil then
+            TinyHeapBlocks := b
+          else
+            begin
+              p := TinyHeapBlocks;
+              prev := nil;
 
-                while assigned(p) do
-                  begin
-                    if p^.EndAddr = addr then
-                      begin
-                        addr:=p;
-                        size:=p^.size+size;
-                        if prev = nil then
-                          TinyHeapBlocks:=p^.next
-                        else
-                          prev^.next:=p^.next;
-                        concatenated:=true;
-                        break;
-                      end
-                    else if p = b^.EndAddr then
-                      begin
-                        size:=p^.size+size;
-                        if prev = nil then
-                          TinyHeapBlocks:=p^.next
-                        else
-                          prev^.next:=p^.next;
-                        concatenated:=true;
-                        break;
-                      end;
-                    
-                    prev := p;
-                    p := p^.next;
-                  end;
+              while assigned(p) do
+                begin
+                  if p^.EndAddr = addr then
+                    begin
+                      addr:=p;
+                      size:=p^.size+size;
+                      if prev = nil then
+                        TinyHeapBlocks:=p^.next
+                      else
+                        prev^.next:=p^.next;
+                      concatenated:=true;
+                      break;
+                    end
+                  else if p = b^.EndAddr then
+                    begin
+                      size:=p^.size+size;
+                      if prev = nil then
+                        TinyHeapBlocks:=p^.next
+                      else
+                        prev^.next:=p^.next;
+                      concatenated:=true;
+                      break;
+                    end;
 
-                if not concatenated then
-                  begin
-                    p := TinyHeapBlocks;
-                    prev := nil;
+                  prev := p;
+                  p := p^.next;
+                end;
 
-                    while assigned(p) and (p^.Size < size) do
-                      begin
-                        prev := p;
-                        p := p^.Next;
-                      end;
+              if not concatenated then
+                begin
+                  p := TinyHeapBlocks;
+                  prev := nil;
 
-                    if assigned(prev) then
-                      begin
-                        b^.Next := p;
-                        prev^.Next := b;
-                      end
-                    else
-                      TinyHeapBlocks := b;
-                  end;
-              end;
-          end;
+                  while assigned(p) and (p^.Size < size) do
+                    begin
+                      prev := p;
+                      p := p^.Next;
+                    end;
+
+                  if assigned(prev) then
+                    begin
+                      b^.Next := p;
+                      prev^.Next := b;
+                    end
+                  else
+                    TinyHeapBlocks := b;
+                end;
+            end;
+        until not concatenated;
       end;
 
     function SysTinyFreeMem(Addr: Pointer): ptruint;
