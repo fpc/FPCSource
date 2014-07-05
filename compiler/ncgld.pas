@@ -491,7 +491,8 @@ implementation
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
                           begin
-                             if not is_object(left.resultdef) then
+                             if is_implicit_pointer_object_type(left.resultdef) or 
+                                 (left.resultdef.typ=classrefdef) then
                                begin
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
                                  hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.registerhi)
