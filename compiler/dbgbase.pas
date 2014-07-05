@@ -418,7 +418,9 @@ implementation
         beforeappendsym(list,sym);
         case sym.typ of
           staticvarsym :
-            appendsym_staticvar(list,tstaticvarsym(sym));
+            if not assigned(tstaticvarsym(sym).fieldvarsym) or
+               not(df_generic in tdef(tstaticvarsym(sym).fieldvarsym.owner.defowner).defoptions) then
+              appendsym_staticvar(list,tstaticvarsym(sym));
           unitsym:
             appendsym_unit(list,tunitsym(sym));
           labelsym :

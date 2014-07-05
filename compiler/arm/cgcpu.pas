@@ -114,11 +114,13 @@ unit cgcpu;
 
         { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
         procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
+
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
       tcgarm = class(tbasecgarm)
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg;
@@ -132,6 +134,9 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
+
+        {Multiply two 32-bit registers into lo and hi 32-bit registers}
+        procedure a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
       end;
 
       { normal arm cg }
@@ -176,6 +181,8 @@ unit cgcpu;
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
+
+        function handle_load_store(list: TAsmList; op: tasmop; oppostfix: toppostfix; reg: tregister; ref: treference): treference; override;
       end;
 
       tthumbcg64farm = class(tbasecg64farm)
@@ -685,6 +692,17 @@ unit cgcpu;
           a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
 
+     procedure tcgarm.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
+       var
+         tmpreg,tmpresreg : tregister;
+         tmpref : treference;
+       begin
+         tmpreg:=getintregister(list,size);
+         tmpresreg:=getintregister(list,size);
+         tmpref:=a_internal_load_ref_reg(list,size,size,ref,tmpreg);
+         a_op_const_reg_reg(list,op,size,a,tmpreg,tmpresreg);
+         a_load_reg_ref(list,size,size,tmpresreg,tmpref);
+       end;
 
      procedure tcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
        var
@@ -1161,6 +1179,26 @@ unit cgcpu;
         maybeadjustresult(list,op,size,dst);
       end;
 
+    procedure tcgarm.a_mul_reg_reg_pair(list: tasmlist; size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+    var
+      asmop: tasmop;
+    begin
+      list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
+      case size of
+        OS_32:  asmop:=A_UMULL;
+        OS_S32: asmop:=A_SMULL;
+        else
+          InternalError(2014060802);
+      end;
+      { The caller might omit dstlo or dsthi, when he is not interested in it, we still
+        need valid registers everywhere. In case of dsthi = NR_NO we could fall back to
+        32x32=32 bit multiplication}
+      if (dstlo = NR_NO) then
+        dstlo:=getintregister(list,size);
+      if (dsthi = NR_NO) then
+        dsthi:=getintregister(list,size);
+      list.concat(taicpu.op_reg_reg_reg_reg(asmop, dstlo, dsthi, src1,src2));
+    end;
 
     function tbasecgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
@@ -3830,8 +3868,8 @@ unit cgcpu;
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
-                     (ref.offset<-255) or
-                     (ref.offset>4094) or
+                     (ref.offset<-124) or
+                     (ref.offset>124) or
                      { sometimes the compiler reused registers }
                      (reg=ref.index) or
                      (reg=ref.base) then
@@ -3863,8 +3901,8 @@ unit cgcpu;
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
-                     (ref.offset<-255) or
-                     (ref.offset>4092) or
+                     (ref.offset<-124) or
+                     (ref.offset>124) or
                      { sometimes the compiler reused registers }
                      (reg=ref.index) or
                      (reg=ref.base) then
@@ -4010,6 +4048,54 @@ unit cgcpu;
               end;
               paraloc:=next;
             end;
+      end;
+
+
+    function tthumbcgarm.handle_load_store(list: TAsmList; op: tasmop; oppostfix: toppostfix; reg: tregister; ref: treference): treference;
+      var
+        href : treference;
+        tmpreg : TRegister;
+      begin
+        href:=ref;
+        if (op in [A_STR,A_STRB,A_STRH]) and
+           (abs(ref.offset)>124) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           (oppostfix in [PF_None]) and
+           (ref.base<>NR_STACK_POINTER_REG)  and
+           (abs(ref.offset)>124) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           (oppostfix in [PF_None]) and
+           (ref.base=NR_STACK_POINTER_REG) and
+           (abs(ref.offset)>1020) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end
+        else if (op=A_LDR) and
+           ((oppostfix in [PF_SH,PF_SB]) or
+            (abs(ref.offset)>124)) then
+          begin
+            tmpreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+
+            reference_reset_base(href,tmpreg,0,ref.alignment);
+          end;
+
+        Result:=inherited handle_load_store(list, op, oppostfix, reg, href);
       end;
 
 

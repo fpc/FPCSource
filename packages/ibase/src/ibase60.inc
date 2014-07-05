@@ -1217,6 +1217,9 @@ type
      isc_spb_sts_hdr_pages = $04;
      isc_spb_sts_idx_pages = $08;
      isc_spb_sts_sys_relations = $10;
+     isc_spb_sts_record_versions = $20;
+     isc_spb_sts_table = $40;
+     isc_spb_sts_nocreation = $80;
   {                        }
   { SQL information items  }
   {                        }

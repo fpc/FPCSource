@@ -1486,6 +1486,8 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
 {****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
+{ This is only needed to bootstrap on SPARC targets
+  (MIPS and m68k too, but they have no releases, so bootstrapping is not an issue) }
 function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
    if l<0 then

@@ -115,7 +115,8 @@ interface
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
                   end;
               end
-{$if not defined(cpu16bitalu) and not defined(cpu8bitalu)}
+{$if not defined(cpu16bitalu) and not defined(cpu8bitalu) and not defined(m68k)}
+            { FIXME: reg_cgsize incorrectly identifies m68k as "without subregisters" }
             { On targets without 8/16 bit register components, 8/16-bit operations
               always adjust high bits of result, see 'maybeadjustresult' method in
               respective cgcpu.pas. Therefore 8/16-bit locations are valid as larger
@@ -574,7 +575,12 @@ interface
                   since the global procedure won't use it, but it can help with
                   debugging }
                 inc(location.reference.offset,voidcodepointertype.size);
-                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference);
+                if (resultdef.typ=procvardef) and is_nested_pd(tprocvardef(resultdef)) then
+                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,parentfpvoidpointertype,0,location.reference)
+                else if tabstractprocdef(resultdef).is_methodpointer then
+                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference)
+                else
+                  internalerror(2014052301);
                 dec(location.reference.offset,voidcodepointertype.size);
               end;
           end;

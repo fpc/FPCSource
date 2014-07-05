@@ -47,7 +47,6 @@ interface
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
-          procedure second_cmpboolean;override;
        public
           function pass_1:tnode;override;
        end;
@@ -366,11 +365,9 @@ implementation
     procedure t68kaddnode.second_addfloat;
       var
         op    : TAsmOp;
-        cmpop : boolean;
       begin
         pass_left_right;
 
-        cmpop:=false;
         case nodetype of
           addn :
             op:=A_FADD;
@@ -380,12 +377,6 @@ implementation
             op:=A_FSUB;
           slashn :
             op:=A_FDIV;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
-            begin
-//              op:=A_FCMPO;
-              cmpop:=true;
-            end;
           else
             internalerror(200403182);
         end;
@@ -400,37 +391,20 @@ implementation
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
-        if not cmpop then
-          begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            if left.location.loc = LOC_FPUREGISTER then
-              location.register := left.location.register
-            else if right.location.loc = LOC_FPUREGISTER then
-              location.register := right.location.register
-            else
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-          end
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        if left.location.loc = LOC_FPUREGISTER then
+          location.register := left.location.register
+        else if right.location.loc = LOC_FPUREGISTER then
+          location.register := right.location.register
         else
-         begin
-           location_reset(location,LOC_FLAGS,OS_NO);
-           // FIX ME!
-//           location.resflags := getresflags;
-         end;
+          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
         // emit the actual operation
-        if not cmpop then
-          begin
-          {
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              location.register,left.location.register,
-              right.location.register))
-             }
-          end
-        else
-          begin
-{            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
-          end;
+        {
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
+            location.register,left.location.register,
+            right.location.register))
+        }
       end;
 
 
@@ -506,19 +480,11 @@ implementation
          lten,
          gten:
            begin
-             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,right.location.value,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end
-             else
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,right.location.register,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end;
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,right.location.register));
              location.resflags:=F_E;
            end;
          else
@@ -619,90 +585,6 @@ implementation
             right.location.register,left.location.register));
      end;
 
-{*****************************************************************************
-                                Boolean
-*****************************************************************************}
-
-    procedure t68kaddnode.second_cmpboolean;
-      var
-        cgop      : TOpCg;
-        cgsize  : TCgSize;
-        isjump  : boolean;
-        otl,ofl : tasmlabel;
-      begin
-//        writeln('second_cmpboolean');
-        { ToDo : add support for pasbool64 and bool64bit }
-        if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
-           (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
-         cgsize:=OS_8
-        else
-          if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
-             (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then
-           cgsize:=OS_16
-        else
-           cgsize:=OS_32;
-
-        if (cs_full_boolean_eval in current_settings.localswitches) or
-           (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
-          begin
-            if left.nodetype in [ordconstn,realconstn] then
-             swapleftright;
-
-            isjump:=(left.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
-            secondpass(left);
-            if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
-//             writeln('ajjaj');
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
-//             writeln('reccs?');
-            end;
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end;
-
-            isjump:=(right.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
-            secondpass(right);
-            if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end;
-
-         location_reset(location,LOC_FLAGS,OS_NO);
-
-         force_reg_left_right(true,false);
-
-            if (left.location.loc = LOC_CONSTANT) then
-              swapleftright;
-
-         if (right.location.loc <> LOC_CONSTANT) then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,
-             left.location.register,right.location.register))
-         else
-           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,
-             longint(right.location.value),left.location.register));
-         location.resflags := getresflags(true);
-        end;
-
-        //release_reg_left_right;
-      end;
 
     function t68kaddnode.pass_1:tnode;
       var

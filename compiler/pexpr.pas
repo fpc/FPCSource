@@ -1278,6 +1278,16 @@ implementation
                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
                              (tcallnode(p1).procdefinition.owner.defowner<>find_real_class_definition(tobjectdef(structh),false)) then
                             Message(parser_e_java_no_inherited_constructor);
+                          { Provide a warning if we try to create an instance of a
+                            abstract class using the type name of that class. We
+                            must not provide a warning if we use a "class of"
+                            variable of that type though as we don't know the
+                            type of the class }
+                          if (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                              (oo_is_abstract in structh.objectoptions) and
+                              assigned(tcallnode(p1).methodpointer) and
+                              (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
+                            Message1(type_w_instance_abstract_class,structh.RttiName);
                         end;
                    end;
                  fieldvarsym:
@@ -1438,6 +1448,15 @@ implementation
                    begin
                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                      consume(_ID);
+                     { in case of @Object.Method1.Method2, we have to call
+                       Method1 -> create a loadvmtaddr node as self instead of
+                       a typen (the typenode would be changed to self of the
+                       current method in case Method1 is a constructor, see
+                       mantis #24844) }
+                     if not(block_type in [bt_type,bt_const_type,bt_var_type]) and
+                        (srsym.typ=procsym) and
+                        (token in [_CARET,_POINT]) then
+                       result:=cloadvmtaddrnode.create(result);
                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
                    end
                   else
@@ -2426,9 +2445,14 @@ implementation
            callflags: tcallnodeflags;
            t : ttoken;
            unit_found : boolean;
+           tokenpos: tfileposinfo;
          begin
            { allow post fix operators }
            again:=true;
+
+           { preinitalize tokenpos }
+           tokenpos:=current_filepos;
+           p1:=nil;
 
            { first check for identifier }
            if token<>_ID then
@@ -2448,6 +2472,8 @@ implementation
                unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
+               { store the position of the token before consuming it }
+               tokenpos:=current_filepos;
                consume(t);
                { named parameter support }
                found_arg_name:=false;
@@ -2508,7 +2534,7 @@ implementation
                      end
                    else
                      begin
-                       identifier_not_found(orgstoredpattern);
+                       identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
                        srsymtable:=nil;
                      end;
@@ -2761,6 +2787,9 @@ implementation
                     Message(parser_e_illegal_expression);
                   end;
               end; { end case }
+
+              if assigned(p1) and (p1.nodetype<>errorn) then
+                p1.fileinfo:=tokenpos;
             end;
          end;
 

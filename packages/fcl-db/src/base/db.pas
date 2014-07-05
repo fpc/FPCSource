@@ -1149,6 +1149,7 @@ type
     Procedure AssignParam(Param: TParam);
     Procedure AssignTo(Dest: TPersistent); override;
     Function GetAsBoolean: Boolean;
+    Function GetAsBytes: TBytes;
     Function GetAsCurrency: Currency;
     Function GetAsDateTime: TDateTime;
     Function GetAsFloat: Double;
@@ -1164,6 +1165,7 @@ type
     Procedure SetAsBCD(const AValue: Currency);
     Procedure SetAsBlob(const AValue: TBlobData);
     Procedure SetAsBoolean(AValue: Boolean);
+    Procedure SetAsBytes(const AValue: TBytes);
     Procedure SetAsCurrency(const AValue: Currency);
     Procedure SetAsDate(const AValue: TDateTime);
     Procedure SetAsDateTime(const AValue: TDateTime);
@@ -1196,9 +1198,10 @@ type
     Procedure LoadFromStream(Stream: TStream; BlobType: TBlobType);
     Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
+    Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
     Property AsBlob : TBlobData read GetAsString write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
-    Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
+    Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
     Property AsDate : TDateTime read GetAsDateTime write SetAsDate;
     Property AsDateTime : TDateTime read GetAsDateTime write SetAsDateTime;

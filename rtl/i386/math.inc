@@ -41,6 +41,13 @@
                             FPU Control word
  ****************************************************************************}
 
+{$push}
+{$codealign constmin=16}
+const
+  FPC_ABSMASK_SINGLE: array[0..1] of qword=($7fffffff7fffffff,$7fffffff7fffffff); cvar; public;
+  FPC_ABSMASK_DOUBLE: array[0..1] of qword=($7fffffffffffffff,$7fffffffffffffff); cvar; public;
+{$pop}
+
     procedure Set8087CW(cw:word);
       begin
         { pic-safe ; cw will not be a regvar because it's accessed from }

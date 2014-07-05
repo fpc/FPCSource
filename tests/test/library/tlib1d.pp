@@ -7,7 +7,7 @@ uses
 { Checks that the two functions with the same exported name 'p'
   are each loaded correctly. }
 procedure p(var a : dword);external 'tlib1a' name 'p';
-procedure p2(var a : dword);external 'tlib1a2' name 'p';
+procedure p2(var a : dword);external 'tlib1b' name 'p';
 
 var
   a : dword;
@@ -22,7 +22,7 @@ begin
     begin
       if a=1 then
         writeln('Error: Calling tlib1a library p function again instead ',
-          'of tlib1a2 p function.');
+          'of tlib1b p function.');
       halt(2);
     end;
 
@@ -35,7 +35,7 @@ begin
     begin
       if a=1 then
         writeln('Error: Calling tlib1a library p function via ulib2b unit again instead ',
-          'of tlib1a2 p function.');
+          'of tlib1b p function.');
       halt(2);
     end;
 
@@ -48,7 +48,7 @@ begin
     begin
       if a=1 then
         writeln('Error: Calling tlib1a library p function via ulib2a unit again instead ',
-          'of tlib1a2 p function.');
+          'of tlib1b p function.');
       halt(2);
     end;
 
@@ -57,7 +57,7 @@ begin
     begin
       if a=1 then
         writeln('Error: Calling tlib1a library p function via ulib2a unit again instead ',
-          'of tlib1a2 p function.');
+          'of tlib1b p function.');
       halt(2);
     end;
 

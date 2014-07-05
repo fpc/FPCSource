@@ -83,6 +83,11 @@ var
   { this list holds all instances of external threads that need to be freed at
     the end of the program }
   ExternalThreads: TThreadList;
+
+  { this must be a global var, otherwise unwanted optimizations might happen in
+    TThread.SpinWait() }
+  SpinWaitDummy: LongWord;
+
 threadvar
   { the instance of the current thread; in case of an external thread this is
     Nil until TThread.GetCurrentThread was called once (the RTLs need to ensure
@@ -572,15 +577,23 @@ end;
 
 
 class procedure TThread.SpinWait(aIterations: LongWord);
+var
+  i: LongWord;
 begin
   { yes, it's just a simple busy wait to burn some cpu cycles... and as the job
     of this loop is to burn CPU cycles we switch off any optimizations that
     could interfere with this (e.g. loop unrolling) }
-{$PUSH}
-{$OPTIMIZATION OFF}
-  while aIterations > 0 do
-    Dec(aIterations);
-{$POP}
+  { Do *NOT* do $PUSH, $OPTIMIZATIONS OFF, <code>, $POP because optimization is
+    not a local switch, which means $PUSH/POP doesn't affect it, so that turns
+    off *ALL* optimizations for code below this point. Thanks to this we shipped
+    large parts of the classes unit with optimizations off between 2012-12-27
+    and 2014-06-06.
+    Instead, use a global var for the spinlock, because that is always handled
+    as volatile, so the access won't be optimized away by the compiler. (KB) }
+  for i:=1 to aIterations do
+    begin
+      Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    end;
 end;
 
 
@@ -882,7 +895,7 @@ end;
 
 { TPropFixup }
 // Tainted. TPropFixup is being removed.
- 
+
 Type
   TInitHandler = Class(TObject)
     AHandler : TInitComponentHandler;
@@ -1035,24 +1048,39 @@ end;
 function InitComponentRes(const ResName: String; Instance: TComponent): Boolean;
 
 begin
-  { !!!: Too Win32-specific }
-  InitComponentRes := False;
+  Result:=ReadComponentRes(ResName,Instance)=Instance;
 end;
 
+function SysReadComponentRes(HInstance : THandle; const ResName: String; Instance: TComponent): TComponent;
+
+Var
+  H : TFPResourceHandle;
+
+begin
+  { Windows unit also has a FindResource function, use the one from
+    system unit here.  }
+  H:=system.FindResource(HInstance,ResName,RT_RCDATA);
+  if (PtrInt(H)=0) then
+    Result:=Nil
+  else
+    With TResourceStream.Create(HInstance,ResName,RT_RCDATA) do
+      try
+        Result:=ReadComponent(Instance);
+      Finally
+        Free;
+      end;
+end;
 
 function ReadComponentRes(const ResName: String; Instance: TComponent): TComponent;
 
 begin
-  { !!!: Too Win32-specific }
-  ReadComponentRes := nil;
+  Result:=SysReadComponentRes(Hinstance,Resname,Instance);
 end;
-
 
 function ReadComponentResEx(HInstance: THandle; const ResName: String): TComponent;
 
 begin
-  { !!!: Too Win32-specific in VCL }
-  ReadComponentResEx := nil;
+  Result:=SysReadComponentRes(Hinstance,ResName,Nil);
 end;
 
 
@@ -1085,11 +1113,11 @@ end;
 Function FindNestedComponent(Root : TComponent; APath : String; CStyle : Boolean = True) : TComponent;
 
   Function GetNextName : String; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
-  
+
   Var
     P : Integer;
     CM : Boolean;
-    
+
   begin
     P:=Pos('.',APath);
     CM:=False;
@@ -1279,40 +1307,40 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
    if p = nil then begin
     res:= '''''';
    end
-   else 
+   else
     begin
     res := '';
     InString := False;
-    while P < LastP do 
+    while P < LastP do
       begin
       NewInString := InString;
       w := CharToOrdfunc(P);
-      if w = ord('''') then 
+      if w = ord('''') then
         begin //quote char
         if not InString then
           NewInString := True;
         NewStr := '''''';
-        end 
+        end
       else if (Ord(w) >= 32) and ((Ord(w) < 127) or (UseBytes and (Ord(w)<256))) then
         begin //printable ascii or bytes
         if not InString then
           NewInString := True;
         NewStr := char(w);
-        end 
-      else 
+        end
+      else
         begin //ascii control chars, non ascii
         if InString then
           NewInString := False;
         NewStr := '#' + IntToStr(w);
         end;
-      if NewInString <> InString then 
+      if NewInString <> InString then
         begin
         NewStr := '''' + NewStr;
         InString := NewInString;
         end;
       res := res + NewStr;
       end;
-    if InString then 
+    if InString then
       res := res + '''';
     end;
    OutStr(res);
@@ -1670,7 +1698,7 @@ type
   PLongWord = ^LongWord;
 const
   signature: PChar = 'TPF0';
-  
+
 begin
   if Input.ReadDWord <> PLongWord(Pointer(signature))^ then
     raise EReadError.Create('Illegal stream image' {###SInvalidImage});
@@ -1826,7 +1854,7 @@ var
     Output.WriteByte(Ord(vaWstring));
     WriteWString(ws);
   end;
-  
+
   procedure ProcessProperty; forward;
 
   procedure ProcessValue;

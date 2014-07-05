@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL Abstract syntax tree
 
@@ -26,7 +26,7 @@ Type
   TSQLFormatOption = (sfoDoubleQuotes,           // Use double quote character for string literals
                       sfoBackslashEscape,        // Backslash escapes in string literals
                       sfoSingleQuoteIdentifier,  // quote Identifiers using '
-                      sfoDoubleQuoteIdentifier,  // quote Identifiers using "
+                      sfoDoubleQuoteIdentifier,  // quote Identifiers using " (e.g. as in Firebird)
                       sfoBackQuoteIdentifier,    // quote Identifiers using `
                       sfoLowercaseKeyword,       // Lowercase SQL keywords
                       sfoOneFieldPerLine,        // One field per line in SELECT, Update, Insert
@@ -150,6 +150,7 @@ Type
     Property Value : TSQLStringType Read FValue Write FValue;
   end;
 
+
   { TSQLIdentifierElement }
 
   TSQLIdentifierName = Class(TSQLElement)
@@ -193,6 +194,7 @@ Type
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Identifier : TSQLIdentifierName Read FIdentifier Write FIdentifier;
+    // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
   end;
 
@@ -585,13 +587,13 @@ Type
 
   TSQLSelectField = Class(TSQLSelectElement)
   private
-    FAliasName: TSQLIDentifierName;
+    FAliasName: TSQLIdentifierName;
     FExpression: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Expression : TSQLExpression Read FExpression Write FExpression;
-    Property AliasName : TSQLIDentifierName Read FAliasName Write FAliasName;
+    Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
   { TSQLTableReference }
@@ -602,7 +604,7 @@ Type
 
   TSQLSimpleTableReference = Class(TSQLTableReference)
   private
-    FAliasName: TSQLIDentifierName;
+    FAliasName: TSQLIdentifierName;
     FObjectName: TSQLIdentifierName;
     FParams: TSQLElementList;
   Public
@@ -610,11 +612,11 @@ Type
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property ObjectName : TSQLIdentifierName Read FObjectName Write FObjectName;
     Property Params : TSQLElementList Read FParams Write FParams;
-    Property AliasName : TSQLIDentifierName Read FAliasName Write FAliasName;
+    Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
   { TSQLJoinTableReference }
-  TSQLJoinType = (jtNone,jtInner,jtLeft,jtRight,jtOuter);
+  TSQLJoinType = (jtNone,jtInner,jtLeft,jtRight,jtFullOuter);
   TSQLJoinTableReference = Class(TSQLTableReference)
   private
     FJoinClause: TSQLExpression;
@@ -722,7 +724,7 @@ Type
     FPlan: TSQLSelectPlan;
     FStartAt: TSQLExpression;
     FTables: TSQLElementList;
-    FTN: TSQLidentifierName;
+    FTN: TSQLIdentifierName;
     FUnion: TSQLSelectStatement;
     FUnionAll: Boolean;
     FWhere: TSQLExpression;
@@ -730,7 +732,7 @@ Type
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property TransactionName : TSQLidentifierName Read FTN Write FTN;
+    Property TransactionName : TSQLIdentifierName Read FTN Write FTN;
     Property Tables : TSQLElementList Read FTables;
     Property Fields : TSQLElementList Read FFields;
     Property Where : TSQLExpression read FWhere write FWhere;
@@ -779,12 +781,12 @@ Type
 
   TSQLUpdatePair = Class(TSQLElement)
   private
-    FFieldName: TSQLidentifierName;
+    FFieldName: TSQLIdentifierName;
     FValue: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property FieldName : TSQLidentifierName Read FFieldName Write FFieldName;
+    Property FieldName : TSQLIdentifierName Read FFieldName Write FFieldName;
     Property Value : TSQLExpression Read FValue Write FValue;
   end;
 
@@ -889,6 +891,7 @@ Type
   public
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
+
   { TSQLSetGeneratorStatement }
 
   TSQLSetGeneratorStatement = Class(TSQLCreateOrAlterGenerator)
@@ -896,6 +899,17 @@ Type
     FNewValue: Integer;
   Public
     Property NewValue : Integer Read FNewValue Write FNewValue;
+  end;
+
+  { TSQLSetISQLStatement }
+  // SET statements as used by the isql Firebird command line utility
+  TSQLSetISQLStatement = Class(TSQLStatement)
+  private
+    FArgument: string;
+  Public
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    // The test of the SET statement excluding the SET command
+    Property Arguments : string Read FArgument Write FArgument;
   end;
 
   { TSQLCreateRoleStatement }
@@ -1850,6 +1864,16 @@ begin
     end
   else
     Sep:=', ';
+end;
+
+{ TSQLSetISQLStatement }
+
+function TSQLSetISQLStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+begin
+  // Note: we generate this as a comment as this is ISQL-specific and will generate
+  // errors when passed as SQL to servers
+  Result:='-- SET '+Arguments;
 end;
 
 function TSQLElementList.GetE(AIndex : Integer): TSQLElement;
@@ -3023,7 +3047,7 @@ function TSQLJoinTableReference.GetAsSQL(Options: TSQLFormatOptions;
 
 Const
   Opcodes : Array[TSQLJoinTYpe] of String
-          = ('','INNER ','LEFT ','RIGHT ','OUTER ');
+          = ('','INNER ','LEFT ','RIGHT ','FULL OUTER ');
 
 Var
   L,R,O,Sep,prefix : TSQLStringType;
@@ -3424,7 +3448,7 @@ end;
 destructor TSQLCreateDatabaseStatement.Destroy;
 begin
   FreeAndNil(FSecondaryFiles);
-  FreeAndNil(FCHarSet);
+  FreeAndNil(FCharSet);
   inherited Destroy;
 end;
 
@@ -4302,7 +4326,7 @@ end;
 function TSQLDatabaseFileInfo.GetAsSQL(Options: TSQLFormatOptions;
   AIndent: Integer): TSQLStringType;
 begin
-  Result:=SQlKeyWord('FILE ',OPtions)+SQLFormatString(FileName,Options);
+  Result:=SQlKeyWord('FILE ',Options)+SQLFormatString(FileName,Options);
   If Length>0 then
     Result:=Result+SQlKeyWord(' LENGTH ',Options)+IntToStr(Length)+SQlKeyWord(' PAGES',Options)
   else if (StartPage>0) then

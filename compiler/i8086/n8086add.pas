@@ -35,6 +35,10 @@ interface
        ti8086addnode = class(tx86addnode)
          function simplify(forinline: boolean) : tnode;override;
          function use_generic_mul32to64: boolean; override;
+         function first_addpointer: tnode; override;
+         function first_addhugepointer: tnode;
+         function first_cmppointer: tnode; override;
+         function first_cmphugepointer: tnode;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
          procedure second_addfarpointer;
@@ -48,11 +52,11 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,constexp,
+      cutils,verbose,globals,constexp,pass_1,
       symconst,symdef,symtype,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
-      ncon,nset,cgutils,tgobj,
+      ncal,ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
 
@@ -305,6 +309,94 @@ interface
          end;
 
         location_copy(location,left.location);
+      end;
+
+
+    function ti8086addnode.first_addpointer: tnode;
+      begin
+        if is_hugepointer(left.resultdef) xor is_hugepointer(right.resultdef) then
+          result:=first_addhugepointer
+        else
+          result:=inherited;
+      end;
+
+
+    function ti8086addnode.first_addhugepointer: tnode;
+      var
+        procname:string;
+      begin
+        result:=nil;
+
+        case nodetype of
+          addn:
+            procname:='fpc_hugeptr_add_longint';
+          subn:
+            procname:='fpc_hugeptr_sub_longint';
+          else
+            internalerror(2014070301);
+        end;
+
+        if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+          procname:=procname+'_normalized';
+
+        if is_hugepointer(left.resultdef) then
+          result := ccallnode.createintern(procname,
+            ccallparanode.create(right,
+            ccallparanode.create(left,nil)))
+        else
+          result := ccallnode.createintern(procname,
+            ccallparanode.create(left,
+            ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+
+
+    function ti8086addnode.first_cmppointer: tnode;
+      begin
+        if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
+          result:=first_cmphugepointer
+        else
+          result:=inherited;
+      end;
+
+
+    function ti8086addnode.first_cmphugepointer: tnode;
+      var
+        procname:string;
+      begin
+        result:=nil;
+
+        if not (cs_hugeptr_comparison_normalization in current_settings.localswitches) then
+          begin
+            expectloc:=LOC_FLAGS;
+            exit;
+          end;
+
+        case nodetype of
+          equaln:
+            procname:='fpc_hugeptr_cmp_normalized_e';
+          unequaln:
+            procname:='fpc_hugeptr_cmp_normalized_ne';
+          ltn:
+            procname:='fpc_hugeptr_cmp_normalized_b';
+          lten:
+            procname:='fpc_hugeptr_cmp_normalized_be';
+          gtn:
+            procname:='fpc_hugeptr_cmp_normalized_a';
+          gten:
+            procname:='fpc_hugeptr_cmp_normalized_ae';
+          else
+            internalerror(2014070401);
+        end;
+
+        result := ccallnode.createintern(procname,
+          ccallparanode.create(right,
+          ccallparanode.create(left,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
       end;
 
 

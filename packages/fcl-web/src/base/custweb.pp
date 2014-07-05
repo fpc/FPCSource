@@ -178,6 +178,7 @@ Type
     procedure DoOnTerminate(Sender : TObject);
   protected
     Procedure DoRun; override;
+    Function CreateEventLog : TEventLog; virtual;
     function InitializeWebHandler: TWebHandler; virtual; abstract;
     Procedure DoLog(EventType: TEventType; const Msg: String); override;
     procedure SetTitle(const AValue: string); override;
@@ -521,17 +522,24 @@ begin
   result := FWebHandler.Email;
 end;
 
+function TCustomWebApplication.CreateEventLog: TEventLog;
+begin
+  Result:=TEventLog.Create(Nil);
+  With Result do
+    begin
+    Name:=Self.Name+'Logger';
+    Identification:=Title;
+    RegisterMessageFile(ParamStr(0));
+    LogType:=ltSystem;
+    Active:=True;
+    end;
+end;
+
 function TCustomWebApplication.GetEventLog: TEventLog;
+
 begin
   if not assigned(FEventLog) then
-    begin
-    FEventLog := TEventLog.Create(Nil);
-    FEventLog.Name:=Self.Name+'Logger';
-    FEventLog.Identification:=Title;
-    FEventLog.RegisterMessageFile(ParamStr(0));
-    FEventLog.LogType:=ltSystem;
-    FEventLog.Active:=True;
-    end;
+    FEventLog := CreateEventLog;
   Result := FEventLog;
 end;
 

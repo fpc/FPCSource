@@ -503,7 +503,7 @@ implementation
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
                { check hints }
-               pu.u.check_hints;
+               pu.check_hints;
              end;
             pu:=tused_unit(pu.next);
           end;

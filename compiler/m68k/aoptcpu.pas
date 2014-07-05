@@ -1,8 +1,8 @@
 {
-    Copyright (c) 1998-2004 by Jonas Maebe
+    Copyright (c) 1998-2014 by the Free Pascal development team
 
     This unit calls the optimization procedures to optimize the assembler
-    code for sparc
+    code for m68k
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,13 +28,46 @@ unit aoptcpu;
   Interface
 
     uses
-      cpubase, aoptobj, aoptcpub, aopt;
+      cpubase, aoptobj, aoptcpub, aopt, aasmtai;
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
+        function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
       End;
 
   Implementation
+
+    uses
+      cutils, aasmcpu;
+
+  function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
+    var
+      next: tai;
+    begin
+      result:=false;
+      case p.typ of
+        ait_instruction:
+          begin
+            //asml.insertbefore(tai_comment.Create(strpnew('pass1 called for instr')), p);
+
+            { LEA (Ax),Ax is a NOP if src and dest reg is equal, so remove it. }
+            if getnextinstruction(p,next) and (taicpu(p).opcode = A_LEA) and
+               (not assigned(taicpu(p).oper[0]^.ref^.symbol)) and
+               (((taicpu(p).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
+               (taicpu(p).oper[0]^.ref^.index = NR_NO)) or
+               ((taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
+               (taicpu(p).oper[0]^.ref^.base = NR_NO))) and
+               (taicpu(p).oper[0]^.ref^.offset = 0) then
+              begin
+                //asml.insertbefore(tai_comment.Create(strpnew('LEA (Ax),Ax removed')), p);
+                asml.remove(p);
+                p.free;
+                p:=next;
+                result:=true;
+              end;
+          end;
+      end;
+    end;
 
 begin
   casmoptimizer:=TCpuAsmOptimizer;

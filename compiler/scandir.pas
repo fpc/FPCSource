@@ -703,18 +703,57 @@ unit scandir;
     procedure dir_memory;
       var
         l : longint;
+        heapsize_limit: longint;
+        maxheapsize_limit: longint;
       begin
+{$if defined(i8086)}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            heapsize_limit:=655360;
+            maxheapsize_limit:=655360;
+          end
+        else
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end;
+{$elseif defined(cpu16bitaddr)}
+        heapsize_limit:=65520;
+        maxheapsize_limit:=65520;
+{$else}
+        heapsize_limit:=high(heapsize);
+        maxheapsize_limit:=high(maxheapsize);
+{$endif}
         current_scanner.skipspace;
         l:=current_scanner.readval;
-        if l>1024 then
-          stacksize:=l;
+        if (l>=1024)
+{$ifdef cpu16bitaddr}
+          and (l<=65521) { TP7's $M directive allows specifying a stack size of
+                           65521, but it actually sets the stack size to 65520 }
+{$else cpu16bitaddr}
+          and (l<67107840)
+{$endif cpu16bitaddr}
+        then
+          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
+        else
+          Message(scan_w_invalid_stacksize);
         if c=',' then
           begin
             current_scanner.readchar;
             current_scanner.skipspace;
             l:=current_scanner.readval;
-            if l>1024 then
-              heapsize:=l;
+            if l>=1024 then
+              heapsize:=min(l,heapsize_limit);
+            if c=',' then
+              begin
+                current_scanner.readchar;
+                current_scanner.skipspace;
+                l:=current_scanner.readval;
+                if l>=heapsize then
+                  maxheapsize:=min(l,maxheapsize_limit)
+                else
+                  Message(scan_w_heapmax_lessthan_heapmin);
+              end;
           end;
       end;
 
@@ -1402,7 +1441,10 @@ unit scandir;
         end;
 
         if ident='CONSTRUCTING_ABSTRACT' then
-          recordpendingmessagestate(type_w_instance_with_abstract, msgstate)
+          begin
+            recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
+            recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
+          end
         else
         if ident='IMPLICIT_VARIANTS' then
           recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
@@ -1530,6 +1572,58 @@ unit scandir;
         do_moduleswitch(cs_huge_code);
       end;
 
+    procedure dir_hugepointernormalization;
+      var
+        hs : string;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
+            exit;
+          end;
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        case hs of
+          'BORLANDC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          'MICROSOFTC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
+             end;
+          'WATCOMC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          else
+            Message(scan_e_illegal_hugepointernormalization);
+        end;
+      end;
+
+    procedure dir_hugepointerarithmeticnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_arithmetic_normalization);
+      end;
+
+    procedure dir_hugepointercomparisonnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_comparison_normalization);
+      end;
+
     procedure dir_weakpackageunit;
       begin
       end;
@@ -1633,6 +1727,9 @@ unit scandir;
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('HUGECODE',directive_all, @dir_hugecode);
+        AddDirective('HUGEPOINTERNORMALIZATION',directive_all,@dir_hugepointernormalization);
+        AddDirective('HUGEPOINTERARITHMETICNORMALIZATION',directive_all,@dir_hugepointerarithmeticnormalization);
+        AddDirective('HUGEPOINTERCOMPARISONNORMALIZATION',directive_all,@dir_hugepointercomparisonnormalization);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);

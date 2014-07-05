@@ -673,7 +673,9 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-
+  NoErrMsg: Boolean platform = False; // For Delphi compatibility, not used in FPC.
+  FirstDotAtFileNameStartIsExtension : Boolean = False;
+  
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
   { the code page to use when sending paths/file names to OS file system API
@@ -795,7 +797,12 @@ Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_LONG}
 Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ABS_LONG}
+{$ifdef FPC_HAS_INTERNAL_ABS_INT64}
+{$define FPC_SYSTEM_HAS_ABS_INT64}
+Function abs(l:Int64):Int64;[internproc:fpc_in_abs_long];
+{$else FPC_HAS_INTERNAL_ABS_INT64}
 Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ABS_INT64}
 Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}

@@ -89,6 +89,7 @@ type
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
+    procedure TestBlobParamQuery;
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -256,6 +257,11 @@ begin
       begin
       datatype  := 'TINYINT UNSIGNED';
       fieldtype := ftWord;
+      end;
+    ssOracle:
+      begin
+      datatype  := 'NUMBER(3)';
+      fieldtype := ftSmallint;
       end;
     ssSQLite:
       begin
@@ -478,7 +484,7 @@ var
   i             : byte;
 
 begin
-  if SQLServerType<>ssPostgreSQL then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLServerType<>ssPostgreSQL then Ignore('This test only applies to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -907,6 +913,8 @@ begin
     ssFirebird, ssInterbase,
     ssMySQL:
       datatype:='FLOAT';
+    ssOracle:
+      datatype:='BINARY_FLOAT';
     else
       datatype:='REAL';
   end;
@@ -983,7 +991,7 @@ begin
 end;
 
 procedure TTestFieldTypes.TestLargeRecordSize;
-
+// probably tests situation, where total record size > 64K (TDataSet.RecordSize returns word value)
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
@@ -1222,7 +1230,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLServerType in [ssMySQL]) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLServerType in [ssMySQL]) then Ignore('This test only applies to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
@@ -1534,6 +1542,11 @@ begin
   TestXXParamQuery(ftBoolean, FieldtypeDefinitions[ftBoolean], testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBlobParamQuery;
+begin
+  TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -1588,14 +1601,15 @@ begin
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
-                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
         ftVarBytes: if cross then
                       Params.ParamByName('field1').AsString := testBytesValues[i]
                     else
-                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1629,6 +1643,7 @@ begin
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
@@ -2291,7 +2306,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2310,7 +2325,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLServerType in [ssFirebird, ssInterbase] then
+      if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;

@@ -37,6 +37,7 @@ interface
       TRTTIWriter=class
       private
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
+        procedure params_write_rtti(def:tabstractprocdef;rt:trttitype);
         procedure fields_write_rtti_data(def:tabstractrecorddef;rt:trttitype);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
@@ -200,6 +201,20 @@ implementation
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
               write_rtti(tfieldvarsym(sym).vardef,rt);
+          end;
+      end;
+
+
+    procedure TRTTIWriter.params_write_rtti(def:tabstractprocdef;rt:trttitype);
+      var
+        i   : longint;
+        sym : tparavarsym;
+      begin
+        for i:=0 to def.paras.count-1 do
+          begin
+            sym:=tparavarsym(def.paras[i]);
+            if not (vo_is_hidden_para in sym.varoptions) then
+              write_rtti(sym.vardef,rt);
           end;
       end;
 
@@ -1295,6 +1310,8 @@ implementation
           pointerdef:
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
+          procvardef:
+            params_write_rtti(tabstractprocdef(def),rt);
         end;
       end;
 

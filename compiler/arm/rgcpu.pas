@@ -290,6 +290,10 @@ unit rgcpu;
         if abs(spilltemp.offset)>4095 then
           exit;
 
+        if GenerateThumbCode and
+          (abs(spilltemp.offset)>1020) then
+          exit;
+
         { Replace 'mov  dst,orgreg' with 'ldr  dst,spilltemp'
           and     'mov  orgreg,src' with 'str  dst,spilltemp' }
         with instr do

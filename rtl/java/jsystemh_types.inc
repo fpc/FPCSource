@@ -30,10 +30,10 @@
 {$inline on}
 {$define SYSTEMINLINE}
 
-{ don't use FPU registervariables on the i386 }
-{$ifdef CPUI386}
+{ don't use FPU registervariables on the i386 and i8086 }
+{$if defined(CPUI386) or defined(CPUI8086)}
   {$maxfpuregisters 0}
-{$endif CPUI386}
+{$endif CPUI386 or CPUI8086}
 
 { the assembler helpers need this}
 {$ifdef CPUPOWERPC}
@@ -60,6 +60,17 @@
                          Global Types and Constants
 ****************************************************************************}
 
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_OEMCP   = 1;     // default to OEM (console) code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
 Type
   { The compiler has all integer types defined internally. Here
     we define only aliases }
@@ -75,6 +86,9 @@ Type
   Real = type Double;
 {$endif}
 
+{ Can be individually defined/undefined on a per-platform basis }
+{ define FLOAT_ASCII_FALLBACK}
+
 {$ifdef CPUI386}
   {$define CPU32}
 
@@ -88,7 +102,48 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
+
+  {$ifndef VER2_6}
+  FarPointer = NearFsPointer;
+  {$endif}
 {$endif CPUI386}
+
+{$ifdef CPUI8086}
+  {$define CPU16}
+
+  {$define DEFAULT_EXTENDED}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  {$define SUPPORT_EXTENDED}
+  {$define SUPPORT_COMP}
+
+  {$ifndef FPUNONE}
+    ValReal = Extended;
+  {$endif}
+
+  {$if defined(FPC_MM_TINY)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_SMALL)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_MEDIUM)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_NEAR}
+  {$elseif defined(FPC_MM_COMPACT)}
+    {$define FPC_X86_CODE_NEAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_LARGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_FAR}
+  {$elseif defined(FPC_MM_HUGE)}
+    {$define FPC_X86_CODE_FAR}
+    {$define FPC_X86_DATA_HUGE}
+  {$else}
+    {$fatal No memory model defined}
+  {$endif}
+{$endif CPUI8086}
 
 {$ifdef CPUX86_64}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -113,10 +168,21 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$ifndef VER2_6}
+  FarPointer = Pointer;
+  {$endif}
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
+
+  {$ifdef FPUSOFT}
+    {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+    {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$endif}
+
+  { m68k int64 shl/shr uses soft helper for non constaznt values }
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
@@ -170,7 +236,7 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
-{$ifdef CPUMIPS32}
+{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
   {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
@@ -255,6 +321,9 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
+  CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -264,19 +333,47 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
+  CodePointer = Pointer;
+  CodePtrInt = PtrInt;
+  CodePtrUInt = PtrUInt;
 {$endif CPU32}
 
 {$ifdef CPU16}
   SizeInt = Integer;
   SizeUInt = Word;
-  PtrInt = Integer;
-  PtrUInt = Word;
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    PtrInt = Longint;
+    PtrUInt = DWord;
+  {$else}
+    PtrInt = Integer;
+    PtrUInt = Word;
+  {$endif}
+  {$if defined(FPC_X86_CODE_FAR)}
+    CodePointer = FarPointer;
+    CodePtrInt = Longint;
+    CodePtrUInt = DWord;
+  {$elseif defined(FPC_X86_CODE_NEAR)}
+    CodePointer = NearPointer;
+    CodePtrInt = Integer;
+    CodePtrUInt = Word;
+  {$else}
+    CodePointer = Pointer;
+    CodePtrInt = PtrInt;
+    CodePtrUInt = PtrUInt;
+  {$endif}
   ValSInt = Integer;
   ValUInt = Word;
 {$endif CPU16}
 
+  { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
+    has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
+    'The size of NativeInt is equivalent to the size of the pointer on the
+    current platform'. Because of the misleading names, these types shouldn't be
+    used in the FPC RTL. Note that on i8086 their size changes between 16-bit
+    and 32-bit according to the memory model, so they're not really a 'native
+    int' type there at all. }
   NativeInt  = PtrInt;
-  NativeUint = PtrUint;
+  NativeUInt = PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -292,18 +389,6 @@ Type
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
-{ some values which are used in RTL for TSystemCodePage type }
-const
-  CP_ACP     = 0;     // default to ANSI code page
-  CP_OEMCP   = 1;     // default to OEM (console) code page
-  CP_UTF16   = 1200;  // utf-16
-  CP_UTF16BE = 1201;  // unicodeFFFE
-  CP_UTF7    = 65000; // utf-7
-  CP_UTF8    = 65001; // utf-8
-  CP_ASCII   = 20127; // us-ascii
-  CP_NONE    = $FFFF; // rawbytestring encoding
-
-type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -353,6 +438,7 @@ type
 {$ifdef SUPPORT_COMP}
   PComp               = ^Comp;
 {$endif SUPPORT_COMP}
+
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
   PInteger            = ^Integer;
@@ -374,15 +460,30 @@ type
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
+  PCodePointer        = ^CodePointer;
+  PPCodePointer       = ^PCodePointer;
+
   PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
+
+  PNativeInt 	      = ^NativeInt;
+  PNativeUInt	      = ^NativeUint;
+  pInt8   	      = PShortInt;
+  pInt16  	      = PSmallint;
+  pInt32  	      = PLongint;
+  PIntPtr 	      = PPtrInt;
+  pUInt8  	      = PByte;
+  pUInt16 	      = PWord;
+  pUInt32 	      = PDWord;
+  PUintPtr	      = PPtrUInt;
+
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
 
 {$ifndef FPUNONE}
   PDate               = ^TDateTime;
-  PDateTime	      = ^TDateTime;
+  PDateTime           = ^TDateTime;
 {$endif}
   PError              = ^TError;
   PVariant            = ^Variant;
@@ -402,21 +503,39 @@ type
 
   TSystemCodePage     = Word;
 
-(*
-  { Needed for fpc_get_output }
-  PText               = ^Text;
-*)
+{$ifdef VER2_6}
+  { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
+  {$define FPC_ANSI_TEXTFILEREC}
+{$endif}
+  TFileTextRecChar    = {$ifdef FPC_ANSI_TEXTFILEREC}AnsiChar{$else}UnicodeChar{$endif};
+  PFileTextRecChar    = ^TFileTextRecChar;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 { procedure type }
   TProcedure  = Procedure;
 
-{ platform dependent types }
+{ platform-dependent types }
 {$i sysosh.inc}
 
+{ platform-dependent defines }
+{$i rtldefs.inc}
 (*
+{*****************************************************************************
+                   TextRec/FileRec exported to allow compiler to take size
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+{$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$i textrec.inc}
+
+
 type
+  { Needed for fpc_get_output }
+  PText               = ^Text;
+
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
@@ -478,8 +597,21 @@ const
   Test8087 : byte = 3;
   { will be detected at startup }
   has_sse_support : boolean = false;
+  has_sse2_support : boolean = false;
+  has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
 {$endif cpui386}
+{$ifdef cpui8086}
+  { will be detected at startup }
+  { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
+  Test8086 : byte = 0; public name '__Test8086';
+  { will be detected at startup }
+  { 0=NO FPU, 1=8087, 2=80287, 3=80387 or newer }
+  Test8087 : byte = 0;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
+{$endif cpui8086}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
@@ -489,8 +621,8 @@ const
   Max_Frame_Dump : Word = 8;
 (*
 { Exit Procedure handling consts and types  }
-  ExitProc : pointer = nil;
-  Erroraddr: pointer = nil;
+  ExitProc : codepointer = nil;
+  Erroraddr: codepointer = nil;
 *)
   Errorcode: Word    = 0;
 
@@ -512,7 +644,7 @@ const
   { Indicates if there was an error }
   StackError : boolean = FALSE;
 (*
-  InitProc : Pointer = nil;
+  InitProc : CodePointer = nil;
 *)
   { compatibility }
   ModuleIsLib : Boolean = FALSE;
@@ -523,6 +655,7 @@ var
   ExitCode    : Longint; (* public name 'operatingsystem_result'; *)
   RandSeed    : Cardinal;
   { Delphi compatibility }
+
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary : boolean = false; public name 'operatingsystem_islibrary';
 {$else FPC_HAS_FEATURE_DYNLIBS}
@@ -531,7 +664,9 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-
+  NoErrMsg: Boolean platform = False; // For Delphi compatibility, not used in FPC.
+  FirstDotAtFileNameStartIsExtension : Boolean = False;
+  
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
   { the code page to use when sending paths/file names to OS file system API
@@ -566,7 +701,6 @@ Var
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
-  StackTop,
   StackBottom : Pointer;
   StackLength : SizeUInt;
 *)

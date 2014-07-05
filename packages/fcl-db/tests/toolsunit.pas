@@ -237,7 +237,8 @@ procedure FreeDBConnector;
 
 function DateTimeToTimeString(d: tdatetime) : string;
 function TimeStringToDateTime(d: String): TDateTime;
-function StringToByteArray(s: ansistring): Variant;
+function StringToByteArray(const s: ansistring): Variant;
+function StringToBytes(const s: ansistring): TBytes;
 
 implementation
 
@@ -610,7 +611,7 @@ begin
   result := ComposeDateTime(days,EncodeTime(hour,minute,second,millisecond));
 end;
 
-function StringToByteArray(s: ansistring): Variant;
+function StringToByteArray(const s: ansistring): Variant;
 var P: Pointer;
     Len: integer;
 begin
@@ -622,6 +623,14 @@ begin
   finally
     VarArrayUnlock(Result);
   end;
+end;
+
+function StringToBytes(const s: ansistring): TBytes;
+var Len: integer;
+begin
+  Len := Length(s) * SizeOf(AnsiChar);
+  SetLength(Result, Len);
+  Move(s[1], Result[0], Len);
 end;
 
 

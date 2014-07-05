@@ -235,8 +235,6 @@ implementation
         cunicodestringtype:=cstringdef.createunicode;
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0);
-        openchararraytype:=carraydef.create(0,-1,s32inttype);
-        tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
@@ -286,6 +284,8 @@ implementation
 {$endif jvm}
         set_default_int_types;
         { some other definitions }
+        openchararraytype:=carraydef.create(0,-1,ptrsinttype);
+        tarraydef(openchararraytype).elementdef:=cansichartype;
         charpointertype:=cpointerdef.create(cansichartype);
         widecharpointertype:=cpointerdef.create(cwidechartype);
 {$ifdef i8086}
@@ -306,6 +306,7 @@ implementation
         voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge);
         charnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_near);
         charfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_far);
+        charhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(cansichartype,x86pt_huge);
         bytefarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u8inttype,x86pt_far);
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
@@ -447,6 +448,7 @@ implementation
         addtype('$void_hugepointer',voidhugepointertype);
         addtype('$char_nearpointer',charnearpointertype);
         addtype('$char_farpointer',charfarpointertype);
+        addtype('$char_hugepointer',charhugepointertype);
         addtype('$byte_farpointer',bytefarpointertype);
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
@@ -490,13 +492,19 @@ implementation
             vmtarraytype:=carraydef.create(0,1,s32inttype);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
             addtype('$vtblarray',vmtarraytype);
-            { Add a type for methodpointers }
-            hrecst:=trecordsymtable.create('',1);
-            addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
-            addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-            methodpointertype:=crecorddef.create('',hrecst);
-            addtype('$methodpointer',methodpointertype);
           end;
+        { Add a type for methodpointers }
+        hrecst:=trecordsymtable.create('',1);
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+        methodpointertype:=crecorddef.create('',hrecst);
+        addtype('$methodpointer',methodpointertype);
+        { Add a type for nested proc pointers }
+        hrecst:=trecordsymtable.create('',1);
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
+        nestedprocpointertype:=crecorddef.create('',hrecst);
+        addtype('$nestedprocpointer',nestedprocpointertype);
         symtablestack.pop(systemunit);
       end;
 
@@ -578,6 +586,7 @@ implementation
         loadtype('void_hugepointer',voidhugepointertype);
         loadtype('char_nearpointer',charnearpointertype);
         loadtype('char_farpointer',charfarpointertype);
+        loadtype('char_hugepointer',charhugepointertype);
         loadtype('byte_farpointer',bytefarpointertype);
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);
@@ -593,6 +602,7 @@ implementation
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
         loadtype('methodpointer',methodpointertype);
+        loadtype('nestedprocpointer',nestedprocpointertype);
         loadtype('HRESULT',hresultdef);
         set_default_int_types;
         set_default_ptr_types;

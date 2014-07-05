@@ -156,7 +156,7 @@ type
     destructor Destroy; override;
     function GetObject(Name: String): TMemoryStream;
     function IsAnOpenFile(AFileName: String): Boolean;
-    function ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
+    function ObjectExists(Name: String; var fChm: TChmReader): QWord;
     //properties
     property Chm[Index: Integer]: TChmReader read GetChm;
     property FileName[Index: Integer]: String read GetFileName;
@@ -1712,7 +1712,7 @@ begin
   fUnNotifiedFiles.Clear;
 end;
 
-function TChmFileList.ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
+function TChmFileList.ObjectExists(Name: String; var fChm: TChmReader): QWord;
 begin
   Result := 0;
   if Count = 0 then exit;

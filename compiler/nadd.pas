@@ -59,6 +59,8 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
+          function first_addpointer: tnode; virtual;
+          function first_cmppointer: tnode; virtual;
 
           { override and return false if you can handle 32x32->64 }
           { bit multiplies directly in your code generator. If    }
@@ -1640,11 +1642,15 @@ implementation
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
 {$elseif defined(i8086)}
-                    if is_farpointer(left.resultdef) then
+                    if is_hugepointer(left.resultdef) then
+                      inserttypeconv_internal(left,charhugepointertype)
+                    else if is_farpointer(left.resultdef) then
                       inserttypeconv_internal(left,charfarpointertype)
                     else
                       inserttypeconv_internal(left,charnearpointertype);
-                    if is_farpointer(right.resultdef) then
+                    if is_hugepointer(right.resultdef) then
+                      inserttypeconv_internal(right,charhugepointertype)
+                    else if is_farpointer(right.resultdef) then
                       inserttypeconv_internal(right,charfarpointertype)
                     else
                       inserttypeconv_internal(right,charnearpointertype);
@@ -1960,7 +1966,7 @@ implementation
               end
             else
               resultdef:=right.resultdef;
-            inserttypeconv(left,sinttype);
+            inserttypeconv(left,get_int_type_for_pointer_arithmetic(rd));
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in current_settings.moduleswitches) or
@@ -1972,7 +1978,7 @@ implementation
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=caddnode.create(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(rd).pointeddef.size,get_int_type_for_pointer_arithmetic(rd),true));
                      typecheckpass(left);
                    end;
               end
@@ -1991,7 +1997,7 @@ implementation
              else
                resultdef:=left.resultdef;
 
-             inserttypeconv(right,sinttype);
+             inserttypeconv(right,get_int_type_for_pointer_arithmetic(ld));
              if nodetype in [addn,subn] then
                begin
                  if (lt=niln) then
@@ -2008,7 +2014,7 @@ implementation
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=caddnode.create(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(ld).pointeddef.size,get_int_type_for_pointer_arithmetic(ld),true));
                      typecheckpass(right);
                    end
                  end else
@@ -2016,7 +2022,7 @@ implementation
                       (tarraydef(ld).elementdef.size>1) then
                      begin
                        right:=caddnode.create(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,sinttype,true));
+                         cordconstnode.create(tarraydef(ld).elementdef.size,get_int_type_for_pointer_arithmetic(ld),true));
                        typecheckpass(right);
                      end;
                end
@@ -2671,6 +2677,20 @@ implementation
       end;
 
 
+    function taddnode.first_addpointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_REGISTER;
+      end;
+
+
+    function taddnode.first_cmppointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_FLAGS;
+      end;
+
+
     function taddnode.first_addfloat : tnode;
       var
         procname: string[31];
@@ -2991,9 +3011,9 @@ implementation
          else if is_pchar(ld) then
            begin
              if nodetype in [addn,subn,muln,andn,orn,xorn] then
-               expectloc:=LOC_REGISTER
+               result:=first_addpointer
              else
-               expectloc:=LOC_FLAGS;
+               result:=first_cmppointer;
            end
 
          { is one of the operands a string }
@@ -3072,9 +3092,9 @@ implementation
          else if (ld.typ=pointerdef) then
             begin
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                expectloc:=LOC_REGISTER
+                result:=first_addpointer
               else
-                expectloc:=LOC_FLAGS;
+                result:=first_cmppointer;
            end
 
          else if is_implicit_pointer_object_type(ld) then
@@ -3106,7 +3126,7 @@ implementation
 
          else if (rd.typ=pointerdef) or (ld.typ=pointerdef) then
             begin
-              expectloc:=LOC_REGISTER;
+              result:=first_addpointer;
             end
 
          else  if (rd.typ=procvardef) and

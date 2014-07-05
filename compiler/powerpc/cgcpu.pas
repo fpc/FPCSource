@@ -61,6 +61,9 @@ unit cgcpu;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
+        { 32x32 to 64 bit multiplication }
+        procedure a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
+
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
         procedure g_save_registers(list:TAsmList); override;
@@ -592,7 +595,7 @@ const
 	       if (not (size in [OS_32, OS_S32])) then begin
 	         internalerror(2008091306);
 	       end;
-	       tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	       tmpreg := getintregister(list, OS_INT);
 	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
 	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
 	     end;	
@@ -677,6 +680,23 @@ const
          a_jmp(list,A_B,C_None,0,l);
        end;
 
+
+    procedure tcgppc.a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+      var
+        op: tasmop;
+      begin
+        case size of
+          OS_INT:  op:=A_MULHWU;
+          OS_SINT: op:=A_MULHW;
+        else
+          InternalError(2014061501);
+        end;
+        if (dsthi<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(op,dsthi,src1,src2));
+        { low word is always unsigned }
+        if (dstlo<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(A_MULLW,dstlo,src1,src2));
+      end;
 
 (*
      procedure tcgppc.g_cond2reg(list: TAsmList; const f: TAsmCond; reg: TRegister);

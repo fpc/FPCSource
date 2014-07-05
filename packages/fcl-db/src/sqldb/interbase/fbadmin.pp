@@ -54,6 +54,9 @@ type
   TIBRestoreOptions= set of TIBRestoreOption;
   TServiceProtocol=(IBSPLOCAL,IBSPTCPIP,IBSPNETBEUI,IBSPNAMEDPIPE);
   TIBOnOutput= procedure(Sender: TObject; msg: string; IBAdminAction: string) of object;
+  TIBStatOption = (IBDataPages, IBDbLog, IBHeaderPages, IBIndexPages, IBSystemRelations,
+    IBRecordVersions, IBStatTables);
+  TIBStatOptions = set of TIBStatOption;
 
   { TFBAdmin }
 
@@ -135,6 +138,8 @@ type
     function GetUsers(Users:TStrings):boolean;
     //Get database server log file
     function GetDatabaseLog:boolean;
+    //Get database statistics
+    function GetDatabaseStats(Database:string;Options:TIBStatOptions;TableNames:String = ''): boolean;
     //Database server version
     property ServerVersion:string read FServerVersion;
     //Implementation string of the database server
@@ -761,6 +766,42 @@ begin
     exit;
     end;
   result:=GetOutput('GetLogFile');
+end;
+
+function TFBAdmin.GetDatabaseStats(Database:string;Options: TIBStatOptions; TableNames: String
+  ): boolean;
+var
+  spb:string;
+  param: Integer;
+begin
+  Result:=CheckConnected('GetDatabaseStats');
+  param := 0;
+  if (IBDataPages in Options) then
+    param := param or isc_spb_sts_data_pages;
+  if (IBDbLog in Options) then
+    param := param or isc_spb_sts_db_log;
+  if (IBHeaderPages in Options) then
+    param := param or isc_spb_sts_hdr_pages;
+  if (IBIndexPages in Options) then
+    param := param or isc_spb_sts_idx_pages;
+  if (IBSystemRelations in Options) then
+    param := param or isc_spb_sts_sys_relations;
+  if (IBRecordVersions in Options) then
+    param := param or isc_spb_sts_record_versions;
+  if (IBStatTables in Options) then
+    param := param or isc_spb_sts_table;
+  spb  := Char(isc_action_svc_db_stats)+IBSPBParamSerialize(isc_spb_dbname,Database)+
+    IBSPBParamSerialize(isc_spb_options, param);
+  if (IBStatTables in Options) and (TableNames <> '') then
+    spb := spb+IBSPBParamSerialize(isc_spb_command_line, TableNames);
+  Result:=isc_service_start(@FStatus[0], @FSvcHandle, nil, length(spb),
+    @spb[1])=0;
+  if not Result then
+    begin
+    CheckError('GetDatabaseStats',FStatus);
+    exit;
+    end;
+  Result:=GetOutput('GetDatabaseStats');
 end;
 
 end.

@@ -65,6 +65,7 @@ interface
        parse_generic : boolean;
 
     procedure identifier_not_found(const s:string);
+    procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
 
 {    function tokenstring(i : ttoken):string;}
 
@@ -115,6 +116,18 @@ implementation
             (Upper(s)=pattern) and
             (m_class in tokeninfo^[idtoken].keyword) then
            Message(parser_f_need_objfpc_or_delphi_mode);
+       end;
+
+
+     procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
+       begin
+         MessagePos1(filepos,sym_e_id_not_found,s);
+         { show a fatal that you need -S2 or -Sd, but only
+           if we just parsed the a token that has m_class }
+         if not(m_class in current_settings.modeswitches) and
+            (Upper(s)=pattern) and
+            (m_class in tokeninfo^[idtoken].keyword) then
+           MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
        end;
 
 

@@ -319,6 +319,9 @@ begin
       FieldtypeDefinitions[ftLargeInt] := 'NUMBER(19,0)';
       FieldtypeDefinitions[ftTime]     := 'TIMESTAMP';
       FieldtypeDefinitions[ftMemo]     := 'CLOB';
+      FieldtypeDefinitions[ftWideString] := 'NVARCHAR2(10)';
+      FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
+      //FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
     ssPostgreSQL:
       begin
@@ -612,7 +615,7 @@ begin
   with (Result as TSQLQuery) do
     begin
     sql.clear;
-    sql.add('SELECT * FROM FPDEV WHERE ID < '+inttostr(n+1));
+    sql.add('SELECT * FROM FPDEV WHERE ID < '+inttostr(n+1)+' ORDER BY ID');
     UniDirectional:=TestUniDirectional;
     end;
 end;

@@ -29,17 +29,17 @@ begin
   inherited Destroy;
 end;
 
-function CalcDefExt (TheExtentions:string) : string;
+function CalcDefExt (TheExtensions:string) : string;
 var p : integer;
 begin
-  p := pos (';',TheExtentions);
+  p := pos (';',TheExtensions);
   if p = 0 then
-    result := TheExtentions
+    result := TheExtensions
   else
-    result := copy(TheExtentions, 1, p-1);
+    result := copy(TheExtensions, 1, p-1);
 end;
 
-procedure TImageHandlersManager.RegisterImageHandlers (const ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageHandlers (const ATypeName,TheExtensions:string;
                    AReader:TFPCustomImageReaderClass; AWriter:TFPCustomImageWriterClass);
 var ih : TIHData;
 begin
@@ -50,15 +50,15 @@ begin
   with ih do
     begin
     FTypeName := ATypeName;
-    FExtention := lowercase(TheExtentions);
-    FDefaultExt := CalcDefExt (TheExtentions);
+    FExtension := lowercase(TheExtensions);
+    FDefaultExt := CalcDefExt (TheExtensions);
     FReader := AReader;
     FWriter := AWriter;
     end;
   FData.Add (ih);
 end;
 
-procedure TImageHandlersManager.RegisterImageReader (const ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageReader (const ATypeName,TheExtensions:string;
                    AReader:TFPCustomImageReaderClass);
 var ih : TIHData;
 begin
@@ -76,8 +76,8 @@ begin
     with ih do
       begin
       FTypeName := ATypeName;
-      FExtention := Lowercase(TheExtentions);
-      FDefaultExt := CalcDefExt (TheExtentions);
+      FExtension := Lowercase(TheExtensions);
+      FDefaultExt := CalcDefExt (TheExtensions);
       FReader := AReader;
       FWriter := nil;
       end;
@@ -85,7 +85,7 @@ begin
     end;
 end;
 
-procedure TImageHandlersManager.RegisterImageWriter (const ATypeName,TheExtentions:string;
+procedure TImageHandlersManager.RegisterImageWriter (const ATypeName,TheExtensions:string;
                    AWriter:TFPCustomImageWriterClass);
 var ih : TIHData;
 begin
@@ -103,8 +103,8 @@ begin
     with ih do
       begin
       FTypeName := ATypeName;
-      FExtention := lowercase(TheExtentions);
-      FDefaultExt := CalcDefExt (TheExtentions);
+      FExtension := lowercase(TheExtensions);
+      FDefaultExt := CalcDefExt (TheExtensions);
       FReader := nil;
       FWriter := AWriter;
       end;
@@ -170,7 +170,7 @@ var ih : TIHData;
 begin
   ih := GetData (TypeName);
   if assigned(ih) then
-    result := ih.FExtention
+    result := ih.FExtension
   else
     result := '';
 end;

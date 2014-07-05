@@ -25,42 +25,42 @@ uses
 
 
 Type
-  TObjectListCallback = procedure(data:TObject;arg:pointer) of object;
-  TObjectListStaticCallback = procedure(data:TObject;arg:pointer);
+  TObjectListCallback = Procedure(data:TObject;arg:pointer) of object;
+  TObjectListStaticCallback = Procedure(data:TObject;arg:pointer);
 
   TFPObjectList = class(TObject)
   private
     FFreeObjects : Boolean;
     FList: TFPList;
-    function GetCount: integer;
-    procedure SetCount(const AValue: integer);
+    Function GetCount: integer;
+    Procedure SetCount(const AValue: integer);
   protected
-    function GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer);
-    function GetCapacity: integer;
+    Function GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+    Procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+    Procedure SetCapacity(NewCapacity: Integer);
+    Function GetCapacity: integer;
   public
     constructor Create;
     constructor Create(FreeObjects : Boolean);
     destructor Destroy; override;
-    procedure Clear;
-    function Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure Exchange(Index1, Index2: Integer);
-    function Expand: TFPObjectList;
-    function Extract(Item: TObject): TObject;
-    function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
-    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
-    function First: TObject;
-    function Last: TObject;
-    procedure Move(CurIndex, NewIndex: Integer);
-    procedure Assign(Obj:TFPObjectList);
-    procedure Pack;
-    procedure Sort(Compare: TListSortCompare);
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    Procedure Clear;
+    Function Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+    Procedure Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
+    Procedure Exchange(Index1, Index2: Integer);
+    Function Expand: TFPObjectList;
+    Function Extract(Item: TObject): TObject;
+    Function Remove(AObject: TObject): Integer;
+    Function IndexOf(AObject: TObject): Integer;
+    Function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    Procedure Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+    Function First: TObject;
+    Function Last: TObject;
+    Procedure Move(CurIndex, NewIndex: Integer);
+    Procedure Assign(Obj:TFPObjectList);
+    Procedure Pack;
+    Procedure Sort(Compare: TListSortCompare);
+    Procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+    Procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -69,23 +69,25 @@ Type
   end;
 
 
+  { TObjectList }
+
   TObjectList = class(TList)
   private
-    ffreeobjects : boolean;
+    FFreeObjects : Boolean;
   Protected
     Procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    function GetItem(Index: Integer): TObject;
+    Function GetItem(Index: Integer): TObject;
     Procedure SetItem(Index: Integer; AObject: TObject);
   public
-    constructor create;
-    constructor create(freeobjects : boolean);
-    function Add(AObject: TObject): Integer;
-    function Extract(Item: TObject): TObject;
-    function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
-    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    constructor Create;
+    constructor Create(FreeObjects : boolean);
+    Function Add(AObject: TObject): Integer;
+    Function Extract(Item: TObject): TObject;
+    Function Remove(AObject: TObject): Integer;
+    Function IndexOf(AObject: TObject): Integer;
+    Function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     Procedure Insert(Index: Integer; AObject: TObject);
-    function First: TObject;
+    Function First: TObject;
     Function Last: TObject;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
     property Items[Index: Integer]: TObject read GetItem write SetItem; default;
@@ -220,41 +222,41 @@ type
     FStrs     : PChar;
     FStrCount,
     FStrCapacity : Integer;
-    function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+    Function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer);
-    procedure SetCount(NewCount: Integer);
+    Function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure SetCapacity(NewCapacity: Integer);
+    Procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
-    function  AddStr(const s:shortstring): Integer;
-    procedure AddToHashTable(Index: Integer);
-    procedure StrExpand(MinIncSize:Integer);
-    procedure SetStrCapacity(NewCapacity: Integer);
-    procedure SetHashCapacity(NewCapacity: Integer);
-    procedure ReHash;
+    Function  AddStr(const s:shortstring): Integer;
+    Procedure AddToHashTable(Index: Integer);
+    Procedure StrExpand(MinIncSize:Integer);
+    Procedure SetStrCapacity(NewCapacity: Integer);
+    Procedure SetHashCapacity(NewCapacity: Integer);
+    Procedure ReHash;
   public
     constructor Create;
     destructor Destroy; override;
-    function Add(const AName:shortstring;Item: Pointer): Integer;
-    procedure Clear;
-    function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function GetNextCollision(Index: Integer): Integer;
-    procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);
-    function Expand: TFPHashList;
-    function Extract(item: Pointer): Pointer;
-    function IndexOf(Item: Pointer): Integer;
-    function Find(const AName:shortstring): Pointer;
-    function FindIndexOf(const AName:shortstring): Integer;
-    function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:shortstring): Integer;
-    function Remove(Item: Pointer): Integer;
-    procedure Pack;
-    procedure ShowStatistics;
-    procedure ForEachCall(proc2call:TListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+    Function Add(const AName:shortstring;Item: Pointer): Integer;
+    Procedure Clear;
+    Function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function GetNextCollision(Index: Integer): Integer;
+    Procedure Delete(Index: Integer);
+    class Procedure Error(const Msg: string; Data: PtrInt);
+    Function Expand: TFPHashList;
+    Function Extract(item: Pointer): Pointer;
+    Function IndexOf(Item: Pointer): Integer;
+    Function Find(const AName:shortstring): Pointer;
+    Function FindIndexOf(const AName:shortstring): Integer;
+    Function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+    Function Rename(const AOldName,ANewName:shortstring): Integer;
+    Function Remove(Item: Pointer): Integer;
+    Procedure Pack;
+    Procedure ShowStatistics;
+    Procedure ForEachCall(proc2call:TListCallback;arg:pointer);
+    Procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -276,16 +278,16 @@ type
     FOwner     : TFPHashObjectList;
     FCachedStr : pshortstring;
     FStrIndex  : Integer;
-    procedure InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
+    Procedure InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
   protected
-    function GetName:shortstring;virtual;
-    function GetHash:Longword;virtual;
+    Function GetName:shortstring;virtual;
+    Function GetHash:Longword;virtual;
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
-    procedure ChangeOwner(HashObjectList:TFPHashObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Rename(const ANewName:shortstring);
+    Procedure ChangeOwner(HashObjectList:TFPHashObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure Rename(const ANewName:shortstring);
     property Name:shortstring read GetName;
     property Hash:Longword read GetHash;
   end;
@@ -294,35 +296,35 @@ type
   private
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
-    function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
-    function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
     constructor Create(FreeObjects : boolean = True);
     destructor Destroy; override;
-    procedure Clear;
-    function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Delete(Index: Integer);
-    function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function Find(const s:shortstring): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindIndexOf(const s:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure Clear;
+    Function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure Delete(Index: Integer);
+    Function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function Remove(AObject: TObject): Integer;
+    Function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function Find(const s:shortstring): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function FindIndexOf(const s:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+    Function Rename(const AOldName,ANewName:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    Procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    Procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -337,7 +339,7 @@ type
 
   { Must return a Longword value in the range 0..TableSize,
    usually via a mod operator;  }
-  THashFunction = function(const S: string; const TableSize: Longword): Longword;
+  THashFunction = Function(const S: string; const TableSize: Longword): Longword;
 
 
   { THTNode }
@@ -347,7 +349,7 @@ type
     FKey: string;
   public
     constructor CreateWith(const AString: String);
-    function HasKey(const AKey: string): boolean;
+    Function HasKey(const AKey: string): boolean;
     property Key: string read FKey;
   end;
   THTCustomNodeClass = Class of THTCustomNode;
@@ -361,31 +363,31 @@ type
     FHashTableSize: Longword;
     FHashFunction: THashFunction;
     FCount: Longword;
-    function GetDensity: Longword;
-    function GetNumberOfCollisions: Longword;
-    procedure SetHashTableSize(const Value: Longword);
-    procedure InitializeHashTable;
-    function GetVoidSlots: Longword;
-    function GetLoadFactor: double;
-    function GetAVGChainLen: double;
-    function GetMaxChainLength: Longword;
+    Function GetDensity: Longword;
+    Function GetNumberOfCollisions: Longword;
+    Procedure SetHashTableSize(const Value: Longword);
+    Procedure InitializeHashTable;
+    Function GetVoidSlots: Longword;
+    Function GetLoadFactor: double;
+    Function GetAVGChainLen: double;
+    Function GetMaxChainLength: Longword;
   protected
-    function Chain(const index: Longword):TFPObjectList;
+    Function Chain(const index: Longword):TFPObjectList;
     Function CreateNewNode(const aKey : string) : THTCustomNode; virtual; abstract;
     Procedure AddNode(ANode : THTCustomNode); virtual; abstract;
-    function ChainLength(const ChainIndex: Longword): Longword; virtual;
-    function FindOrCreateNew(const aKey: string): THTCustomNode; virtual;
-    procedure SetHashFunction(AHashFunction: THashFunction); virtual;
+    Function ChainLength(const ChainIndex: Longword): Longword; virtual;
+    Function FindOrCreateNew(const aKey: string): THTCustomNode; virtual;
+    Procedure SetHashFunction(AHashFunction: THashFunction); virtual;
     Function FindChainForAdd(Const aKey : String) : TFPObjectList;
   public
     constructor Create;
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction);
     destructor Destroy; override;
-    procedure ChangeTableSize(const ANewSize: Longword); virtual;
-    procedure Clear; virtual;
-    procedure Delete(const aKey: string); virtual;
-    function Find(const aKey: string): THTCustomNode;
-    function IsEmpty: boolean;
+    Procedure ChangeTableSize(const ANewSize: Longword); virtual;
+    Procedure Clear; virtual;
+    Procedure Delete(const aKey: string); virtual;
+    Function Find(const aKey: string): THTCustomNode;
+    Function IsEmpty: boolean;
     property HashFunction: THashFunction read FHashFunction write SetHashFunction;
     property Count: Longword read FCount;
     property HashTableSize: Longword read FHashTableSize write SetHashTableSize;
@@ -409,7 +411,7 @@ type
   // For compatibility
   THTNode = THTDataNode;
 
-  TDataIteratorMethod = procedure(Item: Pointer; const Key: string; var Continue: Boolean) of object;
+  TDataIteratorMethod = Procedure(Item: Pointer; const Key: string; var Continue: Boolean) of object;
   // For compatibility
   TIteratorMethod = TDataIteratorMethod;
 
@@ -417,12 +419,12 @@ type
   Protected
     Function CreateNewNode(const aKey : String) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    procedure SetData(const index: string; const AValue: Pointer); virtual;
-    function GetData(const index: string):Pointer; virtual;
-    function ForEachCall(aMethod: TDataIteratorMethod): THTDataNode; virtual;
+    Procedure SetData(const index: string; const AValue: Pointer); virtual;
+    Function GetData(const index: string):Pointer; virtual;
+    Function ForEachCall(aMethod: TDataIteratorMethod): THTDataNode; virtual;
   Public
-    function Iterate(aMethod: TDataIteratorMethod): Pointer; virtual;
-    procedure Add(const aKey: string; AItem: pointer); virtual;
+    Function Iterate(aMethod: TDataIteratorMethod): Pointer; virtual;
+    Procedure Add(const aKey: string; AItem: pointer); virtual;
     property Items[const index: string]: Pointer read GetData write SetData; default;
   end;
 
@@ -433,18 +435,18 @@ type
   public
     property Data: String read FData write FData;
   end;
-  TStringIteratorMethod = procedure(Item: String; const Key: string; var Continue: Boolean) of object;
+  TStringIteratorMethod = Procedure(Item: String; const Key: string; var Continue: Boolean) of object;
 
   TFPStringHashTable = Class(TFPCustomHashTable)
   Protected
     Function CreateNewNode(const aKey : String) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    procedure SetData(const Index, AValue: string); virtual;
-    function GetData(const index: string): String; virtual;
-    function ForEachCall(aMethod: TStringIteratorMethod): THTStringNode; virtual;
+    Procedure SetData(const Index, AValue: string); virtual;
+    Function GetData(const index: string): String; virtual;
+    Function ForEachCall(aMethod: TStringIteratorMethod): THTStringNode; virtual;
   Public
-    function Iterate(aMethod: TStringIteratorMethod): String; virtual;
-    procedure Add(const aKey,aItem: string); virtual;
+    Function Iterate(aMethod: TStringIteratorMethod): String; virtual;
+    Procedure Add(const aKey,aItem: string); virtual;
     property Items[const index: string]: String read GetData write SetData; default;
   end;
 
@@ -460,9 +462,9 @@ type
 
   THTOwnedObjectNode = Class(THTObjectNode)
   public
-    Destructor Destroy; override;
+    destructor Destroy; override;
   end;
-  TObjectIteratorMethod = procedure(Item: TObject; const Key: string; var Continue: Boolean) of object;
+  TObjectIteratorMethod = Procedure(Item: TObject; const Key: string; var Continue: Boolean) of object;
 
   TFPObjectHashTable = Class(TFPCustomHashTable)
   Private
@@ -470,14 +472,14 @@ type
   Protected
     Function CreateNewNode(const aKey : String) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    procedure SetData(const Index: string; AObject : TObject); virtual;
-    function GetData(const index: string): TObject; virtual;
-    function ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode; virtual;
+    Procedure SetData(const Index: string; AObject : TObject); virtual;
+    Function GetData(const index: string): TObject; virtual;
+    Function ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode; virtual;
   Public
     constructor Create(AOwnsObjects : Boolean = True);
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction; AOwnsObjects : Boolean = True);
-    function Iterate(aMethod: TObjectIteratorMethod): TObject; virtual;
-    procedure Add(const aKey: string; AItem : TObject); virtual;
+    Function Iterate(aMethod: TObjectIteratorMethod): TObject; virtual;
+    Procedure Add(const aKey: string; AItem : TObject); virtual;
     property Items[const index: string]: TObject read GetData write SetData; default;
     Property OwnsObjects : Boolean Read FOwnsObjects Write FOwnsObjects;
   end;
@@ -485,7 +487,7 @@ type
   EDuplicate = class(Exception);
   EKeyNotFound = class(Exception);
 
-  function RSHash(const S: string; const TableSize: Longword): Longword;
+  Function RSHash(const S: string; const TableSize: Longword): Longword;
 
 { ---------------------------------------------------------------------
     Bucket lists as in Delphi
@@ -505,8 +507,8 @@ Type
   PBucket = ^TBucket;
   TBucketArray = array of TBucket;
 
-  TBucketProc = procedure(AInfo, AItem, AData: Pointer; out AContinue: Boolean);
-  TBucketProcObject = procedure(AItem, AData: Pointer; out AContinue: Boolean) of Object;
+  TBucketProc = Procedure(AInfo, AItem, AData: Pointer; out AContinue: Boolean);
+  TBucketProcObject = Procedure(AItem, AData: Pointer; out AContinue: Boolean) of Object;
 
 { ---------------------------------------------------------------------
   TCustomBucketList
@@ -517,29 +519,29 @@ Type
   TCustomBucketList = class(TObject)
   private
     FBuckets: TBucketArray;
-    function GetBucketCount: Integer;
-    function GetData(AItem: Pointer): Pointer;
-    procedure SetData(AItem: Pointer; const AData: Pointer);
-    procedure SetBucketCount(const Value: Integer);
+    Function GetBucketCount: Integer;
+    Function GetData(AItem: Pointer): Pointer;
+    Procedure SetData(AItem: Pointer; const AData: Pointer);
+    Procedure SetBucketCount(const Value: Integer);
   protected
     Procedure GetBucketItem(AItem: Pointer; out ABucket, AIndex: Integer);
-    function AddItem(ABucket: Integer; AItem, AData: Pointer): Pointer; virtual;
-    function BucketFor(AItem: Pointer): Integer; virtual; abstract;
-    function DeleteItem(ABucket: Integer; AIndex: Integer): Pointer; virtual;
+    Function AddItem(ABucket: Integer; AItem, AData: Pointer): Pointer; virtual;
+    Function BucketFor(AItem: Pointer): Integer; virtual; abstract;
+    Function DeleteItem(ABucket: Integer; AIndex: Integer): Pointer; virtual;
     Procedure Error(Msg : String; Args : Array of Const);
-    function FindItem(AItem: Pointer; out ABucket, AIndex: Integer): Boolean; virtual;
+    Function FindItem(AItem: Pointer; out ABucket, AIndex: Integer): Boolean; virtual;
     property Buckets: TBucketArray read FBuckets;
     property BucketCount: Integer read GetBucketCount write SetBucketCount;
   public
     destructor Destroy; override;
-    procedure Clear;
-    function Add(AItem, AData: Pointer): Pointer;
-    procedure Assign(AList: TCustomBucketList);
-    function Exists(AItem: Pointer): Boolean;
-    function Find(AItem: Pointer; out AData: Pointer): Boolean;
-    function ForEach(AProc: TBucketProc; AInfo: Pointer = nil): Boolean;
-    function ForEach(AProc: TBucketProcObject): Boolean;
-    function Remove(AItem: Pointer): Pointer;
+    Procedure Clear;
+    Function Add(AItem, AData: Pointer): Pointer;
+    Procedure Assign(AList: TCustomBucketList);
+    Function Exists(AItem: Pointer): Boolean;
+    Function Find(AItem: Pointer; out AData: Pointer): Boolean;
+    Function ForEach(AProc: TBucketProc; AInfo: Pointer = nil): Boolean;
+    Function ForEach(AProc: TBucketProcObject): Boolean;
+    Function Remove(AItem: Pointer): Pointer;
     property Data[AItem: Pointer]: Pointer read GetData write SetData; default;
   end;
 
@@ -556,7 +558,7 @@ Type
   private
     FBucketMask: Byte;
   protected
-    function BucketFor(AItem: Pointer): Integer; override;
+    Function BucketFor(AItem: Pointer): Integer; override;
   public
     constructor Create(ABuckets: TBucketListSizes = bl16);
   end;
@@ -569,11 +571,11 @@ Type
 
   TObjectBucketList = class(TBucketList)
   protected
-    function GetData(AItem: TObject): TObject;
-    procedure SetData(AItem: TObject; const AData: TObject);
+    Function GetData(AItem: TObject): TObject;
+    Procedure SetData(AItem: TObject; const AData: TObject);
   public
-    function Add(AItem, AData: TObject): TObject;
-    function Remove(AItem: TObject): TObject;
+    Function Add(AItem, AData: TObject): TObject;
+    Function Remove(AItem: TObject): TObject;
     property Data[AItem: TObject]: TObject read GetData write SetData; default;
   end;
 
@@ -604,7 +606,7 @@ const
 constructor TFPObjectList.Create(FreeObjects : boolean);
 begin
   Create;
-  FFreeObjects := Freeobjects;
+  FFreeObjects:=Freeobjects;
 end;
 
 destructor TFPObjectList.Destroy;
@@ -617,12 +619,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPObjectList.Clear;
+Procedure TFPObjectList.Clear;
 var
   i: integer;
 begin
   if FFreeObjects then
-    for i := FList.Count-1 downto 0  do
+    for i:=FList.Count-1 downto 0  do
       TObject(FList[i]).Free;
   FList.Clear;
 end;
@@ -630,152 +632,152 @@ end;
 constructor TFPObjectList.Create;
 begin
   inherited Create;
-  FList := TFPList.Create;
-  FFreeObjects := True;
+  FList:=TFPList.Create;
+  FFreeObjects:=True;
 end;
 
-function TFPObjectList.GetCount: integer;
+Function TFPObjectList.GetCount: integer;
 begin
-  Result := FList.Count;
+  Result:=FList.Count;
 end;
 
-procedure TFPObjectList.SetCount(const AValue: integer);
+Procedure TFPObjectList.SetCount(const AValue: integer);
 begin
   if FList.Count <> AValue then
-    FList.Count := AValue;
+    FList.Count:=AValue;
 end;
 
-function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+Function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
 begin
-  Result := TObject(FList[Index]);
+  Result:=TObject(FList[Index]);
 end;
 
-procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+Procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
-  FList[index] := AObject;
+  FList[index]:=AObject;
 end;
 
-procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
+Procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
 begin
-  FList.Capacity := NewCapacity;
+  FList.Capacity:=NewCapacity;
 end;
 
-function TFPObjectList.GetCapacity: integer;
+Function TFPObjectList.GetCapacity: integer;
 begin
-  Result := FList.Capacity;
+  Result:=FList.Capacity;
 end;
 
-function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+Function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
 begin
-  Result := FList.Add(AObject);
+  Result:=FList.Add(AObject);
 end;
 
-procedure TFPObjectList.Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
+Procedure TFPObjectList.Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
   FList.Delete(Index);
 end;
 
-procedure TFPObjectList.Exchange(Index1, Index2: Integer);
+Procedure TFPObjectList.Exchange(Index1, Index2: Integer);
 begin
   FList.Exchange(Index1, Index2);
 end;
 
-function TFPObjectList.Expand: TFPObjectList;
+Function TFPObjectList.Expand: TFPObjectList;
 begin
   FList.Expand;
-  Result := Self;
+  Result:=Self;
 end;
 
-function TFPObjectList.Extract(Item: TObject): TObject;
+Function TFPObjectList.Extract(Item: TObject): TObject;
 begin
-  Result := TObject(FList.Extract(Item));
+  Result:=TObject(FList.Extract(Item));
 end;
 
-function TFPObjectList.Remove(AObject: TObject): Integer;
+Function TFPObjectList.Remove(AObject: TObject): Integer;
 begin
-  Result := IndexOf(AObject);
+  Result:=IndexOf(AObject);
   if (Result <> -1) then
-  begin
+    begin
     if OwnsObjects then
       TObject(FList[Result]).Free;
     FList.Delete(Result);
-  end;
+    end;
 end;
 
-function TFPObjectList.IndexOf(AObject: TObject): Integer;
+Function TFPObjectList.IndexOf(AObject: TObject): Integer;
 begin
-  Result := FList.IndexOf(Pointer(AObject));
+  Result:=FList.IndexOf(Pointer(AObject));
 end;
 
-function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
+Function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
 var
   I : Integer;
 begin
   I:=AStartAt;
   Result:=-1;
-  If AExact then
+  if AExact then
     while (I<Count) and (Result=-1) do
-      If Items[i].ClassType=AClass then
+      if Items[i].ClassType=AClass then
         Result:=I
       else
         Inc(I)
   else
     while (I<Count) and (Result=-1) do
-      If Items[i].InheritsFrom(AClass) then
+      if Items[i].InheritsFrom(AClass) then
         Result:=I
       else
         Inc(I);
 end;
 
-procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+Procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   FList.Insert(Index, Pointer(AObject));
 end;
 
-procedure TFPObjectList.Move(CurIndex, NewIndex: Integer);
+Procedure TFPObjectList.Move(CurIndex, NewIndex: Integer);
 begin
   FList.Move(CurIndex, NewIndex);
 end;
 
-procedure TFPObjectList.Assign(Obj: TFPObjectList);
+Procedure TFPObjectList.Assign(Obj: TFPObjectList);
 var
   i: Integer;
 begin
   Clear;
-  for I := 0 to Obj.Count - 1 do
+  for i:=0 to Obj.Count - 1 do
     Add(Obj[i]);
 end;
 
-procedure TFPObjectList.Pack;
+Procedure TFPObjectList.Pack;
 begin
   FList.Pack;
 end;
 
-procedure TFPObjectList.Sort(Compare: TListSortCompare);
+Procedure TFPObjectList.Sort(Compare: TListSortCompare);
 begin
   FList.Sort(Compare);
 end;
 
-function TFPObjectList.First: TObject;
+Function TFPObjectList.First: TObject;
 begin
-  Result := TObject(FList.First);
+  Result:=TObject(FList.First);
 end;
 
-function TFPObjectList.Last: TObject;
+Function TFPObjectList.Last: TObject;
 begin
-  Result := TObject(FList.Last);
+  Result:=TObject(FList.Last);
 end;
 
-procedure TFPObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+Procedure TFPObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
 begin
   FList.ForEachCall(TListCallBack(proc2call),arg);
 end;
 
-procedure TFPObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+Procedure TFPObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FList.ForEachCall(TListStaticCallBack(proc2call),arg);
 end;
@@ -783,22 +785,19 @@ end;
 
 { TObjectList }
 
-constructor tobjectlist.create(freeobjects : boolean);
-
+constructor TObjectList.Create(FreeObjects: boolean);
 begin
-  inherited create;
-  ffreeobjects:=freeobjects;
+  inherited Create;
+  FFreeObjects:=FreeObjects;
 end;
 
-Constructor tobjectlist.create;
-
+constructor TObjectList.Create;
 begin
-  inherited create;
-  ffreeobjects:=True;
+  inherited Create;
+  FFreeObjects:=True;
 end;
 
 Procedure TObjectList.Notify(Ptr: Pointer; Action: TListNotification);
-
 begin
   if FFreeObjects then
     if (Action=lnDeleted) then
@@ -808,14 +807,12 @@ end;
 
 
 Function TObjectList.GetItem(Index: Integer): TObject;
-
 begin
-  Result:=TObject(Inherited Get(Index));
+  Result:=TObject(inherited Get(Index));
 end;
 
 
 Procedure TObjectList.SetItem(Index: Integer; AObject: TObject);
-
 begin
   // Put will take care of deleting old one in Notify.
   Put(Index,Pointer(AObject));
@@ -823,89 +820,82 @@ end;
 
 
 Function TObjectList.Add(AObject: TObject): Integer;
-
 begin
-  Result:=Inherited Add(Pointer(AObject));
+  Result:=inherited Add(Pointer(AObject));
 end;
 
 
 Function TObjectList.Extract(Item: TObject): TObject;
-
 begin
-  Result:=Tobject(Inherited Extract(Pointer(Item)));
+  Result:=TObject(inherited Extract(Pointer(Item)));
 end;
 
 
 Function TObjectList.Remove(AObject: TObject): Integer;
-
 begin
-  Result:=Inherited Remove(Pointer(AObject));
+  Result:=inherited Remove(Pointer(AObject));
 end;
 
 
 Function TObjectList.IndexOf(AObject: TObject): Integer;
-
 begin
-  Result:=Inherited indexOF(Pointer(AObject));
+  Result:=inherited IndexOf(Pointer(AObject));
 end;
 
 
-Function TObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
-
-Var
+Function TObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean;
+  AStartAt: Integer): Integer;
+var
   I : Integer;
-
 begin
   I:=AStartAt;
   Result:=-1;
-  If AExact then
-    While (I<Count) and (Result=-1) do
-      If Items[i].ClassType=AClass then
+  if AExact then
+    while (I<Count) and (Result=-1) do
+      if Items[i].ClassType=AClass then
         Result:=I
       else
         Inc(I)
   else
-    While (I<Count) and (Result=-1) do
-      If Items[i].InheritsFrom(AClass) then
+    while (I<Count) and (Result=-1) do
+      if Items[i].InheritsFrom(AClass) then
         Result:=I
       else
         Inc(I);
 end;
 
 
-procedure TObjectList.Insert(Index: Integer; AObject: TObject);
+Procedure TObjectList.Insert(Index: Integer; AObject: TObject);
 begin
   Inherited Insert(Index,Pointer(AObject));
 end;
 
 
-function TObjectList.First: TObject;
-
+Function TObjectList.First: TObject;
 begin
-  Result := TObject(Inherited First);
+  Result:=TObject(inherited First);
 end;
 
 
-function TObjectList.Last: TObject;
-
+Function TObjectList.Last: TObject;
 begin
-  Result := TObject(Inherited Last);
+  Result:=TObject(inherited Last);
 end;
 
 { TListComponent }
 
-Type
-  TlistComponent = Class(TComponent)
-  Private
+type
+  TlistComponent = class(TComponent)
+  private
     Flist : TComponentList;
-  Public
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   end;
 
-procedure TlistComponent.Notification(AComponent: TComponent;
+Procedure TlistComponent.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
-  If (Operation=opremove) then
+  if (Operation=opRemove) then
     Flist.HandleFreeNotify(Self,AComponent);
   inherited;
 end;
@@ -914,7 +904,7 @@ end;
 
 Function TComponentList.Add(AComponent: TComponent): Integer;
 begin
-  Result:=Inherited Add(AComponent);
+  Result:=inherited Add(AComponent);
 end;
 
 destructor TComponentList.Destroy;
@@ -925,49 +915,49 @@ end;
 
 Function TComponentList.Extract(Item: TComponent): TComponent;
 begin
-  Result:=TComponent(Inherited Extract(Item));
+  Result:=TComponent(inherited Extract(Item));
 end;
 
 Function TComponentList.First: TComponent;
 begin
-  Result:=TComponent(Inherited First);
+  Result:=TComponent(inherited First);
 end;
 
 Function TComponentList.GetItems(Index: Integer): TComponent;
 begin
-  Result:=TComponent(Inherited Items[Index]);
+  Result:=TComponent(inherited Items[Index]);
 end;
 
 Procedure TComponentList.HandleFreeNotify(Sender: TObject;
   AComponent: TComponent);
 begin
-  Extract(Acomponent);
+  Extract(AComponent);
 end;
 
 Function TComponentList.IndexOf(AComponent: TComponent): Integer;
 begin
-  Result:=Inherited IndexOf(AComponent);
+  Result:=inherited IndexOf(AComponent);
 end;
 
 Procedure TComponentList.Insert(Index: Integer; AComponent: TComponent);
 begin
-  Inherited Insert(Index,Acomponent)
+  inherited Insert(Index,AComponent)
 end;
 
 Function TComponentList.Last: TComponent;
 begin
-  Result:=TComponent(Inherited Last);
+  Result:=TComponent(inherited Last);
 end;
 
 Procedure TComponentList.Notify(Ptr: Pointer; Action: TListNotification);
 begin
-  If FNotifier=NIl then
+  if FNotifier=nil then
     begin
     FNotifier:=TlistComponent.Create(nil);
     TlistComponent(FNotifier).FList:=Self;
     end;
-  If Assigned(Ptr) then
-    With TComponent(Ptr) do
+  if Assigned(Ptr) then
+    with TComponent(Ptr) do
       case Action of
         lnAdded : FreeNotification(FNotifier);
         lnExtracted, lnDeleted: RemoveFreeNotification(FNotifier);
@@ -977,7 +967,7 @@ end;
 
 Function TComponentList.Remove(AComponent: TComponent): Integer;
 begin
-  Result:=Inherited Remove(AComponent);
+  Result:=inherited Remove(AComponent);
 end;
 
 Procedure TComponentList.SetItems(Index: Integer; AComponent: TComponent);
@@ -989,47 +979,47 @@ end;
 
 Function TClassList.Add(AClass: TClass): Integer;
 begin
-  Result:=Inherited Add(Pointer(AClass));
+  Result:=inherited Add(Pointer(AClass));
 end;
 
 Function TClassList.Extract(Item: TClass): TClass;
 begin
-  Result:=TClass(Inherited Extract(Pointer(Item)));
+  Result:=TClass(inherited Extract(Pointer(Item)));
 end;
 
 Function TClassList.First: TClass;
 begin
-  Result:=TClass(Inherited First);
+  Result:=TClass(inherited First);
 end;
 
 Function TClassList.GetItems(Index: Integer): TClass;
 begin
-  Result:=TClass(Inherited Items[Index]);
+  Result:=TClass(inherited Items[Index]);
 end;
 
 Function TClassList.IndexOf(AClass: TClass): Integer;
 begin
-  Result:=Inherited IndexOf(Pointer(AClass));
+  Result:=inherited IndexOf(Pointer(AClass));
 end;
 
 Procedure TClassList.Insert(Index: Integer; AClass: TClass);
 begin
-  Inherited Insert(index,Pointer(AClass));
+  inherited Insert(Index,Pointer(AClass));
 end;
 
 Function TClassList.Last: TClass;
 begin
-  Result:=TClass(Inherited Last);
+  Result:=TClass(inherited Last);
 end;
 
 Function TClassList.Remove(AClass: TClass): Integer;
 begin
-  Result:=Inherited Remove(Pointer(AClass));
+  Result:=inherited Remove(Pointer(AClass));
 end;
 
 Procedure TClassList.SetItems(Index: Integer; AClass: TClass);
 begin
-  Put(Index,Pointer(Aclass));
+  Put(Index,Pointer(AClass));
 end;
 
 { TOrderedList }
@@ -1056,15 +1046,15 @@ end;
 
 Function TOrderedList.Peek: Pointer;
 begin
-  If AtLeast(1) then
+  if AtLeast(1) then
     Result:=PeekItem
   else
-    Result:=Nil;
+    Result:=nil;
 end;
 
 Function TOrderedList.PeekItem: Pointer;
 begin
-  With Flist do
+  with Flist do
     Result:=Items[Count-1]
 end;
 
@@ -1073,24 +1063,24 @@ begin
   If Atleast(1) then
     Result:=PopItem
   else
-    Result:=Nil;
+    Result:=nil;
 end;
 
 Function TOrderedList.PopItem: Pointer;
 begin
-  With FList do
-    If Count>0 then
+  with FList do
+    if Count>0 then
       begin
       Result:=Items[Count-1];
       Delete(Count-1);
       end
     else
-      Result:=Nil;
+      Result:=nil;
 end;
 
 Function TOrderedList.Push(AItem: Pointer): Pointer;
 begin
-  PushItem(Aitem);
+  PushItem(AItem);
   Result:=AItem;
 end;
 
@@ -1098,14 +1088,14 @@ end;
 
 Procedure TStack.PushItem(AItem: Pointer);
 begin
-  FList.Add(Aitem);
+  FList.Add(AItem);
 end;
 
 { TObjectStack }
 
 Function TObjectStack.Peek: TObject;
 begin
-  Result:=TObject(Inherited Peek);
+  Result:=TObject(inherited Peek);
 end;
 
 Function TObjectStack.Pop: TObject;
@@ -1115,14 +1105,14 @@ end;
 
 Function TObjectStack.Push(AObject: TObject): TObject;
 begin
-  Result:=TObject(Inherited Push(Pointer(AObject)));
+  Result:=TObject(inherited Push(Pointer(AObject)));
 end;
 
 { TQueue }
 
 Procedure TQueue.PushItem(AItem: Pointer);
 begin
-  With Flist Do
+  with FList Do
     Insert(0,AItem);
 end;
 
@@ -1130,17 +1120,17 @@ end;
 
 Function TObjectQueue.Peek: TObject;
 begin
-  Result:=TObject(Inherited Peek);
+  Result:=TObject(inherited Peek);
 end;
 
 Function TObjectQueue.Pop: TObject;
 begin
-  Result:=TObject(Inherited Pop);
+  Result:=TObject(inherited Pop);
 end;
 
 Function TObjectQueue.Push(AObject: TObject): TObject;
 begin
-  Result:=TObject(Inherited Push(Pointer(Aobject)));
+  Result:=TObject(inherited Push(Pointer(AObject)));
 end;
 
 
@@ -1148,47 +1138,47 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-    function FPHash(const s:shortstring):LongWord;
-      Var
-        p,pmax : pchar;
-      begin
+    Function FPHash(const s:shortstring):LongWord;
+    var
+      p,pmax : PChar;
+    begin
 {$push}
 {$Q-}
-        result:=0;
-        p:=@s[1];
-        pmax:=@s[length(s)+1];
-        while (p<pmax) do
-          begin
-            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
-            inc(p);
-          end;
+      Result:=0;
+      p:=@s[1];
+      pmax:=@s[length(s)+1];
+      while (p<pmax) do
+        begin
+          Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
+          Inc(p);
+        end;
 {$pop}
-      end;
+    end;
 
-    function FPHash(P: PChar; Len: Integer): LongWord;
-      Var
-        pmax : pchar;
-      begin
+    Function FPHash(P: PChar; Len: Integer): LongWord;
+    var
+      pmax : PChar;
+    begin
 {$push}
 {$Q-}
-        result:=0;
-        pmax:=p+len;
-        while (p<pmax) do
-          begin
-            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
-            inc(p);
-          end;
+      Result:=0;
+      pmax:=p+len;
+      while (p<pmax) do
+        begin
+          Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
+          Inc(p);
+        end;
 {$pop}
-      end;
+    end;
 
 
-procedure TFPHashList.RaiseIndexError(Index : Integer);
+Procedure TFPHashList.RaiseIndexError(Index : Integer);
 begin
   Error(SListIndexError, Index);
 end;
 
 
-function TFPHashList.Get(Index: Integer): Pointer;
+Function TFPHashList.Get(Index: Integer): Pointer;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
@@ -1196,7 +1186,7 @@ begin
 end;
 
 
-procedure TFPHashList.Put(Index: Integer; Item: Pointer);
+Procedure TFPHashList.Put(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
@@ -1204,21 +1194,21 @@ begin
 end;
 
 
-function TFPHashList.NameOfIndex(Index: Integer): shortstring;
+Function TFPHashList.NameOfIndex(Index: Integer): shortstring;
 begin
-  If (Index < 0) or (Index >= FCount) then
+  if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
   with FHashList^[Index] do
     begin
-      if StrIndex>=0 then
-        Result:=PShortString(@FStrs[StrIndex])^
-      else
-        Result:='';
+    if StrIndex>=0 then
+      Result:=PShortString(@FStrs[StrIndex])^
+    else
+      Result:='';
     end;
 end;
 
 
-function TFPHashList.HashOfIndex(Index: Integer): LongWord;
+Function TFPHashList.HashOfIndex(Index: Integer): LongWord;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
@@ -1226,7 +1216,7 @@ begin
 end;
 
 
-function TFPHashList.GetNextCollision(Index: Integer): Integer;
+Function TFPHashList.GetNextCollision(Index: Integer): Integer;
 begin
   Result:=-1;
   if ((Index > -1) and (Index < FCount)) then
@@ -1234,78 +1224,78 @@ begin
 end;
 
 
-function TFPHashList.Extract(item: Pointer): Pointer;
+Function TFPHashList.Extract(item: Pointer): Pointer;
 var
   i : Integer;
 begin
-  result := nil;
-  i := IndexOf(item);
+  Result:=nil;
+  i:=IndexOf(item);
   if i >= 0 then
-   begin
-     Result := item;
-     Delete(i);
-   end;
+    begin
+    Result:=item;
+    Delete(i);
+    end;
 end;
 
 
-procedure TFPHashList.SetCapacity(NewCapacity: Integer);
+Procedure TFPHashList.SetCapacity(NewCapacity: Integer);
 begin
-  If (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
+  if (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
      Error (SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
-    exit;
+    Exit;
   ReallocMem(FHashList, NewCapacity*SizeOf(THashItem));
-  FCapacity := NewCapacity;
+  FCapacity:=NewCapacity;
   { Maybe expand hash also }
   if FCapacity>FHashCapacity*MaxItemsPerHash then
     SetHashCapacity(FCapacity div MaxItemsPerHash);
 end;
 
 
-procedure TFPHashList.SetCount(NewCount: Integer);
+Procedure TFPHashList.SetCount(NewCount: Integer);
 begin
   if (NewCount < 0) or (NewCount > MaxHashListSize)then
     Error(SListCountError, NewCount);
-  If NewCount > FCount then
+  if NewCount > FCount then
     begin
-      If NewCount > FCapacity then
-        SetCapacity(NewCount);
-      If FCount < NewCount then
-        FillChar(FHashList^[FCount], (NewCount-FCount) div Sizeof(THashItem), 0);
+    if NewCount > FCapacity then
+      SetCapacity(NewCount);
+    if FCount < NewCount then
+      FillChar(FHashList^[FCount], (NewCount-FCount) div SizeOf(THashItem), 0);
     end;
-  FCount := Newcount;
+  FCount:=NewCount;
 end;
 
 
-procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
+Procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
 begin
-  If (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
-     Error (SListCapacityError, NewCapacity);
+  if (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
+    Error(SListCapacityError, NewCapacity);
   if NewCapacity = FStrCapacity then
-    exit;
+    Exit;
   ReallocMem(FStrs, NewCapacity);
-  FStrCapacity := NewCapacity;
+  FStrCapacity:=NewCapacity;
 end;
 
 
-procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
+Procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
 begin
-  If (NewCapacity < 1) then
-    Error (SListCapacityError, NewCapacity);
+  if (NewCapacity < 1) then
+    Error(SListCapacityError, NewCapacity);
   if FHashCapacity=NewCapacity then
-    exit;
+    Exit;
   FHashCapacity:=NewCapacity;
-  ReallocMem(FHashTable, FHashCapacity*sizeof(Integer));
+  ReallocMem(FHashTable, FHashCapacity*SizeOf(Integer));
   ReHash;
 end;
 
 
-procedure TFPHashList.ReHash;
+Procedure TFPHashList.ReHash;
 var
   i : Integer;
 begin
   FillDword(FHashTable^,FHashCapacity,LongWord(-1));
-  For i:=0 To FCount-1 Do
+  for i:=0 to FCount-1 do
     AddToHashTable(i);
 end;
 
@@ -1319,150 +1309,150 @@ end;
 destructor TFPHashList.Destroy;
 begin
   Clear;
-  if assigned(FHashTable) then
+  if Assigned(FHashTable) then
     FreeMem(FHashTable);
   inherited Destroy;
 end;
 
 
-function TFPHashList.AddStr(const s:shortstring): Integer;
+Function TFPHashList.AddStr(const s:shortstring): Integer;
 var
   Len : Integer;
 begin
-  len:=length(s)+1;
+  len:=Length(s)+1;
   if FStrCount+Len >= FStrCapacity then
     StrExpand(Len);
   System.Move(s[0],FStrs[FStrCount],Len);
-  result:=FStrCount;
-  inc(FStrCount,Len);
+  Result:=FStrCount;
+  Inc(FStrCount,Len);
 end;
 
 
-procedure TFPHashList.AddToHashTable(Index: Integer);
+Procedure TFPHashList.AddToHashTable(Index: Integer);
 var
   HashIndex : Integer;
 begin
   with FHashList^[Index] do
     begin
-      if not assigned(Data) then
-        exit;
-      HashIndex:=HashValue mod LongWord(FHashCapacity);
-      NextIndex:=FHashTable^[HashIndex];
-      FHashTable^[HashIndex]:=Index;
+    if not Assigned(Data) then
+      Exit;
+    HashIndex:=HashValue mod LongWord(FHashCapacity);
+    NextIndex:=FHashTable^[HashIndex];
+    FHashTable^[HashIndex]:=Index;
     end;
 end;
 
 
-function TFPHashList.Add(const AName:shortstring;Item: Pointer): Integer;
+Function TFPHashList.Add(const AName:shortstring;Item: Pointer): Integer;
 begin
   if FCount = FCapacity then
     Expand;
   with FHashList^[FCount] do
     begin
-      HashValue:=FPHash(AName);
-      Data:=Item;
-      StrIndex:=AddStr(AName);
+    HashValue:=FPHash(AName);
+    Data:=Item;
+    StrIndex:=AddStr(AName);
     end;
   AddToHashTable(FCount);
-  Result := FCount;
-  inc(FCount);
+  Result:=FCount;
+  Inc(FCount);
 end;
 
-procedure TFPHashList.Clear;
+Procedure TFPHashList.Clear;
 begin
   if Assigned(FHashList) then
     begin
-      FCount:=0;
-      SetCapacity(0);
-      FHashList := nil;
+    FCount:=0;
+    SetCapacity(0);
+    FHashList:=nil;
     end;
   SetHashCapacity(1);
   FHashTable^[0]:=(-1); // sethashcapacity does not always call rehash
   if Assigned(FStrs) then
     begin
-      FStrCount:=0;
-      SetStrCapacity(0);
-      FStrs := nil;
+    FStrCount:=0;
+    SetStrCapacity(0);
+    FStrs:=nil;
     end;
 end;
 
-procedure TFPHashList.Delete(Index: Integer);
+Procedure TFPHashList.Delete(Index: Integer);
 begin
-  If (Index<0) or (Index>=FCount) then
-    Error (SListIndexError, Index);
+  if (Index<0) or (Index>=FCount) then
+    Error(SListIndexError, Index);
   { Remove from HashList }
-  dec(FCount);
-  System.Move (FHashList^[Index+1], FHashList^[Index], (FCount - Index) * Sizeof(THashItem));
+  Dec(FCount);
+  System.Move(FHashList^[Index+1], FHashList^[Index], (FCount - Index) * SizeOf(THashItem));
   { All indexes are updated, we need to build the hashtable again }
-  Rehash;
+  ReHash;
   { Shrink the list if appropriate }
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
     begin
-      FCapacity := FCapacity shr 1;
-      ReallocMem(FHashList, Sizeof(THashItem) * FCapacity);
+    FCapacity:=FCapacity shr 1;
+    ReAllocMem(FHashList, SizeOf(THashItem) * FCapacity);
     end;
 end;
 
-function TFPHashList.Remove(Item: Pointer): Integer;
+Function TFPHashList.Remove(Item: Pointer): Integer;
 begin
-  Result := IndexOf(Item);
+  Result:=IndexOf(Item);
   If Result <> -1 then
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
+class Procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
-  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
+  raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
-function TFPHashList.Expand: TFPHashList;
+Function TFPHashList.Expand: TFPHashList;
 var
   IncSize : Longint;
 begin
-  Result := Self;
+  Result:=Self;
   if FCount < FCapacity then
-    exit;
-  IncSize := sizeof(ptrint)*2;
+    Exit;
+  IncSize:=SizeOf(PtrInt)*2;
   if FCapacity > 127 then
     Inc(IncSize, FCapacity shr 2)
-  else if FCapacity > sizeof(ptrint)*3 then
+  else if FCapacity > SizeOf(PtrInt)*3 then
     Inc(IncSize, FCapacity shr 1)
-  else if FCapacity >= sizeof(ptrint) then
-    inc(IncSize,sizeof(ptrint));
+  else if FCapacity >= SizeOf(PtrInt) then
+    Inc(IncSize,sizeof(PtrInt));
   SetCapacity(FCapacity + IncSize);
 end;
 
-procedure TFPHashList.StrExpand(MinIncSize:Integer);
+Procedure TFPHashList.StrExpand(MinIncSize:Integer);
 var
   IncSize : Longint;
 begin
   if FStrCount+MinIncSize < FStrCapacity then
-    exit;
-  IncSize := 64;
+    Exit;
+  IncSize:=64;
   if FStrCapacity > 255 then
     Inc(IncSize, FStrCapacity shr 2);
   SetStrCapacity(FStrCapacity + IncSize + MinIncSize);
 end;
 
-function TFPHashList.IndexOf(Item: Pointer): Integer;
+Function TFPHashList.IndexOf(Item: Pointer): Integer;
 var
   psrc  : PHashItem;
   Index : integer;
 begin
   Result:=-1;
   psrc:=@FHashList^[0];
-  For Index:=0 To FCount-1 Do
+  for Index:=0 to FCount-1 do
     begin
-      if psrc^.Data=Item then
-        begin
-          Result:=Index;
-          exit;
-        end;
-      inc(psrc);
+    if psrc^.Data=Item then
+      begin
+      Result:=Index;
+      Exit;
+      end;
+    Inc(psrc);
     end;
 end;
 
-function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+Function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
 var
   HashIndex : Integer;
   Len,
@@ -1474,23 +1464,21 @@ begin
   LastChar:=AName[Byte(Len)];
   PrevIndex:=-1;
   while Result<>-1 do
-    begin
-      with FHashList^[Result] do
-        begin
-          if assigned(Data) and
-             (HashValue=AHash) and
-             (Len=FStrs[StrIndex]) and
-             (LastChar=FStrs[StrIndex+Byte(Len)]) and
-             (AName=PShortString(@FStrs[StrIndex])^) then
-            exit;
-          PrevIndex:=Result;
-          Result:=NextIndex;
-        end;
-    end;
+    with FHashList^[Result] do
+      begin
+      if Assigned(Data) and
+         (HashValue=AHash) and
+         (Len=FStrs[StrIndex]) and
+         (LastChar=FStrs[StrIndex+Byte(Len)]) and
+         (AName=PShortString(@FStrs[StrIndex])^) then
+        Exit;
+      PrevIndex:=Result;
+      Result:=NextIndex;
+      end;
 end;
 
 
-function TFPHashList.Find(const AName:shortstring): Pointer;
+Function TFPHashList.Find(const AName:shortstring): Pointer;
 var
   Index,
   PrevIndex : Integer;
@@ -1498,12 +1486,12 @@ begin
   Result:=nil;
   Index:=InternalFind(FPHash(AName),AName,PrevIndex);
   if Index=-1 then
-    exit;
+    Exit;
   Result:=FHashList^[Index].Data;
 end;
 
 
-function TFPHashList.FindIndexOf(const AName:shortstring): Integer;
+Function TFPHashList.FindIndexOf(const AName:shortstring): Integer;
 var
   PrevIndex : Integer;
 begin
@@ -1511,7 +1499,7 @@ begin
 end;
 
 
-function TFPHashList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+Function TFPHashList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
 var
   Index,
   PrevIndex : Integer;
@@ -1519,12 +1507,12 @@ begin
   Result:=nil;
   Index:=InternalFind(AHash,AName,PrevIndex);
   if Index=-1 then
-    exit;
+    Exit;
   Result:=FHashList^[Index].Data;
 end;
 
 
-function TFPHashList.Rename(const AOldName,ANewName:shortstring): Integer;
+Function TFPHashList.Rename(const AOldName,ANewName:shortstring): Integer;
 var
   PrevIndex,
   Index : Integer;
@@ -1534,7 +1522,7 @@ begin
   OldHash:=FPHash(AOldName);
   Index:=InternalFind(OldHash,AOldName,PrevIndex);
   if Index=-1 then
-    exit;
+    Exit;
   { Remove from current Hash }
   if PrevIndex<>-1 then
     FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
@@ -1543,8 +1531,8 @@ begin
   { Set new name and hash }
   with FHashList^[Index] do
     begin
-      HashValue:=FPHash(ANewName);
-      StrIndex:=AddStr(ANewName);
+    HashValue:=FPHash(ANewName);
+    StrIndex:=AddStr(ANewName);
     end;
   { Insert back in Hash }
   AddToHashTable(Index);
@@ -1552,33 +1540,32 @@ begin
   Result:=Index;
 end;
 
-procedure TFPHashList.Pack;
+Procedure TFPHashList.Pack;
 var
   NewCount,
   i : integer;
   pdest,
   psrc : PHashItem;
   FOldStr : Pchar;
-
 begin
   NewCount:=0;
   psrc:=@FHashList^[0];
   FOldStr:=FStrs;
   try
-    FStrs:=Nil;
+    FStrs:=nil;
     FStrCount:=0;
     FStrCapacity:=0;
     pdest:=psrc;
-    For I:=0 To FCount-1 Do
+    for I:=0 to FCount-1 do
       begin
-        if assigned(psrc^.Data) then
-          begin
-            pdest^:=psrc^;
-            Pdest^.strindex:=AddStr(PShortString(@FOldStr[PDest^.StrIndex])^);
-            inc(pdest);
-            inc(NewCount);
-          end;
-        inc(psrc);
+      if Assigned(psrc^.Data) then
+        begin
+        pdest^:=psrc^;
+        pdest^.StrIndex:=AddStr(PShortString(@FOldStr[PDest^.StrIndex])^);
+        Inc(pdest);
+        Inc(NewCount);
+        end;
+      Inc(psrc);
       end;
   finally
     FreeMem(FoldStr);
@@ -1592,7 +1579,7 @@ begin
 end;
 
 
-procedure TFPHashList.ShowStatistics;
+Procedure TFPHashList.ShowStatistics;
 var
   HashMean,
   HashStdDev : Double;
@@ -1604,19 +1591,19 @@ begin
   HashStdDev:=0;
   for i:=0 to FHashCapacity-1 do
     begin
-      j:=0;
-      Index:=FHashTable^[i];
-      while (Index<>-1) do
-        begin
-          inc(j);
-          Index:=FHashList^[Index].NextIndex;
-        end;
-      HashMean:=HashMean+j;
-      HashStdDev:=HashStdDev+Sqr(j);
+    j:=0;
+    Index:=FHashTable^[i];
+    while (Index<>-1) do
+      begin
+      Inc(j);
+      Index:=FHashList^[Index].NextIndex;
+      end;
+    HashMean:=HashMean+j;
+    HashStdDev:=HashStdDev+Sqr(j);
     end;
   HashMean:=HashMean/FHashCapacity;
   HashStdDev:=(HashStdDev-FHashCapacity*Sqr(HashMean));
-  If FHashCapacity>1 then
+  if FHashCapacity>1 then
     HashStdDev:=Sqrt(HashStdDev/(FHashCapacity-1))
   else
     HashStdDev:=0;
@@ -1629,30 +1616,30 @@ begin
 end;
 
 
-procedure TFPHashList.ForEachCall(proc2call:TListCallback;arg:pointer);
+Procedure TFPHashList.ForEachCall(proc2call:TListCallback;arg:pointer);
 var
   i : integer;
   p : pointer;
 begin
-  For I:=0 To Count-1 Do
+  for i:=0 to Count-1 Do
     begin
-      p:=FHashList^[i].Data;
-      if assigned(p) then
-        proc2call(p,arg);
+    p:=FHashList^[i].Data;
+    if Assigned(p) then
+      proc2call(p,arg);
     end;
 end;
 
 
-procedure TFPHashList.ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+Procedure TFPHashList.ForEachCall(proc2call:TListStaticCallback;arg:pointer);
 var
   i : integer;
   p : pointer;
 begin
-  For I:=0 To Count-1 Do
+  for i:=0 to Count-1 Do
     begin
-      p:=FHashList^[i].Data;
-      if assigned(p) then
-        proc2call(p,arg);
+    p:=FHashList^[i].Data;
+    if Assigned(p) then
+      proc2call(p,arg);
     end;
 end;
 
@@ -1661,7 +1648,7 @@ end;
                                TFPHashObject
 *****************************************************************************}
 
-procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
+Procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
 var
   Index : integer;
 begin
@@ -1684,44 +1671,44 @@ begin
 end;
 
 
-procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
+Procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
 begin
   InternalChangeOwner(HashObjectList,PShortString(@FOwner.List.Strs[FStrIndex])^);
 end;
 
 
-procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring);
+Procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring);
 begin
   InternalChangeOwner(HashObjectList,s);
 end;
 
 
-procedure TFPHashObject.Rename(const ANewName:shortstring);
+Procedure TFPHashObject.Rename(const ANewName:shortstring);
 var
   Index : integer;
 begin
   Index:=FOwner.Rename(PShortString(@FOwner.List.Strs[FStrIndex])^,ANewName);
   if Index<>-1 then
     begin
-      FStrIndex:=FOwner.List.List^[Index].StrIndex;
-      FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
+    FStrIndex:=FOwner.List.List^[Index].StrIndex;
+    FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
     end;
 end;
 
 
-function TFPHashObject.GetName:shortstring;
+Function TFPHashObject.GetName:shortstring;
 begin
   if FOwner<>nil then
     begin
-      FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
-      Result:=FCachedStr^;
+    FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
+    Result:=FCachedStr^;
     end
   else
     Result:='';
 end;
 
 
-function TFPHashObject.GetHash:Longword;
+Function TFPHashObject.GetHash:Longword;
 begin
   if FOwner<>nil then
     Result:=FPHash(PShortString(@FOwner.List.Strs[FStrIndex])^)
@@ -1737,182 +1724,182 @@ end;
 constructor TFPHashObjectList.Create(FreeObjects : boolean = True);
 begin
   inherited Create;
-  FHashList := TFPHashList.Create;
-  FFreeObjects := Freeobjects;
+  FHashList:=TFPHashList.Create;
+  FFreeObjects:=Freeobjects;
 end;
 
 destructor TFPHashObjectList.Destroy;
 begin
   if (FHashList <> nil) then
     begin
-      Clear;
-      FHashList.Destroy;
+    Clear;
+    FHashList.Destroy;
     end;
   inherited Destroy;
 end;
 
-procedure TFPHashObjectList.Clear;
+Procedure TFPHashObjectList.Clear;
 var
   i: integer;
 begin
   if FFreeObjects then
-    for i := 0 to FHashList.Count - 1 do
+    for i:=0 to FHashList.Count - 1 do
       TObject(FHashList[i]).Free;
   FHashList.Clear;
 end;
 
-function TFPHashObjectList.GetCount: integer;
+Function TFPHashObjectList.GetCount: integer;
 begin
-  Result := FHashList.Count;
+  Result:=FHashList.Count;
 end;
 
-procedure TFPHashObjectList.SetCount(const AValue: integer);
+Procedure TFPHashObjectList.SetCount(const AValue: integer);
 begin
   if FHashList.Count <> AValue then
-    FHashList.Count := AValue;
+    FHashList.Count:=AValue;
 end;
 
-function TFPHashObjectList.GetItem(Index: Integer): TObject;
+Function TFPHashObjectList.GetItem(Index: Integer): TObject;
 begin
-  Result := TObject(FHashList[Index]);
+  Result:=TObject(FHashList[Index]);
 end;
 
-procedure TFPHashObjectList.SetItem(Index: Integer; AObject: TObject);
+Procedure TFPHashObjectList.SetItem(Index: Integer; AObject: TObject);
 begin
   if OwnsObjects then
     TObject(FHashList[Index]).Free;
-  FHashList[index] := AObject;
+  FHashList[Index]:=AObject;
 end;
 
-procedure TFPHashObjectList.SetCapacity(NewCapacity: Integer);
+Procedure TFPHashObjectList.SetCapacity(NewCapacity: Integer);
 begin
-  FHashList.Capacity := NewCapacity;
+  FHashList.Capacity:=NewCapacity;
 end;
 
-function TFPHashObjectList.GetCapacity: integer;
+Function TFPHashObjectList.GetCapacity: integer;
 begin
-  Result := FHashList.Capacity;
+  Result:=FHashList.Capacity;
 end;
 
-function TFPHashObjectList.Add(const AName:shortstring;AObject: TObject): Integer;
+Function TFPHashObjectList.Add(const AName:shortstring;AObject: TObject): Integer;
 begin
-  Result := FHashList.Add(AName,AObject);
+  Result:=FHashList.Add(AName,AObject);
 end;
 
-function TFPHashObjectList.NameOfIndex(Index: Integer): shortstring;
+Function TFPHashObjectList.NameOfIndex(Index: Integer): shortstring;
 begin
-  Result := FHashList.NameOfIndex(Index);
+  Result:=FHashList.NameOfIndex(Index);
 end;
 
-function TFPHashObjectList.HashOfIndex(Index: Integer): LongWord;
+Function TFPHashObjectList.HashOfIndex(Index: Integer): LongWord;
 begin
-  Result := FHashList.HashOfIndex(Index);
+  Result:=FHashList.HashOfIndex(Index);
 end;
 
-function TFPHashObjectList.GetNextCollision(Index: Integer): Integer;
+Function TFPHashObjectList.GetNextCollision(Index: Integer): Integer;
 begin
-  Result := FHashList.GetNextCollision(Index);
+  Result:=FHashList.GetNextCollision(Index);
 end;
 
-procedure TFPHashObjectList.Delete(Index: Integer);
+Procedure TFPHashObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
     TObject(FHashList[Index]).Free;
   FHashList.Delete(Index);
 end;
 
-function TFPHashObjectList.Expand: TFPHashObjectList;
+Function TFPHashObjectList.Expand: TFPHashObjectList;
 begin
   FHashList.Expand;
-  Result := Self;
+  Result:=Self;
 end;
 
-function TFPHashObjectList.Extract(Item: TObject): TObject;
+Function TFPHashObjectList.Extract(Item: TObject): TObject;
 begin
-  Result := TObject(FHashList.Extract(Item));
+  Result:=TObject(FHashList.Extract(Item));
 end;
 
-function TFPHashObjectList.Remove(AObject: TObject): Integer;
+Function TFPHashObjectList.Remove(AObject: TObject): Integer;
 begin
-  Result := IndexOf(AObject);
+  Result:=IndexOf(AObject);
   if (Result <> -1) then
     begin
-      if OwnsObjects then
-        TObject(FHashList[Result]).Free;
-      FHashList.Delete(Result);
+    if OwnsObjects then
+      TObject(FHashList[Result]).Free;
+    FHashList.Delete(Result);
     end;
 end;
 
-function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
+Function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
 begin
-  Result := FHashList.IndexOf(Pointer(AObject));
+  Result:=FHashList.IndexOf(Pointer(AObject));
 end;
 
 
-function TFPHashObjectList.Find(const s:shortstring): TObject;
+Function TFPHashObjectList.Find(const s:shortstring): TObject;
 begin
-  result:=TObject(FHashList.Find(s));
+  Result:=TObject(FHashList.Find(s));
 end;
 
 
-function TFPHashObjectList.FindIndexOf(const s:shortstring): Integer;
+Function TFPHashObjectList.FindIndexOf(const s:shortstring): Integer;
 begin
-  result:=FHashList.FindIndexOf(s);
+  Result:=FHashList.FindIndexOf(s);
 end;
 
 
-function TFPHashObjectList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+Function TFPHashObjectList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
 begin
   Result:=TObject(FHashList.FindWithHash(AName,AHash));
 end;
 
 
-function TFPHashObjectList.Rename(const AOldName,ANewName:shortstring): Integer;
+Function TFPHashObjectList.Rename(const AOldName,ANewName:shortstring): Integer;
 begin
   Result:=FHashList.Rename(AOldName,ANewName);
 end;
 
 
-function TFPHashObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
+Function TFPHashObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
 var
   I : Integer;
 begin
   I:=AStartAt;
   Result:=-1;
-  If AExact then
+  if AExact then
     while (I<Count) and (Result=-1) do
-      If Items[i].ClassType=AClass then
+      if Items[i].ClassType=AClass then
         Result:=I
       else
         Inc(I)
   else
     while (I<Count) and (Result=-1) do
-      If Items[i].InheritsFrom(AClass) then
+      if Items[i].InheritsFrom(AClass) then
         Result:=I
       else
         Inc(I);
 end;
 
 
-procedure TFPHashObjectList.Pack;
+Procedure TFPHashObjectList.Pack;
 begin
   FHashList.Pack;
 end;
 
 
-procedure TFPHashObjectList.ShowStatistics;
+Procedure TFPHashObjectList.ShowStatistics;
 begin
   FHashList.ShowStatistics;
 end;
 
 
-procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+Procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
 begin
   FHashList.ForEachCall(TListCallBack(proc2call),arg);
 end;
 
 
-procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+Procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
 end;
@@ -1922,24 +1909,24 @@ end;
     Hash support, by Dean Zobec
   ---------------------------------------------------------------------}
 
-{ Default hash function }
+{ Default hash Function }
 
-function RSHash(const S: string; const TableSize: Longword): Longword;
+Function RSHash(const S: string; const TableSize: Longword): Longword;
 const
   b = 378551;
 var
   a: Longword;
   i: Longword;
 begin
- a := 63689;
- Result := 0;
- if length(s)>0 then
-   for i := 1 to Length(S) do
-   begin
-     Result := Result * a + Ord(S[i]);
-     a := a * b;
-   end;
- Result := (Result and $7FFFFFFF) mod TableSize;
+  a:=63689;
+  Result:=0;
+  if length(s)>0 then
+    for i:=1 to Length(S) do
+      begin
+      Result:=Result * a + Ord(S[i]);
+      a:=a * b;
+      end;
+  Result:=(Result and $7FFFFFFF) mod TableSize;
 end;
 
 { THTNode }
@@ -1947,18 +1934,18 @@ end;
 constructor THTCustomNode.CreateWith(const AString: string);
 begin
   inherited Create;
-  FKey := AString;
+  FKey:=AString;
 end;
 
-function THTCustomNode.HasKey(const AKey: string): boolean;
+Function THTCustomNode.HasKey(const AKey: string): boolean;
 begin
   if Length(AKey) <> Length(FKey) then
-  begin
-    Result := false;
-    exit;
-  end
+    begin
+    Result:=false;
+    Exit;
+    end
   else
-    Result := CompareMem(PChar(FKey), PChar(AKey), length(AKey));
+    Result:=CompareMem(PChar(FKey), PChar(AKey), Length(AKey));
 end;
 
 { TFPCustomHashTable }
@@ -1971,10 +1958,10 @@ end;
 constructor TFPCustomHashTable.CreateWith(AHashTableSize: Longword;
   aHashFunc: THashFunction);
 begin
-  Inherited Create;
-  FHashTable := TFPObjectList.Create(True);
-  HashTableSize := AHashTableSize;
-  FHashFunction := aHashFunc;
+  inherited Create;
+  FHashTable:=TFPObjectList.Create(True);
+  HashTableSize:=AHashTableSize;
+  FHashFunction:=aHashFunc;
 end;
 
 destructor TFPCustomHashTable.Destroy;
@@ -1983,269 +1970,259 @@ begin
   inherited Destroy;
 end;
 
-function TFPCustomHashTable.GetDensity: Longword;
+Function TFPCustomHashTable.GetDensity: Longword;
 begin
-  Result := FHashTableSize - VoidSlots
+  Result:=FHashTableSize - VoidSlots
 end;
 
-function TFPCustomHashTable.GetNumberOfCollisions: Longword;
+Function TFPCustomHashTable.GetNumberOfCollisions: Longword;
 begin
-  Result := FCount -(FHashTableSize - VoidSlots)
+  Result:=FCount -(FHashTableSize - VoidSlots)
 end;
 
-procedure TFPCustomHashTable.SetHashTableSize(const Value: Longword);
+Procedure TFPCustomHashTable.SetHashTableSize(const Value: Longword);
 var
   i: Longword;
   newSize: Longword;
 begin
   if Value <> FHashTableSize then
-  begin
-    i := 0;
-    while (PRIMELIST[i] < Value) and (i < 27) do
-     inc(i);
-    newSize := PRIMELIST[i];
-    if Count = 0 then
     begin
-      FHashTableSize := newSize;
+    i:=0;
+    while (PRIMELIST[i] < Value) and (i < 27) do
+     Inc(i);
+    newSize:=PRIMELIST[i];
+    if Count = 0 then
+      begin
+      FHashTableSize:=newSize;
       InitializeHashTable;
-    end
+      end
     else
       ChangeTableSize(newSize);
-  end;
+    end;
 end;
 
-procedure TFPCustomHashTable.InitializeHashTable;
+Procedure TFPCustomHashTable.InitializeHashTable;
 var
   i: LongWord;
 begin
   if FHashTableSize>0 Then
-    for i := 0 to FHashTableSize-1 do
-     FHashTable.Add(nil);
-  FCount := 0;
+    for i:=0 to FHashTableSize-1 do
+      FHashTable.Add(nil);
+  FCount:=0;
 end;
 
-procedure TFPCustomHashTable.ChangeTableSize(const ANewSize: Longword);
+Procedure TFPCustomHashTable.ChangeTableSize(const ANewSize: Longword);
 var
   SavedTable: TFPObjectList;
   SavedTableSize: Longword;
   i, j: Longword;
   temp: THTCustomNode;
 begin
-  SavedTable := FHashTable;
-  SavedTableSize := FHashTableSize;
-  FHashTableSize := ANewSize;
-  FHashTable := TFPObjectList.Create(True);
+  SavedTable:=FHashTable;
+  SavedTableSize:=FHashTableSize;
+  FHashTableSize:=ANewSize;
+  FHashTable:=TFPObjectList.Create(True);
   InitializeHashTable;
-  If SavedTableSize>0 Then
-    for i := 0 to SavedTableSize-1 do
-    begin
+  if SavedTableSize>0 Then
+    for i:=0 to SavedTableSize-1 do
       if Assigned(SavedTable[i]) then
-      for j := 0 to TFPObjectList(SavedTable[i]).Count -1 do
-      begin
-        temp := THTCustomNode(TFPObjectList(SavedTable[i])[j]);
-        AddNode(temp);
-      end;
-    end;
+        for j:=0 to TFPObjectList(SavedTable[i]).Count -1 do
+          begin
+          temp:=THTCustomNode(TFPObjectList(SavedTable[i])[j]);
+          AddNode(temp);
+          end;
   SavedTable.Free;
 end;
 
-procedure TFPCustomHashTable.SetHashFunction(AHashFunction: THashFunction);
+Procedure TFPCustomHashTable.SetHashFunction(AHashFunction: THashFunction);
 begin
   if IsEmpty then
-    FHashFunction := AHashFunction
+    FHashFunction:=AHashFunction
   else
     raise Exception.Create(NotEmptyMsg);
 end;
 
-function TFPCustomHashTable.Find(const aKey: string): THTCustomNode;
+Function TFPCustomHashTable.Find(const aKey: string): THTCustomNode;
 var
   hashCode: Longword;
   chn: TFPObjectList;
   i: Longword;
 begin
-  hashCode := FHashFunction(aKey, FHashTableSize);
-  chn := Chain(hashCode);
+  hashCode:=FHashFunction(aKey, FHashTableSize);
+  chn:=Chain(hashCode);
   if Assigned(chn) then
-  begin
     if chn.count>0 then
-     for i := 0 to chn.Count - 1 do
-      if THTCustomNode(chn[i]).HasKey(aKey) then
-      begin
-        result := THTCustomNode(chn[i]);
-        exit;
-      end;
-  end;
-  Result := nil;
+      for i:=0 to chn.Count - 1 do
+        if THTCustomNode(chn[i]).HasKey(aKey) then
+          begin
+          Result:=THTCustomNode(chn[i]);
+          Exit;
+          end;
+  Result:=nil;
 end;
 
 Function TFPCustomHashTable.FindChainForAdd(Const aKey : String) : TFPObjectList;
-
 var
   hashCode: Longword;
   i: Longword;
-
 begin
-  hashCode := FHashFunction(aKey, FHashTableSize);
-  Result := Chain(hashCode);
+  hashCode:=FHashFunction(aKey, FHashTableSize);
+  Result:=Chain(hashCode);
   if Assigned(Result)  then
     begin
     if Result.count>0 then
-      for i := 0 to Result.Count - 1 do
+      for i:=0 to Result.Count - 1 do
         if THTCustomNode(Result[i]).HasKey(aKey) then
-          Raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
+          raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
     end
   else
     begin
-    FHashTable[hashcode] := TFPObjectList.Create(true);
-    Result := Chain(hashcode);
+    FHashTable[hashcode]:=TFPObjectList.Create(True);
+    Result:=Chain(hashCode);
     end;
-  inc(FCount);
+  Inc(FCount);
 end;
 
 
-procedure TFPCustomHashTable.Delete(const aKey: string);
+Procedure TFPCustomHashTable.Delete(const aKey: string);
 var
   hashCode: Longword;
   chn: TFPObjectList;
   i: Longword;
 begin
-  hashCode := FHashFunction(aKey, FHashTableSize);
-  chn := Chain(hashCode);
+  hashCode:=FHashFunction(aKey, FHashTableSize);
+  chn:=Chain(hashCode);
   if Assigned(chn) then
-  begin
     if chn.count>0 then
-    for i := 0 to chn.Count - 1 do
-      if THTCustomNode(chn[i]).HasKey(aKey) then
-      begin
-        chn.Delete(i);
-        dec(FCount);
-        exit;
-      end;
-  end;
+      for i:=0 to chn.Count - 1 do
+        if THTCustomNode(chn[i]).HasKey(aKey) then
+          begin
+          chn.Delete(i);
+          dec(FCount);
+          Exit;
+          end;
 end;
 
-function TFPCustomHashTable.IsEmpty: boolean;
+Function TFPCustomHashTable.IsEmpty: boolean;
 begin
-  Result := (FCount = 0);
+  Result:=(FCount = 0);
 end;
 
-function TFPCustomHashTable.Chain(const index: Longword): TFPObjectList;
+Function TFPCustomHashTable.Chain(const index: Longword): TFPObjectList;
 begin
-  Result := TFPObjectList(FHashTable[index]);
+  Result:=TFPObjectList(FHashTable[index]);
 end;
 
-function TFPCustomHashTable.GetVoidSlots: Longword;
+Function TFPCustomHashTable.GetVoidSlots: Longword;
 var
   i: Longword;
   num: Longword;
 begin
-  num := 0;
-  if FHashTableSize>0 Then
+  num:=0;
+  if FHashTableSize>0 then
     for i:= 0 to FHashTableSize-1 do
-      if Not Assigned(Chain(i)) then
-        inc(num);
-  result := num;
+      if not Assigned(Chain(i)) then
+        Inc(num);
+  Result:=num;
 end;
 
-function TFPCustomHashTable.GetLoadFactor: double;
+Function TFPCustomHashTable.GetLoadFactor: double;
 begin
-  Result := Count / FHashTableSize;
+  Result:=Count / FHashTableSize;
 end;
 
-function TFPCustomHashTable.GetAVGChainLen: double;
+Function TFPCustomHashTable.GetAVGChainLen: double;
 begin
-  result := Count / (FHashTableSize - VoidSlots);
+  Result:=Count / (FHashTableSize - VoidSlots);
 end;
 
-function TFPCustomHashTable.GetMaxChainLength: Longword;
+Function TFPCustomHashTable.GetMaxChainLength: Longword;
 var
   i: Longword;
 begin
-  Result := 0;
+  Result:=0;
   if FHashTableSize>0 Then
-   for i := 0 to FHashTableSize-1 do
+   for i:=0 to FHashTableSize-1 do
       if ChainLength(i) > Result then
-        Result := ChainLength(i);
+        Result:=ChainLength(i);
 end;
 
-function TFPCustomHashTable.FindOrCreateNew(const aKey: string): THTCustomNode;
+Function TFPCustomHashTable.FindOrCreateNew(const aKey: string): THTCustomNode;
 var
   hashCode: Longword;
   chn: TFPObjectList;
   i: Longword;
 begin
-  hashCode := FHashFunction(aKey, FHashTableSize);
-  chn := Chain(hashCode);
+  hashCode:=FHashFunction(aKey, FHashTableSize);
+  chn:=Chain(hashCode);
   if Assigned(chn)  then
-  begin
+    begin
     if chn.count>0 then
-     for i := 0 to chn.Count - 1 do
-      if THTCustomNode(chn[i]).HasKey(aKey) then
-        begin
-          Result := THTNode(chn[i]);
-          exit;
-        end
-  end
+      for i:=0 to chn.Count - 1 do
+        if THTCustomNode(chn[i]).HasKey(aKey) then
+          begin
+          Result:=THTNode(chn[i]);
+          Exit;
+          end
+    end
   else
     begin
-      FHashTable[hashcode] := TFPObjectList.Create(true);
-      chn := Chain(hashcode);
+    FHashTable[hashcode]:=TFPObjectList.Create(true);
+    chn:=Chain(hashcode);
     end;
-  inc(FCount);
-  Result := CreateNewNode(aKey);
+  Inc(FCount);
+  Result:=CreateNewNode(aKey);
   chn.Add(Result);
 end;
 
-function TFPCustomHashTable.ChainLength(const ChainIndex: Longword): Longword;
+Function TFPCustomHashTable.ChainLength(const ChainIndex: Longword): Longword;
 begin
   if Assigned(Chain(ChainIndex)) then
-    Result := Chain(ChainIndex).Count
+    Result:=Chain(ChainIndex).Count
   else
-    Result := 0;
+    Result:=0;
 end;
 
-procedure TFPCustomHashTable.Clear;
+Procedure TFPCustomHashTable.Clear;
 var
   i: Longword;
 begin
-  if FHashTableSize>0 Then
-    for i := 0 to FHashTableSize - 1 do
-      begin
-        if Assigned(Chain(i)) then
-          Chain(i).Clear;
-      end;
-  FCount := 0;
+  if FHashTableSize>0 then
+    for i:=0 to FHashTableSize - 1 do
+      if Assigned(Chain(i)) then
+        Chain(i).Clear;
+  FCount:=0;
 end;
 
 
 
 { TFPDataHashTable }
 
-procedure TFPDataHashTable.Add(const aKey: string; aItem: pointer);
+Procedure TFPDataHashTable.Add(const aKey: string; aItem: pointer);
 var
   chn: TFPObjectList;
   NewNode: THtDataNode;
 begin
   chn:=FindChainForAdd(akey);
-  NewNode := THtDataNode(CreateNewNode(aKey));
-  NewNode.Data := aItem;
+  NewNode:=THtDataNode(CreateNewNode(aKey));
+  NewNode.Data:=aItem;
   chn.Add(NewNode);
 end;
 
-function TFPDataHashTable.GetData(const Index: string): Pointer;
+Function TFPDataHashTable.GetData(const Index: string): Pointer;
 var
   node: THTDataNode;
 begin
-  node := THTDataNode(Find(Index));
+  node:=THTDataNode(Find(Index));
   if Assigned(node) then
-    Result := node.Data
+    Result:=node.Data
   else
-    Result := nil;
+    Result:=nil;
 end;
 
-procedure TFPDataHashTable.SetData(const index: string; const AValue: Pointer);
+Procedure TFPDataHashTable.SetData(const index: string; const AValue: Pointer);
 begin
-  THTDataNode(FindOrCreateNew(index)).Data := AValue;
+  THTDataNode(FindOrCreateNew(index)).Data:=AValue;
 end;
 
 Function TFPDataHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
@@ -2254,100 +2231,88 @@ begin
   Result:=THTDataNode.CreateWith(aKey);
 end;
 
-function TFPDataHashTable.Iterate(aMethod: TDataIteratorMethod): Pointer;
-
-Var
+Function TFPDataHashTable.Iterate(aMethod: TDataIteratorMethod): Pointer;
+var
   N : THTDataNode;
-
 begin
   N:=ForEachCall(AMethod);
   if Assigned(N) then
     Result:=N.Data
   else
-    Result:=Nil;
+    Result:=nil;
 end;
 
-function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): THTDataNode;
+Function TFPDataHashTable.ForEachCall(aMethod: TDataIteratorMethod): THTDataNode;
 var
   i, j: Longword;
-  continue: boolean;
+  continue: Boolean;
 begin
-  Result := nil;
-  continue := true;
+  Result:=nil;
+  continue:=true;
   if FHashTableSize>0 then
-   for i := 0 to FHashTableSize-1 do
-    begin
-      if assigned(Chain(i)) then
-      begin
-       if chain(i).count>0 then
-        for j := 0 to Chain(i).Count-1 do
-        begin
-          aMethod(THTDataNode(Chain(i)[j]).Data, THTDataNode(Chain(i)[j]).Key, continue);
-          if not continue then
-          begin
-            Result := THTDataNode(Chain(i)[j]);
-            Exit;
-          end;
-        end;
-      end;
-    end;
+    for i:=0 to FHashTableSize-1 do
+      if Assigned(Chain(i)) then
+        if chain(i).count>0 then
+          for j:=0 to Chain(i).Count-1 do
+            begin
+            aMethod(THTDataNode(Chain(i)[j]).Data, THTDataNode(Chain(i)[j]).Key, continue);
+            if not continue then
+              begin
+              Result:=THTDataNode(Chain(i)[j]);
+              Exit;
+              end;
+           end;
 end;
 
 Procedure TFPDataHashTable.AddNode(ANode : THTCustomNode);
-
 begin
-  With THTDataNode(ANode) do
+  with THTDataNode(ANode) do
     Add(Key,Data);
 end;
 
 { TFPStringHashTable }
 
 Procedure TFPStringHashTable.AddNode(ANode : THTCustomNode);
-
 begin
-  With THTStringNode(ANode) do
+  with THTStringNode(ANode) do
     Add(Key,Data);
 end;
 
-function TFPStringHashTable.GetData(const Index: string): String;
+Function TFPStringHashTable.GetData(const Index: string): String;
 var
   node: THTStringNode;
 begin
-  node := THTStringNode(Find(Index));
+  node:=THTStringNode(Find(Index));
   if Assigned(node) then
-    Result := node.Data
+    Result:=node.Data
   else
-    Result := '';
+    Result:='';
 end;
 
-procedure TFPStringHashTable.SetData(const index, AValue: string);
+Procedure TFPStringHashTable.SetData(const index, AValue: string);
 begin
-  THTStringNode(FindOrCreateNew(index)).Data := AValue;
+  THTStringNode(FindOrCreateNew(index)).Data:=AValue;
 end;
 
-procedure TFPStringHashTable.Add(const aKey, aItem: string);
+Procedure TFPStringHashTable.Add(const aKey, aItem: string);
 var
   chn: TFPObjectList;
   NewNode: THtStringNode;
-
 begin
   chn:=FindChainForAdd(akey);
-  NewNode := THtStringNode(CreateNewNode(aKey));
-  NewNode.Data := aItem;
+  NewNode:=THtStringNode(CreateNewNode(aKey));
+  NewNode.Data:=aItem;
   chn.Add(NewNode);
 end;
 
 Function TFPStringHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
-
 begin
   Result:=THTStringNode.CreateWith(aKey);
 end;
 
-function TFPStringHashTable.Iterate(aMethod: TStringIteratorMethod): String;
-
-Var
+Function TFPStringHashTable.Iterate(aMethod: TStringIteratorMethod): String;
+var
   N : THTStringNode;
-
 begin
   N:=ForEachCall(AMethod);
   if Assigned(N) then
@@ -2356,199 +2321,176 @@ begin
     Result:='';
 end;
 
-function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): THTStringNode;
+Function TFPStringHashTable.ForEachCall(aMethod: TStringIteratorMethod): THTStringNode;
 var
   i, j: Longword;
   continue: boolean;
 begin
-  Result := Nil;
-  continue := true;
+  Result:=nil;
+  continue:=True;
   if FHashTableSize>0 then
-   for i := 0 to FHashTableSize-1 do
-    begin
-      if assigned(Chain(i)) then
-      begin
-       if chain(i).count>0 then
-        for j := 0 to Chain(i).Count-1 do
-        begin
-          aMethod(THTStringNode(Chain(i)[j]).Data, THTStringNode(Chain(i)[j]).Key, continue);
-          if not continue then
-          begin
-            Result := THTStringNode(Chain(i)[j]);
-            Exit;
-          end;
-        end;
-      end;
-    end;
+    for i:=0 to FHashTableSize-1 do
+      if Assigned(Chain(i)) then
+        if chain(i).Count>0 then
+          for j:=0 to Chain(i).Count-1 do
+            begin
+            aMethod(THTStringNode(Chain(i)[j]).Data, THTStringNode(Chain(i)[j]).Key, continue);
+            if not continue then
+              begin
+              Result:=THTStringNode(Chain(i)[j]);
+              Exit;
+              end;
+            end;
 end;
 
 { TFPObjectHashTable }
 
 Procedure TFPObjectHashTable.AddNode(ANode : THTCustomNode);
-
 begin
   With THTObjectNode(ANode) do
     Add(Key,Data);
 end;
 
-function TFPObjectHashTable.GetData(const Index: string): TObject;
+Function TFPObjectHashTable.GetData(const Index: string): TObject;
 var
   node: THTObjectNode;
 begin
-  node := THTObjectNode(Find(Index));
+  node:=THTObjectNode(Find(Index));
   if Assigned(node) then
-    Result := node.Data
+    Result:=node.Data
   else
-    Result := Nil;
+    Result:=nil;
 end;
 
-procedure TFPObjectHashTable.SetData(const index : string; AObject : TObject);
+Procedure TFPObjectHashTable.SetData(const index : string; AObject : TObject);
 begin
-  THTObjectNode(FindOrCreateNew(index)).Data := AObject;
+  THTObjectNode(FindOrCreateNew(index)).Data:=AObject;
 end;
 
-procedure TFPObjectHashTable.Add(const aKey: string; AItem : TObject);
+Procedure TFPObjectHashTable.Add(const aKey: string; AItem : TObject);
 var
   chn: TFPObjectList;
   NewNode: THTObjectNode;
-
 begin
   chn:=FindChainForAdd(akey);
-  NewNode := THTObjectNode(CreateNewNode(aKey));
-  NewNode.Data := aItem;
+  NewNode:=THTObjectNode(CreateNewNode(aKey));
+  NewNode.Data:=aItem;
   chn.Add(NewNode);
 end;
 
 Function TFPObjectHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
-
 begin
-  If OwnsObjects then
+  if OwnsObjects then
     Result:=THTOwnedObjectNode.CreateWith(aKey)
   else
     Result:=THTObjectNode.CreateWith(aKey);
 end;
 
 
-function TFPObjectHashTable.Iterate(aMethod: TObjectIteratorMethod): TObject;
-
-Var
+Function TFPObjectHashTable.Iterate(aMethod: TObjectIteratorMethod): TObject;
+var
   N : THTObjectNode;
-
 begin
   N:=ForEachCall(AMethod);
   if Assigned(N) then
     Result:=N.Data
   else
-    Result:=Nil;
+    Result:=nil;
 end;
 
-function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode;
+Function TFPObjectHashTable.ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode;
 var
   i, j: Longword;
   continue: boolean;
 begin
-  Result := nil;
-  continue := true;
+  Result:=nil;
+  continue:=true;
   if FHashTableSize>0 then
-   for i := 0 to FHashTableSize-1 do
-    begin
-      if assigned(Chain(i)) then
-      begin
-       if chain(i).count>0 then
-        for j := 0 to Chain(i).Count-1 do
-        begin
-          aMethod(THTObjectNode(Chain(i)[j]).Data, THTObjectNode(Chain(i)[j]).Key, continue);
-          if not continue then
-          begin
-            Result := THTObjectNode(Chain(i)[j]);
-            Exit;
-          end;
-        end;
-      end;
-    end;
+    for i:=0 to FHashTableSize-1 do
+      if Assigned(Chain(i)) then
+        if Chain(i).Count>0 then
+          for j:=0 to Chain(i).Count-1 do
+           begin
+           aMethod(THTObjectNode(Chain(i)[j]).Data, THTObjectNode(Chain(i)[j]).Key, continue);
+           if not continue then
+             begin
+             Result:=THTObjectNode(Chain(i)[j]);
+             Exit;
+             end;
+           end;
 end;
 
 constructor TFPObjectHashTable.Create(AOwnsObjects : Boolean = True);
-
 begin
-  Inherited Create;
+  inherited Create;
   FOwnsObjects:=AOwnsObjects;
 end;
 
 constructor TFPObjectHashTable.CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction; AOwnsObjects : Boolean = True);
-
 begin
-  Inherited CreateWith(AHashTableSize,AHashFunc);
+  inherited CreateWith(AHashTableSize,AHashFunc);
   FOwnsObjects:=AOwnsObjects;
 end;
 
-Destructor THTOwnedObjectNode.Destroy;
-
+destructor THTOwnedObjectNode.Destroy;
 begin
   FreeAndNil(FData);
-  Inherited;
+  inherited;
 end;
 
 { TCustomBucketList }
 
-function TCustomBucketList.GetData(AItem: Pointer): Pointer;
-
-Var
+Function TCustomBucketList.GetData(AItem: Pointer): Pointer;
+var
   B,I : Integer;
-
 begin
   GetBucketItem(AItem,B,I);
   Result:=FBuckets[B].Items[I].Data;
 end;
 
-function TCustomBucketList.GetBucketCount: Integer;
+Function TCustomBucketList.GetBucketCount: Integer;
 begin
   Result:=Length(FBuckets);
 end;
 
-procedure TCustomBucketList.SetData(AItem: Pointer; const AData: Pointer);
-
-Var
+Procedure TCustomBucketList.SetData(AItem: Pointer; const AData: Pointer);
+var
   B,I : Integer;
-
 begin
   GetBucketItem(AItem,B,I);
   FBuckets[B].Items[I].Data:=AData;
 end;
 
-procedure TCustomBucketList.SetBucketCount(const Value: Integer);
-
+Procedure TCustomBucketList.SetBucketCount(const Value: Integer);
 begin
-  If (Value<>GetBucketCount) then
+  if (Value<>GetBucketCount) then
     SetLength(FBuckets,Value);
 end;
 
-procedure TCustomBucketList.GetBucketItem(AItem: Pointer; out ABucket,
+Procedure TCustomBucketList.GetBucketItem(AItem: Pointer; out ABucket,
   AIndex: Integer);
 begin
-  If Not FindItem(AItem,ABucket,AIndex) then
+  if not FindItem(AItem,ABucket,AIndex) then
     Error(SErrNoSuchItem,[AItem]);
 end;
 
-function TCustomBucketList.AddItem(ABucket: Integer; AItem, AData: Pointer
+Function TCustomBucketList.AddItem(ABucket: Integer; AItem, AData: Pointer
   ): Pointer;
-
-Var
+var
   B : PBucket;
   L : Integer;
-
 begin
   B:=@FBuckets[ABucket];
   L:=Length(B^.Items);
-  If (B^.Count=L) then
+  if (B^.Count=L) then
     begin
-    If L<8 then
+    if L<8 then
       L:=8
     else
       L:=L+L div 2;
     SetLength(B^.Items,L);
     end;
-  With B^ do
+  with B^ do
     begin
     Items[Count].Item:=AItem;
     Items[Count].Data:=AData;
@@ -2557,46 +2499,42 @@ begin
     end;
 end;
 
-function TCustomBucketList.DeleteItem(ABucket: Integer; AIndex: Integer): Pointer;
-
-Var
+Function TCustomBucketList.DeleteItem(ABucket: Integer; AIndex: Integer): Pointer;
+var
   B : PBucket;
   L : Integer;
-
 begin
   B:=@FBuckets[ABucket];
-  Result:=B^.Items[Aindex].Data;
-  If B^.Count=1 then
+  Result:=B^.Items[AIndex].Data;
+  if B^.Count=1 then
     SetLength(B^.Items,0)
   else
     begin
     L:=(B^.Count-AIndex-1);// No point in moving if last one...
-    If L>0 then
+    if L>0 then
       Move(B^.Items[AIndex+1],B^.Items[AIndex],L*SizeOf(TBucketItem));
     end;
   Dec(B^.Count);
 end;
 
-procedure TCustomBucketList.Error(Msg: String; Args: array of const);
+Procedure TCustomBucketList.Error(Msg: String; Args: array of const);
 begin
-  Raise ElistError.CreateFmt(Msg,Args);
+  raise ElistError.CreateFmt(Msg,Args);
 end;
 
-function TCustomBucketList.FindItem(AItem: Pointer; out ABucket, AIndex: Integer
+Function TCustomBucketList.FindItem(AItem: Pointer; out ABucket, AIndex: Integer
   ): Boolean;
-
-Var
+var
   I : Integer;
   B : TBucket;
-
 begin
   ABucket:=BucketFor(AItem);
   B:=FBuckets[ABucket];
   I:=B.Count-1;
-  While (I>=0) And (B.Items[I].Item<>AItem) do
+  while (I>=0) and (B.Items[I].Item<>AItem) do
     Dec(I);
   Result:=I>=0;
-  If Result then
+  if Result then
     AIndex:=I;
 end;
 
@@ -2606,88 +2544,76 @@ begin
   inherited Destroy;
 end;
 
-procedure TCustomBucketList.Clear;
-
-Var
+Procedure TCustomBucketList.Clear;
+var
   B : TBucket;
   I,J : Integer;
-
 begin
-  For I:=0 to Length(FBuckets)-1 do
+  for I:=0 to Length(FBuckets)-1 do
     begin
     B:=FBuckets[I];
-    For J:=B.Count-1 downto 0 do
+    for J:=B.Count-1 downto 0 do
       DeleteItem(I,J);
     end;
   SetLength(FBuckets,0);
 end;
 
-function TCustomBucketList.Add(AItem, AData: Pointer): Pointer;
-
-Var
+Function TCustomBucketList.Add(AItem, AData: Pointer): Pointer;
+var
   B,I : Integer;
-
 begin
-  If FindItem(AItem,B,I) then
+  if FindItem(AItem,B,I) then
     Error(SDuplicateItem,[AItem]);
   Result:=AddItem(B,AItem,AData);
 end;
 
-procedure TCustomBucketList.Assign(AList: TCustomBucketList);
-
-Var
+Procedure TCustomBucketList.Assign(AList: TCustomBucketList);
+var
   I,J : Integer;
-
 begin
   Clear;
   SetLength(FBuckets,Length(Alist.FBuckets));
-  For I:=0 to BucketCount-1 do
+  for I:=0 to BucketCount-1 do
     begin
     SetLength(FBuckets[i].Items,Length(AList.Fbuckets[I].Items));
-    For J:=0 to AList.Fbuckets[I].Count-1 do
-      With AList.Fbuckets[I].Items[J] do
+    for J:=0 to AList.Fbuckets[I].Count-1 do
+      with AList.Fbuckets[I].Items[J] do
         AddItem(I,Item,Data);
     end;
 end;
 
-function TCustomBucketList.Exists(AItem: Pointer): Boolean;
-
-Var
+Function TCustomBucketList.Exists(AItem: Pointer): Boolean;
+var
   B,I : Integer;
-
-begin
-  Result:=FindItem(Aitem,B,I);
-end;
-
-function TCustomBucketList.Find(AItem: Pointer; out AData: Pointer): Boolean;
-
-Var
-  B,I : integer;
-
 begin
   Result:=FindItem(AItem,B,I);
-  If Result then
+end;
+
+Function TCustomBucketList.Find(AItem: Pointer; out AData: Pointer): Boolean;
+var
+  B,I : integer;
+begin
+  Result:=FindItem(AItem,B,I);
+  if Result then
     AData:=FBuckets[B].Items[I].Data;
 end;
 
-function TCustomBucketList.ForEach(AProc: TBucketProc; AInfo: Pointer
+Function TCustomBucketList.ForEach(AProc: TBucketProc; AInfo: Pointer
   ): Boolean;
-
-Var
+var
   I,J,S : Integer;
   Bu : TBucket;
-
 begin
   I:=0;
   Result:=True;
   S:=GetBucketCount;
-  While Result and (I<S) do
+  while Result and (I<S) do
     begin
     J:=0;
     Bu:=FBuckets[I];
-    While Result and (J<Bu.Count) do
+    while Result and (J<Bu.Count) do
       begin
-      With Bu.Items[J] do
+      with Bu.Items[J] do
         AProc(AInfo,Item,Data,Result);
       Inc(J);
       end;
@@ -2695,23 +2621,21 @@ begin
     end;
 end;
 
-function TCustomBucketList.ForEach(AProc: TBucketProcObject): Boolean;
-
-Var
+Function TCustomBucketList.ForEach(AProc: TBucketProcObject): Boolean;
+var
   I,J,S : Integer;
   Bu : TBucket;
-
 begin
   I:=0;
   Result:=True;
   S:=GetBucketCount;
-  While Result and (I<S) do
+  while Result and (I<S) do
     begin
     J:=0;
     Bu:=FBuckets[I];
-    While Result and (J<Bu.Count) do
+    while Result and (J<Bu.Count) do
       begin
-      With Bu.Items[J] do
+      with Bu.Items[J] do
         AProc(Item,Data,Result);
       Inc(J);
       end;
@@ -2719,36 +2643,32 @@ begin
     end;
 end;
 
-function TCustomBucketList.Remove(AItem: Pointer): Pointer;
-
-Var
+Function TCustomBucketList.Remove(AItem: Pointer): Pointer;
+var
   B,I : integer;
-
 begin
-  If FindItem(AItem,B,I) then
+  if FindItem(AItem,B,I) then
     begin
     Result:=FBuckets[B].Items[I].Data;
     DeleteItem(B,I);
     end
   else
-    Result:=Nil;
+    Result:=nil;
 end;
 
 { TBucketList }
 
-function TBucketList.BucketFor(AItem: Pointer): Integer;
+Function TBucketList.BucketFor(AItem: Pointer): Integer;
 begin
   // Pointers on average have a granularity of 4
   Result:=(PtrInt(AItem) shr 2) and FBucketMask;
 end;
 
 constructor TBucketList.Create(ABuckets: TBucketListSizes);
-
-Var
+var
   L : Integer;
-
 begin
-  Inherited Create;
+  inherited Create;
   L:=1 shl (Ord(Abuckets)+1);
   SetBucketCount(L);
   FBucketMask:=L-1;
@@ -2756,24 +2676,24 @@ end;
 
 { TObjectBucketList }
 
-function TObjectBucketList.GetData(AItem: TObject): TObject;
+Function TObjectBucketList.GetData(AItem: TObject): TObject;
 begin
-  Result:=TObject(Inherited GetData(AItem));
+  Result:=TObject(inherited GetData(AItem));
 end;
 
-procedure TObjectBucketList.SetData(AItem: TObject; const AData: TObject);
+Procedure TObjectBucketList.SetData(AItem: TObject; const AData: TObject);
 begin
-  Inherited SetData(Pointer(AItem),Pointer(AData));
+  inherited SetData(Pointer(AItem),Pointer(AData));
 end;
 
-function TObjectBucketList.Add(AItem, AData: TObject): TObject;
+Function TObjectBucketList.Add(AItem, AData: TObject): TObject;
 begin
-  Result:=TObject(Inherited Add(Pointer(AItem),Pointer(AData)));
+  Result:=TObject(inherited Add(Pointer(AItem),Pointer(AData)));
 end;
 
-function TObjectBucketList.Remove(AItem: TObject): TObject;
+Function TObjectBucketList.Remove(AItem: TObject): TObject;
 begin
-  Result:=TObject(Inherited Remove(Pointer(AItem)));
+  Result:=TObject(inherited Remove(Pointer(AItem)));
 end;
 
 end.

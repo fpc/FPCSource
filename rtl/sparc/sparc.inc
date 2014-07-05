@@ -321,14 +321,6 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
                                Integer math
 ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;
-asm
-  sra %o0,31,%g1
-  add %o0,%g1,%o0
-  xor %o0,%g1,%o0
-end;
-
 var
   fpc_system_lock : byte;export name 'fpc_system_lock';
 

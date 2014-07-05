@@ -16,11 +16,11 @@ program ttdllexe;
 uses
   Windows;
 
-procedure test; external 'testdll2' name 'test';
-function GetString : string; external 'testdll2' name 'GetString';
+procedure test; external 'ttdllex1' name 'test';
+function GetString : string; external 'ttdllex1' name 'GetString';
 
 var
-   s : string;external 'testdll2' name 'teststr';
+   s : string;external 'ttdllex1' name 'teststr';
 const
   called : boolean = false;
 

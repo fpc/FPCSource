@@ -363,7 +363,6 @@ type
     FLoadingFieldDefs    : boolean;
     FUpdateMode          : TUpdateMode;
     FusePrimaryKeyAsKey  : Boolean;
-    FSQLBuf              : String;
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
     FServerFilterText    : string;
@@ -1206,7 +1205,7 @@ end;
 
 procedure TSQLConnection.GetProcedureNames(List: TStrings);
 begin
-  GetDBInfo(stProcedures,'','proc_name',List);
+  GetDBInfo(stProcedures,'','procedure_name',List);
 end;
 
 procedure TSQLConnection.GetFieldNames(const TableName: string; List: TStrings);
@@ -1641,7 +1640,7 @@ function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObject
 
 begin
   case SchemaType of
-    stProcedures: Result := 'SELECT * FROM INFORMATION_SCHEMA.ROUTINES';
+    stProcedures: Result := 'SELECT *, ROUTINE_NAME AS PROCEDURE_NAME FROM INFORMATION_SCHEMA.ROUTINES';
     stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
     else DatabaseError(SMetadataUnavailable);
   end;
@@ -2127,7 +2126,7 @@ begin
   if not Cursor.FSelectable then
     Exit;
   If LogEvent(detFetch) then
-    Log(detFetch,FSQLBuf);
+    Log(detFetch,FStatement.FServerSQL);
   if not FIsEof then FIsEOF := not SQLConnection.Fetch(Cursor);
   Result := not FIsEOF;
 end;
@@ -2211,7 +2210,6 @@ begin
     //Cursor.FSelectable:=True;
     //Cursor.FStatementType:=stSelect;
     FUpdateable:=True;
-    BindFields(True);
     end
   else
     begin
@@ -2236,31 +2234,23 @@ begin
       begin
       CreateFields;
 
-      if FUpdateable and (not IsUniDirectional) then
-        begin
-        if FusePrimaryKeyAsKey then
-          begin
-          for counter := 0 to ServerIndexDefs.count-1 do
+      if FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
+        for counter := 0 to ServerIndexDefs.Count-1 do
+          if ixPrimary in ServerIndexDefs[counter].Options then
             begin
-            if ixPrimary in ServerIndexDefs[counter].options then
+            IndexFields := TStringList.Create;
+            ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].Fields),IndexFields);
+            for fieldc := 0 to IndexFields.Count-1 do
               begin
-                IndexFields := TStringList.Create;
-                ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].fields),IndexFields);
-                for fieldc := 0 to IndexFields.Count-1 do
-                  begin
-                  F := FindField(IndexFields[fieldc]);
-                  if F <> nil then
-                    F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                  end;
-                IndexFields.Free;
+              F := FindField(IndexFields[fieldc]);
+              if F <> nil then
+                F.ProviderFlags := F.ProviderFlags + [pfInKey];
               end;
+            IndexFields.Free;
             end;
-          end;
-        end;
-      end
-    else
-      BindFields(True);
+      end;
     end;
+  BindFields(True);
 
   if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
     begin

@@ -438,7 +438,7 @@ implementation
          isgeneric,
          isunique,
          istyperenaming : boolean;
-         generictypelist : TFPObjectList;
+         generictypelist : tfphashobjectlist;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
          p:tnode;
@@ -719,6 +719,14 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 {$ifdef x86}
+  {$ifdef i8086}
+                    if try_to_consume(_HUGE) then
+                     begin
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_huge;
+                       consume(_SEMICOLON);
+                     end
+                    else
+  {$endif i8086}
                     if try_to_consume(_FAR) then
                      begin
   {$if defined(i8086)}
@@ -728,7 +736,7 @@ implementation
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
-                       { TODO: decide if we still want to keep this }
+                       Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
                        consume(_SEMICOLON);
                      end
@@ -755,10 +763,10 @@ implementation
                        end;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
-                      far even on non-x86 platforms.
-                      TODO: decide if we still want to keep this }
+                      far even on non-x86 platforms. }
                     if try_to_consume(_FAR) then
                      begin
+                       Message1(parser_w_ptr_type_ignored,'FAR');
                        consume(_SEMICOLON);
                      end;
 {$endif x86}
@@ -798,8 +806,7 @@ implementation
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
-                       not(oo_is_forward in tobjectdef(hdef).objectoptions) and
-                       not(df_generic in hdef.defoptions) then
+                       not(oo_is_forward in tobjectdef(hdef).objectoptions) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;

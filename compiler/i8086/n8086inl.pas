@@ -37,6 +37,7 @@ interface
          function first_seg: tnode; override;
          procedure second_seg; override;
          procedure second_get_frame;override;
+         procedure second_incdec;override;
        end;
 
 implementation
@@ -46,6 +47,7 @@ implementation
     systems,
     globtype,globals,
     cutils,verbose,
+    constexp,
     symconst,
     defutil,
     aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -134,6 +136,77 @@ implementation
            end
          else
            inherited second_get_frame;
+       end;
+
+     procedure ti8086inlinenode.second_incdec;
+       const
+         addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
+       var
+         addvalue : TConstExprInt;
+         addconstant : boolean;
+         hregister : tregister;
+         tmploc: tlocation;
+       begin
+         if is_farpointer(tcallparanode(left).left.resultdef) then
+           begin
+             { set defaults }
+             addconstant:=true;
+             hregister:=NR_NO;
+
+             { first secondpass second argument, because if the first arg }
+             { is used in that expression then SSL may move it to another }
+             { register                                                   }
+             if assigned(tcallparanode(left).right) then
+               secondpass(tcallparanode(tcallparanode(left).right).left);
+             { load first parameter, must be a reference }
+             secondpass(tcallparanode(left).left);
+             tmploc:=tcallparanode(left).left.location;
+             tmploc.size:=OS_S16;
+             { get addvalue }
+             case tcallparanode(left).left.resultdef.typ of
+               pointerdef :
+                 begin
+                   if is_void(tpointerdef(tcallparanode(left).left.resultdef).pointeddef) then
+                     addvalue:=1
+                   else
+                     addvalue:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
+                 end;
+               else
+                 internalerror(10081);
+             end;
+             { second_ argument specified?, must be a s16bit in register }
+             if assigned(tcallparanode(left).right) then
+               begin
+                 { when constant, just multiply the addvalue }
+                 if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
+                    addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
+                 else if is_constpointernode(tcallparanode(tcallparanode(left).right).left) then
+                    addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
+                 else
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,s16inttype,addvalue<=1);
+                     hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
+                     { insert multiply with addvalue if its >1 }
+                     if addvalue>1 then
+                       hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,s16inttype,addvalue.svalue,hregister);
+                     addconstant:=false;
+                   end;
+               end;
+             { write the add instruction }
+             if addconstant then
+               begin
+                 hlcg.a_op_const_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],s16inttype,
+                   smallint(addvalue.svalue),
+                   tmploc);
+               end
+             else
+               begin
+                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],s16inttype,
+                   hregister,tmploc);
+               end;
+           end
+         else
+           inherited second_incdec;
        end;
 
 begin

@@ -36,7 +36,7 @@ Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const; Const FormatSettings: TFormatSettings);
 
 function StrMove(dest,source : PWideChar;l : SizeInt) : PWideChar; overload;
-function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
+function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeUInt): PWideChar; overload;
 function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
 function StrScan(P: PWideChar; C: WideChar): PWideChar; overload;
 function strnew(p : PWideChar) : PWideChar; overload;

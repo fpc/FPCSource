@@ -196,7 +196,7 @@ const
   SBeginTransaction = 'BEGIN TRANSACTION';
   SAutoCommit = 'AUTOCOMMIT';
   STextSize   = 'TEXTSIZE';
-  SAppName   = 'APPLICATIONNAME';
+  SAppName    = 'APPLICATIONNAME';
 
 
 var
@@ -669,10 +669,15 @@ begin
     SQLFLTN:             Result:=ftFloat;
     SQLMONEY4, SQLMONEY,
     SQLMONEYN:           Result:=ftCurrency;
+    SYBMSDATE:           Result:=ftDate;
+    SYBMSTIME:           Result:=ftTime;
     SQLDATETIM4, SQLDATETIME,
-    SQLDATETIMN:         Result:=ftDateTime;
-    SQLIMAGE:            Result:=ftBlob;
+    SQLDATETIMN,
+    SYBMSDATETIME2,
+    SYBMSDATETIMEOFFSET: Result:=ftDateTime;
+    SYBMSXML,
     SQLTEXT:             Result:=ftMemo;
+    SQLIMAGE:            Result:=ftBlob;
     SQLDECIMAL, SQLNUMERIC: Result:=ftBCD;
     SQLBIT:              Result:=ftBoolean;
     SQLBINARY:           Result:=ftBytes;
@@ -753,8 +758,8 @@ var i: integer;
     srctype, desttype: INT;
     dbdt: DBDATETIME;
     dbdr: DBDATEREC;
+    dbdta: DBDATETIMEALL;
     bcdstr: array[0..MaxFmtBCDFractionSize+2] of char;
-    f: double;
 begin
   CreateBlob:=false;
   i:=FieldDef.FieldNo;
@@ -801,17 +806,26 @@ begin
       desttype:=SQLFLT8;
       destlen:=sizeof(DBFLT8); //double
       end;
+    ftDate, ftTime,
     ftDateTime:
-      begin
-      dest:=@dbdt;
-      desttype:=SQLDATETIME;
-      destlen:=sizeof(dbdt);
-      end;
+      if srctype in [SYBMSDATE, SYBMSTIME, SYBMSDATETIME2, SYBMSDATETIMEOFFSET] then // dbwillconvert(srctype, SYBMSDATETIME2)
+        begin
+        dest:=@dbdta;
+        desttype:=SYBMSDATETIME2;
+        destlen:=sizeof(dbdta);
+        end
+      else
+        begin
+        dest:=@dbdt;
+        desttype:=SQLDATETIME;
+        destlen:=sizeof(dbdt);
+        end;
     ftBCD:
       begin
-      dest:=@f;
+      // FreeTDS 0.91 does not support converting from numeric to money
+      //desttype:=SQLMONEY;
       desttype:=SQLFLT8;
-      destlen:=sizeof(DBFLT8); //double
+      destlen:=sizeof(currency);
       end;
     ftFmtBCD:
       begin
@@ -857,7 +871,10 @@ begin
             (ClientCharset = ccISO88591) {hack: FreeTDS} then
           StrPLCopy(PChar(dest), UTF8Encode(PChar(dest)), destlen);
       end;
-    ftDateTime:
+    ftDate, ftTime, ftDateTime:
+      if desttype = SYBMSDATETIME2 then
+        PDateTime(buffer)^ := dbdatetimeallcrack(@dbdta)
+      else
       begin
         //detect DBDATEREC version by pre-setting dbdr
         dbdr.millisecond := -1;
@@ -874,7 +891,7 @@ begin
         end;
       end;
     ftBCD:
-      PCurrency(buffer)^:=FloatToCurr(f);
+      PCurrency(buffer)^ := FloatToCurr(PDouble(buffer)^); //PCurrency(buffer)^ := dbmoneytocurr(buffer);
     ftFmtBCD:
       PBCD(buffer)^:=StrToBCD(bcdstr, FSQLFormatSettings); //PBCD(buffer)^:=dbnumerictobcd(dbnum);
   end;
@@ -964,7 +981,7 @@ begin
   case SchemaType of
     stTables     : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 1 as TABLE_TYPE', '''U''']);
     stSysTables  : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 4 as TABLE_TYPE', '''S''']);
-    stProcedures : Result := format(SCHEMA_QUERY, ['PROC_NAME , case type when ''P'' then 1 else 2 end as PROC_TYPE', '''P'',''FN'',''IF'',''TF''']);
+    stProcedures : Result := format(SCHEMA_QUERY, ['PROCEDURE_NAME , case type when ''P'' then 1 else 2 end as PROCEDURE_TYPE', '''P'',''FN'',''IF'',''TF''']);
     stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME,'+
                                     'c.name   as COLUMN_NAME,'+
                                     'colid    as COLUMN_POSITION,'+

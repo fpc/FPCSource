@@ -133,7 +133,7 @@ Type
     Property Daemon : TCustomDaemon Read FDaemon;
     Property Params : TStrings Read FParams;
     Property LastStatus : TCurrentStatus Read FLastStatus;
-    Property CheckPoint : DWord;
+    Property CheckPoint : DWord read FCheckPoint;
   end;
   
   TDaemonClass = Class of TDaemon;

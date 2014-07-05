@@ -74,7 +74,7 @@ begin
   if (FFileName <> '') and Assigned(fStream) then begin
     fStream.Free;
   end;
-  fStream := TFileStream.Create(FileName, fmOpenRead);
+  fStream := TFileStream.Create(FileName, fmOpenRead + fmShareDenyWrite);
   if Assigned(fStream) then begin
     Result := LoadFromStream(fStream);
     FFileName := FileName;

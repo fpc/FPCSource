@@ -2,7 +2,7 @@ unit TestSpecificTBufDataset;
 
 {
   Unit tests which are specific to stand-alone TBufDataset-datasets. (So not
-  for derrived datasets like TQuery )
+  for derived datasets like TQuery )
 }
 
 {$IFDEF FPC}

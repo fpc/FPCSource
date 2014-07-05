@@ -322,6 +322,7 @@ interface
        pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
+       maxheapsize,
        stacksize,
        jmp_buf_size,
        jmp_buf_align : longint;

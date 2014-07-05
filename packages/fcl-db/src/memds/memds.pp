@@ -150,7 +150,7 @@ type
 
     Property FileModified : Boolean Read FFileModified;
     // TMemDataset does not implement Filter. Please use OnFilter instead.
-    Property Filter: string; unimplemented;
+    Property Filter; unimplemented;
 
   published
     Property FileName : String Read FFileName Write FFileName;
@@ -349,7 +349,8 @@ function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
-   dsBrowse:
+   dsBrowse,
+   dsBlockRead:
      if IsEmpty then
        Buffer:=nil
      else
@@ -989,9 +990,8 @@ begin
     end;
   CreateTable;
   If CopyData then
-    begin
+  begin
     Open;
-    OriginalPosition:=Dataset.GetBookmark;
     L1:=TList.Create;
     Try
       L2:=TList.Create;
@@ -1004,7 +1004,9 @@ begin
           L1.Add(F1);
           L2.Add(F2);
           end;
+        DisableControls;
         Dataset.DisableControls;
+        OriginalPosition:=Dataset.GetBookmark;
         Try
           Dataset.Open;
           Dataset.First; //make sure we copy from the beginning
@@ -1038,7 +1040,9 @@ begin
             Dataset.Next;
             end;
         Finally
+          DataSet.GotoBookmark(OriginalPosition); //Return to original record
           Dataset.EnableControls;
+          EnableControls;
         end;
       finally
         L2.Free;
@@ -1046,8 +1050,7 @@ begin
     finally
       l1.Free;
     end;
-    DataSet.GotoBookmark(OriginalPosition); //Return to original record
-    end;
+  end;
 end;
 
 function TMemDataset.GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;

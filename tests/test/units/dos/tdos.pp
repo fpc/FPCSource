@@ -21,6 +21,12 @@ uses dos;
 {$DEFINE NOEXESUFFIX}
 {$endif}
 
+{$ifdef msdos}
+  {$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    {$M 16384,0,16384}  { 16k stack, up to 16k heap }
+  {$endif}
+{$endif}
+
 const
   exedir : string = '';
 
@@ -71,17 +77,13 @@ begin
   writeln('Exec Functions');
   writeln('**************');
   write('Going to Exec of ''hello -good -day''');
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
 {$ifdef noexesuffix}
   Exec(exedir+'hello','-good -day');
 {$else}
   Exec(exedir+'hello.exe','-good -day');
 {$endif}
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
   writeln('Exit should be 213 : ',DosExitCode);
   writeln('Error code should be 0 : ',DosError);
 end;

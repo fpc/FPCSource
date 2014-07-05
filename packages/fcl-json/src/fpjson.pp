@@ -27,7 +27,7 @@ uses
 type
 
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
-  TJSONInstanceType = (jitUnknown, jitNumberInteger,jitNumberInt64,jitNumberFloat,
+  TJSONInstanceType = (jitUnknown, jitNumberInteger,jitNumberInt64,jitNumberQWord,jitNumberFloat,
                        jitString, jitBoolean, jitNull, jitArray, jitObject);
   TJSONFloat = Double;
   TJSONStringType = AnsiString;
@@ -75,11 +75,13 @@ Type
     function GetAsFloat: TJSONFloat; virtual; abstract;
     function GetAsInteger: Integer; virtual; abstract;
     function GetAsInt64: Int64; virtual; abstract;
+    function GetAsQWord: QWord; virtual; abstract;
     function GetIsNull: Boolean; virtual;
     procedure SetAsBoolean(const AValue: Boolean); virtual; abstract;
     procedure SetAsFloat(const AValue: TJSONFloat); virtual; abstract;
     procedure SetAsInteger(const AValue: Integer); virtual; abstract;
     procedure SetAsInt64(const AValue: Int64); virtual; abstract;
+    procedure SetAsQword(const AValue: QWord); virtual; abstract;
     function GetAsJSON: TJSONStringType; virtual; abstract;
     function GetAsString: TJSONStringType; virtual; abstract;
     procedure SetAsString(const AValue: TJSONStringType); virtual; abstract;
@@ -106,13 +108,14 @@ Type
     Property AsFloat : TJSONFloat Read GetAsFloat Write SetAsFloat;
     Property AsInteger : Integer Read GetAsInteger Write SetAsInteger;
     Property AsInt64 : Int64 Read GetAsInt64 Write SetAsInt64;
+    Property AsQWord : QWord Read GetAsQWord Write SetAsQword;
     Property AsBoolean : Boolean Read GetAsBoolean Write SetAsBoolean;
     Property IsNull : Boolean Read GetIsNull;
     Property AsJSON : TJSONStringType Read GetAsJSON;
   end;
 
   TJSONDataClass = Class of TJSONData;
-  TJSONNumberType = (ntFloat,ntInteger,ntInt64);
+  TJSONNumberType = (ntFloat,ntInteger,ntInt64,ntQWord);
 
   TJSONNumber = class(TJSONData)
   protected
@@ -131,10 +134,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -158,10 +163,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -185,10 +192,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -202,6 +211,36 @@ Type
   end;
   TJSONInt64NumberClass = Class of TJSONInt64Number;
 
+  { TJSONQWordNumber }
+
+  TJSONQWordNumber = class(TJSONNumber)
+  Private
+    FValue : Qword;
+  protected
+    function GetAsBoolean: Boolean; override;
+    function GetAsFloat: TJSONFloat; override;
+    function GetAsInteger: Integer; override;
+    function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
+    procedure SetAsBoolean(const AValue: Boolean); override;
+    procedure SetAsFloat(const AValue: TJSONFloat); override;
+    procedure SetAsInteger(const AValue: Integer); override;
+    procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
+    function GetAsJSON: TJSONStringType; override;
+    function GetAsString: TJSONStringType; override;
+    procedure SetAsString(const AValue: TJSONStringType); override;
+    function GetValue: variant; override;
+    procedure SetValue(const AValue: variant); override;
+  public
+    Constructor Create(AValue : QWord); reintroduce;
+    class function NumberType : TJSONNumberType; override;
+    Procedure Clear;  override;
+    Function Clone : TJSONData; override;
+  end;
+  TJSONQWordNumberClass = Class of TJSONQWordNumber;
+
+
   { TJSONString }
 
   TJSONString = class(TJSONData)
@@ -214,10 +253,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -241,10 +282,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -252,7 +295,7 @@ Type
     Constructor Create(AValue : Boolean); reintroduce;
     class function JSONType: TJSONType; override;
     Procedure Clear;  override;
-    Function Clone : TJSONData; override;
+    Function  Clone : TJSONData; override;
   end;
   TJSONBooleanClass = Class of TJSONBoolean;
 
@@ -265,11 +308,13 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     function GetIsNull: Boolean; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -297,6 +342,7 @@ Type
     function GetInt64s(Index : Integer): Int64;
     function GetNulls(Index : Integer): Boolean;
     function GetObjects(Index : Integer): TJSONObject;
+    function GetQWords(Index : Integer): QWord;
     function GetStrings(Index : Integer): TJSONStringType;
     function GetTypes(Index : Integer): TJSONType;
     procedure SetArrays(Index : Integer; const AValue: TJSONArray);
@@ -305,6 +351,7 @@ Type
     procedure SetIntegers(Index : Integer; const AValue: Integer);
     procedure SetInt64s(Index : Integer; const AValue: Int64);
     procedure SetObjects(Index : Integer; const AValue: TJSONObject);
+    procedure SetQWords(Index : Integer; AValue: QWord);
     procedure SetStrings(Index : Integer; const AValue: TJSONStringType);
   protected
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
@@ -313,10 +360,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -341,6 +390,7 @@ Type
     function Add(Item : TJSONData): Integer;
     function Add(I : Integer): Integer;
     function Add(I : Int64): Int64;
+    function Add(I : QWord): QWord;
     function Add(const S : String): Integer;
     function Add: Integer;
     function Add(F : TJSONFloat): Integer;
@@ -355,6 +405,7 @@ Type
     procedure Insert(Index: Integer; Item : TJSONData);
     procedure Insert(Index: Integer; I : Integer);
     procedure Insert(Index: Integer; I : Int64);
+    procedure Insert(Index: Integer; I : QWord);
     procedure Insert(Index: Integer; const S : String);
     procedure Insert(Index: Integer; F : TJSONFloat);
     procedure Insert(Index: Integer; B : Boolean);
@@ -368,6 +419,7 @@ Type
     Property Nulls[Index : Integer] : Boolean Read GetNulls;
     Property Integers[Index : Integer] : Integer Read GetIntegers Write SetIntegers;
     Property Int64s[Index : Integer] : Int64 Read GetInt64s Write SetInt64s;
+    Property QWords[Index : Integer] : QWord Read GetQWords Write SetQWords;
     Property Strings[Index : Integer] : TJSONStringType Read GetStrings Write SetStrings;
     Property Floats[Index : Integer] : TJSONFloat Read GetFloats Write SetFloats;
     Property Booleans[Index : Integer] : Boolean Read GetBooleans Write SetBooleans;
@@ -392,6 +444,7 @@ Type
     function GetIsNull(const AName : String): Boolean; reintroduce;
     function GetNameOf(Index : Integer): TJSONStringType;
     function GetObjects(const AName : String): TJSONObject;
+    function GetQWords(AName : String): QWord;
     function GetStrings(const AName : String): TJSONStringType;
     function GetTypes(const AName : String): TJSONType;
     procedure SetArrays(const AName : String; const AValue: TJSONArray);
@@ -402,6 +455,7 @@ Type
     procedure SetInt64s(const AName : String; const AValue: Int64);
     procedure SetIsNull(const AName : String; const AValue: Boolean);
     procedure SetObjects(const AName : String; const AValue: TJSONObject);
+    procedure SetQWords(AName : String; AValue: QWord);
     procedure SetStrings(const AName : String; const AValue: TJSONStringType);
   protected
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
@@ -440,6 +494,7 @@ Type
     Function Get(Const AName : String; ADefault : TJSONFloat) : TJSONFloat;
     Function Get(Const AName : String; ADefault : Integer) : Integer;
     Function Get(Const AName : String; ADefault : Int64) : Int64;
+    Function Get(Const AName : String; ADefault : QWord) : QWord;
     Function Get(Const AName : String; ADefault : Boolean) : Boolean;
     Function Get(Const AName : String; ADefault : TJSONStringType) : TJSONStringTYpe;
     Function Get(Const AName : String; ADefault : TJSONArray) : TJSONArray;
@@ -452,6 +507,7 @@ Type
     function Add(const AName, AValue: TJSONStringType): Integer; overload;
     function Add(const AName: TJSONStringType; Avalue: Integer): Integer; overload;
     function Add(const AName: TJSONStringType; Avalue: Int64): Integer; overload;
+    function Add(const AName: TJSONStringType; Avalue: QWord): Integer; overload;
     function Add(const AName: TJSONStringType): Integer; overload;
     function Add(const AName: TJSONStringType; AValue : TJSONArray): Integer; overload;
     procedure Delete(Index : Integer);
@@ -469,6 +525,7 @@ Type
     Property Floats[AName : String] : TJSONFloat Read GetFloats Write SetFloats;
     Property Integers[AName : String] : Integer Read GetIntegers Write SetIntegers;
     Property Int64s[AName : String] : Int64 Read GetInt64s Write SetInt64s;
+    Property QWords[AName : String] : QWord Read GetQWords Write SetQWords;
     Property Strings[AName : String] : TJSONStringType Read GetStrings Write SetStrings;
     Property Booleans[AName : String] : Boolean Read GetBooleans Write SetBooleans;
     Property Arrays[AName : String] : TJSONArray Read GetArrays Write SetArrays;
@@ -492,6 +549,7 @@ Function CreateJSON : TJSONNull;
 Function CreateJSON(Data : Boolean) : TJSONBoolean;
 Function CreateJSON(Data : Integer) : TJSONIntegerNumber;
 Function CreateJSON(Data : Int64) : TJSONInt64Number;
+Function CreateJSON(Data : QWord) : TJSONQWordNumber;
 Function CreateJSON(Data : TJSONFloat) : TJSONFloatNumber;
 Function CreateJSON(Data : TJSONStringType) : TJSONString;
 Function CreateJSONArray(Data : Array of const) : TJSONArray;
@@ -533,12 +591,12 @@ Resourcestring
 Var
   DefaultJSONInstanceTypes :
     Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TJSONIntegerNumber,
-    TJSONInt64Number,TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
+    TJSONInt64Number, TJSONQWordNumber, TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
     TJSONObject);
 Const
   MinJSONInstanceTypes :
     Array [TJSONInstanceType] of TJSONDataClass = (TJSONData, TJSONIntegerNumber,
-    TJSONInt64Number,TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
+    TJSONInt64Number, TJSONQWordNumber, TJSONFloatNumber, TJSONString, TJSONBoolean, TJSONNull, TJSONArray,
     TJSONObject);
 
 function SetJSONInstanceType(AType: TJSONInstanceType; AClass: TJSONDataClass): TJSONDataClass;
@@ -662,6 +720,11 @@ begin
   Result:=TJSONInt64NumberCLass(DefaultJSONInstanceTypes[jitNumberInt64]).Create(Data);
 end;
 
+function CreateJSON(Data: QWord): TJSONQWordNumber;
+begin
+  Result:=TJSONQWordNumberClass(DefaultJSONInstanceTypes[jitNumberQWord]).Create(Data);
+end;
+
 function CreateJSON(Data: TJSONFloat): TJSONFloatNumber;
 begin
   Result:=TJSONFloatNumberCLass(DefaultJSONInstanceTypes[jitNumberFloat]).Create(Data);
@@ -753,6 +816,103 @@ Type
     function GetCurrent: TJSONEnum; override;
     function MoveNext : Boolean; override;
   end;
+
+{ TJSONQWordNumber }
+
+function TJSONQWordNumber.GetAsBoolean: Boolean;
+begin
+  Result:=FValue<>0;
+end;
+
+function TJSONQWordNumber.GetAsFloat: TJSONFloat;
+begin
+  Result:= FValue;
+end;
+
+function TJSONQWordNumber.GetAsInteger: Integer;
+begin
+  Result := FValue;
+end;
+
+function TJSONQWordNumber.GetAsInt64: Int64;
+begin
+  Result := FValue;
+end;
+
+function TJSONQWordNumber.GetAsQWord: QWord;
+begin
+  Result := FValue;
+end;
+
+procedure TJSONQWordNumber.SetAsBoolean(const AValue: Boolean);
+begin
+  FValue:=Ord(AValue);
+end;
+
+procedure TJSONQWordNumber.SetAsFloat(const AValue: TJSONFloat);
+begin
+  FValue:=Round(AValue);
+end;
+
+procedure TJSONQWordNumber.SetAsInteger(const AValue: Integer);
+begin
+  FValue:=AValue;
+end;
+
+procedure TJSONQWordNumber.SetAsInt64(const AValue: Int64);
+begin
+  FValue := AValue;
+end;
+
+procedure TJSONQWordNumber.SetAsQword(const AValue: QWord);
+begin
+  FValue:=AValue;
+end;
+
+function TJSONQWordNumber.GetAsJSON: TJSONStringType;
+begin
+  Result:=AsString;
+end;
+
+function TJSONQWordNumber.GetAsString: TJSONStringType;
+begin
+  Result:=IntToStr(FValue);
+end;
+
+procedure TJSONQWordNumber.SetAsString(const AValue: TJSONStringType);
+begin
+  FValue:=StrToQWord(AValue);
+end;
+
+function TJSONQWordNumber.GetValue: variant;
+begin
+  Result:=FValue;
+end;
+
+procedure TJSONQWordNumber.SetValue(const AValue: variant);
+begin
+  FValue:=AValue;
+end;
+
+constructor TJSONQWordNumber.Create(AValue: QWord);
+begin
+  FValue := AValue;
+end;
+
+class function TJSONQWordNumber.NumberType: TJSONNumberType;
+begin
+  Result:=ntQWord;
+end;
+
+procedure TJSONQWordNumber.Clear;
+begin
+  FValue:=0;
+end;
+
+function TJSONQWordNumber.Clone: TJSONData;
+begin
+  Result:=TJSONQWordNumberClass(ClassType).Create(Self.FValue);
+end;
 
 constructor TJSONObjectEnumerator.Create(AData: TJSONObject);
 begin
@@ -920,7 +1080,7 @@ end;
 
 { TJSONstring }
 
-class function TJSONstring.JSONType: TJSONType;
+class function TJSONString.JSONType: TJSONType;
 begin
   Result:=jtString;
 end;
@@ -936,23 +1096,23 @@ begin
   Result:=TJSONStringClass(ClassType).Create(Self.FValue);
 end;
 
-function TJSONstring.GetValue: Variant;
+function TJSONString.GetValue: Variant;
 begin
   Result:=FValue;
 end;
 
-procedure TJSONstring.SetValue(const AValue: Variant);
+procedure TJSONString.SetValue(const AValue: Variant);
 begin
   FValue:=AValue;
 end;
 
 
-function TJSONstring.GetAsBoolean: Boolean;
+function TJSONString.GetAsBoolean: Boolean;
 begin
   Result:=StrToBool(FValue);
 end;
 
-function TJSONstring.GetAsFloat: TJSONFloat;
+function TJSONString.GetAsFloat: TJSONFloat;
 
 Var
   C : Integer;
@@ -964,52 +1124,62 @@ begin
       Raise EConvertError.CreateFmt(SErrInvalidFloat,[FValue]);
 end;
 
-function TJSONstring.GetAsInteger: Integer;
+function TJSONString.GetAsInteger: Integer;
 begin
   Result:=StrToInt(FValue);
 end;
 
-function TJSONstring.GetAsInt64: Int64;
+function TJSONString.GetAsInt64: Int64;
 begin
   Result:=StrToInt64(FValue);
 end;
 
-procedure TJSONstring.SetAsBoolean(const AValue: Boolean);
+function TJSONString.GetAsQWord: QWord;
+begin
+  Result:=StrToQWord(FValue);
+end;
+
+procedure TJSONString.SetAsBoolean(const AValue: Boolean);
 begin
   FValue:=BoolToStr(AValue);
 end;
 
-procedure TJSONstring.SetAsFloat(const AValue: TJSONFloat);
+procedure TJSONString.SetAsFloat(const AValue: TJSONFloat);
 begin
   FValue:=FloatToStr(AValue);
 end;
 
-procedure TJSONstring.SetAsInteger(const AValue: Integer);
+procedure TJSONString.SetAsInteger(const AValue: Integer);
 begin
   FValue:=IntToStr(AValue);
 end;
 
-procedure TJSONstring.SetAsInt64(const AValue: Int64);
+procedure TJSONString.SetAsInt64(const AValue: Int64);
 begin
   FValue:=IntToStr(AValue);
 end;
 
-function TJSONstring.GetAsJSON: TJSONStringType;
+procedure TJSONString.SetAsQword(const AValue: QWord);
+begin
+  FValue:=IntToStr(AValue);
+end;
+
+function TJSONString.GetAsJSON: TJSONStringType;
 begin
   Result:='"'+StringToJSONString(FValue)+'"';
 end;
 
-function TJSONstring.GetAsString: TJSONStringType;
+function TJSONString.GetAsString: TJSONStringType;
 begin
   Result:=FValue;
 end;
 
-procedure TJSONstring.SetAsString(const AValue: TJSONStringType);
+procedure TJSONString.SetAsString(const AValue: TJSONStringType);
 begin
   FValue:=AValue;
 end;
 
-constructor TJSONstring.Create(const AValue: TJSONStringType);
+constructor TJSONString.Create(const AValue: TJSONStringType);
 begin
   FValue:=AValue;
 end;
@@ -1017,12 +1187,12 @@ end;
 { TJSONboolean }
 
 
-function TJSONboolean.GetValue: Variant;
+function TJSONBoolean.GetValue: Variant;
 begin
   Result:=FValue;
 end;
 
-class function TJSONboolean.JSONType: TJSONType;
+class function TJSONBoolean.JSONType: TJSONType;
 begin
   Result:=jtBoolean;
 end;
@@ -1038,52 +1208,62 @@ begin
 end;
 
 
-procedure TJSONboolean.SetValue(const AValue: Variant);
+procedure TJSONBoolean.SetValue(const AValue: Variant);
 begin
   FValue:=boolean(AValue);
 end;
 
-function TJSONboolean.GetAsBoolean: Boolean;
+function TJSONBoolean.GetAsBoolean: Boolean;
 begin
   Result:=FValue;
 end;
 
-function TJSONboolean.GetAsFloat: TJSONFloat;
+function TJSONBoolean.GetAsFloat: TJSONFloat;
 begin
   Result:=Ord(FValue);
 end;
 
-function TJSONboolean.GetAsInteger: Integer;
+function TJSONBoolean.GetAsInteger: Integer;
 begin
   Result:=Ord(FValue);
 end;
 
-function TJSONboolean.GetAsInt64: Int64;
+function TJSONBoolean.GetAsInt64: Int64;
 begin
   Result:=Ord(FValue);
 end;
 
-procedure TJSONboolean.SetAsBoolean(const AValue: Boolean);
+function TJSONBoolean.GetAsQWord: QWord;
+begin
+  Result:=Ord(FValue);
+end;
+
+procedure TJSONBoolean.SetAsBoolean(const AValue: Boolean);
 begin
   FValue:=AValue;
 end;
 
-procedure TJSONboolean.SetAsFloat(const AValue: TJSONFloat);
+procedure TJSONBoolean.SetAsFloat(const AValue: TJSONFloat);
 begin
   FValue:=(AValue<>0)
 end;
 
-procedure TJSONboolean.SetAsInteger(const AValue: Integer);
+procedure TJSONBoolean.SetAsInteger(const AValue: Integer);
 begin
   FValue:=(AValue<>0)
 end;
 
-procedure TJSONboolean.SetAsInt64(const AValue: Int64);
+procedure TJSONBoolean.SetAsInt64(const AValue: Int64);
 begin
   FValue:=(AValue<>0)
 end;
 
-function TJSONboolean.GetAsJSON: TJSONStringType;
+procedure TJSONBoolean.SetAsQword(const AValue: QWord);
+begin
+  FValue:=(AValue<>0)
+end;
+
+function TJSONBoolean.GetAsJSON: TJSONStringType;
 begin
   If FValue then
     Result:='true'
@@ -1091,24 +1271,24 @@ begin
     Result:='false';
 end;
 
-function TJSONboolean.GetAsString: TJSONStringType;
+function TJSONBoolean.GetAsString: TJSONStringType;
 begin
   Result:=BoolToStr(FValue, True);
 end;
 
-procedure TJSONboolean.SetAsString(const AValue: TJSONStringType);
+procedure TJSONBoolean.SetAsString(const AValue: TJSONStringType);
 begin
   FValue:=StrToBool(AValue);
 end;
 
-constructor TJSONboolean.Create(AValue: Boolean);
+constructor TJSONBoolean.Create(AValue: Boolean);
 begin
   FValue:=AValue;
 end;
 
 { TJSONnull }
 
-procedure TJSONnull.Converterror(From : Boolean);
+procedure TJSONNull.Converterror(From: Boolean);
 begin
   If From then
     DoError(SErrCannotConvertFromNull)
@@ -1117,77 +1297,87 @@ begin
 end;
 
 {$warnings off}
-function TJSONnull.GetAsBoolean: Boolean;
+function TJSONNull.GetAsBoolean: Boolean;
 begin
   ConvertError(True);
 end;
 
-function TJSONnull.GetAsFloat: TJSONFloat;
+function TJSONNull.GetAsFloat: TJSONFloat;
 begin
   ConvertError(True);
 end;
 
-function TJSONnull.GetAsInteger: Integer;
+function TJSONNull.GetAsInteger: Integer;
 begin
   ConvertError(True);
 end;
 
-function TJSONnull.GetAsInt64: Int64;
+function TJSONNull.GetAsInt64: Int64;
 begin
   ConvertError(True);
 end;
 
-function TJSONnull.GetIsNull: Boolean;
+function TJSONNull.GetAsQWord: QWord;
+begin
+  ConvertError(True);
+end;
+
+function TJSONNull.GetIsNull: Boolean;
 begin
   Result:=True;
 end;
 
-procedure TJSONnull.SetAsBoolean(const AValue: Boolean);
+procedure TJSONNull.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
 end;
 
-procedure TJSONnull.SetAsFloat(const AValue: TJSONFloat);
+procedure TJSONNull.SetAsFloat(const AValue: TJSONFloat);
 begin
   ConvertError(False);
 end;
 
-procedure TJSONnull.SetAsInteger(const AValue: Integer);
+procedure TJSONNull.SetAsInteger(const AValue: Integer);
 begin
   ConvertError(False);
 end;
 
-procedure TJSONnull.SetAsInt64(const AValue: Int64);
+procedure TJSONNull.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
 end;
 
-function TJSONnull.GetAsJSON: TJSONStringType;
+procedure TJSONNull.SetAsQword(const AValue: QWord);
+begin
+  ConvertError(False);
+end;
+
+function TJSONNull.GetAsJSON: TJSONStringType;
 begin
   Result:='null';
 end;
 
-function TJSONnull.GetAsString: TJSONStringType;
+function TJSONNull.GetAsString: TJSONStringType;
 begin
   ConvertError(True);
 end;
 
-procedure TJSONnull.SetAsString(const AValue: TJSONStringType);
+procedure TJSONNull.SetAsString(const AValue: TJSONStringType);
 begin
   ConvertError(True);
 end;
 
-function TJSONnull.GetValue: Variant;
+function TJSONNull.GetValue: variant;
 begin
   Result:=variants.Null;
 end;
 
-procedure TJSONnull.SetValue(const AValue: variant);
+procedure TJSONNull.SetValue(const AValue: variant);
 begin
   ConvertError(False);
 end;
 
-class function TJSONnull.JSONType: TJSONType;
+class function TJSONNull.JSONType: TJSONType;
 begin
   Result:=jtNull;
 end;
@@ -1228,6 +1418,11 @@ begin
   Result:=Round(FValue);
 end;
 
+function TJSONFloatNumber.GetAsQWord: QWord;
+begin
+  Result:=Round(FValue);
+end;
+
 procedure TJSONFloatNumber.SetAsBoolean(const AValue: Boolean);
 begin
   FValue:=Ord(AValue);
@@ -1244,6 +1439,11 @@ begin
 end;
 
 procedure TJSONFloatNumber.SetAsInt64(const AValue: Int64);
+begin
+  FValue:=AValue;
+end;
+
+procedure TJSONFloatNumber.SetAsQword(const AValue: QWord);
 begin
   FValue:=AValue;
 end;
@@ -1325,6 +1525,11 @@ begin
   Result:=FValue;
 end;
 
+function TJSONIntegerNumber.GetAsQWord: QWord;
+begin
+  result:=FValue;
+end;
+
 procedure TJSONIntegerNumber.SetAsBoolean(const AValue: Boolean);
 begin
   FValue:=Ord(AValue);
@@ -1341,6 +1546,11 @@ begin
 end;
 
 procedure TJSONIntegerNumber.SetAsInt64(const AValue: Int64);
+begin
+  FValue:=AValue;
+end;
+
+procedure TJSONIntegerNumber.SetAsQword(const AValue: QWord);
 begin
   FValue:=AValue;
 end;
@@ -1398,7 +1608,17 @@ begin
   Result := FValue;
 end;
 
+function TJSONInt64Number.GetAsQWord: QWord;
+begin
+  Result := FValue;
+end;
+
 procedure TJSONInt64Number.SetAsInt64(const AValue: Int64);
+begin
+  FValue := AValue;
+end;
+
+procedure TJSONInt64Number.SetAsQword(const AValue: QWord);
 begin
   FValue := AValue;
 end;
@@ -1516,6 +1736,11 @@ begin
   Result:=Items[Index] as TJSONObject;
 end;
 
+function TJSONArray.GetQWords(Index : Integer): QWord;
+begin
+  Result:=Items[Index].AsQWord;
+end;
+
 function TJSONArray.GetStrings(Index : Integer): TJSONStringType;
 begin
   Result:=Items[Index].AsString;
@@ -1555,6 +1780,11 @@ end;
 procedure TJSONArray.SetObjects(Index : Integer; const AValue: TJSONObject);
 begin
   Items[Index]:=AValue;
+end;
+
+procedure TJSONArray.SetQWords(Index : Integer; AValue: QWord);
+begin
+  Items[Index]:=CreateJSON(AValue);
 end;
 
 procedure TJSONArray.SetStrings(Index : Integer; const AValue: TJSONStringType);
@@ -1624,6 +1854,11 @@ begin
   ConvertError(True);
 end;
 
+function TJSONArray.GetAsQWord: QWord;
+begin
+  ConvertError(True);
+end;
+
 procedure TJSONArray.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
@@ -1638,10 +1873,17 @@ procedure TJSONArray.SetAsInteger(const AValue: Integer);
 begin
   ConvertError(False);
 end;
+
 procedure TJSONArray.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
 end;
+
+procedure TJSONArray.SetAsQword(const AValue: QWord);
+begin
+  ConvertError(False);
+end;
+
 {$warnings on}
 
 function TJSONArray.GetAsJSON: TJSONStringType;
@@ -1863,6 +2105,11 @@ begin
   Result:=Add(CreateJSON(I));
 end;
 
+function TJSONArray.Add(I: QWord): QWord;
+begin
+  Result:=Add(CreateJSON(I));
+end;
+
 function TJSONArray.Add(const S: String): Integer;
 begin
   Result:=Add(CreateJSON(S));
@@ -1933,6 +2180,11 @@ begin
 end;
 
 procedure TJSONArray.Insert(Index: Integer; I: Int64);
+begin
+  FList.Insert(Index, CreateJSON(I));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; I: QWord);
 begin
   FList.Insert(Index, CreateJSON(I));
 end;
@@ -2025,6 +2277,11 @@ begin
   Result:=GetElements(AName) as TJSONObject;
 end;
 
+function TJSONObject.GetQWords(AName : String): QWord;
+begin
+  Result:=GetElements(AName).AsQWord;
+end;
+
 function TJSONObject.GetStrings(const AName : String): TJSONStringType;
 begin
   Result:=GetElements(AName).AsString;
@@ -2083,6 +2340,11 @@ end;
 procedure TJSONObject.SetObjects(const AName : String; const AValue: TJSONObject);
 begin
   SetElements(AName,AValue);
+end;
+
+procedure TJSONObject.SetQWords(AName : String; AValue: QWord);
+begin
+  SetElements(AName,CreateJSON(AVAlue));
 end;
 
 procedure TJSONObject.SetStrings(const AName : String; const AValue: TJSONStringType);
@@ -2413,6 +2675,11 @@ begin
   Result:=Add(AName,CreateJSON(AValue));
 end;
 
+function TJSONObject.Add(const AName: TJSONStringType; Avalue: QWord): Integer;
+begin
+  Result:=Add(AName,CreateJSON(AValue));
+end;
+
 function TJSONObject.Add(const AName: TJSONStringType): Integer;
 begin
   Result:=Add(AName,CreateJSON);
@@ -2512,6 +2779,18 @@ begin
   D:=Find(AName,jtNumber);
   If D<>Nil then
     Result:=D.AsInt64
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.Get(const AName: String; ADefault: QWord): QWord;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtNumber);
+  If D<>Nil then
+    Result:=D.AsQWord
   else
     Result:=ADefault;
 end;

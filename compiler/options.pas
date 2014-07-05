@@ -1009,7 +1009,13 @@ begin
                     's' :
                       begin
                          val(copy(more,j+1,length(more)-j),stacksize,code);
-                         if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
+                         if (code<>0)
+{$ifdef cpu16bitaddr}
+                            or (stacksize>=65521)
+{$else cpu16bitaddr}
+                            or (stacksize>=67107840)
+{$endif cpu16bitaddr}
+                            or (stacksize<1024) then
                           IllegalPara(opt);
                          break;
                       end;
@@ -2717,6 +2723,14 @@ end;
 
 procedure TOption.checkoptionscompatibility;
 begin
+{$ifdef i8086}
+  if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
+    begin
+      Message(option_com_files_require_tiny_model);
+      StopOptions(1);
+    end;
+{$endif i8086}
+
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in (systems_darwin+[system_i8086_msdos])) then
     begin
@@ -2934,9 +2948,13 @@ begin
   def_system_macro('FPC_STATICRIPFIXED');
   def_system_macro('FPC_VARIANTCOPY_FIXED');
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
-{$if defined(x86) or defined(powerpc) or defined(powerpc64) or defined(cpuarm)}
+
+{ abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$endif}
+{$if defined(x86_64) or defined(powerpc64)}
+  def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
+{$endif x86_64 or powerpc64}
+
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
   def_system_macro('FPC_HAS_CPSTRING');
@@ -3560,6 +3578,16 @@ if (target_info.abi = abi_eabihf) then
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
+
+{ hardware FMA support }
+{$if defined(i386) or defined(x86_64)}
+  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+    begin
+      def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
+      def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');
+    end;
+{$endif defined(i386) or defined(x86_64)}
+
 {$if defined(arm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another

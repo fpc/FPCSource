@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02095 is the last used one
+# 02098 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -396,11 +396,22 @@ scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 % ordinal value
 scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
 % Not all compiler directives are supported on all targets.
+scan_w_invalid_stacksize=02096_W_The specified stack size is not within the valid range for the platform. Setting the stack size ignored.
+% The valid range for the stack size is 1024 - 67107839 on 32-bit and 64-bit
+% platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
+% compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
+% actually sets the stack size to 65520.
+scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
+% The HeapMax value (if specified) must be greater than or equal to the HeapMin
+% value. Otherwise, the HeapMax value is ignored.
+scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTERNORMALIZATION
+% The only allowed values for HUGEPOINTERNORMALIZATION are BORLANDC, MICROSOFTC
+% and WATCOMC.
 % \end{description}
 #
 # Parser
 #
-# 03336 is the last used one
+# 03338 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1508,13 +1519,23 @@ parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the 
 % a prescribed way, and this encoding may map different Pascal types to the same encoded
 % (a.k.a.\ ``mangled'') name. This error can only be solved by removing or changing the
 % conflicting definitions' parameter declarations or routine names.
+parser_e_default_value_val_const=03337_E_Default values can only be specified for value, const and constref parameters
+% A default parameter value allows you to not specify a value for this parameter
+% when calling the routine, and the compiler will instead pass the specified
+% default (constant) value. As a result, default values can only be specified
+% for parameters that can accept constant values.
+parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
+% The specified pointer type modifier is ignored, because it is not supported on
+% the current platform. This happens, for example, when a far pointer is
+% declared on a non-x86 platform.
+%
 %
 %
 % \end{description}
 %
 # Type Checking
 #
-# 04121 is the last used one
+# 04122 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1941,6 +1962,9 @@ type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by 
 type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order to allow taking its address: "$1"
 % In certain i8086 memory models (medium, large and huge), procedures and functions
 % have to be declared 'far' in order to allow their address to be taken.
+type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$1"
+% The specified class is declared as \var{abstract} and thus no instance of this class
+% should be created. This is merely a warning for Delphi compatibility.
 % \end{description}
 #
 # Symtable
@@ -3085,7 +3109,7 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 #
 #  Options
 #
-# 11056 is the last used one
+# 11057 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3230,6 +3254,7 @@ option_missing_arg=11054_E_argument to "$1" is missing
 option_malformed_para=11055_E_malformed parameter: $1
 % Given argument is not valid for parameter.
 option_smart_link_requires_external_linker=11056_W_Smart linking requires external linker
+option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported in the current memory model. Only the tiny memory model supports making .COM files.
 
 
 %\end{description}
@@ -3698,6 +3723,8 @@ A*2WI_Turn on/off the usage of import sections (Windows)
 8*3WmTiny_Tiny memory model
 8*3WmSmall_Small memory model (default)
 8*3WmMedium_Medium memory model
+8*3WmCompact_Compact memory model
+8*3WmLarge_Large memory model
 3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)

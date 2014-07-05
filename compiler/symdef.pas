@@ -68,7 +68,6 @@ interface
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
-          procedure fillgenericparas(symtable:tsymtable);
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
        public
@@ -83,6 +82,7 @@ interface
             generic parameters; the symbols are not owned by this list
             Note: this list is allocated on demand! }
           genericparas    : tfphashobjectlist;
+          genericparaderefs : tfplist;
           { contains additional data if this def is a generic constraint
             Note: this class is allocated on demand! }
           genconstraintdata : tgenericconstraintdata;
@@ -942,6 +942,7 @@ interface
        voidhugepointertype,
        charnearpointertype,
        charfarpointertype,
+       charhugepointertype,
        bytefarpointertype,        { used for Mem[] }
        wordfarpointertype,        { used for MemW[] }
        longintfarpointertype,     { used for MemL[] }
@@ -986,6 +987,7 @@ interface
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
+       nestedprocpointertype,     { typecasting of nestedprocpointers to extract parentfp }
        hresultdef,
        { we use only one variant def for every variant class }
        cvarianttype,
@@ -1615,28 +1617,6 @@ implementation
       end;
 
 
-    procedure tstoreddef.fillgenericparas(symtable: tsymtable);
-      var
-        sym : tsym;
-        i : longint;
-      begin
-        if not assigned(symtable) then
-          internalerror(2012091201);
-        if [df_generic,df_specialization]*defoptions=[] then
-          exit;
-        for i:=0 to symtable.symlist.count-1 do
-          begin
-            sym:=tsym(symtable.symlist[i]);
-            if sp_generic_para in sym.symoptions then
-              begin
-                if not assigned(genericparas) then
-                  genericparas:=tfphashobjectlist.create(false);
-                genericparas.Add(sym.name,sym);
-              end;
-          end;
-      end;
-
-
     procedure tstoreddef.ppuwrite_platform(ppufile: tcompilerppufile);
       begin
         { by default: do nothing }
@@ -1686,6 +1666,8 @@ implementation
 
 
     destructor tstoreddef.destroy;
+      var
+        i : longint;
       begin
         { Direct calls are not allowed, use symtable.deletedef() }
         if assigned(owner) then
@@ -1696,6 +1678,10 @@ implementation
             generictokenbuf:=nil;
           end;
         genericparas.free;
+        if assigned(genericparaderefs) then
+          for i:=0 to genericparaderefs.count-1 do
+            dispose(pderef(genericparaderefs[i]));
+        genericparaderefs.free;
         genconstraintdata.free;
         stringdispose(_fullownerhierarchyname);
         inherited destroy;
@@ -1704,8 +1690,9 @@ implementation
 
     constructor tstoreddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
       var
-        sizeleft,i : longint;
+        sizeleft,i,cnt : longint;
         buf  : array[0..255] of byte;
+        symderef : pderef;
       begin
          inherited create(dt);
          DefId:=ppufile.getlongint;
@@ -1721,6 +1708,22 @@ implementation
            begin
              genconstraintdata:=tgenericconstraintdata.create;
              genconstraintdata.ppuload(ppufile);
+           end;
+         if [df_generic,df_specialization]*defoptions<>[] then
+           begin
+             cnt:=ppufile.getlongint;
+             if cnt>0 then
+               begin
+                 genericparas:=tfphashobjectlist.create(false);
+                 genericparaderefs:=tfplist.create;
+                 for i:=0 to cnt-1 do
+                   begin
+                     genericparas.add(ppufile.getstring,nil);
+                     New(symderef);
+                     ppufile.getderef(symderef^);
+                     genericparaderefs.add(symderef);
+                   end;
+               end;
            end;
          if df_generic in defoptions then
            begin
@@ -1850,6 +1853,22 @@ implementation
         ppufile.putsmallset(defstates);
         if df_genconstraint in defoptions then
           genconstraintdata.ppuwrite(ppufile);
+        if [df_generic,df_specialization]*defoptions<>[] then
+          begin
+            if not assigned(genericparas) then
+              ppufile.putlongint(0)
+            else
+              begin
+                if not assigned(genericparaderefs) then
+                  internalerror(2014052305);
+                ppufile.putlongint(genericparas.count);
+                for i:=0 to genericparas.count-1 do
+                  begin
+                    ppufile.putstring(genericparas.nameofindex(i));
+                    ppufile.putderef(pderef(genericparaderefs[i])^);
+                  end;
+              end;
+          end;
         if df_generic in defoptions then
           begin
             if assigned(generictokenbuf) then
@@ -1878,11 +1897,27 @@ implementation
 
 
     procedure tstoreddef.buildderef;
+      var
+        i : longint;
+        sym : tsym;
+        symderef : pderef;
       begin
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
         if assigned(genconstraintdata) then
           genconstraintdata.buildderef;
+        if assigned(genericparas) then
+          begin
+            if not assigned(genericparaderefs) then
+              genericparaderefs:=tfplist.create;
+            for i:=0 to genericparas.count-1 do
+              begin
+                sym:=tsym(genericparas.items[i]);
+                new(symderef);
+                symderef^.build(sym);
+                genericparaderefs.add(symderef);
+              end;
+          end;
       end;
 
 
@@ -1892,12 +1927,30 @@ implementation
 
 
     procedure tstoreddef.deref;
+      var
+        symderef : pderef;
+        i : longint;
       begin
         typesym:=ttypesym(typesymderef.resolve);
         if df_specialization in defoptions then
           genericdef:=tstoreddef(genericdefderef.resolve);
         if assigned(genconstraintdata) then
           genconstraintdata.deref;
+        if assigned(genericparas) then
+          begin
+            if not assigned(genericparaderefs) then
+              internalerror(2014052302);
+            if genericparas.count<>genericparaderefs.count then
+              internalerror(2014052303);
+            for i:=0 to genericparaderefs.count-1 do
+              begin
+                symderef:=pderef(genericparaderefs[i]);
+                genericparas.items[i]:=symderef^.resolve;
+                dispose(symderef);
+              end;
+            genericparaderefs.free;
+            genericparaderefs:=nil;
+          end;
       end;
 
 
@@ -2012,18 +2065,49 @@ implementation
 
 
    function tstoreddef.is_generic: boolean;
+     var
+       sym: tsym;
+       i: longint;
      begin
        result:=assigned(genericparas) and
                  (genericparas.count>0) and
                  (df_generic in defoptions);
+       if result then
+         { if any of the type parameters does *not* belong to as (meaning it was passed
+           in from outside) then we aren't a generic, but a specialization }
+         for i:=0 to genericparas.count-1 do
+           begin
+             sym:=tsym(genericparas[i]);
+             if sym.typ<>symconst.typesym then
+               internalerror(2014050903);
+             if sym.owner.defowner<>self then
+               exit(false);
+           end;
      end;
 
 
    function tstoreddef.is_specialization: boolean;
+     var
+       i : longint;
+       sym : tsym;
      begin
        result:=assigned(genericparas) and
                  (genericparas.count>0) and
                  (df_specialization in defoptions);
+       if result then
+         begin
+           { if at least one of the generic parameters is not owned by us (meaning it was
+             passed in from outside) then we have a specialization, otherwise we have a generic }
+           for i:=0 to genericparas.count-1 do
+             begin
+               sym:=tsym(genericparas[i]);
+               if sym.typ<>symconst.typesym then
+                 internalerror(2014050904);
+               if sym.owner.defowner=self then
+                 exit(true);
+             end;
+           result:=false;
+         end;
      end;
 
 
@@ -3349,7 +3433,6 @@ implementation
         tarraysymtable(symtable).deref;
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
-        fillgenericparas(symtable);
       end;
 
 
@@ -3931,8 +4014,6 @@ implementation
          else
            tstoredsymtable(symtable).deref;
 
-         fillgenericparas(symtable);
-
          { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
@@ -4158,7 +4239,6 @@ implementation
          tparasymtable(parast).deref;
          { recalculated parameters }
          calcparas;
-         fillgenericparas(parast);
       end;
 
 
@@ -5597,7 +5677,12 @@ implementation
          if ((po_methodpointer in procoptions) or
              is_nested_pd(self)) and
             not(po_addressonly in procoptions) then
-           size:=voidcodepointertype.size+voidpointertype.size
+           begin
+             if is_nested_pd(self) then
+               size:=voidcodepointertype.size+parentfpvoidpointertype.size
+             else
+               size:=voidcodepointertype.size+voidpointertype.size;
+           end
          else
            size:=voidcodepointertype.size;
       end;
@@ -6016,7 +6101,6 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
-         fillgenericparas(symtable);
          if objecttype=odt_helper then
            extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do

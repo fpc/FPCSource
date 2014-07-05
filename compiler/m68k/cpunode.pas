@@ -38,7 +38,7 @@ unit cpunode;
          n68kcal,
 //       nppccon,
 //       nppcflw,
-//       n68kmem,
+         n68kmem,
 //       nppcset,
 //       nppcinl,
 //       nppcopt,

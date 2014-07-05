@@ -40,7 +40,7 @@ uses
   {$ifdef USE_MINGW_GDB}
     fpmingw,
   {$else}
-    fpcygwin, 
+    fpcygwin,
   {$endif}
 {$endif Windows}
 {$endif NODEBUG}
@@ -53,6 +53,9 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
+{$ifdef VESA}
+  vesa,
+{$endif VESA}
   keyboard,video,mouse,
 {$ifdef HasSignal}
   fpcatch,
@@ -169,6 +172,17 @@ begin
             LFNSupport:=false;
           end else
 {$endif go32v2}
+{$ifdef VESA}
+        if UpcaseStr(Param)='NOVESA' then
+          begin
+            disableVESA:=true;
+          end else
+        if UpcaseStr(Param)='VESA' then
+          begin
+(* Force using VESA although it may have been disabled by default *)
+            disableVESA:=false;
+          end else
+{$endif VESA}
         if UpcaseStr(Param)='README' then
           begin
             ShowReadme:=true;
@@ -365,6 +379,8 @@ BEGIN
   InitCompilerSwitches;
 
 {$ifdef VESA}
+  writeln(stderr,'If program stops, try again using -novesa option');
+  flush(stderr);
   InitVESAScreenModes;
 {$endif}
   InitRedir;

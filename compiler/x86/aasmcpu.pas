@@ -1218,7 +1218,11 @@ implementation
                   begin
                     { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
                     { further, allow AAD and AAM with imm. operand }
-                    if (opsize=S_NO) and not((i in [1,2,3]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
+                    if (opsize=S_NO) and not((i in [1,2,3]) 
+{$ifndef x86_64}
+                      or ((i=0) and (opcode in [A_AAD,A_AAM]))
+{$endif x86_64}
+                      ) then
                       message(asmr_e_invalid_opcode_and_operand);
                     if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
                       ot:=OT_IMM8 or OT_SIGNED

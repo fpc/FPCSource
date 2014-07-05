@@ -237,8 +237,7 @@ begin
     GetShortName(p);
   { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) and
-   (arg_ofs<length(c)) do
+  while (arg_ofs<length(c)) and (c[arg_ofs] in [' ',#9]) do
     inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=Seg(c[arg_ofs]);
@@ -961,7 +960,7 @@ var
   ofs: Word;
   Ch, Ch2: Char;
 begin
-  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
   GetEnvStr := 1;
   OutEnvStr := '';
   ofs := 0;
@@ -1062,7 +1061,7 @@ end;
 
 Procedure Keep(exitcode: word); assembler;
 asm
-  mov bx, dos_psp
+  mov bx, PrefixSeg
   dec bx
   mov es, bx
   mov dx, es:[3]

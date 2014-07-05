@@ -1345,8 +1345,8 @@ begin
                            'rdb$procedure_id        as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           '''''                     as schema_name, '+
-                          'rdb$procedure_name       as proc_name, '+
-                          '0                        as proc_type, '+
+                          'rdb$procedure_name       as procedure_name, '+
+                          '0                        as procedure_type, '+
                           'rdb$procedure_inputs     as in_params, '+
                           'rdb$procedure_outputs    as out_params '+
                         'from '+

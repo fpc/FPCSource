@@ -36,8 +36,8 @@ function strnew(p : pchar) : pchar; overload;
 
 { Different from strings unit - ansistrings or different behaviour }
 function StrPas(Str: PChar): string;overload;
-function StrPCopy(Dest: PChar; Source: string): PChar;overload;
-function StrPLCopy(Dest: PChar; Source: string; MaxLen: SizeUInt): PChar;overload;
+function StrPCopy(Dest: PChar; Const Source: string): PChar;overload;
+function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
 function StrAlloc(Size: cardinal): PChar;
 function StrBufSize(Str: PChar): Cardinal;
 procedure StrDispose(Str: PChar);

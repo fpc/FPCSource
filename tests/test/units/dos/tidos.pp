@@ -22,6 +22,12 @@ uses dos;
 {$DEFINE NOEXESUFFIX}
 {$endif}
 
+{$ifdef msdos}
+  {$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    {$M 16384,0,16384}  { 16k stack, up to 16k heap }
+  {$endif}
+{$endif}
+
 procedure TestInfo;
 var
   dt    : DateTime;
@@ -75,17 +81,13 @@ begin
   writeln('**************');
   write('Press Enter for an Exec of ''hello -good -day''');
   Readln;
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
 {$ifdef noexesuffix}
   Exec('hello','-good -day');
 {$else}
   Exec('hello.exe','-good -day');
 {$endif}
-{$ifndef FPC}
   SwapVectors;
-{$endif FPC}
   writeln('Exit should be 213 : ',DosExitCode);
   writeln('Error code should be 0 : ',DosError);
   write('Press Enter');

@@ -255,6 +255,8 @@ implementation
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
                  Message(parser_e_default_value_only_one_para);
+               if not(vs.varspez in [vs_value,vs_const]) then
+                 Message(parser_e_default_value_val_const);
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
@@ -399,7 +401,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                hdef:=carraydef.create(0,-1,s32inttype);
+                hdef:=carraydef.create(0,-1,ptrsinttype);
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
@@ -547,6 +549,9 @@ implementation
         srsym : tsym;
         checkstack : psymtablestackitem;
         procstartfilepos : tfileposinfo;
+        i,
+        index : longint;
+        found,
         searchagain : boolean;
         st,
         genericst: TSymtable;
@@ -729,8 +734,7 @@ implementation
               begin
                 str(genparalist.count,gencount);
                 genname:=sp+'$'+gencount;
-                if not parse_generic then
-                  genname:=generate_generic_name(genname,specializename);
+                genname:=generate_generic_name(genname,specializename);
                 ugenname:=upper(genname);
 
                 srsym:=search_object_name(ugenname,false);
@@ -990,9 +994,34 @@ implementation
                 genericst:=pd.struct.genericdef.GetSymtable(gs_record);
                 if not assigned(genericst) then
                   internalerror(200512114);
-                { We are parsing the same objectdef, the def index numbers
-                  are the same }
-                pd.genericdef:=tstoreddef(genericst.DefList[pd.owner.DefList.IndexOf(pd)]);
+
+                { when searching for the correct procdef to use as genericdef we need to ignore
+                  everything except procdefs so that we can find the correct indices }
+                index:=0;
+                found:=false;
+                for i:=0 to pd.owner.deflist.count-1 do
+                  begin
+                    if tdef(pd.owner.deflist[i]).typ<>procdef then
+                      continue;
+                    if pd.owner.deflist[i]=pd then
+                      begin
+                        found:=true;
+                        break;
+                      end;
+                    inc(index);
+                  end;
+                if not found then
+                  internalerror(2014052301);
+
+                for i:=0 to genericst.deflist.count-1 do
+                  begin
+                    if tdef(genericst.deflist[i]).typ<>procdef then
+                      continue;
+                    if index=0 then
+                      pd.genericdef:=tstoreddef(genericst.deflist[i]);
+                    dec(index);
+                  end;
+
                 if not assigned(pd.genericdef) or
                    (pd.genericdef.typ<>procdef) then
                   internalerror(200512115);

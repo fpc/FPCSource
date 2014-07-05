@@ -474,14 +474,15 @@ implementation
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
         if (right.nodetype = ordconstn) and
+          ispowerof2(tordconstnode(right).value,power) and
 {$ifdef cpu64bitalu}
           { for 64 bit, we leave the optimization to the cg }
-            (not is_signed(resultdef)) and
+            (not is_signed(resultdef)) then
 {$else cpu64bitalu}
            (((nodetype=divn) and is_64bit(resultdef)) or
-            not is_signed(resultdef)) and
+            (nodetype=modn) or
+            not is_signed(resultdef)) then
 {$endif cpu64bitalu}
-           ispowerof2(tordconstnode(right).value,power) then
           begin
             if nodetype=divn then
               begin
@@ -529,6 +530,49 @@ implementation
                     tordconstnode(right).value:=power;
                     result:=cshlshrnode.create(shrn,left,right)
                   end;
+              end
+            else if is_signed(resultdef) then    { signed modulus }
+              begin
+                if (cs_opt_size in current_settings.optimizerswitches) then
+                  exit;
+
+                shiftval:=left.resultdef.size*8-1;
+                dec(tordconstnode(right).value.uvalue);
+
+                result:=internalstatements(statements);
+                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                addstatement(statements,resulttemp);
+                addstatement(statements,temp);
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),left));
+                { sign:=sar(left,sizeof(left)*8-1); }
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                  cinlinenode.create(in_sar_x_y,false,
+                    ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                    ccallparanode.create(ctemprefnode.create(temp),nil)
+                  )
+                )));
+
+                { result:=((((left xor sign)-sign) and right) xor sign)-sign; }
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                  caddnode.create(subn,
+                    caddnode.create(xorn,
+                      caddnode.create(andn,
+                        right,
+                        caddnode.create(subn,
+                          caddnode.create(xorn,
+                            ctemprefnode.create(resulttemp),
+                            ctemprefnode.create(temp)),
+                          ctemprefnode.create(resulttemp))
+                        ),
+                      ctemprefnode.create(resulttemp)
+                    ),
+                  ctemprefnode.create(resulttemp))
+                ));
+
+                addstatement(statements,ctempdeletenode.create(temp));
+                addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
+                addstatement(statements,ctemprefnode.create(resulttemp));
               end
             else
               begin

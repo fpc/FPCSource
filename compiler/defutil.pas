@@ -331,6 +331,13 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
+    {# returns the appropriate int type for pointer arithmetic with the given pointer type.
+       When adding or subtracting a number to/from a pointer, this function returns the
+       int type to which that number has to be converted, before the operation can be performed.
+       Normally, this is sinttype, except on i8086, where it takes into account the
+       special i8086 pointer types (near, far, huge). }
+    function get_int_type_for_pointer_arithmetic(p : tdef) : tdef;
+
 {$ifdef i8086}
     {# Returns true if p is a far pointer def }
     function is_farpointer(p : tdef) : boolean;
@@ -685,10 +692,10 @@ implementation
     { true, if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
       begin
-         { check for s32inttype is needed, because for u32bit the high
+         { check for ptrsinttype is needed, because for unsigned the high
            range is also -1 ! (PFV) }
          result:=(p.typ=arraydef) and
-                 (tarraydef(p).rangedef=s32inttype) and
+                 (tarraydef(p).rangedef=ptrsinttype) and
                  (tarraydef(p).lowrange=0) and
                  (tarraydef(p).highrange=-1) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
@@ -1431,6 +1438,17 @@ implementation
     function is_methodpointer(def: tdef): boolean;
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
+
+    function get_int_type_for_pointer_arithmetic(p : tdef) : tdef;
+      begin
+{$ifdef i8086}
+        if is_hugepointer(p) then
+          result:=s32inttype
+        else
+{$endif i8086}
+          result:=sinttype;
       end;
 
 {$ifdef i8086}

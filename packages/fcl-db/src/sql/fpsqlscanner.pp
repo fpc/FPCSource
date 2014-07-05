@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL source lexical scanner
 
@@ -29,7 +29,7 @@ resourcestring
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
   SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
-  SInvalidHexadecimalNumber = 'Invalid decimal number';
+  SInvalidHexadecimalNumber = 'Invalid hexadecimal number';
   SErrInvalidNonEqual = 'SyntaxError: != or !== expected';
   SBarExpected = '| character expected';
 
@@ -37,16 +37,22 @@ type
 
    TSQLToken = (tsqlUnknown,
    // Specials
-   tsqlEOF,tsqlWhiteSpace,tsqlString, tsqlIdentifier,tsqlIntegerNumber, tsqlFloatNumber, tsqlComment,
+   tsqlEOF,tsqlWhiteSpace,
+   tsqlString {string literal},
+   tsqlIdentifier {a table etc name},
+   tsqlSymbolString {a string containing symbols/punctuation marks; only rarely used - e.g. in SET TERM ^ ;},
+   tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
-   tsqlPlaceHolder,tsqlCOMMA,tsqlCOLON, tsqlDOT,tsqlSEMICOLON, tsqlGT,tsqlLT,
-   tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
-   tsqlEQ,tsqlGE, tsqlLE, tsqlNE,
-   { Reserved words start here. They must be last }
-   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto,tsqlAfter,tsqlAdmin,
-   tsqlBETWEEN, tsqlBY, tsqlBLOB,tsqlBegin,  tsqlBefore,
+   tsqlPlaceHolder {question mark},
+   tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,
+   tsqlGT,tsqlLT,tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
+   tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
+   { Reserved words/keywords start here. They must be last }
+   { Note: if adding before tsqlALL or after tsqlWHEN please update FirstKeyword/LastKeyword }
+   tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto, tsqlAfter,tsqlAdmin,
+   tsqlBETWEEN, tsqlBinary, tsqlBY, tsqlBLOB, tsqlBegin, tsqlBefore,
    tsqlCOLLATE, tsqlCONTAINING, tsqlCOUNT, tsqlCREATE, tsqlCOLUMN, tsqlCONSTRAINT, tsqlChar,tsqlCHARACTER, tsqlCHECK, tsqlComputed,tsqlCASCADE, tsqlCast, tsqlCommit,tsqlConnect,tsqlCache,tsqlConditional,tsqlCString,
-   tsqlDESC, tsqlDESCENDING, tsqlDISTINCT, tsqlDEFAULT, tsqlDELETE, tsqlDO, tsqlDECLARE, tsqlDROP, tsqlDomain, tsqlDecimal, tsqlDate,tsqlDatabase,
+   tsqlDESC, tsqlDESCENDING, tsqlDISTINCT, tsqlDEFAULT, tsqlDELETE, tsqlDO, tsqlDouble, tsqlDECLARE, tsqlDROP, tsqlDomain, tsqlDecimal, tsqlDate,tsqlDatabase,
    tsqlESCAPE, tsqlEXISTS, tsqlELSE, tsqlException,   tsqlExternal, tsqlExecute, tsqlEnd,tsqlExit,tsqlEntrypoint,tsqlExtract,
    tsqlFROM, tsqlFULL, tsqlFOREIGN, tsqlFOR, tsqlFUNCTION, tsqlFLOAT, tsqlFile,tsqlFreeIt,
    tsqlGenerator, tsqlGROUP, tsqlGenID,tsqlGDSCODE,tsqlGrant,
@@ -57,11 +63,11 @@ type
    tsqlLEFT, tsqlLIKE, tsqlLength,
    tsqlMAX, tsqlMIN, tsqlMERGE, tsqlManual, tsqlModuleName,
    tsqlNOT, tsqlNULL, tsqlNUMERIC , tsqlNChar, tsqlNATIONAL,tsqlNO, tsqlNatural,
-   tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
-   tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
+   tsqlOFF {not an FB reserved word; used in isql scripts}, tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
+   tsqlPrecision, tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
    tsqlRIGHT, tsqlROLE, tsqlReferences, tsqlRollBack, tsqlRelease,  tsqlretain,  tsqlReturningValues,tsqlReturns, tsqlrevoke,
    tsqlSELECT, tsqlSET, tsqlSINGULAR, tsqlSOME, tsqlSTARTING, tsqlSUM, tsqlSKIP,tsqlSUBTYPE,tsqlSize,tsqlSegment, tsqlSORT, tsqlSnapShot,tsqlSchema,tsqlShadow,tsqlSuspend,tsqlSQLCode,tsqlSmallint,
-   tSQLTABLE, tsqlTrigger,tsqlTime,tsqlTimeStamp,tsqlType, tsqlTo, tsqlTransaction,tsqlThen,
+   tSQLTABLE, tsqlText, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
    tsqlUNION, tsqlUPDATE, tsqlUPPER,  tsqlUNIQUE, tsqlUSER,
    tsqlValue, tsqlVALUES, tsqlVARIABLE,  tsqlVIEW, tsqlVARCHAR,TSQLVARYING,
    tsqlWHERE, tsqlWITH, tsqlWHILE, tsqlWork, tsqlWhen
@@ -71,22 +77,27 @@ type
 const
   FirstKeyword = tsqlAll;
   LastKeyWord = tsqlWhen;
-  sqlComparisons = [tsqleq,tsqlGE,tsqlLE,tsqlNE,tsqlGT,tsqlLT,tsqlIn, tsqlis,
-                    tsqlbetween,tsqlLike,tsqlContaining,tsqlStarting,tsqlnot];
-  sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlin,tsqlis, tsqlbetween];
+  sqlComparisons = [tsqleq,tsqlGE,tsqlLE,tsqlNE,tsqlGT,tsqlLT,tsqlIn,tsqlIS,
+                    tsqlbetween,tsqlLike,tsqlContaining,tsqlStarting,tsqlNOT];
+  sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlIN,tsqlIS, tsqlBetween];
 
+  // Strings that represent tokens in TSQLToken
   TokenInfos: array[TSQLToken] of string = ('unknown',
        // Specials
-       'EOF','whitespace','String', 'identifier','integer number','float number', 'comment',
+       'EOF','whitespace',
+       'String',
+       'identifier',
+       'symbol string',
+       'integer number','float number', 'comment',
        '(',')', '[',']',
        '?',',',':','.',';','>','<',
        '+','-','*','/','||',
        '=','>=','<=','<>',
-       // Identifiers last
+       // Identifiers last:
        'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AFTER', 'ADMIN',
-       'BETWEEN', 'BY', 'BLOB','BEGIN', 'BEFORE',
+       'BETWEEN', 'BINARY', 'BY', 'BLOB','BEGIN', 'BEFORE',
        'COLLATE', 'CONTAINING', 'COUNT', 'CREATE', 'COLUMN', 'CONSTRAINT', 'CHAR','CHARACTER','CHECK', 'COMPUTED','CASCADE','CAST', 'COMMIT', 'CONNECT', 'CACHE','CONDITIONAL', 'CSTRING',
-       'DESC', 'DESCENDING', 'DISTINCT',  'DEFAULT', 'DELETE', 'DO', 'DECLARE', 'DROP', 'DOMAIN', 'DECIMAL', 'DATE','DATABASE',
+       'DESC', 'DESCENDING', 'DISTINCT',  'DEFAULT', 'DELETE', 'DO', 'DOUBLE', 'DECLARE', 'DROP', 'DOMAIN', 'DECIMAL', 'DATE','DATABASE',
        'ESCAPE', 'EXISTS', 'ELSE', 'EXCEPTION', 'EXTERNAL','EXECUTE', 'END','EXIT','ENTRY_POINT','EXTRACT',
        'FROM', 'FULL','FOREIGN', 'FOR', 'FUNCTION', 'FLOAT','FILE', 'FREE_IT',
        'GENERATOR', 'GROUP', 'GEN_ID','GDSCODE','GRANT',
@@ -97,11 +108,11 @@ const
        'LEFT', 'LIKE', 'LENGTH',
        'MAX', 'MIN', 'MERGE', 'MANUAL', 'MODULE_NAME',
        'NOT', 'NULL', 'NUMERIC','NCHAR','NATIONAL', 'NO', 'NATURAL',
-       'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
-       'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
+       'OFF', 'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
+       'PRECISION', 'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
        'RIGHT', 'ROLE', 'REFERENCES', 'ROLLBACK','RELEASE', 'RETAIN', 'RETURNING_VALUES', 'RETURNS','REVOKE',
        'SELECT', 'SET', 'SINGULAR', 'SOME', 'STARTING', 'SUM', 'SKIP','SUB_TYPE', 'SIZE', 'SEGMENT', 'SORT', 'SNAPSHOT','SCHEMA','SHADOW','SUSPEND','SQLCODE','SMALLINT',
-       'TABLE','TRIGGER',  'TIME','TIMESTAMP',  'TYPE', 'TO', 'TRANSACTION','THEN',
+       'TABLE', 'TEXT', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
        'UNION', 'UPDATE', 'UPPER', 'UNIQUE', 'USER',
        'VALUE','VALUES','VARIABLE', 'VIEW','VARCHAR','VARYING',
        'WHERE', 'WITH', 'WHILE','WORK','WHEN'
@@ -170,12 +181,17 @@ Type
     FKeyWords : TFPHashList;
     FExclude : TStringList;
     function CommentDiv: TSQLToken;
+    // Used to parse out an identifier/name and store it in the list of identifiers
     function DoIdentifier : TSQLToken;
+    // Used to parse out a string containing symbols
+    function DoSymbolString : TSQLToken;
     function DoMultiLineComment: TSQLToken;
     function DoNumericLiteral: TSQLToken;
     function DoSingleLineComment: TSQLToken;
     function DoStringLiteral: TSQLToken;
     function DoWhiteSpace: TSQLToken;
+    // Reads a new line into TokenStr and returns true
+    // If no new lines, returns false
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
     function GetExcludeKeywords: TStrings;
@@ -209,11 +225,12 @@ Type
 implementation
 
 Var
+  // Keeps track of identifiers used
   IdentifierTokens : array[FirstKeyword..LastKeyWord] of TSQLToken;
   IdentifierTokensOK : Boolean;
 
 Resourcestring
-  SErrUNknownToken = 'Unknown token: %s';
+  SErrUnknownToken = 'Unknown token: %s';
 
 Procedure BuildIdentifierTokens;
 
@@ -314,10 +331,10 @@ begin
     Inc(TokenStr);
     if TokenStr[0] = #0 then
       if not FetchLine then
-       begin
-       FCurToken := Result;
-       exit;
-       end;
+        begin
+        FCurToken := Result;
+        exit;
+        end;
   until not (TokenStr[0] in [#9, ' ']);
 end;
 
@@ -452,7 +469,7 @@ begin
   If FKeywords.Count>0 then
     FKeywords.Clear;
   for I:=FirstKeyword to LastKeyword do
-    if (not Assigned(FExclude)) or (FExclude.INdexOf(TokenInfos[I])=-1) then
+    if (not Assigned(FExclude)) or (FExclude.IndexOf(TokenInfos[I])=-1) then
       FKeywords.Add(TokenInfos[I],@IdentifierTokens[i]);
 end;
 
@@ -614,7 +631,7 @@ function TSQLScanner.DoIdentifier : TSQLToken;
 Var
   TokenStart:PChar;
   Len : Integer;
-  I : TSQLToken;
+  {I : TSQLToken;}
   S : ShortString;
   P : ^TSQLToken;
 
@@ -631,12 +648,12 @@ begin
     Move(TokenStart^,FCurTokenString[1],Len);
   S:=UpperCase(FCurTokenString);
   // Check if this is a keyword or identifier
-  // !!!: Optimize this!
+  // to do: Optimize this!
   If FKeyWords.Count=0 then
     BuildKeyWords;
   P:=FKeyWords.Find(S);
   If (P<>Nil) then
-    Result:=P^;
+    Result:=P^; //keyword found
   { I:=FirstKeyword;
   While (Result=tsqlIdentifier) and (I<=Lastkeyword) do
     begin
@@ -648,6 +665,37 @@ begin
       end;
     I:=Succ(I);
     end;}
+end;
+
+function TSQLScanner.DoSymbolString : TSQLToken;
+
+Var
+  Len : Integer;
+  P : ^TSQLToken;
+  TokenStart : PChar;
+begin
+  Result:=tsqlUnknown;
+
+  // Get "word" finalized by end of string, space/tab/line ending.
+  TokenStart:=TokenStr;
+  repeat
+    Inc(TokenStr);
+  until (TokenStr[0] in [#0, #9, #10, #13, ' ']);
+  Len:=(TokenStr-TokenStart);
+  if Len > 0 then
+    begin
+    result:=tsqlSymbolString;
+    SetLength(FCurTokenString,Len);
+    Move(TokenStart^,FCurTokenString[1],Len);
+
+    // Check if this is a keyword or identifier/literal
+    // Probably not (due to naming rules) but it doesn't hurt
+    If FKeyWords.Count=0 then
+      BuildKeyWords;
+    P:=FKeyWords.Find(FCurTokenString); //case-sensitive search
+    If (P<>Nil) then
+      Result:=P^; //keyword found, just in case
+    end;
 end;
 
 function TSQLScanner.FetchToken: TSQLToken;
@@ -817,7 +865,7 @@ begin
       begin
       Inc(TokenStr);
       if TokenStr[0] = '=' then
-	begin
+	      begin
         Inc(TokenStr);
         Result:=tsqlGE;
         end
@@ -828,7 +876,9 @@ begin
    'A'..'Z':
      Result:=DoIdentifier;
    else
-     Error(SErrUnknownToken,[TokenStr[0]]);
+     // Symbol of some sort
+     Result:=DoSymbolString;
+     //Error(SErrUnknownToken,[TokenStr[0]]);
    end; // Case
   Until (Not (Result in [tsqlComment,tsqlWhitespace])) or
         ((Result=tsqlComment) and (soReturnComments in options)) or

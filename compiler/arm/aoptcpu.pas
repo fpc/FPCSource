@@ -1206,6 +1206,12 @@ Implementation
                           (taicpu(hp1).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg))
                        ) and
                        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
+
+                       // Make sure that Thumb code doesn't propagate a high register into a reference
+                       ((GenerateThumbCode and
+                         (getsupreg(taicpu(p).oper[1]^.reg) < RS_R8)) or
+                        (not GenerateThumbCode)) and
+
                        RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
                       begin
                         DebugMsg('Peephole MovLdr2Ldr done', hp1);
@@ -1600,7 +1606,8 @@ Implementation
                       to
                       str/ldr reg3,[reg1,const2+/-const1]
                     }
-                    if (taicpu(p).opcode in [A_ADD,A_SUB]) and
+                    if (not GenerateThumbCode) and
+                       (taicpu(p).opcode in [A_ADD,A_SUB]) and
                        (taicpu(p).ops>2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) then
@@ -1695,6 +1702,8 @@ Implementation
                       (taicpu(p).oper[2]^.typ = top_reg) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1,[A_ADD,A_SUB],[C_None],[PF_None]) and
+                      (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
+                      (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p, hp1)) and
 
                       (((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype>=cpu_armv4)) or
                        ((taicpu(hp1).opcode=A_SUB) and (current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and

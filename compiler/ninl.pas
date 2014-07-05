@@ -1874,9 +1874,9 @@ implementation
             else
               begin
                 if r=0.0 then
-                  result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
-                else
                   result:=crealconstnode.create(MathNegInf.Value,pbestrealtype^)
+                else
+                  result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
               end
           else
             result:=crealconstnode.create(ln(r),pbestrealtype^)
@@ -2412,9 +2412,9 @@ implementation
                   if left.nodetype=ordconstn then
                     begin
                       if tordconstnode(left).value<0 then
-                        result:=cordconstnode.create((-tordconstnode(left).value),s32inttype,false)
+                        result:=cordconstnode.create((-tordconstnode(left).value),resultdef,false)
                       else
-                        result:=cordconstnode.create((tordconstnode(left).value),s32inttype,false);
+                        result:=cordconstnode.create((tordconstnode(left).value),resultdef,false);
                     end
                 end;
               in_sqr_real :
@@ -2425,24 +2425,12 @@ implementation
               in_sqrt_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                    begin
-                      vr:=getconstrealvalue;
-                      if vr<0.0 then
-                        result:=handle_sqrt_const(vr)
-                      else
-                        setconstrealvalue(sqrt(vr));
-                    end
+                    result:=handle_sqrt_const(getconstrealvalue);
                 end;
               in_ln_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
-                   begin
-                     vr:=getconstrealvalue;
-                     if vr<=0.0 then
-                       result:=handle_ln_const(vr)
-                     else
-                       setconstrealvalue(ln(vr));
-                   end
+                    result:=handle_ln_const(getconstrealvalue);
                 end;
               in_assert_x_y :
                 begin
@@ -2469,8 +2457,27 @@ implementation
     function tinlinenode.pass_typecheck:tnode;
 
       procedure setfloatresultdef;
+        var
+          hnode: tnode;
         begin
-          if (left.resultdef.typ=floatdef) and
+          { System unit declares internal functions like this:
+              function foo(x: valreal): valreal; [internproc: number];
+            Calls to such functions are initially processed by callnode,
+            which typechecks the arguments, possibly inserting conversion to valreal.
+            To handle smaller types without excess precision, we need to remove
+            these extra typecasts. }
+          if (left.nodetype=typeconvn) and
+            (ttypeconvnode(left).left.resultdef.typ=floatdef) and
+            (left.flags*[nf_explicit,nf_internal]=[]) and
+            (tfloatdef(ttypeconvnode(left).left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
+            begin
+              hnode:=ttypeconvnode(left).left;
+              ttypeconvnode(left).left:=nil;
+              left.free;
+              left:=hnode;
+              resultdef:=left.resultdef;
+            end
+          else if (left.resultdef.typ=floatdef) and
             (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
             resultdef:=left.resultdef
           else
@@ -3093,7 +3100,6 @@ implementation
               in_cos_real,
               in_sin_real,
               in_arctan_real,
-              in_abs_real,
               in_ln_real :
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -3133,10 +3139,10 @@ implementation
               in_abs_long:
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  inserttypeconv(left,s32inttype);
-                  resultdef:=s32inttype;
+                  resultdef:=left.resultdef;
                 end;
 
+              in_abs_real,
               in_sqr_real,
               in_sqrt_real :
                 begin
@@ -3161,7 +3167,11 @@ implementation
                     begin
                       set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                       { check type }
-                      if is_boolean(left.resultdef) then
+                      if is_boolean(left.resultdef) or
+                          (
+                            (left.resultdef.typ=undefineddef) and
+                            (df_generic in current_procinfo.procdef.defoptions)
+                          ) then
                         begin
                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                            { must always be a string }
@@ -3709,8 +3719,8 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_abs_real := ccallnode.createintern('fpc_abs_real',
-                ccallparanode.create(left,nil));
+        first_abs_real := ctypeconvnode.create(ccallnode.createintern('fpc_abs_real',
+                ccallparanode.create(left,nil)),resultdef);
         left := nil;
       end;
 
@@ -3729,11 +3739,43 @@ implementation
       end;
 
      function tinlinenode.first_sqrt_real : tnode;
+      var
+        fdef: tdef;
+        procname: string[31];
       begin
-        { create the call to the helper }
-        { on entry left node contains the parameter }
-        first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
+        if ((cs_fp_emulation in current_settings.moduleswitches)
+{$ifdef cpufpemu}
+            or (current_settings.fputype=fpu_soft)
+{$endif cpufpemu}
+            ) and not (target_info.system in systems_wince) then
+          begin
+            case tfloatdef(left.resultdef).floattype of
+              s32real:
+                begin
+                  fdef:=search_system_type('FLOAT32REC').typedef;
+                  procname:='float32_sqrt';
+                end;
+              s64real:
+                begin
+                  fdef:=search_system_type('FLOAT64').typedef;
+                  procname:='float64_sqrt';
+                end;
+              {!!! not yet implemented
+              s128real:
+              }
+            else
+              internalerror(2014052101);
+            end;
+            first_sqrt_real:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+               ctypeconvnode.create_internal(left,fdef),nil)),resultdef);
+          end
+        else
+          begin
+            { create the call to the helper }
+            { on entry left node contains the parameter }
+            first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
                 ccallparanode.create(left,nil)),resultdef);
+          end;
         left := nil;
       end;
 

@@ -268,7 +268,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
         secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -325,7 +327,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
       var
         sep     : string[3];
@@ -1842,7 +1846,9 @@ implementation
          sec_none (* sec_objc_nlclasslist *),
          sec_none (* sec_objc_catlist *),
          sec_none (* sec_objc_nlcatlist *),
-         sec_none (* sec_objc_protlist *)
+         sec_none (* sec_objc_protlist *),
+         sec_none (* sec_stack *),
+         sec_none (* sec_heap *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

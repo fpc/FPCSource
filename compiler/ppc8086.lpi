@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="229">
+    <Units Count="230">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -180,6 +180,7 @@
       <Unit30>
         <Filename Value="x86\agx86int.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="agx86int"/>
       </Unit30>
       <Unit31>
         <Filename Value="x86\cga.pas"/>
@@ -506,10 +507,12 @@
       <Unit97>
         <Filename Value="aasmbase.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmbase"/>
       </Unit97>
       <Unit98>
         <Filename Value="aasmdata.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmdata"/>
       </Unit98>
       <Unit99>
         <Filename Value="aasmsym.pas"/>
@@ -518,6 +521,7 @@
       <Unit100>
         <Filename Value="aggas.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aggas"/>
       </Unit100>
       <Unit101>
         <Filename Value="agjasmin.pas"/>
@@ -673,6 +677,7 @@
       <Unit138>
         <Filename Value="gendef.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="gendef"/>
       </Unit138>
       <Unit139>
         <Filename Value="globstat.pas"/>
@@ -794,10 +799,12 @@
       <Unit167>
         <Filename Value="ogbase.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ogbase"/>
       </Unit167>
       <Unit168>
         <Filename Value="ogelf.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ogelf"/>
       </Unit168>
       <Unit169>
         <Filename Value="oglx.pas"/>
@@ -878,6 +885,7 @@
       <Unit188>
         <Filename Value="pdecobj.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="pdecobj"/>
       </Unit188>
       <Unit189>
         <Filename Value="pdecvar.pas"/>
@@ -1050,6 +1058,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tgcpu"/>
       </Unit228>
+      <Unit229>
+        <Filename Value="i8086\n8086util.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="n8086util"/>
+      </Unit229>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

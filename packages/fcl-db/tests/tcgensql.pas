@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library
-    Copyright (c) 2010 by the Free Pascal development team
+    Copyright (c) 2010-2014 by the Free Pascal development team
 
     SQL Syntax Tree SQL generation tests
 
@@ -31,11 +31,11 @@ type
   Private
     FToFree:TSQLElement;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override;
-    procedure DoTestDropStatement(AClass: TSQLDropStatementClass; const AObjectName: String);
-    procedure DoTestAlterCreateProcedure(S: TSQLAlterCreateProcedureStatement; PHEAD: String);
-    procedure DoTestAlterCreateTrigger(S: TSQLAlterCreateTriggerStatement; PHEAD: String);
+    Procedure SetUp; override;
+    Procedure TearDown; override;
+    Procedure DoTestDropStatement(AClass: TSQLDropStatementClass; const AObjectName: String);
+    Procedure DoTestAlterCreateProcedure(S: TSQLAlterCreateProcedureStatement; PHEAD: String);
+    Procedure DoTestAlterCreateTrigger(S: TSQLAlterCreateTriggerStatement; PHEAD: String);
     Function CreateIdentifier(Const AName : TSQLStringType) : TSQLIdentifierName;
     Function CreateGrantee(Const AName : TSQLStringType; AClass : TSQLGranteeClass = Nil) : TSQLGrantee;
     Function CreateLiteral(Const AValue : Integer) : TSQLIntegerLiteral;
@@ -962,22 +962,21 @@ begin
   AssertSQL(J,'A LEFT JOIN B ON (C = D)');
   J.JoinType:=jtRight;
   AssertSQL(J,'A RIGHT JOIN B ON (C = D)');
-  J.JoinType:=jtOuter;
-  AssertSQL(J,'A OUTER JOIN B ON (C = D)');
-  AssertSQL(J,'A'+sLinebreak+'OUTER JOIN B ON (C = D)',[sfoOneTablePerLine]);
-  AssertSQL(J,'A'+sLinebreak+'  OUTER JOIN B ON (C = D)',[sfoOneTablePerLine,sfoIndentTables]);
+  J.JoinType:=jtFullOuter;
+  AssertSQL(J,'A FULL OUTER JOIN B ON (C = D)');
+  AssertSQL(J,'A'+sLinebreak+'FULL OUTER JOIN B ON (C = D)',[sfoOneTablePerLine]);
+  AssertSQL(J,'A'+sLinebreak+'  FULL OUTER JOIN B ON (C = D)',[sfoOneTablePerLine,sfoIndentTables]);
   J2:=CreateJoinTableReference(CreateSimpleTableReference('E',''),CreateSimpleTableReference('F',''));
   J2.JoinClause:=CreateBinaryExpression(CreateIdentifierExpression('G'),CreateIdentifierExpression('H'));
   TSQLBinaryExpression(J2.JoinClause).Operation:=boEQ;
   J.Right.Free;
   J.Right:=J2;
   FTofree:=J;
-  AssertSQL(J,'A OUTER JOIN (E JOIN F ON (G = H)) ON (C = D)');
-  AssertSQL(J,'A OUTER JOIN E JOIN F ON (G = H) ON (C = D)',[sfoNoBracketRightJoin]);
+  AssertSQL(J,'A FULL OUTER JOIN (E JOIN F ON (G = H)) ON (C = D)');
+  AssertSQL(J,'A FULL OUTER JOIN E JOIN F ON (G = H) ON (C = D)',[sfoNoBracketRightJoin]);
   J.Right:=J.Left;
   J.Left:=J2;
-  AssertSQL(J,'(E JOIN F ON (G = H)) OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
-
+  AssertSQL(J,'(E JOIN F ON (G = H)) FULL OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
 end;
 
 procedure TTestGenerateSQL.TestPlanNatural;
@@ -2015,14 +2014,14 @@ begin
   AssertSQL(S,'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('A');
-  P.ParamType:=CreatetypeDefinition(sdtInteger,0);
+  P.ParamType:=CreateTypeDefinition(sdtInteger,0);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');
   AssertSQL(S,'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('B');
-  P.ParamType:=CreatetypeDefinition(sdtChar,5);
+  P.ParamType:=CreateTypeDefinition(sdtChar,5);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,'DECLARE VARIABLE A INT;'+sLineBreak+'DECLARE VARIABLE B CHAR(5);'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');
@@ -2047,7 +2046,7 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('I');
-  P.ParamType:=CreatetypeDefinition(sdtInteger,0);
+  P.ParamType:=CreateTypeDefinition(sdtInteger,0);
   FToFree:=S;
   S.InputVariables.Add(P);
   H:=PHEAD+' (I INT)'+sLineBreak+'AS'+sLineBreak;
@@ -2055,7 +2054,7 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('J');
-  P.ParamType:=CreatetypeDefinition(sdtChar,5);
+  P.ParamType:=CreateTypeDefinition(sdtChar,5);
   FToFree:=S;
   S.InputVariables.Add(P);
   H:=PHEAD+' (I INT , J CHAR(5))'+sLineBreak+'AS'+sLineBreak;
@@ -2063,7 +2062,7 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('R');
-  P.ParamType:=CreatetypeDefinition(sdtInteger,0);
+  P.ParamType:=CreateTypeDefinition(sdtInteger,0);
   FToFree:=S;
   S.OutputVariables.Add(P);
   H:=PHEAD+' (I INT , J CHAR(5))'+sLineBreak+'RETURNS (R INT)'+sLineBreak+'AS'+sLineBreak;
@@ -2071,7 +2070,7 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('S');
-  P.ParamType:=CreatetypeDefinition(sdtChar,5);
+  P.ParamType:=CreateTypeDefinition(sdtChar,5);
   FToFree:=S;
   S.OutputVariables.Add(P);
   H:=PHEAD+' (I INT , J CHAR(5))'+sLineBreak+'RETURNS (R INT , S CHAR(5))'+sLineBreak+'AS'+sLineBreak;
@@ -2079,14 +2078,14 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('A');
-  P.ParamType:=CreatetypeDefinition(sdtInteger,0);
+  P.ParamType:=CreateTypeDefinition(sdtInteger,0);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('B');
-  P.ParamType:=CreatetypeDefinition(sdtChar,5);
+  P.ParamType:=CreateTypeDefinition(sdtChar,5);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'DECLARE VARIABLE B CHAR(5);'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');
@@ -2142,14 +2141,14 @@ begin
   AssertSQL(S,H+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('A');
-  P.ParamType:=CreatetypeDefinition(sdtInteger,0);
+  P.ParamType:=CreateTypeDefinition(sdtInteger,0);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'BEGIN'+sLineBreak+'  EXIT;'+sLineBreak+'END',[sfoIndentProcedureBlock]);
   P:=TSQLProcedureParamDef.Create(Nil);
   P.ParamName:=CreateIdentifier('B');
-  P.ParamType:=CreatetypeDefinition(sdtChar,5);
+  P.ParamType:=CreateTypeDefinition(sdtChar,5);
   FToFree:=S;
   S.LocalVariables.Add(P);
   AssertSQL(S,H+'DECLARE VARIABLE A INT;'+sLineBreak+'DECLARE VARIABLE B CHAR(5);'+sLineBreak+'BEGIN'+sLineBreak+'EXIT;'+sLineBreak+'END');

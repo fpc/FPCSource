@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
@@ -1293,7 +1293,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1363,21 +1363,7 @@ implementation
                       if (current_structdef.objname^='TOBJECT') then
                         class_tobject:=current_objectdef
                       else if (current_objectdef.objname^='JLOBJECT') then
-                        begin
-                          java_jlobject:=current_objectdef;
-                          { the methodpointer type is normally created in
-                            psystem, but java_jlobject is not yet available
-                            there... }
-                          hrecst:=trecordsymtable.create('',1);
-                          fsym:=cfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          fsym:=cfieldvarsym.create('$data',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          methodpointertype:=crecorddef.create('',hrecst);
-                          systemunit.insert(ctypesym.create('$methodpointer',methodpointertype));
-                        end
+                        java_jlobject:=current_objectdef
                       else if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef
                       else if (current_objectdef.objname^='FPCBASERECORDTYPE') then
@@ -1411,9 +1397,9 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=current_structdef
+          current_specializedef:=current_structdef;
         { reject declaration of generic class inside generic class }
-        else if assigned(genericlist) then
+        if assigned(genericlist) then
           current_genericdef:=current_structdef;
 
         { nested types of specializations are specializations as well }
@@ -1496,10 +1482,12 @@ implementation
             parse_guid;
 
             { classes can handle links to themself not only inside type blocks
-              but in const blocks too. to make this possible we need to set
-              their symbols to real defs instead of errordef }
+              but in const blocks too. Additionally this is needed to parse parameters that are
+              specializations of the currently parsed type in basically everything except C++ and
+              ObjC classes. To make this possible we need to set their symbols to real defs instead
+              of errordef }
 
-            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass,odt_interfacejava]) then
+            if assigned(objsym) and not (objecttype in [odt_cppclass,odt_objccategory,odt_objcclass,odt_objcprotocol]) then
               begin
                 olddef:=ttypesym(objsym).typedef;
                 ttypesym(objsym).typedef:=current_structdef;

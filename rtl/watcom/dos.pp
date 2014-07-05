@@ -228,7 +228,7 @@ begin
   la_e:=la_e+16;
 { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) do
+  while (arg_ofs < Length (C)) and (c[arg_ofs] in [' ',#9]) do
    inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=(la_c+arg_ofs) shr 4;
@@ -239,12 +239,12 @@ begin
 { allocate second FCB see dosexec code }
   repeat
     inc(arg_ofs);
-  until (c[arg_ofs] in [' ',#9,#13]);
-  if c[arg_ofs]<>#13 then
+  until (Arg_Ofs >= Length (C)) or (c[arg_ofs] in [' ',#9,#13]);
+  if (c[arg_ofs]<>#13) and (Arg_Ofs < Length (C)) then
    begin
      repeat
        inc(arg_ofs);
-     until not (c[arg_ofs] in [' ',#9]);
+     until (Arg_Ofs > Length (C)) or not (c[arg_ofs] in [' ',#9]);
    end;
   dosregs.ax:=$2901;
   dosregs.ds:=(la_c+arg_ofs) shr 4;

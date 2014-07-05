@@ -358,7 +358,9 @@ interface
                 begin
                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
                           (opcode = A_LSS) or (opcode = A_LFS) or
+{$ifndef x86_64}
                           (opcode = A_LES) or (opcode = A_LDS) or
+{$endif x86_64}
                          // (opcode = A_SHR) or (opcode = A_SHL) or
                          // (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
@@ -422,23 +424,10 @@ interface
             else
               begin
                 if ai.opsize=S_FAR then
-                  AsmWrite('far ')
-                else
-                  begin
-{ NEAR forces NASM to emit near jumps, which are 386+ }
-{$ifndef i8086}
-                if not(
-                       (ai.opcode=A_JCXZ) or (ai.opcode=A_JECXZ) or
-    {$ifdef x86_64}
-                       (ai.opcode=A_JRCXZ) or
-    {$endif x86_64}
-                       (ai.opcode=A_LOOP) or (ai.opcode=A_LOOPE) or
-                       (ai.opcode=A_LOOPNE) or (ai.opcode=A_LOOPNZ) or
-                       (ai.opcode=A_LOOPZ)
-                      ) then
-                  AsmWrite('NEAR ');
-{$endif i8086}
-                  end;
+                  AsmWrite('far ');
+                { else
+                   AsmWrite('near ') just disables short branches, increasing code size. 
+                   Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
                 AsmWrite(o.ref^.symbol.name);
                 if SmartAsm then
@@ -519,7 +508,9 @@ interface
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
       begin
         AsmLn;
@@ -537,6 +528,16 @@ interface
           AsmWrite('.tls'#9'bss')
         else if secnames[atype]='.text' then
           AsmWrite(CodeSectionName(aname))
+{$ifdef i8086}
+        else if (target_info.system=system_i8086_msdos) and
+                (atype=sec_stack) and
+                (current_settings.x86memorymodel in x86_far_data_models) then
+          AsmWrite('stack stack class=stack align=16')
+        else if (target_info.system=system_i8086_msdos) and
+                (atype=sec_heap) and
+                (current_settings.x86memorymodel in x86_far_data_models) then
+          AsmWrite('heap class=heap align=16')
+{$endif i8086}
         else
           AsmWrite(secnames[atype]);
         if create_smartlink_sections and
@@ -1053,7 +1054,7 @@ interface
 
     procedure TX86NasmAssembler.WriteHeader;
       begin
-{$ifdef i8086}
+{$if defined(i8086)}
       AsmWriteLn('BITS 16');
       case current_settings.cputype of
         cpu_8086: AsmWriteLn('CPU 8086');
@@ -1073,14 +1074,21 @@ interface
         AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata');
-      AsmWriteLn('SECTION .data');
-      AsmWriteLn('SECTION .fpc');
+      AsmWriteLn('SECTION .rodata class=data');
+      AsmWriteLn('SECTION .data class=data');
+      AsmWriteLn('SECTION .fpc class=data');
       { WLINK requires class=bss in order to leave the BSS section out of the executable }
       AsmWriteLn('SECTION .bss class=bss');
+      if (current_settings.x86memorymodel<>mm_tiny) and
+         (current_settings.x86memorymodel in x86_near_data_models) then
+        AsmWriteLn('SECTION stack stack class=stack align=16');
+      if current_settings.x86memorymodel in x86_near_data_models then
+        AsmWriteLn('SECTION heap class=heap align=16');
       { group these sections in the same segment }
       if current_settings.x86memorymodel=mm_tiny then
-        AsmWriteLn('GROUP dgroup text rodata data fpc bss')
+        AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
+      else if current_settings.x86memorymodel in x86_near_data_models then
+        AsmWriteLn('GROUP dgroup rodata data fpc bss stack heap')
       else
         AsmWriteLn('GROUP dgroup rodata data fpc bss');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
@@ -1092,16 +1100,14 @@ interface
         end;
       if not (cs_huge_code in current_settings.moduleswitches) then
         AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));
-{$else i8086}
-{$ifdef i386}
+{$elseif defined(i386)}
       AsmWriteLn('BITS 32');
       using_relative:=false;
-{$else not i386}
+{$elseif defined(x86_64)}
       AsmWriteLn('BITS 64');
       AsmWriteLn('default rel');
       using_relative:=true;
-{$endif not i386}
-{$endif i8086}
+{$endif}
       end;
 
 

@@ -347,17 +347,21 @@ end;
 procedure TTestParser.TestErrors;
 
 begin
+{
   DoTestError('a');
   DoTestError('"b');
   DoTestError('1Tru');
+}
   DoTestError('b"');
   DoTestError('{"a" : }');
   DoTestError('{"a" : ""');
   DoTestError('{"a : ""');
+{
   DoTestError('[1,]');
   DoTestError('[,]');
   DoTestError('[,,]');
   DoTestError('[1,,]');
+}
 end;
 
 procedure TTestParser.TestClasses;

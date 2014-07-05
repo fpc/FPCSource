@@ -178,6 +178,7 @@
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define cpuneedsdiv32helper}
 {$endif m68k}
 
 {$ifdef avr}
