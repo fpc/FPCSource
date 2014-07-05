@@ -835,7 +835,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
               datatcb:=ctai_typedconstbuilder.create;
-              current_asmdata.getdatalabel(ll);
+              current_asmdata.getlabel(ll,alt_data);
               if node.nodetype=stringconstn then
                 varalign:=size_2_align(tstringconstnode(node).len)
               else
@@ -886,7 +886,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
-                  current_asmdata.getdatalabel(ll);
+                  current_asmdata.getlabel(ll,alt_data);
                   { convert to unicodestring stringconstn }
                   inserttypeconv(node,cunicodestringtype);
                   if (node.nodetype=stringconstn) and
