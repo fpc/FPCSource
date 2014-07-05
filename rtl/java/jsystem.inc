@@ -1082,7 +1082,7 @@ begin
   System_exit;
 end;
 
-procedure internal_do_exit; external name 'FPC_DO_EXIT';
+procedure internal_do_exit; external name 'fpc_do_exit';
 
 
 Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
