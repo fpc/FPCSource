@@ -57,6 +57,13 @@ begin
   if eq or not neq then
     Error(4);
 
+  FarPtr := Ptr($1234, $5678);
+  FarPtr2 := Ptr($1235, $5668);
+  eq := FarPtr = FarPtr2;
+  neq := FarPtr <> FarPtr2;
+  if eq or not neq then
+    Error(5);
+
   Writeln('var, ptr(const)');
   FarPtr := Ptr($1234, $5678);
   eq := FarPtr = Ptr($1234, $5678);
@@ -82,6 +89,12 @@ begin
   if eq or not neq then
     Error(4);
 
+  FarPtr := Ptr($1234, $5678);
+  eq := FarPtr = Ptr($1235, $5668);
+  neq := FarPtr <> Ptr($1235, $5668);
+  if eq or not neq then
+    Error(5);
+
   Writeln('ptr(const), ptr(const)');
   eq := Ptr($1234, $5678) = Ptr($1234, $5678);
   neq := Ptr($1234, $5678) <> Ptr($1234, $5678);
@@ -102,6 +115,11 @@ begin
   neq := Ptr($1234, $5678) <> Ptr($4321, $8765);
   if eq or not neq then
     Error(4);
+
+  eq := Ptr($1234, $5678) = Ptr($1235, $5668);
+  neq := Ptr($1234, $5678) <> Ptr($1235, $5668);
+  if eq or not neq then
+    Error(5);
 
   Writeln('var, nil');
   FarPtr := Ptr(0, 0);
