@@ -5231,7 +5231,7 @@ implementation
 {$ifdef symansistr}
         if _mangledname='' then
           begin
-            result:=globalsymbolmangleprefix+defaultmangledname+globalsymbolmanglesuffix;
+            result:=defaultmangledname;
             _mangledname:=result;
           end
         else
@@ -5239,7 +5239,7 @@ implementation
 {$else symansistr}
         if not assigned(_mangledname) then
           begin
-            result:=globalsymbolmangleprefix+defaultmangledname+globalsymbolmanglesuffix;
+            result:=defaultmangledname;
             _mangledname:=stringdup(mangledname);
           end
         else
@@ -5502,9 +5502,9 @@ implementation
         include(procoptions,po_has_mangledname);
 {$else}
   {$ifdef symansistr}
-        _mangledname:=globalsymbolmangleprefix+s+globalsymbolmanglesuffix;
+        _mangledname:=s;
   {$else symansistr}
-        _mangledname:=stringdup(globalsymbolmangleprefix+s+globalsymbolmanglesuffix);
+        _mangledname:=stringdup(s);
   {$endif symansistr}
 {$endif jvm}
         include(procoptions,po_has_mangledname);

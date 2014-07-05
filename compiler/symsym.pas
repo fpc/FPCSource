@@ -1715,7 +1715,7 @@ implementation
 {$endif symansistr}
             else
               begin
-                result:=globalsymbolmangleprefix+target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName+globalsymbolmanglesuffix;
+                result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
 {$ifdef symansistr}
                 cachedmangledname:=result;
 {$else symansistr}
@@ -1927,13 +1927,13 @@ implementation
               usename:=name
             else
               usename:=_mangledbasename;
-            _mangledname:=globalsymbolmangleprefix+make_mangledname(prefix,owner,usename)+globalsymbolmanglesuffix;
+            _mangledname:=make_mangledname(prefix,owner,usename);
 {$else symansistr}
             if not assigned(_mangledbasename) then
               usename:=name
             else
               usename:=_mangledbasename^;
-            _mangledname:=stringdup(globalsymbolmangleprefix+make_mangledname(prefix,owner,usename)+globalsymbolmanglesuffix);
+            _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
 {$endif symansistr}
           end;
 {$ifdef symansistr}
@@ -1974,10 +1974,10 @@ implementation
     procedure tstaticvarsym.set_mangledname(const s:TSymStr);
       begin
 {$ifdef symansistr}
-        _mangledname:=globalsymbolmangleprefix+s+globalsymbolmanglesuffix;
+        _mangledname:=s;
 {$else symansistr}
         stringdispose(_mangledname);
-        _mangledname:=stringdup(globalsymbolmangleprefix+s+globalsymbolmanglesuffix);
+        _mangledname:=stringdup(s);
 {$endif symansistr}
         include(varoptions,vo_has_mangledname);
       end;
@@ -2199,7 +2199,7 @@ implementation
       begin
          case abstyp of
            toasm :
-             mangledname:=globalsymbolmangleprefix+asmname^+globalsymbolmanglesuffix;
+             mangledname:=asmname^;
            toaddr :
              mangledname:='$'+tostr(addroffset);
            else

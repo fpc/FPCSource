@@ -41,7 +41,7 @@ implementation
 
   function llvmparaname(sym: tparavarsym; paralocnr: longint): TSymStr;
     begin
-      result:='%p.'+sym.realname;
+      result:='p.'+sym.realname;
       { use the same convention as llvm-gcc and clang: if an aggregate parameter
         is split into multiple locations, suffix each part with '.coerce#' }
       if assigned(sym.paraloc[calleeside].location^.next) then

@@ -28,6 +28,7 @@ interface
 
     uses
       cclasses,globtype,
+      aasmbase,
       parabase,
       symbase,symtype,symdef,
       llvmbase;
@@ -95,6 +96,13 @@ interface
     function llvmaggregatetype(def: tdef): boolean;
 
     function llvmconvop(fromsize, tosize: tdef): tllvmop;
+
+    { mangle a global identifier so that it's recognised by LLVM as a global
+      (in the sense of module-global) label and so that it won't mangle the
+      name further according to platform conventions (we already did that) }
+    function llvmmangledname(const s: TSymStr): TSymStr;
+
+    function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
 
 
 implementation
@@ -193,6 +201,24 @@ implementation
           else
             result:=la_bitcast;
         end;
+    end;
+
+
+  function llvmmangledname(const s: TSymStr): TSymStr;
+    begin
+      result:='@"\01'+s+'"';
+    end;
+
+  function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
+    begin
+      { AT_ADDR and AT_LABEL represent labels in the code, which have
+        a different type in llvm compared to (global) data labels }
+      if sym.bind=AB_TEMP then
+        result:='%'+sym.name
+      else if not(sym.typ in [AT_LABEL,AT_ADDR]) then
+        result:=llvmmangledname(sym.name)
+      else
+        result:='label %'+sym.name;
     end;
 
 
@@ -517,7 +543,7 @@ implementation
             begin
               if paraloc^.llvmloc.loc<>LOC_REFERENCE then
                 internalerror(2014010803);
-              encodedstr:=encodedstr+' '+paraloc^.llvmloc.sym.name;
+              encodedstr:=encodedstr+' '+llvmasmsymname(paraloc^.llvmloc.sym);
             end;
           paraloc:=paraloc^.next;
         until not assigned(paraloc);
@@ -563,9 +589,9 @@ implementation
         if (pddecltype in [lpd_decl]) and
            (def.typ=procdef) then
           if customname='' then
-            encodedstr:=encodedstr+tprocdef(def).mangledname
+            encodedstr:=encodedstr+llvmmangledname(tprocdef(def).mangledname)
           else
-            encodedstr:=encodedstr+customname;
+            encodedstr:=encodedstr+llvmmangledname(customname);
         encodedstr:=encodedstr+'(';
         { parameters }
         first:=true;

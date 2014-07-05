@@ -135,6 +135,8 @@ implementation
       end;
 
 
+
+
  {****************************************************************************}
  {                        LLVM Instruction writer                             }
  {****************************************************************************}
@@ -181,7 +183,7 @@ implementation
          if ref.base<>NR_NO then
            result:=result+getregisterstring(ref.base)
          else
-           result:=result+ref.symbol.name;
+           result:=result+LlvmAsmSymName(ref.symbol);
          if withalign then
            result:=result+getreferencealignstring(ref);
       end;
@@ -274,12 +276,9 @@ implementation
            if o.ref^.refaddr=addr_full then
              begin
                getopstr:='';
-               if o.ref^.symbol.typ=AT_LABEL then
-                 getopstr:='label %';
-               hs:=o.ref^.symbol.name;
+               getopstr:=LlvmAsmSymName(o.ref^.symbol);
                if o.ref^.offset<>0 then
                  internalerror(2013060223);
-               getopstr:=getopstr+hs;
              end
            else
              getopstr:=getreferencestring(o.ref^,refwithalign);
@@ -565,7 +564,7 @@ implementation
 
     procedure TLLVMAssember.WriteWeakSymbolDef(s: tasmsymbol);
       begin
-        AsmWriteLn(#9'.weak '+s.name);
+        AsmWriteLn(#9'.weak '+LlvmAsmSymName(s));
       end;
 
 
@@ -643,7 +642,7 @@ implementation
                 internalerror(2014052902);
               if assigned(hp.sym) then
                 begin
-                  AsmWrite(hp.sym.name);
+                  AsmWrite(LlvmAsmSymName(hp.sym));
                   { can't have offsets }
                   if hp.value<>0 then
                     if fdecllevel<>0 then
@@ -859,7 +858,7 @@ implementation
             begin
               if fdecllevel=0 then
                 AsmWrite(target_asm.comment);
-              asmwriteln(tai_symbol(hp).sym.name);
+              AsmWriteln(LlvmAsmSymName(tai_symbol(hp).sym));
               { todo }
               if tai_symbol(hp).has_value then
                 internalerror(2014062402);
@@ -882,7 +881,7 @@ implementation
                 end
               else
                 begin
-                  asmwrite(taillvmdecl(hp).namesym.name);
+                  asmwrite(LlvmAsmSymName(taillvmdecl(hp).namesym));
                   case taillvmdecl(hp).namesym.bind of
                     AB_EXTERNAL:
                       asmwrite(' = external ');
@@ -934,7 +933,7 @@ implementation
             end;
           ait_llvmalias:
             begin
-              asmwrite('@'+taillvmalias(hp).newsym.name);
+              asmwrite(LlvmAsmSymName(taillvmalias(hp).newsym));
               asmwrite(' = alias ');
               if taillvmalias(hp).linkage<>lll_default then
                 begin
@@ -952,7 +951,7 @@ implementation
                 end;
               asmwrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias));
               asmwrite('* ');
-              asmwriteln(taillvmalias(hp).oldsym.name);
+              asmwriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
          {$ifdef arm}
           ait_thumb_func:
