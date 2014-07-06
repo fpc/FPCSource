@@ -90,9 +90,6 @@ interface
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
-        { Transform unsupported methods into Internal errors }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
        private
         use_unlimited_pic_mode : boolean;
       end;
@@ -1361,16 +1358,6 @@ implementation
         list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
       end;
 
-
-    procedure tcgsparc.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-      begin
-        Comment(V_Error,'tcgsparc.g_stackpointer_alloc method not implemented');
-      end;
-
-    procedure tcgsparc.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-      begin
-        Comment(V_Error,'tcgsparc.a_bit_scan_reg_reg method not implemented');
-      end;
 
 {****************************************************************************
                                TCG64Sparc

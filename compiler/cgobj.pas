@@ -247,7 +247,7 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual; abstract;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual;
 
           { Multiplication with doubling result size.
             dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
@@ -412,7 +412,7 @@ unit cgobj;
 
              @param(size Number of bytes to allocate)
           }
-          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual; abstract;
+          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
@@ -2506,6 +2506,18 @@ implementation
       begin
         Result:=TRegister(0);
         internalerror(200807238);
+      end;
+
+
+    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+      begin
+        internalerror(2014070601);
+      end;
+
+
+    procedure tcg.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(2014070602);
       end;
 
 

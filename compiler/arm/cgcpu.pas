@@ -93,7 +93,6 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference; virtual;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
 
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
@@ -2893,12 +2892,6 @@ unit cgcpu;
             ai.is_jmp:=true;
             list.concat(ai);
           end;
-      end;
-
-
-    procedure tbasecgarm.g_stackpointer_alloc(list: TAsmList; size: longint);
-      begin
-        internalerror(200807237);
       end;
 
 

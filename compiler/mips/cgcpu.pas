@@ -88,9 +88,6 @@ type
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
     procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
     procedure g_profilecode(list: TAsmList);override;
-    { Transform unsupported methods into Internal errors }
-    procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-    procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
   end;
 
   TCg64MPSel = class(tcg64f32)
@@ -1763,15 +1760,6 @@ procedure TCGMIPS.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: t
     InternalError(2013020102);
   end;
 
-procedure TCGMIPS.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-  begin
-    Comment(V_Error,'TCgMPSel.g_stackpointer_alloc method not implemented');
-  end;
-
-procedure TCGMIPS.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-  begin
-    Comment(V_Error,'TCgMPSel.a_bit_scan_reg_reg method not implemented');
-  end;
 
 {****************************************************************************
                                TCG64_MIPSel

@@ -99,14 +99,12 @@ unit cgcpu;
           tmpreg : tregister) : treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
         function GetLoad(const ref : treference) : tasmop;
         function GetStore(const ref: treference): tasmop;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
@@ -1378,12 +1376,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-      begin
-        Comment(V_Error,'tcgarm.a_bit_scan_reg_reg method not implemented');
-      end;
-
-
     procedure tcgavr.a_jmp_name(list : TAsmList;const s : string);
       var
         ai : taicpu;
@@ -1880,12 +1872,6 @@ unit cgcpu;
         list.concat(ai1);
         if assigned(hl) then
           a_label(list,hl);
-      end;
-
-
-    procedure tcgavr.g_stackpointer_alloc(list: TAsmList; size: longint);
-      begin
-        internalerror(201201071);
       end;
 
 

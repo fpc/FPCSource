@@ -63,10 +63,6 @@ unit cgppc;
 
         procedure g_maybe_got_init(list: TAsmList); override;
 
-        { Transform unsupported methods into Internal errors }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
-
         procedure get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
@@ -601,17 +597,6 @@ unit cgppc;
            end;
          a_load_store(list,op,reg,ref2);
        end;
-
-
-  procedure tcgppcgen.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-    begin
-      Comment(V_Error,'tcgppcgen.g_stackpointer_alloc method not implemented');
-    end;
-
-  procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-    begin
-      Comment(V_Error,'tcgppcgen.a_bit_scan_reg_reg method not implemented');
-    end;
 
 
   procedure tcgppcgen.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
