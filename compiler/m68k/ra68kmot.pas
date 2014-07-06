@@ -1343,7 +1343,6 @@ const
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  begin
-              Oper.InitRef;
               if actasmpattern[1] = '@' then
               { // Label or Special symbol reference // }
               begin
