@@ -303,7 +303,7 @@ begin
 	end;
 	writeln('Success.');
 	
-	write('positive uint32 division test...');
+	write('positive uint32 division test (7)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
@@ -312,7 +312,7 @@ begin
 	end;
 	writeln('Success.');
 	
-	write('positive uint32 modulus test...');
+	write('positive uint32 modulus test (7)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
@@ -322,7 +322,7 @@ begin
 	writeln('Success.');	
 	
 
-	write('positive uint32 division test...');
+	write('positive uint32 division test (512)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
@@ -331,7 +331,7 @@ begin
 	end;
 	writeln('Success.');
 
-	write('positive uint32 modulus test...');
+	write('positive uint32 modulus test (512)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
@@ -341,7 +341,7 @@ begin
 	writeln('Success.');
 
         { extra test for div by constant optimization }
-	write('positive uint32 division test...');
+	write('positive uint32 division test ($deadbeef)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
@@ -350,7 +350,7 @@ begin
 	end;
 	writeln('Success.');
 
-	write('positive uint32 division test...');
+	write('positive uint32 division test ($b16beef)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
 		if (random(2) = 1) then y := 2 * y;
