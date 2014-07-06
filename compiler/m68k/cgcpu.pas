@@ -19,7 +19,6 @@
 
  ****************************************************************************
 }
-{$WARNINGS OFF}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -245,6 +244,7 @@ unit cgcpu;
         address_regs: array of TSuperRegister;
       begin
         inherited init_register_allocators;
+        address_regs:=nil;
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
           [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7],
           first_int_imreg,[]);
