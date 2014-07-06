@@ -753,6 +753,7 @@ function fpc_hugeptr_add_longint(p: HugePointer; n: LongInt): HugePointer; compi
 function fpc_hugeptr_add_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
 function fpc_hugeptr_sub_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
 function fpc_hugeptr_sub_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_hugeptr(p1, p2: HugePointer): LongInt; compilerproc;
 procedure fpc_hugeptr_inc_longint(var p: HugePointer; n: LongInt); compilerproc;
 procedure fpc_hugeptr_inc_longint_normalized(var p: HugePointer; n: LongInt); compilerproc;
 procedure fpc_hugeptr_dec_longint(var p: HugePointer; n: LongInt); compilerproc;
