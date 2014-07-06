@@ -1509,6 +1509,7 @@ const
                          case actasmtoken of
                           AS_REGISTER:
                             begin
+                              r:=actasmregister;
                               if getregtype(r)=R_ADDRESSREGISTER then
                                 include(addrregset,getsupreg(r))
                               else if getregtype(r)=R_INTREGISTER then
