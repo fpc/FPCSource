@@ -151,8 +151,7 @@ begin
 end;
 
 {$ifdef m68k}
-  { experimental, is this correct? }
-  const defdynlinker='/lib/ld-linux.so.2';
+  const defdynlinker='/lib/ld.so.1';
 {$endif m68k}
 
 {$ifdef i386}
