@@ -1090,6 +1090,7 @@ Function  binStr(Val:qword;cnt:byte):shortstring;
 {$ifdef CPUI8086}
 Function  hexStr(Val:NearPointer):shortstring;
 Function  hexStr(Val:FarPointer):shortstring;
+Function  hexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$else CPUI8086}
 Function  hexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}

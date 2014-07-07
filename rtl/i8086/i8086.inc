@@ -565,6 +565,11 @@ begin
   HexStr:=HexStr(TFarPointerRec(Val).Segment,4)+':'+HexStr(TFarPointerRec(Val).Offset,4);
 end;
 
+function HexStr(Val: HugePointer): ShortString;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  HexStr:=HexStr(FarPointer(Val));
+end;
+
 
 {****************************************************************************
                                   FPU
