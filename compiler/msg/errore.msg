@@ -3418,6 +3418,7 @@ new features, etc.):
 #
 option_help_pages=11025_[
 **0*_Put + after a boolean switch option to enable it, - to disable it
+**1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
 **1a_The compiler does not delete the generated assembler file
 **2al_List sourcecode lines in assembler file
 **2an_List node info in assembler file (-dEXTDEBUG compiler)
@@ -3436,7 +3437,7 @@ option_help_pages=11025_[
 3*2Anasmelf_ELF32 (Linux) file using Nasm
 3*2Anasmwin32_Win32 object file using Nasm
 3*2Anasmwdosx_Win32/WDOSX object file using Nasm
-3*2Anasmdarwin macho32 object file using Nasm (experimental)
+3*2Anasmdarwin_macho32 object file using Nasm (experimental)
 3*2Awasm_Obj file using Wasm (Watcom)
 3*2Anasmobj_Obj file using Nasm
 3*2Amasm_Obj file using Masm (Microsoft)
@@ -3591,7 +3592,7 @@ J*2Cv_Var/out parameter copy-out checking
 F*1P<x>_Target CPU / compiler related options:
 F*2PB_Show default compiler binary
 F*2PP_Show default target cpu
-F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
+F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler reading style:
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
