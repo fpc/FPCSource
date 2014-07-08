@@ -370,8 +370,11 @@ procedure Toption.WriteHelpPages;
 
   function PadEnd(s:string;i:longint):string;
   begin
-    while (length(s)<i) do
-     s:=s+' ';
+    if length(s) >= i then
+     S := S + ' '
+    else
+     while (length(s)<i) do
+      s:=s+' ';
     PadEnd:=s;
   end;
 
@@ -488,7 +491,7 @@ begin
         if opt='*' then
          opt:=''
         else
-        if opt=' ' then
+        if (opt=' ') or (opt[1]='@') then
          opt:=PadEnd(opt,outline)
         else
          opt:=PadEnd('-'+opt,outline);
