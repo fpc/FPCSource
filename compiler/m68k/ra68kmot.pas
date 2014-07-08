@@ -220,7 +220,7 @@ const
         if lower(s)='sp' then
           actasmregister:=NR_STACK_POINTER_REG;
         if lower(s)='fp' then
-          actasmregister:=NR_STACK_POINTER_REG;
+          actasmregister:=NR_FRAME_POINTER_REG;
         if actasmregister<>NR_NO then
           begin
             result:=true;

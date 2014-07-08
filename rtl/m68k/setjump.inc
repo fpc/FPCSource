@@ -56,7 +56,13 @@ Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe
 asm
   // load S to a0
   move.l 4(sp),a0
-
+  // load 'value' to d0
+  move.l 8(sp),d0
+  // don't return zero
+  tst.l  d0
+  seq    d1
+  and.l #1,d1
+  or    d1,d0
   // restore FP
   move.l (a0),fp
   // restore SP
