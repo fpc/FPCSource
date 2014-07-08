@@ -62,7 +62,7 @@ asm
   tst.l  d0
   seq    d1
   and.l #1,d1
-  or    d1,d0
+  or.l   d1,d0
   // restore FP
   move.l (a0),fp
   // restore SP
