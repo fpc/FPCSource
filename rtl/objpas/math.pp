@@ -41,7 +41,6 @@
 
   What's to do:
     o some statistical functions
-    o all financial functions
     o optimizations
 }
 
@@ -542,6 +541,25 @@ procedure momentskewkurtosis(const data : PExtended; Const N : Integer;
 function norm(const data : array of Extended) : float;inline;
 function norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
+
+{ Financial functions }
+
+function FutureValue(ARate: Float; NPeriods: Integer;
+  APayment, APresentValue: Float; APaymentTime: TPaymentTime): Float;
+
+function InterestRate(NPeriods: Integer; APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+
+function NumberOfPeriods(ARate, APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+
+function Payment(ARate: Float; NPeriods: Integer;
+  APresentValue, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+
+function PresentValue(ARate: Float; NPeriods: Integer;
+  APayment, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+
+{ Misc functions }
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; overload;
 function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; overload;
@@ -2504,6 +2522,110 @@ begin
   result:=AValues[random(High(AValues)+1)];
 end;
 
+function FutureValue(ARate: Float; NPeriods: Integer;
+  APayment, APresentValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0 then
+    Result := -APresentValue - APayment * NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(APresentValue * qn + APayment*factor);
+  end;
+end;
+
+function InterestRate(NPeriods: Integer; APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+{ The interest rate cannot be calculated analytically. We solve the equation
+  numerically by means of the Newton method:
+  - guess value for the interest reate
+  - calculate at which interest rate the tangent of the curve fv(rate)
+    (straight line!) has the requested future vale.
+  - use this rate for the next iteration. }
+const
+  DELTA = 0.001;
+  EPS = 1E-9;   // required precision of interest rate (after typ. 6 iterations)
+  MAXIT = 20;   // max iteration count to protect agains non-convergence
+var
+  r1, r2, dr: Float;
+  fv1, fv2: Float;
+  iteration: Integer;
+begin
+  iteration := 0;
+  r1 := 0.05;  // inital guess
+  repeat
+    r2 := r1 + DELTA;
+    fv1 := FutureValue(r1, NPeriods, APayment, APresentValue, APaymentTime);
+    fv2 := FutureValue(r2, NPeriods, APayment, APresentValue, APaymentTime);
+    dr := (AFutureValue - fv1) / (fv2 - fv1) * delta;  // tangent at fv(r)
+    r1 := r1 + dr;      // next guess
+    inc(iteration);
+  until (abs(dr) < EPS) or (iteration >= MAXIT);
+  Result := r1;
+end;
+
+function NumberOfPeriods(ARate, APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+{ Solve the cash flow equation (1) for q^n and take the logarithm }
+var
+  q, x1, x2: Float;
+begin
+  if ARate = 0 then
+    Result := -(APresentValue + AFutureValue) / APayment
+  else begin
+    q := 1.0 + ARate;
+    if APaymentTime = ptStartOfPeriod then
+      APayment := APayment * q;
+    x1 := APayment - AFutureValue * ARate;
+    x2 := APayment + APresentValue * ARate;
+    if   (x2 = 0)                    // we have to divide by x2
+      or (sign(x1) * sign(x2) < 0)   // the argument of the log is negative
+    then
+      Result := Infinity
+    else begin
+      Result := ln(x1/x2) / ln(q);
+    end;
+  end;
+end;
+
+function Payment(ARate: Float; NPeriods: Integer;
+  APresentValue, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0 then
+    Result := -(AFutureValue + APresentValue) / NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(AFutureValue + APresentValue * qn) / factor;
+  end;
+end;
+
+function PresentValue(ARate: Float; NPeriods: Integer;
+  APayment, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0.0 then
+    Result := -AFutureValue - APayment * NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(AFutureValue + APayment*factor) / qn;
+  end;
+end;
 
 {$else}
 implementation
