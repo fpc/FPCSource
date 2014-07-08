@@ -52,9 +52,8 @@ unit cpupara;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
          private
           function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
-          procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-                                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
+                                                var cur_stack_offset: aword):longint;
        end;
 
   implementation
@@ -133,13 +132,6 @@ unit cpupara;
             { Handling of methods must match that of records }
             result:=false;
         end;
-      end;
-
-    procedure tm68kparamanager.init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
-      begin
-        cur_stack_offset:=8;
-        curintreg:=RS_D0;
-        curfloatreg:=RS_FP0;
       end;
 
 
@@ -228,17 +220,15 @@ unit cpupara;
     function tm68kparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         cur_stack_offset: aword;
-        curintreg, curfloatreg: tsuperregister;
       begin
-        init_values(curintreg,curfloatreg,cur_stack_offset);
-
-        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,cur_stack_offset);
+        cur_stack_offset:=0;
+        result:=create_paraloc_info_intern(p,side,p.paras,cur_stack_offset);
 
         create_funcretloc_info(p,side);
       end;
 
     function tm68kparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
+                               var cur_stack_offset: aword):longint;
       var
         paraloc      : pcgparalocation;
         hp           : tparavarsym;
@@ -246,12 +236,10 @@ unit cpupara;
         paralen      : aint;
         paradef      : tdef;
         i            : longint;
-        stack_offset : longint;
         firstparaloc : boolean;
 
       begin
         result:=0;
-        stack_offset:=cur_stack_offset;
 
         for i:=0 to paras.count-1 do
           begin
@@ -328,23 +316,24 @@ unit cpupara;
                 else
                   paraloc^.size:=int_cgsize(paralen);
 
-                paraloc^.reference.offset:=stack_offset;
+                paraloc^.reference.offset:=cur_stack_offset;
                 if (side = callerside) then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
                   begin
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
                     { M68K is a big-endian target }
                     if (paralen<tcgsize2size[OS_INT]) then
                       inc(paraloc^.reference.offset,4-paralen);
                   end;
-                inc(stack_offset,align(paralen,4));
+                inc(cur_stack_offset,align(paralen,4));
                 paralen := 0;
 
                 firstparaloc:=false;
               end;
           end;
-         result:=stack_offset;
+         result:=cur_stack_offset;
       end;
 
 
@@ -403,14 +392,13 @@ unit cpupara;
     function tm68kparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
-        curintreg, curfloatreg: tsuperregister;
       begin
-        init_values(curintreg,curfloatreg,cur_stack_offset);
+        cur_stack_offset:=0;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,cur_stack_offset);
+        result:=create_paraloc_info_intern(p,callerside,p.paras,cur_stack_offset);
         if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,cur_stack_offset)
+          result:=create_paraloc_info_intern(p,callerside,varargspara,cur_stack_offset)
         else
           internalerror(200410231);
       end;

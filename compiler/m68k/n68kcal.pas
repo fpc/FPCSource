@@ -34,6 +34,7 @@ interface
          procedure gen_syscall_para(para: tcallparanode); override;
         public
          procedure do_syscall;override;
+         procedure pop_parasize(pop_size: longint);override;
        end;
 
 
@@ -48,6 +49,13 @@ implementation
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,regvars,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
+
+
+    procedure tm68kcallnode.pop_parasize(pop_size: longint);
+      begin
+        if pop_size<>0 then
+          current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_SP));
+      end;
 
 
     procedure tm68kcallnode.gen_syscall_para(para: tcallparanode);

@@ -1601,9 +1601,6 @@ unit cgcpu;
         if not nostackframe then
           begin
             list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-            parasize := parasize - target_info.first_parm_offset; { i'm still not 100% confident that this is
-                                                                    correct here, but at least it looks less
-                                                                    hacky, and makes some sense (KB) }
 
             { if parasize is less than zero here, we probably have a cdecl function.
               According to the info here: http://www.makestuff.eu/wordpress/gcc-68000-abi/
@@ -1612,7 +1609,7 @@ unit cgcpu;
               caller side free, which looks like a PITA to support. We have to figure this 
               out later. More info welcomed. (KB) }
 
-            if (parasize > 0) then
+            if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
               begin
                 if current_settings.cputype=cpu_mc68020 then
                   list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
@@ -1926,7 +1923,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset-sizeof(pint),sizeof(pint));
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
                     { plain 68k could use SUBI on href directly, but this way it works on Coldfire too
                       and it's probably smaller code for the majority of cases (if ioffset small, the
                       load will use MOVEQ) (KB) }
