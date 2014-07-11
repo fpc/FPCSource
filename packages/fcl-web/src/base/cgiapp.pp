@@ -21,7 +21,7 @@ unit cgiapp;
 Interface
 
 uses
-  CustApp,Classes,SysUtils;
+  CustApp,Classes, SysUtils, httpdefs;
 
 Const
   CGIVarCount = 23 deprecated;
@@ -127,6 +127,8 @@ Type
     Property RequestVariableCount : Integer Read GetRequestVariableCount; deprecated;
     Property Response : TStream Read FResponse; deprecated;
   end;
+
+  ECGI = Class(Exception);
 
 ResourceString
   SWebMaster = 'webmaster' deprecated;
@@ -428,13 +430,13 @@ var
 begin
   R:=RequestMethod;
   if (R='') then
-    Raise Exception.Create(SErrNoRequestMethod);
+    Raise ECGI.Create(SErrNoRequestMethod);
   if CompareText(R,'POST')=0 then
     InitPostVars
   else if CompareText(R,'GET')=0 then
     InitGetVars
   else
-    Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
+    Raise ECGI.CreateFmt(SErrInvalidRequestMethod,[R]);
 end;
 
 Procedure TCgiApplication.ProcessURLEncoded(M : TMemoryStream);
@@ -622,7 +624,7 @@ begin
       FI:=TFormItem(L[i]);
       FI.Process;
       If (FI.Name='') then
-        Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
+        Raise ECGI.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
       Key:=FI.Name;
       If Not FI.IsFile Then
         begin
@@ -691,7 +693,7 @@ begin
     else if CompareText(ContentType,'APPLICATION/X-WWW-FORM-URLENCODED')=0 then
       ProcessUrlEncoded(M)
     else
-      Raise Exception.CreateFmt(SErrUnsupportedContentType,[ContentType]);
+      Raise ECGI.CreateFmt(SErrUnsupportedContentType,[ContentType]);
   finally
     M.Free;
   end;

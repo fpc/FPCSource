@@ -157,7 +157,7 @@ Type
   end;
   
 
-  EFPApacheError = Class(Exception);
+  EFPApacheError = Class(EHTTP);
   
 Var
   Application : TCustomApacheApplication = Nil;

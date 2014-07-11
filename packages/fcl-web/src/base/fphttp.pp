@@ -207,7 +207,9 @@ Type
     Property Modules [Index : Integer]: TModuleItem Read GetModule Write SetModule;default;
   end;
 
-  EFPHTTPError = Class(Exception);
+  { EFPHTTPError }
+
+  EFPHTTPError = Class(EHTTP);
 
 Procedure RegisterHTTPModule(ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 Procedure RegisterHTTPModule(Const ModuleName : String; ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
@@ -227,6 +229,7 @@ Resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
   SErrNoSessionFactoryClass = 'No session manager class available. Include iniwebsession unit and recompile.';
   SErrNoSessionOutsideRequest = 'Default session not available outside handlerequest';
+
 Implementation
 
 {$ifdef cgidebug}
@@ -247,6 +250,7 @@ begin
     end;
   Result:=GSM;
 end;
+
 
 { TCustomHTTPModule }
 

@@ -494,8 +494,21 @@ type
 
   TRequestEvent = Procedure (Sender: TObject; ARequest : TRequest) of object;
   TResponseEvent = Procedure (Sender: TObject; AResponse : TResponse) of object;
-  
-  HTTPError = Class(Exception);
+
+  { EHTTP }
+
+  EHTTP = Class(Exception)
+  private
+    FStatusCode: Integer;
+    FStatusText: String;
+    function GetStatusCode: Integer;virtual;
+  Public
+    // These are transformed to the HTTP status code and text. Helpcontext is taken as the default for statuscode.
+    Property StatusCode : Integer Read GetStatusCode Write FStatusCode;
+    Property StatusText : String Read FStatusText Write FStatusText;
+  end;
+
+  HTTPError = EHTTP;
 
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
@@ -667,6 +680,15 @@ Type
   public
     Procedure Process(Stream : TStream); override;
   end;
+
+{ EHTTP }
+
+function EHTTP.GetStatusCode: Integer;
+begin
+  Result:=FStatusCode;
+  if Result=0 then
+    Result:=HelpContext;
+end;
 
 
 procedure THTTPMimeItem.SetHeader(AIndex: Integer; const AValue: String);
@@ -1521,7 +1543,7 @@ begin
 {$endif}
   R:=Method;
   if (R='') then
-    Raise Exception.Create(SErrNoRequestMethod);
+    Raise EHTTP.CreateHelp(SErrNoRequestMethod,400);
   // Always process QUERYSTRING.
   InitGetVars;
   // POST and PUT, force post var treatment.
