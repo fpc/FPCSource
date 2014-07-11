@@ -24,6 +24,10 @@ Type
   Protected
     function FormatResult(const AClassName, AMethodName: TJSONStringType;
       const Params, ID, Return: TJSONData): TJSONData; override;
+    // Called during API creation. Can be used to restrict list of reported handlers.
+    Function PublishHandler(H: TCustomJSONRPCHandler): Boolean; virtual;
+    // Called during API creation. Can be used to restrict list of reported handlers.
+    Function PublishHandlerDef(HD: TJSONRPCHandlerDef): Boolean; virtual;
     // 'tid'
     Class Function TransactionProperty : String; override;
     // 'method'
@@ -224,6 +228,18 @@ begin
   Result:=TJSONObject.Create(['name',H.HandlerMethodName,'len',H.ArgumentCount])
 end;
 
+Function TCustomExtDirectDispatcher.PublishHandler(H : TCustomJSONRPCHandler) : Boolean;
+
+begin
+  Result:=(H<>Nil); // Avoid warning
+end;
+
+Function TCustomExtDirectDispatcher.PublishHandlerDef(HD : TJSONRPCHandlerDef) : Boolean;
+
+begin
+  Result:=(HD<>Nil); // Avoid warning
+end;
+
 Function TCustomExtDirectDispatcher.DoAPI: TJSONData;
 
 Var
@@ -250,14 +266,17 @@ begin
       for I:=Owner.ComponentCount-1 downto 0 do
         If Owner.Components[i] is TCustomJSONRPCHandler then
           begin
-          If (R=Nil) then
-            begin
-            N:=Owner.Name;
-            R:=TJSONArray.Create;
-            A.Add(N,R);
-            end;
           H:=Owner.Components[i] as TCustomJSONRPCHandler;
-          R.Add(HandlerToAPIMethod(H));
+          if PublishHandler(H) then
+            begin
+            If (R=Nil) then
+              begin
+              N:=Owner.Name;
+              R:=TJSONArray.Create;
+              A.Add(N,R);
+              end;
+            R.Add(HandlerToAPIMethod(H));
+            end;
           end;
       end;
     If (jdoSearchRegistry in Options) then
@@ -266,22 +285,22 @@ begin
       For I:=M.HandlerCount-1 downto 0 do
         begin
         HD:=M.HandlerDefs[i];
-  {$ifdef extdebug}SendDebugFmt('Creating API entry for %s.%s',[HD.HandlerClassName,HD.HandlerMethodName]);{$endif}
-        If (R=Nil) or (CompareText(N,HD.HandlerClassName)<>0) then
+        if PublishHandlerDef(HD) then
           begin
-  {$ifdef extdebug}SendDebugFmt('Seems like new action entry : %s<> %s',[HD.HandlerClassName,N]);{$endif}
-          N:=HD.HandlerClassName;
-          J:=A.IndexOfName(N);
-          If (J=-1) then
+          If (R=Nil) or (CompareText(N,HD.HandlerClassName)<>0) then
             begin
-  {$ifdef extdebug}SendDebugFmt('Creating new action entry : %s ',[N]);{$endif}
-            R:=TJSONArray.Create;
-            A.Add(N,R);
-            end
-          else
-            R:=A.Items[J] as TJSONArray;
+            N:=HD.HandlerClassName;
+            J:=A.IndexOfName(N);
+            If (J=-1) then
+              begin
+              R:=TJSONArray.Create;
+              A.Add(N,R);
+              end
+            else
+              R:=A.Items[J] as TJSONArray;
+            end;
+          R.Add(HandlerDefToAPIMethod(HD));
           end;
-        R.Add(HandlerDefToAPIMethod(HD));
         end;
       end;
     Result:=D;
