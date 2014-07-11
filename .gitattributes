@@ -3085,6 +3085,7 @@ packages/fcl-web/src/base/websession.pp svneol=native#text/plain
 packages/fcl-web/src/base/webutil.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/Makefile svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/Makefile.fpc svneol=native#text/plain
+packages/fcl-web/src/jsonrpc/fpdispextdirect.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/fpextdirect.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/fpjsonrpc.pp svneol=native#text/plain
 packages/fcl-web/src/jsonrpc/readme.txt svneol=native#text/plain

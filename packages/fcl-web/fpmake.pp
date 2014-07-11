@@ -203,12 +203,19 @@ begin
       begin
       AddUnit('fpjsonrpc');
       end;
-    T:=P.Targets.AddUnit('fpextdirect.pp');
+    T:=P.Targets.AddUnit('fpdispextdirect.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
+      end;
+    T:=P.Targets.AddUnit('fpextdirect.pp');
+    T.ResourceStrings:=true;
+    With T.Dependencies do
+      begin
+      AddUnit('fpdispextdirect');
       AddUnit('webjsonrpc');
+      AddUnit('httpdefs');
       end;
 {$ifndef ALLPACKAGES}
     Run;
