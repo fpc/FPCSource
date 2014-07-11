@@ -9,7 +9,7 @@ program MiniUnz;
         -x like -e, but extract without path information
         -o overwrite an existing file without warning
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 2000 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }{$ifdef WIN32}

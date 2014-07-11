@@ -1,7 +1,7 @@
 {
     $Id: header,v 1.3 2013/05/26 06:33:45 michael Exp $
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2013 by the Free Pascal development team
+    Copyright (c) 1999-2014 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -90,7 +90,7 @@ Type
     Starting_Disk_Num    :  Word;
     Internal_Attributes  :  Word;
     External_Attributes  :  LongWord;
-    Local_Header_Offset  :  LongWord; //todo: use zip64 and set to 0xFFFFFFFF if needed
+    Local_Header_Offset  :  LongWord; // if zip64: 0xFFFFFFFF
   End;
 
   End_of_Central_Dir_Type =  Packed Record //End of central directory record
@@ -306,10 +306,11 @@ Type
 
   TZipFileEntry = Class(TCollectionItem)
   private
-    FArchiveFileName: String;
+    FArchiveFileName: String; //Name of the file as it appears in the zip file list
     FAttributes: LongInt;
     FDateTime: TDateTime;
-    FDiskFileName: String;
+    FDiskFileName: String; {Name of the file on disk (i.e. uncompressed. Can be empty if based on a stream.);
+    uses local OS/filesystem directory separators}
     FHeaderPos: int64;
     FNeedsZip64: Boolean; //flags whether filesize is big enough so we need a zip64 entry
     FOS: Byte;
@@ -317,6 +318,8 @@ Type
     FStream: TStream;
     FCompressionLevel: TCompressionlevel;
     function GetArchiveFileName: String;
+    procedure SetArchiveFileName(Const AValue: String);
+    procedure SetDiskFileName(Const AValue: String);
   Protected
     // For multi-disk support, a disk number property could be added here.
     Property HdrPos : int64 Read FHeaderPos Write FheaderPos;
@@ -328,8 +331,8 @@ Type
     Procedure Assign(Source : TPersistent); override;
     Property Stream : TStream Read FStream Write FStream;
   Published
-    Property ArchiveFileName : String Read GetArchiveFileName Write FArchiveFileName;
-    Property DiskFileName : String Read FDiskFileName Write FDiskFileName;
+    Property ArchiveFileName : String Read GetArchiveFileName Write SetArchiveFileName;
+    Property DiskFileName : String Read FDiskFileName Write SetDiskFileName;
     Property Size : Int64 Read FSize Write FSize;
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
     property OS: Byte read FOS write FOS;
@@ -393,10 +396,14 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
+    // Saves zip to file and changes FileName
     Procedure SaveToFile(AFileName: string);
+    // Saves zip to stream
     Procedure SaveToStream(AStream: TStream);
+    // Zips specified files into a zip with name AFileName
     Procedure ZipFiles(AFileName : String; FileList : TStrings);
     Procedure ZipFiles(FileList : TStrings);
+    // Zips specified entries into a zip with name AFileName
     Procedure ZipFiles(AFileName : String; Entries : TZipFileEntries);
     Procedure ZipFiles(Entries : TZipFileEntries);
     Procedure Clear;
@@ -1513,7 +1520,7 @@ Var
   ACount    : QWord; //entry counter
   ZFileName : string; //archive filename
   IsZip64   : boolean; //local header=zip64 format?
-  MinReqdVersion: word; //minimum
+  MinReqdVersion: word; //minimum needed to extract
   ExtInfoHeader : Extensible_Data_Field_Header_Type;
   Zip64ECD  : Zip64_End_of_Central_Dir_type;
   Zip64ECDL : Zip64_End_of_Central_Dir_Locator_type;
@@ -1779,6 +1786,7 @@ procedure TZipper.SaveToFile(AFileName: string);
 var
   lStream: TFileStream;
 begin
+  FFileName:=AFileName;
   lStream:=TFileStream.Create(FFileName,fmCreate);
   try
     SaveToStream(lStream);
@@ -1956,13 +1964,22 @@ Begin
     as directory separator. We don't want that behavior
     here, since 'abc\' is a valid file name under Unix.
 	
-    (mantis 15836) On the other hand, many archives on
-    Windows have '/' as pathseparator, even Windows
-    generated .odt files. So we disable this for Windows.
+    The zip standard appnote.txt says zip files must have '/' as path
+    separator, even on Windows: 4.4.17.1:
+    "The path stored MUST not contain a drive or device letter, or a leading
+    slash. All slashes MUST be forward slashes '/' as opposed to backwards
+    slashes '\'" See also mantis issue #15836
+    However, old versions of FPC on Windows (and possibly other utilities)
+    created incorrect zip files with \ separator, so accept these as well as
+    they're not valid in Windows file names anyway.
   }
   OldDirectorySeparators:=AllowDirectorySeparators;
-  {$ifndef Windows}
-  AllowDirectorySeparators:=[DirectorySeparator];
+  {$ifdef Windows}
+  // Explicitly allow / and \ regardless of what Windows supports
+  AllowDirectorySeparators:=['\','/'];
+  {$else}
+  // Follow the standard: only allow / regardless of actual separator on OS
+  AllowDirectorySeparators:=['/'];
   {$endif}
   Path:=ExtractFilePath(OutFileName);
   OutStream:=Nil;
@@ -2365,7 +2382,9 @@ Var
   end;
 Begin
   ReadZipHeader(Item, ZMethod);
-  OutputFileName:=Item.DiskFileName;
+  // Normalize output filename to conventions of target platform.
+  // Zip file always has / path separators
+  OutputFileName:=StringReplace(Item.DiskFileName,'/',DirectorySeparator,[rfReplaceAll]);
 
   IsCustomStream := Assigned(FOnCreateStream);
 
@@ -2377,7 +2396,8 @@ Begin
 {$IFNDEF UNIX}
   if IsLink and Not IsCustomStream then
   begin
-    {$warning TODO: Implement symbolic link creation for non-unix}
+    {$warning TODO: Implement symbolic link creation for non-unix, e.g.
+    Windows NTFS}
     IsLink := False;
   end;
 {$ENDIF}
@@ -2618,7 +2638,7 @@ end;
 
 function TZipFileEntry.IsDirectory: Boolean;
 begin
-  Result := (DiskFileName <> '') and (DiskFileName[Length(DiskFileName)] in ['/', '\']);
+  Result := (DiskFileName <> '') and (DiskFileName[Length(DiskFileName)] = DirectorySeparator);
   if Attributes <> 0 then
   begin
     case OS of
@@ -2639,6 +2659,30 @@ begin
     end;
   end;
 end;
+
+procedure TZipFileEntry.SetArchiveFileName(const AValue: String);
+var
+  Separator: char;
+begin
+  if FArchiveFileName=AValue then Exit;
+  // Zip standard: filenames inside the zip archive have / path separator
+  if DirectorySeparator='/' then
+    FArchiveFileName:=AValue
+  else
+    FArchiveFileName:=StringReplace(AValue, DirectorySeparator, '/', [rfReplaceAll]);
+end;
+
+procedure TZipFileEntry.SetDiskFileName(const AValue: String);
+begin
+  if FDiskFileName=AValue then Exit;
+  // Zip file uses / as directory separator on all platforms
+  // so convert to separator used on current OS
+  if DirectorySeparator='/' then
+    FDiskFileName:=AValue
+  else
+    FDiskFileName:=StringReplace(AValue,'/',DirectorySeparator,[rfReplaceAll]);
+end;
+
 
 procedure TZipFileEntry.Assign(Source: TPersistent);
 
