@@ -204,7 +204,6 @@ begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
-    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
