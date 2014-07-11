@@ -151,10 +151,11 @@ Type
     FOnStartBatch: TNotifyEvent;
     FOptions: TJSONRPCDispatchOptions;
   Protected
-
     // Find handler. If none found, nil is returned. Executes OnFindHandler if needed.
     // On return 'DoFree' must be set to indicate that the hand
     Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; virtual;
+    // Execute handler instance. This can be overridden to implement e.g. authentication globally before actually executing the handler.
+    Function ExecuteHandler(H: TCustomJSONRPCHandler; Params, ID: TJSONData; AContext: TJSONRPCCallContext): TJSONData; virtual;
     // Execute method. Finds handler, and returns response.
     Function ExecuteMethod(Const AClassName, AMethodName : TJSONStringType; Params,ID : TJSONData; AContext : TJSONRPCCallContext) : TJSONData; virtual;
     // Check and Execute a single request. Exceptions are caught and converted to request error object.
@@ -720,6 +721,11 @@ begin
     end;
 end;
 
+Function TCustomJSONRPCDispatcher.ExecuteHandler(H : TCustomJSONRPCHandler; Params,ID: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
+begin
+  Result:=H.Execute(Params,AContext);
+end;
+
 function TCustomJSONRPCDispatcher.ExecuteMethod(Const AClassName,AMethodName: TJSONStringType;
   Params,ID: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
 
@@ -737,7 +743,7 @@ begin
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
-    Result:=H.Execute(Params,AContext);
+    Result:=ExecuteHandler(H,Params,ID,AContext);
   finally
     If Assigned(FreeObject) then
       FreeAndNil(FreeObject);
