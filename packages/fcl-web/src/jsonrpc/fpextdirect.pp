@@ -53,7 +53,7 @@ Type
     // Return API description object
     Function API: TJSONData;
     // Return API Description including namespace, as a string
-    Function APIAsString : String;
+    Function APIAsString(Formatted : Boolean = False) : String; virtual;
   end;
 
   { TExtDirectDispatcher }
@@ -164,8 +164,8 @@ begin
   Result:=NameSpace<>DefaultNameSpace;
 end;
 
-function TCustomExtDirectDispatcher.FormatResult(Const AClassName, AMethodName: TJSONStringType;
-Const Params,ID, Return : TJSONData) : TJSONData;
+function TCustomExtDirectDispatcher.FormatResult(const AClassName,
+  AMethodName: TJSONStringType; const Params, ID, Return: TJSONData): TJSONData;
 
 begin
   Result:=Inherited FormatResult(AClassName,AMethodName,Params,ID,Return);
@@ -174,28 +174,28 @@ begin
   TJSONObject(Result).Add('method',AMethodName);
 end;
 
-class function TCustomExtDirectDispatcher.TransactionProperty: String;
+Class Function TCustomExtDirectDispatcher.TransactionProperty: String;
 begin
   Result:='tid';
 end;
 
-class function TCustomExtDirectDispatcher.MethodProperty: String;
+Class Function TCustomExtDirectDispatcher.MethodProperty: String;
 begin
   Result:='method';
 end;
 
-class function TCustomExtDirectDispatcher.ClassNameProperty: String;
+Class Function TCustomExtDirectDispatcher.ClassNameProperty: String;
 begin
   Result:='action';
 end;
 
-class function TCustomExtDirectDispatcher.ParamsProperty: String;
+Class Function TCustomExtDirectDispatcher.ParamsProperty: String;
 begin
   Result:='data';
 end;
 
-function TCustomExtDirectDispatcher.FindHandler(const AClassName,
-  AMethodName: TJSONStringType; AContext: TJSONRPCCallContext; out
+Function TCustomExtDirectDispatcher.FindHandler(Const AClassName,
+  AMethodName: TJSONStringType; AContext: TJSONRPCCallContext; Out
   FreeObject: TComponent): TCustomJSONRPCHandler;
 begin
   {$ifdef extdebug}SendDebugFmt('Searching for %s %s',[AClassName,AMethodName]);{$endif}
@@ -205,25 +205,26 @@ begin
   {$ifdef extdebug}SendDebugFmt('Done with searching for %s %s : %d',[AClassName,AMethodName,Ord(Assigned(Result))]);{$endif}
 end;
 
-function TCustomExtDirectDispatcher.CreateJSON2Error(const AMessage: String;
-  const ACode: Integer; ID: TJSONData; idname: TJSONStringType): TJSONObject;
+function TCustomExtDirectDispatcher.CreateJSON2Error(Const AMessage: String;
+  Const ACode: Integer; ID: TJSONData; idname: TJSONStringType): TJSONObject;
 begin
   Result:=inherited CreateJSON2Error(AMessage,ACode,ID,idname);
   TJSONObject(Result).Add('type','rpc');
 end;
 
-function TCustomExtDirectDispatcher.HandlerToAPIMethod(H: TCustomJSONRPCHandler): TJSONObject;
+Function TCustomExtDirectDispatcher.HandlerToAPIMethod(H: TCustomJSONRPCHandler
+  ): TJSONObject;
 begin
   Result:=TJSONObject.Create(['name',H.Name,'len',H.ParamDefs.Count])
 end;
 
-function TCustomExtDirectDispatcher.HandlerDefToAPIMethod(H: TJSONRPCHandlerDef
+Function TCustomExtDirectDispatcher.HandlerDefToAPIMethod(H: TJSONRPCHandlerDef
   ): TJSONObject;
 begin
   Result:=TJSONObject.Create(['name',H.HandlerMethodName,'len',H.ArgumentCount])
 end;
 
-function TCustomExtDirectDispatcher.DoAPI: TJSONData;
+Function TCustomExtDirectDispatcher.DoAPI: TJSONData;
 
 Var
   A,D : TJSONObject;
@@ -290,7 +291,7 @@ begin
   end;
 end;
 
-constructor TCustomExtDirectDispatcher.Create(AOwner: TComponent);
+Constructor TCustomExtDirectDispatcher.Create(AOwner: TComponent);
 
 Var
   O : TJSONRPCDispatchOptions;
@@ -301,12 +302,12 @@ begin
   APIType:='remoting';
 end;
 
-function TCustomExtDirectDispatcher.API: TJSONData;
+Function TCustomExtDirectDispatcher.API: TJSONData;
 begin
   Result:=DoAPI;
 end;
 
-function TCustomExtDirectDispatcher.APIAsString: String;
+Function TCustomExtDirectDispatcher.APIAsString(Formatted: Boolean = False): String;
 
 Var
   A : TJSONData;
@@ -314,7 +315,10 @@ Var
 begin
   A:=API;
   try
-    Result:=NameSpace + ' = ' + A.AsJSON + ';';
+    if Formatted then
+      Result:=NameSpace + ' = ' + A.FormatJSON + ';'
+    else
+      Result:=NameSpace + ' = ' + A.AsJSON + ';';
   finally
     A.Free;
   end;
