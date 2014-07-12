@@ -267,6 +267,8 @@ implementation
          winlikewidestring: boolean;
          elementdef: tdef;
          strpointerdef: tdef;
+         datatcb: ttai_lowleveltypedconstbuilder;
+         datadef: tdef;
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -355,10 +357,8 @@ implementation
                       cst_shortstring:
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
-                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)));
 
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel.lab));
+                          datatcb:=ctai_typedconstbuilder.create;
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -369,20 +369,36 @@ implementation
                           move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,l+2));
+                          datadef:=getarraydef(cansichartype,l+1);
+                          datatcb.maybe_begin_aggregate(datadef);
+                          datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
+                          datatcb.maybe_end_aggregate(datadef);
+                          current_asmdata.asmlists[al_typedconsts].concatList(
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),true)
+                          );
+                          datatcb.free;
                         end;
                       cst_conststring:
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
-                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)));
 
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel.lab));
+                          datatcb:=ctai_typedconstbuilder.create;
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
                           pc[len]:=#0;
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
+                          { the data includes the terminating #0 because this
+                            string can be used for pchar assignments (but it's
+                            also used for array-of-char assignments, in which
+                            case the terminating #0 is not part of the data) }
+                          datadef:=getarraydef(cansichartype,len+1);
+                          datatcb.maybe_begin_aggregate(datadef);
+                          datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
+                          datatcb.maybe_end_aggregate(datadef);
+                          current_asmdata.asmlists[al_typedconsts].concatList(
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),true)
+                          );
+                          datatcb.free;
                         end;
                       else
                         internalerror(2013120103);
