@@ -30,6 +30,10 @@ uses
   node, nmat, ncgmat, cgbase;
 
 type
+  tllvmmoddivnode = class(tcgmoddivnode)
+    procedure pass_generate_code; override;
+  end;
+
   Tllvmunaryminusnode = class(tcgunaryminusnode)
     procedure emit_float_sign_change(r: tregister; _size : tdef);override;
   end;
@@ -47,6 +51,36 @@ uses
   ncon,
   llvmbase,
   ncgutil, cgutils;
+
+{*****************************************************************************
+                               tllvmmoddivnode
+*****************************************************************************}
+
+procedure tllvmmoddivnode.pass_generate_code;
+  var
+    op: tllvmop;
+  begin
+    secondpass(left);
+    secondpass(right);
+    if is_signed(left.resultdef) then
+      if nodetype=divn then
+        op:=la_sdiv
+      else
+        op:=la_srem
+    else if nodetype=divn then
+      op:=la_udiv
+    else
+      op:=la_urem;
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+    if right.location.loc<>LOC_CONSTANT then
+      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+    location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+    location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+    if right.location.loc=LOC_CONSTANT then
+      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_const(op,location.register,resultdef,left.location.register,right.location.value))
+    else
+      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_reg(op,location.register,resultdef,left.location.register,right.location.register))
+  end;
 
 {*****************************************************************************
                                Tllvmunaryminusnode
@@ -77,8 +111,8 @@ end;
 
 
 begin
-(*
   cmoddivnode := tllvmmoddivnode;
+(*
   cshlshrnode := tllvmshlshrnode;
   cnotnode    := tllvmnotnode;
 *)
