@@ -1176,9 +1176,7 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_iocheck',[],nil).resetiftemp;
            end;
       end;
 
