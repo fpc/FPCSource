@@ -110,7 +110,12 @@ Type
     FAfterInitModule : TInitModuleEvent;
     FBaseURL: String;
     FWebModuleKind: TWebModuleKind;
+  Protected
+    Class Function DefaultModuleName : String; virtual;
+    Class Function DefaultSkipStreaming : Boolean; virtual;
   public
+    Class Procedure RegisterModule(Const AModuleName : String = ''); overload;
+    Class Procedure RegisterModule(Const AModuleName : String; ASkipStreaming : Boolean); overload;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
     Procedure DoAfterInitModule(ARequest : TRequest); virtual;
     property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkPooled;
@@ -254,7 +259,34 @@ end;
 
 { TCustomHTTPModule }
 
-procedure TCustomHTTPModule.DoAfterInitModule(ARequest: TRequest);
+Class Function TCustomHTTPModule.DefaultModuleName: String;
+begin
+  Result:=ClassName;
+end;
+
+Class Function TCustomHTTPModule.DefaultSkipStreaming: Boolean;
+begin
+  Result:=False;
+end;
+
+Class Procedure TCustomHTTPModule.RegisterModule(Const AModuleName: String);
+begin
+  RegisterModule(AModuleName,DefaultSkipStreaming);
+end;
+
+Class Procedure TCustomHTTPModule.RegisterModule(Const AModuleName: String;
+  ASkipStreaming: Boolean);
+
+Var
+  MN : String;
+begin
+  MN:=AModuleName;
+  if MN='' then
+    MN:=DefaultModuleName;
+  RegisterHTTPModule(MN,Self,ASkipStreaming);
+end;
+
+Procedure TCustomHTTPModule.DoAfterInitModule(ARequest: TRequest);
 begin
   If Assigned(FAfterInitModule) then
     FAfterInitModule(Self, ARequest);
