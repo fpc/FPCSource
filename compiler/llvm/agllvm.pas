@@ -822,7 +822,7 @@ implementation
                       #1..#31,
                    #128..#255,
                           '"',
-                          '\' : s:='\'+tostr(ord(ch) shr 8)+tostr((ord(ch) and $f));
+                          '\' : s:='\'+hexStr(ord(ch),2);
                  else
                    s:=ch;
                  end;
