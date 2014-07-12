@@ -31,7 +31,7 @@ interface
     type
        tllvmtypeconvnode = class(tcgtypeconvnode)
          protected
-         { procedure second_int_to_int;override; }
+          procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -56,12 +56,38 @@ interface
 implementation
 
 uses
-  verbose,
+  globtype,verbose,
   aasmdata,
-  symdef,
+  llvmbase,aasmllvm,
+  symdef,defutil,
   cgbase,cgutils,hlcgobj;
 
 { tllvmtypeconvnode }
+
+procedure tllvmtypeconvnode.second_int_to_int;
+  var
+    fromsize, tosize: tcgint;
+    hreg: tregister;
+  begin
+    if not(nf_explicit in flags) then
+      hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+    fromsize:=left.resultdef.size;
+    tosize:=resultdef.size;
+    location_copy(location,left.location);
+    if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) or
+       (fromsize<>tosize) then
+      begin
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,left.location.loc=LOC_CREGISTER);
+      end
+    else if left.resultdef<>resultdef then
+      begin
+        { just typecast the pointer type }
+        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),left.location.reference,hreg);
+        hlcg.reference_reset_base(location.reference,getpointerdef(resultdef),hreg,0,location.reference.alignment);
+      end;
+  end;
+
 
 procedure tllvmtypeconvnode.second_pointer_to_array;
   var
