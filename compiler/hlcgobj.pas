@@ -4995,6 +4995,7 @@ implementation
       pd: tprocdef;
     begin
       pd:=search_system_proc(procname);
+      pd.init_paraloc_info(callerside);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
@@ -5003,6 +5004,7 @@ implementation
       { separate non-virtual routine to make it clear that the routine to
         override, if any, is g_call_system_proc_intern (and that none of
         the g_call_system_proc variants should be made virtual) }
+      pd.init_paraloc_info(callerside);
       result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
