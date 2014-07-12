@@ -89,7 +89,6 @@ implementation
       newasmlist:=tasmlist.create_without_marker;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
-      { TODO: propagate data/rodata different ("constant") }
       newasmlist.concat(taillvmdecl.create(sym,def,fasmlist,section));
       fasmlist:=newasmlist;
     end;
