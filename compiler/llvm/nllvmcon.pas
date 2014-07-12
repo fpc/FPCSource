@@ -35,15 +35,57 @@ interface
           procedure pass_generate_code;override;
        end;
 
+       tllvmstringconstnode = class(tcgstringconstnode)
+          procedure pass_generate_code; override;
+       end;
+
 implementation
 
     uses
-      globtype,verbose,
-      symdef,defutil,
+      globtype,verbose,cutils,
+      symtype,symdef,defutil,
       aasmdata,
       ncon,
       llvmbase,aasmllvm,hlcgobj,
       cgbase,cgutils;
+
+{*****************************************************************************
+                           tllvmstringconstnode
+*****************************************************************************}
+
+    procedure tllvmstringconstnode.pass_generate_code;
+      var
+        datadef, resptrdef: tdef;
+        hreg: tregister;
+      begin
+        inherited pass_generate_code;
+        if cst_type in [cst_conststring,cst_shortstring] then
+          begin
+            if location.loc<>LOC_CREFERENCE then
+              internalerror(2014071202);
+            case cst_type of
+              cst_conststring:
+                { this kind of string const is used both for array of char
+                  constants (-> excludes terminating #0) and pchars (-> includes
+                  terminating #0). The resultdef excludes the #0 while the data
+                  includes it -> insert typecast from datadef to resultdef }
+                datadef:=getarraydef(cansichartype,len+2);
+              cst_shortstring:
+                { the resultdef of the string constant is the type of the
+                  string to which it is assigned, which can be longer or shorter
+                  than the length of the string itself -> typecast it to the
+                  correct string type }
+                datadef:=getarraydef(cansichartype,min(len,255)+1);
+              else
+                internalerror(2014071203);
+            end;
+            { get address of array as pchar }
+            resptrdef:=getpointerdef(resultdef);
+            hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
+            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
+          end;
+      end;
 
 {*****************************************************************************
                            tllvmrealconstnode
@@ -80,5 +122,6 @@ implementation
 
 
 begin
+   cstringconstnode:=tllvmstringconstnode;
    crealconstnode:=tllvmrealconstnode;
 end.
