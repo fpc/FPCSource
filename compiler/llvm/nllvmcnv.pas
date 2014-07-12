@@ -82,7 +82,7 @@ procedure tllvmtypeconvnode.second_nothing;
     if left.resultdef<>resultdef then
       begin
         if left.resultdef.size<>resultdef.size then
-          internalerror(2014012213);
+          internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),left.location.reference,hreg);
