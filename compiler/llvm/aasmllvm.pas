@@ -184,6 +184,7 @@ uses
         def:=_def;
         initdata:=_initdata;
         sec:=_sec;
+        _namesym.declared:=true;
       end;
 
     destructor taillvmdecl.destroy;
@@ -226,7 +227,6 @@ uses
             def:=tpointerdef(def).pointeddef;
           end;
         current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none));
-        ref.symbol.declared:=true;
       end;
 
 
