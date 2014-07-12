@@ -60,7 +60,7 @@ uses
   globtype,verbose,
   aasmdata,
   llvmbase,aasmllvm,
-  symdef,defutil,
+  symconst,symdef,defutil,
   cgbase,cgutils,hlcgobj;
 
 { tllvmtypeconvnode }
@@ -129,7 +129,10 @@ procedure tllvmtypeconvnode.second_nothing;
   begin
     if left.resultdef<>resultdef then
       begin
-        if left.resultdef.size<>resultdef.size then
+        { handle sometype(voidptr^) }
+        if not is_void(left.resultdef) and
+           (left.resultdef.typ<>formaldef) and
+          (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
