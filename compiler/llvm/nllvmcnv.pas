@@ -31,6 +31,7 @@ interface
     type
        tllvmtypeconvnode = class(tcgtypeconvnode)
          protected
+          function first_int_to_real: tnode; override;
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -39,7 +40,7 @@ interface
          procedure second_pointer_to_array;override;
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
-         { procedure second_int_to_real;override; }
+         procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
@@ -63,6 +64,12 @@ uses
   cgbase,cgutils,hlcgobj;
 
 { tllvmtypeconvnode }
+
+function tllvmtypeconvnode.first_int_to_real: tnode;
+  begin
+    expectloc:=LOC_FPUREGISTER;
+    result:=nil;
+  end;
 
 procedure tllvmtypeconvnode.second_int_to_int;
   var
@@ -98,6 +105,21 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
     hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,getpointerdef(resultdef),location.reference,hreg);
     reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+  end;
+
+
+procedure tllvmtypeconvnode.second_int_to_real;
+  var
+    op: tllvmop;
+  begin
+    if is_signed(left.resultdef) then
+      op:=la_sitofp
+    else
+      op:=la_uitofp;
+    location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+    location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+    current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,resultdef));
   end;
 
 
