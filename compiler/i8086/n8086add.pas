@@ -39,6 +39,7 @@ interface
          function first_addhugepointer: tnode;
          function first_cmppointer: tnode; override;
          function first_cmphugepointer: tnode;
+         function first_cmpfarpointer: tnode;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
          procedure second_addfarpointer;
@@ -358,6 +359,8 @@ interface
       begin
         if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
           result:=first_cmphugepointer
+        else if is_farpointer(left.resultdef) or is_farpointer(right.resultdef) then
+          result:=first_cmpfarpointer
         else
           result:=inherited;
       end;
@@ -398,6 +401,22 @@ interface
         left := nil;
         right := nil;
         firstpass(result);
+      end;
+
+
+    function ti8086addnode.first_cmpfarpointer: tnode;
+      begin
+        { = and <> are handled as a 32-bit comparison }
+        if nodetype in [equaln,unequaln] then
+          begin
+            result:=nil;
+            expectloc:=LOC_JUMP;
+          end
+        else
+          begin
+            result:=nil;
+            expectloc:=LOC_FLAGS;
+          end;
       end;
 
 
