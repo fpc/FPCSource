@@ -787,7 +787,8 @@ interface
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u32bit)) or
                   ((right.resultdef.typ=orddef) and
-                   (torddef(right.resultdef).ordtype=u32bit));
+                   (torddef(right.resultdef).ordtype=u32bit)) or
+                  is_hugepointer(left.resultdef);
 
         { left and right no register?  }
         { then one must be demanded    }
