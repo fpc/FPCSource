@@ -371,7 +371,7 @@ interface
 
         if not (cs_hugeptr_comparison_normalization in current_settings.localswitches) then
           begin
-            expectloc:=LOC_FLAGS;
+            expectloc:=LOC_JUMP;
             exit;
           end;
 
