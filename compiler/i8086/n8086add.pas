@@ -316,7 +316,7 @@ interface
 
     function ti8086addnode.first_addpointer: tnode;
       begin
-        if is_hugepointer(left.resultdef) xor is_hugepointer(right.resultdef) then
+        if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
           result:=first_addhugepointer
         else
           result:=inherited;
@@ -329,17 +329,22 @@ interface
       begin
         result:=nil;
 
-        case nodetype of
-          addn:
-            procname:='fpc_hugeptr_add_longint';
-          subn:
-            procname:='fpc_hugeptr_sub_longint';
-          else
-            internalerror(2014070301);
-        end;
+        if (nodetype=subn) and is_hugepointer(left.resultdef) and is_hugepointer(right.resultdef) then
+          procname:='fpc_hugeptr_sub_hugeptr'
+        else
+          begin
+            case nodetype of
+              addn:
+                procname:='fpc_hugeptr_add_longint';
+              subn:
+                procname:='fpc_hugeptr_sub_longint';
+              else
+                internalerror(2014070301);
+            end;
 
-        if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
-          procname:=procname+'_normalized';
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+          end;
 
         if is_hugepointer(left.resultdef) then
           result := ccallnode.createintern(procname,

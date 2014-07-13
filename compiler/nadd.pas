@@ -1697,9 +1697,10 @@ implementation
                       begin
                         hp:=getcopy;
                         include(hp.flags,nf_has_pointerdiv);
-                        result:=cmoddivnode.create(divn,hp,cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,false));
+                        result:=cmoddivnode.create(divn,hp,
+                          cordconstnode.create(tpointerdef(rd).pointeddef.size,get_int_result_type_from_pointer_subtraction(rd),false));
                       end;
-                    resultdef:=sinttype;
+                    resultdef:=get_int_result_type_from_pointer_subtraction(rd);
                     exit;
                  end;
                else
