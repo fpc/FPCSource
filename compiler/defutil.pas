@@ -338,11 +338,6 @@ interface
        special i8086 pointer types (near, far, huge). }
     function get_int_type_for_pointer_arithmetic(p : tdef) : tdef;
 
-    {# returns the int type produced when subtracting two pointers of the given type p.
-       Normally, this is sinttype, except on i8086, where it takes into account the
-       special i8086 pointer types (near, far, huge). }
-    function get_int_result_type_from_pointer_subtraction(p : tdef) : tdef;
-
 {$ifdef i8086}
     {# Returns true if p is a far pointer def }
     function is_farpointer(p : tdef) : boolean;
@@ -1451,18 +1446,6 @@ implementation
 {$ifdef i8086}
         if is_hugepointer(p) then
           result:=s32inttype
-        else
-{$endif i8086}
-          result:=sinttype;
-      end;
-
-    function get_int_result_type_from_pointer_subtraction(p : tdef) : tdef;
-      begin
-{$ifdef i8086}
-        if is_hugepointer(p) then
-          result:=s32inttype
-        else if is_farpointer(p) then
-          result:=u16inttype
         else
 {$endif i8086}
           result:=sinttype;

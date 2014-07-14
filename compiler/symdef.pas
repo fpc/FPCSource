@@ -227,6 +227,10 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
+          {# returns the int type produced when subtracting two pointers of the given type.
+             Normally, this is sinttype, except on i8086, where it takes into account the
+             special i8086 pointer types (near, far, huge). }
+          function pointer_subtraction_result_type:tdef;virtual;
        end;
        tpointerdefclass = class of tpointerdef;
 
@@ -3163,6 +3167,12 @@ implementation
           GetTypeName:='^'+pointeddef.typename
         else
           GetTypeName:='^'+pointeddef.typesym.realname;
+      end;
+
+
+    function tpointerdef.pointer_subtraction_result_type:tdef;
+      begin
+        result:=sinttype;
       end;
 
 

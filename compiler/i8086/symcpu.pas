@@ -57,6 +57,7 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function pointer_subtraction_result_type:tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -308,6 +309,19 @@ implementation
           result:=x86pt_far
         else
           result:=inherited;
+      end;
+
+
+    function tcpupointerdef.pointer_subtraction_result_type:tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far:
+            result:=u16inttype;
+          else
+            result:=inherited;
+        end;
       end;
 
 

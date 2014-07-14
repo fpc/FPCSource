@@ -1698,9 +1698,9 @@ implementation
                         hp:=getcopy;
                         include(hp.flags,nf_has_pointerdiv);
                         result:=cmoddivnode.create(divn,hp,
-                          cordconstnode.create(tpointerdef(rd).pointeddef.size,get_int_result_type_from_pointer_subtraction(rd),false));
+                          cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false));
                       end;
-                    resultdef:=get_int_result_type_from_pointer_subtraction(rd);
+                    resultdef:=tpointerdef(rd).pointer_subtraction_result_type;
                     exit;
                  end;
                else
