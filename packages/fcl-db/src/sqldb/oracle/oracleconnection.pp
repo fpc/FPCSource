@@ -335,7 +335,6 @@ procedure TOracleConnection.HandleError;
 var errcode : sb4;
     buf     : array[0..1023] of char;
     E       : EOraDatabaseError;
-
 begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
 
@@ -476,8 +475,8 @@ end;
 
 function TOracleConnection.AllocateCursorHandle: TSQLCursor;
 
-var Cursor : TOracleCursor;
-
+var
+  Cursor : TOracleCursor;
 begin
   Cursor:=TOracleCursor.Create;
   Result := cursor;
@@ -1102,8 +1101,8 @@ begin
     begin
     Name := trim(qry.fields[0].asstring);
     Fields := trim(qry.Fields[1].asstring);
-    If UpperCase(qry.fields[2].asString)='P' then options := options + [ixPrimary];
-    If UpperCase(qry.fields[2].asString)='U' then options := options + [ixUnique];
+    If UpperCase(qry.fields[2].asstring)='P' then options := options + [ixPrimary];
+    If UpperCase(qry.fields[2].asstring)='U' then options := options + [ixUnique];
     qry.next;
     while (name = qry.fields[0].asstring) and (not qry.eof) do
       begin
@@ -1117,8 +1116,8 @@ end;
 
 function TOracleConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
   SchemaObjectName, SchemaPattern: string): string;
-var s : string;
-
+var
+  s : string;
 begin
   case SchemaType of
     stTables     : s := 'SELECT '+
