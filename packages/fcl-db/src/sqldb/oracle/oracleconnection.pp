@@ -122,6 +122,9 @@ implementation
 uses
   math, StrUtils, FmtBCD;
 
+const
+  ObjectQuote='"'; //beginning and ending quote for objects such as table names. Note: can be different from quotes around field names
+
 ResourceString
   SErrEnvCreateFailed = 'The creation of an Oracle environment failed.';
   SErrHandleAllocFailed = 'The allocation of the error handle failed.';
@@ -1069,6 +1072,12 @@ begin
   if not assigned(Transaction) then
     DatabaseError(SErrConnTransactionnSet);
 
+  // Get table name into canonical format
+  if (length(TableName)>2) and (TableName[1]=ObjectQuote) and (TableName[length(TableName)]=ObjectQuote) then
+    TableName := AnsiDequotedStr(TableName, ObjectQuote)
+  else
+    TableName := UpperCase(TableName); //ANSI SQL: the name of an identifier (such as table names) are implicitly converted to uppercase, unless double quotes are used when referring to the identifier.
+
   qry := tsqlquery.Create(nil);
   qry.transaction := Transaction;
   qry.database := Self;
@@ -1076,7 +1085,6 @@ begin
     begin
     ReadOnly := True;
     sql.clear;
-
     sql.add('SELECT '+
               'i.INDEX_NAME,  '+
               'c.COLUMN_NAME, '+
@@ -1086,7 +1094,7 @@ begin
               'i.OWNER=c.INDEX_OWNER AND '+
               'i.INDEX_NAME=c.INDEX_NAME AND '+
               'p.INDEX_NAME(+)=i.INDEX_NAME AND '+
-              'Upper(c.TABLE_NAME) = ''' +  UpperCase(TableName) +''' '+
+              'c.TABLE_NAME = ''' + TableName + ''' '+
             'ORDER by i.INDEX_NAME,c.COLUMN_POSITION');
     open;
     end;
