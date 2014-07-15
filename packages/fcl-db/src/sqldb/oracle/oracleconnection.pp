@@ -1,5 +1,15 @@
 unit oracleconnection;
 
+{
+    Copyright (c) 2006-2014 by Joost van der Sluis, FPC contributors
+
+    Oracle RDBMS connector using the OCI protocol
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+ **********************************************************************}
+
 {$mode objfpc}{$H+}
 
 {$Define LinkDynamically}
@@ -7,7 +17,7 @@ unit oracleconnection;
 interface
 
 uses
-  Classes, SysUtils, db,dbconst, sqldb, bufdataset,
+  Classes, SysUtils, db, dbconst, sqldb, bufdataset,
 {$IfDef LinkDynamically}
   ocidyn,
 {$ELSE}
