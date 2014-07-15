@@ -3172,7 +3172,7 @@ implementation
 
     function tpointerdef.pointer_subtraction_result_type:tdef;
       begin
-        result:=sinttype;
+        result:=ptrsinttype;
       end;
 
 
