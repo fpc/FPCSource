@@ -1970,6 +1970,8 @@ implementation
             inserttypeconv(left,get_int_type_for_pointer_arithmetic(rd));
             if nodetype=addn then
               begin
+                if (rt=niln) then
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
                 if not(cs_extsyntax in current_settings.moduleswitches) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
