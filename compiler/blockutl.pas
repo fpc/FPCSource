@@ -28,7 +28,7 @@ unit blockutl;
 interface
 
   uses
-    node,nld,
+    node,nld,ncnv,
     symtype,symdef;
 
   { accepts a loadnode for a procdef
@@ -48,10 +48,10 @@ interface
 implementation
 
   uses
-    verbose,globtype,cutils,
+    verbose,globtype,globals,cutils,constexp,
     pass_1,pparautl,fmodule,
     aasmdata,
-    ncnv,nmem,
+    nbas,ncon,nmem,nutils,
     symbase,symconst,symtable,symsym,symcreat,objcutil,objcdef,defutil,
     paramgr;
 
@@ -225,7 +225,10 @@ implementation
         end
       else
         begin
-          internalerror(2014071609);
+          { alias for the type to invoke the procvar, used in the symcreat
+            handling of tsk_block_invoke_procvar }
+          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
+          result.synthetickind:=tsk_block_invoke_procvar;
         end;
     end;
 
@@ -262,6 +265,51 @@ implementation
               '; descriptor: @'+descriptor.realname+
               '));',
         result);
+    end;
+
+
+  { compose an on-stack block literal for a "procedure of object" }
+  function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
+    var
+      statement: tstatementnode;
+      literaltemp: ttempcreatenode;
+    begin
+      result:=internalstatements(statement);
+      { create new block literal structure }
+      literaltemp:=ctempcreatenode.create(blockliteraldef,blockliteraldef.size,tt_persistent,false);
+      addstatement(statement,literaltemp);
+      { temp.base.isa:=@blockisasym }
+      addstatement(statement,cassignmentnode.create(
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'ISA'),
+        caddrnode.create(cloadnode.create(blockisasym,blockisasym.owner))));
+      { temp.base.flags:=blockflags }
+      addstatement(statement,cassignmentnode.create(
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'FLAGS'),
+        genintconstnode(blockflags)));
+      { temp.base.reserved:=0 }
+      addstatement(statement,cassignmentnode.create(
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'RESERVED'),
+        genintconstnode(0)));
+      { temp.base.invoke:=tmethod(@invokepd) }
+      addstatement(statement,cassignmentnode.create(
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'INVOKE'),
+        ctypeconvnode.create_proc_to_procvar(
+          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner))));
+      { temp.base.descriptor:=@descriptor }
+      addstatement(statement,cassignmentnode.create(
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'DESCRIPTOR'),
+        caddrnode.create(cloadnode.create(descriptor,descriptor.owner))));
+      { temp.pv:=tmethod(@orgpd) }
+      addstatement(statement,cassignmentnode.create(
+        ctypeconvnode.create_explicit(genloadfield(ctemprefnode.create(literaltemp),'PV'),orgpv),
+          procvarnode.getcopy));
+      { and return the address of the temp }
+      addstatement(statement,caddrnode.create(ctemprefnode.create(literaltemp)));
+      { typecheck this now, because the current source may be written in TP/
+        Delphi/MacPas mode and the above node tree has been constructed for
+        ObjFPC mode, which has been set by replace_scanner (in Delphi, the
+        assignment to invoke would be without the proc_to_procvar conversion) }
+      typecheckpass(result);
     end;
 
 
@@ -321,9 +369,7 @@ implementation
         end
       else
         begin
-          { local variable that gets initialised: create temp, initialise it,
-            return address of temp }
-          internalerror(2014071502);
+          result:=get_pascal_method_literal(blockliteraldef,blockisasym,blockflags,procvarnode,invokepd,orgpv,descriptor)
         end;
 
       procvarnode.free;

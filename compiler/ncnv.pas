@@ -2015,8 +2015,7 @@ implementation
                 while (source^.nodetype=typeconvn) and
                       (ttypeconvnode(source^).convtype=tc_proc_2_procvar) and
                       (is_void(source^.resultdef) or
-                       ((source^.resultdef.typ=procvardef) and
-                        tprocvardef(source^.resultdef).is_addressonly)) do
+                       (source^.resultdef.typ=procvardef)) do
                   begin
                     { won't skip proc2procvar }
                     source:=actualtargetnode(@ttypeconvnode(source^).left);
