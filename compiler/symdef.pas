@@ -4453,7 +4453,7 @@ implementation
                   { in case of bare proc, don't copy self, vmt or framepointer
                     parameters }
                   if (copytyp=pc_bareproc) and
-                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result]*pvs.varoptions)<>[]) then
+                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
                     continue;
                   npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
                     pvs.vardef,pvs.varoptions);
@@ -5188,24 +5188,29 @@ implementation
           tprocdef(result).deprecatedmsg:=stringdup(deprecatedmsg^);
         { will have to be associated with appropriate procsym }
         tprocdef(result).procsym:=nil;
+        { don't create aliases for bare copies, nor copy the funcretsym as
+          the function result parameter will be inserted again if necessary
+          (e.g. if the calling convention is changed) }
         if copytyp<>pc_bareproc then
-          tprocdef(result).aliasnames.concatListcopy(aliasnames);
-        if assigned(funcretsym) then
           begin
-            if funcretsym.owner=parast then
+            tprocdef(result).aliasnames.concatListcopy(aliasnames);
+            if assigned(funcretsym) then
               begin
-                j:=parast.symlist.indexof(funcretsym);
-                if j<0 then
-                  internalerror(2011040606);
-                tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
-              end
-            else if funcretsym.owner=localst then
-              begin
-                { nothing to do, will be inserted for the new procdef while
-                  parsing its body (by pdecsub.insert_funcret_local) }
-              end
-            else
-              internalerror(2011040605);
+                if funcretsym.owner=parast then
+                  begin
+                    j:=parast.symlist.indexof(funcretsym);
+                    if j<0 then
+                      internalerror(2011040606);
+                    tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
+                  end
+                else if funcretsym.owner=localst then
+                  begin
+                    { nothing to do, will be inserted for the new procdef while
+                      parsing its body (by pdecsub.insert_funcret_local) }
+                  end
+                else
+                  internalerror(2011040605);
+              end;
           end;
         { will have to be associated with a new struct }
         tprocdef(result).struct:=nil;

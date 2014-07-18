@@ -505,6 +505,7 @@ implementation
         methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
         insert_self_and_vmt_para(methoddef);
+        insert_funcret_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
 
@@ -539,6 +540,7 @@ implementation
             methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
             insert_self_and_vmt_para(methoddef);
+            insert_funcret_para(methoddef);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
@@ -680,6 +682,7 @@ implementation
         { since it was a bare copy, insert the self parameter (we can't just
           copy the vmt parameter from the constructor, that's different) }
         insert_self_and_vmt_para(wrapperpd);
+        insert_funcret_para(wrapperpd);
         wrapperpd.calcparas;
         { implementation: call through to the constructor
           Exception: if the current class is abstract, do not call the
