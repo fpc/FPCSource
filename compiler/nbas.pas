@@ -258,7 +258,7 @@ interface
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
-       function  internalstatements(var laststatement:tstatementnode):tblocknode;
+       function  internalstatements(out laststatement:tstatementnode):tblocknode;
        function  laststatement(block:tblocknode):tstatementnode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
@@ -282,7 +282,7 @@ implementation
                                      Helpers
 *****************************************************************************}
 
-    function internalstatements(var laststatement:tstatementnode):tblocknode;
+    function internalstatements(out laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
