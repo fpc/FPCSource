@@ -1533,6 +1533,10 @@ implementation
                    begin
                      { procvar -> procvar }
                      eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
+                     if eq<te_equal then
+                       doconv:=tc_proc_2_procvar
+                     else
+                       doconv:=tc_equal;
                    end;
                  pointerdef :
                    begin
