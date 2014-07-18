@@ -100,7 +100,7 @@ interface
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype;indirect:boolean=false):string;override;
           function  OwnerHierarchyName: string; override;
           function  fullownerhierarchyname:string;override;
           function  needs_separate_initrtti:boolean;override;
@@ -418,7 +418,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype;indirect:boolean=false):string;override;
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
@@ -453,7 +453,7 @@ interface
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
-          function rtti_mangledname(rt:trttitype):string;override;
+          function rtti_mangledname(rt:trttitype;indirect:boolean=false):string;override;
           procedure register_created_object_type;override;
        end;
        tclassrefdefclass = class of tclassrefdef;
@@ -1755,9 +1755,10 @@ implementation
       end;
 
 
-    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
+    function tstoreddef.rtti_mangledname(rt : trttitype;indirect:boolean) : string;
       var
         prefix : string[4];
+        suffix : string;
       begin
         if (rt=fullrtti) or (not needs_separate_initrtti) then
           begin
@@ -1769,11 +1770,15 @@ implementation
             prefix:='INIT';
             include(defstates,ds_init_table_used);
           end;
+        if indirect then
+          suffix:='$INDIRECT'
+        else
+          suffix:='';
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname(prefix,owner,typesym.name)
+          result:=make_mangledname(prefix,owner,typesym.name+suffix)
         else
-          result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
+          result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId)+suffix);
       end;
 
 
@@ -3221,12 +3226,12 @@ implementation
       end;
 
 
-    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+    function tclassrefdef.rtti_mangledname(rt: trttitype;indirect:boolean=false): string;
       begin
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
-          result:=inherited rtti_mangledname(rt)
+          result:=inherited rtti_mangledname(rt,indirect)
         else
-          result:=tobjectdef(pointeddef).rtti_mangledname(objcmetartti);
+          result:=tobjectdef(pointeddef).rtti_mangledname(objcmetartti,indirect);
       end;
 
 
@@ -6451,10 +6456,10 @@ implementation
         result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
-    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+    function tobjectdef.rtti_mangledname(rt: trttitype;indirect:boolean): string;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
-          result:=inherited rtti_mangledname(rt)
+          result:=inherited rtti_mangledname(rt,indirect)
         else
           begin
             { necessary in case of a dynamic array of nsobject, or
@@ -6462,7 +6467,7 @@ implementation
               init/finalisation }
             if rt=initrtti then
               begin
-                result:=voidpointertype.rtti_mangledname(rt);
+                result:=voidpointertype.rtti_mangledname(rt,indirect);
                 exit;
               end;
 
@@ -6532,6 +6537,8 @@ implementation
                 end;
               end;
             result:=result+objextname^;
+            if indirect then
+              result:=result+'$INDIRECT';
           end;
       end;
 

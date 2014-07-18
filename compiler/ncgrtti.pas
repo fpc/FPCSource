@@ -1072,6 +1072,7 @@ implementation
 
         var rttilab:Tasmsymbol;
             h,i,o,prev_value:longint;
+            rttilabind : tasmsymbol;
             mode:(lookup,search); {Modify with care, ordinal value of enum is written.}
             r:single;             {Must be real type because of integer overflow risk.}
 
@@ -1112,7 +1113,7 @@ implementation
             in the code that uses it (if alignment is required). }
           with current_asmdata do
             begin
-              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA);
+              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt,false)+'_o2s',AB_GLOBAL,AT_DATA);
               maybe_new_object_file(asmlists[al_rtti]);
               new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
               asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
@@ -1145,6 +1146,11 @@ implementation
                     end;
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+              { write the indirect symbol }
+              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,true)+'_o2s',AB_GLOBAL,AT_DATA);
+              current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_Global(rttilabind,0));
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(rttilab.name,AT_DATA,0));
+              current_asmdata.asmlists[al_rtti].concat(tai_symbol_end.Create(rttilabind));
             end;
         end;
 
@@ -1154,13 +1160,14 @@ implementation
         procedure enumdef_rtti_string2ordindex(const sym_count:longint; const offsets:plongint; const syms:Penumsym; const st:longint);
 
         var rttilab:Tasmsymbol;
+            rttilabind : tasmsymbol;
             i:longint;
 
         begin
           { write rtti data }
           with current_asmdata do
             begin
-              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA);
+              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt,false)+'_s2o',AB_GLOBAL,AT_DATA);
               maybe_new_object_file(asmlists[al_rtti]);
               new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
               asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
@@ -1176,6 +1183,11 @@ implementation
                   asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+              { write the indirect symbol }
+              rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,true)+'_s2o',AB_GLOBAL,AT_DATA);
+              current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_Global(rttilabind,0));
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(rttilab.name,AT_DATA,0));
+              current_asmdata.asmlists[al_rtti].concat(tai_symbol_end.Create(rttilabind));
             end;
         end;
 
@@ -1335,7 +1347,8 @@ implementation
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
       var
-        rttilab : tasmsymbol;
+        rttilab,
+        rttilabind : tasmsymbol;
       begin
         { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
@@ -1350,13 +1363,18 @@ implementation
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
-        rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA);
+        rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,false),AB_GLOBAL,AT_DATA);
         maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
         new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(pint)));
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rttilab));
         write_rtti_extrasyms(def,rt,rttilab);
+        { write the indirect symbol }
+        rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt,true),AB_GLOBAL,AT_DATA);
+        current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_Global(rttilabind,0));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(rttilab.name,AT_DATA,0));
+        current_asmdata.asmlists[al_rtti].concat(tai_symbol_end.Create(rttilabind));
       end;
 
 
