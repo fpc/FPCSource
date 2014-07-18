@@ -54,9 +54,9 @@ interface
         procedure maybe_write_align;
       public
         procedure write_rtti(def:tdef;rt:trttitype);
-        function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
-        function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
-        function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
+        function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+        function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+        function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       end;
 
     var
@@ -1378,25 +1378,25 @@ implementation
       end;
 
 
-    function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
       end;
 
-    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s',AT_DATA);
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect)+'_o2s',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
       end;
 
-    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o',AT_DATA);
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect)+'_s2o',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
