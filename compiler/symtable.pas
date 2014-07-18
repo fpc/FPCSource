@@ -3069,7 +3069,7 @@ implementation
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
-          cgmessage1(cg_f_unknown_system_type,s);
+          message1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
 
@@ -3084,7 +3084,7 @@ implementation
         else
           begin
             if sym.typ<>typesym then
-              cgmessage1(cg_f_unknown_system_type,s);
+              message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
       end;
@@ -3100,7 +3100,7 @@ implementation
           srsym:=tsym(systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          cgmessage1(cg_f_unknown_compilerproc,s);
+          message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
 
@@ -3120,7 +3120,7 @@ implementation
         else
           begin
             if throwerror then
-              cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+              message2(cg_f_unknown_type_in_unit,typename,unitname);
             result:=nil;
           end;
       end;
