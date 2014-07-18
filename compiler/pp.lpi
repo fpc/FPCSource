@@ -27,7 +27,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -43,6 +43,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="symcpu"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="..\..\..\..\Volumes\Snow\Data\dev\fpcgit\compiler\blockutl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="blockutl"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

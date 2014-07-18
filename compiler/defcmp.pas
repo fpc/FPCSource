@@ -2213,7 +2213,10 @@ implementation
            include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
-         if (def1.proccalloption=def2.proccalloption) and
+         { for blocks, the calling convention doesn't matter because we have to
+           generate a wrapper anyway }
+         if ((po_is_block in def2.procoptions) or
+             (def1.proccalloption=def2.proccalloption)) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
             equal_defs(def1.returndef,def2.returndef) then
           begin
@@ -2227,6 +2230,9 @@ implementation
               begin
                 { prefer non-nested to non-nested over non-nested to nested }
                 if (is_nested_pd(def1)<>is_nested_pd(def2)) then
+                  eq:=te_convert_l1;
+                { in case of non-block to block, we need a type conversion }
+                if (po_is_block in def1.procoptions) <> (po_is_block in def2.procoptions) then
                   eq:=te_convert_l1;
               end;
             proc_to_procvar_equal:=eq;

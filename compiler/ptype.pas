@@ -1401,6 +1401,7 @@ implementation
             newtype:ttypesym;
             old_current_genericdef,
             old_current_specializedef: tstoreddef;
+            nestedok, blockok,
             old_parse_generic: boolean;
           begin
             old_current_genericdef:=current_genericdef;
@@ -1448,12 +1449,34 @@ implementation
                 consume(_OBJECT);
                 include(pd.procoptions,po_methodpointer);
               end
-            else if (m_nested_procvars in current_settings.modeswitches) and
-                    try_to_consume(_IS) then
+            else
               begin
-                consume(_NESTED);
-                pd.parast.symtablelevel:=normal_function_level+1;
-                pd.check_mark_as_nested;
+                nestedok:=m_nested_procvars in current_settings.modeswitches;
+                blockok:=m_blocks in current_settings.modeswitches;
+                if (nestedok or blockok) and
+                    try_to_consume(_IS) then
+                  begin
+                    if nestedok and
+                       try_to_consume(_NESTED) then
+                      begin
+                        pd.parast.symtablelevel:=normal_function_level+1;
+                        pd.check_mark_as_nested;
+                      end
+                    else if blockok and
+                       try_to_consume(_BLOCK) then
+                      begin
+                        include(pd.procoptions,po_is_block);
+                      end
+                    else
+                      begin
+                        if nestedok and blockok then
+                          Message2(scan_f_syn_expected,'Nested/Block',tokeninfo^[token].str)
+                        else if nestedok then
+                          consume(_NESTED)
+                        else
+                          consume(_BLOCK)
+                      end;
+                  end;
               end;
             symtablestack.pop(pd.parast);
             tparasymtable(pd.parast).readonly:=false;

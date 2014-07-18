@@ -602,6 +602,15 @@ implementation
                   break;
                 end;
 
+              { Blocks supported? }
+              if doinclude and
+                 (i = m_blocks) and
+                 not(target_info.system in systems_blocks_supported) then
+                begin
+                  Message1(option_unsupported_target_for_feature,'Blocks');
+                  break;
+                end;
+
               if changeInit then
                 current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;

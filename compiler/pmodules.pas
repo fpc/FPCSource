@@ -348,6 +348,10 @@ implementation
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
 
+        { blocks support? }
+        if m_blocks in current_settings.modeswitches then
+          AddUnit('blockrtl');
+
         { default char=widechar? }
         if m_default_unicodestring in current_settings.modeswitches then
           AddUnit('uuchar');

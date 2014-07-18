@@ -999,9 +999,6 @@ implementation
       def: tdef;
       sstate: tscannerstate;
     begin
-      { only necessary for the JVM target currently }
-      if not (target_info.system in systems_jvm) then
-        exit;
       { skip if any errors have occurred, since then this can only cause more
         errors }
       if ErrorCount<>0 then

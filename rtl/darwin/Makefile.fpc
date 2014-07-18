@@ -11,7 +11,7 @@ loaders=
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
-      dos dl \
+      dos dl blockrtl \
       sysutils typinfo fgl classes math types \
       charset cpall character getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors termio \
@@ -141,6 +141,8 @@ strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
 objc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) unixtype$(PPUEXT) $(INC)/objc.pp $(INC)/objc1.inc $(INC)/objcnf.inc
 
 objcbase$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/objcbase.pp objc$(PPUEXT)
+
+blockrtl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) initc$(PPUEXT) ctypes$(PPUEXT) $(INC)/blockrtl.pp
 
 #
 # System Dependent Units

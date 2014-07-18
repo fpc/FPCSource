@@ -40,7 +40,7 @@ interface
 
     { Encode a method's parameters and result type into the format used by the
       run time (for generating protocol and class rtti).  }
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
 
     { Exports all assembler symbols related to the obj-c class }
     procedure exportobjcclass(def: tobjectdef);
@@ -196,7 +196,7 @@ end;
       end;
 
 
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
       var
         parasize,
         totalsize: aint;
@@ -230,7 +230,11 @@ end;
                (vs.varspez in [vs_var,vs_out,vs_constref]) then
               result:=result+'^';
             { Add the parameter type.  }
-            if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
+            if (vo_is_parentfp in vs.varoptions) and
+               (po_is_block in pd.procoptions) then
+              { special case: self parameter of block procvars has to be @? }
+              result:=result+'@?'
+            else if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
               { should be checked earlier on }
               internalerror(2009081701);
             { And the total size of the parameters coming before this one

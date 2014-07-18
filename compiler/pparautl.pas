@@ -39,7 +39,7 @@ implementation
 
     uses
       globals,globtype,verbose,systems,
-      symconst,symtype,symbase,symsym,symtable,symcreat,defutil,
+      symconst,symtype,symbase,symsym,symtable,symcreat,defutil,blockutl,
       paramgr;
 
 
@@ -175,6 +175,31 @@ implementation
             { Generate self variable }
             vs:=cparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
+          end
+        { while only procvardefs of this type can be declared in Pascal code,
+          internally we also generate procdefs of this type when creating
+          block wrappers }
+        else if (po_is_block in pd.procoptions) then
+          begin
+            { generate the first hidden parameter, which is a so-called "block
+              literal" describing the block and containing its invocation
+              procedure  }
+            hdef:=getpointerdef(get_block_literal_type_for_proc(pd));
+            { mark as vo_is_parentfp so that proc2procvar comparisons will
+              succeed when assigning arbitrary routines to the block }
+            vs:=cparavarsym.create('$_block_literal',paranr_blockselfpara,vs_value,
+              hdef,[vo_is_hidden_para,vo_is_parentfp]
+            );
+            pd.parast.insert(vs);
+            if pd.typ=procdef then
+              begin
+                { make accessible to code }
+                sl:=tpropaccesslist.create;
+                sl.addsym(sl_load,vs);
+                aliasvs:=cabsolutevarsym.create_ref('FPC_BLOCK_SELF',hdef,sl);
+                include(aliasvs.varoptions,vo_is_parentfp);
+                tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
+              end;
           end
         else
           begin
