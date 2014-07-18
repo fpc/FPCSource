@@ -88,7 +88,6 @@ interface
         we cannot (yet?) generate on the callee side}
       signature: pchar;
     end;
-    PFPC_Block_descriptor_simple = ^FPC_Block_descriptor_simple;
 
     { descriptor for a simple block (no copy/release) }
     FPC_Block_descriptor_complex = record

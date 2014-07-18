@@ -355,6 +355,8 @@ type
     po_far,
     { the procedure never returns, this information is usefull for dfa }
     po_noreturn,
+    { procvar is a function reference }
+    po_is_function_ref,
     { procvar is a block (http://en.wikipedia.org/wiki/Blocks_(C_language_extension) ) }
     po_is_block
   );

@@ -3,7 +3,7 @@
 {$modeswitch blocks}
 
 type
-  tblock = procedure is block;
+  tblock = reference to procedure; cdecl;
 
 procedure test(b: tblock);
   begin

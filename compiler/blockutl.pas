@@ -65,7 +65,7 @@ implementation
       { todo: nested functions and Objective-C methods }
       else if not is_nested_pd(pd) and
               not is_objcclass(tdef(pd.owner.defowner)) then
-        result:=trecorddef(search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_LITERAL_PROCVAR',true).typedef)
+        result:=trecorddef(search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_LITERAL_COMPLEX_PROCVAR',true).typedef)
       else
         internalerror(2014071304);
     end;

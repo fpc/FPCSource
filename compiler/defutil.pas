@@ -331,6 +331,9 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
+    { returns true if def is a C "block" }
+    function is_block(def: tdef): boolean;
+
     {# returns the appropriate int type for pointer arithmetic with the given pointer type.
        When adding or subtracting a number to/from a pointer, this function returns the
        int type to which that number has to be converted, before the operation can be performed.
@@ -1438,6 +1441,12 @@ implementation
     function is_methodpointer(def: tdef): boolean;
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
+
+    function is_block(def: tdef): boolean;
+      begin
+        result:=(def.typ=procvardef) and (po_is_block in tprocvardef(def).procoptions)
       end;
 
 

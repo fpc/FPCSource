@@ -3,7 +3,7 @@
 {$modeswitch blocks}
 
 type
-  tblock = function(l: longint): longint is block;
+  tblock = reference to function(l: longint): longint; cdecl;
 
 function test(b: tblock; l: longint): longint;
   begin

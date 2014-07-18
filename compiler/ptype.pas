@@ -73,7 +73,7 @@ implementation
        paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,symcreat,
-       defutil,defcmp,
+       defutil,defcmp,objcdef,
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -1401,7 +1401,6 @@ implementation
             newtype:ttypesym;
             old_current_genericdef,
             old_current_specializedef: tstoreddef;
-            nestedok, blockok,
             old_parse_generic: boolean;
           begin
             old_current_genericdef:=current_genericdef;
@@ -1449,34 +1448,12 @@ implementation
                 consume(_OBJECT);
                 include(pd.procoptions,po_methodpointer);
               end
-            else
-              begin
-                nestedok:=m_nested_procvars in current_settings.modeswitches;
-                blockok:=m_blocks in current_settings.modeswitches;
-                if (nestedok or blockok) and
+            else if (m_nested_procvars in current_settings.modeswitches) and
                     try_to_consume(_IS) then
-                  begin
-                    if nestedok and
-                       try_to_consume(_NESTED) then
-                      begin
-                        pd.parast.symtablelevel:=normal_function_level+1;
-                        pd.check_mark_as_nested;
-                      end
-                    else if blockok and
-                       try_to_consume(_BLOCK) then
-                      begin
-                        include(pd.procoptions,po_is_block);
-                      end
-                    else
-                      begin
-                        if nestedok and blockok then
-                          Message2(scan_f_syn_expected,'Nested/Block',tokeninfo^[token].str)
-                        else if nestedok then
-                          consume(_NESTED)
-                        else
-                          consume(_BLOCK)
-                      end;
-                  end;
+              begin
+                consume(_NESTED);
+                pd.parast.symtablelevel:=normal_function_level+1;
+                pd.check_mark_as_nested;
               end;
             symtablestack.pop(pd.parast);
             tparasymtable(pd.parast).readonly:=false;
@@ -1814,6 +1791,43 @@ implementation
                 jvm_create_procvar_class(name,def);
 {$endif}
               end;
+            _ID:
+              begin
+                case idtoken of
+                  _HELPER:
+                    begin
+                      if hadtypetoken and
+                         { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
+                         ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) then
+                        begin
+                          { reset hadtypetoken, so that calling code knows that it should not be handled
+                            as a "unique" type }
+                          hadtypetoken:=false;
+                          consume(_HELPER);
+                          def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                        end
+                      else
+                        expr_type
+                    end;
+                  _REFERENCE:
+                    begin
+                      if m_blocks in current_settings.modeswitches then
+                        begin
+                          consume(_REFERENCE);
+                          consume(_TO);
+                          def:=procvar_dec(genericdef,genericlist);
+                          { could be errordef in case of a syntax error }
+                          if assigned(def) and
+                             (def.typ=procvardef) then
+                            include(tprocvardef(def).procoptions,po_is_function_ref);
+                        end
+                      else
+                        expr_type;
+                    end;
+                  else
+                    expr_type;
+                end;
+              end
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
                 begin
@@ -1824,19 +1838,7 @@ implementation
                     current_module.checkforwarddefs.add(def);
                 end
               else
-                if hadtypetoken and
-                    { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
-                    ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) and
-                    (token=_ID) and (idtoken=_HELPER) then
-                  begin
-                    { reset hadtypetoken, so that calling code knows that it should not be handled
-                      as a "unique" type }
-                    hadtypetoken:=false;
-                    consume(_HELPER);
-                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
-                  end
-                else
-                  expr_type;
+                expr_type;
          end;
 
          if def=nil then
