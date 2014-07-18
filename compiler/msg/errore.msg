@@ -1528,6 +1528,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
+parser_e_packages_not_supported=03339_E_Dynamic packages not supported for target OS
+% Support for dynamic packages is not implemented for the specified target OS
+% or it is at least not tested and thus disabled.
 %
 %
 %

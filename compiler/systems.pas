@@ -144,7 +144,10 @@ interface
               this is usefull for architectures which require a small code footprint }
             tf_no_objectfiles_when_smartlinking,
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
-            tf_cld
+            tf_cld,
+            { indicates that this target can use dynamic packages otherwise an
+              error will be generated if a package file is compiled }
+            tf_supports_packages
        );
 
        psysteminfo = ^tsysteminfo;
