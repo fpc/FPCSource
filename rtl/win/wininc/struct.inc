@@ -6728,6 +6728,54 @@ Const
      tagSOUNDSENTRY = SOUNDSENTRY;
      TSOUNDSENTRY = SOUNDSENTRY;
      PSOUNDSENTRY = ^SOUNDSENTRY;
+     STARTUPINFOA = record
+          cb : DWORD;
+          lpReserved : LPSTR;
+          lpDesktop : LPSTR;
+          lpTitle : LPSTR;
+          dwX : DWORD;
+          dwY : DWORD;
+          dwXSize : DWORD;
+          dwYSize : DWORD;
+          dwXCountChars : DWORD;
+          dwYCountChars : DWORD;
+          dwFillAttribute : DWORD;
+          dwFlags : DWORD;
+          wShowWindow : WORD;
+          cbReserved2 : WORD;
+          lpReserved2 : LPBYTE;
+          hStdInput : HANDLE;
+          hStdOutput : HANDLE;
+          hStdError : HANDLE;
+       end;
+     LPSTARTUPINFOA = ^STARTUPINFOA;
+     _STARTUPINFOA = STARTUPINFOA;
+     TSTARTUPINFOA = STARTUPINFOA;
+     PSTARTUPINFOA = ^STARTUPINFOA;
+     STARTUPINFOW = record
+          cb : DWORD;
+          lpReserved : LPWSTR;
+          lpDesktop : LPWSTR;
+          lpTitle : LPWSTR;
+          dwX : DWORD;
+          dwY : DWORD;
+          dwXSize : DWORD;
+          dwYSize : DWORD;
+          dwXCountChars : DWORD;
+          dwYCountChars : DWORD;
+          dwFillAttribute : DWORD;
+          dwFlags : DWORD;
+          wShowWindow : WORD;
+          cbReserved2 : WORD;
+          lpReserved2 : LPBYTE;
+          hStdInput : HANDLE;
+          hStdOutput : HANDLE;
+          hStdError : HANDLE;
+       end;
+     LPSTARTUPINFOW = ^STARTUPINFOW;
+     _STARTUPINFOW = STARTUPINFOW;
+     TSTARTUPINFOW = STARTUPINFOW;
+     PSTARTUPINFOW = ^STARTUPINFOW;
 
      STARTUPINFO = record
           cb : DWORD;
@@ -6749,11 +6797,17 @@ Const
           hStdOutput : HANDLE;
           hStdError : HANDLE;
        end;
-     LPSTARTUPINFO = ^STARTUPINFO;
-     _STARTUPINFO = STARTUPINFO;
-     TSTARTUPINFO = STARTUPINFO;
-     PSTARTUPINFO = ^STARTUPINFO;
-
+     {$ifdef Unicode}
+     LPSTARTUPINFO = LPSTARTUPINFOW;
+     _STARTUPINFO = _STARTUPINFOW;
+     TSTARTUPINFO = TSTARTUPINFOW;
+     PSTARTUPINFO = PSTARTUPINFOW;
+     {$else}
+     LPSTARTUPINFO = LPSTARTUPINFOA;
+     _STARTUPINFO = _STARTUPINFOA;
+     TSTARTUPINFO = TSTARTUPINFOA;
+     PSTARTUPINFO = PSTARTUPINFOA;
+     {$endif}
      STICKYKEYS = record
           cbSize : DWORD;
           dwFlags : DWORD;

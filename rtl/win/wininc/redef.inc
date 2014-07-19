@@ -339,7 +339,7 @@ function CreatePolyPolygonRgn(const pPtStructs; const pIntArray; p3, p4: Integer
 function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
 function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
+  const lpStartupInfo: TStartupInfoA; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
 //function CreateProcessAsUser(hToken: THandle; lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
 // lpEnvironment: Pointer; lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'advapi32' name 'CreateProcessAsUserA';
 //function CreateProcessAsUserA(hToken: THandle; lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
@@ -347,7 +347,7 @@ function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProc
 //function CreateProcessAsUserW(hToken: THandle; lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
 //  lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserW';
 function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
+  const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
 //function CreateRectRgnIndirect(const p1: TRect): HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
 function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: PTRUINT; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
   external 'kernel32' name 'CreateRemoteThread';
