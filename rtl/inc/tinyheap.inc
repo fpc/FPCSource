@@ -13,6 +13,13 @@
 
  **********************************************************************}
 
+    type
+      { TTinyHeapMemBlockSize holds the size of an *allocated* memory block,
+        and is written at position:
+          memblockstart-sizeof(TTinyHeapMemBlockSize) }
+      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize;
+      TTinyHeapMemBlockSize = PtrUInt;
+
     const
       TinyHeapMinBlock = 4*sizeof(pointer);
 
@@ -29,9 +36,9 @@
 
     procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint); forward;
 
-    function FindSize(p: pointer): ptruint;
+    function FindSize(p: pointer): TTinyHeapMemBlockSize;
       begin
-        FindSize := PPtrUInt(p)[-1];
+        FindSize := PTinyHeapMemBlockSize(p)[-1];
       end;
 
     function SysTinyGetMem(Size: ptruint): pointer;
@@ -42,7 +49,7 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyGetMem(', Size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        AllocSize := align(size+sizeof(ptruint), sizeof(pointer));
+        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), sizeof(pointer));
 
         p := TinyHeapBlocks;
         prev := nil;
@@ -54,7 +61,7 @@
 
         if assigned(p) then
           begin
-            result := @pptruint(p)[1];
+            result := @PTinyHeapMemBlockSize(p)[1];
 
             if p^.Size-AllocSize >= TinyHeapMinBlock then
               RestSize := p^.Size-AllocSize
@@ -69,7 +76,7 @@
             else
               prev^.next := p^.next;
 
-            pptruint(p)^ := size;
+            PTinyHeapMemBlockSize(p)^ := size;
 
             if RestSize > 0 then
               InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
@@ -183,9 +190,9 @@
             result:=0;
             exit;
           end;
-        sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
+        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), sizeof(pointer));
 
-        InternalTinyFreeMem(@pptruint(addr)[-1], sz);
+        InternalTinyFreeMem(@PTinyHeapMemBlockSize(addr)[-1], sz);
         
         result := sz;
       end;
