@@ -2926,7 +2926,9 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        if classh.extendeddef.typ in [recorddef,objectdef] then
+        { Note: the extendeddef might be Nil if we are currently parsing the
+                extended type itself and the identifier was not found }
+        if assigned(classh.extendeddef) and (classh.extendeddef.typ in [recorddef,objectdef]) then
           begin
             srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
