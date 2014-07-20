@@ -116,7 +116,7 @@ begin
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFO);
+Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOA);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -179,7 +179,7 @@ begin
 end;
 
 
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean; APipeBufferSize : Cardinal);
+Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoA; CE : Boolean; APipeBufferSize : Cardinal);
 
 begin
   CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
@@ -224,7 +224,7 @@ Var
   FProcessAttributes : TSecurityAttributes;
   FThreadAttributes : TSecurityAttributes;
   FProcessInformation : TProcessInformation;
-  FStartupInfo : STARTUPINFO;
+  FStartupInfo : STARTUPINFOA;
   HI,HO,HE : THandle;
   Cmd : String;
   
