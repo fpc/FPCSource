@@ -20,13 +20,17 @@
       PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize;
       TTinyHeapMemBlockSize = PtrUInt;
 
+      { TTinyHeapFreeBlockSize holds the size of a *free* memory block, as a
+        part of the TTinyHeapBlock structure }
+      TTinyHeapFreeBlockSize = PtrUInt;
+
     const
       TinyHeapMinBlock = 4*sizeof(pointer);
 
     type
       PTinyHeapBlock = ^TTinyHeapBlock;
       TTinyHeapBlock = record
-        Size: ptruint;
+        Size: TTinyHeapFreeBlockSize;
         Next: PTinyHeapBlock;
         EndAddr: pointer;
       end;
@@ -34,7 +38,7 @@
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint); forward;
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize); forward;
 
     function FindSize(p: pointer): TTinyHeapMemBlockSize;
       begin
@@ -107,7 +111,7 @@
           end;
       end;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint);
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize);
       var 
         b, p, prev: PTinyHeapBlock;
         concatenated: boolean;
