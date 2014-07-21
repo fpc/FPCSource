@@ -24,6 +24,8 @@
         part of the TTinyHeapBlock structure }
       TTinyHeapFreeBlockSize = PtrUInt;
 
+      TTinyHeapPointerArithmeticType = ^Byte;
+
     const
       TinyHeapMinBlock = 4*sizeof(pointer);
 
@@ -83,7 +85,7 @@
             PTinyHeapMemBlockSize(p)^ := size;
 
             if RestSize > 0 then
-              InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
+              InternalTinyFreeMem(pointer(TTinyHeapPointerArithmeticType(p)+AllocSize), RestSize);
           end
         else
           if ReturnNilIfGrowHeapFails then
@@ -106,7 +108,7 @@
           begin
             mem := GetMem(Size+Alignment-1);
             memp := align(ptruint(mem), Alignment);
-            InternalTinyFreeMem(mem, ptruint(memp)-ptruint(mem));
+            InternalTinyFreeMem(mem, TTinyHeapPointerArithmeticType(memp)-TTinyHeapPointerArithmeticType(mem));
             result := pointer(memp);
           end;
       end;
@@ -122,7 +124,7 @@
 
           b^.Next := TinyHeapBlocks;
           b^.Size := Size;
-          b^.EndAddr := pointer(ptruint(addr)+size);
+          b^.EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
           if TinyHeapBlocks = nil then
             TinyHeapBlocks := b
