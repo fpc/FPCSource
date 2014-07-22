@@ -260,8 +260,8 @@
           end;
         if (ASize and 1) <> 0 then
           Dec(ASize);
-        pptruint(AAddress)^ := ASize - SizeOf(ptruint);
-        FreeMem(pptruint(AAddress) + 1, ASize - SizeOf(ptruint));
+        PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
+        FreeMem(PTinyHeapMemBlockSize(AAddress) + 1, ASize - SizeOf(TTinyHeapMemBlockSize));
       end;
 
     const
