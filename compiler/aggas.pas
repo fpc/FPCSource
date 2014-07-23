@@ -843,7 +843,8 @@ implementation
                        asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
                        asmwrite(',');
                        asmwrite(tostr(tai_datablock(hp).size)+',');
-                       asmwrite('_data.bss_');
+                       asmwrite('_data.bss_,');
+                       asmwriteln(tostr(last_align));
                      end;
                  end
                else
