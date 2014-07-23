@@ -18,6 +18,9 @@ program ExecStack;
 {$ifdef cpumips}
     ret: array[0..1] of longword;
 {$endif}
+{$ifdef cpum68k}
+    ret: word;
+{$endif}
     DoNothing: proc;
 
   begin
@@ -51,7 +54,13 @@ program ExecStack;
     ret[1]:=0;                   { delay slot }
     DoNothing:=proc(@ret);
     DoNothing;
-{$endif}
+{$endif cpumips}
+{$ifdef cpum68k}
+    ret:=$4E74;
+    DoNothing:=proc(@ret);
+    DoNothing;
+{$endif cpum68k}
+
   end;
 begin
   DoIt;
