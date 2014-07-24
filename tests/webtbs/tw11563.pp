@@ -56,7 +56,7 @@ program ExecStack;
     DoNothing;
 {$endif cpumips}
 {$ifdef cpum68k}
-    ret:=$4E74;
+    ret:=$4E75;
     DoNothing:=proc(@ret);
     DoNothing;
 {$endif cpum68k}
