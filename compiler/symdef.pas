@@ -227,6 +227,12 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
+          {# returns the appropriate int type for pointer arithmetic with the given pointer type.
+             When adding or subtracting a number to/from a pointer, this function returns the
+             int type to which that number has to be converted, before the operation can be performed.
+             Normally, this is sinttype, except on i8086, where it takes into account the
+             special i8086 pointer types (near, far, huge). }
+          function pointer_arithmetic_int_type:tdef;virtual;
           {# returns the int type produced when subtracting two pointers of the given type.
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
@@ -3167,6 +3173,12 @@ implementation
           GetTypeName:='^'+pointeddef.typename
         else
           GetTypeName:='^'+pointeddef.typesym.realname;
+      end;
+
+
+    function tpointerdef.pointer_arithmetic_int_type:tdef;
+      begin
+        result:=sinttype;
       end;
 
 

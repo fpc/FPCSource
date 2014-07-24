@@ -57,6 +57,7 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function pointer_arithmetic_int_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
@@ -307,6 +308,15 @@ implementation
       begin
         if current_settings.x86memorymodel in x86_far_data_models then
           result:=x86pt_far
+        else
+          result:=inherited;
+      end;
+
+
+    function tcpupointerdef.pointer_arithmetic_int_type:tdef;
+      begin
+        if x86pointertyp=x86pt_huge then
+          result:=s32inttype
         else
           result:=inherited;
       end;

@@ -1967,7 +1967,7 @@ implementation
               end
             else
               resultdef:=right.resultdef;
-            inserttypeconv(left,get_int_type_for_pointer_arithmetic(right.resultdef));
+            inserttypeconv(left,tpointerdef(right.resultdef).pointer_arithmetic_int_type);
             if nodetype=addn then
               begin
                 if (rt=niln) then
@@ -1981,7 +1981,7 @@ implementation
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=caddnode.create(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,get_int_type_for_pointer_arithmetic(right.resultdef),true));
+                       cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(left);
                    end;
               end
@@ -2000,7 +2000,7 @@ implementation
              else
                resultdef:=left.resultdef;
 
-             inserttypeconv(right,get_int_type_for_pointer_arithmetic(left.resultdef));
+             inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
              if nodetype in [addn,subn] then
                begin
                  if (lt=niln) then
@@ -2017,7 +2017,7 @@ implementation
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=caddnode.create(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,get_int_type_for_pointer_arithmetic(left.resultdef),true));
+                       cordconstnode.create(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(right);
                    end
                  end else
@@ -2025,7 +2025,7 @@ implementation
                       (tarraydef(ld).elementdef.size>1) then
                      begin
                        right:=caddnode.create(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,get_int_type_for_pointer_arithmetic(left.resultdef),true));
+                         cordconstnode.create(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                        typecheckpass(right);
                      end;
                end
