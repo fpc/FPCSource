@@ -3178,7 +3178,7 @@ implementation
 
     function tpointerdef.pointer_arithmetic_int_type:tdef;
       begin
-        result:=sinttype;
+        result:=ptrsinttype;
       end;
 
 
