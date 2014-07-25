@@ -389,7 +389,7 @@ implementation
                   proctypesinfo:=$40
                 else
                   proctypesinfo:=0;
-                write_rtti_reference(tpropertysym(sym).propdef,fullrtti);
+                write_rtti_reference(tpropertysym(sym).propdef,fullrtti,true);
                 writeaccessproc(palt_read,0,0);
                 writeaccessproc(palt_write,2,0);
                 { is it stored ? }

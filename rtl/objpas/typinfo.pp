@@ -23,6 +23,7 @@ unit typinfo;
 {$MODE objfpc}
 {$MODESWITCH AdvancedRecords}
 {$inline on}
+{$macro on}
 {$h+}
 
   uses SysUtils;
@@ -112,6 +113,12 @@ unit typinfo;
 
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
+
+{$ifdef ver2_6}
+{$define TypeInfoPtr := PTypeInfo}
+{$else}
+{$define TypeInfoPtr := PPTypeInfo}
+{$endif}
 
 {$PACKRECORDS C}
       // members of TTypeData
@@ -278,7 +285,10 @@ unit typinfo;
 
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
-        PropType : PTypeInfo;
+      private
+        function GetPropType: PTypeInfo; inline;
+      public
+        PropTypeRef : TypeInfoPtr;
         GetProc : CodePointer;
         SetProc : CodePointer;
         StoredProc : CodePointer;
@@ -294,6 +304,7 @@ unit typinfo;
         PropProcs : Byte;
 
         Name : ShortString;
+        property PropType: PTypeInfo read GetPropType;
       end;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
@@ -2059,6 +2070,13 @@ begin
       Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
       dec(ParamIndex);
     end;
+end;
+
+{ TPropInfo }
+
+function TPropInfo.GetPropType: PTypeInfo;
+begin
+  Result := PropTypeRef{$ifndef ver2_6}^{$endif};
 end;
 
 end.
