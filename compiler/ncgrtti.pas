@@ -483,7 +483,7 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           maybe_write_align;  // is align necessary here?
           { write base type }
-          write_rtti_reference(def.basedef,rt);
+          write_rtti_reference(def.basedef,rt,true);
           for i := 0 to def.symtable.SymList.Count - 1 do
             begin
               hp:=tenumsym(def.symtable.SymList[i]);
@@ -587,7 +587,7 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
            end;
            maybe_write_align;
-           write_rtti_reference(def.elementdef,rt);
+           write_rtti_reference(def.elementdef,rt,true);
         end;
 
 
@@ -666,14 +666,14 @@ implementation
         begin
           write_header(def,tkClassRef);
           maybe_write_align;
-          write_rtti_reference(def.pointeddef,rt);
+          write_rtti_reference(def.pointeddef,rt,true);
         end;
 
         procedure pointerdef_rtti(def:tpointerdef);
         begin
           write_header(def,tkPointer);
           maybe_write_align;
-          write_rtti_reference(def.pointeddef,rt);
+          write_rtti_reference(def.pointeddef,rt,true);
         end;
 
         procedure recorddef_rtti(def:trecorddef);

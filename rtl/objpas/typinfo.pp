@@ -174,6 +174,21 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetBaseType: PTypeInfo; inline;
+        function GetCompType: PTypeInfo; inline;
+        function GetInstanceType: PTypeInfo; inline;
+        function GetRefType: PTypeInfo; inline;
+      public
+        { tkEnumeration }
+        property BaseType: PTypeInfo read GetBaseType;
+        { tkSet }
+        property CompType: PTypeInfo read GetCompType;
+        { tkClassRef }
+        property InstanceType: PTypeInfo read GetInstanceType;
+        { tkPointer }
+        property RefType: PTypeInfo read GetRefType;
+      public
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -187,12 +202,12 @@ unit typinfo;
                     case TTypeKind of
                       tkEnumeration:
                         (
-                        BaseType : PTypeInfo;
+                        BaseTypeRef : TypeInfoPtr;
                         NameList : ShortString;
                         {EnumUnitName: ShortString;})
                     );
                   tkSet:
-                    (CompType : PTypeInfo)
+                    (CompTypeRef : TypeInfoPtr)
               );
 {$ifndef FPUNONE}
             tkFloat:
@@ -268,9 +283,9 @@ unit typinfo;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
-              (InstanceType: PTypeInfo);
+              (InstanceTypeRef: TypeInfoPtr);
             tkPointer:
-              (RefType: PTypeInfo);
+              (RefTypeRef: TypeInfoPtr);
       end;
 
       TPropData =
@@ -2070,6 +2085,28 @@ begin
       Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
       dec(ParamIndex);
     end;
+end;
+
+{ TTypeData }
+
+function TTypeData.GetBaseType: PTypeInfo;
+begin
+  Result := BaseTypeRef{$ifndef ver2_6}^{$endif};
+end;
+
+function TTypeData.GetCompType: PTypeInfo;
+begin
+  Result := CompTypeRef{$ifndef ver2_6}^{$endif};
+end;
+
+function TTypeData.GetInstanceType: PTypeInfo;
+begin
+  Result := InstanceTypeRef{$ifndef ver2_6}^{$endif};
+end;
+
+function TTypeData.GetRefType: PTypeInfo;
+begin
+  Result := RefTypeRef{$ifndef ver2_6}^{$endif}
 end;
 
 { TPropInfo }
