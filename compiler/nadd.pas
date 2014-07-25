@@ -1013,6 +1013,14 @@ implementation
         change      : boolean;
 {$endif}
 
+        function maybe_cast_ordconst(var n: tnode; adef: tdef): boolean;
+          begin
+            result:=(tordconstnode(n).value>=torddef(adef).low) and
+              (tordconstnode(n).value<=torddef(adef).high);
+            if result then
+              inserttypeconv(n,adef);
+          end;
+
       begin
          result:=nil;
          rlow:=0;
@@ -1419,6 +1427,18 @@ implementation
                      inserttypeconv(left,nd);
                      inserttypeconv(right,nd);
                    end;
+               end
+             { don't extend (sign-mismatched) comparisons if either side is a constant
+               whose value is within range of opposite side }
+             else if is_integer(ld) and is_integer(rd) and
+                     (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+                     (is_signed(ld)<>is_signed(rd)) and
+                     (
+                       ((lt=ordconstn) and maybe_cast_ordconst(left,rd)) or
+                       ((rt=ordconstn) and maybe_cast_ordconst(right,ld))
+                     ) then
+               begin
+                 { done here }
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
