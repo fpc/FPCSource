@@ -259,6 +259,8 @@ interface
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           procedure check_forwards; virtual;
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function GetSymtable(t:tGetSymtable):TSymtable;override;
@@ -303,7 +305,6 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
-          procedure buildderefimpl;override;
           procedure deref;override;
           function  size:asizeint;override;
           function  alignment : shortint;override;
@@ -410,7 +411,6 @@ interface
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure resetvmtentries;
           procedure copyvmtentries(objdef:tobjectdef);
@@ -3705,6 +3705,23 @@ implementation
         inherited destroy;
       end;
 
+
+    procedure tabstractrecorddef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
+    procedure tabstractrecorddef.derefimpl;
+      begin
+        inherited derefimpl;
+        if not (df_copied_def in defoptions) then
+          tstoredsymtable(symtable).derefimpl;
+      end;
+
+
     procedure tabstractrecorddef.check_forwards;
       begin
         { the defs of a copied def are defined for the original type only }
@@ -4013,14 +4030,6 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
-      end;
-
-
-    procedure trecorddef.buildderefimpl;
-      begin
-         inherited buildderefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).buildderefimpl;
       end;
 
 
@@ -6183,19 +6192,9 @@ implementation
       end;
 
 
-    procedure tobjectdef.buildderefimpl;
-      begin
-         inherited buildderefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).buildderefimpl;
-      end;
-
-
     procedure tobjectdef.derefimpl;
       begin
          inherited derefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
          if (objecttype=odt_objcclass) or
