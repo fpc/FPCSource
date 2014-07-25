@@ -44,11 +44,11 @@ interface
         function  published_properties_count(st:tsymtable):longint;
         procedure published_properties_write_rtti_data(propnamelist:TFPHashObjectList;st:tsymtable);
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
-        function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+        function  ref_rtti(def:tdef;rt:trttitype;indirect:boolean=false):tasmsymbol;
         procedure write_rtti_name(def:tdef);
         procedure write_rtti_data(def:tdef;rt:trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
-        procedure write_rtti_reference(def:tdef;rt:trttitype);
+        procedure write_rtti_reference(def:tdef;rt:trttitype;indirect:boolean=false);
         procedure write_header(def: tdef; typekind: byte);
         procedure write_string(const s: string);
         procedure maybe_write_align;
@@ -1327,18 +1327,18 @@ implementation
         end;
       end;
 
-    procedure TRTTIWriter.write_rtti_reference(def:tdef;rt:trttitype);
+    procedure TRTTIWriter.write_rtti_reference(def:tdef;rt:trttitype;indirect:boolean);
       begin
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr)
         else
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def,rt)));
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def,rt,indirect)));
       end;
 
 
-    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt,indirect),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
