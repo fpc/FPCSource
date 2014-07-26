@@ -946,8 +946,10 @@ implementation
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);
+             pointerdef:
+               inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
              else
-               {Others, i.e. pointer indexes to aint.}
+               {Others, (are there any?) indexes to aint.}
                inserttypeconv(right,sinttype);
            end;
 
