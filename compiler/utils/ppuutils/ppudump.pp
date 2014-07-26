@@ -2865,6 +2865,8 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
+             if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+               writeln([space,'             Huge : ',(getbyte<>0)]);
              readsymtable('symbols', arrdef);
            end;
 

@@ -78,7 +78,19 @@ type
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
+  { tcpuarraydef }
+
   tcpuarraydef = class(tarraydef)
+   private
+    huge: Boolean;
+   protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    constructor create_from_pointer(def:tpointerdef);override;
+    function getcopy: tstoreddef; override;
+    function GetTypeName:string;override;
+    property is_huge: Boolean read huge write huge;
   end;
   tcpuarraydefclass = class of tcpuarraydef;
 
@@ -214,6 +226,57 @@ implementation
     else
       internalerror(2014041301);
   end;
+
+
+{****************************************************************************
+                               tcpuarraydef
+****************************************************************************}
+
+  constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
+    begin
+      if tcpupointerdef(def).x86pointertyp=x86pt_huge then
+        begin
+          huge:=true;
+          { use -1 so that the elecount will not overflow }
+          self.create(0,high(asizeint)-1,s32inttype);
+          arrayoptions:=[ado_IsConvertedPointer];
+          setelementdef(def.pointeddef);
+        end
+      else
+        begin
+          huge:=false;
+          inherited create_from_pointer(def);
+        end;
+    end;
+
+
+  function tcpuarraydef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpuarraydef(result).huge:=huge;
+    end;
+
+
+  function tcpuarraydef.GetTypeName: string;
+    begin
+      Result:=inherited;
+      if is_huge then
+        Result:='Huge '+Result;
+    end;
+
+
+  procedure tcpuarraydef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      huge:=(ppufile.getbyte<>0);
+    end;
+
+
+  procedure tcpuarraydef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putbyte(byte(huge));
+    end;
 
 
 {****************************************************************************
