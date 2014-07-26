@@ -833,7 +833,7 @@ implementation
     function tvecnode.pass_typecheck:tnode;
       var
          hightree: tnode;
-         htype,elementdef : tdef;
+         htype,elementdef,elementptrdef : tdef;
          newordtyp: tordtype;
          valid : boolean;
       begin
@@ -1014,7 +1014,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef));
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1029,19 +1029,23 @@ implementation
                 case tstringdef(left.resultdef).stringtype of
                   st_unicodestring,
                   st_widestring :
-                    elementdef:=cwidechartype;
-                  st_ansistring :
-                    elementdef:=cansichartype;
-                  st_longstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cwidechartype;
+                      elementptrdef:=widecharpointertype;
+                    end;
+                  st_ansistring,
+                  st_longstring,
                   st_shortstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cansichartype;
+                      elementptrdef:=charpointertype;
+                    end;
                   else
                     internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=carraydef.create_from_pointer(elementdef);
+                    htype:=carraydef.create_from_pointer(tpointerdef(elementptrdef));
                     resultdef:=htype;
                   end
                 else

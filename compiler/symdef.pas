@@ -479,7 +479,7 @@ interface
           function elesize : asizeint;
           function elepackedbitsize : asizeint;
           function elecount : asizeuint;
-          constructor create_from_pointer(def:tdef);virtual;
+          constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
@@ -3408,12 +3408,12 @@ implementation
         inherited;
       end;
 
-    constructor tarraydef.create_from_pointer(def:tdef);
+    constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
          { use -1 so that the elecount will not overflow }
          self.create(0,high(asizeint)-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
-         setelementdef(def);
+         setelementdef(def.pointeddef);
       end;
 
 
