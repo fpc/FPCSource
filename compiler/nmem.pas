@@ -106,6 +106,9 @@ interface
        tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
+       protected
+          function first_arraydef: tnode; virtual;
+       public
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -1106,17 +1109,32 @@ implementation
            tcallnode.gen_high_tree }
          if (right.nodetype=rangen) then
            CGMessagePos(right.fileinfo,parser_e_illegal_expression)
-         else if (not is_packed_array(left.resultdef)) or
-            ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CREFERENCE
-           else
-             expectloc:=LOC_REFERENCE
+         else if left.resultdef.typ=arraydef then
+           result:=first_arraydef
          else
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CSUBSETREF
-           else
-             expectloc:=LOC_SUBSETREF;
+           begin
+             if left.expectloc=LOC_CREFERENCE then
+               expectloc:=LOC_CREFERENCE
+             else
+               expectloc:=LOC_REFERENCE
+           end;
+      end;
+
+
+    function tvecnode.first_arraydef: tnode;
+      begin
+        result:=nil;
+        if (not is_packed_array(left.resultdef)) or
+           ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CREFERENCE
+          else
+            expectloc:=LOC_REFERENCE
+        else
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CSUBSETREF
+          else
+            expectloc:=LOC_SUBSETREF;
       end;
 
 
