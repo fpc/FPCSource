@@ -27,14 +27,59 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,aasmdata,
-       cpubase,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
+       cgbase,cgutils,cpubase,
        rgobj;
 
      type
        trgcpu = class(trgobj)
+         function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
 
   implementation
+
+    { returns True if source operand of MOVE can be replaced with spilltemp when its destination is ref^. }
+    function isvalidmovedest(ref: preference): boolean; inline;
+      begin
+        { The following is for Coldfire, for other CPUs it maybe can be relaxed. }
+        result:=(ref^.symbol=nil) and (ref^.scalefactor<=1) and
+          (ref^.index=NR_NO) and (ref^.base<>NR_NO) and (ref^.offset>=low(smallint)) and
+          (ref^.offset<=high(smallint));
+      end;
+
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      var
+        opidx: longint;
+      begin
+        result:=false;
+        opidx:=-1;
+        { TODO: support more instructions (on m68k almost all are eligible) }
+        if (not (regtype in [R_INTREGISTER,R_ADDRESSREGISTER])) or (instr.opcode<>A_MOVE) then
+          exit;
+        if (instr.ops<>2) then
+          exit;
+        if (instr.oper[0]^.typ=top_reg) and (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
+          begin
+            { source can be replaced if dest is register or a 'simple' reference }
+            if (instr.oper[1]^.typ=top_reg) or
+              ((instr.oper[1]^.typ=top_ref) and isvalidmovedest(instr.oper[1]^.ref)) then
+              opidx:=0;
+          end
+        else if (instr.oper[1]^.typ=top_reg) and (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
+          (instr.oper[0]^.typ=top_reg) then
+          opidx:=1;
+
+        if (opidx<0) then
+          exit;
+        instr.oper[opidx]^.typ:=top_ref;
+        new(instr.oper[opidx]^.ref);
+        instr.oper[opidx]^.ref^:=spilltemp;
+        case instr.opsize of
+          S_B: inc(instr.oper[opidx]^.ref^.offset,3);
+          S_W: inc(instr.oper[opidx]^.ref^.offset,2);
+        end;
+        result:=true;
+      end;
 
 end.
