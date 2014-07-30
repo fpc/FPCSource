@@ -108,6 +108,7 @@ unit cgcpu;
      tcg64f68k = class(tcg64f32)
        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG; size: tcgsize; regsrc,regdst : tregister64);override;
        procedure a_op64_const_reg(list : TAsmList;op:TOpCG; size: tcgsize; value : int64;regdst : tregister64);override;
+       procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
      end;
 
      { This function returns true if the reference+offset is valid.
@@ -1568,7 +1569,28 @@ unit cgcpu;
     end;
 
     procedure tcg68k.g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef);
+      var
+        hl : tasmlabel;
+        ai : taicpu;
+        cond : TAsmCond;
       begin
+        if not(cs_check_overflow in current_settings.localswitches) then
+          exit;
+        current_asmdata.getjumplabel(hl);
+        if not ((def.typ=pointerdef) or
+               ((def.typ=orddef) and
+                (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                          pasbool8,pasbool16,pasbool32,pasbool64]))) then
+          cond:=C_VC
+        else
+          cond:=C_CC;
+        ai:=Taicpu.Op_Sym(A_Bxx,S_NO,hl);
+        ai.SetCondition(cond);
+        ai.is_jmp:=true;
+        list.concat(ai);
+
+        a_call_name(list,'FPC_OVERFLOW',false);
+        a_label(list,hl);
       end;
 
     procedure tcg68k.g_proc_entry(list: TAsmList; localsize: longint; nostackframe:boolean);
@@ -2094,6 +2116,34 @@ unit cgcpu;
               list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
             end;
         end; { end case }
+      end;
+
+
+    procedure tcg64f68k.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+      var
+        tempref : treference;
+      begin
+        case op of
+          OP_NEG,OP_NOT:
+            begin
+              a_load64_ref_reg(list,ref,reg);
+              a_op64_reg_reg(list,op,size,reg,reg);
+            end;
+
+          OP_AND,OP_OR:
+            begin
+              tempref:=ref;
+              tcg68k(cg).fixref(list,tempref);
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reglo));
+              dec(tempref.offset,4);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reghi));
+            end;
+        else
+          { XOR does not allow reference for source; ADD/SUB do not allow reference for
+            high dword, although low dword can still be handled directly. }
+          inherited a_op64_ref_reg(list,op,size,ref,reg);
+        end;
       end;
 
 
