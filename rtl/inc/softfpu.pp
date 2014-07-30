@@ -132,15 +132,6 @@ TYPE
       2: (dummy : double);
   end;
 
-  int64rec = record
-    case byte of
-      1: (low,high : bits32);
-      // force the record to be aligned like a double
-      // else *_to_double will fail for cpus like sparc
-      // and avoid expensive unpacking/packing operations
-      2: (dummy : int64);
-  end;
-
   floatx80 = record
     case byte of
       1: (low : qword;high : word);
@@ -166,15 +157,6 @@ TYPE
         // else *_to_double will fail for cpus like sparc
         2: (dummy : double);
   end;
-
-  int64rec = record
-    case byte of
-      1: (high,low : bits32);
-      // force the record to be aligned like a double
-      // else *_to_double will fail for cpus like sparc
-      // and avoid expensive unpacking/packing operations
-      2: (dummy : int64);
-end;
 
   floatx80 = record
     case byte of
@@ -604,14 +586,14 @@ end;
 function roundAndPackInt32( zSign: flag; absZ : bits64): int32;
 var
     roundingMode: TFPURoundingMode;
-    roundNearestEven: flag;
+    roundNearestEven: boolean;
     roundIncrement, roundBits: int8;
     z: int32;
 begin
     roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundNearestEven := (roundingMode = float_round_nearest_even);
     roundIncrement := $40;
-    if ( roundNearestEven=0 ) then
+    if not roundNearestEven then
     begin
         if ( roundingMode = float_round_to_zero ) then
         begin
@@ -632,7 +614,7 @@ begin
     end;
     roundBits := absZ and $7F;
     absZ := ( absZ + roundIncrement ) shr 7;
-    absZ := absZ and not( ord( ( roundBits xor  $40 ) = 0 ) and roundNearestEven );
+    absZ := absZ and not( ord( ( roundBits xor  $40 ) = 0 ) and ord(roundNearestEven) );
     z := absZ;
     if ( zSign<>0 ) then
       z := - z;
@@ -2423,19 +2405,14 @@ Binary Floating-Point Arithmetic.
 Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : float32;
  Var
    roundingMode : TFPURoundingMode;
-   roundNearestEven : Flag;
+   roundNearestEven : boolean;
    roundIncrement, roundBits : BYTE;
-   IsTiny : Flag;
+   IsTiny : boolean;
  Begin
     roundingMode := softfloat_rounding_mode;
-    if (roundingMode = float_round_nearest_even) then
-      Begin
-        roundNearestEven := Flag(TRUE);
-      end
-    else
-       roundNearestEven := Flag(FALSE);
+    roundNearestEven := (roundingMode = float_round_nearest_even);
     roundIncrement := $40;
-    if ( Boolean(roundNearestEven)  = FALSE)  then
+    if not roundNearestEven then
       Begin
         if ( roundingMode = float_round_to_zero ) Then
           Begin
@@ -2466,23 +2443,22 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
         if ( zExp < 0 ) then
           Begin
             isTiny :=
-                   flag(( softfloat_detect_tininess = float_tininess_before_rounding )
+                   ( softfloat_detect_tininess = float_tininess_before_rounding )
                 OR ( zExp < -1 )
-                OR ( (zSig + roundIncrement) < $80000000 ));
+                OR ( (zSig + roundIncrement) < $80000000 );
             shift32RightJamming( zSig, - zExp, zSig );
             zExp := 0;
             roundBits := zSig AND $7F;
-            if ( (isTiny = flag(TRUE)) and (roundBits<>0) ) then
+            if ( isTiny and (roundBits<>0) ) then
                float_raise( float_flag_underflow );
           End;
     End;
     if ( roundBits )<> 0 then
        set_inexact_flag;
     zSig := ( zSig + roundIncrement ) shr 7;
-    zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and roundNearestEven );
+    zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and ord(roundNearestEven) );
     if ( zSig = 0 ) then zExp := 0;
     roundAndPackFloat32 := packFloat32( zSign, zExp, zSig );
-    exit;
   End;
 
 {*
@@ -5761,7 +5737,6 @@ var
     zSign : flag;
     absA : uint64;
     shiftCount: int8;
-    intval : int64rec;
 Begin
     if ( a = 0 ) then
       begin
@@ -5785,14 +5760,7 @@ Begin
        begin
         shiftCount := shiftCount + 7;
         if ( shiftCount < 0 ) then
-          begin
-            intval.low := int64rec(AbsA).low;
-            intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.high, intval.low, - shiftCount,
-               intval.high, intval.low);
-            int64rec(absA).low := intval.low;
-            int64rec(absA).high := intval.high;
-          end
+            shift64RightJamming( absA, - shiftCount, absA )
         else
             absA := absA shl shiftCount;
         int64_to_float32.float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
@@ -5807,38 +5775,28 @@ End;
 *----------------------------------------------------------------------------*}
 function qword_to_float32( a: qword ): float32rec; compilerproc;
 var
-    zSign : flag;
     absA : uint64;
     shiftCount: int8;
-    intval : int64rec;
 Begin
     if ( a = 0 ) then
       begin
        qword_to_float32.float32 := 0;
        exit;
       end;
-    zSign := flag(FALSE);
     absA := a;
     shiftCount := countLeadingZeros64( absA ) - 40;
     if ( 0 <= shiftCount ) then
       begin
-        qword_to_float32.float32:= packFloat32( zSign, $95 - shiftCount, absA shl shiftCount );
+        qword_to_float32.float32:= packFloat32( 0, $95 - shiftCount, absA shl shiftCount );
       end
     else
        begin
         shiftCount := shiftCount + 7;
         if ( shiftCount < 0 ) then
-          begin
-            intval.low := int64rec(AbsA).low;
-            intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.high, intval.low, - shiftCount,
-               intval.high, intval.low);
-            int64rec(absA).low := intval.low;
-            int64rec(absA).high := intval.high;
-          end
+            shift64RightJamming( absA, - shiftCount, absA )
         else
             absA := absA shl shiftCount;
-        qword_to_float32.float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
+        qword_to_float32.float32:=roundAndPackFloat32( 0, $9C - shiftCount, absA );
       end;
 End;
 
@@ -5851,33 +5809,19 @@ End;
 function qword_to_float64( a: qword ): float64;
 {$ifdef fpc}[public,Alias:'QWORD_TO_FLOAT64'];compilerproc;{$endif}
 var
- zSign : flag;
- float_result : float64;
- AbsA : bits64;
  shiftcount : int8;
- zSig0, zSig1 : bits32;
 Begin
     if ( a = 0 ) then
       Begin
        packFloat64( 0, 0, 0, 0, result );
        exit;
       end;
-    zSign := flag(FALSE);
-    AbsA := a;
-    shiftCount := countLeadingZeros64( absA ) - 11;
+    shiftCount := countLeadingZeros64( a ) - 11;
     if ( 0 <= shiftCount ) then
-      Begin
-        absA := absA shl shiftcount;
-        zSig0:=int64rec(absA).high;
-        zSig1:=int64rec(absA).low;
-      End
+      a := a shl shiftcount
     else
-      Begin
-        shift64Right( int64rec(absA).high, int64rec(absA).low,
-                      - shiftCount, zSig0, zSig1 );
-      End;
-    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
-    qword_to_float64:= float_result;
+      a := a shr (-shiftCount);
+    result := packFloat64( 0, $432 - shiftCount, a );
 End;
 
 
@@ -5891,10 +5835,8 @@ function int64_to_float64( a: int64 ): float64;
 {$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];compilerproc;{$endif}
 var
  zSign : flag;
- float_result : float64;
  AbsA : bits64;
  shiftcount : int8;
- zSig0, zSig1 : bits32;
 Begin
     if ( a = 0 ) then
       Begin
@@ -5908,18 +5850,10 @@ Begin
       AbsA := a;
     shiftCount := countLeadingZeros64( absA ) - 11;
     if ( 0 <= shiftCount ) then
-      Begin
-        absA := absA shl shiftcount;
-        zSig0:=int64rec(absA).high;
-        zSig1:=int64rec(absA).low;
-      End
+      absA := absA shl shiftcount
     else
-      Begin
-        shift64Right( int64rec(absA).high, int64rec(absA).low,
-                      - shiftCount, zSig0, zSig1 );
-      End;
-    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
-    int64_to_float64:= float_result;
+      absA := absA shr (-shiftcount);
+    result := packFloat64( zSign, $432 - shiftCount, absA );
 End;
 
 
