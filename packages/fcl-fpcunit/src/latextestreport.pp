@@ -23,11 +23,14 @@ uses
 
 type
    
+  { TLatexResultsWriter }
+
   TLatexResultsWriter = class(TCustomResultsWriter)
   private
     FDoc: TStringList;
     FSuiteHeaderIdx: TFPList;
     FTempFailure: TTestFailure;
+    function TimeFormat(ATiming: TDateTime): String;
   protected
     class function EscapeText(const S: string): String; virtual;
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
@@ -52,6 +55,21 @@ function TestSuiteAsLatex(aSuite:TTestSuite): string;
 function GetSuiteAsLatex(aSuite: TTestSuite): string;
 
 implementation
+
+uses dateutils;
+
+function TLatexResultsWriter.TimeFormat(ATiming: TDateTime): String;
+Var
+  M : Int64;
+
+begin
+  Result:='ss.zzz';
+  M:=MinutesBetween(ATiming,0);
+  if M>60 then
+    Result:='hh:mm:'+Result
+  else if M>1 then
+   Result:='mm:'+Result;
+end;
 
 class function TLatexResultsWriter.EscapeText(const S: string): String;
 var
@@ -161,7 +179,7 @@ begin
   inherited;
   S:=StringOfChar(' ',ALevel*2)+ '  '+ '\item[-] ';
   if Not SkipTiming then
-    S:=S+FormatDateTime('ss.zzz', ATiming);
+    S:=S+FormatDateTime(TimeFormat(ATiming), ATiming);
   S:=S+ '  ' + EscapeText(ATest.TestName);
   FDoc.Add(S);
   if Assigned(FTempFailure) then
