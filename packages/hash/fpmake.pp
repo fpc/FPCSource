@@ -40,6 +40,8 @@ begin
     T:=P.Targets.AddExampleunit('examples/sha1test.pp');
     T:=P.Targets.AddExampleunit('examples/hmd5.pas');
     T:=P.Targets.AddExampleunit('examples/hsha1.pas');
+    T:=P.Targets.AddExampleunit('examples/md5performancetest.pas');
+    T:=P.Targets.AddExampleunit('examples/sha1performancetest.pas');
     // md5.ref
 {$ifndef ALLPACKAGES}
     Run;
