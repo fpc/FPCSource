@@ -244,7 +244,6 @@ implementation
     procedure t68kaddnode.second_cmpordinal;
      var
       unsigned : boolean;
-      useconst : boolean;
       tmpreg : tregister;
       opsize : topsize;
       cmpsize : tcgsize;
@@ -255,7 +254,7 @@ implementation
                    not(is_signed(right.resultdef));
        { this puts constant operand (if any) to the right }
        pass_left_right;
-       { tentatively assume left size (correct for possible TST/CMPI, will fix later) }
+       { tentatively assume left size (correct for possible TST, will fix later) }
        cmpsize:=def_cgsize(left.resultdef);
        opsize:=tcgsize2opsize[cmpsize];
 
@@ -283,37 +282,26 @@ implementation
            exit;
          end;
 
-       { ToDo : set "allowconstants" to True, but this seems to upset Coldfire
-                a bit for the CMP instruction => check manual and implement
-                exception accordingly below }
-       { load values into registers (except constants) }
-       force_reg_left_right(true, false);
+       { Coldfire supports byte/word compares only starting with ISA_B,
+         !!see remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
+       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]}) then
+         begin
+           { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
+                that high bits of registers are correct.
+             2) Assuming that extension depends only on source signedness --> destination OS_32 is acceptable. }
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_32),false);
+           if (right.location.loc<>LOC_CONSTANT) then
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_32),false);
+           opsize:=S_L;
+         end
+       else
+         { TODO: support LOC_REFERENCE }
+         force_reg_left_right(true, true);
 
-       useconst := false;
-
-        if tcgsize2size[right.location.size]=tcgsize2size[left.location.size] then
-          cmpsize:=left.location.size
+        if (right.location.loc = LOC_CONSTANT) then
+          current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
+            longint(right.location.value),left.location.register))
         else
-          { ToDo : zero/sign extend??? }
-          if tcgsize2size[right.location.size]<tcgsize2size[left.location.size] then
-            cmpsize:=left.location.size
-          else
-            cmpsize:=right.location.size;
-        opsize:=tcgsize2opsize[cmpsize];
-        if opsize=S_NO then
-          internalerror(2013090301);
-        { Attention: The RIGHT(!) operand is substracted from and must be a
-                     register! }
-        {if (right.location.loc = LOC_CONSTANT) then
-          if useconst then
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
-              longint(right.location.value),left.location.register))
-          else
-            begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
-                tmpreg,left.location.register));
-            end
-        else}
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
             right.location.register,left.location.register));
      end;
@@ -326,6 +314,7 @@ implementation
     procedure t68kaddnode.second_cmp64bit;
       var
         unsigned : boolean;
+        href: treference;
 
       procedure firstjmp64bitcmp;
         var
@@ -385,17 +374,83 @@ implementation
         end;
 
       begin
+        { This puts constant operand (if any) to the right }
         pass_left_right;
-        force_reg_left_right(false,false);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
         location_reset(location,LOC_JUMP,OS_NO);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi));
-        firstjmp64bitcmp;
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo));
-        secondjmp64bitcmp;
+
+        if (right.location.loc=LOC_CONSTANT) and (right.location.value64=0) and
+          (nodetype in [equaln,unequaln]) then
+          begin
+            case left.location.loc of
+              LOC_REFERENCE,
+              LOC_CREFERENCE:
+                begin
+                  href:=left.location.reference;
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                  firstjmp64bitcmp;
+                  inc(href.offset,4);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                  secondjmp64bitcmp;
+                  location_freetemp(current_asmdata.CurrAsmList,left.location);
+                end;
+            else
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
+              firstjmp64bitcmp;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
+              secondjmp64bitcmp;
+            end;
+            exit;
+          end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          begin
+            if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+            else
+              begin
+                location_swap(left.location,right.location);
+                toggleflag(nf_swapped);
+              end;
+          end;
+
+        { left is now in register }
+        case right.location.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            begin
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi));
+              firstjmp64bitcmp;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo));
+              secondjmp64bitcmp;
+            end;
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              href:=right.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reghi));
+              firstjmp64bitcmp;
+              inc(href.offset,4);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reglo));
+              secondjmp64bitcmp;
+              location_freetemp(current_asmdata.CurrAsmList,right.location);
+            end;
+          LOC_CONSTANT:
+            begin
+              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
+              firstjmp64bitcmp;
+              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
+              secondjmp64bitcmp;
+            end;
+        else
+          InternalError(2014072501);
+        end;
      end;
 
 
