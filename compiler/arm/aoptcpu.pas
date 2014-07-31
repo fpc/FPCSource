@@ -1583,13 +1583,14 @@ Implementation
                               and reg1,reg0,2^n-1
                               mov reg2,reg1, lsl imm1
                               =>
-                              mov reg2,reg1, lsl imm1
+                              mov reg2,reg0, lsl imm1
                               if imm1>i
                             }
-                            else if i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm then
+                            else if (i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
+                                    not(RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) then
                               begin
                                 DebugMsg('Peephole AndLsl2Lsl done', p);
-                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
                                 GetNextInstruction(p, hp1);
                                 asml.Remove(p);
                                 p.free;
