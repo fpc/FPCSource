@@ -2435,7 +2435,10 @@ Implementation
             { first instruction might not change the register used as index }
             ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or
              not(RegModifiedByInstruction(taicpu(hp1).oper[1]^.ref^.index,p))
-            ) then
+            ) and
+            { if we modify the basereg AND the first instruction used that reg, we can not schedule }
+            ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) or
+             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) then
             begin
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);
