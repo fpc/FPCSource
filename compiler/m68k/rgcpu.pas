@@ -33,10 +33,15 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+         procedure do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
 
   implementation
+
+    uses
+      cutils,cgobj,verbose,globtype,globals,cpuinfo;
 
     { returns True if source operand of MOVE can be replaced with spilltemp when its destination is ref^. }
     function isvalidmovedest(ref: preference): boolean; inline;
@@ -48,27 +53,111 @@ unit rgcpu;
       end;
 
 
+    procedure trgcpu.do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        helpins  : tai;
+        tmpref   : treference;
+        helplist : tasmlist;
+        hreg     : tregister;
+      begin
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in cpu_coldfire) then
+          begin
+            helplist:=tasmlist.create;
+
+            if getregtype(tempreg)=R_INTREGISTER then
+              hreg:=tempreg
+            else
+              hreg:=cg.getintregister(helplist,OS_ADDR);
+{$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.Create(strpnew('Spilling: Read, large offset')));
+{$endif}
+
+            helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
+            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint));
+            tmpref.index:=hreg;
+
+            helpins:=spilling_create_load(tmpref,tempreg);
+            helplist.concat(helpins);
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_read(list,pos,spilltemp,tempreg);
+      end;
+
+
+    procedure trgcpu.do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        tmpref   : treference;
+        helplist : tasmlist;
+        hreg     : tregister;
+      begin
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in cpu_coldfire) then
+          begin
+            helplist:=tasmlist.create;
+
+            if getregtype(tempreg)=R_INTREGISTER then
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
+            else
+              hreg:=cg.getintregister(helplist,OS_ADDR);
+{$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.Create(strpnew('Spilling: Write, large offset')));
+{$endif}
+
+            helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
+            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint));
+            tmpref.index:=hreg;
+
+            helplist.concat(spilling_create_store(tempreg,tmpref));
+            if getregtype(tempreg)=R_INTREGISTER then
+              ungetregisterinline(helplist,hreg);
+
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_written(list,pos,spilltemp,tempreg);
+    end;
+
+
     function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
       var
         opidx: longint;
       begin
         result:=false;
         opidx:=-1;
-        { TODO: support more instructions (on m68k almost all are eligible) }
-        if (not (regtype in [R_INTREGISTER,R_ADDRESSREGISTER])) or (instr.opcode<>A_MOVE) then
-          exit;
-        if (instr.ops<>2) then
-          exit;
-        if (instr.oper[0]^.typ=top_reg) and (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
-          begin
-            { source can be replaced if dest is register or a 'simple' reference }
-            if (instr.oper[1]^.typ=top_reg) or
-              ((instr.oper[1]^.typ=top_ref) and isvalidmovedest(instr.oper[1]^.ref)) then
-              opidx:=0;
-          end
-        else if (instr.oper[1]^.typ=top_reg) and (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
-          (instr.oper[0]^.typ=top_reg) then
-          opidx:=1;
+        case instr.ops of
+          1:
+            begin
+              if (instr.oper[0]^.typ=top_reg) and (getregtype(instr.oper[0]^.reg)=regtype) and
+                ((instr.opcode=A_TST) or (instr.opcode=A_CLR)) then
+                begin
+                  if get_alias(getsupreg(instr.oper[0]^.reg))<>orgreg then
+                    InternalError(2014080101);
+                  opidx:=0;
+                end;
+            end;
+          2:
+            begin
+              if (instr.oper[0]^.typ=top_reg) and (getregtype(instr.oper[0]^.reg)=regtype) and
+                (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
+                begin
+                  { source can be replaced if dest is register... }
+                  if ((instr.oper[1]^.typ=top_reg) and (instr.opcode in [A_MOVE,A_ADD,A_SUB,A_AND,A_OR,A_CMP])) or
+                    {... or a "simple" reference in case of MOVE }
+                    ((instr.opcode=A_MOVE) and (instr.oper[1]^.typ=top_ref) and isvalidmovedest(instr.oper[1]^.ref)) then
+                    opidx:=0;
+                end
+              else if (instr.oper[1]^.typ=top_reg) and (getregtype(instr.oper[1]^.reg)=regtype) and
+                (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
+                (
+                  (instr.opcode in [A_MOVE,A_ADD,A_SUB,A_AND,A_OR]) and
+                  (instr.oper[0]^.typ=top_reg)
+                ) or
+                (instr.opcode in [A_ADDQ,A_SUBQ,A_MOV3Q]) then
+                opidx:=1;
+            end;
+        end;
 
         if (opidx<0) then
           exit;
