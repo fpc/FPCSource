@@ -257,7 +257,7 @@ begin
     CDS.dwData:=MsgType;
     CDS.lpData:=Data.Memory;
     CDS.cbData:=Data.Size;
-    Windows.SendMessage(FHWnd,WM_COPYDATA,0,Integer(@CDS));
+    Windows.SendMessage(FHWnd,WM_COPYDATA,0,PtrInt(@CDS));
   Finally
     FreeAndNil(FMemStr);
   end;
