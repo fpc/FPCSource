@@ -68,8 +68,8 @@ type
     FOciUserSession : POCISession;
     FUserMem        : pointer;
     procedure HandleError;
-    procedure GetParameters(cursor : TSQLCursor; AParams : TParams);
-    procedure SetParameters(cursor : TSQLCursor; AParams : TParams);
+    procedure GetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
+    procedure SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
   protected
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -347,7 +347,7 @@ begin
   Raise E;
 end;
 
-procedure TOracleConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
+procedure TOracleConnection.GetParameters(cursor: TSQLCursor; ATransaction : TSQLTransaction; AParams: TParams);
 var
     i    : integer;
     odt  : TODateTime;
@@ -568,6 +568,7 @@ begin
     end;
     if FStatementType in [stUpdate,stDelete,stInsert,stDDL] then
       FSelectable:=false;
+
     if assigned(AParams) then
       begin
       setlength(ParamBuffers,AParams.Count);
@@ -588,7 +589,8 @@ begin
           ftFMTBcd, ftBCD :
             begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
           ftBlob :
-            begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
+            //begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
+            begin OFieldType := SQLT_BLOB; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_LOB; end;
           ftMemo :
             begin OFieldType := SQLT_LVC; OFieldSize := 65535; end;
         else
@@ -629,13 +631,13 @@ begin
     end;
 end;
 
-procedure TOracleConnection.SetParameters(cursor : TSQLCursor; AParams : TParams);
+procedure TOracleConnection.SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
 
-var i              : integer;
+var i         : integer;
     year, month, day, hour, min, sec, msec : word;
-    s              : string;
-    blobbuf        : string;
-    bloblen        : ub4;
+    s         : string;
+    LobBuffer : string;
+    LobLength : ub4;
 
 begin
   with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do with AParams[i] do
@@ -671,14 +673,21 @@ begin
         ftFmtBCD, ftBCD   : begin
                             FmtBCD2Nvu(asFmtBCD,parambuffers[i].buffer);
                             end;
-        ftBlob, ftMemo    : begin
-                            blobbuf := AsBlob; // todo: use AsBytes
-                            bloblen := length(blobbuf);
-                            if bloblen > 65531 then bloblen := 65531;
-                            PInteger(ParamBuffers[i].Buffer)^ := bloblen;
-                            Move(blobbuf[1], (ParamBuffers[i].Buffer+sizeof(integer))^, bloblen);
-                            //if OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].buffer, @bloblen, 1, @blobbuf[1], bloblen, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
-                            //  HandleError;
+        ftBlob            : begin
+                            LobBuffer := AsBlob; // todo: use AsBytes
+                            LobLength := length(LobBuffer);
+                            // create empty temporary LOB with zero length
+                            if OciLobCreateTemporary(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, OCI_DEFAULT, OCI_DEFAULT, OCI_TEMP_BLOB, False, OCI_DURATION_SESSION) = OCI_ERROR then
+                              HandleError;
+                            if (LobLength > 0) and (OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, @LobLength, 1, @LobBuffer[1], LobLength, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR) then
+                              HandleError;
+                            end;
+        ftMemo            : begin
+                            LobBuffer := AsString;
+                            LobLength := length(LobBuffer);
+                            if LobLength > 65531 then LobLength := 65531;
+                            PInteger(ParamBuffers[i].Buffer)^ := LobLength;
+                            Move(LobBuffer[1], (ParamBuffers[i].Buffer+sizeof(integer))^, LobLength);
                             end;
         else
           DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);
@@ -763,8 +772,17 @@ begin
 end;
 
 procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
+  procedure FreeParameters;
+  var i: integer;
+  begin
+    with cursor as TOracleCursor do
+      for i:=0 to high(ParamBuffers) do
+        if ParamBuffers[i].DescType = OCI_DTYPE_LOB then
+          if OciLobFreeTemporary(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer) = OCI_ERROR then
+            HandleError;
+  end;
 begin
-  if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, AParams);
+  if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, ATransaction, AParams);
   if cursor.FStatementType = stSelect then
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
@@ -774,8 +792,9 @@ begin
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
-    if Assigned(AParams) and (AParams.Count > 0) then GetParameters(cursor, AParams);
+    if Assigned(AParams) and (AParams.Count > 0) then GetParameters(cursor, ATransaction, AParams);
     end;
+  FreeParameters;
 end;
 
 function TOracleConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -892,7 +911,12 @@ begin
                                   OFieldSize:=sizeof(double);
                                   end;
                                 end;
-        SQLT_LNG,
+        SQLT_LNG              : begin
+                                FieldType := ftString;
+                                FieldSize := MaxSmallint; // OFieldSize is zero for LONG data type
+                                OFieldSize:= MaxSmallint+1;
+                                OFieldType:=SQLT_STR;
+                                end;
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
         OCI_TYPECODE_VARCHAR2 : begin
@@ -1044,17 +1068,20 @@ end;
 
 procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var LobLocator: pointer;
-    len: ub4;
+    LobCharSetForm: ub1;
+    LobLength: ub4;
 begin
   LobLocator := (cursor as TOracleCursor).FieldBuffers[FieldDef.FieldNo-1].Buffer;
   //if OCILobLocatorIsInit(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @is_init) = OCI_ERROR then
   //  HandleError;
-  if OciLobGetLength(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len) = OCI_ERROR then
+  // For character LOBs, it is the number of characters, for binary LOBs and BFILEs it is the number of bytes
+  if OciLobGetLength(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobLength) = OCI_ERROR then
     HandleError;
-  // Len - For character LOBs, it is the number of characters, for binary LOBs and BFILEs it is the number of bytes
-  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, len);
-  ABlobBuf^.BlobBuffer^.Size := len;
-  if OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len, 1, ABlobBuf^.BlobBuffer^.Buffer, len, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
+  if OCILobCharSetForm(FOciEnvironment, FOciError, LobLocator, @LobCharSetForm) = OCI_ERROR then
+    HandleError;
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, LobLength);
+  ABlobBuf^.BlobBuffer^.Size := LobLength;
+  if (LobLength > 0) and (OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobLength, 1, ABlobBuf^.BlobBuffer^.Buffer, LobLength, nil, nil, 0, LobCharSetForm) = OCI_ERROR) then
     HandleError;
 end;
 
@@ -1123,7 +1150,8 @@ begin
     stTables     : s := 'SELECT '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           'sys_context( ''userenv'', ''current_schema'' ) as schema_name, '+
-                          'TABLE_NAME '+
+                          'TABLE_NAME,'+
+                          'TABLE_TYPE '+
                         'FROM USER_CATALOG ' +
                         'WHERE '+
                           'TABLE_TYPE<>''SEQUENCE'' '+
@@ -1132,20 +1160,22 @@ begin
     stSysTables  : s := 'SELECT '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           'OWNER as schema_name, '+
-                          'TABLE_NAME '+
+                          'TABLE_NAME,'+
+                          'TABLE_TYPE '+
                         'FROM ALL_CATALOG ' +
                         'WHERE '+
                           'TABLE_TYPE<>''SEQUENCE'' '+
                         'ORDER BY TABLE_NAME';
     stColumns    : s := 'SELECT '+
+                          'OWNER as schema_name, '+
                           'COLUMN_NAME, '+
                           'DATA_TYPE as column_datatype, '+
                           'CHARACTER_SET_NAME, '+
                           'NULLABLE as column_nullable, '+
                           'DATA_LENGTH as column_length, '+
                           'DATA_PRECISION as column_precision, '+
-                          'DATA_SCALE as column_scale '+
-                          {DATA_DEFAULT is type LONG; no support for that in oracleconnection so removed this from query}
+                          'DATA_SCALE as column_scale, '+
+                          'DATA_DEFAULT as column_default '+
                         'FROM ALL_TAB_COLUMNS '+
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
