@@ -151,7 +151,7 @@ unit typinfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         Flags: Byte;
-        ParamType: PTypeInfo;
+        ParamType: PPTypeInfo;
         Name: ShortString;
       end;
 
@@ -162,7 +162,7 @@ unit typinfo;
       record
         Flags: Byte;
         CC: TCallConv;
-        ResultType: PTypeInfo;
+        ResultType: PPTypeInfo;
         ParamCount: Byte;
         {Params: array[0..ParamCount - 1] of TProcedureParam;}
         function GetParam(ParamIndex: Integer): PProcedureParam;
@@ -267,9 +267,9 @@ unit typinfo;
                   end;
               followed by
                   ResultType : ShortString     // for mkFunction, mkClassFunction only
-                  ResultTypeRef : PTypeInfo;  // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
                   CC : TCallConv;
-                  ParamTypeRefs : array[1..ParamCount] of PTypeInfo;}
+                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
               );
             tkProcVar:
               (ProcSig: TProcedureSignature);

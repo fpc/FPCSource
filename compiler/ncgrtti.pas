@@ -759,7 +759,7 @@ implementation
                    write_param_flag(parasym);
                    maybe_write_align;
                    { write param type }
-                   write_rtti_reference(parasym.vardef,fullrtti);
+                   write_rtti_reference(parasym.vardef,fullrtti,true);
                    { write name of current parameter }
                    write_string(parasym.realname);
                  end;
@@ -815,7 +815,7 @@ implementation
                  write_rtti_name(def.returndef);
                  maybe_write_align;
                  { write result typeinfo }
-                 write_rtti_reference(def.returndef,fullrtti);
+                 write_rtti_reference(def.returndef,fullrtti,true);
                end;
 
                { write calling convention }
@@ -825,7 +825,7 @@ implementation
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
                  if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
-                   write_rtti_reference(tparavarsym(def.paras[i]).vardef,fullrtti);
+                   write_rtti_reference(tparavarsym(def.paras[i]).vardef,fullrtti,true);
             end
           else
             begin
@@ -839,7 +839,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
               maybe_write_align;
               { write result typeinfo }
-              write_rtti_reference(def.returndef,fullrtti);
+              write_rtti_reference(def.returndef,fullrtti,true);
               { write parameter count }
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
               for i:=0 to def.paras.count-1 do
