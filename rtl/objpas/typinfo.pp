@@ -175,8 +175,14 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
+        function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
         function GetBaseType: PTypeInfo; inline;
         function GetCompType: PTypeInfo; inline;
+        function GetParentInfo: PTypeInfo; inline;
+        function GetHelperParent: PTypeInfo; inline;
+        function GetExtendedInfo: PTypeInfo; inline;
+        function GetIntfParent: PTypeInfo; inline;
+        function GetRawIntfParent: PTypeInfo; inline;
         function GetInstanceType: PTypeInfo; inline;
         function GetRefType: PTypeInfo; inline;
       public
@@ -184,6 +190,15 @@ unit typinfo;
         property BaseType: PTypeInfo read GetBaseType;
         { tkSet }
         property CompType: PTypeInfo read GetCompType;
+        { tkClass }
+        property ParentInfo: PTypeInfo read GetParentInfo;
+        { tkHelper }
+        property HelperParent: PTypeInfo read GetHelperParent;
+        property ExtendedInfo: PTypeInfo read GetExtendedInfo;
+        { tkInterface }
+        property IntfParent: PTypeInfo read GetIntfParent;
+        { tkInterfaceRaw }
+        property RawIntfParent: PTypeInfo read GetRawIntfParent;
         { tkClassRef }
         property InstanceType: PTypeInfo read GetInstanceType;
         { tkPointer }
@@ -217,7 +232,7 @@ unit typinfo;
               (MaxLength : Byte);
             tkClass:
               (ClassType : TClass;
-               ParentInfo : PTypeInfo;
+               ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
                UnitName : ShortString
                // here the properties follow as array of TPropInfo
@@ -229,8 +244,8 @@ unit typinfo;
                 {ManagedFields: array[1..ManagedFldCount] of TManagedField}
               );
             tkHelper:
-              (HelperParent : PTypeInfo;
-               ExtendedInfo : PTypeInfo;
+              (HelperParentRef : TypeInfoPtr;
+               ExtendedInfoRef : TypeInfoPtr;
                HelperProps : SmallInt;
                HelperUnit : ShortString
                // here the properties follow as array of TPropInfo
@@ -259,14 +274,14 @@ unit typinfo;
               (MinQWordValue, MaxQWordValue: QWord);
             tkInterface:
               (
-               IntfParent: PTypeInfo;
+               IntfParentRef: TypeInfoPtr;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
               );
             tkInterfaceRaw:
               (
-               RawIntfParent: PTypeInfo;
+               RawIntfParentRef: TypeInfoPtr;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
                RawIntfUnit: ShortString;
@@ -2089,24 +2104,61 @@ end;
 
 { TTypeData }
 
+function TTypeData.DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
+begin
+{$ifdef ver2_6}
+  Result := Info;
+{$else}
+  if not Assigned(Info) then
+    Result := Nil
+  else
+    Result := Info^;
+{$endif}
+end;
+
 function TTypeData.GetBaseType: PTypeInfo;
 begin
-  Result := BaseTypeRef{$ifndef ver2_6}^{$endif};
+  Result := DerefTypeInfoPtr(BaseTypeRef);
 end;
 
 function TTypeData.GetCompType: PTypeInfo;
 begin
-  Result := CompTypeRef{$ifndef ver2_6}^{$endif};
+  Result := DerefTypeInfoPtr(CompTypeRef);
+end;
+
+function TTypeData.GetParentInfo: PTypeInfo; inline;
+begin
+  Result := DerefTypeInfoPtr(ParentInfoRef);
+end;
+
+function TTypeData.GetHelperParent: PTypeInfo; inline;
+begin
+  Result := DerefTypeInfoPtr(HelperParentRef);
+end;
+
+function TTypeData.GetExtendedInfo: PTypeInfo; inline;
+begin
+  Result := DerefTypeInfoPtr(ExtendedInfoRef);
+end;
+
+function TTypeData.GetIntfParent: PTypeInfo; inline;
+begin
+  Result := DerefTypeInfoPtr(IntfParentRef);
+end;
+
+function TTypeData.GetRawIntfParent: PTypeInfo; inline;
+begin
+  Result := DerefTypeInfoPtr(RawIntfParentRef);
 end;
 
 function TTypeData.GetInstanceType: PTypeInfo;
 begin
-  Result := InstanceTypeRef{$ifndef ver2_6}^{$endif};
+  Result := DerefTypeInfoPtr(InstanceTypeRef);
 end;
 
 function TTypeData.GetRefType: PTypeInfo;
 begin
-  Result := RefTypeRef{$ifndef ver2_6}^{$endif}
+  Result := DerefTypeInfoPtr(RefTypeRef);
 end;
 
 { TPropInfo }

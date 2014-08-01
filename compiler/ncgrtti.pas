@@ -879,12 +879,12 @@ implementation
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr);
 
             { write parent typeinfo }
-            write_rtti_reference(def.childof,fullrtti);
+            write_rtti_reference(def.childof,fullrtti,true);
 
             { write typeinfo of extended type }
             if is_objectpascal_helper(def) then
               if assigned(def.extendeddef) then
-                write_rtti_reference(def.extendeddef,fullrtti)
+                write_rtti_reference(def.extendeddef,fullrtti,true)
               else
                 InternalError(2011033001);
 
@@ -917,7 +917,7 @@ implementation
             collect_propnamelist(propnamelist,def);
 
             { write parent typeinfo }
-            write_rtti_reference(def.childof,fullrtti);
+            write_rtti_reference(def.childof,fullrtti,true);
 
             { interface: write flags, iid and iidstr }
             IntfFlags:=0;
