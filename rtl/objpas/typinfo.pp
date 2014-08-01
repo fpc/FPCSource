@@ -129,9 +129,9 @@ unit typinfo;
       record
         Size: SizeInt;
         ElCount: SizeInt;
-        ElType: PTypeInfo;
+        ElType: PPTypeInfo;
         DimCount: Byte;
-        Dims: array[0..255] of PTypeInfo;
+        Dims: array[0..255] of PPTypeInfo;
       end;
 
       PManagedField = ^TManagedField;

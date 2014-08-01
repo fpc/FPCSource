@@ -58,7 +58,11 @@ type
   record
     Size: SizeInt;
     ElCount: SizeInt;
+{$ifdef ver2_6}
     ElInfo: Pointer;
+{$else}
+    ElInfo: PPointer;
+{$endif}
     DimCount: Byte;
     Dims:array[0..255] of Pointer;
   end;
@@ -143,7 +147,7 @@ begin
   if Count = 0 then
     Exit;
   ElSize:=PArrayInfo(typeInfo)^.Size div Count;
-  Info:=PArrayInfo(typeInfo)^.ElInfo;
+  Info:=PArrayInfo(typeInfo)^.ElInfo^;
   { Process elements }
   for I:=0 to Count-1 do
     rttiproc(Data+(I*ElSize),Info);
@@ -292,7 +296,7 @@ begin
         { no elements to process => exit }
         if Count = 0 then
           Exit;
-        Info:=PArrayInfo(Temp)^.ElInfo;
+        Info:=PArrayInfo(Temp)^.ElInfo^;
         copiedsize:=Result div Count;
         Offset:=0;
         { Process elements }

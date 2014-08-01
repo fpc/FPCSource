@@ -616,7 +616,7 @@ implementation
                while assigned(curdef) do
                  begin
                    { Dims[i] PTypeInfo }
-                   write_rtti_reference(curdef.rangedef,rt);
+                   write_rtti_reference(curdef.rangedef,rt,true);
                    inc(dimcount);
                    totalcount:=totalcount*curdef.elecount;
                    { get the next static array }
@@ -632,7 +632,7 @@ implementation
                { dimension count }
                current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_8bit(dimcount),lastai);
                { last dimension element type }
-               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt)),lastai);
+               current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt,true)),lastai);
                { total element count }
                current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_pint(pint(totalcount)),lastai);
                { total size = elecount * elesize of the first arraydef }

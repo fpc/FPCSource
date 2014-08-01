@@ -21,10 +21,10 @@ begin
     halt(2);
   if Data^.ArrayData.ElCount <> 12 then
     halt(3);
-  if Data^.ArrayData.ElType <> TypeInfo(Integer) then
+  if Data^.ArrayData.ElType^ <> TypeInfo(Integer) then
     halt(4);
   if Data^.ArrayData.DimCount <> 2 then
     halt(5);
-  if Data^.ArrayData.Dims[0] <> TypeInfo(TColor) then
+  if Data^.ArrayData.Dims[0]^ <> TypeInfo(TColor) then
     halt(6)
 end.
