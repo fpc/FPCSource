@@ -183,6 +183,8 @@ unit typinfo;
         function GetExtendedInfo: PTypeInfo; inline;
         function GetIntfParent: PTypeInfo; inline;
         function GetRawIntfParent: PTypeInfo; inline;
+        function GetElType: PTypeInfo; inline;
+        function GetElType2: PTypeInfo; inline;
         function GetInstanceType: PTypeInfo; inline;
         function GetRefType: PTypeInfo; inline;
       public
@@ -199,6 +201,9 @@ unit typinfo;
         property IntfParent: PTypeInfo read GetIntfParent;
         { tkInterfaceRaw }
         property RawIntfParent: PTypeInfo read GetRawIntfParent;
+        { tkDynArray }
+        property ElType2: PTypeInfo read GetElType2;
+        property ElType: PTypeInfo read GetElType;
         { tkClassRef }
         property InstanceType: PTypeInfo read GetInstanceType;
         { tkPointer }
@@ -292,9 +297,9 @@ unit typinfo;
             tkDynArray:
               (
               elSize     : PtrUInt;
-              elType2    : PTypeInfo;
+              elType2Ref : TypeInfoPtr;
               varType    : Longint;
-              elType     : PTypeInfo;
+              elTypeRef  : TypeInfoPtr;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
@@ -2126,29 +2131,39 @@ begin
   Result := DerefTypeInfoPtr(CompTypeRef);
 end;
 
-function TTypeData.GetParentInfo: PTypeInfo; inline;
+function TTypeData.GetParentInfo: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(ParentInfoRef);
 end;
 
-function TTypeData.GetHelperParent: PTypeInfo; inline;
+function TTypeData.GetHelperParent: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(HelperParentRef);
 end;
 
-function TTypeData.GetExtendedInfo: PTypeInfo; inline;
+function TTypeData.GetExtendedInfo: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(ExtendedInfoRef);
 end;
 
-function TTypeData.GetIntfParent: PTypeInfo; inline;
+function TTypeData.GetIntfParent: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(IntfParentRef);
 end;
 
-function TTypeData.GetRawIntfParent: PTypeInfo; inline;
+function TTypeData.GetRawIntfParent: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(RawIntfParentRef);
+end;
+
+function TTypeData.GetElType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(elTypeRef);
+end;
+
+function TTypeData.GetElType2: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(elType2Ref);
 end;
 
 function TTypeData.GetInstanceType: PTypeInfo;

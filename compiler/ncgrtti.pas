@@ -649,12 +649,12 @@ implementation
                { size of elements }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
                { element type }
-               write_rtti_reference(def.elementdef,rt);
+               write_rtti_reference(def.elementdef,rt,true);
                { variant type }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
                { element type }
                if def.elementdef.needs_inittable then
-                 write_rtti_reference(def.elementdef,rt)
+                 write_rtti_reference(def.elementdef,rt,true)
                else
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
                { write unit name }

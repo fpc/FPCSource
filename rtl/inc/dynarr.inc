@@ -31,7 +31,11 @@ type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
      elSize : PtrUInt;
+{$ifdef ver2_6}
      elType2 : Pointer;
+{$else}
+     elType2 : PPointer;
+{$endif}
      varType : Longint;
    end;
 
@@ -73,7 +77,11 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if declocked(realp^.refcount) then
       begin
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
+        {$ifdef ver2_6}
         int_finalizearray(p,pdynarraytypedata(ti)^.elType2,realp^.high+1);
+        {$else}
+        int_finalizearray(p,pdynarraytypedata(ti)^.elType2^,realp^.high+1);
+        {$endif}
         freemem(realp);
       end;
     p:=nil;
@@ -138,7 +146,11 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
+     {$ifdef ver2_6}
      eletype:=pdynarraytypedata(ti)^.elType2;
+     {$else}
+     eletype:=pdynarraytypedata(ti)^.elType2^;
+     {$endif}
 
      { determine new memory size }
      size:=elesize*dims[0]+sizeof(tdynarray);
@@ -282,7 +294,11 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      ti:=aligntoptr(ti+2+PByte(ti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
+     {$ifdef ver2_6}
      eletype:=pdynarraytypedata(ti)^.elType2;
+     {$else}
+     eletype:=pdynarraytypedata(ti)^.elType2^;
+     {$endif}
 
      { create new array }
      size:=elesize*count;
