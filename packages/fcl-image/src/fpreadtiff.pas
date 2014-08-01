@@ -2256,6 +2256,8 @@ var
     p[s1.Count]:=s2.Data^;
     // increase TableCount
     inc(TableCount);
+    if ((SrcPos+3=Count) and (CurBitLength+SrcPosBit>16)) or
+       ((SrcPos+2=Count) and (CurBitLength+SrcPosBit<=16)) then exit;
     case TableCount+259 of
     512,1024,2048: inc(CurBitLength);
     end;
