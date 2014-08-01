@@ -160,7 +160,7 @@ implementation
             Assigned(tobjectdef(def).childof) and
             ((rt=fullrtti) or (tobjectdef(def).childof.needs_inittable)) then
           begin
-            write_rtti_reference(tobjectdef(def).childof,rt);
+            write_rtti_reference(tobjectdef(def).childof,rt,true);
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
             inc(fieldcnt);
           end;
@@ -176,7 +176,7 @@ implementation
                ) and
                not is_objc_class_or_protocol(tfieldvarsym(sym).vardef) then
               begin
-                write_rtti_reference(tfieldvarsym(sym).vardef,rt);
+                write_rtti_reference(tfieldvarsym(sym).vardef,rt,true);
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
                 inc(fieldcnt);
               end;

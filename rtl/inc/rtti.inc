@@ -30,10 +30,11 @@ type
   packed
 {$endif USE_PACKED}
   record
-    TypeInfo: Pointer;
     {$ifdef VER2_6}
+    TypeInfo: Pointer;
     Offset: Longint;
     {$else}
+    TypeInfo: PPointer;
     Offset: SizeInt;
     {$endif}
   end;
@@ -109,7 +110,11 @@ begin
   { Process elements }
   for i:=1 to count Do
     begin
+{$ifdef ver2_6}
       rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
+{$else}
+      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo^);
+{$endif}
       Inc(PRecordElement(typeInfo));
     end;
 end;
@@ -312,7 +317,11 @@ begin
         { Process elements with rtti }
         for i:=1 to count Do
           begin
+            {$ifdef ver2_6}
             Info:=PRecordElement(Temp)^.TypeInfo;
+            {$else}
+            Info:=PRecordElement(Temp)^.TypeInfo^;
+            {$endif}
             Offset:=PRecordElement(Temp)^.Offset;
             Inc(PRecordElement(Temp));
             if Offset>expectedoffset then
