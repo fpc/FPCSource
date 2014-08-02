@@ -105,6 +105,7 @@
   {$include arm9/sassert.inc}
   {$include arm9/sound.inc}
   {$include arm9/sprite.inc}
+  {$include arm9/window.inc}
   {$include arm9/trig_lut.inc}
   {$include arm9/video.inc}
   {$include arm9/videoGL.inc}

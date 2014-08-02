@@ -20,8 +20,7 @@ target=nds
 fpcdir=../../../../../..
 
 [compiler]
-options=-Xm -O2 
-#-d__THUMB__
+options=-Xm 
 
 [clean]
 files=*.elf *.o *.s *.nds *.nef *.h *.bin *.map \

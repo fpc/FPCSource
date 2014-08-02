@@ -18,13 +18,14 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
-{$define HAS_CMDLINE}
-{$define FPC_HAS_FEATURE_THREADING}
+{$define HAS_CMDLINE}  
 {$define FPC_HAS_FEATURE_CONSOLEIO}
 {$define FPC_HAS_FEATURE_COMMANDARGS}
 {$define FPC_HAS_FEATURE_TEXTIO}
 {$define FPC_HAS_FEATURE_FILEIO}
+{$define FPC_HAS_FEATURE_THREADING}
 
+                       
 {$i systemh.inc}
 {$i ndsbiosh.inc}
 {$i ndsh.inc}
