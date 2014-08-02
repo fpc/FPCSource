@@ -260,12 +260,11 @@ implementation
 
        { set result location }
        location_reset(location,LOC_FLAGS,OS_NO);
-       location.resflags := getresflags(unsigned);
 
        { see if we can optimize into TST }
-       if (right.location.loc=LOC_CONSTANT) and (right.location.value=0) and
-         ((nodetype in [equaln,unequaln]) or (not unsigned)) then
+       if (right.location.loc=LOC_CONSTANT) and (right.location.value=0) then
          begin
+           { Unsigned <0 or >=0 should not reach pass2, most likely }
            case left.location.loc of
              LOC_REFERENCE,
              LOC_CREFERENCE:
@@ -279,6 +278,7 @@ implementation
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,left.location.register));
            end;
+           location.resflags := getresflags(unsigned);
            exit;
          end;
 
@@ -294,16 +294,41 @@ implementation
              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_32),false);
            opsize:=S_L;
          end
+       else if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+         begin
+           if not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true)
+           else
+             begin
+               location_swap(left.location,right.location);
+               toggleflag(nf_swapped);
+             end;
+         end;
+       { left is now in register }
+       case right.location.loc of
+         LOC_CONSTANT:
+           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
+             longint(right.location.value),left.location.register));
+         LOC_REFERENCE,
+         LOC_CREFERENCE:
+           begin
+             href:=right.location.reference;
+             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,href,
+               left.location.register));
+           end;
+         LOC_REGISTER,
+         LOC_CREGISTER:
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+             right.location.register,left.location.register));
        else
-         { TODO: support LOC_REFERENCE }
-         force_reg_left_right(true, true);
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
+           right.location.register,left.location.register));
+       end;
 
-        if (right.location.loc = LOC_CONSTANT) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
-            longint(right.location.value),left.location.register))
-        else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
-            right.location.register,left.location.register));
+       { update location because sides could have been swapped }
+       location.resflags:=getresflags(unsigned);
      end;
 
 
@@ -313,6 +338,7 @@ implementation
 
     procedure t68kaddnode.second_cmp64bit;
       var
+        hlab: tasmlabel;
         unsigned : boolean;
         href: treference;
 
@@ -323,10 +349,12 @@ implementation
           case nodetype of
             ltn,gtn:
               begin
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                if (hlab<>current_procinfo.CurrTrueLabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                 { cheat a little bit for the negative test }
                 toggleflag(nf_swapped);
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                if (hlab<>current_procinfo.CurrFalseLabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
                 toggleflag(nf_swapped);
               end;
             lten,gten:
@@ -336,13 +364,15 @@ implementation
                   nodetype:=ltn
                 else
                   nodetype:=gtn;
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                if (hlab<>current_procinfo.CurrTrueLabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                 { cheat for the negative test }
                 if nodetype=ltn then
                   nodetype:=gtn
                 else
                   nodetype:=ltn;
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                if (hlab<>current_procinfo.CurrFalseLabel) then
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
                 nodetype:=oldnodetype;
               end;
             equaln:
@@ -381,6 +411,18 @@ implementation
                   not(is_signed(right.resultdef));
 
         location_reset(location,LOC_JUMP,OS_NO);
+
+        { Relational compares against constants having low dword=0 can omit the
+          second compare based on the fact that any unsigned value is >=0 }
+        hlab:=nil;
+        if (right.location.loc=LOC_CONSTANT) and
+           (lo(right.location.value64)=0) then
+          begin
+            case getresflags(true) of
+              F_AE: hlab:=current_procinfo.CurrTrueLabel;
+              F_B:  hlab:=current_procinfo.CurrFalseLabel;
+            end;
+          end;
 
         if (right.location.loc=LOC_CONSTANT) and (right.location.value64=0) and
           (nodetype in [equaln,unequaln]) then
@@ -445,13 +487,18 @@ implementation
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
               firstjmp64bitcmp;
-              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
-              secondjmp64bitcmp;
+              if assigned(hlab) then
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
+              else
+                begin
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
+                  secondjmp64bitcmp;
+                end;
             end;
         else
           InternalError(2014072501);
         end;
-     end;
+      end;
 
 
 begin
