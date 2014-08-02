@@ -752,7 +752,11 @@ unit cgcpu;
            list.concat(taicpu.op_reg(A_CLR,S_L,register))
         else
          begin
-           if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
+           { Prefer MOV3Q if applicable, it allows replacement spilling for register }
+           if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
+             ((longint(a)=-1) or ((longint(a)>0) and (longint(a)<8))) then
+             list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
+           else if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
              begin
@@ -787,11 +791,18 @@ unit cgcpu;
         hreg : tregister;
         href : treference;
       begin
+        a:=longint(a);
         href:=ref;
         fixref(list,href);
+        if (a=0) then
+          list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
+        else if (tcgsize2opsize[tosize]=S_L) and
+           (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
+           ((a=-1) or ((a>0) and (a<8))) then
+          list.concat(taicpu.op_const_ref(A_MOV3Q,S_L,a,href))
         { for coldfire we need to go through a temporary register if we have a
           offset, index or symbol given }
-        if (current_settings.cputype in cpu_coldfire) and
+        else if (current_settings.cputype in cpu_coldfire) and
             (
               (href.offset<>0) or
               { TODO : check whether we really need this second condition }
@@ -1399,6 +1410,13 @@ unit cgcpu;
 
     procedure tcg68k.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
+         if (current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c]) then
+           begin
+             sign_extend(list,size,reg1);
+             sign_extend(list,size,reg2);
+             size:=OS_INT;
+           end;
+
          list.concat(taicpu.op_reg_reg(A_CMP,tcgsize2opsize[size],reg1,reg2));
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
@@ -1604,13 +1622,13 @@ unit cgcpu;
             if (localsize < 0) then
               internalerror(2006122601);
 
-            { Not to complicate the code generator too much, and since some }
-            { of the systems only support this format, the localsize cannot }
-            { exceed 32K in size.                                           }
             if (localsize > high(smallint)) then
-              CGMessage(cg_e_localsize_too_big);
-
-            list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
+              begin
+                list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
+                list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
+              end
+            else
+              list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
           end;
       end;
 
@@ -1746,9 +1764,16 @@ unit cgcpu;
             include(current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
+            { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
             href:=current_procinfo.save_regs_ref;
+            if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
+                list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
+                reference_reset_base(href,NR_A0,0,sizeof(pint));
+              end;
             if size = sizeof(aint) then
-              a_load_reg_ref(list, OS_32, OS_32, hreg, href)
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href))
             else
               list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,dataregs,addrregs,href));
           end;
@@ -1799,8 +1824,14 @@ unit cgcpu;
 
         { Restore registers from temp }
         href:=current_procinfo.save_regs_ref;
+        if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
+          begin
+            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
+            list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
+            reference_reset_base(href,NR_A0,0,sizeof(pint));
+          end;
         if size = sizeof(aint) then
-          a_load_ref_reg(list, OS_32, OS_32, href, hreg)
+          list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,hreg))
         else
           list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,href,dataregs,addrregs));
 
