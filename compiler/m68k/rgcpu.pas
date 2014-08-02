@@ -126,6 +126,8 @@ unit rgcpu;
       begin
         result:=false;
         opidx:=-1;
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in cpu_coldfire) then
+          exit;
         case instr.ops of
           1:
             begin
