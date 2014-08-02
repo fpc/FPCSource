@@ -167,6 +167,7 @@ unit i_linux;
             name         : 'Linux for m68k';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_smartlink_sections,
                             tf_requires_proper_alignment, { Coldfire seems to need this at least (KB) }
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_m68k;
