@@ -261,6 +261,7 @@ begin
   M:=MsgData;
   if count > 0 then
     begin
+    M.Size:=0;
     M.Seek(0,soFrombeginning);
     M.CopyFrom(FStream,Count);
     end
