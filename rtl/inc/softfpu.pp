@@ -2317,7 +2317,7 @@ var
 Returns the fraction bits of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function ExtractFloat32Frac(a : Float32) : Bits32;
+Function ExtractFloat32Frac(a : Float32) : Bits32; inline;
  Begin
     ExtractFloat32Frac := A AND $007FFFFF;
  End;
@@ -2327,7 +2327,7 @@ Function ExtractFloat32Frac(a : Float32) : Bits32;
 Returns the exponent bits of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat32Exp( a: float32 ): Int16;
+Function extractFloat32Exp( a: float32 ): Int16; inline;
   Begin
     extractFloat32Exp := (a shr 23) AND $FF;
   End;
@@ -2337,7 +2337,7 @@ Function extractFloat32Exp( a: float32 ): Int16;
 Returns the sign bit of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat32Sign( a: float32 ): Flag;
+Function extractFloat32Sign( a: float32 ): Flag; inline;
   Begin
     extractFloat32Sign := a shr 31;
   End;
@@ -2372,7 +2372,7 @@ than the desired result exponent whenever `zSig' is a complete, normalized
 significand.
 -------------------------------------------------------------------------------
 *}
-Function packFloat32( zSign: Flag; zExp : Int16; zSig: Bits32 ): Float32;
+Function packFloat32( zSign: Flag; zExp : Int16; zSig: Bits32 ): Float32; inline;
  Begin
 
     packFloat32 := ( ( bits32( zSign) ) shl 31 ) + ( ( bits32 (zExp) ) shl 23 )
@@ -2485,7 +2485,7 @@ Returns the most-significant 20 fraction bits of the double-precision
 floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Frac0(a: float64): bits32;
+Function extractFloat64Frac0(a: float64): bits32; inline;
   Begin
     extractFloat64Frac0 := a.high and $000FFFFF;
   End;
@@ -2496,14 +2496,14 @@ Returns the least-significant 32 fraction bits of the double-precision
 floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Frac1(a: float64): bits32;
+Function extractFloat64Frac1(a: float64): bits32; inline;
   Begin
     extractFloat64Frac1 := a.low;
   End;
 
 
 {$define FPC_SYSTEM_HAS_extractFloat64Frac}
-Function extractFloat64Frac(a: float64): bits64;
+Function extractFloat64Frac(a: float64): bits64; inline;
   Begin
     extractFloat64Frac := bits64(a) and $000FFFFFFFFFFFFF;
   End;
@@ -2513,7 +2513,7 @@ Function extractFloat64Frac(a: float64): bits64;
 Returns the exponent bits of the double-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Exp(a: float64): int16;
+Function extractFloat64Exp(a: float64): int16; inline;
  Begin
     extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
  End;
@@ -2523,7 +2523,7 @@ Function extractFloat64Exp(a: float64): int16;
 Returns the sign bit of the double-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Sign(a: float64) : flag;
+Function extractFloat64Sign(a: float64) : flag; inline;
  Begin
     extractFloat64Sign := a.high shr 31;
  End;
@@ -5813,7 +5813,7 @@ var
 Begin
     if ( a = 0 ) then
       Begin
-       packFloat64( 0, 0, 0, 0, result );
+       result:=packFloat64( 0, 0, 0);
        exit;
       end;
     shiftCount := countLeadingZeros64( a ) - 11;
@@ -5840,7 +5840,7 @@ var
 Begin
     if ( a = 0 ) then
       Begin
-       packFloat64( 0, 0, 0, 0, result );
+       result:=packFloat64( 0, 0, 0);
        exit;
       end;
     zSign := flag( a < 0 );
