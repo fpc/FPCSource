@@ -3732,7 +3732,7 @@ Function float32_mul(a: float32rec; b: float32rec ) : float32rec; compilerproc;
             float32_mul.float32 := propagateFloat32NaN( a.float32, b.float32 );
             exit;
         End;
-        if ( ( bExp OR  bSig ) = 0 ) then
+        if ( ( bits32(bExp) OR  bSig ) = 0 ) then
         Begin
             float_raise( float_flag_invalid );
             float32_mul.float32 := float32_default_nan;
@@ -3748,7 +3748,7 @@ Function float32_mul(a: float32rec; b: float32rec ) : float32rec; compilerproc;
            float32_mul.float32 := propagateFloat32NaN( a.float32, b.float32 );
            exit;
         End;
-        if ( ( aExp OR  aSig ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig ) = 0 ) then
         Begin
             float_raise( float_flag_invalid );
             float32_mul.float32 := float32_default_nan;
@@ -3843,7 +3843,7 @@ Function float32_div(a: float32rec;b: float32rec ): float32rec; compilerproc;
     Begin
         if ( bSig = 0 ) Then
         Begin
-            if ( ( aExp OR  aSig ) = 0 ) then
+            if ( ( bits32(aExp) OR  aSig ) = 0 ) then
             Begin
                 float_raise( float_flag_invalid );
                 float32_div.float32 := float32_default_nan;
@@ -4041,7 +4041,7 @@ Begin
     End;
     if ( aSign <> 0) then
     Begin
-        if ( ( aExp OR  aSig ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig ) = 0 ) then
         Begin
            float32_sqrt := a;
            exit;
@@ -4399,7 +4399,7 @@ Var
     Begin
         if ( aExp < $3FF ) then
         Begin
-            if ( aExp OR  aSig0 OR  aSig1 )<>0 then
+            if ( bits32(aExp) OR  aSig0 OR  aSig1 )<>0 then
             Begin
               set_inexact_flag;
             End;
@@ -5047,7 +5047,7 @@ Begin
             propagateFloat64NaN( a, b, result );
             exit;
         End;
-        if ( ( bExp OR  bSig0 OR  bSig1 ) = 0 ) then goto invalid;
+        if ( ( bits32(bExp) OR  bSig0 OR  bSig1 ) = 0 ) then goto invalid;
         packFloat64( zSign, $7FF, 0, 0, result );
         exit;
     End;
@@ -5162,7 +5162,7 @@ Begin
     Begin
         if ( ( bSig0 OR  bSig1 ) = 0 ) then
         Begin
-            if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
+            if ( ( bits32(aExp) OR  aSig0 OR  aSig1 ) = 0 ) then
             Begin
  invalid:
                 float_raise( float_flag_invalid );
@@ -5394,7 +5394,7 @@ Begin
     End;
     if ( aSign <> 0 ) then
     Begin
-        if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig0 OR  aSig1 ) = 0 ) then
         Begin
            result := a;
            exit;
