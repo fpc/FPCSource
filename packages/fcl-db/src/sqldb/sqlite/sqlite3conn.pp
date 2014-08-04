@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal Classes Library (FCL).
-    Copyright (c) 2006 by the Free Pascal development team
+    Copyright (c) 2006-2014 by the Free Pascal development team
 
     SQLite3 connection for SQLDB
 
@@ -524,6 +524,7 @@ begin
   Delete(S,1,P);
 end;
 
+// Parses string-formatted date into TDateTime value
 Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
@@ -536,6 +537,7 @@ begin
         Result:=EncodeDate(Year,Month,Day);
 end;
 
+// Parses string-formatted time into TDateTime value
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
@@ -555,6 +557,7 @@ begin
         end;
 end;
 
+// Parses string-formatted date/time into TDateTime value
 Function ParseSQLiteDateTime(S : String) : TDateTime;
 
 var
@@ -612,17 +615,17 @@ begin
     ftDateTime,
     ftDate,
     ftTime:  if st1 = sttext then 
-               begin
+               begin { Stored as string }
                setlength(str1,sqlite3_column_bytes(st,fnum));
                move(sqlite3_column_text(st,fnum)^,str1[1],length(str1));
                case FieldDef.datatype of
                  ftDateTime: PDateTime(Buffer)^:=ParseSqliteDateTime(str1);
                  ftDate    : PDateTime(Buffer)^:=ParseSqliteDate(str1);
-                 ftTime    : PDateTime(Buffer)^:=ParseSQLiteTime(str1,true);
+                 ftTime    : PDateTime(Buffer)^:=ParseSqliteTime(str1,true);
                end; {case}
                end
              else
-               begin
+               begin { Assume stored as double }
                PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
                if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
                   PDateTime(buffer)^ := PDateTime(buffer)^ + JulianEpoch; //backward compatibility hack
