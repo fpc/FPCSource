@@ -5076,6 +5076,24 @@ packages/libndsfpc/examples/graphics/Backgrounds/rotation/Makefile.fpc svneol=na
 packages/libndsfpc/examples/graphics/Backgrounds/rotation/Rotation.pp svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Backgrounds/rotation/data/drunkenlogo.bin -text svneol=unset#application/octet-stream
 packages/libndsfpc/examples/graphics/Backgrounds/rotation/data/palette.bin -text
+packages/libndsfpc/examples/graphics/Effects/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Effects/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Effects/windows/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Effects/windows/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Effects/windows/gfx/drunkenlogo.grit svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Effects/windows/gfx/drunkenlogo.png -text
+packages/libndsfpc/examples/graphics/Effects/windows/windows.pp svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/backgrounds.pp svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/devkitlogo.grit svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/devkitlogo.png -text
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/drunkenlogo.grit svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/drunkenlogo.png -text
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/inc/devkitlogo.inc svneol=native#text/plain
+packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/inc/drunkenlogo.inc svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Printing/Makefile svneol=native#text/plain
@@ -5224,6 +5242,7 @@ packages/libndsfpc/src/nds/arm9/sprite.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/arm9/trig_lut.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/arm9/video.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/arm9/videoGL.inc svneol=native#text/plain
+packages/libndsfpc/src/nds/arm9/window.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/bios.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/card.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/debug.inc svneol=native#text/plain

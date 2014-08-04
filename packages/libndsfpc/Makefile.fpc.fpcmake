@@ -16,7 +16,7 @@ includedir=src src/dswifi src/fat src/maxmod src/gl2d
 sourcedir=src tests
 
 [prerules]
-BINUTILSPREFIX=arm-eabi-
+BINUTILSPREFIX=arm-none-eabi-
 
 [install]
 fpcpackage=y

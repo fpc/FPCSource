@@ -1,0 +1,95 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+loaders= 
+programs=backgrounds
+
+[require]
+packages=libndsfpc
+tools=bin2s mmutil grit rmdir mv
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=nds
+fpcdir=
+
+[compiler]
+options=-g -Xm  
+
+[clean]
+files=*.elf *.o *.s *.nds *.nef *.h *.bin *.map \
+       $(BUILD)/* \
+       $(INC)/*
+units=*
+
+[prerules]
+BUILD = build
+DATA = data
+GFX = gfx
+INC = inc
+AUDIO_FILES = $(foreach dir, $(notdir $(wildcard audio/*.*)), $(CURDIR)/audio/$(dir))
+GFX_FILES =   $(foreach dir, $(GFX), $(notdir $(wildcard $(dir)/*.bmp $(dir)/*.png)))
+BIN_FILES =   $(foreach dir, $(DATA), $(notdir $(wildcard $(dir)/*)))
+
+[rules]
+.NOTPARALLEL:
+clean: dir_delete fpc_clean fpc_cleanall
+all: dir_make $(BIN_FILES) $(GFX_FILES) fpc_all 
+
+#
+# Delete temp directories
+#
+dir_delete:
+        @$(DELTREE) $(CURDIR)/$(BUILD) 
+        @$(DELTREE) $(CURDIR)/$(INC) 
+        
+#
+# Create temp directories
+#
+dir_make:
+ifneq ($(BUILD), $(CURDIR))
+        @$(MKDIR) $(BUILD)
+endif
+ifneq ($(INC), $(CURDIR))
+        @$(MKDIR) $(INC)
+endif
+
+#
+# Audio files processing rule
+#
+soundbank.bin.o : $(AUDIO_FILES)
+        @$(MMUTIL) $^ -d -o$(BUILD)/soundbank.bin -h$(BUILD)/soundbank.h
+        $(BIN2S) $(BUILD)/soundbank.bin > $(BUILD)/soundbank.bin.s
+        $(AS) -o $(BUILD)/soundbank.bin.o $(BUILD)/soundbank.bin.s
+
+#
+# Png files processing rule
+#
+$(GFX_FILES): $(wildcard %.bmp %.png)
+        @echo 'Converting $(@) file to asm...'
+        $(GRIT) $(GFX)/$(@) -fp -fts -ff $(GFX)/$(basename $(@)).grit -o$(BUILD)/$(@)
+        @echo 'Assembling $(@).s file...'
+        $(AS) -o $(BUILD)/$(basename $(@)).o $(BUILD)/$(basename $(@)).s
+        $(MV) -f $(BUILD)/$(basename $(@)).inc $(INC)/$(basename $(@)).inc         
+        @echo 'Done!'
+
+#
+# Binary files processing rule
+# 
+$(BIN_FILES): $(wildcard %.*)
+        @echo 'Converting $(@) file to asm...'
+        @$(BIN2S) $(DATA)/$(@) > $(BUILD)/$(@).s
+        @echo 'Creating $(@).inc include file...'
+        @echo "var" > `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo 'Assembling $(@).s file...'
+        @$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
+        @echo 'Done!'
