@@ -2860,6 +2860,15 @@ Procedure
     roundAndPackFloat64( zSign, zExp, zSig0, zSig1, zSig2, c );
   End;
 
+
+function normalizeRoundAndPackFloat64(zSign: flag; zExp: int16; zSig: bits64): float64;
+  var
+    shiftCount: int8;
+  begin
+    shiftCount := countLeadingZeros64( zSig ) - 1;
+    result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
+  end;
+
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the 32-bit two's complement integer `a' to
@@ -5808,20 +5817,11 @@ End;
 *----------------------------------------------------------------------------*}
 function qword_to_float64( a: qword ): float64;
 {$ifdef fpc}[public,Alias:'QWORD_TO_FLOAT64'];compilerproc;{$endif}
-var
- shiftcount : int8;
 Begin
-    if ( a = 0 ) then
-      Begin
-       result:=packFloat64( 0, 0, 0);
-       exit;
-      end;
-    shiftCount := countLeadingZeros64( a ) - 11;
-    if ( 0 <= shiftCount ) then
-      a := a shl shiftcount
-    else
-      a := a shr (-shiftCount);
-    result := packFloat64( 0, $432 - shiftCount, a );
+  if ( a = 0 ) then
+    result := packFloat64( 0, 0, 0 )
+  else
+    result := normalizeRoundAndPackFloat64( 0, $43c, a );
 End;
 
 
@@ -5833,27 +5833,15 @@ End;
 *----------------------------------------------------------------------------*}
 function int64_to_float64( a: int64 ): float64;
 {$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];compilerproc;{$endif}
-var
- zSign : flag;
- AbsA : bits64;
- shiftcount : int8;
 Begin
-    if ( a = 0 ) then
-      Begin
-       result:=packFloat64( 0, 0, 0);
-       exit;
-      end;
-    zSign := flag( a < 0 );
-    if ZSign<>0 then
-      AbsA := -a
-    else
-      AbsA := a;
-    shiftCount := countLeadingZeros64( absA ) - 11;
-    if ( 0 <= shiftCount ) then
-      absA := absA shl shiftcount
-    else
-      absA := absA shr (-shiftcount);
-    result := packFloat64( zSign, $432 - shiftCount, absA );
+  if ( a = 0 ) then
+    result := packFloat64( 0, 0, 0 )
+  else if (a = int64($8000000000000000)) then
+    result := packFloat64( 1, $43e, 0 )
+  else if (a < 0) then
+    result := normalizeRoundAndPackFloat64( 1, $43c, -a )
+  else
+    result := normalizeRoundAndPackFloat64( 0, $43c, a );
 End;
 
 
