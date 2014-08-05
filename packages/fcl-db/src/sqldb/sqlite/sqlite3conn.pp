@@ -525,19 +525,22 @@ begin
 end;
 
 // Parses string-formatted date into TDateTime value
+// Expected format: '2013-12-31 ' (without ')
 Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
   Year, Month, Day : Integer;
+
 begin
- Result:=0;
- If TryStrToInt(NextWord(S,'-'),Year) then
-   if TryStrToInt(NextWord(S,'-'),Month) then
-     if TryStrToInt(NextWord(S,' '),Day) then
+  Result:=0;
+  If TryStrToInt(NextWord(S,'-'),Year) then
+    if TryStrToInt(NextWord(S,'-'),Month) then
+      if TryStrToInt(NextWord(S,' '),Day) then
         Result:=EncodeDate(Year,Month,Day);
 end;
 
 // Parses string-formatted time into TDateTime value
+// Expected format '23:59:59.999' (without ')
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
