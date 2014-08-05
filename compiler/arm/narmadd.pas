@@ -403,6 +403,8 @@ interface
         oldnodetype : tnodetype;
         dummyreg : tregister;
         l: tasmlabel;
+      const
+        lt_zero_swapped: array[boolean] of tnodetype = (ltn, gtn);
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -411,20 +413,33 @@ interface
 
         { pass_left_right moves possible consts to the right, the only
           remaining case with left consts (currency) can take this path too (KB) }
-        if (nodetype in [equaln,unequaln]) and
+        if (nodetype in [equaln,unequaln,lt_zero_swapped[nf_swapped in Flags]]) and
+          { In theory the upper layers should not emit a compare in that case at all }
+          ((nodetype in [ltn, gtn]) and not unsigned) and
           (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
-            location.resflags:=getresflags(unsigned);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
-            if GenerateThumbCode then
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+            { Optimize for the common case of int64 < 0 }
+            if nodetype in [ltn, gtn] then
+              begin
+                {Just check for the MSB in reghi to be set or not, this is independed from nf_swapped}
+                location.resflags:=F_NE;
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,left.location.register64.reghi, $80000000));
+              end
             else
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
+              begin
+                location.resflags:=getresflags(unsigned);
+                dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+                if GenerateThumbCode then
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
+                else
+                  current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
+              end;
           end
         else
           begin
