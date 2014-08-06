@@ -780,17 +780,12 @@ implementation
                 WriteTempalloc(tai_tempalloc(hp));
             end;
 
-          ait_align :
-            begin
-              { has to be specified as part of the symbol declaration }
-              AsmWriteln('; error: explicit aligns are forbidden');
-//             internalerror(2013010714);
-            end;
-
+          ait_align,
           ait_section :
             begin
-              AsmWrite(target_asm.comment);
-              AsmWriteln('section');
+              { ignore, specified as part of declarations -- don't write
+                comment, because could appear in the middle of an aggregate
+                constant definition }
             end;
 
           ait_datablock :
