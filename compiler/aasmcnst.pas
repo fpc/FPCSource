@@ -404,11 +404,13 @@ implementation
        prelist: tasmlist;
      begin
        prelist:=tasmlist.create_without_marker;
-       maybe_new_object_file(prelist);
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
        if section<>sec_none then
-         new_section(prelist,section,secname,const_align(alignment));
+         begin
+           maybe_new_object_file(prelist);
+           new_section(prelist,section,secname,const_align(alignment));
+         end;
        if not lab then
          if sym.bind=AB_GLOBAL then
            prelist.concat(tai_symbol.Create_Global(sym,0))
