@@ -331,14 +331,6 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
-{$ifdef i8086}
-    {# Returns true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-
-    {# Returns true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
-{$endif i8086}
-
 implementation
 
     uses
@@ -1432,19 +1424,5 @@ implementation
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
       end;
-
-{$ifdef i8086}
-    { true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-      begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
-      end;
-
-    { true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
-      begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
-      end;
-{$endif i8086}
 
 end.

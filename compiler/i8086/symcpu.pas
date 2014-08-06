@@ -210,6 +210,11 @@ const
 
   function is_proc_far(p: tabstractprocdef): boolean;
 
+  {# Returns true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+
+  {# Returns true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
 
 implementation
 
@@ -227,6 +232,17 @@ implementation
       internalerror(2014041301);
   end;
 
+  { true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
+    end;
+
+  { true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
+    end;
 
 {****************************************************************************
                                tcpuarraydef
