@@ -95,6 +95,11 @@ type
    end;
 
 
+    tasmlabofs = record
+      lab: tasmlabel;
+      ofs: asizeint;
+    end;
+
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
    ttai_lowleveltypedconstbuilder = class abstract
@@ -124,6 +129,17 @@ type
        want to use it explicitly as a procdef (i.e., not as a record with a
        code and data pointer in case of a complex procvardef) }
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
+
+    protected
+     function emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel):tasmlabofs;
+    public
+     class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
+     { class functions and an extra list parameter, because emitting the data
+       for the strings has to happen via a separate typed const builder (which
+       will be created/destroyed internally by these methods) }
+     class function emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
+     class function emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
        represents an aggregate at the Pascal level (a record, a non-dynamic
@@ -512,6 +528,151 @@ implementation
      begin
        { nothing special by default, since we don't care about the type }
        emit_tai(p,pvdef);
+     end;
+
+
+   function ttai_lowleveltypedconstbuilder.emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
+     var
+       string_symofs: asizeint;
+       elesize: word;
+     begin
+       current_asmdata.getdatalabel(result.lab);
+       startlab:=result.lab;
+       result.ofs:=0;
+       begin_anonymous_record;
+       string_symofs:=get_string_symofs(stringtype,false);
+       { encoding }
+       emit_tai(tai_const.create_16bit(encoding),u16inttype);
+       inc(result.ofs,2);
+       { element size }
+       case stringtype of
+         st_ansistring:
+           elesize:=1;
+         st_unicodestring:
+           elesize:=2;
+         else
+           internalerror(2014080401);
+       end;
+       emit_tai(tai_const.create_16bit(elesize),u16inttype);
+       inc(result.ofs,2);
+{$ifdef cpu64bitaddr}
+       { dummy for alignment }
+       emit_tai(tai_const.create_32bit(0),u32inttype);
+       inc(result.ofs,4);
+{$endif cpu64bitaddr}
+       emit_tai(tai_const.create_pint(-1),ptrsinttype);
+       inc(result.ofs,sizeof(pint));
+       emit_tai(tai_const.create_pint(len),ptrsinttype);
+       inc(result.ofs,sizeof(pint));
+       if string_symofs=0 then
+         begin
+           { results in slightly more efficient code }
+           list.concat(tai_label.create(result.lab));
+           result.ofs:=0;
+           current_asmdata.getdatalabel(startlab);
+         end;
+       { sanity check }
+       if result.ofs<>string_symofs then
+         internalerror(2012051701);
+     end;
+
+
+   class function ttai_lowleveltypedconstbuilder.get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
+     begin
+       case typ of
+         st_ansistring:
+           result:='ansistrrec';
+         st_unicodestring,
+         st_widestring:
+           if (typ=st_unicodestring) or
+              not winlike then
+             result:='unicodestrrec'
+           else
+             result:='widestrrec';
+         else
+           internalerror(2014080402);
+       end;
+       result:=result+tostr(len);
+     end;
+
+
+   class function ttai_lowleveltypedconstbuilder.emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
+     var
+       s: PChar;
+       startlab: tasmlabel;
+       sectype: TAsmSectiontype;
+       ansistrrecdef: trecorddef;
+       datadef: tdef;
+       datatcb: ttai_lowleveltypedconstbuilder;
+     begin
+       datatcb:=self.create;
+       result:=datatcb.emit_string_const_common(list,st_ansistring,len,encoding,startlab);
+
+       getmem(s,len+1);
+       move(data^,s^,len);
+       s[len]:=#0;
+       { terminating zero included }
+       datadef:=getarraydef(cansichartype,len+1);
+       datatcb.maybe_begin_aggregate(datadef);
+       datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
+       datatcb.maybe_end_aggregate(datadef);
+       ansistrrecdef:=datatcb.end_anonymous_record('$'+get_dynstring_rec_name(st_ansistring,false,len),sizeof(pint));
+       if NewSection then
+         sectype:=sec_rodata_norel
+       else
+         sectype:=sec_none;
+       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sectype,startlab.name,const_align(sizeof(pint)),true));
+       datatcb.free;
+     end;
+
+
+   class function ttai_lowleveltypedconstbuilder.emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+     var
+       i, strlength: longint;
+       string_symofs: asizeint;
+       startlab: tasmlabel;
+       datadef: tdef;
+       uniwidestrrecdef: trecorddef;
+       datatcb: ttai_lowleveltypedconstbuilder;
+     begin
+       datatcb:=self.create;
+       strlength:=getlengthwidestring(pcompilerwidestring(data));
+       if winlike then
+         begin
+           current_asmdata.getdatalabel(result.lab);
+           datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
+           { can we optimise by placing the string constant label at the
+             required offset? }
+           string_symofs:=get_string_symofs(st_widestring,true);
+           if string_symofs=0 then
+             begin
+               { yes }
+               datatcb.emit_tai(Tai_label.Create(result.lab),widecharpointertype);
+               { allocate a separate label for the start of the data }
+               current_asmdata.getdatalabel(startlab);
+             end;
+           result.ofs:=string_symofs;
+         end
+       else
+         begin
+           result:=datatcb.emit_string_const_common(list,st_unicodestring,strlength,encoding,startlab);
+         end;
+       if cwidechartype.size = 2 then
+         begin
+           datadef:=getarraydef(cwidechartype,strlength+1);
+           datatcb.maybe_begin_aggregate(datadef);
+           for i:=0 to strlength-1 do
+             datatcb.emit_tai(Tai_const.Create_16bit(pcompilerwidestring(data)^.data[i]),cwidechartype);
+           { ending #0 }
+           datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
+           datatcb.maybe_end_aggregate(datadef);
+           uniwidestrrecdef:=datatcb.end_anonymous_record('$'+get_dynstring_rec_name(st_widestring,winlike,strlength),sizeof(pint));
+         end
+       else
+         { code generation for other sizes must be written }
+         internalerror(200904271);
+       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),true));
+       datatcb.free;
      end;
 
 

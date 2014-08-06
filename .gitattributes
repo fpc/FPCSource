@@ -106,7 +106,6 @@ compiler/arm/rarmstd.inc svneol=native#text/plain
 compiler/arm/rarmsup.inc svneol=native#text/plain
 compiler/arm/rgcpu.pas svneol=native#text/plain
 compiler/arm/symcpu.pas svneol=native#text/plain
-compiler/asmutils.pas svneol=native#text/plain
 compiler/assemble.pas svneol=native#text/plain
 compiler/avr/aasmcpu.pas svneol=native#text/plain
 compiler/avr/agavrgas.pas svneol=native#text/plain

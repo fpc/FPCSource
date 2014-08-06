@@ -29,7 +29,7 @@ interface
       globtype,cclasses,constexp,
       aasmbase,aasmdata,aasmtai,aasmcnst,
       node,nbas,
-      symtype, symbase, symdef,symsym;
+      symconst, symtype, symbase, symdef,symsym;
 
 
     type
@@ -99,6 +99,8 @@ interface
         procedure tc_emit_setdef(def: tsetdef; var node: tnode);override;
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
+
+        procedure tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
        public
         constructor create(sym: tstaticvarsym);virtual;
         procedure parse_into_asmlist;
@@ -143,7 +145,7 @@ uses
    SysUtils,
    systems,tokens,verbose,
    cutils,globals,widestr,scanner,
-   symconst,symtable,
+   symtable,
    aasmcpu,defutil,defcmp,
    { pass 1 }
    htypechk,procinfo,
@@ -152,7 +154,7 @@ uses
    pbase,pexpr,pdecvar,
    { codegen }
    cpuinfo,cgbase,dbgbase,
-   wpobase,asmutils
+   wpobase
    ;
 
 {$maxfpuregisters 0}
@@ -444,6 +446,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
+    procedure tasmlisttypedconstbuilder.tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
+      begin
+        ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),charptrdef);
+      end;
+
+
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
         strlength : aint;
@@ -551,8 +559,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        ll.ofs:=0;
                      end
                    else
-                     ll:=emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
-                   ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),getpointerdef(cansichartype));
+                     ll:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding,true);
+                   tc_emit_string_offset(ll,strlength,def.stringtype,false,charpointertype);
                 end;
               st_unicodestring,
               st_widestring:
@@ -566,7 +574,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    else
                      begin
                        winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
-                       ll:=emit_unicodestring_const(current_asmdata.asmlists[al_const],
+                       ll:=ctai_typedconstbuilder.emit_unicodestring_const(current_asmdata.asmlists[al_const],
                               strval,
                               def.encoding,
                               winlike);
@@ -588,7 +596,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                            Include(tcsym.varoptions,vo_force_finalize);
                          end;
                      end;
-                   ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),getpointerdef(cwidechartype));
+                  tc_emit_string_offset(ll,strlength,def.stringtype,winlike,widecharpointertype);
                 end;
               else
                 internalerror(200107081);

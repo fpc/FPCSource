@@ -27,7 +27,8 @@ unit nllvmcon;
 interface
 
     uses
-       node,ncgcon;
+      symtype,
+      node,ncgcon;
 
     type
        tllvmrealconstnode = class(tcgrealconstnode)
@@ -37,14 +38,16 @@ interface
 
        tllvmstringconstnode = class(tcgstringconstnode)
           procedure pass_generate_code; override;
+       protected
+          procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); override;
        end;
 
 implementation
 
     uses
-      globtype,verbose,cutils,
-      symtype,symdef,defutil,
-      aasmdata,
+      globtype,globals,verbose,cutils,
+      symbase,symtable,symconst,symdef,symsym,defutil,
+      aasmdata,aasmcnst,
       ncon,
       llvmbase,aasmllvm,hlcgobj,
       cgbase,cgutils;
@@ -85,6 +88,49 @@ implementation
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
             hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
           end;
+      end;
+
+
+    procedure tllvmstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean);
+      var
+        stringtype: tstringtype;
+        strrecdef: trecorddef;
+        srsym: tsym;
+        srsymtable: tsymtable;
+        offset: pint;
+        field: tfieldvarsym;
+        dataptrdef: tdef;
+        reg: tregister;
+        href: treference;
+      begin
+        case cst_type of
+          cst_ansistring:
+            stringtype:=st_ansistring;
+          cst_unicodestring:
+            stringtype:=st_unicodestring;
+          cst_widestring:
+            stringtype:=st_widestring;
+          else
+            internalerror(2014040804);
+        end;
+        { get the recorddef for this string constant }
+        if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(stringtype,winlikewidestring,len),srsym,srsymtable) then
+          internalerror(2014080405);
+        strrecdef:=trecorddef(ttypesym(srsym).typedef);
+        { offset in the record of the the string data }
+        offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
+        { field corresponding to this offset }
+        field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
+        { pointerdef to the string data array }
+        dataptrdef:=getpointerdef(field.vardef);
+        { load the address of the string data }
+        reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
+        reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));
+        current_asmdata.CurrAsmList.concat(
+          taillvm.getelementptr_reg_size_ref_size_const(reg,dataptrdef,href,
+          s32inttype,field.llvmfieldnr,true));
+        { convert into a pointer to the individual elements }
+        hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
       end;
 
 {*****************************************************************************

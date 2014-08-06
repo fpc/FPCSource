@@ -28,6 +28,7 @@ interface
 
     uses
        aasmbase,
+       symtype,
        node,ncon;
 
     type
@@ -49,6 +50,8 @@ interface
 
        tcgstringconstnode = class(tstringconstnode)
           procedure pass_generate_code;override;
+       protected
+         procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); virtual;
        end;
 
        tcgsetconstnode = class(tsetconstnode)
@@ -77,7 +80,7 @@ implementation
       symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil,hlcgobj,symtype,cclasses,asmutils,tgobj
+      ncgutil,hlcgobj,cclasses,tgobj
       ;
 
 
@@ -261,7 +264,6 @@ implementation
          lastlabel: tasmlabofs;
          pc: pchar;
          l: longint;
-         href: treference;
          pool: THashSet;
          entry: PHashSetItem;
          winlikewidestring: boolean;
@@ -330,7 +332,7 @@ implementation
                              InternalError(2008032301)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+                               lastlabel:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding,true);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
                                if lastlabel.ofs<>ctai_typedconstbuilder.get_string_symofs(st_ansistring,false) then
@@ -344,7 +346,7 @@ implementation
                              InternalError(2008032302)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                               lastlabel:=ctai_typedconstbuilder.emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
                                                value_str,
                                                tstringdef(resultdef).encoding,
                                                winlikewidestring);
@@ -410,17 +412,25 @@ implementation
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, def_cgsize(strpointerdef));
-             reference_reset_symbol(href, lab_str,
-               ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring),
-               const_align(strpointerdef.size));
              location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,strpointerdef);
-             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,elementdef,strpointerdef,href,location.register)
+             load_dynstring(strpointerdef, elementdef, winlikewidestring);
            end
          else
            begin
              location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(strpointerdef.size));
              location.reference.symbol:=lab_str;
            end;
+      end;
+
+
+    procedure tcgstringconstnode.load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean);
+      var
+        href: treference;
+      begin
+        reference_reset_symbol(href, lab_str,
+          ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring),
+          const_align(strpointerdef.size));
+        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
 
 
