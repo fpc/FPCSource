@@ -112,7 +112,6 @@ type
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean); virtual;
     public
-     { sym is the symbol for which this typed constant data is emitted. }
      constructor create; virtual;
      destructor destroy; override;
 
@@ -120,7 +119,7 @@ type
        def is the type of the added value }
      procedure emit_tai(p: tai; def: tdef); virtual;
      { same as above, for a special case: when the def is a procvardef and we
-       want to use it explicitly as a procvdef (i.e., not as a record with a
+       want to use it explicitly as a procdef (i.e., not as a record with a
        code and data pointer in case of a complex procvardef) }
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
      { begin a potential aggregate type. Must be called for any type
@@ -135,14 +134,11 @@ type
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
        outer to inner, so that is also the order in which they should be
-       added to the queue. Only one queue can be active at a time. There is
-       no default implementation. }
-     { Init the queue. Gives an internalerror if a queu was already active }
+       added to the queue. Only one queue can be active at a time. }
+     { Init the queue. Gives an internalerror if a queue was already active }
      procedure queue_init(todef: tdef); virtual;
      { queue an array/string indexing operation (performs all range checking,
-       so it doesn't have to be duplicated in all descendents). Returns the
-       length of the elements (in bytes) and the index in the vector
-       (0-based) }
+       so it doesn't have to be duplicated in all descendents). }
      procedure queue_vecn(def: tdef; const index: tconstexprint); virtual;
      { queue a subscripting operation }
      procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); virtual;
@@ -150,9 +146,7 @@ type
      procedure queue_typeconvn(fromdef, todef: tdef); virtual;
      { queue an address taking operation }
      procedure queue_addrn(fromdef, todef: tdef); virtual;
-     { (these default implementations don't do anything but indicate the
-        queue has been flushed by resetting fqueueu_offset)
-        finalise the queue (so a new one can be created) and flush the
+     { finalise the queue (so a new one can be created) and flush the
         previously queued operations, applying them in reverse order on a...}
      { ... procdef }
      procedure queue_emit_proc(pd: tprocdef); virtual;
@@ -162,20 +156,19 @@ type
      procedure queue_emit_label(l: tlabelsym); virtual;
      { ... constsym }
      procedure queue_emit_const(cs: tconstsym); virtual;
-     { ... asmsym }
+     { ... asmsym/asmlabel }
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
 
-     { finalize the asmlist (if necessary) and return it.
-       At the end, the generated data can be found in the asmlist. It will
-       be freed when the builder is destroyed, so add its contents to
-       another list first. This property should only be accessed once all
-       data has been added. }
+     { finalize the internal asmlist (if necessary) and return it.
+       This asmlist will be freed when the builder is destroyed, so add its
+       contents to another list first. This property should only be accessed
+       once all data has been added. }
      function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; lab: boolean): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
        negative offset), but on some platforms such negative offsets are not
-       supported }
+       supported this is 0 }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
    end;
    ttai_lowleveltypedconstbuilderclass = class of ttai_lowleveltypedconstbuilder;
@@ -281,7 +274,7 @@ implementation
              strtai.str:=reallocmem(strtai.str,strtai.len+tai_string(othertai).len+1);
              { also copy null terminator }
              move(tai_string(othertai).str[0],strtai.str[strtai.len],tai_string(othertai).len+1);
-             { the null terminator is not part of the length }
+             { the null terminator is not part of the string data }
              strtai.len:=strtai.len+tai_string(othertai).len;
            end;
          ait_const:
