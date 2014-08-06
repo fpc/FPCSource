@@ -286,6 +286,7 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
+          constructor create_global_from_deflist(n: string; fieldtypes: tfplist; packrecords: shortint); virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -3894,6 +3895,51 @@ implementation
          if symtable.refcount=1 then
            symtable.defowner:=self;
          isunion:=false;
+      end;
+
+
+    constructor trecorddef.create_global_from_deflist(n: string; fieldtypes: tfplist; packrecords: shortint);
+      var
+        i: longint;
+        hdef: tdef;
+        sym: tfieldvarsym;
+        oldsymtablestack: tsymtablestack;
+        definedname: boolean;
+      begin
+        { construct name }
+        definedname:=n<>'';
+        if not definedname then
+          n:='$InternalRec'+tostr(current_module.deflist.count);
+        oldsymtablestack:=symtablestack;
+        { do not simply push/pop current_module.localsymtable, because
+          that can have side-effects (e.g., it removes helpers) }
+        symtablestack:=nil;
+
+        symtable:=trecordsymtable.create(n,packrecords);
+        symtable.defowner:=self;
+        isunion:=false;
+        for i:=0 to fieldtypes.count-1 do
+          begin
+            sym:=cfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
+            symtable.insert(sym);
+            trecordsymtable(symtable).addfield(sym,vis_hidden);
+          end;
+        inherited create(n,recorddef);
+        if assigned(current_module.localsymtable) then
+          begin
+            current_module.localsymtable.insertdef(self);
+            { if we specified a name, then we'll probably wan't to look up the
+              type again by name too }
+            if definedname then
+              current_module.localsymtable.insert(ctypesym.create(n,self));
+          end
+        else
+          begin
+            current_module.globalsymtable.insertdef(self);
+            if definedname then
+              current_module.localsymtable.insert(ctypesym.create(n,self));
+          end;
+        symtablestack:=oldsymtablestack;
       end;
 
 

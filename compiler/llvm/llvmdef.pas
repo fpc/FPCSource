@@ -657,28 +657,7 @@ implementation
           internalerror(2014012002);
         res:=current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
         if not assigned(res^.Data) then
-          begin
-            oldsymtablestack:=symtablestack;
-            { do not simply push/pop current_module.localsymtable, because
-              that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
-
-            hrecst:=trecordsymtable.create(typename,packrecords);
-            hrecdef:=trecorddef.create(typename,hrecst);
-            for i:=0 to fieldtypes.count-1 do
-              begin
-                sym:=tfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
-                hrecst.insert(sym);
-                hrecst.addfield(sym,vis_hidden);
-              end;
-
-            res^.Data:=hrecdef;
-            if assigned(current_module.localsymtable) then
-              current_module.localsymtable.insertdef(tdef(res^.Data))
-            else
-              current_module.globalsymtable.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
-          end;
+          res^.Data:=crecorddef.create_global_from_deflist(typename,fieldtypes,packrecords);
         result:=trecorddef(res^.Data);
       end;
 
