@@ -413,10 +413,11 @@ interface
 
         { pass_left_right moves possible consts to the right, the only
           remaining case with left consts (currency) can take this path too (KB) }
-        if (nodetype in [equaln,unequaln,lt_zero_swapped[nf_swapped in Flags]]) and
-          { In theory the upper layers should not emit a compare in that case at all }
-          ((nodetype in [ltn, gtn]) and not unsigned) and
-          (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
+        if (right.nodetype=ordconstn) and
+           (tordconstnode(right).value=0) and
+           ((nodetype in [equaln,unequaln]) or
+            (is_signed(left.resultdef) and (nodetype = lt_zero_swapped[nf_swapped in Flags]))
+           ) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
