@@ -53,6 +53,7 @@ interface
       procedure update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
       procedure emit_tai_intern(p: tai; def: tdef; procvar2procdef: boolean);
       function wrap_with_type(p: tai; def: tdef): tai;
+      procedure begin_aggregate_intern(tck: ttypedconstkind; def: tdef);
      public
       constructor create; override;
       destructor destroy; override;
@@ -60,6 +61,8 @@ interface
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure maybe_begin_aggregate(def: tdef); override;
       procedure maybe_end_aggregate(def: tdef); override;
+      procedure begin_anonymous_record; override;
+      function end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -76,8 +79,7 @@ implementation
     verbose,
     aasmdata,
     cpubase,llvmbase,
-    symtable,llvmdef,defutil;
-
+    symbase,symtable,llvmdef,defutil;
 
   procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean);
     var
@@ -173,6 +175,24 @@ implementation
     end;
 
 
+  procedure tllvmtai_typedconstbuilder.begin_aggregate_intern(tck: ttypedconstkind; def: tdef);
+    var
+      agg: tai_aggregatetypedconst;
+    begin
+      if not assigned(faggregates) then
+        faggregates:=tfplist.create;
+      agg:=tai_aggregatetypedconst.create(tck,def);
+      { nested aggregate -> add to parent }
+      if faggregates.count>0 then
+        tai_aggregatetypedconst(faggregates[faggregates.count-1]).addvalue(agg)
+      { otherwise add to asmlist }
+      else
+        fasmlist.concat(agg);
+      { new top level aggregate, future data will be added to it }
+      faggregates.add(agg);
+    end;
+
+
   constructor tllvmtai_typedconstbuilder.create;
     begin
       inherited create;
@@ -202,24 +222,11 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
     var
-      agg: tai_aggregatetypedconst;
       tck: ttypedconstkind;
     begin
       tck:=aggregate_kind(def);
       if tck<>tck_simple then
-        begin
-          if not assigned(faggregates) then
-            faggregates:=tfplist.create;
-          agg:=tai_aggregatetypedconst.create(tck,def);
-          { nested aggregate -> add to parent }
-          if faggregates.count>0 then
-            tai_aggregatetypedconst(faggregates[faggregates.count-1]).addvalue(agg)
-          { otherwise add to asmlist }
-          else
-            fasmlist.concat(agg);
-          { new top level aggregate, future data will be added to it }
-          faggregates.add(agg);
-        end;
+        begin_aggregate_intern(tck,def);
       inherited;
     end;
 
@@ -235,6 +242,37 @@ implementation
           { already added to the asmlist if necessary }
           faggregates.count:=faggregates.count-1;
         end;
+      inherited;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.begin_anonymous_record;
+    begin
+      inherited;
+      begin_aggregate_intern(tck_record,nil);
+    end;
+
+
+  function tllvmtai_typedconstbuilder.end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+    var
+      agg: tai_aggregatetypedconst;
+      ele: tai_abstracttypedconst;
+      defs: tfplist;
+    begin
+      result:=inherited;
+      if assigned(result) then
+        exit;
+      if not assigned(faggregates) or
+         (faggregates.count=0) then
+        internalerror(2014080201);
+      agg:=tai_aggregatetypedconst(faggregates[faggregates.count-1]);
+      defs:=tfplist.create;
+      for ele in agg do
+        defs.add(ele.def);
+      result:=crecorddef.create_global_from_deflist(optionalname,defs,packrecords);
+      agg.def:=result;
+      { already added to the asmlist if necessary }
+      faggregates.count:=faggregates.count-1;
       inherited;
     end;
 

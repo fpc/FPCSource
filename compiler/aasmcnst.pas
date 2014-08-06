@@ -40,6 +40,8 @@ type
 
    { the type of the element and its def }
    tai_abstracttypedconst = class abstract (tai)
+    private
+     procedure setdef(def: tdef);
     protected
      fadetyp: ttypedconstkind;
      { the def of this element }
@@ -47,7 +49,7 @@ type
     public
      constructor create(_adetyp: ttypedconstkind; _def: tdef);
      property adetyp: ttypedconstkind read fadetyp;
-     property def: tdef read fdef;
+     property def: tdef read fdef write setdef;
    end;
 
    { a simple data element; the value is stored as a tai }
@@ -130,6 +132,13 @@ type
      { end a potential aggregate type. Must be paired with every
        maybe_begin_aggregate }
      procedure maybe_end_aggregate(def: tdef); virtual;
+     { similar as above, but in case
+        a) it's definitely a record
+        b) the def of the record should be automatically constructed based on
+           the types of the emitted fields
+     }
+     procedure begin_anonymous_record; virtual;
+     function end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
@@ -179,13 +188,21 @@ type
 implementation
 
    uses
-     verbose,globals,systems,
-     defutil;
+     verbose,globals,systems,widestr,
+     symtable,defutil;
 
 
 {****************************************************************************
                             tai_abstracttypedconst
  ****************************************************************************}
+
+   procedure tai_abstracttypedconst.setdef(def: tdef);
+     begin
+       { should not be changed, rewrite the calling code if this happens }
+       if assigned(fdef) then
+         Internalerror(2014080203);
+       fdef:=def;
+     end;
 
    constructor tai_abstracttypedconst.create(_adetyp: ttypedconstkind; _def: tdef);
      begin
@@ -494,6 +511,18 @@ implementation
    procedure ttai_lowleveltypedconstbuilder.maybe_end_aggregate(def: tdef);
      begin
        { do nothing }
+     end;
+
+   procedure ttai_lowleveltypedconstbuilder.begin_anonymous_record;
+     begin
+       { do nothing }
+     end;
+
+
+   function ttai_lowleveltypedconstbuilder.end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+     begin
+       { do nothing }
+       result:=nil;
      end;
 
 
