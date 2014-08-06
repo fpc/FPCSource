@@ -177,8 +177,12 @@ type
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
        negative offset), but on some platforms such negative offsets are not
-       supported this is 0 }
+       supported this is equal to the header size }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
+    protected
+     { this one always return the actual offset, called by the above (and
+       overridden versions) }
+     class function get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
    end;
    ttai_lowleveltypedconstbuilderclass = class of ttai_lowleveltypedconstbuilder;
 
@@ -433,26 +437,33 @@ implementation
 
 
    class function ttai_lowleveltypedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+     begin
+       { darwin's linker does not support negative offsets }
+       if not(target_info.system in systems_darwin) then
+         result:=0
+       else
+         result:=get_string_header_size(typ,winlikewidestring);
+     end;
+
+
+   class function ttai_lowleveltypedconstbuilder.get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
      const
        ansistring_header_size =
          { encoding }
          2 +
          { elesize }
          2 +
-  {$ifdef cpu64bitaddr}
+{$ifdef cpu64bitaddr}
          { alignment }
          4 +
-  {$endif cpu64bitaddr}
+{$endif cpu64bitaddr}
          { reference count }
          sizeof(pint) +
          { length }
          sizeof(pint);
        unicodestring_header_size = ansistring_header_size;
      begin
-       { darwin's linker does not support negative offsets }
-       if not(target_info.system in systems_darwin) then
-         result:=0
-       else case typ of
+       case typ of
          st_ansistring:
            result:=ansistring_header_size;
          st_unicodestring:

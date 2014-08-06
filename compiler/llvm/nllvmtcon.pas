@@ -431,7 +431,7 @@ implementation
   class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
     begin
       { LLVM does not support labels in the middle of a declaration }
-      result:=0;
+      result:=get_string_header_size(typ,winlikewidestring);
     end;
 
 
