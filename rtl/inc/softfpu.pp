@@ -2860,6 +2860,16 @@ Procedure
     roundAndPackFloat64( zSign, zExp, zSig0, zSig1, zSig2, c );
   End;
 
+{*
+----------------------------------------------------------------------------
+Takes an abstract floating-point value having sign `zSign', exponent `zExp',
+and significand `zSig', and returns the proper double-precision floating-
+point value corresponding to the abstract input.  This routine is just like
+`roundAndPackFloat64' except that `zSig' does not have to be normalized.
+Bit 63 of `zSig' must be zero, and `zExp' must be 1 less than the ``true''
+floating-point exponent.
+----------------------------------------------------------------------------
+*}
 
 function normalizeRoundAndPackFloat64(zSign: flag; zExp: int16; zSig: bits64): float64;
   var
