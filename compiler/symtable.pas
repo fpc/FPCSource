@@ -102,6 +102,7 @@ interface
           procedure alignrecord(fieldoffset:asizeint;varalign:shortint);
           procedure addfield(sym:tfieldvarsym;vis:tvisibility);
           procedure addfieldlist(list: tfpobjectlist; maybereorder: boolean);
+          function findfieldbyoffset(offset:asizeint): tfieldvarsym;
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
@@ -1236,6 +1237,25 @@ implementation
                 addfield(fieldvs,fieldvs.visibility);
               end;
           end;
+      end;
+
+
+    function tabstractrecordsymtable.findfieldbyoffset(offset: asizeint): tfieldvarsym;
+      var
+        i: longint;
+        sym: tsym;
+      begin
+        for i:=0 to SymList.count-1 do
+          begin
+            sym:=tsym(symlist[i]);
+            if (sym.typ=fieldvarsym) and
+               (tfieldvarsym(sym).fieldoffset=offset) then
+              begin
+                result:=tfieldvarsym(sym);
+                exit;
+              end;
+          end;
+        result:=nil;
       end;
 
 
