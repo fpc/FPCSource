@@ -2868,6 +2868,8 @@ point value corresponding to the abstract input.  This routine is just like
 `roundAndPackFloat64' except that `zSig' does not have to be normalized.
 Bit 63 of `zSig' must be zero, and `zExp' must be 1 less than the ``true''
 floating-point exponent.
+--
+additionally the Pascal version should support Bit 63 set in 'zSig'
 ----------------------------------------------------------------------------
 *}
 
@@ -2876,7 +2878,10 @@ function normalizeRoundAndPackFloat64(zSign: flag; zExp: int16; zSig: bits64): f
     shiftCount: int8;
   begin
     shiftCount := countLeadingZeros64( zSig ) - 1;
-    result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
+    if ( shiftCount <= 0) then
+      result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shr (-shiftCount))
+    else
+      result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
   end;
 
 {*
