@@ -45,10 +45,41 @@ type
   end;
   tx86pointerdefclass = class of tx86pointerdef;
 
+  { returns a pointerdef for def, reusing an existing one in case it exists
+    in the current module }
+  function getx86pointerdef(def: tdef;x86typ:tx86pointertyp): tpointerdef;
+
 implementation
 
   uses
-    globals, verbose;
+    globals, verbose, cclasses,
+    symbase, fmodule;
+
+  function getx86pointerdef(def: tdef;x86typ:tx86pointertyp): tpointerdef;
+    var
+      res: PHashSetItem;
+      oldsymtablestack: tsymtablestack;
+    begin
+      if not assigned(current_module) then
+        internalerror(2011071101);
+      res:=current_module.x86ptrdefs[x86typ].FindOrAdd(@def,sizeof(def));
+      if not assigned(res^.Data) then
+        begin
+          { since these pointerdefs can be reused anywhere in the current
+            unit, add them to the global/staticsymtable }
+          oldsymtablestack:=symtablestack;
+          { do not simply push/pop current_module.localsymtable, because
+            that can have side-effects (e.g., it removes helpers) }
+          symtablestack:=nil;
+          res^.Data:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
+          if assigned(current_module.localsymtable) then
+            current_module.localsymtable.insertdef(tdef(res^.Data))
+          else
+            current_module.globalsymtable.insertdef(tdef(res^.Data));
+          symtablestack:=oldsymtablestack;
+        end;
+      result:=tpointerdef(res^.Data);
+    end;
 
 {****************************************************************************
                              tx86pointerdef
