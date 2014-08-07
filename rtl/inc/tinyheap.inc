@@ -13,18 +13,29 @@
 
  **********************************************************************}
 
+{$ifdef cpui8086}
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    {$define FPC_HEAP_HUGE}
+  {$endif}
+{$endif cpui8086}
+
+{$ifdef FPC_HEAP_HUGE}
+  {$HugePointerArithmeticNormalization On}
+  {$HugePointerComparisonNormalization On}
+{$endif FPC_HEAP_HUGE}
+
     type
       { TTinyHeapMemBlockSize holds the size of an *allocated* memory block,
         and is written at position:
           memblockstart-sizeof(TTinyHeapMemBlockSize) }
-      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize;
+      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
       TTinyHeapMemBlockSize = PtrUInt;
 
       { TTinyHeapFreeBlockSize holds the size of a *free* memory block, as a
         part of the TTinyHeapBlock structure }
       TTinyHeapFreeBlockSize = PtrUInt;
 
-      TTinyHeapPointerArithmeticType = ^Byte;
+      TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
 
     const
       TinyHeapMinBlock = 4*sizeof(pointer);
@@ -261,7 +272,7 @@
         if (ASize and 1) <> 0 then
           Dec(ASize);
         PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
-        FreeMem(PTinyHeapMemBlockSize(AAddress) + 1, ASize - SizeOf(TTinyHeapMemBlockSize));
+        FreeMem(Pointer(PTinyHeapMemBlockSize(AAddress) + 1), ASize - SizeOf(TTinyHeapMemBlockSize));
       end;
 
     const
