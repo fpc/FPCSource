@@ -309,10 +309,16 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-procedure InitNearHeap;
+procedure InitDosHeap;
+type
+{$if defined(FPC_X86_FAR_DATA) or defined(FPC_X86_HUGE_DATA)}
+  TPointerArithmeticType = HugePointer;
+{$else}
+  TPointerArithmeticType = Pointer;
+{$endif}
 begin
   SetMemoryManager(TinyHeapMemoryManager);
-  RegisterTinyHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
+  RegisterTinyHeapBlock(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
@@ -366,7 +372,7 @@ begin
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 { Setup heap }
-  InitNearHeap;
+  InitDosHeap;
   SysInitExceptions;
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
