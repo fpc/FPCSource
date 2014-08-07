@@ -219,7 +219,7 @@ const
 implementation
 
   uses
-    globals, cpuinfo, verbose;
+    globals, cpuinfo, verbose, fmodule;
 
 
   function is_proc_far(p: tabstractprocdef): boolean;
@@ -470,5 +470,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+
+  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 
