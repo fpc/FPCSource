@@ -1825,7 +1825,7 @@ type
   function isc_sqlcode(_para1:PISC_STATUS):ISC_LONG; extdecl; external gdslib;
 
   // Available in Firebird 2.5+
-  function fb_sqlstate(_para1: PAnsiChar;_para2:PISC_STATUS;): ISC_STATUS ; extdecl; 
+  function fb_sqlstate(_para1: PAnsiChar;_para2:PISC_STATUS): ISC_STATUS ; extdecl;  external gdslib;
 
   procedure isc_sql_interprete(_para1:smallint; _para2:Pchar; _para3:smallint); extdecl; external gdslib;
 
@@ -2104,7 +2104,7 @@ type
   function fb_shutdown:int; extdecl; external gdslib;
 
   // Available in Firebird 2.5+  
-  function fb_sqlstate:ISC_STATUS; extdecl; 
+  function fb_sqlstate:ISC_STATUS; extdecl;external gdslib; 
 
   function isc_attach_database:ISC_STATUS; extdecl; external gdslib;
 
@@ -2355,7 +2355,7 @@ var
   isc_start_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; args:array of const):ISC_STATUS; cdecl;
   isc_sqlcode : function (_para1:PISC_STATUS):ISC_LONG; extdecl;
   // Available in Firebird 2.5+
-  function fb_sqlstate(_para1: PAnsiChar;_para2:PISC_STATUS;):ISC_STATUS; extdecl; 
+  fb_sqlstate : function(_para1: PAnsiChar;_para2:PISC_STATUS):ISC_STATUS; extdecl; 
   isc_sql_interprete : procedure (_para1:smallint; _para2:Pchar; _para3:smallint); extdecl;
   isc_transaction_info : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
   isc_transact_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl;
