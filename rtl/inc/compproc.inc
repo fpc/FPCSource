@@ -747,7 +747,7 @@ function fpc_longword_to_double(i: longword): double; compilerproc;
 function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$endif}; compilerproc;
 procedure fpc_longjmp(var s : jmp_buf; value : {$ifdef CPU16}smallint{$else}longint{$endif}); compilerproc;
 
-{$ifdef i8086}
+{$ifdef cpui8086}
 { i8086 huge pointer helpers }
 function fpc_hugeptr_add_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
 function fpc_hugeptr_add_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
@@ -765,4 +765,4 @@ function fpc_hugeptr_cmp_normalized_b(p1, p2: HugePointer): Boolean; compilerpro
 function fpc_hugeptr_cmp_normalized_be(p1, p2: HugePointer): Boolean; compilerproc;
 function fpc_hugeptr_cmp_normalized_a(p1, p2: HugePointer): Boolean; compilerproc;
 function fpc_hugeptr_cmp_normalized_ae(p1, p2: HugePointer): Boolean; compilerproc;
-{$endif i8086}
+{$endif cpui8086}
