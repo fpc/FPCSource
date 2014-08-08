@@ -311,7 +311,7 @@ end;
 
 procedure InitDosHeap;
 type
-{$if defined(FPC_X86_FAR_DATA) or defined(FPC_X86_HUGE_DATA)}
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
   TPointerArithmeticType = HugePointer;
 {$else}
   TPointerArithmeticType = Pointer;
