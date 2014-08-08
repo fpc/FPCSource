@@ -354,6 +354,13 @@ begin
     CheckError('Close', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
+{$ELSE}
+  // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
+  // Required before unloading library; has no effect on non-embedded client
+  if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+  begin
+    //todo: log error; still try to unload library below as the timeout may have been insufficient
+  end;
 {$EndIf}
 end;
 
