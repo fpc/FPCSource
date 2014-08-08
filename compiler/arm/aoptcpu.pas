@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+uses cgbase, cgutils, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -50,6 +50,7 @@ Type
       If there is none, it returns false and
       sets p1 to nil                                                     }
     Function GetNextInstructionUsingReg(Current: tai; Out Next: tai; reg: TRegister): Boolean;
+    Function GetNextInstructionUsingRef(Current: tai; Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
 
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
@@ -79,7 +80,7 @@ Implementation
     cutils,verbose,globtype,globals,
     systems,
     cpuinfo,
-    cgobj,cgutils,procinfo,
+    cgobj,procinfo,
     aasmbase,aasmdata;
 
   function CanBeCond(p : tai) : boolean;
@@ -329,6 +330,27 @@ Implementation
             RegInInstruction(reg,Next) or
             is_calljmp(taicpu(Next).opcode) or
             RegModifiedByInstruction(NR_PC,Next);
+    end;
+
+  function TCpuAsmOptimizer.GetNextInstructionUsingRef(Current: tai;
+    Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
+    begin
+      Next:=Current;
+      repeat
+        Result:=GetNextInstruction(Next,Next);
+        if Result and
+           (Next.typ=ait_instruction) and
+           (taicpu(Next).opcode in [A_LDR, A_STR]) and
+           RefsEqual(taicpu(Next).oper[1]^.ref^,ref) then
+            {We've found an instruction LDR or STR with the same reference}
+            exit;
+      until not(Result) or
+            (Next.typ<>ait_instruction) or
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            is_calljmp(taicpu(Next).opcode) or
+            (StopOnStore and (taicpu(Next).opcode in [A_STR, A_STM])) or
+            RegModifiedByInstruction(NR_PC,Next);
+      Result:=false;
     end;
 
 {$ifdef DEBUG_AOPTCPU}
