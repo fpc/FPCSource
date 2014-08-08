@@ -634,10 +634,13 @@ Implementation
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        (taicpu(p).oppostfix=PF_None) and
-                       GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
-                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
-                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                       (taicpu(p).condition=C_None) and
+                       GetNextInstructionUsingRef(p,hp1,taicpu(p).oper[1]^.ref^) and
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition], [PF_None]) and
+                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       not(RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
+                       ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.index, p, hp1))) and
+                       ((taicpu(hp1).oper[1]^.ref^.base=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.base, p, hp1))) then
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                           begin
