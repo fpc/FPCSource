@@ -932,6 +932,12 @@ implementation
 {$endif vtentry}
          if is_class(_class) then
            current_asmdata.asmlists[al_globals].concatlist(templist);
+
+        { write indirect VMT symbol }
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(_class.vmt_mangledname(true),AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.vmt_mangledname(false),AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname(true)));
+
         templist.Free;
       end;
 
