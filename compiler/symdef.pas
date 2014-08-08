@@ -419,7 +419,7 @@ interface
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
           function  rtti_mangledname(rt:trttitype;indirect:boolean=false):string;override;
-          function  vmt_mangledname : TSymStr;
+          function  vmt_mangledname(indirect:boolean=false) : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
@@ -6402,11 +6402,16 @@ implementation
       end;
 
 
-    function tobjectdef.vmt_mangledname : TSymStr;
+    function tobjectdef.vmt_mangledname(indirect:boolean) : TSymStr;
+      var
+        suffix : TSymStr;
       begin
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_n_object_has_no_vmt,objrealname^);
-        vmt_mangledname:=make_mangledname('VMT',owner,objname^);
+        suffix:=objname^;
+        if indirect then
+          suffix:=suffix+'$indirect';
+        vmt_mangledname:=make_mangledname('VMT',owner,suffix);
       end;
 
 
